@@ -1,0 +1,284 @@
+@import '../../node_modules/@grafana/toolkit/sass/_variables.dark.scss';
+@import 'heatmapchart';
+
+.heatmapLabel > div {
+  color: $white;
+}
+
+.heatmapchart-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.heatmapchart-panel--legend-right {
+  flex-direction: row;
+}
+
+.heatmapchart-panel--legend-right .heatmapchart-legend {
+  flex: 0 1 10px;
+  height: 100%;
+}
+
+.heatmapchart-panel--legend-right .heatmapchart-legend-series {
+  display: block;
+  padding-left: 0px;
+}
+
+.heatmapchart-panel--legend-right .heatmapchart-legend-table .heatmapchart-legend-series {
+  display: table-row;
+}
+
+.heatmapchart-legend__container {
+  height: 100%;
+}
+
+.heatmapchart-panel__chart {
+  position: relative;
+  cursor: crosshair;
+  flex-grow: 1;
+  top: 10px;
+}
+
+.datapoints-warning {
+  pointer: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  margin-top: -50px;
+  margin-left: -100px;
+  width: 200px;
+  text-align: center;
+  cursor: auto;
+  padding: 10px;
+}
+
+.heatmapchart-legend {
+  flex: 0 1 auto;
+  margin: 0 1rem;
+  text-align: center;
+  padding-top: 6px;
+  position: relative;
+}
+
+.heatmapchart-legend .popover-content {
+  padding: 0;
+}
+
+.heatmapchart-legend-icon {
+  position: relative;
+  padding-right: 4px;
+  top: 1px;
+}
+
+.heatmapchart-legend-icon,
+.heatmapchart-legend-alias,
+.heatmapchart-legend-value {
+  cursor: pointer;
+  float: left;
+  white-space: nowrap;
+  font-size: 85%;
+  text-align: left;
+  color: #d8d9da;
+}
+
+.heatmapchart-legend-icon.current::before {
+  content: 'Current: ';
+}
+
+.heatmapchart-legend-icon.max::before {
+  content: 'Max: ';
+}
+
+.heatmapchart-legend-icon.min::before {
+  content: 'Min: ';
+}
+
+.heatmapchart-legend-icon.total::before {
+  content: 'Total: ';
+}
+
+.heatmapchart-legend-icon.avg::before {
+  content: 'Avg: ';
+}
+
+.heatmapchart-legend-alias.current::before {
+  content: 'Current: ';
+}
+
+.heatmapchart-legend-alias.max::before {
+  content: 'Max: ';
+}
+
+.heatmapchart-legend-alias.min::before {
+  content: 'Min: ';
+}
+
+.heatmapchart-legend-alias.total::before {
+  content: 'Total: ';
+}
+
+.heatmapchart-legend-alias.avg::before {
+  content: 'Avg: ';
+}
+
+.heatmapchart-legend-value.current::before {
+  content: 'Current: ';
+}
+
+.heatmapchart-legend-value.max::before {
+  content: 'Max: ';
+}
+
+.heatmapchart-legend-value.min::before {
+  content: 'Min: ';
+}
+
+.heatmapchart-legend-value.total::before {
+  content: 'Total: ';
+}
+
+.heatmapchart-legend-value.avg::before {
+  content: 'Avg: ';
+}
+
+.heatmapchart-legend-icon .fa {
+  font-size: 135%;
+  position: relative;
+  top: 1px;
+}
+
+.heatmapchart-legend-series {
+  float: left;
+  white-space: nowrap;
+  padding-left: 10px;
+}
+
+.heatmapchart-legend-series--right-y {
+  float: right;
+}
+
+.heatmapchart-legend-value {
+  padding-left: 6px;
+}
+
+.heatmapchart-legend-table tbody {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  padding-bottom: 1px;
+  padding-right: 5px;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-series {
+  display: table-row;
+  float: none;
+  padding-left: 0;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-series--right-y {
+  float: none;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-series--right-y .heatmapchart-legend-alias::after {
+  content: '(right-y)';
+  padding: 0 5px;
+  color: #8e8e8e;
+}
+
+.heatmapchart-legend-table td,
+.heatmapchart-legend-alias,
+.heatmapchart-legend-icon,
+.heatmapchart-legend-value {
+  float: none;
+  display: table-cell;
+  white-space: nowrap;
+  padding: 2px 10px;
+  text-align: right;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-icon {
+  width: 5px;
+  padding: 0;
+  top: 0;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-icon .fa {
+  top: 4px;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-value {
+  padding-left: 15px;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-alias {
+  padding-left: 7px;
+  text-align: left;
+  width: 95%;
+  max-width: 650px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-series:nth-child(odd) {
+  background: #262628;
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-value.current::before {
+  content: '';
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-value.max::before {
+  content: '';
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-value.min::before {
+  content: '';
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-value.total::before {
+  content: '';
+}
+
+.heatmapchart-legend-table .heatmapchart-legend-value.avg::before {
+  content: '';
+}
+
+.heatmapchart-legend-table th {
+  text-align: right;
+  padding: 0px 10px 1px 0;
+  font-weight: bold;
+  color: #33b5e5;
+  font-size: 85%;
+  white-space: nowrap;
+}
+
+.heatmapchart-legend-series-hidden .heatmapchart-legend-value,
+.heatmapchart-legend-series-hidden .heatmapchart-legend-alias {
+  color: #8e8e8e;
+}
+
+.heatmapchart-tooltip {
+  white-space: nowrap;
+  font-size: 12px;
+  background-color: #141414;
+  color: #d8d9da;
+}
+
+.heatmapchart-tooltip .heatmapchart-tooltip-time {
+  text-align: center;
+  position: relative;
+  top: -3px;
+  padding: 0.2rem;
+  font-weight: bold;
+  color: #d8d9da;
+}
+
+.heatmapchart-tooltip .heatmapchart-tooltip-value {
+  display: table-cell;
+  font-weight: bold;
+  padding-left: 15px;
+  text-align: right;
+}

@@ -1,0 +1,12 @@
+total_containers: 10000  # Total container number in the topology
+container_volumes: [1]  # Only one type of container is now supported
+stop_number: [2, 3]  # Future stop number for prediction
+order_generate_mode: unfixed
+
+container_usage_proportion:  # How many percentage of containers are occupied
+  period: 100  # Period of total container usage proportion distribution function
+  sample_nodes:  # Data generator will incorporate following sample nodes into a continuous curve
+    - [10, 0.3]
+    - [40, 0.7]
+    - [80, 0.6]
+  sample_noise: 0  # After adding noise, real-time proportion value will be clipped into [0, 1]

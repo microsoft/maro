@@ -1,0 +1,2 @@
+redis
+pyzmq==18.1.1

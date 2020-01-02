@@ -1,55 +1,50 @@
----
-page_type: sample
-languages:
-- csharp
-products:
-- dotnet
-description: "Add 150 character max description"
-urlFragment: "update-this-to-unique-url-stub"
----
-
-# Official Microsoft Sample
-
-<!-- 
-Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
-
-Guidance on onboarding samples to docs.microsoft.com/samples: https://review.docs.microsoft.com/help/onboard/admin/samples/process/onboarding?branch=master
-
-Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
--->
-
-Give a short description for your sample here. What does it do and why is it important?
+![MARO LOGO](./docs/source/images/logo.svg)
+MARO(Multi-Agent Resource Optimization) is a multi-agent resource optimization platform, which is an end-to-end solution for both academic research and industry application. A super-fast and highly extensible simulator system and a scalable distributed system are provided, which can well support both small scale single host exploration and large scale distributed application. Some out-of-box scenarios, algorithms and related baselines are provided for a quick hands-on exploration.
 
 ## Contents
 
-Outline the file contents of the repository. It helps users navigate the codebase, build configuration and any related assets.
-
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `src`             | Sample source code.                        |
-| `.gitignore`      | Define what to ignore at commit time.      |
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `README.md`       | This README file.                          |
-| `LICENSE`         | The license for the sample.                |
+| `maro`            | MARO source code.                          |
+| `examples`        | Showcase of MARO.                          |
+| `tools`           | Gulp-based helper scripts.                 |
+| `notebooks`       | MARO quick-start notebooks.                |
 
-## Prerequisites
+## Run from Source Code
+### Rerequisites
+- [Python >= 3.6](https://www.python.org/downloads/)
+- C++ Compiler
+    - Linux or Mac OS X: `gcc`
+    - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
 
-Outline the required components and tools that a user might need to have on their machine in order to run the sample. This can be anything from frameworks, SDKs, OS versions or IDE releases.
+### Build MARO
 
-## Setup
+```sh
+pip install -r requirements.dev.txt
+export PYTHONPATH=$PWD:$PYTHONPATH
+bash build_maro.sh
+```
 
-Explain how to prepare the sample once the user clones or downloads the repository. The section should outline every step necessary to install dependencies and set up any settings (for example, API keys and output folders).
+### Run Examples
 
-## Running the sample
+```sh
+cd examples/ecr/q_learning/single_host_mode
+bash silent_run.sh
+```
 
-Outline step-by-step instructions to execute the sample and see its output. Include steps for executing the sample from the IDE, starting specific services in the Azure portal or anything related to the overall launch of the code.
+### Run in Docker `(only support linux currently)`
+Refer to [prerequisites](./tools/README.md) for details.
 
-## Key concepts
+```sh
+cd tools
+gulp l/build_image
+gulp l/launch_container
+gulp l/login_container
+cd examples/ecr/q_learning/single_host_mode
+bash silent_run.sh
+```
 
-Provide users with more context on the tools and services used in the sample. Explain some of the code that is being used and how services interact with each other.
-
-## Contributing
+### Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -62,3 +57,12 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Reference Papers `(TODO)`
+<!-- TODO -->
+
+## License
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+Licensed under the [MIT](./LICENSE) License.
