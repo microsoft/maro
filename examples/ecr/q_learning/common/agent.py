@@ -49,7 +49,6 @@ class Agent(object):
 
         if reward_shaping == 'gf':
             self._reward_shaping = GoldenFingerReward(topology=self._topology, action_space=self._action_shaping.action_space, base=10)
-            print(self._reward_shaping.__class__.__name__)
         else:
             self._reward_shaping = TruncateReward(agent_idx_list=agent_idx_list)
 
