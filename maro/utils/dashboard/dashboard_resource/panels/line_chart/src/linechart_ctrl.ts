@@ -164,6 +164,16 @@ class LineChartCtrl extends MetricsPanelCtrl {
           .key((d: any) => {
             return d.x;
           })
+          .sortKeys((a: any, b: any) => {
+            const nA = Number(a);
+            const nB = Number(b);
+            if (isNaN(nA) || isNaN(nB)) {
+              return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+            }
+            else {
+              return nA < nB ? -1 : nA > nB ? 1 : nA >= nB ? 0 : NaN;
+            }
+          })
           .entries(dataSeries);
         const groupedData: any[] = [];
         for (let j = 0; j < groupedSeries.length; j++) {

@@ -180,7 +180,6 @@ class DQN(object):
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item()}
-                            scalars[str(i)] = q_values[i].item()
                             self._dashboard.upload_q_value(scalars, current_ep, i)
 
                 return False, q_values_batch.max(1)[1][0].item()
