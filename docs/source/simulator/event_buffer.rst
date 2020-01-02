@@ -29,24 +29,30 @@ Event
 -----
 Events are the basic ingredients of our environment's workflow.
 Generally, we can define specified handler functions for every event types.
-For example, here's a piece of code that uses the event mechanism for prime factorization:
+For example, here's a piece of code that uses the event mechanism for Euler's sieve method:
 
 .. code-block:: python
 
-    def factorize(event: Event):
-        # Firstly, we define a function that factorizes integral event payloads
-        x = event.payload
-        factor = 2
-        while x > 1:
-            while x % factor == 0:
-                x = x / factor
-                print(factor)
-            factor += 1
+    def sieve(event: Event):
+        # Firstly, we define a function that sieves out all prime numbers that smaller than payload of the input event
+        max_num = event.payload
+        is_prime = [True for _ in range(max_num)]
+        primes = []
+        for i in range(2, max_num):
+            if is_prime[i]:
+                primes.append(i)
+                print(i)
+            for prime in primes:
+                if i * prime >= max_num:
+                    break
+                is_prime[i * prime] = False
+                if i % prime == 0:
+                    break
 
-    event_buffer.register_handler(0, decomposition)
+    event_buffer.register_handler(0, sieve)
     # Then register this function as handler for events of type 0
-    event: Event = event_buffer.gen_atom_event(tick=5, event_type=0, payload=24)
-    # Generate an atom event with payload 24 (to be factorized) of type 0 to be executed at tick 5
+    event: Event = event_buffer.gen_atom_event(tick=5, event_type=0, payload=50)
+    # Generate an atom event with payload 50 (as the max number of sieve) of type 0 to be executed at tick 5
     event_buffer.insert_event(event)
     # Insert it into event buffer
     event_buffer.execute(5)
