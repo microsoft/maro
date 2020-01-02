@@ -12,7 +12,7 @@ from maro.distributed import Proxy
 
 class MockSimulator:
     def __init__(self):
-        self.proxy = Proxy(receive_enabled=True, audience=['learner'], redis_host='localhost', redis_port=6379)
+        self.proxy = Proxy(receive_enabled=True, audience_list=['learner'], redis_host='localhost', redis_port=6379)
 
     def await_model_from_learner(self, ep):
         """

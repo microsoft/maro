@@ -9,7 +9,7 @@ from maro.distributed import dist
 from maro.distributed import Proxy
 
 # create a proxy for communication
-proxy = Proxy(receive_enabled=True, audience=['env_runner'], redis_host='localhost', redis_port=6379)
+proxy = Proxy(receive_enabled=True, audience_list=['env_runner'], redis_host='localhost', redis_port=6379)
 
 ############################### start of message handler definitions ###############################
 
