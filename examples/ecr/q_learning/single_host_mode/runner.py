@@ -20,8 +20,11 @@ from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+from examples.ecr.q_learning.common.dashboard_ex import Dashboard_user
 from maro.simulator.scenarios.ecr.common import EcrEventType
+
+
+####################################################### START OF INITIAL_PARAMETERS #######################################################
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 
@@ -42,8 +45,8 @@ MAX_TICK = config.env.max_tick
 MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
-PHASE_SPLIT_POINT = config.train.exploration.phase_split_point
-FIRST_PHASE_REDUCE_PROPORTION = config.train.exploration.first_phase_reduce_proportion
+PHASE_SPLIT_POINT = config.train.exploration.phase_split_point  # exploration two phase split point
+FIRST_PHASE_REDUCE_PROPORTION = config.train.exploration.first_phase_reduce_proportion  # first phase reduce proportion of max_eps 
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 LEARNING_RATE = config.train.dqn.lr
 DROPOUT_P = config.train.dqn.dropout_p
@@ -67,6 +70,7 @@ if config.train.reward_shaping not in {'gf', 'tc'}:
 
 REWARD_SHAPING = config.train.reward_shaping
 
+####################################################### END OF INITIAL_PARAMETERS #######################################################
 
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
@@ -77,7 +81,7 @@ class Runner:
         self.dashboard = None
 
         if dashboard_enable:
-            self.dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
+            self.dashboard = Dashboard_user(config.experiment_name, LOG_FOLDER)
             self.dashboard.setup_connection()
 
         self._topology = topology
@@ -137,12 +141,15 @@ class Runner:
                                           reward_shaping=REWARD_SHAPING,
                                           batch_num=BATCH_NUM, batch_size=BATCH_SIZE,
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
+                                          agent_idx_list=agent_idx_list,
                                           log_enable=AGENT_LOG_ENABLE, log_folder=LOG_FOLDER,
                                           dashboard_enable=DASHBOARD_ENABLE, dashboard=self.dashboard)
 
         return agent_dict
 
     def start(self):
+        if self._dashboard_enable:
+            self.dashboard.echo_dashboard_links()
 
         pbar = tqdm(range(self._max_train_ep))
 
@@ -156,20 +163,13 @@ class Runner:
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
                 _, decision_event, is_done = self._env.step(action)
 
-            self._print_summary(ep=ep, is_train=True)
+            if self._log_enable:
+                self._print_summary(ep=ep, is_train=True)
 
-            need_train = True
             for agent in self._agent_dict.values():
-                agent.fulfill_cache(
-                    agent_idx_list=self._env.agent_idx_list, snapshot_list=self._env.snapshot_list, current_ep=ep)
-                agent.put_experience()
-                agent.clear_cache()
-                if agent.experience_pool.size['info'] < MIN_TRAIN_EXP_NUM:
-                    need_train = False
-
-            if need_train:
-                for agent in self._agent_dict.values():
-                    agent.train(current_ep=ep)
+                agent.calculate_offline_rewards(snapshot_list=self._env.snapshot_list, current_ep=ep)
+                agent.store_experience()
+                agent.train(current_ep=ep)
 
             self._env.reset()
 
