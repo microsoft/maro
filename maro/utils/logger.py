@@ -62,22 +62,26 @@ def msgformat(logfunc):
 
 
 class Logger:
-    """A simple wrapper for logging, the console logging level can be set by environment variable, which
-        also can be redirected.
-        e.g. export LOG_LEVEL=DEBUG.
-        Supported log level:
-                            DEBUG
-                            INFO
-                            WARN
-                            ERROR
-                            CRITICAL
-                            PROGRESS
-        the file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
+    """
+    A simple wrapper for logging, the console logging level can be set by environment variable, which
+    also can be redirected.
+
+    e.g. export LOG_LEVEL=DEBUG.
+
+    Supported log levels
+        - DEBUG
+        - INFO
+        - WARN
+        - ERROR
+        - CRITICAL
+        - PROGRESS
+
+    the file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
 
     Args:
         tag (str): Log tag for stream and file output.
-        format_ (LogFormat): Predefined formatter, the default value is LogFormat.full.
-                        i.e. LogFormat.full: full time | host | user | pid | tag | level | msg
+        format_ (LogFormat): Predefined formatter, the default value is LogFormat.full. \n
+                        i.e. LogFormat.full: full time | host | user | pid | tag | level | msg \n
                              LogFormat.simple: simple time | tag | level | msg
         dump_folder (str): Log dumped folder, the default value is the current folder. The dumped log level is logging.DEBUG.
                         The full path of the dumped log file is `dump_folder/tag.log`.

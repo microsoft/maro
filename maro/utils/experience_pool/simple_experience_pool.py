@@ -101,11 +101,12 @@ class SimpleExperiencePool(AbsExperiencePool):
         return res
 
     def apply_multi_filters(self, category_filters: CategoryFilter, return_idx: bool = True) -> Dict[object, List]:
-        """Multi-category batch filters.
+        """
+        Multi-category batch filters.
 
         Args:
-            category_filters ([Tuple[object, List[Callable[[Tuple[int, object]], Tuple[int, object]]]]]): Multi-category filter list.
-                i.e. [('info1', [lambda tup: tup[1]['a'] == 1 and tup[1]['b'] == 1])]
+            category_filters ([Tuple[object, List[Callable[[Tuple[int, object]], Tuple[int, object]]]]]): Multi-category filter list. \n
+                i.e. [('info1', [lambda tup: tup[1]['a'] == 1 and tup[1]['b'] == 1])] \n
                      [('info1', [lambda tup: tup[1]['a'] == 1, lambda tup: tup[1]['b'] == 1]), ('info2', [lambda tup: tup[1]['c'] == 1)]
             return_idx (bool): Return item index or item.
         Returns:
@@ -122,8 +123,8 @@ class SimpleExperiencePool(AbsExperiencePool):
         """Multi-category batch samplers.
 
         Args:
-            category_samplers ([Tuple[object, List[Tuple[Callable[[int, object], Tuple[int, object]], int]]]]): Multi-category sampler list.
-                i.e. [('info1', [(lambda i, o: (i, o['a']), 3), (lambda i, o: (i, o['b']), 10)])]
+            category_samplers ([Tuple[object, List[Tuple[Callable[[int, object], Tuple[int, object]], int]]]]): Multi-category sampler list. \n
+                i.e. [('info1', [(lambda i, o: (i, o['a']), 3), (lambda i, o: (i, o['b']), 10)])] \n
                      [('info1', [(lambda i, o: (i, o['a']), 3), (lambda i, o: (i, o['b']), 10)]), ('info2', [(lambda i, o: (i, o['c']), 3), (lambda i, o: (i, o['e']), 10)])]
             return_idx (bool): Return item index or item.
         Returns:

@@ -23,7 +23,7 @@ Once an event is generated, it will be appended to the rear of event list at its
 or to the rear of children event list of specified cascade event.
 Except the executing one, all events in the buffer is at PENDING state.
 
-.. image:: ../images/event_buffer_0.png
+.. image:: ../images/event_buffer.png
 
 Event
 -----
