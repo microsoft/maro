@@ -20,7 +20,7 @@ from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
-from examples.ecr.q_learning.common.dashboard_ex import Dashboard_user
+from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
 from maro.simulator.scenarios.ecr.common import EcrEventType
 
 
@@ -81,7 +81,7 @@ class Runner:
         self.dashboard = None
 
         if dashboard_enable:
-            self.dashboard = Dashboard_user(config.experiment_name, LOG_FOLDER)
+            self.dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
             self.dashboard.setup_connection()
 
         self._topology = topology
@@ -148,9 +148,6 @@ class Runner:
         return agent_dict
 
     def start(self):
-        if self._dashboard_enable:
-            self.dashboard.echo_dashboard_links()
-
         pbar = tqdm(range(self._max_train_ep))
 
         for ep in pbar:
