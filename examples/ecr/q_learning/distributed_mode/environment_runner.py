@@ -11,9 +11,10 @@ from tqdm import tqdm
 import yaml
 
 # private lib
-from examples.ecr.q_learning.distributed_mode.env_learner.message_type import MsgType, MsgKey
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, MsgKey
 
 from maro.simulator import Env
+from maro.distributed import Proxy, Message
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
 from examples.ecr.q_learning.common.agent import Agent
@@ -21,7 +22,7 @@ from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
 from examples.ecr.q_learning.single_host_mode.runner import Runner
-from examples.utils import log, get_proxy, generate_random_rgb
+from examples.utils import log, get_peers, generate_random_rgb
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 
@@ -63,6 +64,7 @@ DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
 
 COMPONENT = 'environment_runner'
+INDEX = os.environ.get('INDEX', None)
 
 
 class EnvRunner(Runner):
@@ -71,26 +73,27 @@ class EnvRunner(Runner):
         super().__init__(scenario, topology, max_tick, max_train_ep, max_test_ep, eps_list)
         self._agent_idx_list = self._env.agent_idx_list
         self._agent_2_learner = {self._agent_idx_list[i]: 'learner_' + str(i) for i in range(len(self._agent_idx_list))}
-        self._proxy = get_proxy(COMPONENT, config, logger=self._logger)
+        self._proxy = Proxy(group_name=os.environ['GROUP'],
+                            component_name=COMPONENT if INDEX is None else '_'.join([COMPONENT, str(INDEX)]),
+                            peer_name_list=get_peers(COMPONENT, config.distributed),
+                            redis_address=(config.redis.host, config.redis.port),
+                            logger=self._logger)
 
-    def launch(self, group_name, component_name):
+    def launch(self):
         """
         setup the communication and trigger the training process.
-
-        Args:
-            group_name (str): identifier for the group of all distributed components
-            component_name (str): unique identifier in the current group
         """
-        self._proxy.join(group_name, component_name)
-        self.send_net_parameters_to_learner()
-        pbar = tqdm(range(MAX_TRAIN_EP))
-        for ep in pbar:
-            pbar.set_description('train episode')
-            self.start(ep)
-            self.force_sync()
+        with self._proxy:
+            self._proxy.join()
+            self.send_net_parameters_to_learner()
+            pbar = tqdm(range(MAX_TRAIN_EP))
+            for ep in pbar:
+                pbar.set_description('train episode')
+                self.start(ep)
+                self.force_sync()
 
-        self.send_env_checkout()
-        self._test()
+            self.send_env_checkout()
+            self._test()
 
     def start(self, episode):
         """
@@ -111,9 +114,10 @@ class EnvRunner(Runner):
         self._print_summary(ep=episode, is_train=True)
 
         for id_, agent in self._agent_dict.items():
-            agent.calculate_offline_rewards(
+            agent.fulfill_cache(
                 self._env.agent_idx_list, self._env.snapshot_list, current_ep=episode)
             self.send_experience(id_, episode)
+            agent.clear_cache()
 
         self._env.reset()
 
@@ -123,10 +127,11 @@ class EnvRunner(Runner):
         """
         for agent_id in self._agent_idx_list:
             policy_net_params, target_net_params = self._get_net_parameters(agent_id)
-
-            self._proxy.send(peer_name=self._agent_2_learner[agent_id], msg_type=MsgType.INITIAL_PARAMETERS,
-                             msg_body={MsgKey.POLICY_NET_PARAMETERS: policy_net_params,
-                                       MsgKey.TARGET_NET_PARAMETERS: target_net_params})
+            message = Message(type_=MsgType.INITIAL_PARAMETERS, source=self._proxy.name,
+                              destination=self._agent_2_learner[agent_id],
+                              body={MsgKey.POLICY_NET_PARAMETERS: policy_net_params,
+                                    MsgKey.TARGET_NET_PARAMETERS: target_net_params})
+            self._proxy.send(message)
 
     def send_experience(self, agent_id, episode):
         """
@@ -134,26 +139,28 @@ class EnvRunner(Runner):
         """
         agent_name = self._env.node_name_mapping['static'][agent_id]
         exp = self._agent_dict[agent_id].get_experience()
-
-        self._proxy.send(peer_name=self._agent_2_learner[agent_id], msg_type=MsgType.STORE_EXPERIENCE,
-                         msg_body={MsgKey.AGENT_ID: agent_id, MsgKey.EXPERIENCE: exp, MsgKey.EPISODE: episode,
-                                   MsgKey.AGENT_NAME: agent_name})
+        message = Message(type_=MsgType.STORE_EXPERIENCE, source=self._proxy.name,
+                          destination=self._agent_2_learner[agent_id],
+                          body={MsgKey.AGENT_ID: agent_id, MsgKey.EXPERIENCE: exp, MsgKey.EPISODE: episode,
+                                MsgKey.AGENT_NAME: agent_name})
+        self._proxy.send(message)
 
     def send_env_checkout(self):
         """
         Send checkout message to learner
         """
         for agent_id in self._agent_idx_list:
-            self._proxy.send(peer_name=self._agent_2_learner[agent_id], msg_type=MsgType.ENV_CHECKOUT,
-                             msg_body={})
+            message = Message(type_=MsgType.ENV_CHECKOUT, source=self._proxy.name,
+                              destination=self._agent_2_learner[agent_id])
+            self._proxy.send(message)
 
     def _get_net_parameters(self, agent_id):
         """
         Get the policy net parameters and target net parameters
 
-        Args: 
+        Args:
             agent_id: str
-        
+
         Return
             params: list of tuples(name, input_dim, hidden_dims, output_dim, dropout_p)
         """
@@ -165,19 +172,19 @@ class EnvRunner(Runner):
 
         return params
 
-    def on_updated_parameters(self, msg):
+    def on_updated_parameters(self, message):
         """
         Handles policy net parameters from learner. This message should contain the agent id and policy net parameters.
-        
+
         Load policy net parameters for the given agent's algorithm
         """
-        if msg.body[MsgKey.POLICY_NET_PARAMETERS] != None:
-            self._agent_dict[msg.body[MsgKey.AGENT_ID]].load_policy_net_parameters(
-                msg.body[MsgKey.POLICY_NET_PARAMETERS])
+        if message.body[MsgKey.POLICY_NET_PARAMETERS] is not None:
+            self._agent_dict[message.body[MsgKey.AGENT_ID]].load_policy_net_parameters(
+                message.body[MsgKey.POLICY_NET_PARAMETERS])
 
     def force_sync(self):
         """
-        Waiting for all agents have the updated policy net parameters, and message may 
+        Waiting for all agents have the updated policy net parameters, and message may
         contain the policy net parameters.
         """
         pending_updated_agents = len(self._agent_idx_list)
@@ -213,8 +220,6 @@ if __name__ == '__main__':
     eps_list[-1] = 0.0
 
     # EnvRunner initialization
-    component_name = '_'.join([COMPONENT, '0']) if 'INDEX' not in os.environ else '_'.join(
-        [COMPONENT, os.environ['INDEX']])
     env_runner = EnvRunner(scenario=SCENARIO, topology=TOPOLOGY, max_tick=MAX_TICK,
                            max_train_ep=MAX_TRAIN_EP, max_test_ep=MAX_TEST_EP, eps_list=eps_list)
-    env_runner.launch(os.environ['GROUP'], component_name)
+    env_runner.launch()

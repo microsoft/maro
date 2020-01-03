@@ -11,13 +11,14 @@ import random
 import yaml
 
 from datetime import datetime
-from maro.distributed import dist
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
-from examples.ecr.q_learning.distributed_mode.env_learner.message_type import MsgType, MsgKey
+from maro.distributed import dist, Proxy, Message
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, MsgKey
 from examples.ecr.q_learning.common.dqn import QNet, DQN
-from examples.utils import log, get_proxy
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+from examples.utils import log, get_peers
+from examples.ecr.q_learning.common.dashboard_ex import Dashboard_user
+
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 
@@ -32,7 +33,7 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
-dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
+dashboard = Dashboard_user(config.experiment_name, LOG_FOLDER)
 dashboard.setup_connection()
 
 BATCH_NUM = config.train.batch_num
@@ -48,46 +49,53 @@ TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 TRAIN_SEED = config.train.seed
 
 COMPONENT = 'learner'
+INDEX = os.environ.get('INDEX', None)
 logger = Logger(tag=COMPONENT, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
-proxy = get_proxy(COMPONENT, config, logger=logger)
+proxy = Proxy(group_name=os.environ['GROUP'],
+              component_name=COMPONENT if INDEX is None else '_'.join([COMPONENT, str(INDEX)]),
+              peer_name_list=get_peers(COMPONENT, config.distributed),
+              redis_address=(config.redis.host, config.redis.port),
+              logger=logger)
 
 
 @log(logger=logger)
-def on_new_experience(local_instance, proxy, msg):
+def on_new_experience(local_instance, proxy, message):
     """
     Handles incoming experience from environment runner. The message must contain agent_id and experience.
     """
     # put experience into experience pool
-    local_instance.experience_pool.put(category_data_batches=msg.body[MsgKey.EXPERIENCE])
+    local_instance.experience_pool.put(category_data_batches=message.body[MsgKey.EXPERIENCE])
     policy_net_parameters = None
 
-    # trigger trining process if got enough experience
+    # trigger training process if got enough experience
     if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
-        local_instance.train(msg.body[MsgKey.EPISODE], msg.body[MsgKey.AGENT_NAME])
+        local_instance.train(message.body[MsgKey.EPISODE], message.body[MsgKey.AGENT_NAME])
         policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
 
     # send updated policy net parameters to the target environment runner
-    proxy.send(peer_name=msg.src, msg_type=MsgType.UPDATED_PARAMETERS,
-               msg_body={MsgKey.AGENT_ID: msg.body[MsgKey.AGENT_ID],
-                         MsgKey.POLICY_NET_PARAMETERS: policy_net_parameters})
+    message = Message(type_=MsgType.UPDATED_PARAMETERS, source=proxy.name,
+                      destination=message.source,
+                      body={MsgKey.AGENT_ID: message.body[MsgKey.AGENT_ID],
+                            MsgKey.POLICY_NET_PARAMETERS: policy_net_parameters})
+    proxy.send(message)
 
 
 @log(logger=logger)
-def on_initial_net_parameters(local_instance, proxy, msg):
+def on_initial_net_parameters(local_instance, proxy, message):
     """
-    Handles initial net parameters from environment runner. The message must contain policy net parameters 
+    Handles initial net parameters from environment runner. The message must contain policy net parameters
     and target net parameters
     """
-    local_instance.init_network(msg.body[MsgKey.POLICY_NET_PARAMETERS], msg.body[MsgKey.TARGET_NET_PARAMETERS])
+    local_instance.init_network(message.body[MsgKey.POLICY_NET_PARAMETERS], message.body[MsgKey.TARGET_NET_PARAMETERS])
 
 
 @log(logger=logger)
-def on_env_checkout(local_instance, proxy, msg):
+def on_env_checkout(local_instance, proxy, message):
     """
     Handle environment runner checkout message.
     """
-    local_instance.env_checkout(msg.src)
+    local_instance.env_checkout(message.source)
 
 
 handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
@@ -184,7 +192,5 @@ class Learner:
 
 if __name__ == '__main__':
     # Learner initialization
-    component_name = '_'.join([COMPONENT, '0']) if 'INDEX' not in os.environ else '_'.join(
-        [COMPONENT, os.environ['INDEX']])
     learner = Learner()
-    learner.launch(os.environ['GROUP'], component_name)
+    learner.launch()
