@@ -27,7 +27,7 @@ class DiscreteActionShaping():
         assert(len(zero_action_indexes) == 1)
         self._zero_action_index = zero_action_indexes[0]
 
-    def __call__(self, scope: ActionScope, action_index: int, port_empty: float, vessel_remaining_space: float) -> int:
+    def __call__(self, scope: ActionScope, action_index: int, port_empty: float, vessel_remaining_space: float, early_discharge: int) -> int:
         '''
         Args:
             scope (ActionScope): Action actual available scope.
@@ -40,7 +40,11 @@ class DiscreteActionShaping():
             return max(round(self._action_space[action_index] * port_empty), -vessel_remaining_space)
 
         if action_index > self._zero_action_index:
-            return round(self._action_space[action_index] * scope.discharge)
+            plan_action = self._action_space[action_index] * (scope.discharge + early_discharge) - early_discharge
+            if plan_action > 0:
+                return round(plan_action)
+            else:
+                return round(self._action_space[action_index] * scope.discharge) 
 
         return 0
 

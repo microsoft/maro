@@ -111,10 +111,9 @@ class EnvRunner(Runner):
         self._print_summary(ep=episode, is_train=True)
 
         for id_, agent in self._agent_dict.items():
-            agent.fulfill_cache(
+            agent.calculate_offline_rewards(
                 self._env.agent_idx_list, self._env.snapshot_list, current_ep=episode)
             self.send_experience(id_, episode)
-            agent.clear_cache()
 
         self._env.reset()
 
