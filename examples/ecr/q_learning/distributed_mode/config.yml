@@ -46,18 +46,16 @@ dashboard:
 docker_image: 'maro_dist'
 
 redis:
-  host: localhost
+  host: maro_redis
   port: 6379
 
 distributed:
   environment_runner:
     num: 2
-    receive_enabled: true
-    audience:
+    peers:
       - 'learner'
   learner:
     num: 5
-    receive_enabled: true
-    audience:
+    peers:
       - 'environment_runner'
 
