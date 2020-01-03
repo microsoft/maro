@@ -37,6 +37,11 @@ log:
     enable: true
 dashboard:
   enable: true
+  influxdb:
+    host: localhost
+    port: 50301
+    use_udp: true
+    udp_port: 50304
 
 docker_image: 'maro_dist'
 
