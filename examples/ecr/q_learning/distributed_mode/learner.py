@@ -17,7 +17,7 @@ from maro.distributed import dist, Proxy, Message
 from examples.ecr.q_learning.distributed_mode.message_type import MsgType, MsgKey
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.utils import log, get_peers
-from examples.ecr.q_learning.common.dashboard_ex import Dashboard_user
+from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
 
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
@@ -33,7 +33,7 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
-dashboard = Dashboard_user(config.experiment_name, LOG_FOLDER)
+dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
 dashboard.setup_connection()
 
 BATCH_NUM = config.train.batch_num
