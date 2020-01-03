@@ -37,3 +37,8 @@ log:
     enable: false
 dashboard:
   enable: false
+  influxdb:
+    host: localhost
+    port: 50301
+    use_udp: true
+    udp_port: 50304

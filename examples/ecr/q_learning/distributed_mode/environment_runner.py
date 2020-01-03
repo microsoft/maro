@@ -114,7 +114,7 @@ class EnvRunner(Runner):
 
         for id_, agent in self._agent_dict.items():
             agent.calculate_offline_rewards(
-                self._env.snapshot_list, current_ep=episode)
+                 self._env.snapshot_list, current_ep=episode)
             self.send_experience(id_, episode)
 
         self._env.reset()
