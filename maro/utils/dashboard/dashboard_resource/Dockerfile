@@ -5,8 +5,8 @@ WORKDIR /panels
 COPY ./panels/line_chart ./line_chart
 COPY ./panels/heatmap_chart ./heatmap_chart
 
-RUN cd /panels/line_chart; yarn install --pure-lockfile; yarn run build; rm -rf node_modules
-RUN cd /panels/heatmap_chart; yarn install --pure-lockfile; yarn run build; rm -rf node_modules
+RUN cd /panels/line_chart; yarn install --pure-lockfile; yarn run dev; yarn run build; rm -rf node_modules
+RUN cd /panels/heatmap_chart; yarn install --pure-lockfile; yarn run dev; yarn run build; rm -rf node_modules
 
 
 FROM grafana/grafana:6.5.2
