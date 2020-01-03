@@ -22,7 +22,7 @@ from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
 from examples.ecr.q_learning.single_host_mode.runner import Runner
-from examples.utils import log, get_peers, generate_random_rgb
+from examples.utils import log, get_peers
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 
@@ -98,7 +98,6 @@ class EnvRunner(Runner):
     def start(self, episode):
         """
         Interaction with the environment, and send experiences get from the current episode to learner.
-
         Args:
             episode: int
         """
@@ -114,10 +113,9 @@ class EnvRunner(Runner):
         self._print_summary(ep=episode, is_train=True)
 
         for id_, agent in self._agent_dict.items():
-            agent.fulfill_cache(
-                self._env.agent_idx_list, self._env.snapshot_list, current_ep=episode)
+            agent.calculate_offline_rewards(
+                self._env.snapshot_list, current_ep=episode)
             self.send_experience(id_, episode)
-            agent.clear_cache()
 
         self._env.reset()
 
@@ -157,7 +155,6 @@ class EnvRunner(Runner):
     def _get_net_parameters(self, agent_id):
         """
         Get the policy net parameters and target net parameters
-
         Args:
             agent_id: str
 
@@ -172,15 +169,15 @@ class EnvRunner(Runner):
 
         return params
 
-    def on_updated_parameters(self, message):
+    def on_updated_parameters(self, msg):
         """
         Handles policy net parameters from learner. This message should contain the agent id and policy net parameters.
 
         Load policy net parameters for the given agent's algorithm
         """
-        if message.body[MsgKey.POLICY_NET_PARAMETERS] is not None:
-            self._agent_dict[message.body[MsgKey.AGENT_ID]].load_policy_net_parameters(
-                message.body[MsgKey.POLICY_NET_PARAMETERS])
+        if msg.body[MsgKey.POLICY_NET_PARAMETERS] != None:
+            self._agent_dict[msg.body[MsgKey.AGENT_ID]].load_policy_net_parameters(
+                msg.body[MsgKey.POLICY_NET_PARAMETERS])
 
     def force_sync(self):
         """
@@ -220,6 +217,8 @@ if __name__ == '__main__':
     eps_list[-1] = 0.0
 
     # EnvRunner initialization
+    component_name = '_'.join([COMPONENT, '0']) if 'INDEX' not in os.environ else '_'.join(
+        [COMPONENT, os.environ['INDEX']])
     env_runner = EnvRunner(scenario=SCENARIO, topology=TOPOLOGY, max_tick=MAX_TICK,
                            max_train_ep=MAX_TRAIN_EP, max_test_ep=MAX_TEST_EP, eps_list=eps_list)
     env_runner.launch()
