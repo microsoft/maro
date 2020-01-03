@@ -83,9 +83,6 @@ class Proxy:
         return self._receiver.bind_to_random_port(f'{self._protocol}://*')
 
     def _register_to_redis(self, recv_port):
-        # if self._redis_conn.hexists(self._group_name, self._name):
-        #     raise Exception(f'Record for "{self._name}" found under "{self._group_name}". '
-        #                     f'To avoid unwanted overwriting, please use a new experiment name')
         recv_address = [self._ip_address, recv_port]
         self._redis_conn.hset(self._group_name, self._name, json.dumps(recv_address))
 
