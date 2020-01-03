@@ -1,0 +1,23 @@
+<div class="editor-row">
+  <div class="section gf-form-group">
+    <h5 class="section-heading">General</h5>
+    <div class="gf-form">
+      <span class="gf-form-label width-8">x_axis</span>
+      <div class="gf-form-select-wrapper max-width-10">
+        <select class="gf-form-input" ng-model="ctrl.panel.x_axis" ng-options="t for t in ctrl.panel.xColumns" ng-change="ctrl.render()"></select>
+      </div>
+    </div>
+    <div class="gf-form">
+      <span class="gf-form-label width-8">y_axis</span>
+      <div class="gf-form-select-wrapper max-width-10">
+        <select class="gf-form-input" ng-model="ctrl.panel.y_axis" ng-options="t for t in ctrl.panel.yColumns" ng-change="ctrl.render()"></select>
+      </div>
+    </div>
+    <div class="gf-form">
+      <span class="gf-form-label width-8">z_axis</span>
+      <div class="gf-form-select-wrapper max-width-10">
+        <select class="gf-form-input" ng-model="ctrl.panel.z_axis" ng-options="t for t in ctrl.panel.zColumns" ng-change="ctrl.render()"></select>
+      </div>
+    </div>
+
+</div>

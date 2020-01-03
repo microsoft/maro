@@ -1,0 +1,41 @@
+# TODO: try to use alphine later
+
+FROM python:3.7.5 as ext_build
+# build stage
+
+RUN apt-get install gcc
+
+WORKDIR /maro
+
+# copy simulator
+COPY /maro/simulator ./maro/simulator
+
+COPY /maro/__init__.py ./maro/
+COPY /maro/*.py ./maro/
+
+COPY setup.py .
+
+RUN pip install -r ./maro/simulator/requirements.build.txt
+
+RUN python setup.py build_ext -i
+
+
+FROM python:3.7.5
+# production stage
+
+WORKDIR /maro
+
+# copy source
+COPY . .
+
+# copy ext module
+COPY --from=ext_build /maro/maro/simulator/*.so ./maro/simulator/
+
+# install dependencies
+RUN pip install -r requirements.dev.txt
+
+# set pythonpath
+ENV PYTHONPATH "/maro:${PYTHONPATH}"
+
+# build
+CMD ["sh"]

@@ -1,0 +1,31 @@
+{
+  "type": "panel",
+  "name": "heatmap Chart",
+  "id": "grafana-heatmapchart-panel",
+
+  "info": {
+    "description": "heatmap chart panel for grafana",
+    "author": {
+      "name": "MSRA",
+      "url": "http://www.microsort.com"
+    },
+    "keywords": ["heatmapchart", "panel"],
+    "logos": {
+      "small": "img/heatmapchart_logo_small.png",
+      "large": "img/heatmapchart_logo_large.png"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/"}
+    ],
+    "screenshots": [
+      {"name": "heatmap!", "path": "img/heatmap.png"}
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "4.6",
+    "plugins": [ ]
+  }
+}

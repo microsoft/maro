@@ -1,0 +1,13 @@
+.ignore
+*.sh
+Dockerfile
+README.md
+maro_cli/
+examples/**/*.log
+examples/**/*.csv
+examples/**/log
+**/__pycache__
+docker_files/
+.idea/
+.vscode/
+docs/
