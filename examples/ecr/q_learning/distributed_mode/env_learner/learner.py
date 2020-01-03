@@ -32,8 +32,7 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
-dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-dashboard.setup_connection()
+
 
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
@@ -46,11 +45,20 @@ GAMMA = config.train.dqn.gamma  # Reward decay
 TAU = config.train.dqn.tau  # Soft update
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 TRAIN_SEED = config.train.seed
+DASHBOARD_ENABLE = config.dashboard.enable
+DASHBOARD_HOST = config.dashboard.influxdb.host
+DASHBOARD_PORT = config.dashboard.influxdb.port
+DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
+DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 
 COMPONENT = 'learner'
 logger = Logger(tag=COMPONENT, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
 proxy = get_proxy(COMPONENT, config, logger=logger)
+
+if DASHBOARD_ENABLE:
+    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
+    dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
 
 
 @log(logger=logger)
@@ -171,8 +179,8 @@ class Learner:
                 sample_dict['info'][i]['td_error'] = loss
 
             self.experience_pool.update([('info', idx_list, sample_dict['info'])])
-
-            dashboard.upload_loss({agent_name: loss}, episode)
+            if DASHBOARD_ENABLE:
+                dashboard.upload_loss({agent_name: loss}, episode)
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)
