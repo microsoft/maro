@@ -69,8 +69,8 @@ class SimpleStore(object):
             The next layer filter input is the last layer filter output.
 
         Args:
-            filters ([Callable[[Tuple[int, object]], Tuple[int, object]]]): Filter list, each item is a lambda function.
-                The lambda input is a tuple, (index, object).
+            filters ([Callable[[Tuple[int, object]], Tuple[int, object]]]): Filter list, each item is a lambda function. \n
+                The lambda input is a tuple, (index, object). \n
                 i.e. [lambda tup: tup[1]['a'] == 1 and tup[1]['b'] == 1]
             return_idx (bool): Return filtered indexes or items.
 
@@ -93,10 +93,10 @@ class SimpleStore(object):
             The next layer sampler input is the last layer sampler output.
 
         Args:
-            samplers ([Tuple[Callable[[int, object], Tuple[int, object]], int]]): Sampler list, each sampler is a tuple.
-                The 1st item of the tuple is a lambda function.
-                    The 1st lambda input is index, the 2nd lambda input is a object.
-                The 2nd item of the tuple is the sample size.
+            samplers ([Tuple[Callable[[int, object], Tuple[int, object]], int]]): Sampler list, each sampler is a tuple. \n
+                The 1st item of the tuple is a lambda function. \n
+                    The 1st lambda input is index, the 2nd lambda input is a object. \n
+                The 2nd item of the tuple is the sample size. \n
                 i.e. [(lambda i, o: (i, o['a']), 3)]
             return_idx (bool): Return sampled indexes or items.
 

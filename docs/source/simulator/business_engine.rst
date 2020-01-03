@@ -2,7 +2,7 @@ Business Engine
 ================
 
 Business Engine is a plug-in module who carries business logic.
-Supported by graph (data model) and event buffer, specified
+Supported by graph (data module) and event buffer, specified
 business scenario can be created based on events.
 
 With callback functions (i.e. what to do at each event) defined,
@@ -16,7 +16,7 @@ To solve problems in more different scenarios, business engines can be also user
 
 To start with, the business engine initialize the scenario based on specified config.
 A specialized data generator (optional) may be helpful to generate necessary data according to certain rules.
-Generally, a business engine should make use of our C-based data module to store most of the data in the environment.
+To operate with the large amount of data in the environment, our C-based data module will be effective.
 
 In each episode, the environment core (`core.py`) would call business engine at each tick sequentially.
 According to time and environmental status, specified events can be generated and inserted into event buffer.
@@ -45,7 +45,8 @@ A legal business engine can be utilized by following common exposed methods:
 ECR Business Engine
 -------------------
 
-Specially, we wrote a business engine to simulate the ECR scenario.
-Cooperating with other parts of our simulator, the ECR business engine can drive the workflow based on specified business logic.
+Specially, we provide a business engine to simulate the Empty Container Reallocation (ECR) scenario.
+Cooperating with other parts of our simulator, the ECR business engine can drive vessels and change ports' status
+based on specified configurations.
 
 .. image:: ../images/ecr_business_engine.png

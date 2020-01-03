@@ -3,36 +3,32 @@ Data Model
 
 .. image:: ../images/graph.png
 
-We use the spatial-temporal graph as the underlying data model abstraction for all resource optimization scenarios.
+As shown in the figure above, data in resource optimization scenarios can be abstracted as graph structures.
+Therefore, we employ the spatial-temporal graph as the underlying data model abstraction.
 
-Static Resource Node
-----------------------
+Nodes
+-----
 
-It's the abstraction for resource repository, which usually doesn't change the location in the real world.
-Such as container depot of the terminal, parking station of sharing bicycles.
+Each node in the graph represents a resource carrier.
+They can be divided into two types according to their physical properties:
 
-For the flexible concern, we use dictionary structure for recording the different states of various resources.
-
-Dynamic Resource Node
-----------------------
-
-It's the abstraction for resource container, which usually change the location in the real world.
-Such as the vessel, truck.
-
++------------------------+-----------------------------------------------------------------------------------------------------------------+
+| Static Resource Nodes  | It's the abstraction for resource repositories, which usually DON'T CHANGE the location in the real world.      |
+|                        |                                                                                                                 |
+|                        | Examples: container depots of the terminal, parking stations of sharing bicycles.                               |
++------------------------+-----------------------------------------------------------------------------------------------------------------+
+| Dynamic Resource Nodes | It's the abstraction for resource containers, which usually CHANGE the location in the real world.              |
+|                        |                                                                                                                 |
+|                        | Examples: vessels, trucks.                                                                                      |
+|                        |                                                                                                                 |
+|                        | *Note: dynamic resource nodes are not must for all scenarios.*                                                  |
++------------------------+-----------------------------------------------------------------------------------------------------------------+
  
 Graph
-------
+-----
 
-Internally, we use an matrix to organize the static and dynamic resource nodes, respectively.
-Dynamic resource nodes are not must for all scenarios.
-
-For the scenarios, which includes dynamic resource node:
-
-:math:`G_{ik}^s`-> The value of :math:`k` th attribute on the :math:`i` th static node stored in the static part of graph.
-
-:math:`G_{jk}^d`-> The value of :math:`k` th attribute on the :math:`j` th dynamic node stored in the dynamic part of graph.
-
-Graph is a light wrapper for static resource nodes and dynamic resource nodes.
+Graph module is a light wrapper for static resource nodes and dynamic resource nodes.
+It use an matrix to organize the static and dynamic resource nodes, respectively.
 
 .. code-block:: python
 
@@ -40,10 +36,10 @@ Graph is a light wrapper for static resource nodes and dynamic resource nodes.
     # Instantiate a graph object according to node umber
     graph.setup()
     # Setup the graph
-    value = graph.get_attribute(node_type, node_index, attribute_type, tick)
-    # Get the value of an attribute on a specified node at specified tick
     graph.set_attribute(node_type, node_index, attribute_type, tick, value)
     # Set the value of an attribute on a specified node at specified tick
+    value = graph.get_attribute(node_type, node_index, attribute_type, tick)
+    # Get the value of an attribute on a specified node at specified tick
 
 Snapshot List
 -------------
@@ -54,7 +50,8 @@ One snapshot is a past tick spatial graph backup and can be refreshed at each ti
 .. image:: ../images/snapshot.png
 
 For outside user, snapshot lists can be fetched from the environment.
-As complete description of graphs, the information of dynamic and static nodes can be obtained from corresponding parts respectively.
+As a complete description of graph module,
+the information of dynamic and static nodes can be obtained from corresponding parts of snapshot list, respectively.
 
 .. code-block:: python
 
