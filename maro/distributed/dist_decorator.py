@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 # private lib
 from maro.distributed.proxy import Proxy
 from typing import Callable
@@ -22,10 +21,9 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
             """
             def __init__(self, *args, **kwargs):
                 self.local_instance = cls(*args, **kwargs)
-                self.proxy = proxy
                 # use functools.partial to freeze handling function's local_instance and proxy
                 # arguments to self.local_instance and self.proxy
-                self.handler_dict = {msg_type: partial(handler_fn, self.local_instance, self.proxy)
+                self.handler_dict = {msg_type: partial(handler_fn, self.local_instance, proxy)
                                      for msg_type, handler_fn in handler_dict.items()}
 
             def __getattr__(self, name):
@@ -34,17 +32,14 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
 
                 return getattr(self.local_instance, name)
 
-            def launch(self, group_name, component_name):
+            def launch(self):
                 """
                 Universal entry point for running a cls instance in distributed mode
-
-                Args:
-                    group_name (str): identifier for the group of all distributed components
-                    component_name (str): unique identifier in the current group
                 """
-                self.proxy.join(group_name, component_name)
-                for msg in self.proxy.receive():
-                    self.handler_dict[msg.type](msg)
+                with proxy:
+                    proxy.join()
+                    for msg in proxy.receive():
+                        self.handler_dict[msg.type](msg)
 
         return Wrapper
 
