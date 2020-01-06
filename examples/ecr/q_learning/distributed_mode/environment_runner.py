@@ -83,17 +83,16 @@ class EnvRunner(Runner):
         """
         setup the communication and trigger the training process.
         """
-        with self._proxy:
-            self._proxy.join()
-            self.send_net_parameters_to_learner()
-            pbar = tqdm(range(MAX_TRAIN_EP))
-            for ep in pbar:
-                pbar.set_description('train episode')
-                self.start(ep)
-                self.force_sync()
+        self._proxy.join()
+        self.send_net_parameters_to_learner()
+        pbar = tqdm(range(MAX_TRAIN_EP))
+        for ep in pbar:
+            pbar.set_description('train episode')
+            self.start(ep)
+            self.force_sync()
 
-            self.send_env_checkout()
-            self._test()
+        self.send_env_checkout()
+        self._test()
 
     def start(self, episode):
         """

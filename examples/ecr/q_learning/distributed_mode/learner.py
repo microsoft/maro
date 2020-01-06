@@ -44,6 +44,7 @@ QNET_LOG_ENABLE = config.log.qnet.enable
 LEARNING_RATE = config.train.dqn.lr
 GAMMA = config.train.dqn.gamma  # Reward decay
 TAU = config.train.dqn.tau  # Soft update
+INIT = config.train['dqn'].get('initialization', None)
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 TRAIN_SEED = config.train.seed
 DASHBOARD_ENABLE = config.dashboard.enable
@@ -130,8 +131,10 @@ class Learner:
         """
         if not self._env_number:
             policy_net = QNet(*policy_net_parameters,
+                              init_type=INIT.type if INIT else None, init_args=INIT.args if INIT else None,
                               log_enable=True, log_folder=LOG_FOLDER)
             target_net = QNet(*target_net_parameters,
+                              init_type=INIT.type if INIT else None, init_args=INIT.args if INIT else None,
                               log_enable=True, log_folder=LOG_FOLDER)
             target_net.load_state_dict(policy_net.state_dict())
 

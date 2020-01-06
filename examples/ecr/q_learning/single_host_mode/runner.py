@@ -58,6 +58,7 @@ MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num
 TRAIN_SEED = config.train.seed
 TEST_SEED = config.test.seed
 QNET_SEED = config.qnet.seed
+INIT = config.train['dqn'].get('initialization', None)
 RUNNER_LOG_ENABLE = config.log.runner.enable
 AGENT_LOG_ENABLE = config.log.agent.enable
 DQN_LOG_ENABLE = config.log.dqn.enable
@@ -126,10 +127,12 @@ class Runner:
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
                               hidden_dims=[
                                   256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
+                              init_type=INIT.type if INIT else None, init_args=INIT.args if INIT else None,
                               log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
             target_net = QNet(name=f'{self._port_idx2name[agent_idx]}.target', input_dim=state_shaping.dim,
                               hidden_dims=[
                                   256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
+                              init_type=INIT.type if INIT else None, init_args=INIT.args if INIT else None,
                               log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
             target_net.load_state_dict(policy_net.state_dict())
             dqn = DQN(policy_net=policy_net, target_net=target_net,

@@ -36,10 +36,9 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 """
                 Universal entry point for running a cls instance in distributed mode
                 """
-                with proxy:
-                    proxy.join()
-                    for msg in proxy.receive():
-                        self.handler_dict[msg.type](msg)
+                proxy.join()
+                for msg in proxy.receive():
+                    self.handler_dict[msg.type](msg)
 
         return Wrapper
 

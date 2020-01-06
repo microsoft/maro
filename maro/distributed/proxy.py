@@ -57,13 +57,10 @@ class Proxy:
         """List[str]: list of message receiver name"""
         return self._peer_name_list[:]
 
-    def __enter__(self):
-        self._zmq_context = zmq.Context()
-        self._redis_conn = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1])
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __del__(self):
         self._redis_conn.hdel(self._group_name, self._name)
-        self._logger.critical(f'Record for "{self._name}" under "{self._group_name}" has been deleted. ')
+        self._logger.critical(f'Record for "{self._name}" under "{self._group_name}" has been deleted '
+                              f'from the Redis database. ')
 
     def join(self):
         """Join the communication network for the experiment given by experiment_name with ID given by name.
@@ -71,6 +68,8 @@ class Proxy:
         the receiving address to the Redis server. It then attempts to connect to remote peers by querying
         the Redis server for their addresses
         """
+        self._zmq_context = zmq.Context()
+        self._redis_conn = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1])
         recv_port = self._create_receiver()
         self._logger.info(f'{self._name} set to receive messages at {self._ip_address}:{recv_port}')
         self._register_to_redis(recv_port)

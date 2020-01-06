@@ -25,19 +25,18 @@ class MockSimulator:
         """
         Run 3 mock episodes and send a check-out message to the learner in the end
         """
-        with self.proxy:
-            self.proxy.join()
-            for ep in range(3):
-                print(f'Running episode {ep}')
-                time.sleep(2)
-                message = Message(type_='experience', source=self.proxy.name,
-                                  destination='learner', body=np.random.rand(5))
-                self.proxy.send(message)
-                self.await_model_from_learner()
-
-            message = Message(type_='check_out', source=self.proxy.name,
-                              destination='learner')
+        self.proxy.join()
+        for ep in range(3):
+            print(f'Running episode {ep}')
+            time.sleep(2)
+            message = Message(type_='experience', source=self.proxy.name,
+                              destination='learner', body=np.random.rand(5))
             self.proxy.send(message)
+            self.await_model_from_learner()
+
+        message = Message(type_='check_out', source=self.proxy.name,
+                          destination='learner')
+        self.proxy.send(message)
 
 
 if __name__ == '__main__':
