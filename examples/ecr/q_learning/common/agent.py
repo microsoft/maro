@@ -235,10 +235,11 @@ class Agent(object):
                         cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
         early_discharge = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
+        reward_type = 'gf' if type(self._reward_shaping) == GoldenFingerReward else 'tc'
         self._port_states_cache.append(port_states)
         self._vessel_states_cache.append(vessel_states)
         actual_action = self._action_shaping(scope=action_scope, action_index=action_index, port_empty=port_states[0],
-                                             vessel_remaining_space=vessel_states[2], early_discharge=early_discharge)
+                                             vessel_remaining_space=vessel_states[2], early_discharge=early_discharge, reward_type=reward_type)
         self._actual_action_cache.append(actual_action)
         env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
         if self._log_enable:
