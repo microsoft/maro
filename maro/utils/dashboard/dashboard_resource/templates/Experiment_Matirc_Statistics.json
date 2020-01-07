@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 6,
-  "iteration": 1577692902832,
+  "iteration": 1578384716655,
   "links": [],
   "panels": [
     {
@@ -60,7 +60,6 @@
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "total",
         "total_shortage",
         "transfer_port_001",
         "transfer_port_002"
@@ -116,7 +115,6 @@
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "total",
         "total_shortage",
         "transfer_port_001",
         "transfer_port_002"
@@ -124,7 +122,7 @@
       "x_axis": "ep"
     },
     {
-      "aggregation": "sum",
+      "aggregation": "mean",
       "aggregationOptions": [
         "sum",
         "max",
@@ -157,11 +155,6 @@
       ],
       "ignoreColumns": [
         "Time",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
         "demand_port_001",
         "demand_port_002",
         "ep",
@@ -216,11 +209,6 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
         "demand_port_001",
         "demand_port_002",
         "ep",
@@ -269,10 +257,12 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
+        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002"
       ],
       "interval": null,
       "legend": {
@@ -320,10 +310,12 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
+        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002"
       ],
       "x_axis": "ep"
     },
@@ -363,7 +355,7 @@
           "measurement": "shortage",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT \"demand_port_001\", \"demand_port_002\", \"supply_port_001\", \"supply_port_002\", \"transfer_port_001\" FROM \"shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+          "query": "SELECT  /port/ FROM \"shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter ",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -428,7 +420,7 @@
       "timeShift": null,
       "title": "Shortage on Episode $episode",
       "type": "grafana-piechart-panel",
-      "valueName": "total"
+      "valueName": "current"
     },
     {
       "aggregation": "sum",
@@ -674,6 +666,7 @@
       "xColumns": [
         "Time",
         "ep",
+        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -683,6 +676,7 @@
       "yColumns": [
         "Time",
         "ep",
+        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -692,6 +686,7 @@
       "zColumns": [
         "Time",
         "ep",
+        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -709,8 +704,9 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "ep_move_01",
-          "value": "ep_move_01"
+          "tags": [],
+          "text": "tc_1024_uniform_init_4p_ssdd_l0.1",
+          "value": "tc_1024_uniform_init_4p_ssdd_l0.1"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
@@ -734,9 +730,8 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
-          "text": "8",
-          "value": "8"
+          "text": "343",
+          "value": "343"
         },
         "datasource": "InfluxDB",
         "definition": "select \"ep\"  from \"shortage\"  WHERE \"experiment\"=~/^$experiment$/",
@@ -791,5 +786,5 @@
   "timezone": "",
   "title": "Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 5
+  "version": 12
 }
