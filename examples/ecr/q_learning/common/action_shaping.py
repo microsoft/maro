@@ -9,6 +9,7 @@ from typing import Tuple
 from maro.simulator.scenarios.ecr.common import ActionScope
 from maro.utils import Logger, LogFormat
 
+
 class DiscreteActionShaping():
     def __init__(self, action_space: [float]):
         '''
@@ -40,11 +41,7 @@ class DiscreteActionShaping():
             return max(round(self._action_space[action_index] * port_empty), -vessel_remaining_space)
 
         if action_index > self._zero_action_index:
-            plan_action = self._action_space[action_index] * (scope.discharge + early_discharge) - early_discharge
-            if plan_action > 0:
-                return round(plan_action)
-            else:
-                return round(self._action_space[action_index] * scope.discharge) 
+            return round(self._action_space[action_index] * scope.discharge)
 
         return 0
 
