@@ -20,6 +20,7 @@ from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
+from examples.ecr.q_learning.common.reward_shaping import TruncateReward, GoldenFingerReward
 from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
 from maro.simulator.scenarios.ecr.common import EcrEventType
 
@@ -117,6 +118,11 @@ class Runner:
                                      vessel_attribute_list=['empty', 'full', 'remaining_space'])
         action_space = [round(i * 0.1, 1) for i in range(-10, 11)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
+        if REWARD_SHAPING == 'gf':
+            reward_shaping = GoldenFingerReward(topology=self._topology, action_space=action_space, base=10)
+        else:
+            reward_shaping = TruncateReward(agent_idx_list=agent_idx_list)
+
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
@@ -138,7 +144,7 @@ class Runner:
                                           vessel_idx2name=self._vessel_idx2name,
                                           algorithm=dqn, experience_pool=experience_pool,
                                           state_shaping=state_shaping, action_shaping=action_shaping,
-                                          reward_shaping=REWARD_SHAPING,
+                                          reward_shaping=reward_shaping,
                                           batch_num=BATCH_NUM, batch_size=BATCH_SIZE,
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
                                           agent_idx_list=agent_idx_list,

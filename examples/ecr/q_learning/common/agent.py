@@ -30,6 +30,7 @@ class Agent(object):
         self._experience_pool = experience_pool
         self._state_shaping = state_shaping
         self._action_shaping = action_shaping
+        self._reward_shaping = reward_shaping
         self._state_cache = []
         self._action_cache = []
         self._action_tick_cache = []
@@ -46,11 +47,6 @@ class Agent(object):
         self._log_enable = log_enable
         self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
-
-        if reward_shaping == 'gf':
-            self._reward_shaping = GoldenFingerReward(topology=self._topology, action_space=self._action_shaping.action_space, base=10)
-        else:
-            self._reward_shaping = TruncateReward(agent_idx_list=agent_idx_list)
 
         if self._log_enable:
             self._logger = Logger(tag='agent', format_=LogFormat.simple,
@@ -234,12 +230,14 @@ class Agent(object):
         vessel_states = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
         early_discharge = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
-        reward_type = 'gf' if type(self._reward_shaping) == GoldenFingerReward else 'tc'
+                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0] if type(self._reward_shaping) == GoldenFingerReward else 0
         self._port_states_cache.append(port_states)
         self._vessel_states_cache.append(vessel_states)
-        actual_action = self._action_shaping(scope=action_scope, action_index=action_index, port_empty=port_states[0],
-                                             vessel_remaining_space=vessel_states[2], early_discharge=early_discharge, reward_type=reward_type)
+        actual_action = self._action_shaping(scope=action_scope, 
+                                             action_index=action_index, 
+                                             port_empty=port_states[0],
+                                             vessel_remaining_space=vessel_states[2], 
+                                             early_discharge=early_discharge)
         self._actual_action_cache.append(actual_action)
         env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
         if self._log_enable:
