@@ -19,7 +19,7 @@ def on_new_experience(local_instance, proxy, message):
     Handles hello messages from the environment
     """
     print(f'Received a {message.type} message from {message.source}: {message.body}')
-    message = Message(type_='model', source=proxy.name,
+    message = Message(type='model', source=proxy.name,
                       destination=message.source, body=np.random.rand(3))
     proxy.send(message)
 

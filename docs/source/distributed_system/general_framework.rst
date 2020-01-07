@@ -2,10 +2,10 @@
 General Framework
 =================
 
-Basic Architecture
-==================
+Architecture
+============
 
-A distributed MARO system has 3 key components:
+A distributed MARO system has 4 key components:
 
 - :ref:`distributed-decorator`, a Python decorator that transforms a local instance to a distributed one
 - :ref:`Proxy`, responsible for communication
@@ -71,17 +71,15 @@ it is embedded in. It provides 4 methods:
 - *receive*, for continually receiving messages
 - *receive_once*, for receiving a single message
 - *send*, for sending a single message to a peer
-- *multicast*, for sending messages to all peers whose name matches a given regex pattern
 
 In the current version, all messages are transferred through ZeroMQ using its built-in PUSH and
-PULL patterns. In the future, we expect to migrate to more powerful messaging tools such as
-InfiniBand.
+PULL patterns.
 
 
 .. _message-handlers:
 
-Message Handlers
-================
+Message Handler Register Table
+==============================
 
 Handlers are functions that describe how a certain type of messages should be processed by a local instance.
 The local instance usually belongs to a user-defined class that has its own set of methods. For example, it

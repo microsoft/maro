@@ -63,8 +63,7 @@ DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
 
-COMPONENT = 'environment_runner'
-INDEX = os.environ.get('INDEX', None)
+COMPONENT = os.environ['COMPONENT']
 
 
 class EnvRunner(Runner):
@@ -72,10 +71,10 @@ class EnvRunner(Runner):
                  eps_list: [float]):
         super().__init__(scenario, topology, max_tick, max_train_ep, max_test_ep, eps_list)
         self._agent_idx_list = self._env.agent_idx_list
-        self._agent_2_learner = {self._agent_idx_list[i]: 'learner_' + str(i) for i in range(len(self._agent_idx_list))}
+        self._agent2learner = {self._agent_idx_list[i]: 'learner.' + str(i) for i in range(len(self._agent_idx_list))}
         self._proxy = Proxy(group_name=os.environ['GROUP'],
-                            component_name=COMPONENT if INDEX is None else '_'.join([COMPONENT, str(INDEX)]),
-                            peer_name_list=get_peers(COMPONENT, config.distributed),
+                            component_name=COMPONENT,
+                            peer_name_list=get_peers(COMPONENT.split('.')[0], config.distributed),
                             redis_address=(config.redis.host, config.redis.port),
                             logger=self._logger)
 
@@ -124,8 +123,8 @@ class EnvRunner(Runner):
         """
         for agent_id in self._agent_idx_list:
             policy_net_params, target_net_params = self._get_net_parameters(agent_id)
-            message = Message(type_=MsgType.INITIAL_PARAMETERS, source=self._proxy.name,
-                              destination=self._agent_2_learner[agent_id],
+            message = Message(type=MsgType.INITIAL_PARAMETERS, source=self._proxy.name,
+                              destination=self._agent2learner[agent_id],
                               body={MsgKey.POLICY_NET_PARAMETERS: policy_net_params,
                                     MsgKey.TARGET_NET_PARAMETERS: target_net_params})
             self._proxy.send(message)
@@ -136,8 +135,8 @@ class EnvRunner(Runner):
         """
         agent_name = self._env.node_name_mapping['static'][agent_id]
         exp = self._agent_dict[agent_id].get_experience()
-        message = Message(type_=MsgType.STORE_EXPERIENCE, source=self._proxy.name,
-                          destination=self._agent_2_learner[agent_id],
+        message = Message(type=MsgType.STORE_EXPERIENCE, source=self._proxy.name,
+                          destination=self._agent2learner[agent_id],
                           body={MsgKey.AGENT_ID: agent_id, MsgKey.EXPERIENCE: exp, MsgKey.EPISODE: episode,
                                 MsgKey.AGENT_NAME: agent_name})
         self._proxy.send(message)
@@ -147,8 +146,8 @@ class EnvRunner(Runner):
         Send checkout message to learner
         """
         for agent_id in self._agent_idx_list:
-            message = Message(type_=MsgType.ENV_CHECKOUT, source=self._proxy.name,
-                              destination=self._agent_2_learner[agent_id])
+            message = Message(type=MsgType.ENV_CHECKOUT, source=self._proxy.name,
+                              destination=self._agent2learner[agent_id])
             self._proxy.send(message)
 
     def _get_net_parameters(self, agent_id):
@@ -216,8 +215,6 @@ if __name__ == '__main__':
     eps_list[-1] = 0.0
 
     # EnvRunner initialization
-    component_name = '_'.join([COMPONENT, '0']) if 'INDEX' not in os.environ else '_'.join(
-        [COMPONENT, os.environ['INDEX']])
     env_runner = EnvRunner(scenario=SCENARIO, topology=TOPOLOGY, max_tick=MAX_TICK,
                            max_train_ep=MAX_TRAIN_EP, max_test_ep=MAX_TEST_EP, eps_list=eps_list)
     env_runner.launch()

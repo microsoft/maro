@@ -53,13 +53,12 @@ DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 
-COMPONENT = 'learner'
-INDEX = os.environ.get('INDEX', None)
+COMPONENT = os.environ['COMPONENT']
 logger = Logger(tag=COMPONENT, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
 proxy = Proxy(group_name=os.environ['GROUP'],
-              component_name=COMPONENT if INDEX is None else '_'.join([COMPONENT, str(INDEX)]),
-              peer_name_list=get_peers(COMPONENT, config.distributed),
+              component_name=COMPONENT,
+              peer_name_list=get_peers(COMPONENT.split('.')[0], config.distributed),
               redis_address=(config.redis.host, config.redis.port),
               logger=logger)
 
@@ -83,7 +82,7 @@ def on_new_experience(local_instance, proxy, message):
         policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
 
     # send updated policy net parameters to the target environment runner
-    message = Message(type_=MsgType.UPDATED_PARAMETERS, source=proxy.name,
+    message = Message(type=MsgType.UPDATED_PARAMETERS, source=proxy.name,
                       destination=message.source,
                       body={MsgKey.AGENT_ID: message.body[MsgKey.AGENT_ID],
                             MsgKey.POLICY_NET_PARAMETERS: policy_net_parameters})

@@ -127,9 +127,9 @@ class Proxy:
         if not hasattr(self, '_send_channel'):
             raise Exception('No message recipient found. Are you using the right configuration?')
 
-        src, dest = message.source, message.destination
+        source, destination = message.source, message.destination
         if message.destination not in self._send_channel:
-            raise Exception(f"Recipient {dest} is not found in {src}'s peers. "
+            raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
                             f"Are you using the right configuration?")
-        self._send_channel[dest].send_pyobj(message)
+        self._send_channel[destination].send_pyobj(message)
         self._logger.debug(f'sent a {message.type} message to {message.destination}')

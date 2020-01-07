@@ -19,7 +19,7 @@ def get_peers(component_type, config_dict):
     for peer_type in config_dict[component_type].peers:
         count = int(config_dict[peer_type].num)
         if count > 1:
-            peers.extend(['_'.join([peer_type, str(i)]) for i in range(count)])
+            peers.extend(['.'.join([peer_type, str(i)]) for i in range(count)])
         else:
             peers.append(peer_type)
 

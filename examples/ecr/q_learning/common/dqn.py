@@ -51,12 +51,11 @@ class QNet(nn.Module):
                 if init_type == 'xavier':
                     init_fn = nn.init.xavier_uniform_
                 elif init_type == 'uniform':
-                    init_fn = nn.init.xavier_uniform_
+                    init_fn = nn.init.uniform_
                 else:
                     raise ValueError('Unsupported initialization type')
                 if type(layer) == nn.Linear:
                     init_fn(layer.weight, **init_args)
-                    layer.bias.data.fill_(0.01)
 
             self._net.apply(init_weights)
         self._log_enable = log_enable

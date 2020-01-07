@@ -29,12 +29,12 @@ class MockSimulator:
         for ep in range(3):
             print(f'Running episode {ep}')
             time.sleep(2)
-            message = Message(type_='experience', source=self.proxy.name,
+            message = Message(type='experience', source=self.proxy.name,
                               destination='learner', body=np.random.rand(5))
             self.proxy.send(message)
             self.await_model_from_learner()
 
-        message = Message(type_='check_out', source=self.proxy.name,
+        message = Message(type='check_out', source=self.proxy.name,
                           destination='learner')
         self.proxy.send(message)
 
