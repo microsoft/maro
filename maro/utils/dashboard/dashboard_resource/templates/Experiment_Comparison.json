@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 5,
-  "iteration": 1577265955227,
+  "iteration": 1578463564710,
   "links": [],
   "panels": [
     {
@@ -73,7 +73,7 @@
               "size": null,
               "text": null,
               "x": "ep",
-              "y": "experiment2",
+              "y": "experiment1",
               "z": null
             },
             "name": "experiment1",
@@ -242,8 +242,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "4p_l0.0_0.015_usage",
-          "value": "4p_l0.0_0.015_usage"
+          "selected": false,
+          "text": "gf_1024_0107_02_rl0.05_ea_fix_4p_ssdd_l0.0",
+          "value": "gf_1024_0107_02_rl0.05_ea_fix_4p_ssdd_l0.0"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES  WITH KEY in (\"experiment\") ",
@@ -267,8 +268,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "4p_l0.0_0.015_usage",
-          "value": "4p_l0.0_0.015_usage"
+          "selected": false,
+          "text": "gf_1024_0107_02_rl0.05_ea_fix_4p_ssdd_l0.4",
+          "value": "gf_1024_0107_02_rl0.05_ea_fix_4p_ssdd_l0.4"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES  WITH KEY in (\"experiment\") ",
@@ -292,8 +294,10 @@
       {
         "allValue": null,
         "current": {
-          "text": "epislon",
-          "value": "epislon"
+          "selected": false,
+          "tags": [],
+          "text": "shortage",
+          "value": "shortage"
         },
         "datasource": "InfluxDB",
         "definition": "show measurements on \"maro\"",
@@ -362,5 +366,5 @@
   "timezone": "",
   "title": "Experiment Comparison",
   "uid": "HUQeIecZa",
-  "version": 2
+  "version": 7
 }
