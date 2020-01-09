@@ -60,12 +60,15 @@ class Agent(object):
 
     def calculate_offline_rewards(self, snapshot_list, current_ep: int):
         for i, tick in enumerate(self._action_tick_cache):
-            if type(self._reward_shaping) == GoldenFingerReward:
-                self._reward_shaping(port_name=self._port_idx2name[self._decision_event_cache[i].port_idx],
-                                     vessel_name=self._vessel_idx2name[self._decision_event_cache[i].vessel_idx],
-                                     action_index=self._action_cache[i])
+            if self._reward_shaping.reward_type == 'goldenfinger':
+                reward_parameters = {'port_name': self._port_idx2name[self._decision_event_cache[i].port_idx],
+                                     'vessel_name': self._vessel_idx2name[self._decision_event_cache[i].vessel_idx],
+                                     'action_index': self._action_cache[i]}
             else:
-                self._reward_shaping(snapshot_list=snapshot_list, start_tick=tick + 1, end_tick=tick + 100)
+                reward_parameters = {'snapshot_list': snapshot_list,
+                                     'start_tick': tick+1,
+                                     'end_tick': tick+100}
+            self._reward_shaping(**reward_parameters)
 
         self._reward_cache = self._reward_shaping.reward_cache
         self._next_state_cache = self._state_cache[1:]
@@ -230,7 +233,7 @@ class Agent(object):
         vessel_states = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
         early_discharge = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0] if type(self._reward_shaping) == GoldenFingerReward else 0
+                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0] if self._reward_shaping.reward_type == 'goldenfinger' else None
         self._port_states_cache.append(port_states)
         self._vessel_states_cache.append(vessel_states)
         actual_action = self._action_shaping(scope=action_scope, 
