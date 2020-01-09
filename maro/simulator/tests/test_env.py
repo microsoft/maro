@@ -21,7 +21,7 @@ class TestEnv(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.env = Env("ecr", "5p_ssddd", 10)
+        self.env = Env("ecr", "5p_ssddd_l0.0", 10)
 
     def test_env_correct(self):
         run_to_end(self.env)

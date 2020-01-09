@@ -32,7 +32,7 @@ cd examples/ecr/q_learning/single_host_mode
 bash silent_run.sh
 ```
 
-### Run in Docker `(only support linux currently)`
+### Run in Docker `(only support linux by now)`
 Refer to [prerequisites](./tools/README.md) for details.
 
 ```sh

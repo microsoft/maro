@@ -65,6 +65,10 @@ DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
 DASHBOARD_ENABLE = config.dashboard.enable
+DASHBOARD_HOST = config.dashboard.influxdb.host
+DASHBOARD_PORT = config.dashboard.influxdb.port
+DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
+DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 
 if config.train.reward_shaping not in {'gf', 'tc'}:
     raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
@@ -83,7 +87,7 @@ class Runner:
 
         if dashboard_enable:
             self.dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-            self.dashboard.setup_connection()
+            self.dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
 
         self._topology = topology
         self._port_idx2name = self._env.node_name_mapping['static']

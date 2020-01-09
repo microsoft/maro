@@ -66,3 +66,6 @@ class TestDataGenerator(unittest.TestCase):
 
     def test_order(self):
         pass
+
+if __name__ == "__main__":
+    unittest.main()

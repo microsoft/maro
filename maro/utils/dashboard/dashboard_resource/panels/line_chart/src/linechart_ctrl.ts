@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-
-
 import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 import _ from 'lodash';
 import kbn from 'grafana/app/core/utils/kbn';
@@ -163,6 +161,15 @@ class LineChartCtrl extends MetricsPanelCtrl {
           .nest()
           .key((d: any) => {
             return d.x;
+          })
+          .sortKeys((a: any, b: any) => {
+            const nA = Number(a);
+            const nB = Number(b);
+            if (isNaN(nA) || isNaN(nB)) {
+              return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+            } else {
+              return nA < nB ? -1 : nA > nB ? 1 : nA >= nB ? 0 : NaN;
+            }
           })
           .entries(dataSeries);
         const groupedData: any[] = [];

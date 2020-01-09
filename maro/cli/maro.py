@@ -11,6 +11,7 @@ import os
 import io
 import platform
 import yaml
+import subprocess
 from requests import get
 from maro.simulator.utils.common import get_available_envs
 
@@ -61,8 +62,8 @@ def main():
     parser = argparse.ArgumentParser("maro cli interface")
     parser.add_argument("--envs", action="store_true",
                         help="Show available environment settings")
-    parser.add_argument("--dashboard", nargs='?', choices=['unzip', 'start', 'stop', 'no_action'], default='no_action', const='unzip', metavar='ACTION',
-                        help="default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service.")
+    parser.add_argument("--dashboard", nargs='?', choices=['unzip', 'start', 'stop', 'no_action', 'build'], default='no_action', const='unzip', metavar='ACTION',
+                        help="default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service. 'build' to build docker for dashboard service.")
 
     args = parser.parse_args()
 
@@ -79,8 +80,11 @@ def main():
         stop_dashboard()
     elif args.dashboard == 'no_action':
         pass
+    elif args.dashboard == 'build':
+        print('build')
+        build_dashboard()
     else:
-        print("default or 'unzip' to extract dashboard resources to current folder.\n'start' to start dashboard service.\n'stop' to stop dashboard service.")
+        print("default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service. 'build' to build docker for dashboard service.")
 
 
 def ext_dashboard():
@@ -131,11 +135,11 @@ def start_dashboard():
         print(f"Dashboard files not found, aborting...")
         return
     if not platform.system() == 'Windows':
-        os.popen(
-            'mkdir -p ./data/grafana;CURRENT_UID=$(id -u):$(id -g) docker-compose up&')
+        os.system(
+            'mkdir -p ./data/grafana;CURRENT_UID=$(id -u):$(id -g) docker-compose up -d')
     else:
-        os.popen(
-            'powershell.exe -windowstyle hidden "Set-Item -Path Env:CURRENT_UID -Value [Environment]::UserName; docker-compose up"')
+        subprocess.Popen(
+            'powershell.exe -windowstyle hidden "docker-compose up -d"', shell=True, start_new_session=True)
     
     localhosts = []
     localhosts.append('localhost')
@@ -191,3 +195,34 @@ def stop_dashboard():
         os.popen('docker-compose down')
     else:
         os.popen('powershell.exe -windowstyle hidden "docker-compose down"')
+
+    
+
+def build_dashboard():
+    '''
+        Build docker for dashboard service 
+
+        Args:
+            None.
+
+        Returns:
+            None.
+    '''
+
+    print('Try to build docker for dashboard service.')
+    cwd = os.getcwd()
+    all_files_exist = True
+    for path in ['config', 'panels', 'provisioning', 'templates', 'docker-compose.yml', 'Dockerfile']:
+        tar_path = os.path.join(cwd, path)
+        if not os.path.exists(tar_path):
+            print(f"{tar_path} not found")
+            all_files_exist = False
+    if not all_files_exist:
+        print(f"Dashboard files not found, aborting...")
+        return
+    if not platform.system() == 'Windows':
+        os.system(
+            'docker-compose build --no-cache')
+    else:
+        subprocess.Popen(
+            'powershell.exe -windowstyle hidden "docker-compose build --no-cache"', shell=True, start_new_session=True)
