@@ -58,7 +58,7 @@ class Proxy:
         return self._peer_name_list[:]
 
     def __del__(self):
-        self._redis_conn.hdel(self._group_name, self._name)
+        self._redis_connection.hdel(self._group_name, self._name)
         self._logger.critical(f'Record for "{self._name}" under "{self._group_name}" has been deleted '
                               f'from the Redis database. ')
 
@@ -69,7 +69,7 @@ class Proxy:
         the Redis server for their addresses
         """
         self._zmq_context = zmq.Context()
-        self._redis_conn = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1])
+        self._redis_connection = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1])
         recv_port = self._create_receiver()
         self._logger.info(f'{self._name} set to receive messages at {self._ip_address}:{recv_port}')
         self._register_to_redis(recv_port)
@@ -83,7 +83,7 @@ class Proxy:
 
     def _register_to_redis(self, recv_port):
         recv_address = [self._ip_address, recv_port]
-        self._redis_conn.hset(self._group_name, self._name, json.dumps(recv_address))
+        self._redis_connection.hset(self._group_name, self._name, json.dumps(recv_address))
 
     def _connect_to_peers(self):
         # create send_channel attribute and initialize it to an empty dict
@@ -92,7 +92,7 @@ class Proxy:
             retried, connected = 0, False
             while retried < self._max_retries:
                 try:
-                    ip, port = json.loads(self._redis_conn.hget(self._group_name, peer_name))
+                    ip, port = json.loads(self._redis_connection.hget(self._group_name, peer_name))
                     remote_address = f'{self._protocol}://{ip}:{port}'
                     self._send_channel[peer_name] = self._zmq_context.socket(zmq.PUSH)
                     self._send_channel[peer_name].connect(remote_address)
