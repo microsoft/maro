@@ -19,11 +19,32 @@
   "links": [],
   "panels": [
     {
-      "columnAliases": [],
+      "columnAliases": [
+        {
+          "alias": "Experiment",
+          "name": "test_shortage_ranklist.experiment"
+        },
+        {
+          "alias": "Experience Qty",
+          "name": "test_shortage_ranklist.experience_quantity"
+        },
+        {
+          "alias": "Model Size",
+          "name": "test_shortage_ranklist.model_size"
+        },
+        {
+          "alias": "Test Shortage",
+          "name": "test_shortage_ranklist.shortage"
+        },
+        {
+          "alias": "Train Episode",
+          "name": "test_shortage_ranklist.train_ep"
+        }
+      ],
       "columnWidthHints": [],
       "columns": [],
       "compactRowsEnabled": false,
-      "datasource": "Flux (InfluxDB) [BETA]",
+      "datasource": "InfluxDB",
       "datatablePagingType": "simple_numbers",
       "datatableTheme": "basic_theme",
       "emptyData": false,
@@ -79,67 +100,26 @@
         "col": 0,
         "desc": true
       },
-      "sortByColumns": [
-        {
-          "columnData": 0,
-          "name": "shortage",
-          "sortMethod": "asc"
-        }
-      ],
+      "sortByColumns": [],
       "sortByColumnsData": [
         [
           0,
-          "asc"
+          "desc"
         ]
       ],
       "stripedRowsEnabled": true,
       "styles": [
         {
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
           "pattern": "Time",
-          "type": "date"
-        },
-        {
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "decimals": 2,
-          "pattern": "Measurement",
-          "splitPattern": "/ /",
-          "thresholds": [],
-          "type": "hidden",
-          "unit": "short"
-        },
-        {
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Field",
-          "splitPattern": "/ /",
-          "thresholds": [],
-          "type": "hidden",
-          "unit": "short"
-        },
-        {
-          "colorMode": null,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "dateFormat": "YYYY-MM-DD HH:mm:ss",
-          "decimals": 2,
-          "mappingType": 1,
-          "pattern": "Value",
           "splitPattern": "/ /",
           "thresholds": [],
           "type": "hidden",
@@ -148,9 +128,23 @@
       ],
       "targets": [
         {
-          "query": "from(bucket: \"maro/autogen\")  \n|> range(start: -8760h)  \n|> filter(fn: (r)=> r._measurement == \"test_shortage_ranklist\" ) \n|> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"],  valueColumn: \"_value\") \n|> bottom(n:10, columns: [\"shortage\"])\n",
+          "groupBy": [],
+          "measurement": "test_shortage_ranklist",
+          "orderByTime": "ASC",
+          "policy": "default",
           "refId": "A",
-          "resultFormat": "table"
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": []
         }
       ],
       "themeOptions": {
@@ -181,8 +175,8 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "shortage ranklist",
-      "transform": "table",
+      "title": "Ranklist",
+      "transform": "timeseries_to_columns",
       "type": "briangann-datatable-panel"
     }
   ],
@@ -211,7 +205,7 @@
     ]
   },
   "timezone": "",
-  "title": "Shortage Ranklist",
+  "title": "Experiment Ranklist",
   "uid": "cXLAOPtZz",
   "version": 5
 }

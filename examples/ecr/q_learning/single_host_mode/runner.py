@@ -228,8 +228,13 @@ class Runner:
             self.dashboard.upload_shortage(pretty_shortage_dict, dashboard_ep)
             if not is_train:
                 if ep == self._max_test_ep - 1:
-                    self.dashboard.upload_to_ranklist({'enabled': True, 'name': 'test_shortage_ranklist'}, fields={
-                        'shortage': pretty_shortage_dict['total_shortage']})
+                    model_size = 0
+                    experience_qty = 0
+                    for agent in self._agent_dict.values():
+                        model_size += agent.model_size()
+                        experience_qty += agent.experience_quantity()
+                    self.dashboard.upload_to_ranklist(ranklist='test_shortage_ranklist', fields={
+                        'shortage': pretty_shortage_dict['total_shortage'], 'train_ep': self._max_train_ep, 'experience_quantity': experience_qty, 'model_size': model_size})
             if is_train:
                 pretty_epsilon_dict = OrderedDict()
                 for i, _ in enumerate(self._port_idx2name):

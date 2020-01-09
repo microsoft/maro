@@ -15,7 +15,7 @@ class TestDashboardMethods(unittest.TestCase):
 
     def test_ranklist(self):
         # Test case 01: upoload to ranklist
-        dashboard.upload_to_ranklist({'enabled': True, 'name': 'test_shortage_ranklist'}, fields={
+        dashboard.upload_to_ranklist(ranklist = 'test_shortage_ranklist', fields={
                                      'shortage': random.random()*100})
 
     def test_hello_world(self):

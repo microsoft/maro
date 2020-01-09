@@ -4,6 +4,7 @@
 
 from datetime import datetime
 import os
+import sys
 import random
 
 import numpy as np
@@ -251,3 +252,12 @@ class Agent(object):
         load updated policy net parameters to the algorithm.
         """
         self._algorithm.load_policy_net_parameters(policy_net_parameters)
+
+    def experience_quantity(self):
+        qty = 0
+        for quantity in self._experience_pool.size.values():
+            qty += quantity
+        return qty
+    
+    def model_size(self):
+        return sys.getsizeof(self._algorithm.policy_net.state_dict())
