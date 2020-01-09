@@ -22,7 +22,7 @@ class QNet(nn.Module):
     '''
 
     def __init__(self, name: str, input_dim: int, hidden_dims: [int], output_dim: int, dropout_p: float,
-                 init_type: str = None, init_args: dict = None, log_enable: bool = True, log_folder: str = './'):
+                 log_enable: bool = True, log_folder: str = './'):
         '''
         Init deep Q network.
 
@@ -33,8 +33,6 @@ class QNet(nn.Module):
                                 hidden layer number, which requires larger than 1.
             output_dim (int): Network output dimension.
             dropout_p (float): Dropout parameter.
-            init_type (str): initialization type of NN linear layers, must be "xavier" or "uniform"
-            init_args (dict): arguments for initialization function
         '''
         super(QNet, self).__init__()
         assert (len(hidden_dims) > 1)
@@ -46,18 +44,6 @@ class QNet(nn.Module):
         self._layers = self._build_layers([input_dim] + hidden_dims)
         self._head = nn.Linear(hidden_dims[-1], output_dim)
         self._net = nn.Sequential(*self._layers, self._head)
-        if init_type is not None:
-            def init_weights(layer):
-                if init_type == 'xavier':
-                    init_fn = nn.init.xavier_uniform_
-                elif init_type == 'uniform':
-                    init_fn = nn.init.uniform_
-                else:
-                    raise ValueError('Unsupported initialization type')
-                if type(layer) == nn.Linear:
-                    init_fn(layer.weight, **init_args)
-
-            self._net.apply(init_weights)
         self._log_enable = log_enable
         if self._log_enable:
             self._model_summary_logger = Logger(tag=f'{self._name}.model_summary', format_=LogFormat.none,

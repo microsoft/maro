@@ -4,7 +4,7 @@ env:
   topology: "5p_ssddd_l0.0"
   max_tick: 200
 train:
-  max_ep: 500 # max episode
+  max_ep: 25 # max episode
   batch_num: 10
   batch_size: 128
   min_train_experience_num: 1024 # when experience number is less than it, will not trigger train
@@ -46,7 +46,7 @@ dashboard:
 docker_image: 'maro_dist'
 
 redis:
-  host: maro_redis
+  host: localhost
   port: 6379
 
 distributed:
