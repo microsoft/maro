@@ -8,7 +8,7 @@ train:
   batch_num: 10
   batch_size: 128
   min_train_experience_num: 1024 # when experience number is less than it, will not trigger train
-  reward_shaping: 'tc'
+  reward_shaping: 'gf'
   dqn:
     target_update_frequency: 5 # target network update frequency
     dropout_p: 0.0 # dropout parameter
@@ -36,7 +36,7 @@ log:
   qnet:
     enable: false
 dashboard:
-  enable: false
+  enable: true
   influxdb:
     host: localhost
     port: 50301

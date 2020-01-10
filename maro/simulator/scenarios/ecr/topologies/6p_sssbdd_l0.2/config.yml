@@ -2,9 +2,9 @@ container_usage_proportion:
   period: 112
   sample_nodes:
   - - 0
-    - 0.015
+    - 0.02
   - - 111
-    - 0.015
+    - 0.02
   sample_noise: 0
 container_volumes:
 - 1
@@ -140,7 +140,7 @@ stop_number:
 total_containers: 100000
 vessels:
   rt1_vessel_001:
-    capacity: 8000
+    capacity: 16000
     parking:
       duration: 2
       noise: 0
@@ -151,7 +151,7 @@ vessels:
       noise: 0
       speed: 50
   rt1_vessel_002:
-    capacity: 9000
+    capacity: 18000
     parking:
       duration: 2
       noise: 0
@@ -162,7 +162,7 @@ vessels:
       noise: 0
       speed: 50
   rt1_vessel_003:
-    capacity: 10000
+    capacity: 20000
     parking:
       duration: 2
       noise: 0
@@ -173,7 +173,7 @@ vessels:
       noise: 0
       speed: 50
   rt2_vessel_001:
-    capacity: 8000
+    capacity: 16000
     parking:
       duration: 2
       noise: 0
@@ -184,7 +184,7 @@ vessels:
       noise: 0
       speed: 50
   rt2_vessel_002:
-    capacity: 9000
+    capacity: 18000
     parking:
       duration: 2
       noise: 0
@@ -195,7 +195,7 @@ vessels:
       noise: 0
       speed: 50
   rt2_vessel_003:
-    capacity: 10000
+    capacity: 20000
     parking:
       duration: 2
       noise: 0
@@ -206,7 +206,7 @@ vessels:
       noise: 0
       speed: 50
   rt3_vessel_001:
-    capacity: 8000
+    capacity: 16000
     parking:
       duration: 2
       noise: 0
@@ -217,7 +217,7 @@ vessels:
       noise: 0
       speed: 50
   rt3_vessel_002:
-    capacity: 9000
+    capacity: 18000
     parking:
       duration: 2
       noise: 0

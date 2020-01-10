@@ -2,9 +2,9 @@ container_usage_proportion:
   period: 112
   sample_nodes:
   - - 0
-    - 0.008
+    - 0.02
   - - 111
-    - 0.008
+    - 0.02
   sample_noise: 0
 container_volumes:
 - 1
