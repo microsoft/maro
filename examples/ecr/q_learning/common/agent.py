@@ -109,8 +109,7 @@ class Agent(object):
             ('state', self._state_cache), ('action', self._action_cache),
             ('reward', self._reward_cache), ('next_state', self._next_state_cache),
             ('actual_action', self._actual_action_cache),
-            ('info', [{'td_error': 1e10}
-                      for i in range(len(self._state_cache))])
+            ('info', [{'td_error': 1e10} for _ in range(len(self._state_cache))])
         ])
         self._clear_cache()
 

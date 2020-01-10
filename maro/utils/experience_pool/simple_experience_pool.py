@@ -4,6 +4,7 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
+import random
 import logging
 import pickle
 from typing import Callable, Tuple, List, Dict
@@ -19,9 +20,9 @@ class SimpleExperiencePool(AbsExperiencePool):
     """Collection of the multi-category store, support cross-category batch operation on stores.
     """
 
-    def __init__(self):
+    def __init__(self, size=None, replace=None):
         super(AbsExperiencePool, self).__init__()
-        self._stores = defaultdict(lambda: SimpleStore())
+        self._stores = defaultdict(lambda: SimpleStore(size=size, replace=replace))
 
     def put(self, category_data_batches: [Tuple[object, list]], align_check: bool = False) -> Dict[object, List[int]]:
         """Multi-category data put.
@@ -41,9 +42,10 @@ class SimpleExperiencePool(AbsExperiencePool):
             for i in range(1, len(category_data_batches)):
                 assert (first_items_len == len(category_data_batches[i][1]))
 
-        res = {}
-        for cd in category_data_batches:
-            res[cd[0]] = self._stores[cd[0]].put(cd[1])
+        res, overwrite = {}, None
+        for category, data in category_data_batches:
+            fill, overwrite = self._stores[category].put(data, overwrite=overwrite)
+            res[category] = (fill, overwrite)
 
         return res
 
