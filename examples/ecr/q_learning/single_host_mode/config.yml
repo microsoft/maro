@@ -42,3 +42,7 @@ dashboard:
     port: 50301
     use_udp: true
     udp_port: 50304
+  ranklist:
+    enable: true
+    author: your_name
+    commit: your_commit

@@ -39,6 +39,7 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
+EXPERIMENT_NAME = config.experiment_name
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
 MAX_TICK = config.env.max_tick
@@ -68,6 +69,7 @@ DASHBOARD_HOST = config.dashboard.influxdb.host
 DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
+RANKLIST_ENABLE = config.dashboard.ranklist.enable
 
 if config.train.reward_shaping not in {'gf', 'tc'}:
     raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
@@ -78,16 +80,18 @@ REWARD_SHAPING = config.train.reward_shaping
 
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float], log_enable: bool = True, dashboard_enable: bool = True):
+                 eps_list: [float], experiment_name: str, log_enable: bool = True, dashboard_enable: bool = False, ranklist_enable: bool = False):
 
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
         self.dashboard = None
 
         if dashboard_enable:
-            self.dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
+            self.dashboard = DashboardECR(experiment_name, LOG_FOLDER)
             self.dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
 
+        self._experiment_name = experiment_name
+        self._scenario = scenario
         self._topology = topology
         self._port_idx2name = self._env.node_name_mapping['static']
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']
@@ -234,7 +238,8 @@ class Runner:
                         model_size += agent.model_size()
                         experience_qty += agent.experience_quantity()
                     self.dashboard.upload_to_ranklist(ranklist='test_shortage_ranklist', fields={
-                        'shortage': pretty_shortage_dict['total_shortage'], 'train_ep': self._max_train_ep, 'experience_quantity': experience_qty, 'model_size': model_size})
+                        '1000_rl_shortage': pretty_shortage_dict['total_shortage'], '3000_rl_train_ep': self._max_train_ep, '4000_rl_experience_quantity': experience_qty, '2000_rl_model_size': model_size, 
+                        'scenario': self._scenario, 'topology': self._topology, 'max_tick': self._max_tick})
             if is_train:
                 pretty_epsilon_dict = OrderedDict()
                 for i, _ in enumerate(self._port_idx2name):
@@ -305,7 +310,7 @@ if __name__ == '__main__':
 
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
                     max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
-                    max_test_ep=MAX_TEST_EP, eps_list=eps_list,
-                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE)
+                    max_test_ep=MAX_TEST_EP, eps_list=eps_list, experiment_name = EXPERIMENT_NAME, 
+                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE, ranklist_enable=RANKLIST_ENABLE)
 
     runner.start()

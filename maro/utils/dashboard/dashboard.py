@@ -67,5 +67,5 @@ class DashboardBase():
         """
 
         measurement = ranklist
-        tag = {'experiment': self.experiment}
+        tag = {'0000_rl_experiment': self.experiment}
         self.send(fields=fields, tag=tag, measurement=measurement)
