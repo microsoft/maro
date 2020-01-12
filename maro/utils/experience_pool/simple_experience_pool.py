@@ -146,6 +146,9 @@ class SimpleExperiencePool(AbsExperiencePool):
             res[k] = self._stores[k].size
         return res
 
+    def reset(self):
+        self._stores.clear()
+
     def dump(self, path) -> bool:
         """Dump stores to disk.
 

@@ -1,0 +1,36 @@
+experiment_name: "stc_5p_0.0"
+env:
+  scenario: "ecr"
+  topology: "5p_ssddd_l0.0"
+  max_tick: 224
+train:
+  max_ep: 1000 # max episode
+  batch_num: 10
+  batch_size: 512
+  min_train_experience_num: 600 # when experience number is less than it, will not trigger train
+  reward_shaping: 'stc'
+  sync_training: false
+  reinforce:
+    target_update_frequency: 5 # target network update frequency
+    dropout_p: 0.0 # dropout parameter
+    lr: 0.005 # learning rate
+  exploration:
+    max_eps: 0.4 # max epsilon
+    phase_split_point: 0.5 # exploration two phase split point
+    first_phase_reduce_proportion: 0.8 # first phase reduce proportion of max_eps 
+  seed: 430
+test:
+  max_ep: 5 # max episode
+  seed: 2048
+actornet:
+  seed: 0
+log:
+  runner:
+    enable: true
+  agent:
+    enable: true
+  reinforce:
+    enable: true
+    dropout_p: 0.95
+  actornet:
+    enable: false

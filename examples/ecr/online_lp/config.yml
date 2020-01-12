@@ -1,0 +1,21 @@
+experiment_name: "5p_l0.8"
+env:
+  scenario: "ecr"
+  topology: "5p_ssddd_l0.8"
+  max_tick: 1120
+train:
+  max_ep: 1 # max episode
+  seed: 1024
+online_lp:
+  time_decay: 0.999999999
+  window_size: 112
+  apply_buffer_length: 1
+  moving_average_length: 112
+  order_gain_factor: 1000
+  transit_cost_factor: 0
+  load_discharge_cost_factor: 1
+log:
+  runner:
+    enable: true
+  agent:
+    enable: false

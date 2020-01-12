@@ -5,7 +5,6 @@
 # third party lib
 import io
 import os
-import numpy as np
 from datetime import datetime
 from tqdm import tqdm
 import yaml
@@ -13,15 +12,10 @@ import yaml
 # private lib
 from examples.ecr.q_learning.distributed_mode.env_learner.message_type import MsgType, MsgKey
 
-from maro.simulator import Env
-from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
+from maro.utils import convert_dottable
 
-from examples.ecr.q_learning.common.agent import Agent
-from examples.ecr.q_learning.common.dqn import QNet, DQN
-from examples.ecr.q_learning.common.state_shaping import StateShaping
-from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
 from examples.ecr.q_learning.single_host_mode.runner import Runner
-from examples.utils import log, get_proxy, generate_random_rgb
+from examples.utils import get_proxy
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 

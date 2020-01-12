@@ -1,0 +1,64 @@
+experiment_name: "demo_test"
+seed: 1024
+
+env:
+  scenario: "ecr"
+  topology: "5p_ssddd_l0.0"
+  max_tick: 1120
+
+demo:
+  algorithm: reinforce    # dqn, reinforce, ddpg
+  total_episode: 50
+  data_augmentation:
+    num_episode: 30
+    num_tick_between_plans: 224
+    interaction_window_size: 112
+
+train:
+  train_synchronously: true
+  learning_rate: 0.005
+  batch_size: 512
+  batch_num_per_training:
+    enable_constant: true
+    constant: 10
+    experience_times: 5
+  minimum_experience_num: 600
+  reward_shaping: 'tc'  # gf, cgf, tc, stc
+  discrete_action_num: 21
+  demo_experience_ratio:
+    - '30:1.0'
+    - '50:0.0'
+
+online_lp:
+  formulation:
+    plan_window_size: 112
+    apply_window_size: 1
+  forecasting:
+    moving_window_size: 112
+  objective:
+    time_decay_factor: 0.9999
+    order_gain_factor: 1000
+    transit_cost_factor: 0
+    load_discharge_cost_factor: 1
+
+dqn:
+  target_update_frequency: 5  # target network update frequency
+  dropout_p: 0.0              # dropout parameter
+  gamma: 0.0                  # reward decay
+  tau: 0.1                    # soft update
+
+ddpg:
+  target_update_frequency:  5 # target network update frequency
+  dropout: 0.0 # dropout parameter
+  gamma: 0.0 # reward decay
+  tau: 0.1 # soft update
+  critic_lr: 0.001 # learning rate
+  actor_lr: 0.00005
+  theta: 1
+  sigma: 1000
+
+exploration:
+  enable: true
+  max_exploration_rate: 0.4           # max epsilon
+  phase_split_point: 0.5              # exploration two phase split point
+  first_phase_reduce_proportion: 0.8  # first phase reduce proportion of max_eps

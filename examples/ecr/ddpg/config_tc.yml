@@ -1,0 +1,39 @@
+experiment_name: tc 2048 batch 1000ep smaller lr
+env:
+  scenario: "ecr"
+  topology: "5p_ssddd_l0.0"
+  max_tick: 224
+train:
+  max_ep: 2000 # max episode
+  batch_num: 10
+  batch_size: 2048
+  min_train_experience_num: 2048 # when experience number is less than it, will not trigger train
+  reward_shaping: 'tc'
+  ddpg:
+    target_update_frequency:  5 # target network update frequency
+    dropout: 0.0 # dropout parameter
+    gamma: 0.0 # reward decay
+    tau: 0.1 # soft update
+    critic_lr: 0.00001 # learning rate
+    actor_lr: 0.000005
+  exploration:
+    theta: 1
+    sigma: 1000
+  seed: 1024
+test:
+  max_ep: 10 # max episode
+  seed: 2048
+qnet:
+  seed: 0
+log:
+  runner:
+    enable: true
+  agent:
+    enable: true
+  ddpg:
+    enable: true
+    dropout: 0.95
+  actor:
+    enable: false
+  critic:
+    enable: false

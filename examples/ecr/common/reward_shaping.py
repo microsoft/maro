@@ -30,7 +30,7 @@ class TruncateReward(RewardShaping):
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
-    def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int): 
+    def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int) -> np.float32:
         decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick) for j in range(len(self._agent_idx_list))]
         tot_fulfillment = np.dot(snapshot_list.get_attributes(
                     ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['fulfillment'], [0]), decay_list)
@@ -38,6 +38,40 @@ class TruncateReward(RewardShaping):
                     ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['shortage'], [0]), decay_list)
 
         self._reward_cache.append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage))
+
+class SelfAwareTruncatedReward(RewardShaping):
+    def __init__(self, agent_idx_list: [int], agent_idx: int,
+                 fulfillment_factor: float = 1.0, shortage_factor: float = 1.0, time_decay: float = 0.97,
+                 empty_inventory_factor: float = 0.3, total_importance_factor: float = 0.5):
+        super(SelfAwareTruncatedReward, self).__init__()
+        self._agent_idx_list = agent_idx_list
+        self._agent_idx = agent_idx
+        self._fulfillment_factor = fulfillment_factor
+        self._shortage_factor = shortage_factor
+        self._time_decay_factor = time_decay
+        self._empty_inventory_factor = empty_inventory_factor
+        self._total_importance_factor = total_importance_factor
+
+    def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int) -> np.float32:
+        tot_decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick) for j in range(len(self._agent_idx_list))]
+        decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)]
+
+        tot_fulfillment = np.dot(tot_decay_list, snapshot_list.get_attributes(
+            ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['fulfillment'], [0]))
+        tot_shortage = np.dot(tot_decay_list, snapshot_list.get_attributes(
+            ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['shortage'], [0]))
+        tot_empty_inventory = np.dot(tot_decay_list, snapshot_list.get_attributes(
+            ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['empty'], [0]))
+        agent_fulfillment = np.dot(decay_list, snapshot_list.get_attributes(
+            ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], [self._agent_idx], ['fulfillment'], [0]))
+        agent_shortage = np.dot(decay_list, snapshot_list.get_attributes(
+            ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], [self._agent_idx], ['shortage'], [0]))
+        agent_empty_inventory = np.dot(decay_list, snapshot_list.get_attributes(
+            ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], [self._agent_idx], ['empty'], [0]))
+
+        tot_score = self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage - self._empty_inventory_factor * tot_empty_inventory
+        agent_score = self._fulfillment_factor * agent_fulfillment - self._shortage_factor * agent_shortage - self._empty_inventory_factor * agent_empty_inventory
+        self._reward_cache.append(np.float32(agent_score + self._total_importance_factor * tot_score))
 
 
 class GoldenFingerReward(RewardShaping):
@@ -74,7 +108,7 @@ class GoldenFingerReward(RewardShaping):
         action2index = {v: i for i, v in enumerate(self._action_space)}
         if self._topology.startswith('4p_ssdd'):
             best_action_idx_dict = {
-                'supply_port_001': action2index[-0.5] if vessel_name.startswith('rt1') else action2index[-0.5],
+                'supply_port_001': action2index[-0.7] if vessel_name.startswith('rt1') else action2index[-0.3],
                 'supply_port_002': action2index[-1.0],
                 'demand_port_001': action2index[1.0],
                 'demand_port_002': action2index[1.0]
@@ -100,6 +134,45 @@ class GoldenFingerReward(RewardShaping):
             raise ValueError('Unsupported topology')
 
         self._reward_cache.append(np.float32(self._gamma ** abs(best_action_idx_dict[port_name] - action_index) * abs(self._base)))
+
+
+class GoldenFingerRewardContinuous(RewardShaping):
+    def __init__(self, topology, base: int = 1, gamma: float = 0.5):
+        super().__init__()
+        self._topology = topology
+        self._base = base
+        self._gamma = gamma
+
+    def __call__(self, port_name: str, vessel_name: str, action_value: int):
+        if self._topology.startswith('4p_ssdd'):
+            best_action_value_dict = {
+                'supply_port_001': -5333 if vessel_name.startswith('rt1') else -3200,
+                'supply_port_002': -12800,
+                'demand_port_001': 5333,
+                'demand_port_002': 16000
+            }
+        elif self._topology.startswith('5p_ssddd'):
+            best_action_value_dict = {
+                'transfer_port_001': 7000 if vessel_name.startswith('rt1') else -7000,
+                'supply_port_001': -3500,
+                'supply_port_002': -3500,
+                'demand_port_001': 3500,
+                'demand_port_002': 3500
+            }
+        elif self._topology.startswith('6p_sssbdd'):
+            best_action_value_dict = {
+                'transfer_port_001': -5100 if vessel_name.startswith('rt2') else 5100,
+                'transfer_port_002': -5100 if vessel_name.startswith('rt3') else 9600,
+                'supply_port_001': -4800,
+                'supply_port_002': -4800,
+                'demand_port_001': 2550,
+                'demand_port_002': 2550
+            }
+        else:
+            raise ValueError('Unsupported topology')
+
+        action_margin = abs(best_action_value_dict[port_name] - action_value)
+        self._reward_cache.append(np.float32((1 - action_margin / 1000) * abs(self._base)))
 
 
 if __name__ == "__main__":

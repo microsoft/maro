@@ -18,8 +18,8 @@ from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
 from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
-from examples.ecr.q_learning.common.state_shaping import StateShaping
-from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
+from examples.ecr.common.state_shaping import StateShaping
+from examples.ecr.common.action_shaping import DiscreteActionShaping
 from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
 from maro.simulator.scenarios.ecr.common import EcrEventType
 
@@ -173,6 +173,10 @@ class Runner:
                 agent.train(current_ep=ep)
 
             self._env.reset()
+
+        for agent in self._agent_dict.values():
+            dump_path = f'{LOG_FOLDER}/{agent._agent_name}_EP{ep}.pkl'
+            agent.dump_policy_net_parameters(dump_path)
 
         self._test()
 
