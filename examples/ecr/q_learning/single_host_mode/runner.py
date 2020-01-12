@@ -237,7 +237,7 @@ class Runner:
                     for agent in self._agent_dict.values():
                         model_size += agent.model_size()
                         experience_qty += agent.experience_quantity()
-                    self.dashboard.upload_to_ranklist(ranklist='test_shortage_ranklist', fields={
+                    self.dashboard.upload_to_ranklist(ranklist='experiment_ranklist', fields={
                         '1000_rl_shortage': pretty_shortage_dict['total_shortage'], '3000_rl_train_ep': self._max_train_ep, '4000_rl_experience_quantity': experience_qty, '2000_rl_model_size': model_size, 
                         'scenario': self._scenario, 'topology': self._topology, 'max_tick': self._max_tick})
             if is_train:
