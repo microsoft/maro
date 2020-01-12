@@ -1,8 +1,9 @@
-from examples.ecr.reinforce.reinforce import Reinforce
 from torch.distributions import Categorical
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
+from examples.ecr.reinforce.reinforce import Reinforce
 
 class DemoReinforce(Reinforce):
     def __init__(self,

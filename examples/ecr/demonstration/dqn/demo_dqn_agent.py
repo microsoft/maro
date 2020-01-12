@@ -1,9 +1,9 @@
+from collections import defaultdict
+from tqdm import tqdm
+
 import numpy as np
 import random
 import torch
-
-from collections import defaultdict
-from tqdm import tqdm
 
 from examples.ecr.q_learning.common.agent import Agent
 from maro.utils import AbsExperiencePool

@@ -9,7 +9,6 @@ from tqdm import tqdm
 from examples.ecr.common.reward_shaping import TruncateReward, GoldenFingerRewardContinuous
 from maro.utils import SimpleExperiencePool, Logger, LogFormat
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
-from maro.simulator.graph import ResourceNodeType
 
 class Agent(object):
     def __init__(self, 

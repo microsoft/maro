@@ -1,20 +1,21 @@
 from collections import OrderedDict
 from datetime import datetime
+
 import io
+import numpy as np
 import os
 import random
-
-import numpy as np
 import torch
 import yaml
 
-from maro.simulator import Env
-from maro.utils import Logger, LogFormat, convert_dottable
-import maro.simulator.utils.random as srandom
-
+from examples.ecr.online_lp.lp_action_shaping import LPActionShaping
 from examples.ecr.online_lp.lp_agent import LPAgent
 from examples.ecr.online_lp.online_lp import Online_LP
-from examples.ecr.online_lp.lp_action_shaping import LPActionShaping
+from maro.simulator import Env
+from maro.utils import Logger, LogFormat, convert_dottable
+
+import maro.simulator.utils.random as srandom
+
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 

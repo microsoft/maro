@@ -9,19 +9,21 @@ import numpy as np
 import torch
 import yaml
 
-import maro.simulator.utils.random as sim_random
 from tqdm import tqdm
 from collections import OrderedDict
 from datetime import datetime
+
+from examples.ecr.common.action_shaping import DiscreteActionShaping
+from examples.ecr.common.state_shaping import StateShaping
+from examples.ecr.q_learning.common.agent import Agent
+from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+from examples.ecr.q_learning.common.dqn import QNet, DQN
+
 from maro.simulator import Env
+from maro.simulator.scenarios.ecr.common import EcrEventType
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
-from examples.ecr.q_learning.common.agent import Agent
-from examples.ecr.q_learning.common.dqn import QNet, DQN
-from examples.ecr.common.state_shaping import StateShaping
-from examples.ecr.common.action_shaping import DiscreteActionShaping
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
-from maro.simulator.scenarios.ecr.common import EcrEventType
+import maro.simulator.utils.random as sim_random
 
 
 ####################################################### START OF INITIAL_PARAMETERS #######################################################

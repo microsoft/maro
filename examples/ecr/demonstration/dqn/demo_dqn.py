@@ -1,7 +1,7 @@
-from examples.ecr.q_learning.common.dqn import DQN
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
+from examples.ecr.q_learning.common.dqn import DQN
 
 class DemoDQN(DQN):
     def __init__(self,

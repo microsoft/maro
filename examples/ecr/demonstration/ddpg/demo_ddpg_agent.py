@@ -1,9 +1,9 @@
+from collections import defaultdict
+from tqdm import tqdm
+
 import numpy as np
 import random
 import torch
-from tqdm import tqdm
-
-from collections import defaultdict
 
 from examples.ecr.ddpg.ddpg_agent import Agent
 

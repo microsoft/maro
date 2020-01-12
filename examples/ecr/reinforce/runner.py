@@ -1,22 +1,21 @@
 from collections import OrderedDict
 from datetime import datetime
+from tqdm import tqdm
+
 import io
+import numpy as np
 import os
 import random
-
-import numpy as np
 import torch
-from tqdm import tqdm
 import yaml
 
 from maro.simulator import Env
-from maro.simulator.graph import ResourceNodeType
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
-from examples.ecr.reinforce.reinforce_agent import Agent
-from examples.ecr.reinforce.reinforce import ActorNet, Reinforce
-from examples.ecr.common.state_shaping import StateShaping
 from examples.ecr.common.action_shaping import DiscreteActionShaping
+from examples.ecr.common.state_shaping import StateShaping
+from examples.ecr.reinforce.reinforce import ActorNet, Reinforce
+from examples.ecr.reinforce.reinforce_agent import Agent
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 
@@ -88,8 +87,11 @@ class Runner:
                                      port_downstream_max_number=2,
                                      port_attribute_list=['empty', 'full', 'on_shipper', 'on_consignee', 'booking',
                                                           'shortage', 'fulfillment'],
-                                     vessel_attribute_list=['empty', 'full', 'remaining_space'])
-        
+                                     vessel_attribute_list=['empty', 'full', 'remaining_space'],
+                                     # use_port_index=True,
+                                     # use_vessel_index=True
+                                     )
+
         action_space = [round(i * 0.1, 1) for i in range(-10, 11)]
         action_shaping = DiscreteActionShaping(action_space=action_space, consider_early_discharge=False)
         for agent_idx in agent_idx_list:

@@ -1,13 +1,9 @@
-from datetime import datetime
-import os
-import random
+from torch.distributions import Categorical
 
+import random
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from torchsummary import summary
-from torch.distributions import Categorical
+
 from maro.utils import Logger, LogFormat
 
 class ActorNet(nn.Module):
@@ -102,7 +98,7 @@ class Reinforce(object):
             probs = self._policy_net.forward(torch.FloatTensor(state).to(self._device))
             m = Categorical(probs)
             action = m.sample()
-            #action = probs.argmax()
+            # action = probs.argmax()
             return action.item()
 
 

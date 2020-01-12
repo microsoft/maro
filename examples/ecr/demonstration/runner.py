@@ -1,3 +1,6 @@
+from datetime import datetime
+from tqdm import tqdm
+
 import io
 import numpy as np
 import os
@@ -5,36 +8,28 @@ import random
 import torch
 import yaml
 
-from datetime import datetime
-from tqdm import tqdm
-
-import maro.simulator.utils.random as srandom
-
 from maro.simulator import Env
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 from maro.utils import convert_dottable
 from maro.utils import Logger, LogFormat
 from maro.utils import SimpleExperiencePool
-
-from examples.ecr.demonstration.dqn.demo_dqn_agent import DemoDQNAgent
-from examples.ecr.demonstration.dqn.demo_dqn import DemoDQN
-from examples.ecr.demonstration.ddpg.demo_ddpg_agent import DemoDDPGAgent
+from examples.ecr.common.action_shaping import ContinuousActionShaping, DiscreteActionShaping
+from examples.ecr.common.state_shaping import StateShaping
+from examples.ecr.ddpg.ddpg import Actor, Critic
 from examples.ecr.demonstration.ddpg.demo_ddpg import DemoDDPG
-from examples.ecr.demonstration.reinforce.demo_reinforce_agent import DemoReinforceAgent
-from examples.ecr.demonstration.reinforce.demo_reinforce import DemoReinforce
-
+from examples.ecr.demonstration.ddpg.demo_ddpg_agent import DemoDDPGAgent
+from examples.ecr.demonstration.dqn.demo_dqn import DemoDQN
+from examples.ecr.demonstration.dqn.demo_dqn_agent import DemoDQNAgent
 from examples.ecr.demonstration.lp.demo_lp_agent import DemoLPAgent
 from examples.ecr.demonstration.lp.reverse_action_shaping import ReverseActionShaping
+from examples.ecr.demonstration.reinforce.demo_reinforce import DemoReinforce
+from examples.ecr.demonstration.reinforce.demo_reinforce_agent import DemoReinforceAgent
 from examples.ecr.online_lp.lp_action_shaping import LPActionShaping
 from examples.ecr.online_lp.online_lp import Online_LP
-from examples.ecr.common.action_shaping import DiscreteActionShaping
-from examples.ecr.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.dqn import QNet
 from examples.ecr.reinforce.reinforce import ActorNet
 
-from examples.ecr.ddpg.ddpg import Actor
-from examples.ecr.ddpg.ddpg import Critic
-from examples.ecr.common.action_shaping import ContinuousActionShaping
+import maro.simulator.utils.random as srandom
 
 def set_seed(seed):
     np.random.seed(seed)

@@ -7,9 +7,8 @@ import torch
 from tqdm import tqdm
 
 from examples.ecr.common.reward_shaping import TruncateReward, GoldenFingerReward, SelfAwareTruncatedReward
-from maro.utils import SimpleExperiencePool, Logger, LogFormat
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
-from maro.simulator.graph import ResourceNodeType
+from maro.utils import SimpleExperiencePool, Logger, LogFormat
 
 class Agent(object):
     def __init__(self, agent_name, port_idx2name,

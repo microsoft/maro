@@ -6,9 +6,9 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+from examples.ecr.common.reward_shaping import TruncateReward, GoldenFingerReward
 from maro.utils import SimpleExperiencePool, Logger, LogFormat
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
-from examples.ecr.common.reward_shaping import TruncateReward, GoldenFingerReward
 
 
 class Agent(object):

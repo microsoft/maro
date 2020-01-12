@@ -1,8 +1,8 @@
-from examples.ecr.ddpg.ddpg import DDPG
-
 from torch import nn
 
 import torch
+
+from examples.ecr.ddpg.ddpg import DDPG
 
 class DemoDDPG(DDPG):
     def __init__(self,

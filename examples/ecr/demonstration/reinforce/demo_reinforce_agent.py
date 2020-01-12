@@ -1,13 +1,12 @@
+from collections import defaultdict
+from tqdm import tqdm
+
 import numpy as np
 import random
 import torch
 
-from collections import defaultdict
-from tqdm import tqdm
-
 from examples.ecr.reinforce.reinforce_agent import Agent
 from maro.utils import AbsExperiencePool
-
 
 class DemoReinforceAgent(Agent):
     def __init__(self,

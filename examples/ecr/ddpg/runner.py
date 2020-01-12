@@ -1,22 +1,22 @@
 from collections import OrderedDict
 from datetime import datetime
+from tqdm import tqdm
+
 import io
+import numpy as np
 import os
 import random
-
-import numpy as np
 import torch
-from tqdm import tqdm
 import yaml
 
-import maro.simulator.utils.random as sim_random
+from examples.ecr.common.action_shaping import ContinuousActionShaping
+from examples.ecr.common.state_shaping import StateShaping
+from examples.ecr.ddpg.ddpg import Actor, Critic, DDPG
+from examples.ecr.ddpg.ddpg_agent import Agent
 from maro.simulator import Env
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
-from examples.ecr.ddpg.ddpg_agent import Agent
-from examples.ecr.ddpg.ddpg import Actor, Critic, DDPG
-from examples.ecr.common.state_shaping import StateShaping
-from examples.ecr.common.action_shaping import ContinuousActionShaping
+import maro.simulator.utils.random as sim_random
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 

@@ -1,11 +1,9 @@
-from pulp import LpProblem, LpVariable, LpMaximize, lpSum, LpStatus, value, GLPK
-import numpy as np
-import sys
+from pulp import LpProblem, LpVariable, LpMaximize, lpSum
+
 import math
+import numpy as np
 
-from maro.simulator.scenarios.ecr.common import Action, EcrEventType
-
-import time
+from maro.simulator.scenarios.ecr.common import EcrEventType
 
 INVALID_TICK = -1
 
