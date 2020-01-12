@@ -43,6 +43,6 @@ dashboard:
     use_udp: true
     udp_port: 50304
   ranklist:
-    enable: true
+    enable: false
     author: your_name
     commit: your_commit

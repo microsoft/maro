@@ -70,6 +70,8 @@ DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 RANKLIST_ENABLE = config.dashboard.ranklist.enable
+AUTHOR = config.dashboard.ranklist.author
+COMMIT = config.dashboard.ranklist.commit
 
 if config.train.reward_shaping not in {'gf', 'tc'}:
     raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
@@ -80,7 +82,7 @@ REWARD_SHAPING = config.train.reward_shaping
 
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float], experiment_name: str, log_enable: bool = True, dashboard_enable: bool = False, ranklist_enable: bool = False):
+                 eps_list: [float], experiment_name: str, log_enable: bool = True, dashboard_enable: bool = False, ranklist_enable: bool = False, author: str = "unknown", commit: str = "unknown"):
 
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
@@ -102,6 +104,9 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._dashboard_enable = dashboard_enable
+        self._ranklist_enable = ranklist_enable
+        self._author = author
+        self._commit = commit
 
         if log_enable:
             self._logger = Logger(tag='runner', format_=LogFormat.simple,
@@ -231,14 +236,15 @@ class Runner:
             self.dashboard.upload_booking(pretty_booking_dict, dashboard_ep)
             self.dashboard.upload_shortage(pretty_shortage_dict, dashboard_ep)
             if not is_train:
-                if ep == self._max_test_ep - 1:
+                if ep == self._max_test_ep - 1 and self._ranklist_enable:
                     model_size = 0
                     experience_qty = 0
                     for agent in self._agent_dict.values():
                         model_size += agent.model_size()
                         experience_qty += agent.experience_quantity()
                     self.dashboard.upload_to_ranklist(ranklist='experiment_ranklist', fields={
-                        '1000_rl_shortage': pretty_shortage_dict['total_shortage'], '3000_rl_train_ep': self._max_train_ep, '4000_rl_experience_quantity': experience_qty, '2000_rl_model_size': model_size, 
+                        '1000_rl_shortage': pretty_shortage_dict['total_shortage'], '3000_rl_train_ep': self._max_train_ep, '4000_rl_experience_quantity': experience_qty, '2000_rl_model_size': model_size,
+                        '5000_rl_author': self._author, '6000_rl_commit': self._commit, 
                         'scenario': self._scenario, 'topology': self._topology, 'max_tick': self._max_tick})
             if is_train:
                 pretty_epsilon_dict = OrderedDict()
@@ -311,6 +317,6 @@ if __name__ == '__main__':
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
                     max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
                     max_test_ep=MAX_TEST_EP, eps_list=eps_list, experiment_name = EXPERIMENT_NAME, 
-                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE, ranklist_enable=RANKLIST_ENABLE)
+                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE, ranklist_enable=RANKLIST_ENABLE, author=AUTHOR, commit=COMMIT)
 
     runner.start()
