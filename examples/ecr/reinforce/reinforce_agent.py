@@ -120,6 +120,7 @@ class Agent(object):
         self._eps_cache = []
         self._port_states_cache = []
         self._vessel_states_cache = []
+        self._reward_shaping.clear_cache()
         
     @property
     def experience_pool(self):
