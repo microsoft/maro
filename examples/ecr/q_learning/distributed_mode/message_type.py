@@ -9,7 +9,8 @@ class MsgType(Enum):
     STORE_EXPERIENCE = 0  # message contains actual experience data
     INITIAL_PARAMETERS = 1  # message contains model's parameter
     UPDATED_PARAMETERS = 2  # message notify the learner is ready for training
-    ENV_CHECKOUT = 3  # message notify the environment is finish and checkout
+    NOT_READY_FOR_TRAINING = 3  # message to indicate that the learner has not collected enough experiences for training
+    ENV_CHECKOUT = 4  # message notify the environment is finish and checkout
 
 
 class MsgKey(Enum):

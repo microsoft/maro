@@ -173,7 +173,7 @@ class EnvRunner(Runner):
 
         Load policy net parameters for the given agent's algorithm
         """
-        if msg.body[MsgKey.POLICY_NET_PARAMETERS] != None:
+        if msg.body[MsgKey.POLICY_NET_PARAMETERS] is not None:
             self._agent_dict[msg.body[MsgKey.AGENT_ID]].load_policy_net_parameters(
                 msg.body[MsgKey.POLICY_NET_PARAMETERS])
 
@@ -182,15 +182,19 @@ class EnvRunner(Runner):
         Waiting for all agents have the updated policy net parameters, and message may
         contain the policy net parameters.
         """
+        print('force syncing...')
         pending_updated_agents = len(self._agent_idx_list)
         for msg in self._proxy.receive():
+            print(f'received a {msg.type} message from {msg.source}')
             if msg.type == MsgType.UPDATED_PARAMETERS:
                 self.on_updated_parameters(msg)
+                pending_updated_agents -= 1
+            elif msg.type == MsgType.NOT_READY_FOR_TRAINING:
                 pending_updated_agents -= 1
             else:
                 raise Exception(f'Unrecognized message type: {msg.type}')
 
-            if not pending_updated_agents:
+            if pending_updated_agents == 0:
                 break
 
 
