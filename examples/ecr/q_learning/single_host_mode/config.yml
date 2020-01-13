@@ -9,6 +9,9 @@ train:
   batch_size: 128
   min_train_experience_num: 1024 # when experience number is less than it, will not trigger train
   reward_shaping: 'tc'
+  experience_pool:
+    size: 10000
+    replacement: 'random'
   dqn:
     target_update_frequency: 5 # target network update frequency
     dropout_p: 0.0 # dropout parameter

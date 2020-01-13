@@ -12,20 +12,23 @@ class SimpleStore(object):
     """Simple store, support basic data batch operations: put, get, update, filter, sampling.
 
     Args:
-        size (int): Item object list.
-        replace (str): how existing entries should be overwritten if size is not None. Ignored if size = None
+        size (int): Item object list. Defaults to -1, which means the store grows without bound
+        replacement (str): how existing entries should be overwritten if using a fixed-sized store. 
+                           Ignored if size = -1
     """
 
-    def __init__(self, size=None, replace=None):
-        self._internal_store = [] if size is None else np.zeros(size, dtype=object)
-        if replace and replace not in {'cyclic', 'random'}:
+    def __init__(self, size=-1, replacement=None):
+        self._internal_store = [] if size < 0 else np.zeros(size, dtype=object)
+        if replacement and replacement not in {'cyclic', 'random'}:
             raise ValueError('Supported replacement schemes are "cyclic" and "random"')
-        self._replace = replace
-        self._pointer = None if size is None else 0
+        self._replacement = None if size < 0 else replacement
+        self._counter = 0  # internal counter to keep track of the number of records that have been inserted
+        self._pointer = None if size < 0 else 0
 
     @property
     def size(self):
-        """Current store size.
+        """Current store size. If a fixed-sized store is used, its size is returned. Otherwise, this
+           returns the current number of records in the store
         """
         return len(self._internal_store)
 
@@ -42,19 +45,20 @@ class SimpleStore(object):
         Returns:
             Tuple[List[int], List[int]]: (unoccupied indices, indices where existing entries are overwritten)
         """
-        if self._replace is None:
+        count = len(items)
+        self._counter += count
+        if self._replacement is None:
             pre_size = self.size
             self._internal_store.extend(items)
             post_size = self.size
             return list(range(pre_size, post_size)), []
 
         # inserting to a fixed-size pool with cyclic or random replacement
-        count = len(items)
         assert count <= self.size, "number of inserted records cannot be greater than the store size"
         start = self._pointer
         self._pointer += count
         fill = list(range(start, min(self._pointer, self.size)))
-        if self._replace == 'cyclic':
+        if self._replacement == 'cyclic':
             self._pointer %= self.size
             overwrite = list(range(self._pointer)) if self._pointer <= start else []
         else:  # random overwrite
@@ -88,7 +92,7 @@ class SimpleStore(object):
         """
         assert(len(idxs) == len(items))
         assert all(idx < self.size for idx in idxs), "index out of range"
-        if self._replace is None:
+        if self._replacement is None:
             for idx, item in zip(idxs, items):
                 self._internal_store[idx] = item
         else:
@@ -99,7 +103,7 @@ class SimpleStore(object):
     def clear(self):
         """Clear current store.
         """
-        self._internal_store = [] if self._replace is None else np.zeros(self.size, dtype=object)
+        self._internal_store = [] if self._replacement is None else np.zeros(self.size, dtype=object)
 
     def apply_multi_filters(self, filters: [Callable[[Tuple[int, object]], Tuple[int, object]]], return_idx: bool = True) -> list:
         """Multi-filter method.
@@ -114,7 +118,7 @@ class SimpleStore(object):
         Returns:
             list: Filtered indexes or items. i.e. [1, 2, 3], ['a', 'b', 'c']
         """
-        tuples = enumerate(self._internal_store)
+        tuples = enumerate(self._internal_store[:min(self.size, self._counter)])
         for f in filters:
             tuples = filter(f, tuples)
 
@@ -140,8 +144,9 @@ class SimpleStore(object):
         Returns:
             list: Sampled indexes or items.i.e. [1, 2, 3], ['a', 'b', 'c']
         """
-        idxs = range(self.size)
-        objs = self._internal_store
+        bound = min(self.size, self._counter)
+        idxs = range(bound)
+        objs = self._internal_store[:bound]
         for sampler in samplers:
             tuples = map(sampler[0], idxs, objs)
             idxs, weights = zip(*[(t[0], t[1]) for t in tuples])
@@ -191,7 +196,7 @@ if __name__ == '__main__':
 
     print('*'*20 + 'TESTING A FIXED-SIZED STORE' + '*'*20)
 
-    store = SimpleStore(size=7, replace='random')
+    store = SimpleStore(size=7, replacement='random')
     new_idxs = store.put(
         [{'a': i, 'b': i + 2} for i in range(5)])
     print('new idxs:', new_idxs, end=' ' * 3)

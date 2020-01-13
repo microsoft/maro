@@ -18,13 +18,18 @@ CategorySampler = [Tuple[object, List[Tuple[Callable[[int, object], Tuple[int, o
 
 class SimpleExperiencePool(AbsExperiencePool):
     """Collection of the multi-category store, support cross-category batch operation on stores.
+
+    Args:
+        size (int): Item object list. Defaults to -1, which means the store grows without bound
+        replacement (str): how existing entries should be overwritten if using a fixed-sized store.
+                        Ignored if size = -1
     """
 
-    def __init__(self, size=None, replace=None):
+    def __init__(self, size=-1, replacement=None):
         super(AbsExperiencePool, self).__init__()
-        self._stores = defaultdict(lambda: SimpleStore(size=size, replace=replace))
+        self._stores = defaultdict(lambda: SimpleStore(size=size, replacement=replacement))
 
-    def put(self, category_data_batches: [Tuple[object, list]], align_check: bool = False) -> Dict[object, List[int]]:
+    def put(self, category_data_batches: [Tuple[object, list]], align_check: bool = False) -> Dict[object, Tuple[List[int], List[int]]]:
         """Multi-category data put.
 
         Args:
@@ -34,7 +39,7 @@ class SimpleExperiencePool(AbsExperiencePool):
             align_check (bool): Enable align check for multi-category input items length.
 
         Returns:
-            Dict[object, List[int]]: The new appended data indexes of each category.
+            Dict[object, Tuple[List[int], List[int]]]: The new appended data indexes of each category.
         """
         if align_check and len(category_data_batches) > 1:
             first_items_len = len(category_data_batches[0][1])

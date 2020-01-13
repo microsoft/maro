@@ -45,6 +45,7 @@ MAX_TICK = config.env.max_tick
 MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
+EXP_POOL = config.train.experience_pool
 PHASE_SPLIT_POINT = config.train.exploration.phase_split_point  # exploration two phase split point
 FIRST_PHASE_REDUCE_PROPORTION = config.train.exploration.first_phase_reduce_proportion  # first phase reduce proportion of max_eps 
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
@@ -122,7 +123,7 @@ class Runner:
         action_space = [round(i * 0.1, 1) for i in range(-10, 11)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
         for agent_idx in agent_idx_list:
-            experience_pool = SimpleExperiencePool()
+            experience_pool = SimpleExperiencePool(size=EXP_POOL.size, replacement=EXP_POOL.replacement)
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
                               hidden_dims=[
                                   256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
