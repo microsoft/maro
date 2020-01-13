@@ -70,7 +70,7 @@ def on_new_experience(local_instance, proxy, msg):
     local_instance.experience_pool.put(category_data_batches=msg.body[MsgKey.EXPERIENCE])
     policy_net_parameters = None
 
-    # trigger trining process if got enough experience
+    # trigger training process if got enough experience
     if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
         local_instance.train(msg.body[MsgKey.EPISODE], msg.body[MsgKey.AGENT_NAME])
         policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
