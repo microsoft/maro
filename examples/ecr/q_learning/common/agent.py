@@ -30,6 +30,7 @@ class Agent(object):
         self._experience_pool = experience_pool
         self._state_shaping = state_shaping
         self._action_shaping = action_shaping
+        self._reward_shaping = reward_shaping
         self._state_cache = []
         self._action_cache = []
         self._action_tick_cache = []
@@ -47,11 +48,6 @@ class Agent(object):
         self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
 
-        if reward_shaping == 'gf':
-            self._reward_shaping = GoldenFingerReward(topology=self._topology, action_space=self._action_shaping.action_space, base=10)
-        else:
-            self._reward_shaping = TruncateReward(agent_idx_list=agent_idx_list)
-
         if self._log_enable:
             self._logger = Logger(tag='agent', format_=LogFormat.simple,
                                   dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
@@ -64,12 +60,15 @@ class Agent(object):
 
     def calculate_offline_rewards(self, snapshot_list, current_ep: int):
         for i, tick in enumerate(self._action_tick_cache):
-            if type(self._reward_shaping) == GoldenFingerReward:
-                self._reward_shaping(port_name=self._port_idx2name[self._decision_event_cache[i].port_idx],
-                                     vessel_name=self._vessel_idx2name[self._decision_event_cache[i].vessel_idx],
-                                     action_index=self._action_cache[i])
+            if self._reward_shaping.reward_type == 'goldenfinger':
+                reward_parameters = {'port_name': self._port_idx2name[self._decision_event_cache[i].port_idx],
+                                     'vessel_name': self._vessel_idx2name[self._decision_event_cache[i].vessel_idx],
+                                     'action_index': self._action_cache[i]}
             else:
-                self._reward_shaping(snapshot_list=snapshot_list, start_tick=tick + 1, end_tick=tick + 100)
+                reward_parameters = {'snapshot_list': snapshot_list,
+                                     'start_tick': tick+1,
+                                     'end_tick': tick+100}
+            self._reward_shaping(**reward_parameters)
 
         self._reward_cache = self._reward_shaping.reward_cache
         self._next_state_cache = self._state_cache[1:]
@@ -233,11 +232,14 @@ class Agent(object):
         vessel_states = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
         early_discharge = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
+                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0] if self._reward_shaping.reward_type == 'goldenfinger' else None
         self._port_states_cache.append(port_states)
         self._vessel_states_cache.append(vessel_states)
-        actual_action = self._action_shaping(scope=action_scope, action_index=action_index, port_empty=port_states[0],
-                                             vessel_remaining_space=vessel_states[2], early_discharge=early_discharge)
+        actual_action = self._action_shaping(scope=action_scope, 
+                                             action_index=action_index, 
+                                             port_empty=port_states[0],
+                                             vessel_remaining_space=vessel_states[2], 
+                                             early_discharge=early_discharge)
         self._actual_action_cache.append(actual_action)
         env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
         if self._log_enable:
