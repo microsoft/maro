@@ -52,7 +52,7 @@ class DemoDQNAgent(Agent):
 
     def _parse_demo_experience_ratio(self, ep_ratio_list: list):
         self_demo_ratio = {}
-        self_demo_ratio = defaultdict(lambda: (1.0, 0.0), self_demo_ratio)
+        self_demo_ratio = defaultdict(lambda: (1.0, 0.0), self_demo_ratio)  # self: 1.0, demo: 0.0
 
         ep_idx = 0
         for ep_ratio_pair in ep_ratio_list:

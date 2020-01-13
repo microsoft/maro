@@ -44,8 +44,7 @@ class DiscreteActionShaping():
         if action_index > self._zero_action_index:
             if self._consider_early_discharge:
                 plan_action = self._action_space[action_index] * (scope.discharge + early_discharge) - early_discharge
-                if plan_action > 0:
-                    return round(plan_action)
+                return max(round(plan_action), 0)
             return round(self._action_space[action_index] * scope.discharge)
 
         return 0

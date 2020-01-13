@@ -111,6 +111,7 @@ class Agent(object):
         ])
 
     def clear_cache(self):
+        self._reward_shaping.clear_cache()
         self._next_state_cache = []
         self._state_cache = []
         self._reward_cache = []

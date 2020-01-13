@@ -30,6 +30,7 @@ class TruncateReward(RewardShaping):
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
+    # TODO: replace end_tick with offset
     def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int) -> np.float32:
         decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick) for j in range(len(self._agent_idx_list))]
         tot_fulfillment = np.dot(snapshot_list.get_attributes(

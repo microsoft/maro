@@ -177,6 +177,8 @@ class DemoLPAgent(LPAgent):
         super(DemoLPAgent, self).reset()
         # Clear cache
         for agent_idx in self._rl_agent_idx_list:
+            # TODO: confirm interface
+            self._reward_shaping_dict[agent_idx].clear_cache()
             self._action_tick_cache[agent_idx] = []
             self._state_cache[agent_idx] = []
             self._action_cache[agent_idx] = []

@@ -541,6 +541,7 @@ class Runner:
                 or all([agent.meet_training_condition(ep) for agent in self._rl_agent_dict.values()]):
                 for agent in self._rl_agent_dict.values():
                     agent.train(current_ep=ep)
+                    # TODO: clear experience pool of reinforce
 
         # Save learned models of last episode
         for agent in self._rl_agent_dict.values():
