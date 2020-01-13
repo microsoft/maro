@@ -49,7 +49,7 @@ class Agent(object):
         self._min_train_experience_num = min_train_experience_num
         self._log_enable = log_enable
 
-        if reward_shaping == 'cgf':
+        if reward_shaping == 'continuous_gf':
             self._reward_shaping = GoldenFingerRewardContinuous(topology=self._topology, base=10)
         elif reward_shaping == 'tc':
             self._reward_shaping = TruncateReward(agent_idx_list=agent_idx_list, time_decay=0.9)
@@ -59,7 +59,7 @@ class Agent(object):
         if self._log_enable:
             self._logger = Logger(tag='agent', format_=LogFormat.simple, 
                                 dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
-            self._choose_action_logger = Logger(tag=f'{self._algorithm.policy_net._name}.choose_action', format_=LogFormat.none, 
+            self._choose_action_logger = Logger(tag=f'choose_action.{self._algorithm.policy_net._name}', format_=LogFormat.none, 
                                                 dump_folder=log_folder, dump_mode='w', extension_name='csv', auto_timestamp=False)
             self._choose_action_logger.debug('episode,tick,learning_index,epislon,port_empty,port_full,port_on_shipper,port_on_consignee,vessel_empty,vessel_full,vessel_remaining_space,max_load_num,max_discharge_num,vessel_name,action_index,actual_action,reward')
 
@@ -133,6 +133,7 @@ class Agent(object):
         self._decision_event_cache = []
         self._port_states_cache = []
         self._vessel_states_cache = []
+        self._reward_shaping.clear_cache()
 
     @property
     def experience_pool(self):
