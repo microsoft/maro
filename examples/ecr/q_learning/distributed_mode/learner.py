@@ -34,7 +34,6 @@ with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as ou
     yaml.safe_dump(raw_config, out_file)
 
 
-
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
@@ -61,9 +60,12 @@ proxy = Proxy(group_name=os.environ['GROUP'],
               redis_address=(config.redis.host, config.redis.port),
               logger=logger)
 
+pending_envs = set(proxy.peers)  # environments the learner expects experiences from
+
 if DASHBOARD_ENABLE:
     dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-    dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
+    dashboard.setup_connection(host=DASHBOARD_HOST, port=DASHBOARD_PORT,
+                               use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
 
 
 @log(logger=logger)
@@ -73,19 +75,23 @@ def on_new_experience(local_instance, proxy, message):
     """
     # put experience into experience pool
     local_instance.experience_pool.put(category_data_batches=message.body[MsgKey.EXPERIENCE])
-    policy_net_parameters = None
 
-    # trigger training process if got enough experience
-    if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
-        local_instance.train(message.body[MsgKey.EPISODE], message.body[MsgKey.AGENT_NAME])
-        policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
-
-    # send updated policy net parameters to the target environment runner
-    message = Message(type=MsgType.UPDATED_PARAMETERS, source=proxy.name,
-                      destination=message.source,
-                      body={MsgKey.AGENT_ID: message.body[MsgKey.AGENT_ID],
-                            MsgKey.POLICY_NET_PARAMETERS: policy_net_parameters})
-    proxy.send(message)
+    if message.source in pending_envs:
+        pending_envs.remove(message.source)
+        if len(pending_envs) == 0 and local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
+            local_instance.train(message.body[MsgKey.EPISODE], message.body[MsgKey.AGENT_NAME])
+            policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
+            # send updated policy net parameters to the target environment runner
+            message = Message(type=MsgType.UPDATED_PARAMETERS, source=proxy.name,
+                              destination=message.source,
+                              body={MsgKey.AGENT_ID: message.body[MsgKey.AGENT_ID],
+                                    MsgKey.POLICY_NET_PARAMETERS: policy_net_parameters})
+            proxy.send(message)
+            pending_envs.update(proxy.peers)  # reset pending environments to the full list
+        else:
+            logger.info(f'Pending experiences from {pending_envs}')
+    else:
+        logger.warn(f'{message.source} has already been removed from the pending list. Message ignored')
 
 
 @log(logger=logger)
