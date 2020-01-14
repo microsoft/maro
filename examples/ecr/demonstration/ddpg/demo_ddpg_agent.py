@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from collections import defaultdict
 
+from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 from examples.ecr.ddpg.ddpg_agent import Agent
 
 class DemoDDPGAgent(Agent):
