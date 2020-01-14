@@ -31,6 +31,8 @@ from examples.ecr.reinforce.reinforce import ActorNet
 
 import maro.simulator.utils.random as srandom
 
+from maro.utils import Env_Logger
+
 def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
@@ -75,6 +77,8 @@ class Runner:
         self._seed = config.seed
         self._log_folder = log_folder
         self._config = config
+
+        self._env_logger = Env_Logger()
         
         self._init_env(config=config.env)
         self._action_recorder = ActionRecorder(episode_limit=config.demo.data_augmentation.num_episode)
@@ -87,8 +91,10 @@ class Runner:
         set_seed(self._seed)
         self._env = Env(scenario=config.scenario,
                         topology=config.topology,
-                        max_tick=config.max_tick)
-
+                        max_tick=config.max_tick,                        
+                        env_logger=self._env_logger,
+                        log_folder=log_folder)
+                        
         self._port_idx2name = self._env.node_name_mapping['static']
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']
     
@@ -278,14 +284,14 @@ class Runner:
         experience_pool = SimpleExperiencePool()
         actor_policy_net = Actor(name=f'{self._port_idx2name[agent_idx]}.policy_actor', 
                                     input_dim=state_shaping.dim,
-                                    hidden_dims=[256, 128, 64], 
+                                    hidden_dims=[256, 128, 64, 32], 
                                     output_dim=1, 
                                     dropout_actor=0,
                                     log_enable=True, 
                                     log_folder=self._log_folder)
         actor_target_net = Actor(name=f'{self._port_idx2name[agent_idx]}.target_actor', 
                                     input_dim=state_shaping.dim, 
-                                    hidden_dims=[256, 128, 64], 
+                                    hidden_dims=[256, 128, 64, 32],  
                                     output_dim=1, 
                                     dropout_actor=0,
                                     log_enable=True, 
@@ -321,6 +327,7 @@ class Runner:
                         actor_lr=self._config.ddpg.actor_lr, 
                         sigma=self._config.ddpg.sigma, 
                         theta=self._config.ddpg.theta,
+                        demo_action_reward_augment_ratio=self._config.ddpg.demo_action_reward_augment_ratio,
                         log_enable=True, 
                         log_folder=self._log_folder)
         
@@ -446,11 +453,14 @@ class Runner:
             _, decision_event, is_done = self._env.step(None)
             while not is_done:
                 if self._config.demo.algorithm == "ddpg":
-                    action = self._rl_agent_dict[decision_event.port_idx].choose_action(
+                    model_action, action = self._rl_agent_dict[decision_event.port_idx].choose_action(
                         decision_event=decision_event, is_test=False, current_ep=ep)
+                    self._env_logger.augment_log_from_action(decision_event.tick, model_action)
                 else:
                     action = self._rl_agent_dict[decision_event.port_idx].choose_action(
                         decision_event=decision_event, eps=exploration_rates[ep], current_ep=ep)
+                    self._env_logger.augment_log_from_action(decision_event.tick, action)            
+
                 
                 self._action_recorder(ep, decision_event, action)
                 _, decision_event, is_done = self._env.step(action)
@@ -465,6 +475,8 @@ class Runner:
 
             self._print_summary(ep=ep, summary_name=f'RL interaction EP {ep}')
             self._env.reset()
+
+            self._env_logger.end_episode_callback()
             
             # Demonstration Data Augmentation
             if ep < config.demo.data_augmentation.num_episode:

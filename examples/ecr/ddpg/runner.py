@@ -131,7 +131,7 @@ class Runner:
             ddpg = DDPG(actor_policy_net=actor_policy_net, actor_target_net=actor_target_net,
                         critic_policy_net=critic_policy_net, critic_target_net=critic_target_net,
                         gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, critic_lr=CRITIC_LEARNING_RATE, actor_lr=ACTOR_LEARNING_RATE, sigma=SIGMA, theta=THETA,
-                        log_enable=DDPG_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_ddpg=DDPG_LOG_DROPOUT)
+                        log_enable=DDPG_LOG_ENABLE, log_folder=LOG_FOLDER)
             
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx], 
                                           topology=self._topology,

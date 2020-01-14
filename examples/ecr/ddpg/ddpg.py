@@ -160,8 +160,7 @@ class DDPG(object):
                  target_update_frequency: int,
                  device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                  log_enable: bool = True, 
-                 log_folder: str = './',
-                 log_dropout_ddpg: float = 0.0):
+                 log_folder: str = './'):
         '''
         Args:
             actor_policy_net (nn.Module): actor net, which is used for choosing action.
@@ -207,15 +206,15 @@ class DDPG(object):
         if self._log_enable:
             self._logger = Logger(tag='DDPG', format_=LogFormat.simple, 
                 dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
-            self._actor_loss_logger = Logger(tag=f'{self._actor_policy_net._name}.loss', format_=LogFormat.none, 
+            self._actor_loss_logger = Logger(tag=f'actor_loss.{self._actor_policy_net._name}', format_=LogFormat.none, 
                     dump_folder=log_folder, dump_mode='w', extension_name='csv', auto_timestamp=False)
             self._actor_loss_logger.debug('episode,learning_index,loss')
 
-            self._critic_loss_logger = Logger(tag=f'{self._critic_policy_net._name}.loss', format_=LogFormat.none, 
+            self._critic_loss_logger = Logger(tag=f'critic_loss.{self._critic_policy_net._name}', format_=LogFormat.none, 
                     dump_folder=log_folder, dump_mode='w', extension_name='csv', auto_timestamp=False)
             self._critic_loss_logger.debug('episode,learning_index,loss')
 
-            self._Q_value_logger = Logger(tag=f'{self._critic_policy_net._name}.q_value', format_=LogFormat.none, 
+            self._Q_value_logger = Logger(tag=f'q_value.{self._critic_policy_net._name}', format_=LogFormat.none, 
                     dump_folder=log_folder, dump_mode='w', extension_name='csv', auto_timestamp=False)
             self._Q_value_logger.debug('episode, action, q_value')
 
@@ -252,7 +251,6 @@ class DDPG(object):
         target_actions = self._actor_target_net(next_state_batch)#.clamp(-self.action_lim, self.action_lim)
         next_Q_values = self._critic_target_net(next_state_batch, target_actions).detach()
         target_Q_values = reward_batch + (self._gamma * next_Q_values)
-
 
         critic_loss = F.mse_loss(current_Q_values, target_Q_values).mean()
 

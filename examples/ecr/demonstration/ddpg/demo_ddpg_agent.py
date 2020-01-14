@@ -1,9 +1,9 @@
-from collections import defaultdict
-from tqdm import tqdm
-
 import numpy as np
 import random
 import torch
+from tqdm import tqdm
+
+from collections import defaultdict
 
 from examples.ecr.ddpg.ddpg_agent import Agent
 
@@ -20,7 +20,6 @@ class DemoDDPGAgent(Agent):
                  reward_shaping, 
                  training_config,
                  demo_experience_pool,
-                 agent_idx_list,
                  log_enable: bool = True, 
                  log_folder: str = './',
                  ):
@@ -36,7 +35,6 @@ class DemoDDPGAgent(Agent):
                         batch_num=training_config.batch_num_per_training.constant, 
                         batch_size=training_config.batch_size,
                         min_train_experience_num=training_config.minimum_experience_num,
-                        agent_idx_list=agent_idx_list,
                         log_enable=log_enable,
                         log_folder=log_folder)
 
@@ -109,3 +107,72 @@ class DemoDDPGAgent(Agent):
             self._algorithm.learn(self_state_batch, self_action_batch, self_reward_batch, self_next_state_batch, \
                                   demo_state_batch, demo_action_batch, demo_reward_batch, demo_next_state_batch, \
                                   current_ep=current_ep)
+    
+    def choose_action(self, decision_event: DecisionEvent, is_test: bool, current_ep: int) -> Action:
+        '''
+        Args:
+            decision_event (DecisionEvent): Environment decision event, which includes the action scope, environment snapshot, etc.
+            current_ep (int): Current episode, which is used for logging.
+
+        Returns:
+            (Action): Environment action.
+        '''
+
+        action_scope = decision_event.action_scope
+        cur_tick = decision_event.tick
+        cur_port_idx = decision_event.port_idx
+        cur_vessel_idx = decision_event.vessel_idx
+        snapshot_list = decision_event.snapshot_list
+        early_discharge = decision_event.early_discharge
+
+        numpy_state = self._state_shaping(
+            cur_tick=cur_tick, cur_port_idx=cur_port_idx, cur_vessel_idx=cur_vessel_idx)
+
+        state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
+        action_value = self._algorithm.choose_action(
+            state=state, is_test=is_test, current_ep=current_ep)
+        self._state_cache.append(numpy_state)
+        self._action_cache.append(action_value)
+        self._action_tick_cache.append(cur_tick)
+        self._decision_event_cache.append(decision_event)
+        port_states = snapshot_list.static_nodes[cur_tick: [cur_port_idx]: (['empty', 'full', 'on_shipper', 'on_consignee'], 0)]
+        vessel_states = snapshot_list.dynamic_nodes[cur_tick: [cur_vessel_idx]: (['empty', 'full', 'remaining_space'], 0)]
+        self._port_states_cache.append(port_states)
+        self._vessel_states_cache.append(vessel_states)
+
+        # route_001 = ['rt1_vessel_001', 'rt1_vessel_002', 'rt1_vessel_003']
+        # route_002 = ['rt2_vessel_001', 'rt2_vessel_002', 'rt2_vessel_003']
+
+        # best_action_value_dict = {
+        #     'transfer_port_001': 7000 if self._vessel_idx2name[cur_vessel_idx] in route_001 else -7000,
+        #     'supply_port_001': -3500,
+        #     'supply_port_002': -3500,
+        #     'demand_port_001': 3500,
+        #     'demand_port_002': 3500
+        # }
+
+        # best_action_value_dict = {
+        #     'supply_port_001': -5333 if self._vessel_idx2name[cur_vessel_idx].startswith('rt1') else -3200,
+        #     'supply_port_002': -12800,
+        #     'demand_port_001': 5333,
+        #     'demand_port_002': 16000
+        # }
+
+        # best_action_value_dict = {
+        #     'transfer_port_001': -5100 if self._vessel_idx2name[cur_vessel_idx].startswith('rt2') else 5100,
+        #     'transfer_port_002': -5100 if self._vessel_idx2name[cur_vessel_idx].startswith('rt3') else 9600,
+        #     'supply_port_001': -4800,
+        #     'supply_port_002': -4800,
+        #     'demand_port_001': 2550,
+        #     'demand_port_002': 2550
+        # }
+
+        # action_value = best_action_value_dict[self._port_idx2name[cur_port_idx]]
+
+        actual_action = self._action_shaping(scope=action_scope, action_value=action_value, early_discharge=early_discharge)
+        self._actual_action_cache.append(actual_action)
+        env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
+        model_action = Action(cur_vessel_idx, cur_port_idx, action_value)
+        if self._log_enable:
+            self._logger.info(f'{self._agent_name} decision_event: {decision_event}, env_action: {env_action}')
+        return model_action, env_action
