@@ -14,7 +14,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to laden_executed table in database.
 
         Args:
-            nodes_laden_executed ({Dict}): dictionary of d_error, key is node name, value is node laden_executed value
+            nodes_laden_executed ({Dict}): dictionary of laden_executed, key is node name, value is node laden_executed value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -31,7 +31,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to laden_planed table in database.
 
         Args:
-            nodes_laden_planed ({Dict}): dictionary of d_error, key is node name, value is node laden_planed value
+            nodes_laden_planed ({Dict}): dictionary of laden_planed, key is node name, value is node laden_planed value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -48,7 +48,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to shortage table in database.
 
         Args:
-            nodes_shortage ({Dict}): dictionary of d_error, key is node name, value is node shortage value
+            nodes_shortage ({Dict}): dictionary of shortage, key is node name, value is node shortage value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -65,7 +65,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to booking table in database.
 
         Args:
-            nodes_booking ({Dict}): dictionary of d_error, key is node name, value is node booking value
+            nodes_booking ({Dict}): dictionary of booking, key is node name, value is node booking value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -82,7 +82,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to q_value table in database.
 
         Args:
-            nodes_q ({Dict}): dictionary of d_error, key is node name, value is node q_value value
+            nodes_q ({Dict}): dictionary of q_value, key is node name, value is node q_value value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -119,7 +119,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to loss table in database.
 
         Args:
-            nodes_loss ({Dict}): dictionary of d_error, key is node name, value is node loss value
+            nodes_loss ({Dict}): dictionary of loss, key is node name, value is node loss value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -136,7 +136,7 @@ class DashboardECR(DashboardBase):
         Upload scalars to epsilon table in database.
 
         Args:
-            nodes_epsilon ({Dict}): dictionary of d_error, key is node name, value is node epsilon value
+            nodes_epsilon ({Dict}): dictionary of epsilon, key is node name, value is node epsilon value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -147,3 +147,38 @@ class DashboardECR(DashboardBase):
         nodes_epsilon['ep'] = ep
         self.send(fields=nodes_epsilon, tag={
             'experiment': self.experiment}, measurement='epsilon')
+
+    def upload_early_discharge(self, nodes_early_discharge, ep):
+        """
+        Upload scalars to early_discharge table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of early_discharge, key is node name, value is node early_discharge value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+
+        Returns:
+            None.
+        """
+        nodes_early_discharge['ep'] = ep
+        self.send(fields=nodes_early_discharge, tag={
+            'experiment': self.experiment}, measurement='early_discharge')
+
+
+    def upload_hold_up(self, nodes_hold_up, ep):
+        """
+        Upload scalars to hold_up table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of hold_up, key is node name, value is node hold_up value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+
+        Returns:
+            None.
+        """
+        nodes_hold_up['ep'] = ep
+        self.send(fields=nodes_hold_up, tag={
+            'experiment': self.experiment}, measurement='hold_up')

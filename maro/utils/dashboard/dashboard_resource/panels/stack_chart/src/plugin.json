@@ -1,0 +1,31 @@
+{
+  "type": "panel",
+  "name": "Stack Chart",
+  "id": "grafana-stackchart-panel",
+
+  "info": {
+    "description": "Line chart panel for grafana",
+    "author": {
+      "name": "MSRA",
+      "url": "http://www.microsort.com"
+    },
+    "keywords": ["stackchart", "panel"],
+    "logos": {
+      "small": "img/stackchart_logo_small.png",
+      "large": "img/stackchart_logo_large.png"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/"}
+    ],
+    "screenshots": [
+      {"name": "Donut!", "path": "img/stack.png"}
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "4.6",
+    "plugins": [ ]
+  }
+}
