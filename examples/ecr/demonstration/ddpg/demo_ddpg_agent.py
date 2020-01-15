@@ -21,6 +21,7 @@ class DemoDDPGAgent(Agent):
                  reward_shaping, 
                  training_config,
                  demo_experience_pool,
+                 agent_idx_list,
                  log_enable: bool = True, 
                  log_folder: str = './',
                  ):
@@ -36,6 +37,7 @@ class DemoDDPGAgent(Agent):
                         batch_num=training_config.batch_num_per_training.constant, 
                         batch_size=training_config.batch_size,
                         min_train_experience_num=training_config.minimum_experience_num,
+                        agent_idx_list=agent_idx_list,
                         log_enable=log_enable,
                         log_folder=log_folder)
 

@@ -1,6 +1,12 @@
 from examples.ecr.ddpg.ddpg import DDPG
 
 from torch import nn
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+from torch.distributions import Categorical
+from torchsummary import summary
 
 import torch
 
@@ -58,6 +64,11 @@ class DemoDDPG(DDPG):
         demo_reward_batch = demo_reward_batch.float().to(self._device)
         demo_next_state_batch = demo_next_state_batch.float().to(self._device)
         
+        self_current_Q_values = torch.empty([0, 1])
+        self_target_Q_values = torch.empty([0, 1])
+        demo_current_Q_values = torch.empty([0, 1])
+        demo_target_Q_values = torch.empty([0, 1])
+
         """ Critic """
         if self_state_batch.shape[0] > 0:
             self_current_Q_values = self._critic_policy_net(self_state_batch, self_action_batch)
