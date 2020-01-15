@@ -59,8 +59,6 @@ class Proxy:
 
     def __del__(self):
         self._redis_connection.hdel(self._group_name, self._name)
-        self._logger.critical(f'Record for "{self._name}" under "{self._group_name}" has been deleted '
-                              f'from the Redis database. ')
 
     def join(self):
         """Join the communication network for the experiment given by experiment_name with ID given by name.
