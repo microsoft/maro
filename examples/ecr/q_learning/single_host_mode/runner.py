@@ -220,6 +220,12 @@ class Runner:
             tot_booking += booking
         pretty_booking_dict['total_booking'] = tot_booking
 
+        capacity_list = self._env.snapshot_list.dynamic_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('capacity', 0)]
+        pretty_capacity_dict = OrderedDict()
+        for i, capacity in enumerate(capacity_list):
+            pretty_capacity_dict[self._vessel_idx2name[i]] = capacity
+
         if is_train:
             self._performance_logger.debug(
                 f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
