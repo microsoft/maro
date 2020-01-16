@@ -223,6 +223,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         vessel_empty = vessel.empty
         vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
         vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
+        vessel.remaining_space = vessel_remaining_space
 
         return ActionScope(load=min(port.empty, vessel_remaining_space), discharge=vessel_empty)
 
@@ -579,6 +580,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
                 vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
                 vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
+                vessel.remaining_space = vessel_remaining_space
 
                 assert -min(port.empty, vessel_remaining_space) <= move_num <= vessel_empty
 
