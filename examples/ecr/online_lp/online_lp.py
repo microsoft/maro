@@ -201,7 +201,7 @@ class Forecast():
         for step in range(forecast_length):
             forecast_orders.setdefault(step, dict())
             for port_name in self._port_name_list:
-                forecast_orders[step][port_name] = forecast_port_orders[port_name]
+                forecast_orders[step][port_name] = forecast_port_orders[port_name] * 1.1
 
         forecast_orders.setdefault(-1, dict())
         for port_name in self._port_name_list:
