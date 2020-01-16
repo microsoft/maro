@@ -77,8 +77,6 @@ class Runner:
         self._seed = config.seed
         self._log_folder = log_folder
         self._config = config
-
-        self._env_logger = Env_Logger()
         
         self._init_env(config=config.env)
         self._action_recorder = ActionRecorder(episode_limit=config.demo.data_augmentation.num_episode)
@@ -91,9 +89,7 @@ class Runner:
         set_seed(self._seed)
         self._env = Env(scenario=config.scenario,
                         topology=config.topology,
-                        max_tick=config.max_tick,                        
-                        env_logger=self._env_logger,
-                        log_folder=log_folder)
+                        max_tick=config.max_tick)
                         
         self._port_idx2name = self._env.node_name_mapping['static']
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']
@@ -108,6 +104,8 @@ class Runner:
         self._performance_logger.debug(
             f"episode,{','.join([port_name + '_booking' for port_name in self._port_idx2name.values()])},total_booking,{','.join([port_name + '_shortage' for port_name in self._port_idx2name.values()])},total_shortage")
 
+        self._env_logger = Env_Logger(log_folder=log_folder, node_name_mapping=self._env.node_name_mapping)
+    
     def _load_lp_agent(self, config, agent_idx_list: [int], state_shaping, shared_experience_pool_dict: dict):
         online_lp = Online_LP(port_idx2name = self._port_idx2name, 
                               vessel_idx2name=self._vessel_idx2name,
@@ -455,11 +453,11 @@ class Runner:
                 if self._config.demo.algorithm == "ddpg":
                     model_action, action = self._rl_agent_dict[decision_event.port_idx].choose_action(
                         decision_event=decision_event, is_test=False, current_ep=ep)
-                    self._env_logger.augment_log_from_action(decision_event.tick, model_action)
+                    self._env_logger.augment_log_decision_tick(decision_event, model_action)
                 else:
                     action = self._rl_agent_dict[decision_event.port_idx].choose_action(
                         decision_event=decision_event, eps=exploration_rates[ep], current_ep=ep)
-                    self._env_logger.augment_log_from_action(decision_event.tick, action)            
+                    self._env_logger.augment_log_decision_tick(decision_event, action)            
 
                 
                 self._action_recorder(ep, decision_event, action)
@@ -474,9 +472,10 @@ class Runner:
                 agent.clear_cache()
 
             self._print_summary(ep=ep, summary_name=f'RL interaction EP {ep}')
+            self._env_logger.print_env_log(max_tick=self._env.tick, snapshot_list=self._env.snapshot_list)
+            
             self._env.reset()
 
-            self._env_logger.end_episode_callback()
             
             # Demonstration Data Augmentation
             if ep < config.demo.data_augmentation.num_episode:

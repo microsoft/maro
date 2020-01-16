@@ -45,7 +45,7 @@ class Env(AbsEnv):
         decision_mode (DecisionMode): decision mode that specified interactive mode with agent
 
     """
-    def __init__(self, scenario: str, topology: str, max_tick: int = 100, decision_mode=DecisionMode.Sequential, env_logger=None, log_folder=None):
+    def __init__(self, scenario: str, topology: str, max_tick: int = 100, decision_mode=DecisionMode.Sequential):
         assert max_tick > 0
 
         super().__init__(scenario, topology, max_tick, decision_mode)
@@ -64,11 +64,6 @@ class Env(AbsEnv):
 
         # initialize business
         self._init_business_engine()
-
-        # initialize env_logger 
-        self._env_logger = env_logger
-        if self._env_logger:
-            self._env_logger.init_parameters(log_folder, self.node_name_mapping)
 
 
     def step(self, action):
@@ -265,9 +260,6 @@ class Env(AbsEnv):
                         pending_events[i].state = EventState.FINISHED
 
             self._business_engine.post_step(self._tick)
-
-            if self._env_logger:
-                self._env_logger.augment_log_from_snapshot(tick=self._tick, snapshot_list=self.snapshot_list)
             
             self._tick += 1
 
