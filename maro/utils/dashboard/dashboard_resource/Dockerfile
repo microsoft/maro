@@ -8,7 +8,7 @@ COPY ./panels/stack_chart ./stack_chart
 
 RUN cd /panels/line_chart; yarn install --pure-lockfile; yarn run dev; yarn run build; rm -rf node_modules
 RUN cd /panels/heatmap_chart; yarn install --pure-lockfile; yarn run dev; yarn run build; rm -rf node_modules
-RUN cd /panels/stack_chart; yarn install --pure-lockfile; yarn run dev;  rm -rf node_modules
+RUN cd /panels/stack_chart; yarn install --pure-lockfile; yarn run dev; yarn run build;  rm -rf node_modules
 
 FROM grafana/grafana:6.5.2
 

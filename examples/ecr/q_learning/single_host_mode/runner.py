@@ -108,6 +108,10 @@ class Runner:
         self._author = author
         self._commit = commit
 
+        self._port_name2idx = {}
+        for idx in self._port_idx2name.keys():
+            self._port_name2idx[self._port_idx2name[idx]] = idx
+
         if log_enable:
             self._logger = Logger(tag='runner', format_=LogFormat.simple,
                                   dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
@@ -220,11 +224,6 @@ class Runner:
             tot_booking += booking
         pretty_booking_dict['total_booking'] = tot_booking
 
-        capacity_list = self._env.snapshot_list.dynamic_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('capacity', 0)]
-        pretty_capacity_dict = OrderedDict()
-        for i, capacity in enumerate(capacity_list):
-            pretty_capacity_dict[self._vessel_idx2name[i]] = capacity
 
         if is_train:
             self._performance_logger.debug(
@@ -259,9 +258,22 @@ class Runner:
                     ] = self._eps_list[ep]
                 self.dashboard.upload_epsilon(
                     pretty_epsilon_dict, dashboard_ep)
+            
+            usage_list = self._env.snapshot_list.dynamic_nodes[
+                            : : (['remaining_space','empty','full'], 0)]
+            
+            pretty_usage_list = usage_list.reshape(self._max_tick, len(self._vessel_idx2name)*3)
 
             events = self._env.get_finished_events()
+
+            hold_up_list = self._env.snapshot_list.matrix[[x for x in range(0,self._max_tick)]: "full_on_ports"]
+            pretty_hold_up_list = hold_up_list.reshape(self._max_tick, len(self._port_idx2name),len(self._port_idx2name))
+
+
             from_to_executed = {}
+            from_to_planed = {}
+            pretty_early_discharge_dict = {}
+            pretty_hold_up_dict = {}
 
             for event in events:
                 if event.event_type == EcrEventType.DISCHARGE_FULL:
@@ -270,27 +282,57 @@ class Runner:
                     if event.payload.port_idx not in from_to_executed[event.payload.from_port_idx]:
                         from_to_executed[event.payload.from_port_idx][event.payload.port_idx] = 0
                     from_to_executed[event.payload.from_port_idx][event.payload.port_idx] += event.payload.quantity
-            for k, v in enumerate(from_to_executed):
-                for kk, vv in enumerate(from_to_executed[v]):
-                    self.dashboard.upload_laden_executed(
-                        {'from': self._port_idx2name[v], 'to': self._port_idx2name[vv],
-                         'quantity': from_to_executed[v][vv]}, dashboard_ep)
 
-            from_to_planed = {}
-
-            for event in events:
-                if event.event_type == EcrEventType.ORDER:
+                elif event.event_type == EcrEventType.ORDER:
                     if event.payload.src_port_idx not in from_to_planed:
                         from_to_planed[event.payload.src_port_idx] = {}
                     if event.payload.dest_port_idx not in from_to_planed[event.payload.src_port_idx]:
                         from_to_planed[event.payload.src_port_idx][event.payload.dest_port_idx] = 0
                     from_to_planed[event.payload.src_port_idx][event.payload.dest_port_idx] += event.payload.quantity
 
-            for k, v in enumerate(from_to_planed):
-                for kk, vv in enumerate(from_to_planed[v]):
+                elif event.event_type == EcrEventType.PENDING_DECISION:
+                    pretty_early_discharge_dict[self._port_idx2name[event.payload.port_idx]] = pretty_early_discharge_dict.get(self._port_idx2name[event.payload.port_idx],0)+event.payload.early_discharge
+
+                elif event.event_type == EcrEventType.VESSEL_DEPARTURE:
+                    cur_tick = event.tick
+                    vessel_idx = event.payload.vessel_idx
+                    column = vessel_idx * 3
+                    cur_usage = {'vessel':self._vessel_idx2name[vessel_idx],'tick':cur_tick,'remaining_space':pretty_usage_list[cur_tick][column],'empty':pretty_usage_list[cur_tick][column+1],'full':pretty_usage_list[cur_tick][column+2]}
+                    self.dashboard.upload_vessel_usage(cur_usage,dashboard_ep)
+                    port_idx = event.payload.port_idx
+                    port_name = self._port_idx2name[port_idx]
+                    if not port_name in  pretty_hold_up_dict:
+                        pretty_hold_up_dict[port_name] = 0
+                    cur_route = self._env.configs['routes'][self._env.configs['vessels'][self._vessel_idx2name[vessel_idx]]['route']['route_name']]
+                    for route_port in cur_route:
+                        route_port_id = self._port_name2idx[route_port['port_name']]
+                        pretty_hold_up_dict[port_name] += pretty_hold_up_list[cur_tick][port_idx][route_port_id]
+                        
+
+            for k in from_to_executed.keys():
+                for kk in from_to_executed[k].keys():
+                    self.dashboard.upload_laden_executed(
+                        {'from': self._port_idx2name[k], 'to': self._port_idx2name[kk],
+                         'quantity': from_to_executed[k][kk]}, dashboard_ep)
+
+            for k in from_to_planed.keys():
+                for kk in from_to_planed[k].keys():
                     self.dashboard.upload_laden_planed(
-                        {'from': self._port_idx2name[v], 'to': self._port_idx2name[vv],
-                         'quantity': from_to_planed[v][vv]}, dashboard_ep)
+                        {'from': self._port_idx2name[k], 'to': self._port_idx2name[kk],
+                         'quantity': from_to_planed[k][kk]}, dashboard_ep)
+
+            total_early_discharge = 0
+            for early_discharge in pretty_early_discharge_dict.values():
+                total_early_discharge += early_discharge
+            pretty_early_discharge_dict['total'] = total_early_discharge
+
+            total_hold_up = 0
+            for hold_up in pretty_hold_up_dict.values():
+                total_hold_up += hold_up
+            pretty_hold_up_dict['total'] = total_hold_up
+
+            self.dashboard.upload_early_discharge(pretty_early_discharge_dict, dashboard_ep)
+            self.dashboard.upload_hold_up(pretty_hold_up_dict, dashboard_ep)
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)
