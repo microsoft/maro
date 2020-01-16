@@ -148,7 +148,7 @@ class Port:
         self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "acc_booking", 0, value)
 
     @property
-    def fulfillment(self) -> float:
+    def fulfillment(self) -> int:
         return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "fulfillment", 0)
 
     @fulfillment.setter
