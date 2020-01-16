@@ -141,10 +141,7 @@ class SimpleExperiencePool(AbsExperiencePool):
     def size(self) -> Dict[object, int]:
         """Dict[object,int]: Each category store size.
         """
-        res = {}
-        for k in self._stores.keys():
-            res[k] = self._stores[k].size
-        return res
+        return {k: store.size for k, store in self._stores.items()}
 
     def dump(self, path) -> bool:
         """Dump stores to disk.
