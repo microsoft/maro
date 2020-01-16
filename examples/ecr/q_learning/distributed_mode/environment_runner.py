@@ -11,7 +11,7 @@ from tqdm import tqdm
 import yaml
 
 # private lib
-from examples.ecr.q_learning.distributed_mode.message_type import MsgType, MsgKey
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
 
 from maro.simulator import Env
 from maro.distributed import Proxy, Message
@@ -37,6 +37,9 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
+COMPONENT_TYPE = os.environ['COMPTYPE']
+COMPONENT_ID = os.environ.get('COMPID', None)
+COMPONENT_NAME = '.'.join([COMPONENT_TYPE,COMPONENT_ID])
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
 MAX_TICK = config.env.max_tick
@@ -54,7 +57,7 @@ BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
 REWARD_SHAPING = config.train.reward_shaping
-TRAIN_SEED = config.train.seed
+TRAIN_SEED = config.train.seed + int(COMPONENT_ID if COMPONENT_ID is not None else 0)
 TEST_SEED = config.test.seed
 QNET_SEED = config.qnet.seed
 RUNNER_LOG_ENABLE = config.log.runner.enable
@@ -63,20 +66,26 @@ DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
 
-COMPONENT = os.environ['COMPONENT']
-
 
 class EnvRunner(Runner):
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float]):
-        super().__init__(scenario, topology, max_tick, max_train_ep, max_test_ep, eps_list)
+                 eps_list: [float], log_enable: bool = True, dashboard_enable: bool = True):
+        super().__init__(scenario, topology, max_tick, max_train_ep, max_test_ep, eps_list,
+                         log_enable=log_enable, dashboard_enable=dashboard_enable)
         self._agent_idx_list = self._env.agent_idx_list
         self._agent2learner = {self._agent_idx_list[i]: 'learner.' + str(i) for i in range(len(self._agent_idx_list))}
         self._proxy = Proxy(group_name=os.environ['GROUP'],
-                            component_name=COMPONENT,
-                            peer_name_list=get_peers(COMPONENT.split('.')[0], config.distributed),
+                            component_name=COMPONENT_NAME,
+                            peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
                             redis_address=(config.redis.host, config.redis.port),
                             logger=self._logger)
+
+        if log_enable:
+            self._logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
+                                  dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
+            self._performance_logger = Logger(tag=f'{COMPONENT_NAME}.performance', format_=LogFormat.none,
+                                              dump_folder=LOG_FOLDER, dump_mode='w', extension_name='csv',
+                                              auto_timestamp=False)
 
     def launch(self):
         """
@@ -125,8 +134,8 @@ class EnvRunner(Runner):
             policy_net_params, target_net_params = self._get_net_parameters(agent_id)
             message = Message(type=MsgType.INITIAL_PARAMETERS, source=self._proxy.name,
                               destination=self._agent2learner[agent_id],
-                              body={MsgKey.POLICY_NET_PARAMETERS: policy_net_params,
-                                    MsgKey.TARGET_NET_PARAMETERS: target_net_params})
+                              payload={PayloadKey.POLICY_NET_PARAMETERS: policy_net_params,
+                                    PayloadKey.TARGET_NET_PARAMETERS: target_net_params})
             self._proxy.send(message)
 
     def send_experience(self, agent_id, episode):
@@ -137,8 +146,8 @@ class EnvRunner(Runner):
         exp = self._agent_dict[agent_id].get_experience()
         message = Message(type=MsgType.STORE_EXPERIENCE, source=self._proxy.name,
                           destination=self._agent2learner[agent_id],
-                          body={MsgKey.AGENT_ID: agent_id, MsgKey.EXPERIENCE: exp, MsgKey.EPISODE: episode,
-                                MsgKey.AGENT_NAME: agent_name})
+                          payload={PayloadKey.AGENT_ID: agent_id, PayloadKey.EXPERIENCE: exp, PayloadKey.EPISODE: episode,
+                                PayloadKey.AGENT_NAME: agent_name})
         self._proxy.send(message)
 
     def send_env_checkout(self):
@@ -173,28 +182,26 @@ class EnvRunner(Runner):
 
         Load policy net parameters for the given agent's algorithm
         """
-        if msg.body[MsgKey.POLICY_NET_PARAMETERS] is not None:
-            self._agent_dict[msg.body[MsgKey.AGENT_ID]].load_policy_net_parameters(
-                msg.body[MsgKey.POLICY_NET_PARAMETERS])
+        if msg.payload[PayloadKey.POLICY_NET_PARAMETERS] is not None:
+            self._agent_dict[msg.payload[PayloadKey.AGENT_ID]].load_policy_net_parameters(
+                msg.payload[PayloadKey.POLICY_NET_PARAMETERS])
 
     def force_sync(self):
         """
         Waiting for all agents have the updated policy net parameters, and message may
         contain the policy net parameters.
         """
-        print('force syncing...')
-        pending_updated_agents = len(self._agent_idx_list)
+        pending_learner_count = len(self._agent_idx_list)
         for msg in self._proxy.receive():
-            print(f'received a {msg.type} message from {msg.source}')
             if msg.type == MsgType.UPDATED_PARAMETERS:
                 self.on_updated_parameters(msg)
-                pending_updated_agents -= 1
-            elif msg.type == MsgType.NOT_READY_FOR_TRAINING:
-                pending_updated_agents -= 1
+                pending_learner_count -= 1
+            elif msg.type == MsgType.NO_UPDATED_PARAMETERS:
+                pending_learner_count -= 1
             else:
                 raise Exception(f'Unrecognized message type: {msg.type}')
 
-            if pending_updated_agents == 0:
+            if pending_learner_count == 0:
                 break
 
 

@@ -19,7 +19,7 @@ class MockSimulator:
         Wait for the learner's model.
         """
         msg = self.proxy.receive_once()
-        print(f'Received a {msg.type} message from {msg.source}: {msg.body}')
+        print(f'Received a {msg.type} message from {msg.source}: {msg.payload}')
 
     def launch(self):
         """
@@ -30,7 +30,7 @@ class MockSimulator:
             print(f'Running episode {ep}')
             time.sleep(2)
             message = Message(type='experience', source=self.proxy.name,
-                              destination='learner', body=np.random.rand(5))
+                              destination='learner', payload=np.random.rand(5))
             self.proxy.send(message)
             self.await_model_from_learner()
 

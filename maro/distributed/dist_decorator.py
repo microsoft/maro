@@ -21,9 +21,10 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
             """
             def __init__(self, *args, **kwargs):
                 self.local_instance = cls(*args, **kwargs)
+                self.proxy = proxy
                 # use functools.partial to freeze handling function's local_instance and proxy
                 # arguments to self.local_instance and self.proxy
-                self.handler_dict = {msg_type: partial(handler_fn, self.local_instance, proxy)
+                self.handler_dict = {msg_type: partial(handler_fn, self.local_instance, self.proxy)
                                      for msg_type, handler_fn in handler_dict.items()}
 
             def __getattr__(self, name):
@@ -36,8 +37,8 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 """
                 Universal entry point for running a cls instance in distributed mode
                 """
-                proxy.join()
-                for msg in proxy.receive():
+                self.proxy.join()
+                for msg in self.proxy.receive():
                     self.handler_dict[msg.type](msg)
 
         return Wrapper

@@ -68,20 +68,17 @@ class Proxy:
         """
         self._zmq_context = zmq.Context()
         self._redis_connection = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1])
-        recv_port = self._create_receiver()
-        self._logger.info(f'{self._name} set to receive messages at {self._ip_address}:{recv_port}')
-        self._register_to_redis(recv_port)
+        self._set_up_receiving()
         if self._peer_name_list is not None:
             self._connect_to_peers()
 
-    def _create_receiver(self):
+    def _set_up_receiving(self):
         # create a receiving socket, bind it to a random port and upload the address info to the Redis server
         self._receiver = self._zmq_context.socket(zmq.PULL)
-        return self._receiver.bind_to_random_port(f'{self._protocol}://*')
-
-    def _register_to_redis(self, recv_port):
+        recv_port = self._receiver.bind_to_random_port(f'{self._protocol}://*')
         recv_address = [self._ip_address, recv_port]
         self._redis_connection.hset(self._group_name, self._name, json.dumps(recv_address))
+        self._logger.info(f'{self._name} set to receive messages at {self._ip_address}:{recv_port}')
 
     def _connect_to_peers(self):
         # create send_channel attribute and initialize it to an empty dict

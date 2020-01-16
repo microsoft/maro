@@ -4,8 +4,8 @@
 
 class Message(object):
     """Message object used to hold information between receiver and sender"""
-    def __init__(self, type, source, destination, body=None):
+    def __init__(self, type, source, destination, payload=None):
         self.type = type
         self.source = source
         self.destination = destination
-        self.body = {} if body is None else body
+        self.payload = {} if payload is None else payload

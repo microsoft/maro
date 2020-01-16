@@ -1,10 +1,17 @@
 #! /bin/sh
 
-declare -A component
-let component[learner]=$(yq r $CONFIG distributed.learner.num)
-let component[environment_runner]=$(yq r $CONFIG distributed.environment_runner.num)
+if [ -z "$CONFIG" ]
+then
+  config='config.yml'
+else
+  config=$CONFIG
+fi
 
-experiment=$(yq r $CONFIG experiment_name)
+declare -A component
+let component[learner]=$(yq r $config distributed.learner.num)
+let component[environment_runner]=$(yq r $config distributed.environment_runner.num)
+
+experiment=$(yq r $config experiment_name)
 
 # start components
 for comp in "${!component[@]}"
@@ -14,9 +21,9 @@ do
   do
       if [ $num -gt 1 ]
       then
-          GROUP=${experiment} INDEX=${i} python3 ${comp}.py &
+          GROUP=${experiment} COMPTYPE=${comp} COMPID=${i} python3 ${comp}.py &
       else
-          GROUP=${experiment} python3 ${comp}.py &
+          GROUP=${experiment} COMPTYPE=${comp} python3 ${comp}.py &
       fi
   done
 done
