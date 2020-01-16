@@ -156,7 +156,7 @@ class Learner:
             sample_dict = self.experience_pool.get(category_idx_batches=[
                 ('state', idx_list),
                 ('reward', idx_list),
-                ('action', idx_list),
+                ('action_index', idx_list),
                 ('next_state', idx_list),
                 ('info', idx_list)
             ])
@@ -164,7 +164,7 @@ class Learner:
             state_batch = torch.from_numpy(
                 np.array(sample_dict['state'])).view(-1, self.algorithm.policy_net.input_dim)
             action_batch = torch.from_numpy(
-                np.array(sample_dict['action'])).view(-1, 1)
+                np.array(sample_dict['action_index'])).view(-1, 1)
             reward_batch = torch.from_numpy(
                 np.array(sample_dict['reward'])).view(-1, 1)
             next_state_batch = torch.from_numpy(

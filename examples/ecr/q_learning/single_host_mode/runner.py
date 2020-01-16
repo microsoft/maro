@@ -18,6 +18,7 @@ from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
 from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
+from examples.ecr.q_learning.common.reward_shaping import TruncateReward, GoldenFingerReward
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
 from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
@@ -76,10 +77,10 @@ REWARD_SHAPING = config.train.reward_shaping
 
 ####################################################### END OF INITIAL_PARAMETERS #######################################################
 
+
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
                  eps_list: [float], log_enable: bool = True, dashboard_enable: bool = True):
-
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
         self.dashboard = None
@@ -121,6 +122,12 @@ class Runner:
                                      vessel_attribute_list=['empty', 'full', 'remaining_space'])
         action_space = [round(i * 0.1, 1) for i in range(-10, 11)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
+        if REWARD_SHAPING == 'gf':
+            reward_shaping = GoldenFingerReward(env=self._env, topology=self._topology, action_space=action_space,
+                                                base=10)
+        else:
+            reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list)
+
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
@@ -138,14 +145,12 @@ class Runner:
                       dashboard_enable=DASHBOARD_ENABLE, dashboard=self.dashboard)
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx],
                                           topology=self._topology,
-                                          port_idx2name=self._port_idx2name,
-                                          vessel_idx2name=self._vessel_idx2name,
                                           algorithm=dqn, experience_pool=experience_pool,
-                                          state_shaping=state_shaping, action_shaping=action_shaping,
-                                          reward_shaping=REWARD_SHAPING,
+                                          state_shaping=state_shaping,
+                                          action_shaping=action_shaping,
+                                          reward_shaping=reward_shaping,
                                           batch_num=BATCH_NUM, batch_size=BATCH_SIZE,
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
-                                          agent_idx_list=agent_idx_list,
                                           log_enable=AGENT_LOG_ENABLE, log_folder=LOG_FOLDER,
                                           dashboard_enable=DASHBOARD_ENABLE, dashboard=self.dashboard)
 
@@ -168,7 +173,7 @@ class Runner:
                 self._print_summary(ep=ep, is_train=True)
 
             for agent in self._agent_dict.values():
-                agent.calculate_offline_rewards(snapshot_list=self._env.snapshot_list, current_ep=ep)
+                agent.calculate_offline_rewards(ep)
                 agent.store_experience()
                 agent.train(current_ep=ep)
 

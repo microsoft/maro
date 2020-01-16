@@ -8,47 +8,99 @@ import numpy as np
 
 from maro.simulator.graph import SnapshotList, ResourceNodeType
 
-class RewardShaping():
-    def __init__(self):
-        self._reward_cache = []
+
+class RewardShaping:
+    def __init__(self, env, log_enable: bool = True):
+        self._env = env
+        self._cache = {}
+        self._port_idx2name = self._env.node_name_mapping['static']
+        self._vessel_idx2name = self._env.node_name_mapping['dynamic']
+        self._log_enable = log_enable
 
     def __call__(self):
         pass
 
-    @property
-    def reward_cache(self):
-        return self._reward_cache[:-1]
+    def get_event_count(self, agent_name):
+        return len(self._cache[agent_name]['decision_event'])
 
-    def clear_cache(self):
-        self._reward_cache = []
+    def fill_cache(self, agent_name, content_dict):
+        if agent_name not in self._cache:
+            self._cache[agent_name] = defaultdict(list)
+        for name, content in content_dict.items():
+            self._cache[agent_name][name].append(content)
+
+    def clear_cache(self, agent_name):
+        for name, ca in self._cache[agent_name].items():
+            ca.clear()
+
+    def _generate_offline_reward(self, **kwargs):
+        return NotImplemented
+
+    def update(self, agent_name):
+        cache = self._cache[agent_name]
+        for i, tick in enumerate(cache['action_tick']):
+            info = {'port_name': self._port_idx2name[cache['decision_event'][i].port_idx],
+                    'vessel_name': self._vessel_idx2name[cache['decision_event'][i].vessel_idx],
+                    'action_index': cache['action_index'][i],
+                    'start_tick': tick + 1,
+                    'end_tick': tick + 100
+                    }
+
+            cache['reward'].append(self._generate_offline_reward(**info))
+
+        cache['next_state'] = cache['state'][1:]
+        # align
+        for name, ca in cache.items():
+            if name != 'next_state':
+                ca.pop()
+
+    def generate_experience_set(self, agent_name):
+        cache = self._cache[agent_name]
+        experience_set = {name: cache[name] for name in ['state', 'action_index', 'reward', 'next_state', 'actual_action']}
+        experience_set['info'] = [{'td_error': 1e10} for _ in range(len(cache['state']))]
+        return experience_set
+
+    def get_decision_event_info(self, agent_name, idx, extra):
+        cache = self._cache[agent_name]
+        event = cache['decision_event'][idx]
+        max_load = str(event.action_scope.load)
+        max_discharge = str(event.action_scope.discharge)
+        return ','.join([str(event.tick), self._vessel_idx2name[event.vessel_idx], max_load, max_discharge] +
+                        [','.join([str(f) for f in cache[name][idx]]) if type(cache[name][idx]) == list else str(cache[name][idx])
+                         for name in extra])
+
 
 class TruncateReward(RewardShaping):
-    def __init__(self, agent_idx_list: [int], fulfillment_factor: float = 1.0, shortage_factor: float = 1.0, time_decay: float = 0.97):
-        super().__init__()
+    def __init__(self, env, agent_idx_list: [int], fulfillment_factor: float = 1.0,
+                 shortage_factor: float = 1.0, time_decay: float = 0.97, log_enable: bool = True):
+        super().__init__(env, log_enable=log_enable)
         self._agent_idx_list = agent_idx_list
         self._fulfillment_factor = fulfillment_factor
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
-    def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int): 
-        decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick) for j in range(len(self._agent_idx_list))]
-        tot_fulfillment = np.dot(snapshot_list.get_attributes(
-                    ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['fulfillment'], [0]), decay_list)
-        tot_shortage = np.dot(snapshot_list.get_attributes(
-                    ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['shortage'], [0]), decay_list)
+    def _generate_offline_reward(self, **kwargs):
+        snapshot_list, start_tick, end_tick = self._env.snapshot_list, kwargs['start_tick'], kwargs['end_tick']
+        decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
+                      for _ in range(len(self._agent_idx_list))]
+        tot_fulfillment = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
+                                                              self._agent_idx_list, ['fulfillment'], [0]), decay_list)
+        tot_shortage = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
+                                                           self._agent_idx_list, ['shortage'], [0]), decay_list)
 
-        self._reward_cache.append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage))
+        return np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage)
 
 
 class GoldenFingerReward(RewardShaping):
-    def __init__(self, topology, action_space: [float], base: int = 1, gamma: float = 0.5):
-        super().__init__()
+    def __init__(self, env, topology, action_space: [float],
+                 base: int = 1, gamma: float = 0.5, log_enable: bool = True):
+        super().__init__(env, log_enable=log_enable)
         self._topology = topology
         self._action_space = action_space
         self._base = base
         self._gamma = gamma
 
-    def __call__(self, port_name: str, vessel_name: str, action_index: int): 
+    def _generate_offline_reward(self, **kwargs):
         '''
         For 4p_ssdd_simple, the best action is:
         supply_port_001: load 70% for route 1 and 30% for route 2
@@ -71,6 +123,7 @@ class GoldenFingerReward(RewardShaping):
         demand_port_001: discharge 50%
         demand_port_002: discharge 100%
         '''
+        port_name, vessel_name, action_index = kwargs['port_name'], kwargs['vessel_name'], kwargs['action_index']
         action2index = {v: i for i, v in enumerate(self._action_space)}
         if self._topology.startswith('4p_ssdd'):
             best_action_idx_dict = {
@@ -99,7 +152,7 @@ class GoldenFingerReward(RewardShaping):
         else:
             raise ValueError('Unsupported topology')
 
-        self._reward_cache.append(np.float32(self._gamma ** abs(best_action_idx_dict[port_name] - action_index) * abs(self._base)))
+        return np.float32(self._gamma ** abs(best_action_idx_dict[port_name] - action_index) * abs(self._base))
 
 
 if __name__ == "__main__":

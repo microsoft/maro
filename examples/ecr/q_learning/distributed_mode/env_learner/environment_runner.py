@@ -36,6 +36,7 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
+COMPONENT = 'environment_runner'
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
 MAX_TICK = config.env.max_tick
@@ -52,7 +53,6 @@ TAU = config.train.dqn.tau  # Soft update
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
-REWARD_SHAPING = config.train.reward_shaping
 TRAIN_SEED = config.train.seed
 TEST_SEED = config.test.seed
 QNET_SEED = config.qnet.seed
@@ -61,8 +61,6 @@ AGENT_LOG_ENABLE = config.log.agent.enable
 DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
-
-COMPONENT = 'environment_runner'
 
 
 class EnvRunner(Runner):
@@ -111,8 +109,7 @@ class EnvRunner(Runner):
         self._print_summary(ep=episode, is_train=True)
 
         for id_, agent in self._agent_dict.items():
-            agent.calculate_offline_rewards(
-                 self._env.snapshot_list, current_ep=episode)
+            agent.calculate_offline_rewards(episode)
             self.send_experience(id_, episode)
 
         self._env.reset()
