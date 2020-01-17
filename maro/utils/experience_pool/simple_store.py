@@ -32,7 +32,7 @@ class SimpleStore(object):
         """
         return len(self._internal_store)
 
-    def put(self, items: list, overwrite: [int] = None) -> Tuple[List[int], List[int]]:
+    def put(self, items: list) -> Tuple[List[int], List[int]]:
         """Put new items.
 
         Args:
@@ -51,23 +51,26 @@ class SimpleStore(object):
             pre_size = self.size
             self._internal_store.extend(items)
             post_size = self.size
-            return list(range(pre_size, post_size)), []
+            return list(range(pre_size, post_size))
 
         # inserting to a fixed-size pool with cyclic or random replacement
         assert count <= self.size, "number of inserted records cannot be greater than the store size"
         start = self._pointer
         self._pointer += count
-        fill = list(range(start, min(self._pointer, self.size)))
         if self._replacement == 'cyclic':
             self._pointer %= self.size
-            overwrite = list(range(self._pointer)) if self._pointer <= start else []
+            if self._pointer <= start:
+                idxs = list(range(start, self.size)) + list(range(self._pointer))
+            else:
+                idxs = list(range(start, self._pointer))
         else:  # random overwrite
             self._pointer = min(self.size, self._pointer)
-            if overwrite is None:
-                overwrite = random.sample(range(start), k=max(0, count-self.size+start))
+            fill = list(range(start, self._pointer)) if self._pointer > start else []
+            overwrite = random.sample(range(start), k=max(0, count-self.size+start))
+            idxs = fill + overwrite
 
-        self._internal_store[fill+overwrite] = items
-        return fill, overwrite
+        self.update(idxs, items)
+        return idxs
 
     def get(self, idxs: [int]) -> list:
         """Get items.

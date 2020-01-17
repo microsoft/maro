@@ -26,6 +26,7 @@ class SimpleExperiencePool(AbsExperiencePool):
 
     def __init__(self, size=-1, replacement=None):
         super(AbsExperiencePool, self).__init__()
+        self._replacement = replacement
         self._stores = defaultdict(lambda: SimpleStore(size=size, replacement=replacement))
 
     def put(self, category_data_batches: [Tuple[object, list]], align_check: bool = False) -> Dict[object, Tuple[List[int], List[int]]]:
@@ -46,10 +47,23 @@ class SimpleExperiencePool(AbsExperiencePool):
             for i in range(1, len(category_data_batches)):
                 assert (first_items_len == len(category_data_batches[i][1]))
 
-        res, overwrite = {}, None
-        for category, data in category_data_batches:
-            fill, overwrite = self._stores[category].put(data, overwrite=overwrite)
-            res[category] = (fill, overwrite)
+        if self._replacement is None:
+            res = {}
+            for cd in category_data_batches:
+                res[cd[0]] = self._stores[cd[0]].put(cd[1])
+            return res
+
+        if len(category_data_batches) == 0:
+            return {}
+
+        category, data = category_data_batches[0]
+        idxs = self._stores[category].put(data)
+        res = {category: idxs}
+        for category, data in category_data_batches[1:]:
+            self._stores[category].update(idxs, data)
+            res[category] = idxs
+
+        assert all(idxs == indices for indices in res.values())
 
         return res
 
