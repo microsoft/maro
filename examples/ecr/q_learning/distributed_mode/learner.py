@@ -37,6 +37,7 @@ with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as ou
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
+EXP_POOL = config.train.experience_pool
 DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
@@ -129,7 +130,7 @@ handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
 @dist(proxy=proxy, handler_dict=handler_dict)
 class Learner:
     def __init__(self):
-        self.experience_pool = SimpleExperiencePool()
+        self.experience_pool = SimpleExperiencePool(size=EXP_POOL.size, replacement=EXP_POOL.replacement)
         self._env_number = 0
         self._batch_size = BATCH_SIZE
         self._batch_num = BATCH_NUM
