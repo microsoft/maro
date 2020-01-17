@@ -11,13 +11,14 @@ import random
 import yaml
 
 from datetime import datetime
-from maro.distributed import dist
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
-from examples.ecr.q_learning.distributed_mode.env_learner.message_type import MsgType, MsgKey
+from maro.distributed import dist, Proxy, Message
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
 from examples.ecr.q_learning.common.dqn import QNet, DQN
-from examples.utils import log, get_proxy
+from examples.utils import log, get_peers
 from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
 
@@ -31,7 +32,6 @@ if not os.path.exists(LOG_FOLDER):
 
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
-
 
 
 BATCH_NUM = config.train.batch_num
@@ -51,51 +51,74 @@ DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 
-COMPONENT = 'learner'
-logger = Logger(tag=COMPONENT, format_=LogFormat.simple,
+COMPONENT_TYPE = os.environ['COMPTYPE']
+COMPONENT_ID = os.environ['COMPID']
+COMPONENT_NAME = '.'.join([COMPONENT_TYPE, COMPONENT_ID])
+logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
-proxy = get_proxy(COMPONENT, config, logger=logger)
+proxy = Proxy(group_name=os.environ['GROUP'],
+              component_name=COMPONENT_NAME,
+              peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
+              redis_address=(config.redis.host, config.redis.port),
+              logger=logger)
+
+pending_envs = set(proxy.peers)  # environments the learner expects experiences from, required for forced sync
 
 if DASHBOARD_ENABLE:
     dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-    dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
+    dashboard.setup_connection(host=DASHBOARD_HOST, port=DASHBOARD_PORT,
+                               use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
 
 
 @log(logger=logger)
-def on_new_experience(local_instance, proxy, msg):
+def on_new_experience(local_instance, proxy, message):
     """
     Handles incoming experience from environment runner. The message must contain agent_id and experience.
     """
     # put experience into experience pool
-    local_instance.experience_pool.put(category_data_batches=msg.body[MsgKey.EXPERIENCE])
-    policy_net_parameters = None
+    local_instance.experience_pool.put(category_data_batches=message.payload[PayloadKey.EXPERIENCE])
 
-    # trigger trining process if got enough experience
-    if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
-        local_instance.train(msg.body[MsgKey.EPISODE], msg.body[MsgKey.AGENT_NAME])
-        policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
+    if message.source in pending_envs:
+        pending_envs.remove(message.source)
+        if len(pending_envs) == 0:
+            if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
+                local_instance.train(message.payload[PayloadKey.EPISODE], message.payload[PayloadKey.AGENT_NAME])
+                policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
+                # send updated policy net parameters to the target environment runner
+                for env in proxy.peers:
+                    proxy.send(Message(type=MsgType.UPDATED_PARAMETERS, source=proxy.name, destination=env,
+                                       payload={PayloadKey.AGENT_ID: message.payload[PayloadKey.AGENT_ID],
+                                                PayloadKey.POLICY_NET_PARAMETERS: policy_net_parameters}))
+            else:
+                for env in proxy.peers:
+                    proxy.send(Message(type=MsgType.NO_UPDATED_PARAMETERS, source=proxy.name, destination=env))
 
-    # send updated policy net parameters to the target environment runner
-    proxy.send(peer_name=msg.src, msg_type=MsgType.UPDATED_PARAMETERS,
-               msg_body={MsgKey.AGENT_ID: msg.body[MsgKey.AGENT_ID],
-                         MsgKey.POLICY_NET_PARAMETERS: policy_net_parameters})
+            pending_envs.update(proxy.peers)  # reset pending environments to the full list
+        else:
+            logger.info(f'Pending experiences from {pending_envs}')
+    else:
+        logger.warn(f'{message.source} has already been removed from the pending list. Message ignored')
 
 
 @log(logger=logger)
-def on_initial_net_parameters(local_instance, proxy, msg):
+def on_initial_net_parameters(local_instance, proxy, message):
     """
-    Handles initial net parameters from environment runner. The message must contain policy net parameters 
+    Handles initial net parameters from environment runner. The message must contain policy net parameters
     and target net parameters
     """
-    local_instance.init_network(msg.body[MsgKey.POLICY_NET_PARAMETERS], msg.body[MsgKey.TARGET_NET_PARAMETERS])
+    local_instance.init_network(message.payload[PayloadKey.POLICY_NET_PARAMETERS], message.payload[PayloadKey.TARGET_NET_PARAMETERS])
 
 
 @log(logger=logger)
-def on_env_checkout(local_instance, proxy, msg):
+def on_env_checkout(local_instance, proxy, message):
     """
-    Handle environment runner checkout message.
+    Handle environment runner checkout message. If all environments have checked out, stop current learner process
     """
-    local_instance.env_checkout(msg.src)
+    if message.source in pending_envs:
+        pending_envs.remove(message.source)
+        if len(pending_envs) == 0:
+            logger.critical(f"{COMPONENT_NAME} exited")
+            sys.exit(1)
 
 
 handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
@@ -132,15 +155,6 @@ class Learner:
                                  log_enable=DQN_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P)
 
         self._env_number += 1
-
-    def env_checkout(self, env_id):
-        """
-        Receive the envrionment checkout, if all environment are exitted, stop current learner
-        """
-        self._env_number -= 1
-        if not self._env_number:
-            logger.critical("Learner exited.")
-            sys.exit(1)
 
     def train(self, episode, agent_name):
         """
@@ -192,7 +206,5 @@ class Learner:
 
 if __name__ == '__main__':
     # Learner initialization
-    component_name = '_'.join([COMPONENT, '0']) if 'INDEX' not in os.environ else '_'.join(
-        [COMPONENT, os.environ['INDEX']])
     learner = Learner()
-    learner.launch(os.environ['GROUP'], component_name)
+    learner.launch()
