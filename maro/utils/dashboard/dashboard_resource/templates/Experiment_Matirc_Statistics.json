@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
-  "iteration": 1578384716655,
+  "id": 2,
+  "iteration": 1579165580659,
   "links": [],
   "panels": [
     {
@@ -56,13 +56,11 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
         "total_shortage",
-        "transfer_port_001",
-        "transfer_port_002"
+        "transfer_port_001"
       ],
       "ignoreColums": "",
       "interval": null,
@@ -111,13 +109,11 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
         "total_shortage",
-        "transfer_port_001",
-        "transfer_port_002"
+        "transfer_port_001"
       ],
       "x_axis": "ep"
     },
@@ -158,12 +154,10 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001",
-        "transfer_port_002"
+        "transfer_port_001"
       ],
       "ignoreColums": "",
       "interval": null,
@@ -212,12 +206,10 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001",
-        "transfer_port_002"
+        "transfer_port_001"
       ],
       "x_axis": "ep"
     },
@@ -257,12 +249,10 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001",
-        "transfer_port_002"
+        "transfer_port_001"
       ],
       "interval": null,
       "legend": {
@@ -310,12 +300,206 @@
         "demand_port_001",
         "demand_port_002",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001",
-        "transfer_port_002"
+        "transfer_port_001"
+      ],
+      "x_axis": "ep"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "20%",
+      "cacheTimeout": null,
+      "combine": {
+        "label": "Others",
+        "threshold": 0
+      },
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 13,
+      "ignoreColumn": [
+        "Time",
+        "ep",
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "total",
+        "transfer_port_001"
+      ],
+      "ignoreColums": "",
+      "interval": null,
+      "legend": {
+        "show": true,
+        "values": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "early_discharge",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Early Discharge",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "total",
+        "transfer_port_001"
+      ],
+      "x_axis": "ep"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "20%",
+      "cacheTimeout": null,
+      "combine": {
+        "label": "Others",
+        "threshold": 0
+      },
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 15,
+      "ignoreColumn": [
+        "Time",
+        "ep",
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "total",
+        "transfer_port_001"
+      ],
+      "ignoreColums": "",
+      "interval": null,
+      "legend": {
+        "show": true,
+        "values": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "hold_up",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Hold Up",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "total",
+        "transfer_port_001"
       ],
       "x_axis": "ep"
     },
@@ -334,7 +518,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 8
+        "y": 16
       },
       "id": 10,
       "interval": null,
@@ -446,7 +630,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 8
+        "y": 16
       },
       "id": 8,
       "ignoreColumn": [
@@ -478,38 +662,14 @@
       ],
       "ignoreColumns": [
         "Time",
-        "0",
-        "1",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "2",
-        "20",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
         "action",
-        "action_1",
         "demand_port_001.policy",
         "demand_port_002.policy",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001.policy",
         "supply_port_002.policy",
-        "transfer_port_001.policy",
-        "transfer_port_002.policy"
+        "transfer_port_001.policy"
       ],
       "interval": null,
       "legend": {
@@ -562,38 +722,14 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
-        "0",
-        "1",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "2",
-        "20",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
         "action",
-        "action_1",
         "demand_port_001.policy",
         "demand_port_002.policy",
         "ep",
-        "ep_1",
         "experiment",
         "supply_port_001.policy",
         "supply_port_002.policy",
-        "transfer_port_001.policy",
-        "transfer_port_002.policy"
+        "transfer_port_001.policy"
       ],
       "x_axis": "action"
     },
@@ -611,7 +747,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 8
+        "y": 16
       },
       "id": 12,
       "interval": null,
@@ -666,7 +802,6 @@
       "xColumns": [
         "Time",
         "ep",
-        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -676,7 +811,6 @@
       "yColumns": [
         "Time",
         "ep",
-        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -686,13 +820,112 @@
       "zColumns": [
         "Time",
         "ep",
-        "ep_1",
         "experiment",
         "from",
         "quantity",
         "to"
       ],
       "z_axis": "quantity"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "10%",
+      "cacheTimeout": null,
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 14,
+      "ignoreColumn": [
+        "Time",
+        "ep",
+        "experiment",
+        "tick",
+        "vessel"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "empty",
+        "ep",
+        "experiment",
+        "full",
+        "remaining_space",
+        "tick",
+        "vessel"
+      ],
+      "interval": null,
+      "legend": {
+        "show": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "q_value",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT * FROM \"vessel_usage\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode and \"vessel\" = '$vessel' ) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ep",
+              "operator": "=~",
+              "value": "/^$episode$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Vessel Usage of $vessel on Episode $episode",
+      "type": "grafana-stackchart-panel",
+      "xColumns": [
+        "Time",
+        "empty",
+        "ep",
+        "experiment",
+        "full",
+        "remaining_space",
+        "tick",
+        "vessel"
+      ],
+      "x_axis": "tick"
     }
   ],
   "schemaVersion": 21,
@@ -705,8 +938,8 @@
         "current": {
           "selected": false,
           "tags": [],
-          "text": "tc_1024_uniform_init_4p_ssdd_l0.1",
-          "value": "tc_1024_uniform_init_4p_ssdd_l0.1"
+          "text": "event_test_13",
+          "value": "event_test_13"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
@@ -730,8 +963,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "343",
-          "value": "343"
+          "text": "10",
+          "value": "10"
         },
         "datasource": "InfluxDB",
         "definition": "select \"ep\"  from \"shortage\"  WHERE \"experiment\"=~/^$experiment$/",
@@ -742,6 +975,31 @@
         "name": "episode",
         "options": [],
         "query": "select \"ep\"  from \"shortage\"  WHERE \"experiment\"=~/^$experiment$/",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "rt2_vessel_001",
+          "value": "rt2_vessel_001"
+        },
+        "datasource": "InfluxDB",
+        "definition": "select \"vessel\"  from \"vessel_usage\"  WHERE \"experiment\"=~/^$experiment$/",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Vessel",
+        "multi": false,
+        "name": "vessel",
+        "options": [],
+        "query": "select \"vessel\"  from \"vessel_usage\"  WHERE \"experiment\"=~/^$experiment$/",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -786,5 +1044,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 12
+  "version": 13
 }

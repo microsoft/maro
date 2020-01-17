@@ -182,3 +182,20 @@ class DashboardECR(DashboardBase):
         nodes_hold_up['ep'] = ep
         self.send(fields=nodes_hold_up, tag={
             'experiment': self.experiment}, measurement='hold_up')
+
+    def upload_vessel_usage(self, vessel_usage, ep):
+        """
+        Upload scalars to vessel_usage table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of vessel usage, values are vessel name and  vessel usage values
+                i.e.:{"vessel":"ship1", "tick":234, "remaining_space":1024, "full":2048, "empty":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+
+        Returns:
+            None.
+        """
+        vessel_usage['ep'] = ep
+        self.send(fields=vessel_usage, tag={
+            'experiment': self.experiment}, measurement='vessel_usage')
