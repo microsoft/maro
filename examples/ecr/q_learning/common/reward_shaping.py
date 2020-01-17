@@ -9,8 +9,7 @@ import numpy as np
 from maro.simulator.graph import SnapshotList, ResourceNodeType
 
 class RewardShaping():
-    def __init__(self, reward_type: str):
-        self.reward_type = reward_type
+    def __init__(self):
         self._reward_cache = []
 
     def __call__(self):
@@ -25,16 +24,13 @@ class RewardShaping():
 
 class TruncateReward(RewardShaping):
     def __init__(self, agent_idx_list: [int], fulfillment_factor: float = 1.0, shortage_factor: float = 1.0, time_decay: float = 0.97):
-        super().__init__(reward_type='truncate')
+        super().__init__()
         self._agent_idx_list = agent_idx_list
         self._fulfillment_factor = fulfillment_factor
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
-    def __call__(self, **kwargs): 
-        snapshot_list = kwargs['snapshot_list']
-        start_tick = kwargs['start_tick']
-        end_tick = kwargs['end_tick']
+    def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int): 
         decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick) for j in range(len(self._agent_idx_list))]
         tot_fulfillment = np.dot(snapshot_list.get_attributes(
                     ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['fulfillment'], [0]), decay_list)
@@ -46,13 +42,13 @@ class TruncateReward(RewardShaping):
 
 class GoldenFingerReward(RewardShaping):
     def __init__(self, topology, action_space: [float], base: int = 1, gamma: float = 0.5):
-        super().__init__(reward_type='goldenfinger')
+        super().__init__()
         self._topology = topology
         self._action_space = action_space
         self._base = base
         self._gamma = gamma
 
-    def __call__(self, **kwargs): 
+    def __call__(self, port_name: str, vessel_name: str, action_index: int): 
         '''
         For 4p_ssdd_simple, the best action is:
         supply_port_001: load 70% for route 1 and 30% for route 2
@@ -75,9 +71,6 @@ class GoldenFingerReward(RewardShaping):
         demand_port_001: discharge 50%
         demand_port_002: discharge 100%
         '''
-        port_name = kwargs['port_name']
-        vessel_name = kwargs['vessel_name']
-        action_index = kwargs['action_index']
         action2index = {v: i for i, v in enumerate(self._action_space)}
         if self._topology.startswith('4p_ssdd'):
             best_action_idx_dict = {
