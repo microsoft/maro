@@ -33,20 +33,11 @@ class RewardShaping:
         for name, ca in self._cache[agent_name].items():
             ca.clear()
 
-    def _generate_offline_reward(self, **kwargs):
+    def update(self, agent_name):
         return NotImplemented
 
-    def update(self, agent_name):
+    def _cache_formulation(self, agent_name):
         cache = self._cache[agent_name]
-        for i, tick in enumerate(cache['action_tick']):
-            info = {'port_name': self._port_idx2name[cache['decision_event'][i].port_idx],
-                    'vessel_name': self._vessel_idx2name[cache['decision_event'][i].vessel_idx],
-                    'action_index': cache['action_index'][i],
-                    'start_tick': tick + 1,
-                    'end_tick': tick + 100
-                    }
-
-            cache['reward'].append(self._generate_offline_reward(**info))
 
         cache['next_state'] = cache['state'][1:]
         # align
@@ -79,16 +70,24 @@ class TruncateReward(RewardShaping):
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
-    def _generate_offline_reward(self, **kwargs):
-        snapshot_list, start_tick, end_tick = self._env.snapshot_list, kwargs['start_tick'], kwargs['end_tick']
-        decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
+    def update(self, agent_name):
+        cache = self._cache[agent_name]
+        snapshot_list = self._env.snapshot_list
+        for i, tick in enumerate(cache['action_tick']):
+            start_tick = tick + 1
+            end_tick = tick + 100
+            
+            #calculate tc reward
+            decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
                       for _ in range(len(self._agent_idx_list))]
-        tot_fulfillment = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                              self._agent_idx_list, ['fulfillment'], [0]), decay_list)
-        tot_shortage = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                           self._agent_idx_list, ['shortage'], [0]), decay_list)
+            tot_fulfillment = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
+                                                            self._agent_idx_list, ['fulfillment'], [0]), decay_list)
+            tot_shortage = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
+                                                            self._agent_idx_list, ['shortage'], [0]), decay_list)
 
-        return np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage)
+            cache['reward'].append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage))
+
+        self._cache_formulation(agent_name)
 
 
 class GoldenFingerReward(RewardShaping):
@@ -100,7 +99,7 @@ class GoldenFingerReward(RewardShaping):
         self._base = base
         self._gamma = gamma
 
-    def _generate_offline_reward(self, **kwargs):
+    def update(self, agent_name):
         '''
         For 4p_ssdd_simple, the best action is:
         supply_port_001: load 70% for route 1 and 30% for route 2
@@ -123,36 +122,46 @@ class GoldenFingerReward(RewardShaping):
         demand_port_001: discharge 50%
         demand_port_002: discharge 100%
         '''
-        port_name, vessel_name, action_index = kwargs['port_name'], kwargs['vessel_name'], kwargs['action_index']
-        action2index = {v: i for i, v in enumerate(self._action_space)}
-        if self._topology.startswith('4p_ssdd'):
-            best_action_idx_dict = {
-                'supply_port_001': action2index[-0.5] if vessel_name.startswith('rt1') else action2index[-0.5],
-                'supply_port_002': action2index[-1.0],
-                'demand_port_001': action2index[1.0],
-                'demand_port_002': action2index[1.0]
-            }
-        elif self._topology.startswith('5p_ssddd'):
-            best_action_idx_dict = {
-                'transfer_port_001': action2index[1.0] if vessel_name.startswith('rt1') else action2index[-0.5],
-                'supply_port_001': action2index[-1.0],
-                'supply_port_002': action2index[-1.0],
-                'demand_port_001': action2index[0.5],
-                'demand_port_002': action2index[1.0]
-            }
-        elif self._topology.startswith('6p_sssbdd'):
-            best_action_idx_dict = {
-                'transfer_port_001': action2index[-0.5] if vessel_name.startswith('rt2') else action2index[1.0],
-                'transfer_port_002': action2index[-0.7] if vessel_name.startswith('rt3') else action2index[1.0],
-                'supply_port_001': action2index[-1.0],
-                'supply_port_002': action2index[-1.0],
-                'demand_port_001': action2index[0.5],
-                'demand_port_002': action2index[1.0]
-            }
-        else:
-            raise ValueError('Unsupported topology')
+        cache = self._cache[agent_name]
+        for i, tick in enumerate(cache['action_tick']):
+            port_name = self._port_idx2name[cache['decision_event'][i].port_idx]
+            vessel_name = self._vessel_idx2name[cache['decision_event'][i].vessel_idx]
+            action_index = cache['action_index'][i]
 
-        return np.float32(self._gamma ** abs(best_action_idx_dict[port_name] - action_index) * abs(self._base))
+            # calculate gf rewards
+            action2index = {v: i for i, v in enumerate(self._action_space)}
+            if self._topology.startswith('4p_ssdd'):
+                best_action_idx_dict = {
+                    'supply_port_001': action2index[-0.5] if vessel_name.startswith('rt1') else action2index[-0.5],
+                    'supply_port_002': action2index[-1.0],
+                    'demand_port_001': action2index[1.0],
+                    'demand_port_002': action2index[1.0]
+                }
+            elif self._topology.startswith('5p_ssddd'):
+                best_action_idx_dict = {
+                    'transfer_port_001': action2index[1.0] if vessel_name.startswith('rt1') else action2index[-0.5],
+                    'supply_port_001': action2index[-1.0],
+                    'supply_port_002': action2index[-1.0],
+                    'demand_port_001': action2index[0.5],
+                    'demand_port_002': action2index[1.0]
+                }
+            elif self._topology.startswith('6p_sssbdd'):
+                best_action_idx_dict = {
+                    'transfer_port_001': action2index[-0.5] if vessel_name.startswith('rt2') else action2index[1.0],
+                    'transfer_port_002': action2index[-0.7] if vessel_name.startswith('rt3') else action2index[1.0],
+                    'supply_port_001': action2index[-1.0],
+                    'supply_port_002': action2index[-1.0],
+                    'demand_port_001': action2index[0.5],
+                    'demand_port_002': action2index[1.0]
+                }
+            else:
+                raise ValueError('Unsupported topology')
+
+            cache['reward'].append(np.float32(self._gamma ** abs(best_action_idx_dict[port_name] - action_index) * abs(self._base)))
+
+        self._cache_formulation(agent_name)
+        
+        
 
 
 if __name__ == "__main__":
