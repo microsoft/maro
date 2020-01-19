@@ -68,6 +68,7 @@ DASHBOARD_HOST = config.dashboard.influxdb.host
 DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
+NUM_THREADS = 16
 
 if config.train.reward_shaping not in {'gf', 'tc'}:
     raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
@@ -280,6 +281,8 @@ class Runner:
 
 
 if __name__ == '__main__':
+    torch.set_num_threads(NUM_THREADS)
+
     phase_split_point = PHASE_SPLIT_POINT
     first_phase_eps_delta = MAX_EPS * FIRST_PHASE_REDUCE_PROPORTION
     first_phase_total_ep = MAX_TRAIN_EP * phase_split_point
