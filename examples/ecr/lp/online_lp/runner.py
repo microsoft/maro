@@ -8,9 +8,9 @@ import random
 import torch
 import yaml
 
-from examples.ecr.online_lp.lp_action_shaping import LPActionShaping
-from examples.ecr.online_lp.lp_agent import LPAgent
-from examples.ecr.online_lp.online_lp import Online_LP
+from examples.ecr.lp.online_lp.online_lp_action_shaping import OnlineLPActionShaping
+from examples.ecr.lp.online_lp.online_lp_agent import OnlineLPAgent
+from examples.ecr.lp.online_lp.online_lp import Online_LP
 from maro.simulator import Env
 from maro.utils import Logger, LogFormat, convert_dottable
 
@@ -76,7 +76,7 @@ class Runner:
 
 
     def _load_agent(self):
-        action_shaping = LPActionShaping()
+        action_shaping = OnlineLPActionShaping()
         online_lp = Online_LP(port_idx2name = self._port_idx2name, 
                               vessel_idx2name=self._vessel_idx2name, 
                               topo_config=self._env._business_engine.configs,
@@ -88,7 +88,7 @@ class Runner:
                               transit_cost_factor=TRANSIT_COST_FACTOR,
                               load_discharge_cost_factor=LOAD_DISCHARGE_COST_FACTOR
                               )
-        agent = LPAgent(online_lp, action_shaping, self._port_idx2name, self._vessel_idx2name)
+        agent = OnlineLPAgent(online_lp, action_shaping, self._port_idx2name, self._vessel_idx2name)
 
         return agent
 

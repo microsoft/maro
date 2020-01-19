@@ -1,0 +1,39 @@
+experiment_name: "5p_ssddd_test"
+env:
+  scenario: "ecr"
+  topology: "5p_ssddd_l0.0"
+  max_tick: 224
+lp:
+  enable_arrival_noise: false
+  params:
+    window_size: 1121
+    apply_buffer_size: 1121
+  factor:
+    order_gain_factor: 1
+    load_discharge_cost_factor: 0
+    transit_cost_factor: 0
+  time_decay:
+    enable: true
+    time_decay_ratio: 0.99999999
+  file_prefix: 'lp_solution'
+  load_actions:
+    enable: false
+    action_path: '/maro_dev/examples/ecr/lp/replayer/online_1120'
+    enable_assert: false
+online_lp:
+  time_decay: 0.999999999
+  window_size: 112
+  apply_buffer_length: 1
+  moving_average_length: 112
+  order_gain_factor: 1000
+  transit_cost_factor: 0
+  load_discharge_cost_factor: 1
+comparison:
+  dqn:
+    enable: false
+    model_folder: '/maro_dev/examples/ecr/q_learning/single_host_mode/log/dqn_tc_5p_ssddd_J'
+    model_path_suffix: '_EP499.pkl'
+train:
+  seed: 1024
+test:
+  seed: 2048

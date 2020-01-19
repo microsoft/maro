@@ -1,6 +1,6 @@
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 
-class LPAgent(object):
+class OfflineLPAgent(object):
     def __init__(self, algorithm, action_shaping, port_idx2name, vessel_idx2name):
         self._action_shaping = action_shaping
         self._algorithm = algorithm
@@ -9,9 +9,9 @@ class LPAgent(object):
     
     def choose_action(self,
                       decision_event: DecisionEvent,
-                      finished_events: list,
-                      snapshot_list: list,
                       initial_port_empty: dict = None,
+                      initial_port_on_consignee: dict = None,
+                      initial_port_full: dict = None,
                       initial_vessel_empty: dict = None,
                       initial_vessel_full: dict = None,
                       ) -> Action:
@@ -24,17 +24,15 @@ class LPAgent(object):
         model_action = self._algorithm.choose_action(current_tick=tick,
                                                      port_code=port_name,
                                                      vessel_code=vessel_name,
-                                                     finished_events=finished_events,
-                                                     snapshot_list=snapshot_list,
                                                      initial_port_empty=initial_port_empty,
+                                                     initial_port_on_consignee=initial_port_on_consignee,
+                                                     initial_port_full=initial_port_full,
                                                      initial_vessel_empty=initial_vessel_empty,
                                                      initial_vessel_full=initial_vessel_full
                                                      )
 
         action_scope = decision_event.action_scope
-        actual_action = self._action_shaping(scope=action_scope, model_action=model_action)
+        early_discharge = decision_event.early_discharge
+        actual_action = self._action_shaping(scope=action_scope, early_discharge=early_discharge, model_action=model_action)
         env_action = Action(vessel_idx, port_idx, actual_action)
         return env_action
-    
-    def reset(self):
-        self._algorithm.reset()

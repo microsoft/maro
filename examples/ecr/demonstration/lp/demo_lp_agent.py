@@ -1,12 +1,12 @@
 import torch
 
 from examples.ecr.common.reward_shaping import GoldenFingerReward, GoldenFingerRewardContinuous, TruncateReward, SelfAwareTruncatedReward
-from examples.ecr.online_lp.lp_agent import LPAgent
+from examples.ecr.lp.online_lp.online_lp_agent import OnlineLPAgent
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 from maro.utils import Logger, LogFormat
 
 
-class DemoLPAgent(LPAgent):
+class DemoLPAgent(OnlineLPAgent):
     def __init__(self,
                  algorithm,
                  demo_algorithm,

@@ -24,8 +24,8 @@ from examples.ecr.demonstration.lp.demo_lp_agent import DemoLPAgent
 from examples.ecr.demonstration.lp.reverse_action_shaping import ReverseActionShaping
 from examples.ecr.demonstration.reinforce.demo_reinforce import DemoReinforce
 from examples.ecr.demonstration.reinforce.demo_reinforce_agent import DemoReinforceAgent
-from examples.ecr.online_lp.lp_action_shaping import LPActionShaping
-from examples.ecr.online_lp.online_lp import Online_LP
+from examples.ecr.lp.online_lp.online_lp_action_shaping import OnlineLPActionShaping
+from examples.ecr.lp.online_lp.online_lp import Online_LP
 from examples.ecr.q_learning.common.dqn import QNet
 from examples.ecr.reinforce.reinforce import ActorNet
 
@@ -118,7 +118,7 @@ class Runner:
                               transit_cost_factor=config.objective.transit_cost_factor,
                               load_discharge_cost_factor=config.objective.load_discharge_cost_factor
                               )
-        action_shaping = LPActionShaping()
+        action_shaping = OnlineLPActionShaping()
         reverse_action_shaping = ReverseActionShaping(action_shaping=self._get_descrete_action_shaping())
         agent = DemoLPAgent(algorithm=online_lp,
                             demo_algorithm=self._config.demo.algorithm,
