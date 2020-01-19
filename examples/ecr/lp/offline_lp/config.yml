@@ -1,17 +1,18 @@
-experiment_name: "5p_ssddd_test"
+experiment_name: "5p_ssddd_J_test"
 env:
   scenario: "ecr"
-  topology: "5p_ssddd_l0.0"
-  max_tick: 224
+  topology: "5p_ssddd_J"
+  max_tick: 1120
 lp:
   enable_arrival_noise: false
   params:
-    window_size: 1121
-    apply_buffer_size: 1121
+    window_size: 224
+    apply_buffer_size: 1
   factor:
     order_gain_factor: 1
     load_discharge_cost_factor: 0
     transit_cost_factor: 0
+    full_delayed_factor: 0
   time_decay:
     enable: true
     time_decay_ratio: 0.99999999

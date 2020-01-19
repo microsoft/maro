@@ -38,6 +38,7 @@ class LPReplayer():
         self._order_gain_factor = configs.factor.order_gain_factor
         self._transit_cost_factor = configs.factor.transit_cost_factor
         self._load_discharge_cost_factor = configs.factor.load_discharge_cost_factor
+        self._full_delayed_factor = configs.factor.full_delayed_factor
 
         # How many steps we think in LP
         self._window_size = configs.params.window_size
@@ -50,25 +51,25 @@ class LPReplayer():
         self._time_decay = configs.time_decay.time_decay_ratio
         self._enable_time_decay = configs.time_decay.enable
 
-        self._logger.debug('*********************** Order ***********************')
-        total_needs = [{port: 0 for port in port_list} for s in range(configs.params.window_size)]
-        for tick, order in orders.items():
-            self._logger.debug(f'tick: {tick}')
-            for src, item in order.items():
-                for dest, qty in item.items():
-                    self._logger.debug(f'  {src} -> {dest}: {qty}')
-                    if tick > 0 and total_needs[tick][src] == 0:
-                        total_needs[tick][src] += total_needs[tick - 1][src] + qty
-                    else:
-                        total_needs[tick][src] += qty
-        for tick in range(configs.params.window_size):
-            self._logger.debug(f'Accumulated Needs {tick}: {total_needs[tick]}')
+        # self._logger.debug('*********************** Order ***********************')
+        # total_needs = [{port: 0 for port in port_list} for s in range(configs.params.window_size)]
+        # for tick, order in orders.items():
+        #     self._logger.debug(f'tick: {tick}')
+        #     for src, item in order.items():
+        #         for dest, qty in item.items():
+        #             self._logger.debug(f'  {src} -> {dest}: {qty}')
+        #             if tick > 0 and total_needs[tick][src] == 0:
+        #                 total_needs[tick][src] += total_needs[tick - 1][src] + qty
+        #             else:
+        #                 total_needs[tick][src] += qty
+        # for tick in range(configs.params.window_size):
+        #     self._logger.debug(f'Accumulated Needs {tick}: {total_needs[tick]}')
 
-        self._logger.debug('\n*********************** Vessel Arrival ***********************')
-        for tick, info in tick_vessel_port_connection.items():
-            self._logger.debug('tick:', tick)
-            for vessel, port in info.items():
-                self._logger.debug(f'  [{vessel}] in [{port}]')
+        # self._logger.debug('\n*********************** Vessel Arrival ***********************')
+        # for tick, info in tick_vessel_port_connection.items():
+        #     self._logger.debug('tick:', tick)
+        #     for vessel, port in info.items():
+        #         self._logger.debug(f'  [{vessel}] in [{port}]')
 
         # Constant value, assigned with initial parameters directly
         self._ports = port_list
@@ -180,6 +181,7 @@ class LPReplayer():
     # Decision Variables
     def _init_variables(self,
                         initial_port_empty: dict,
+                        initial_port_on_shipper: dict,
                         initial_port_on_consignee: dict,
                         initial_port_full: dict,
                         initial_vessel_empty: dict,
@@ -366,8 +368,14 @@ class LPReplayer():
                 for v, p in self._step_vessel_port_connection[s].items() \
                     if p != None])
 
+        full_delayed_punishment = self._full_delayed_factor * lpSum([self._load_full_delayed[s][p1][p2][v] \
+            for s in range(self._window_size) \
+                for p1 in self._ports \
+                    for p2 in self._ports \
+                        for v in self._vessels])
+
         # TODO: add soft safety_inventory
-        problem += order_gain - transit_cost - load_discharge_cost
+        problem += order_gain - transit_cost - load_discharge_cost - full_delayed_punishment
 
     def _add_constrants(self, problem):
         """ Processing Order of Events [2019-12-12]:
@@ -404,7 +412,8 @@ class LPReplayer():
                 for p2 in self._orders[s][p1].keys():
                     s_lo = s + self._full_return_buffer_ticks[p1]
                     vessel_arrive_time, vessel_code = self._find_next_coming_vessel(s_lo, p1, p2)
-                    start_time = s_lo if s == 0 else s_lo + 1
+                    # start_time = s_lo if s == 0 else s_lo + 1
+                    start_time = 0 if s == 0 else s_lo + 1
                     if not vessel_arrive_time or not vessel_arrive_time < self._window_size or self._full_has_loaded[start_time][p1][p2]:
                         continue
                     for time_before_arrive in range(start_time, vessel_arrive_time + 1):
@@ -667,14 +676,15 @@ class LPReplayer():
                     for p2 in self._ports:
                         if get_num(self._vessel_full[step][vessel][p2]) > 0:
                             solution_logger.debug(f'    Full for {p2}: {get_num(self._vessel_full[step][vessel][p2])}')
-        solution_logger.info(f'******************************************************************************************')
-        solution_logger.info(f'Status: {self._solution_status}')
-        solution_logger.info(f'Objective: {self._objective_gotten}')
-        solution_logger.info(f'Total shortage: {self._total_shortage}')
+        # solution_logger.info(f'******************************************************************************************')
+        # solution_logger.info(f'Status: {self._solution_status}')
+        # solution_logger.info(f'Objective: {self._objective_gotten}')
+        # solution_logger.info(f'Total shortage: {self._total_shortage}')
 
     def formulate_and_solve(self,
                             current_tick: int,
                             initial_port_empty: dict,
+                            initial_port_on_shipper: dict,
                             initial_port_on_consignee: dict,
                             initial_port_full: dict,
                             initial_vessel_empty: dict,
@@ -689,6 +699,7 @@ class LPReplayer():
 
         problem = LpProblem(name=f"ecr Problem: from Tick_{current_tick}", sense=LpMaximize)
         self._init_variables(initial_port_empty=initial_port_empty,
+                             initial_port_on_shipper=initial_port_on_shipper,
                              initial_port_on_consignee=initial_port_on_consignee,
                              initial_port_full=initial_port_full,
                              initial_vessel_empty=initial_vessel_empty,
@@ -705,11 +716,11 @@ class LPReplayer():
         lp_file_path = os.path.join(self._log_folder, f'{self._file_prefix}_{self._global_tick}.lp')
         problem.writeLP(lp_file_path)
 
-        if self._load_action:
-            if problem.status != 1:
-                print(f'==================== NOT OPTIMAL SOLUTION FOR LP FORMULATION ====================')
-        else:
-            assert (problem.status == 1)
+        # if self._load_action:
+        #     if problem.status != 1:
+        #         print(f'==================== NOT OPTIMAL SOLUTION FOR LP FORMULATION ====================')
+        # else:
+        #     assert (problem.status == 1)
 
         # Update the end point of apply buffer
         self._apply_buffer_end = current_tick + self._apply_buffer_size
@@ -735,6 +746,7 @@ class LPReplayer():
                       port_code: str,
                       vessel_code: str,
                       initial_port_empty: dict = None,
+                      initial_port_on_shipper: dict = None,
                       initial_port_on_consignee: dict = None,
                       initial_port_full: dict = None,
                       initial_vessel_empty: dict = None,
@@ -745,6 +757,7 @@ class LPReplayer():
         if current_tick >= self._apply_buffer_end:
             self.formulate_and_solve(current_tick=current_tick,
                                      initial_port_empty=initial_port_empty,
+                                     initial_port_on_shipper=initial_port_on_shipper,
                                      initial_port_on_consignee=initial_port_on_consignee,
                                      initial_port_full=initial_port_full,
                                      initial_vessel_empty=initial_vessel_empty,

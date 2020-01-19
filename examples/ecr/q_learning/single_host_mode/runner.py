@@ -153,6 +153,13 @@ class Runner:
 
         return agent_dict
 
+    def load_and_test(self, model_folder, model_suffix):
+        for agent_idx in self._env.agent_idx_list:
+            model_path = os.path.join(model_folder, f'{self._port_idx2name[agent_idx]}{model_suffix}')
+            self._agent_dict[agent_idx].load_policy_net_parameters(torch.load(model_path))
+
+        self._test()
+
     def start(self):
         pbar = tqdm(range(self._max_train_ep))
 
@@ -310,3 +317,4 @@ if __name__ == '__main__':
                     log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE)
 
     runner.start()
+    # runner.load_and_test(model_folder='/maro_dev/examples/ecr/q_learning/single_host_mode/log/dqn_5p_ssddd_J', model_suffix='_EP499.pkl')

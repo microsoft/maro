@@ -86,11 +86,11 @@ class Runner:
         orders, tick_vessel_port_connection = self._record()
         self._env.reset()
 
-        self._online_lp = self._load_online_lp_agent()
-        self._set_seed(TRAIN_SEED)
-        self._online_lp_iteraction()
-        orders2, tick_vessel_port_connection2 = self._record()
-        self._env.reset()
+        # self._online_lp = self._load_online_lp_agent()
+        # self._set_seed(TRAIN_SEED)
+        # self._online_lp_iteraction()
+        # orders2, tick_vessel_port_connection2 = self._record()
+        # self._env.reset()
 
         self._lp = self._load_agent(orders, tick_vessel_port_connection)
         self._set_seed(TRAIN_SEED)
@@ -208,14 +208,15 @@ class Runner:
         agent = LPAgent(lp, action_shaping, self._port_idx2name, self._vessel_idx2name)
 
         # Only formulate at the beginning is right, for the initial values got are not same as the beginning of this tick
-        initial_port_empty, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
-        lp.formulate_and_solve(current_tick=0,
-                               initial_port_empty=initial_port_empty,
-                               initial_port_on_consignee=initial_port_on_consignee,
-                               initial_port_full=initial_port_full,
-                               initial_vessel_empty=initial_vessel_empty,
-                               initial_vessel_full=initial_vessel_full
-                               )
+        # initial_port_empty, initial_port_on_shipper, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
+        # lp.formulate_and_solve(current_tick=0,
+        #                        initial_port_empty=initial_port_empty,
+        #                        initial_port_on_shipper=initial_port_on_shipper,
+        #                        initial_port_on_consignee=initial_port_on_consignee,
+        #                        initial_port_full=initial_port_full,
+        #                        initial_vessel_empty=initial_vessel_empty,
+        #                        initial_vessel_full=initial_vessel_full
+        #                        )
         return agent
 
     def _load_online_lp_agent(self):
@@ -238,7 +239,7 @@ class Runner:
         _, decision_event, is_done = self._env.step(None)
 
         while not is_done:
-            initial_port_empty, _, _, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
+            initial_port_empty, _, _, _, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
 
             action = self._online_lp.choose_action(decision_event=decision_event,
                                                          finished_events=self._env._event_buffer.get_finished_events(),
@@ -288,11 +289,28 @@ class Runner:
         
         self._print_summary(summary_name='DQN test')
     
-    def _get_initial_values(self):
+    def _get_initial_values(self, current_tick: int = 0):
         initial_port_empty = {
             port.name: port.empty
             for port in self._business_engine._ports
         }
+
+        initial_port_on_shipper = {
+            p1.name: {
+                p2.name: 0 for p2 in self._business_engine._ports
+            }
+            for p1 in self._business_engine._ports
+        }
+        # TODO: hard-coded buffer tick here
+        pending_events = self._business_engine._event_buffer.get_pending_events(current_tick + 1)
+        for pending_event in pending_events:
+            if pending_event == None:
+                continue
+            if pending_event.event_type == EcrEventType.RETURN_FULL:
+                src_port_idx, dst_port_idx, qty = pending_event.payload
+                src_port_name = self._port_idx2name[src_port_idx]
+                dst_port_name = self._port_idx2name[dst_port_idx]
+                initial_port_on_shipper[src_port_name][dst_port_name] = qty
 
         initial_port_on_consignee = {
             port.name: port.on_consignee
@@ -320,17 +338,18 @@ class Runner:
             for vessel in self._business_engine._vessels
         }
         
-        return initial_port_empty, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full
+        return initial_port_empty, initial_port_on_shipper, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full
 
     def _replay(self):
         _, decision_event, is_done = self._env.step(None)
 
         while not is_done:
-            initial_port_empty, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
+            initial_port_empty, initial_port_on_shipper, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full = self._get_initial_values(decision_event.tick)
 
 
             action = self._lp.choose_action(decision_event=decision_event,
                                             initial_port_empty=initial_port_empty,
+                                            initial_port_on_shipper=initial_port_on_shipper,
                                             initial_port_on_consignee=initial_port_on_consignee,
                                             initial_port_full=initial_port_full,
                                             initial_vessel_empty=initial_vessel_empty,
