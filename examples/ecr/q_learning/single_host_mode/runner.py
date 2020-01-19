@@ -76,6 +76,7 @@ REWARD_SHAPING = config.train.reward_shaping
 
 ####################################################### END OF INITIAL_PARAMETERS #######################################################
 
+
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
                  eps_list: [float], log_enable: bool = True, dashboard_enable: bool = True):
@@ -86,7 +87,8 @@ class Runner:
 
         if dashboard_enable:
             self.dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-            self.dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
+            self.dashboard.setup_connection(host=DASHBOARD_HOST, port=DASHBOARD_PORT,
+                                            use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
 
         self._topology = topology
         self._port_idx2name = self._env.node_name_mapping['static']
