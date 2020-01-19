@@ -48,8 +48,7 @@ Quick Start
     :caption: Distributed System
 
     distributed_system/architecture.rst
-    distributed_system/from_local_to_distributed.rst
-    distributed_system/resource_allocator.rst
+    distributed_system/general_framework.rst
 
 .. toctree::
     :maxdepth: -1

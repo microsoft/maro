@@ -7,41 +7,23 @@ import random
 import time
 from functools import wraps
 
-from maro.distributed import Proxy
 
-_ALIAS_MAP = {'environment_runner': 'ENV', 'learner': 'LRN'}
-
-
-def get_proxy(component_type, cfg, logger=None):
+def get_peers(component_type, config_dict):
     """
-    Generate proxy by given component_type and config
-
-    Args:
-        component_type: str
-        cfg: dottable_dict
-        logger: logger object
-    Return:
-        Proxy: Class
+    Generate a complete list of peer names for a component from configuration
     """
-    comp = cfg.distributed[component_type]
+    if 'peers' not in config_dict[component_type]:
+        return
 
-    def get_audience():
-        if 'audience' not in comp:
-            return
+    peers = []
+    for peer_type in config_dict[component_type].peers:
+        count = int(config_dict[peer_type].num)
+        if count > 1:
+            peers.extend(['.'.join([peer_type, str(i)]) for i in range(count)])
+        else:
+            peers.append(peer_type)
 
-        audience = []
-        for peer in comp.audience:
-            audi = cfg.distributed[peer]
-            peer_cnt = int(audi.num)
-            if peer_cnt > 1:
-                audience.extend(['_'.join([peer, str(i)]) for i in range(peer_cnt)])
-            else:
-                audience.append(peer)
-
-        return audience
-
-    return Proxy(receive_enabled=comp.receive_enabled, audience_list=get_audience(),
-                 redis_host=cfg.redis.host, redis_port=cfg.redis.port, logger=logger)
+    return peers
 
 
 def log(logger):
@@ -49,7 +31,7 @@ def log(logger):
         @wraps(handler_fn)
         def handler_decorator(*args):
             msg = args[2]
-            logger.info(f'received a {msg.type.name} message from {msg.src}')
+            logger.info(f'received a {msg.type.name} message from {msg.source}')
             handler_fn(*args)
 
         return handler_decorator

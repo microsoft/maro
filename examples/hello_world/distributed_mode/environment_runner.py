@@ -3,42 +3,42 @@
 
 
 import time
-import os
 
 import numpy as np
 # private lib
-from maro.distributed import Proxy
+from maro.distributed import Proxy, Message
 
 
 class MockSimulator:
     def __init__(self):
-        self.proxy = Proxy(receive_enabled=True, audience_list=['learner'], redis_host='localhost', redis_port=6379)
+        self.proxy = Proxy(group_name='hello_world', component_name='env_runner',
+                           peer_name_list=['learner'], redis_address=('localhost', 6379))
 
-    def await_model_from_learner(self, ep):
+    def await_model_from_learner(self):
         """
-        Wait for the learner's model. If the received episode number matches the current
-        episode number, proceed to the next episode
+        Wait for the learner's model.
         """
-        for msg in self.proxy.receive():
-            print(f'Received a {msg.type} message from {msg.src}: {msg.body["model"]}')
-            if msg.type == 'model' and msg.body['episode'] == ep:
-                break
+        msg = self.proxy.receive_once()
+        print(f'Received a {msg.type} message from {msg.source}: {msg.payload}')
 
-    def launch(self, group_name, component_name):
+    def launch(self):
         """
         Run 3 mock episodes and send a check-out message to the learner in the end
         """
-        self.proxy.join(group_name, component_name)
+        self.proxy.join()
         for ep in range(3):
             print(f'Running episode {ep}')
             time.sleep(2)
-            self.proxy.send(peer_name='learner', msg_type='experience',
-                            msg_body={'episode': ep, 'experience': np.random.rand(5)})
-            self.await_model_from_learner(ep)
+            message = Message(type='experience', source=self.proxy.name,
+                              destination='learner', payload=np.random.rand(5))
+            self.proxy.send(message)
+            self.await_model_from_learner()
 
-        self.proxy.send(peer_name='learner', msg_type='check_out', msg_body={})
+        message = Message(type='check_out', source=self.proxy.name,
+                          destination='learner')
+        self.proxy.send(message)
 
 
 if __name__ == '__main__':
     env = MockSimulator()
-    env.launch('hello_world', 'env_runner')
+    env.launch()
