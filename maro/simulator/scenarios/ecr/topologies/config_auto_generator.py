@@ -4,27 +4,15 @@ import math
 import shutil
 import random
 
-# TOPOLOGY_LIST = ["4p_ssdd", "5p_ssddd", "6p_sssbdd", "22p_global", "22p_global_ratio"]
-
-# TOPOLOGY_LIST = ["5p_ssddd"]
-# AVG_VESSEL_CAPACITY = 18000
-# VESSEL_CAPACITY_DELTA = 2000
-# AVG_ORDER_RATIO = 0.02
-# ORDER_RATIO_DELTA = 0.002
-
-# TOPOLOGY_LIST = ["4p_ssdd"]
-# AVG_VESSEL_CAPACITY = 18000
-# VESSEL_CAPACITY_DELTA = 2000
-# AVG_ORDER_RATIO = 0.008
-# ORDER_RATIO_DELTA = 0.001
-
-TOPOLOGY_LIST = ["6p_sssbdd"]
-AVG_VESSEL_CAPACITY = 18000
-VESSEL_CAPACITY_DELTA = 2000
-AVG_ORDER_RATIO = 0.015
+TOPOLOGY_LIST = ["4p_ssdd", "5p_ssddd", "6p_sssbdd", "22p_global_ratio"]
+SAILING_TIME = 7
+VESSEL_CAPACITY_REDUNDANCY_RATIO = 2
+VESSEL_CAPACITY_DELTA_RATIO = 0.1
+AVG_ORDER_RATIO = 0.02
 ORDER_RATIO_DELTA = 0.005
-
+ORDER_NOISE = 0.002
 PERIOD = 112
+
 
 def generate_noise(value, min_prop, max_prop):
     return value * random.uniform(min_prop, max_prop)
@@ -50,19 +38,33 @@ def save_new_topology(src: str):
     src_dict['container_usage_proportion']['sample_nodes'] = [[0, AVG_ORDER_RATIO], [PERIOD - 1, AVG_ORDER_RATIO]]
     save_new_level(0, src_dict)
 
+    total_containers = src_dict['total_containers']
+    route_proportions = {route_name: 0 for route_name in src_dict["routes"].keys()}
+    ports_in_routes = {route_name: [stop['port_name'] for stop in src_dict['routes'][route_name]]
+                       for route_name in src_dict["routes"].keys()}
+    for source_port_name, port in src_dict["ports"].items():
+        if 'targets' in port['order_distribution'].keys():
+            source_proportion = port['order_distribution']['source']['proportion']
+            for target_port_name, target_proportion in port['order_distribution']['targets'].items():
+                for route_name, port_list in ports_in_routes.items():
+                    if source_port_name in port_list and target_port_name in port_list:
+                        route_proportions[route_name] += source_proportion * target_proportion['proportion']
+                        break
+
     for vessel in src_dict["vessels"].values():
-        vessel["capacity"] = AVG_VESSEL_CAPACITY
+        route_proportion = route_proportions[vessel['route']['route_name']]
+        vessel["capacity"] = int(AVG_ORDER_RATIO * route_proportion * SAILING_TIME * total_containers * VESSEL_CAPACITY_REDUNDANCY_RATIO)
     save_new_level(1, src_dict)
 
     for i, vessel in enumerate(src_dict["vessels"].values()):
-        vessel["capacity"] += VESSEL_CAPACITY_DELTA * (i % 3 - 1)
+        vessel["capacity"] += int(vessel["capacity"] * VESSEL_CAPACITY_DELTA_RATIO * (i % 3 - 1))
     save_new_level(2, src_dict)
 
     sine_distribution = [[i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA * math.cos(i / (PERIOD//2) * math.pi)] for i in range(PERIOD)]
     src_dict['container_usage_proportion']['sample_nodes'] = sine_distribution
     save_new_level(3, src_dict)
 
-    src_dict['container_usage_proportion']["sample_noise"] = 0.005
+    src_dict['container_usage_proportion']["sample_noise"] = ORDER_NOISE
     for port in src_dict["ports"].values():
         order_distribution = port["order_distribution"]
         source_proportion = order_distribution["source"]["proportion"]
