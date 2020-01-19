@@ -1,8 +1,8 @@
 experiment_name: "baseline"
 env:
   scenario: "ecr"
-  topology: "5p_ssddd_l0.2"
-  max_tick: 1120
+  topology: "4p_ssdd_l0.1"
+  max_tick: 224
 train:
   max_ep: 500 # max episode
   batch_num: 10
@@ -20,6 +20,7 @@ train:
     phase_split_point: 0.5 # exploration two phase split point
     first_phase_reduce_proportion: 0.8 # first phase reduce proportion of max_eps 
   seed: 1024
+  num_threads: 64
 test:
   max_ep: 10 # max episode
   seed: 2048

@@ -68,7 +68,7 @@ DASHBOARD_HOST = config.dashboard.influxdb.host
 DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
-NUM_THREADS = 16
+NUM_THREADS = config.train.num_threads
 
 if config.train.reward_shaping not in {'gf', 'tc'}:
     raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
@@ -111,7 +111,7 @@ class Runner:
             self._performance_logger.debug(
                 f"episode,epsilon,{','.join([port_name + '_booking' for port_name in self._port_idx2name.values()])},"
                 f"total_booking,{','.join([port_name + '_shortage' for port_name in self._port_idx2name.values()])},"
-                f"total_shortage,total_early_discharge,total_true_early_discharge,shortage_appear_tick")
+                f"total_shortage,total_early_discharge,total_true_early_discharge,total_action_discharge,shortage_appear_tick")
 
     def _load_agent(self, agent_idx_list: [int]):
         self._set_seed(QNET_SEED)
@@ -162,24 +162,29 @@ class Runner:
             pbar.set_description('train episode')
             _, decision_event, is_done = self._env.step(None)
 
-            total_early_discharge, total_true_early_discharge, shortage_appear_tick = 0, 0, -1
+            total_early_discharge, total_true_early_discharge, total_action_discharge, shortage_appear_tick = 0, 0, 0, -1
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
-                _, decision_event, is_done = self._env.step(action)
 
                 # Update early_discharge, true_early_discharge and shortage_appear_tick, remove in the future
+                if decision_event is None:
+                    continue
                 early_discharge = decision_event.early_discharge
                 total_early_discharge += early_discharge
                 if action.quantity <= 0:
                     total_true_early_discharge += early_discharge
+                else:
+                    total_action_discharge += action.quantity
                 shortage = sum([self._env.snapshot_list.static_nodes[self._env.tick: port_idx: ('shortage', 0)][0]
                                 for port_idx in self._env.agent_idx_list])
                 if shortage_appear_tick < 0 < shortage:
                     shortage_appear_tick = self._env.tick
 
+                _, decision_event, is_done = self._env.step(action)
+
             if self._log_enable:
-                self._print_summary(ep=ep, is_train=True)
+                self._print_summary(ep=ep, is_train=True, total_early_discharge=total_early_discharge, total_true_early_discharge=total_true_early_discharge, total_action_discharge=total_action_discharge, shortage_appear_tick=shortage_appear_tick)
 
             for agent in self._agent_dict.values():
                 agent.calculate_offline_rewards(snapshot_list=self._env.snapshot_list, current_ep=ep)
@@ -206,7 +211,7 @@ class Runner:
 
             self._env.reset()
 
-    def _print_summary(self, ep, is_train: bool = True):
+    def _print_summary(self, ep, is_train: bool = True, total_early_discharge=0, total_true_early_discharge=0, total_action_discharge=0, shortage_appear_tick=0):
         shortage_list = self._env.snapshot_list.static_nodes[
                         self._env.tick: self._env.agent_idx_list: ('acc_shortage', 0)]
         pretty_shortage_dict = OrderedDict()
@@ -228,7 +233,7 @@ class Runner:
         if is_train:
             self._performance_logger.debug(
                 f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])},"
-                f"{total_early_discharge},{total_true_early_discharge},{shortage_appear_tick}"
+                f"{total_early_discharge},{total_true_early_discharge},{total_action_discharge},{shortage_appear_tick}"
             )
             self._logger.critical(
                 f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, total booking: {pretty_booking_dict}, total shortage: {pretty_shortage_dict}')
