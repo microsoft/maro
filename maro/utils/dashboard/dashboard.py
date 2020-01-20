@@ -28,7 +28,7 @@ class DashboardBase():
         self.config = None
         self.experiment = experiment
 
-    def setup_connection(self, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+    def setup_connection(self, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304) -> None:
         """Setup db connection with conf for dashboard. Should be called once.
 
         Args:
@@ -41,8 +41,7 @@ class DashboardBase():
             self._connection = dbProxy(
                 host=host, port=port, use_udp=use_udp, udp_port=udp_port)
 
-
-    def send(self, fields, tag, measurement):
+    def send(self, fields: dict, tag: dict, measurement: str) -> None:
         """Upload fields to database.
 
         Args:
@@ -56,19 +55,17 @@ class DashboardBase():
         tag['experiment'] = self.experiment
         self._connection.send(fields=fields, tag=tag, measurement=measurement)
 
-    def upload_to_ranklist(self, ranklist, fields):
+    def upload_to_ranklist(self, ranklist: str, fields: dict) -> None:
         """Upload fields to ranklist table in database.
 
         Args:
-            ranklist ({Dict}): a ranklist dictionary, should contain "enabled" and "name" attributes
-                i.e.: {'enabled': True, 'name': 'test_shortage_ranklist'}
+            ranklist ({str}): a ranklist name
+                i.e.: 'test_shortage_ranklist'
 
             fields ({Dict}): dictionary of field, key is field name, value is field value
                 i.e.:{"train":1024, "test":2048}
         """
 
-        if ranklist['enabled']:
-            fields['a-exp-name'] = self.experiment
-            measurement = ranklist['name']
-            tag = {'experiment': self.experiment}
-            self.send(fields=fields, tag=tag, measurement=measurement)
+        measurement = ranklist
+        tag = {'0000_rl_experiment': self.experiment}
+        self.send(fields=fields, tag=tag, measurement=measurement)

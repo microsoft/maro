@@ -12,6 +12,8 @@ import io
 import platform
 import yaml
 import subprocess
+import socket
+import webbrowser
 from requests import get
 from maro.simulator.utils.common import get_available_envs
 
@@ -138,7 +140,7 @@ def start_dashboard():
         os.system(
             'mkdir -p ./data/grafana;CURRENT_UID=$(id -u):$(id -g) docker-compose up -d')
     else:
-        subprocess.Popen(
+        os.system(
             'powershell.exe -windowstyle hidden "docker-compose up -d"', shell=True, start_new_session=True)
     
     localhosts = []
@@ -150,6 +152,18 @@ def start_dashboard():
             localhosts.append(ip)
     except Exception as e:
         print('exception in getting public ip:', str(e))
+
+    # REFERENCE https://www.chenyudong.com/archives/python-get-local-ip-graceful.html
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        if not ip in localhosts:
+            localhosts.append(ip)
+    except Exception as e:
+        print('exception in getting local ip:', str(e))
+    finally:
+        s.close()
 
     dashboard_port = '50303'
 
@@ -167,6 +181,7 @@ def start_dashboard():
     
     for localhost in localhosts:
         print(f"Dashboard Link:  http://{localhost}:{dashboard_port}")
+        webbrowser.open(f"{localhost}:{dashboard_port}")
 
 
 def stop_dashboard():
@@ -192,9 +207,9 @@ def stop_dashboard():
         print(f"Dashboard files not found, aborting...")
         return
     if not platform.system() == 'Windows':
-        os.popen('docker-compose down')
+        os.system('docker-compose down')
     else:
-        os.popen('powershell.exe -windowstyle hidden "docker-compose down"')
+        os.system('powershell.exe -windowstyle hidden "docker-compose down"')
 
     
 
@@ -224,5 +239,5 @@ def build_dashboard():
         os.system(
             'docker-compose build --no-cache')
     else:
-        subprocess.Popen(
+        os.system(
             'powershell.exe -windowstyle hidden "docker-compose build --no-cache"', shell=True, start_new_session=True)
