@@ -488,7 +488,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Hold Up",
+      "title": "Delayed Laden",
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
