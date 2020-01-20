@@ -166,12 +166,12 @@ class DashboardECR(DashboardBase):
             'experiment': self.experiment}, measurement='early_discharge')
 
 
-    def upload_hold_up(self, nodes_hold_up, ep):
+    def upload_delayed_laden(self, nodes_delayed_laden, ep):
         """
-        Upload scalars to hold_up table in database.
+        Upload scalars to delayed_laden table in database.
 
         Args:
-            nodes_laden_planed ({Dict}): dictionary of hold_up, key is node name, value is node hold_up value
+            nodes_laden_planed ({Dict}): dictionary of delayed_laden, key is node name, value is node delayed_laden value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -179,9 +179,9 @@ class DashboardECR(DashboardBase):
         Returns:
             None.
         """
-        nodes_hold_up['ep'] = ep
-        self.send(fields=nodes_hold_up, tag={
-            'experiment': self.experiment}, measurement='hold_up')
+        nodes_delayed_laden['ep'] = ep
+        self.send(fields=nodes_delayed_laden, tag={
+            'experiment': self.experiment}, measurement='delayed_laden')
 
     def upload_vessel_usage(self, vessel_usage, ep):
         """
