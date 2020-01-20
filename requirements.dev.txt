@@ -25,3 +25,4 @@ influxdb
 sphinx
 recommonmark
 sphinx_rtd_theme
+PuLP==1.6.10
