@@ -199,3 +199,62 @@ class DashboardECR(DashboardBase):
         vessel_usage['ep'] = ep
         self.send(fields=vessel_usage, tag={
             'experiment': self.experiment}, measurement='vessel_usage')
+
+    def upload_event_delayed_laden(self, nodes_delayed_laden, ep, tick):
+        """
+        Upload scalars to event_delayed_laden table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of delayed_laden, key is node name, value is node delayed_laden value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+            tick (int): event tick of the data, used as scalars information to identify data of different tick in database
+                i.e.: 132
+
+        Returns:
+            None.
+        """
+        nodes_delayed_laden['ep'] = ep
+        nodes_delayed_laden['tick'] = tick
+        self.send(fields=nodes_delayed_laden, tag={
+            'experiment': self.experiment}, measurement='event_delayed_laden')
+
+    def upload_event_early_discharge(self, nodes_early_discharge, ep, tick):
+        """
+        Upload scalars to event_early_discharge table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of early_discharge, key is node name, value is node early_discharge value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+            tick (int): event tick of the data, used as scalars information to identify data of different tick in database
+                i.e.: 132
+
+        Returns:
+            None.
+        """
+        nodes_early_discharge['ep'] = ep
+        nodes_early_discharge['tick'] = tick
+        self.send(fields=nodes_early_discharge, tag={
+            'experiment': self.experiment}, measurement='event_early_discharge')
+
+    def upload_event_shortage(self, nodes_event_shortage, ep, tick):
+        """
+        Upload scalars to event_shortage table in database.
+
+        Args:
+            nodes_event_shortage ({Dict}): dictionary of event_shortage, key is node name, value is node event_shortage value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+            tick (int): event tick of the data, used as scalars information to identify data of different tick in database
+                i.e.: 132
+
+        Returns:
+            None.
+        """
+        nodes_event_shortage['ep'] = ep
+        self.send(fields=nodes_event_shortage, tag={
+            'experiment': self.experiment}, measurement='event_shortage')
