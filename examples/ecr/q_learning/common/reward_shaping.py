@@ -17,13 +17,13 @@ class RewardShaping:
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']
         self._log_enable = log_enable
 
-    def __call__(self):
-        pass
+    def __call__(self, agent_name):
+        return NotImplemented
 
     def get_event_count(self, agent_name):
         return len(self._cache[agent_name]['decision_event'])
 
-    def fill_cache(self, agent_name, content_dict):
+    def push(self, agent_name, content_dict):
         if agent_name not in self._cache:
             self._cache[agent_name] = defaultdict(list)
         for name, content in content_dict.items():
@@ -33,10 +33,7 @@ class RewardShaping:
         for name, ca in self._cache[agent_name].items():
             ca.clear()
 
-    def update(self, agent_name):
-        return NotImplemented
-
-    def _cache_formulation(self, agent_name):
+    def _align_cache_by_next_state(self, agent_name):
         cache = self._cache[agent_name]
 
         cache['next_state'] = cache['state'][1:]
@@ -45,9 +42,9 @@ class RewardShaping:
             if name != 'next_state':
                 ca.pop()
 
-    def generate_experience_set(self, agent_name):
+    def generate_experience(self, agent_name):
         cache = self._cache[agent_name]
-        experience_set = {name: cache[name] for name in ['state', 'action_index', 'reward', 'next_state', 'actual_action']}
+        experience_set = {name: cache[name] for name in ['state', 'action', 'reward', 'next_state', 'actual_action']}
         experience_set['info'] = [{'td_error': 1e10} for _ in range(len(cache['state']))]
         return experience_set
 
@@ -70,7 +67,7 @@ class TruncateReward(RewardShaping):
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
-    def update(self, agent_name):
+    def __call__(self, agent_name):
         cache = self._cache[agent_name]
         snapshot_list = self._env.snapshot_list
         for i, tick in enumerate(cache['action_tick']):
@@ -87,7 +84,7 @@ class TruncateReward(RewardShaping):
 
             cache['reward'].append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage))
 
-        self._cache_formulation(agent_name)
+        self._align_cache_by_next_state(agent_name)
 
 
 class GoldenFingerReward(RewardShaping):
@@ -99,7 +96,7 @@ class GoldenFingerReward(RewardShaping):
         self._base = base
         self._gamma = gamma
 
-    def update(self, agent_name):
+    def __call__(self, agent_name):
         '''
         For 4p_ssdd_simple, the best action is:
         supply_port_001: load 70% for route 1 and 30% for route 2
@@ -126,7 +123,7 @@ class GoldenFingerReward(RewardShaping):
         for i, tick in enumerate(cache['action_tick']):
             port_name = self._port_idx2name[cache['decision_event'][i].port_idx]
             vessel_name = self._vessel_idx2name[cache['decision_event'][i].vessel_idx]
-            action_index = cache['action_index'][i]
+            action_index = cache['action'][i]
 
             # calculate gf rewards
             action2index = {v: i for i, v in enumerate(self._action_space)}
@@ -159,11 +156,9 @@ class GoldenFingerReward(RewardShaping):
 
             cache['reward'].append(np.float32(self._gamma ** abs(best_action_idx_dict[port_name] - action_index) * abs(self._base)))
 
-        self._cache_formulation(agent_name)
+        self._align_cache_by_next_state(agent_name)
         
         
-
-
 if __name__ == "__main__":
     action_space = [round(i*0.1, 1) for i in range(-10, 11)]
     topology = '5p_ssddd'

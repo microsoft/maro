@@ -43,27 +43,27 @@ class Agent(object):
                                                 auto_timestamp=False)
 
     def calculate_offline_rewards(self, current_ep: int):
-        self._reward_shaping.update(self._agent_name)
+        self._reward_shaping(self._agent_name)
         if self._log_enable:
             self._choose_action_logger.debug(f"episode {current_ep}, learning_index {self._algorithm.learning_index}:")
-            extra = ['eps', 'port_states', 'vessel_states', 'action_index', 'actual_action', 'reward']
+            extra = ['eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']
             self._choose_action_logger.debug(','.join(['tick', 'vessel_name', 'max_load', 'max_discharge'] + extra))
             for i in range(self._reward_shaping.get_event_count(self._agent_name)):
                 log_str = self._reward_shaping.get_decision_event_info(self._agent_name, i, extra)
                 self._choose_action_logger.debug(' '*10 + log_str)
 
     def store_experience(self):
-        experience_set = self._reward_shaping.generate_experience_set(self._agent_name)
+        experience_set = self._reward_shaping.generate_experience(self._agent_name)
         self._experience_pool.put(category_data_batches=[(name, content) for name, content in experience_set.items()])
         if self._log_enable:
-            experience_summary = {name: experience_set[name] for name in ['action_index', 'actual_action', 'reward']}
+            experience_summary = {name: experience_set[name] for name in ['action', 'actual_action', 'reward']}
             self._logger.debug(f'Agent {self._agent_name} new appended exp: {experience_summary}')
             self._logger.debug(f'Agent {self._agent_name} current experience pool size: {self._experience_pool.size}')
 
         self._reward_shaping.clear_cache(self._agent_name)
 
     def get_experience(self):
-        return self._reward_shaping.generate_experience_set(self._agent_name)
+        return self._reward_shaping.generate_experience(self._agent_name)
 
     @property
     def experience_pool(self):
@@ -90,7 +90,7 @@ class Agent(object):
             sample_dict = self._experience_pool.get(category_idx_batches=[
                 ('state', idx_list),
                 ('reward', idx_list),
-                ('action_index', idx_list),
+                ('action', idx_list),
                 ('next_state', idx_list),
                 ('info', idx_list)
             ])
@@ -98,7 +98,7 @@ class Agent(object):
             state_batch = torch.from_numpy(
                 np.array(sample_dict['state'])).view(-1, self._algorithm.policy_net.input_dim)
             action_batch = torch.from_numpy(
-                np.array(sample_dict['action_index'])).view(-1, 1)
+                np.array(sample_dict['action'])).view(-1, 1)
             reward_batch = torch.from_numpy(
                 np.array(sample_dict['reward'])).view(-1, 1)
             next_state_batch = torch.from_numpy(
@@ -163,15 +163,15 @@ class Agent(object):
                                              port_empty=port_states[0], vessel_remaining_space=vessel_states[2],
                                              early_discharge=early_discharge)
 
-        self._reward_shaping.fill_cache(self._agent_name,
-                                        {'state': numpy_state,
-                                         'action_index': action_index,
-                                         'actual_action': actual_action,
-                                         'action_tick': cur_tick,
-                                         'decision_event': decision_event,
-                                         'eps': eps,
-                                         'port_states': port_states,
-                                         'vessel_states': vessel_states})
+        self._reward_shaping.push(self._agent_name,
+                                    {'state': numpy_state,
+                                     'action': action_index,
+                                     'actual_action': actual_action,
+                                     'action_tick': cur_tick,
+                                     'decision_event': decision_event,
+                                     'eps': eps,
+                                     'port_states': port_states,
+                                     'vessel_states': vessel_states})
 
         env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
         if self._log_enable:
