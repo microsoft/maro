@@ -20,7 +20,7 @@ from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+from examples.ecr.q_learning.common.dashboard_ex import DashboardECR, RanklistColumns
 from maro.simulator.scenarios.ecr.common import EcrEventType
 
 
@@ -47,7 +47,7 @@ MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
 PHASE_SPLIT_POINT = config.train.exploration.phase_split_point  # exploration two phase split point
-FIRST_PHASE_REDUCE_PROPORTION = config.train.exploration.first_phase_reduce_proportion  # first phase reduce proportion of max_eps 
+FIRST_PHASE_REDUCE_PROPORTION = config.train.exploration.first_phase_reduce_proportion  # first phase reduce proportion of max_eps
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 LEARNING_RATE = config.train.dqn.lr
 DROPOUT_P = config.train.dqn.dropout_p
@@ -64,7 +64,15 @@ AGENT_LOG_ENABLE = config.log.agent.enable
 DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
+
+if config.train.reward_shaping not in {'gf', 'tc'}:
+    raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
+
+REWARD_SHAPING = config.train.reward_shaping
+
+# Config for dashboard
 DASHBOARD_ENABLE = config.dashboard.enable
+DASHBOARD_LOG_ENABLE = config.log.dashboard.enable
 DASHBOARD_HOST = config.dashboard.influxdb.host
 DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
@@ -72,29 +80,31 @@ DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 RANKLIST_ENABLE = config.dashboard.ranklist.enable
 AUTHOR = config.dashboard.ranklist.author
 COMMIT = config.dashboard.ranklist.commit
-
-if config.train.reward_shaping not in {'gf', 'tc'}:
-    raise ValueError('Unsupported reward shaping. Currently supported reward shaping types: "gf", "tc"')
-
-REWARD_SHAPING = config.train.reward_shaping
+DASHBOARD = None
+if DASHBOARD_ENABLE:
+    DASHBOARD = DashboardECR(EXPERIMENT_NAME, LOG_FOLDER, DASHBOARD_LOG_ENABLE,
+                                    host=DASHBOARD_HOST,
+                                    port=DASHBOARD_PORT,
+                                    use_udp=DASHBOARD_USE_UDP,
+                                    udp_port=DASHBOARD_UDP_PORT)
 
 ####################################################### END OF INITIAL_PARAMETERS #######################################################
 
 
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float], experiment_name: str, log_enable: bool = True, dashboard_enable: bool = False, ranklist_enable: bool = False, author: str = "unknown", commit: str = "unknown"):
+                 eps_list: [float], log_enable: bool = True, dashboard_enable: bool = False, 
+                 dashboard: object = None, ranklist_enable: bool = False, author: str = "unknown", commit: str = "unknown"):
+
+        # Init for dashboard
+        self._dashboard_enable = dashboard_enable
+        self._ranklist_enable = ranklist_enable
+        self._author = author
+        self._commit = commit
+        self._dashboard = dashboard
 
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
-        self.dashboard = None
-
-        if dashboard_enable:
-            self.dashboard = DashboardECR(experiment_name, LOG_FOLDER)
-            self.dashboard.setup_connection(host = DASHBOARD_HOST, port = DASHBOARD_PORT, 
-                                            use_udp = DASHBOARD_USE_UDP, udp_port = DASHBOARD_UDP_PORT)
-
-        self._experiment_name = experiment_name
         self._scenario = scenario
         self._topology = topology
         self._port_idx2name = self._env.node_name_mapping['static']
@@ -105,10 +115,7 @@ class Runner:
         self._max_tick = max_tick
         self._eps_list = eps_list
         self._log_enable = log_enable
-        self._dashboard_enable = dashboard_enable
-        self._ranklist_enable = ranklist_enable
-        self._author = author
-        self._commit = commit
+
 
         self._port_name2idx = {}
         for idx in self._port_idx2name.keys():
@@ -150,7 +157,7 @@ class Runner:
             dqn = DQN(policy_net=policy_net, target_net=target_net,
                       gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, lr=LEARNING_RATE,
                       log_enable=DQN_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P,
-                      dashboard_enable=DASHBOARD_ENABLE, dashboard=self.dashboard)
+                      dashboard_enable=DASHBOARD_ENABLE, dashboard=self._dashboard)
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx],
                                           topology=self._topology,
                                           port_idx2name=self._port_idx2name,
@@ -162,7 +169,7 @@ class Runner:
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
                                           agent_idx_list=agent_idx_list,
                                           log_enable=AGENT_LOG_ENABLE, log_folder=LOG_FOLDER,
-                                          dashboard_enable=DASHBOARD_ENABLE, dashboard=self.dashboard)
+                                          dashboard_enable=DASHBOARD_ENABLE, dashboard=self._dashboard)
 
         return agent_dict
 
@@ -237,157 +244,184 @@ class Runner:
                 f'{self._env.name} | test | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, total booking: {pretty_booking_dict}, total shortage: {pretty_shortage_dict}')
 
         if self._dashboard_enable:
-            # Test ep follows Train ep
-            dashboard_ep = ep
-            if not is_train:
-                dashboard_ep = ep + self._max_train_ep
+            self._send_to_dashboard(ep, pretty_shortage_dict,
+                                    pretty_booking_dict, is_train)
 
-            # Upload shortage and booking by ep
-            self.dashboard.upload_booking(pretty_booking_dict, dashboard_ep)
-            self.dashboard.upload_shortage(pretty_shortage_dict, dashboard_ep)
+    def _send_to_dashboard(self,
+                           ep,
+                           pretty_shortage_dict,
+                           pretty_booking_dict,
+                           is_train: bool = True):
+        # Test ep follows Train ep
+        dashboard_ep = ep
+        if not is_train:
+            dashboard_ep = ep + self._max_train_ep
 
-            # Upload rank list
-            if not is_train:
-                if ep == self._max_test_ep - 1 and self._ranklist_enable:
-                    model_size = 0
-                    experience_qty = 0
-                    for agent in self._agent_dict.values():
-                        model_size += agent.model_size()
-                        experience_qty += agent.experience_quantity()
-                    self.dashboard.upload_to_ranklist(ranklist='experiment_ranklist', fields={
-                        '1000_rl_shortage': pretty_shortage_dict['total_shortage'], '3000_rl_train_ep': self._max_train_ep, '4000_rl_experience_quantity': experience_qty, '2000_rl_model_size': model_size,
-                        '5000_rl_author': self._author, '6000_rl_commit': self._commit, 
-                        'scenario': self._scenario, 'topology': self._topology, 'max_tick': self._max_tick})
-            
-            # Upload episode
-            if is_train:
-                pretty_epsilon_dict = OrderedDict()
-                for i, _ in enumerate(self._port_idx2name):
-                    pretty_epsilon_dict[self._port_idx2name[i]
-                    ] = self._eps_list[ep]
-                self.dashboard.upload_epsilon(
-                    pretty_epsilon_dict, dashboard_ep)
-            
-            # Prepare usage and delayed laden data source
-            usage_list = self._env.snapshot_list.dynamic_nodes[ : : (['remaining_space','empty','full'], 0)]
-            pretty_usage_list = usage_list.reshape(self._max_tick, len(self._vessel_idx2name)*3)
+        # Upload shortage and booking by ep
+        self._dashboard.upload_booking(pretty_booking_dict, dashboard_ep)
+        self._dashboard.upload_shortage(pretty_shortage_dict, dashboard_ep)
 
-            delayed_laden_list = self._env.snapshot_list.matrix[[x for x in range(0,self._max_tick)]: "full_on_ports"]
-            pretty_delayed_laden_list = delayed_laden_list.reshape(self._max_tick, len(self._port_idx2name),len(self._port_idx2name))
+        # Upload rank list
+        if not is_train:
+            if ep == self._max_test_ep - 1 and self._ranklist_enable:
+                model_size = 0
+                experience_qty = 0
+                for agent in self._agent_dict.values():
+                    model_size += agent.model_size
+                    experience_qty += agent.experience_quantity
+                self._dashboard.upload_to_ranklist(
+                    ranklist='experiment_ranklist',
+                    fields={
+                        RanklistColumns.experiment.value: self._dashboard.experiment,
+                        RanklistColumns.shortage.value: pretty_shortage_dict['total_shortage'],
+                        RanklistColumns.train_ep.value: self._max_train_ep,
+                        RanklistColumns.experience_quantity.value: experience_qty,
+                        RanklistColumns.model_size.value: model_size,
+                        RanklistColumns.author.value: self._author,
+                        RanklistColumns.commit.value: self._commit,
+                        'scenario': self._scenario,
+                        'topology': self._topology,
+                        'max_tick': self._max_tick
+                    })
 
-            from_to_executed = {}
-            from_to_planed = {}
-            pretty_early_discharge_dict = {}
-            pretty_delayed_laden_dict = {}
+        # Upload episode
+        if is_train:
+            pretty_epsilon_dict = OrderedDict()
+            for i, _ in enumerate(self._port_idx2name):
+                pretty_epsilon_dict[
+                    self._port_idx2name[i]] = self._eps_list[ep]
+            self._dashboard.upload_epsilon(pretty_epsilon_dict, dashboard_ep)
 
-            # Check events and pick data for usage, delayed laden, laden planed, laden excuted, early discharge
-            events = self._env.get_finished_events()
-            for event in events:
-                #print(event.event_type, event.payload)
-                if event.event_type == EcrEventType.DISCHARGE_FULL:
-                    if event.payload.from_port_idx not in from_to_executed:
-                        from_to_executed[event.payload.from_port_idx] = {}
-                    if event.payload.port_idx not in from_to_executed[event.payload.from_port_idx]:
-                        from_to_executed[event.payload.from_port_idx][event.payload.port_idx] = 0
-                    from_to_executed[event.payload.from_port_idx][event.payload.port_idx] += event.payload.quantity
+        # Prepare usage and delayed laden data source
+        usage_list = self._env.snapshot_list.dynamic_nodes[::(
+            ['remaining_space', 'empty', 'full'], 0)]
+        pretty_usage_list = usage_list.reshape(self._max_tick,
+                                               len(self._vessel_idx2name) * 3)
 
-                elif event.event_type == EcrEventType.ORDER:
-                    if event.payload.src_port_idx not in from_to_planed:
-                        from_to_planed[event.payload.src_port_idx] = {}
-                    if event.payload.dest_port_idx not in from_to_planed[event.payload.src_port_idx]:
-                        from_to_planed[event.payload.src_port_idx][event.payload.dest_port_idx] = 0
-                    from_to_planed[event.payload.src_port_idx][event.payload.dest_port_idx] += event.payload.quantity
+        delayed_laden_list = self._env.snapshot_list.matrix[
+            [x for x in range(0, self._max_tick)]:"full_on_ports"]
+        pretty_delayed_laden_list = delayed_laden_list.reshape(
+            self._max_tick, len(self._port_idx2name), len(self._port_idx2name))
 
-                elif event.event_type == EcrEventType.PENDING_DECISION:
-                    port_name = self._port_idx2name[event.payload.port_idx]
-                    pretty_early_discharge_dict[port_name] = pretty_early_discharge_dict.get(port_name,0)+event.payload.early_discharge
-                    self.dashboard.upload_event_early_discharge({port_name:event.payload.early_discharge}, dashboard_ep, event.tick)
+        from_to_executed = {}
+        from_to_planed = {}
+        pretty_early_discharge_dict = {}
+        pretty_delayed_laden_dict = {}
 
-                elif event.event_type == EcrEventType.VESSEL_DEPARTURE:
-                    cur_tick = event.tick
-                    vessel_idx = event.payload.vessel_idx
-                    column = vessel_idx * 3
-                    cur_usage = {'vessel':self._vessel_idx2name[vessel_idx],'tick':cur_tick,'remaining_space':pretty_usage_list[cur_tick][column],'empty':pretty_usage_list[cur_tick][column+1],'full':pretty_usage_list[cur_tick][column+2]}
-                    self.dashboard.upload_vessel_usage(cur_usage,dashboard_ep)
-                    port_idx = event.payload.port_idx
-                    port_name = self._port_idx2name[port_idx]
-                    if not port_name in  pretty_delayed_laden_dict:
-                        pretty_delayed_laden_dict[port_name] = 0
-                    cur_route = self._env.configs['routes'][self._env.configs['vessels'][self._vessel_idx2name[vessel_idx]]['route']['route_name']]
-                    cur_delayed_laden = 0
-                    for route_port in cur_route:
-                        route_port_id = self._port_name2idx[route_port['port_name']]
-                        pretty_delayed_laden_dict[port_name] += pretty_delayed_laden_list[cur_tick][port_idx][route_port_id]
-                        cur_delayed_laden += pretty_delayed_laden_list[cur_tick][port_idx][route_port_id]
-                    self.dashboard.upload_event_delayed_laden({port_name:cur_delayed_laden}, dashboard_ep, cur_tick)
-                
-                elif event.event_type == EcrEventType.LOAD_EMPTY:
-                    cur_tick = event.tick
-                    vessel_idx = event.payload.vessel_idx
-                    port_idx = event.payload.port_idx
-                    if cur_tick > 0 :
-                        pass
-                    print("LOAD_EMPTY",event.payload)
+        # Check events and pick data for usage, delayed laden, laden planed, laden excuted, early discharge
+        events = self._env.get_finished_events()
+        for event in events:
+            if event.event_type == EcrEventType.DISCHARGE_FULL:
+                if event.payload.from_port_idx not in from_to_executed:
+                    from_to_executed[event.payload.from_port_idx] = {}
+                if event.payload.port_idx not in from_to_executed[
+                        event.payload.from_port_idx]:
+                    from_to_executed[event.payload.from_port_idx][
+                        event.payload.port_idx] = 0
+                from_to_executed[event.payload.from_port_idx][
+                    event.payload.port_idx] += event.payload.quantity
 
-                elif event.event_type == EcrEventType.DISCHARGE_EMPTY:
-                    cur_tick = event.tick
-                    vessel_idx = event.payload.vessel_idx
-                    port_idx = event.payload.port_idx
-                    if cur_tick > 0 :
-                        pass
-                    print("DISCHARGE_EMPTY",event.payload)
+            elif event.event_type == EcrEventType.ORDER:
+                if event.payload.src_port_idx not in from_to_planed:
+                    from_to_planed[event.payload.src_port_idx] = {}
+                if event.payload.dest_port_idx not in from_to_planed[
+                        event.payload.src_port_idx]:
+                    from_to_planed[event.payload.src_port_idx][
+                        event.payload.dest_port_idx] = 0
+                from_to_planed[event.payload.src_port_idx][
+                    event.payload.dest_port_idx] += event.payload.quantity
 
-                elif event.event_type == EcrEventType.VESSEL_ARRIVAL:
-                    pass
-                    #print("VESSEL_ARRIVAL",event.payload)
+            elif event.event_type == EcrEventType.PENDING_DECISION:
+                port_name = self._port_idx2name[event.payload.port_idx]
+                pretty_early_discharge_dict[
+                    port_name] = pretty_early_discharge_dict.get(
+                        port_name, 0) + event.payload.early_discharge
+                self._dashboard.upload_event_early_discharge(
+                    {port_name: event.payload.early_discharge}, dashboard_ep,
+                    event.tick)
 
-                elif event.event_type == 0:
-                    cur_tick = event.tick
-                    vessel_idx = event.payload.vessel_idx
-                    port_idx = event.payload.port_idx
-                    if cur_tick > 0 :
-                        pass
-                    print("discison",event.payload)
-                        
+            elif event.event_type == EcrEventType.VESSEL_DEPARTURE:
+                cur_tick = event.tick
+                vessel_idx = event.payload.vessel_idx
+                column = vessel_idx * 3
+                cur_usage = {
+                    'vessel': self._vessel_idx2name[vessel_idx],
+                    'tick': cur_tick,
+                    'remaining_space': pretty_usage_list[cur_tick][column],
+                    'empty': pretty_usage_list[cur_tick][column + 1],
+                    'full': pretty_usage_list[cur_tick][column + 2]
+                }
+                self._dashboard.upload_vessel_usage(cur_usage, dashboard_ep)
+                port_idx = event.payload.port_idx
+                port_name = self._port_idx2name[port_idx]
+                if not port_name in pretty_delayed_laden_dict:
+                    pretty_delayed_laden_dict[port_name] = 0
+                cur_route = self._env.configs['routes'][
+                    self._env.configs['vessels']
+                    [self._vessel_idx2name[vessel_idx]]['route']['route_name']]
+                cur_delayed_laden = 0
+                for route_port in cur_route:
+                    route_port_id = self._port_name2idx[
+                        route_port['port_name']]
+                    pretty_delayed_laden_dict[
+                        port_name] += pretty_delayed_laden_list[cur_tick][
+                            port_idx][route_port_id]
+                    cur_delayed_laden += pretty_delayed_laden_list[cur_tick][
+                        port_idx][route_port_id]
+                self._dashboard.upload_event_delayed_laden(
+                    {port_name: cur_delayed_laden}, dashboard_ep, cur_tick)
 
-            for k in from_to_executed.keys():
-                for kk in from_to_executed[k].keys():
-                    self.dashboard.upload_laden_executed(
-                        {'from': self._port_idx2name[k], 'to': self._port_idx2name[kk],
-                         'quantity': from_to_executed[k][kk]}, dashboard_ep)
+        for k in from_to_executed.keys():
+            for kk in from_to_executed[k].keys():
+                self._dashboard.upload_laden_executed(
+                    {
+                        'from': self._port_idx2name[k],
+                        'to': self._port_idx2name[kk],
+                        'quantity': from_to_executed[k][kk]
+                    }, dashboard_ep)
 
-            for k in from_to_planed.keys():
-                for kk in from_to_planed[k].keys():
-                    self.dashboard.upload_laden_planed(
-                        {'from': self._port_idx2name[k], 'to': self._port_idx2name[kk],
-                         'quantity': from_to_planed[k][kk]}, dashboard_ep)
+        for k in from_to_planed.keys():
+            for kk in from_to_planed[k].keys():
+                self._dashboard.upload_laden_planed(
+                    {
+                        'from': self._port_idx2name[k],
+                        'to': self._port_idx2name[kk],
+                        'quantity': from_to_planed[k][kk]
+                    }, dashboard_ep)
 
-            total_early_discharge = 0
-            for early_discharge in pretty_early_discharge_dict.values():
-                total_early_discharge += early_discharge
-            pretty_early_discharge_dict['total'] = total_early_discharge
+        total_early_discharge = 0
+        for early_discharge in pretty_early_discharge_dict.values():
+            total_early_discharge += early_discharge
+        pretty_early_discharge_dict['total'] = total_early_discharge
 
-            total_delayed_laden = 0
-            for delayed_laden in pretty_delayed_laden_dict.values():
-                total_delayed_laden += delayed_laden
-            pretty_delayed_laden_dict['total'] = total_delayed_laden
+        total_delayed_laden = 0
+        for delayed_laden in pretty_delayed_laden_dict.values():
+            total_delayed_laden += delayed_laden
+        pretty_delayed_laden_dict['total'] = total_delayed_laden
 
-            self.dashboard.upload_early_discharge(pretty_early_discharge_dict, dashboard_ep)
-            self.dashboard.upload_delayed_laden(pretty_delayed_laden_dict, dashboard_ep)
+        self._dashboard.upload_early_discharge(pretty_early_discharge_dict,
+                                              dashboard_ep)
+        self._dashboard.upload_delayed_laden(pretty_delayed_laden_dict,
+                                            dashboard_ep)
 
-            ep_shortage_list = self._env.snapshot_list.static_nodes[ : self._env.agent_idx_list: ('shortage', 0)]
-            pretty_ep_shortage_list = ep_shortage_list.reshape(self._max_tick, len(self._port_idx2name))
-            for i in range(self._max_tick):
-                need_upload = False
-                pretty_ep_shortage_dict = OrderedDict()
-                for j in range(len(self._port_idx2name)):
-                    pretty_ep_shortage_dict[self._port_idx2name[j]] = pretty_ep_shortage_list[i][j]
-                    if pretty_ep_shortage_list[i][j] > 0:
-                        need_upload = True
-                if need_upload:
-                    self.dashboard.upload_event_shortage(pretty_ep_shortage_dict, dashboard_ep, i)
-
-
+        # upload event shortage
+        ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.
+                                                                agent_idx_list:
+                                                                ('shortage',
+                                                                 0)]
+        pretty_ep_shortage_list = ep_shortage_list.reshape(
+            self._max_tick, len(self._port_idx2name))
+        for i in range(self._max_tick):
+            need_upload = False
+            pretty_ep_shortage_dict = OrderedDict()
+            for j in range(len(self._port_idx2name)):
+                pretty_ep_shortage_dict[
+                    self._port_idx2name[j]] = pretty_ep_shortage_list[i][j]
+                if pretty_ep_shortage_list[i][j] > 0:
+                    need_upload = True
+            if need_upload:
+                self._dashboard.upload_event_shortage(pretty_ep_shortage_dict,
+                                                     dashboard_ep, i)
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)
@@ -419,7 +453,8 @@ if __name__ == '__main__':
 
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
                     max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
-                    max_test_ep=MAX_TEST_EP, eps_list=eps_list, experiment_name = EXPERIMENT_NAME, 
-                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE, ranklist_enable=RANKLIST_ENABLE, author=AUTHOR, commit=COMMIT)
+                    max_test_ep=MAX_TEST_EP, eps_list=eps_list,
+                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE, dashboard=DASHBOARD, 
+                    ranklist_enable=RANKLIST_ENABLE, author=AUTHOR, commit=COMMIT)
 
     runner.start()

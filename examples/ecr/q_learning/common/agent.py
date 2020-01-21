@@ -253,11 +253,16 @@ class Agent(object):
         """
         self._algorithm.load_policy_net_parameters(policy_net_parameters)
 
+    @property
     def experience_quantity(self):
-        qty = 0
-        for quantity in self._experience_pool.size.values():
-            qty += quantity
+        qty = self._experience_pool.size['action']
+        # for quantity in self._experience_pool.size['action'].values():
+        #     qty += quantity
         return qty
-    
+
+    @property
     def model_size(self):
-        return sys.getsizeof(self._algorithm.policy_net.state_dict())
+        size = 0
+        for para in self._algorithm.policy_net.parameters():
+            size += sys.getsizeof(para)
+        return size

@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+from enum import Enum
 from maro.utils.dashboard import DashboardBase
 
 
 class DashboardECR(DashboardBase):
-    def __init__(self, experiment: str, log_folder: str):
-        DashboardBase.__init__(self, experiment, log_folder)
+    def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+        DashboardBase.__init__(self, experiment, log_folder, log_enable, host, port, use_udp, udp_port)
 
     def upload_laden_executed(self, nodes_laden_executed, ep):
         """
@@ -258,3 +258,18 @@ class DashboardECR(DashboardBase):
         nodes_event_shortage['ep'] = ep
         self.send(fields=nodes_event_shortage, tag={
             'experiment': self.experiment}, measurement='event_shortage')
+
+
+class RanklistColumns(Enum):
+    """
+    Column names for rank list
+    Temporary use X000 to sort columns in rank list dashboard
+    TODO: investigate 
+    """                        
+    experiment = '0000_rl_experiment'
+    shortage = '1000_rl_shortage'
+    model_size = '2000_rl_model_size'
+    train_ep = '3000_rl_train_ep'
+    experience_quantity = '4000_rl_experience_quantity'
+    author = '5000_rl_author'
+    commit = '6000_rl_commit'

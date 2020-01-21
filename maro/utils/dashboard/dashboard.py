@@ -4,7 +4,6 @@
 
 import os
 
-from maro.utils import Logger, LogFormat
 from .influxdb_proxy import InfluxdbProxy as dbProxy
 
 proxy = None
@@ -20,26 +19,24 @@ class DashboardBase():
             cls._singleton = object.__new__(cls)
         return cls._singleton
 
-    def __init__(self, experiment: str, log_folder: str):
-        self._log_folder = log_folder if log_folder is not None else os.getcwd()
-        self.logger = Logger(tag='dashboard', format_=LogFormat.simple,
-                             dump_mode='w', auto_timestamp=False,
-                             dump_folder=self._log_folder)
-        self.config = None
-        self.experiment = experiment
-
-    def setup_connection(self, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304) -> None:
-        """Setup db connection with conf for dashboard. Should be called once.
+    def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+        """Setup  dashboard with conf for dashboard
 
         Args:
+            experiment (str): experiment name
+            log_folder (str): log folder for logger output
+
             host (str): influxdb ip address
             port (int): influxdb http port
             use_udp (bool): if use udp port to upload data to influxdb
             udp_port (int): influxdb udp port
         """
+        self.config = None
+        self.experiment = experiment
+
         if self._connection is None:
             self._connection = dbProxy(
-                host=host, port=port, use_udp=use_udp, udp_port=udp_port)
+                host=host, port=port, use_udp=use_udp, udp_port=udp_port, log_folder=log_folder, log_enable=log_enable)
 
     def send(self, fields: dict, tag: dict, measurement: str) -> None:
         """Upload fields to database.
@@ -67,5 +64,4 @@ class DashboardBase():
         """
 
         measurement = ranklist
-        tag = {'0000_rl_experiment': self.experiment}
-        self.send(fields=fields, tag=tag, measurement=measurement)
+        self.send(fields=fields, tag={}, measurement=measurement)

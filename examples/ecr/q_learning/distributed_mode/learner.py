@@ -46,6 +46,7 @@ TAU = config.train.dqn.tau  # Soft update
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 TRAIN_SEED = config.train.seed
 DASHBOARD_ENABLE = config.dashboard.enable
+DASHBOARD_LOG_ENABLE = config.log.dashboard.enable
 DASHBOARD_HOST = config.dashboard.influxdb.host
 DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
@@ -65,9 +66,8 @@ proxy = Proxy(group_name=os.environ['GROUP'],
 pending_envs = set(proxy.peers)  # environments the learner expects experiences from, required for forced sync
 
 if DASHBOARD_ENABLE:
-    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-    dashboard.setup_connection(host=DASHBOARD_HOST, port=DASHBOARD_PORT,
-                               use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
+    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER, DASHBOARD_LOG_ENABLE, host=DASHBOARD_HOST,
+                             port=DASHBOARD_PORT, use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
 
 
 @log(logger=logger)

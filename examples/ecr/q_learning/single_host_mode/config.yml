@@ -35,6 +35,8 @@ log:
     dropout_p: 0.95
   qnet:
     enable: false
+  dashboard:
+    enable: false
 dashboard:
   enable: false
   influxdb:
