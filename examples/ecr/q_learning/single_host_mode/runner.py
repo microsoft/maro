@@ -125,9 +125,9 @@ class Runner:
         action_shaping = DiscreteActionShaping(action_space=action_space)
         if REWARD_SHAPING == 'gf':
             reward_shaping = GoldenFingerReward(env=self._env, topology=self._topology, action_space=action_space,
-                                                base=10)
+                                                base=10, log_folder=LOG_FOLDER)
         else:
-            reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list)
+            reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list, log_folder=LOG_FOLDER)
 
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()

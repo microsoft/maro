@@ -37,20 +37,9 @@ class Agent(object):
         if self._log_enable:
             self._logger = Logger(tag='agent', format_=LogFormat.simple,
                                   dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
-            self._choose_action_logger = Logger(tag=f'{self._algorithm.policy_net.name}.choose_action',
-                                                format_=LogFormat.none,
-                                                dump_folder=log_folder, dump_mode='w', extension_name='csv',
-                                                auto_timestamp=False)
 
     def calculate_offline_rewards(self, current_ep: int):
-        self._reward_shaping(self._agent_name)
-        if self._log_enable:
-            self._choose_action_logger.debug(f"episode {current_ep}, learning_index {self._algorithm.learning_index}:")
-            extra = ['eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']
-            self._choose_action_logger.debug(','.join(['tick', 'vessel_name', 'max_load', 'max_discharge'] + extra))
-            for i in range(self._reward_shaping.get_event_count(self._agent_name)):
-                log_str = self._reward_shaping.get_decision_event_info(self._agent_name, i, extra)
-                self._choose_action_logger.debug(' '*10 + log_str)
+        self._reward_shaping(self._agent_name, current_ep, self._algorithm.learning_index)
 
     def store_experience(self):
         experience_set = self._reward_shaping.generate_experience(self._agent_name)
