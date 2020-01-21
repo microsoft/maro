@@ -20,7 +20,7 @@ from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR, RanklistColumns
+from examples.ecr.q_learning.common.ecr_dashboard import DashboardECR, RanklistColumns
 from maro.simulator.scenarios.ecr.common import EcrEventType
 
 
@@ -102,10 +102,10 @@ class Runner:
         self._author = author
         self._commit = commit
         self._dashboard = dashboard
+        self._scenario = scenario
 
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
-        self._scenario = scenario
         self._topology = topology
         self._port_idx2name = self._env.node_name_mapping['static']
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']

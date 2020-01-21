@@ -4,10 +4,10 @@
   "id": "grafana-stackchart-panel",
 
   "info": {
-    "description": "Line chart panel for grafana",
+    "description": "Stack chart panel for grafana",
     "author": {
-      "name": "MSRA",
-      "url": "http://www.microsort.com"
+      "name": "Microsoft ARD Incubation Team",
+      "url": "http://www.microsoft.com"
     },
     "keywords": ["stackchart", "panel"],
     "logos": {

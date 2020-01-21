@@ -1,18 +1,14 @@
 {
-  "name": "linechart-panel",
+  "name": "heatmapchart-panel",
   "version": "0.0.1",
-  "description": "line chart panel for Grafana",
+  "description": "heatmap chart panel for Grafana",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/grafana/linechart-panel.git"
-  },
-  "author": "MARO",
+  "author": "Microsoft ARD Incubation Team",
   "license": "MIT",
   "private": true,
   "dependencies": {

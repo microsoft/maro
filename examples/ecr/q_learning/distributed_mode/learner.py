@@ -17,7 +17,7 @@ from maro.distributed import dist, Proxy, Message
 from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.utils import log, get_peers
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+from examples.ecr.q_learning.common.ecr_dashboard import DashboardECR
 
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'

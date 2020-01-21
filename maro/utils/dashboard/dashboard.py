@@ -56,7 +56,7 @@ class DashboardBase():
         """Upload fields to ranklist table in database.
 
         Args:
-            ranklist ({str}): a ranklist name
+            ranklist (str): a ranklist name
                 i.e.: 'test_shortage_ranklist'
 
             fields ({Dict}): dictionary of field, key is field name, value is field value
