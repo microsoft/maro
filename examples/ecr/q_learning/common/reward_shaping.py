@@ -36,17 +36,17 @@ class RewardShaping:
             self._cache[agent_name][name].append(content)
 
     def clear_cache(self, agent_name):
-        for name, ca in self._cache[agent_name].items():
-            ca.clear()
+        for name, cache in self._cache[agent_name].items():
+            cache.clear()
 
     def _align_cache_by_next_state(self, agent_name):
         cache = self._cache[agent_name]
 
         cache['next_state'] = cache['state'][1:]
         # align
-        for name, ca in cache.items():
+        for name, cache in cache.items():
             if name != 'next_state':
-                ca.pop()
+                cache.pop()
 
     def generate_experience(self, agent_name):
         cache = self._cache[agent_name].copy()
@@ -54,7 +54,7 @@ class RewardShaping:
         experience_set['info'] = [{'td_error': 1e10} for _ in range(len(cache['state']))]
         return experience_set
 
-    def _get_decision_event_info(self, agent_name, idx, extra):
+    def _get_log_info(self, agent_name, idx, extra):
         cache = self._cache[agent_name]
         event = cache['decision_event'][idx]
         max_load = str(event.action_scope.load)
@@ -68,7 +68,7 @@ class RewardShaping:
         extra = ['eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']
         self._choose_action_logger[agent_name].debug(','.join(['tick', 'vessel_name', 'max_load', 'max_discharge'] + extra))
         for i in range(len(self._cache[agent_name]['decision_event'])):
-            log_str = self._get_decision_event_info(agent_name, i, extra)
+            log_str = self._get_log_info(agent_name, i, extra)
             self._choose_action_logger[agent_name].debug(' '*10 + log_str)
 
 
