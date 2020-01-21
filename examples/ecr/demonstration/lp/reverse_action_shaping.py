@@ -6,7 +6,7 @@ class ReverseActionShaping():
         self._action_space = action_shaping.action_space
 
     def __call__(self, scope: ActionScope, env_action: int):
-        model_action = 0
+        model_action = 10
         if env_action > 0:
             model_action = self._action_space.index(round(10 * env_action / scope.discharge) / 10)
         elif env_action < 0:
