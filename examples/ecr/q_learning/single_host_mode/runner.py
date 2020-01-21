@@ -334,7 +334,7 @@ class Runner:
             pretty_hold_up_dict['total'] = total_hold_up
 
             self.dashboard.upload_early_discharge(pretty_early_discharge_dict, dashboard_ep)
-            self.dashboard.upload_hold_up(pretty_hold_up_dict, dashboard_ep)
+            self.dashboard.upload_delayed_laden(pretty_hold_up_dict, dashboard_ep)
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)
