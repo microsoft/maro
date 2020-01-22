@@ -8,11 +8,7 @@
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/grafana/linechart-panel.git"
-  },
-  "author": "Grafana Labs",
+  "author": "Microsoft ARD Incubation Team",
   "license": "MIT",
   "private": true,
   "dependencies": {

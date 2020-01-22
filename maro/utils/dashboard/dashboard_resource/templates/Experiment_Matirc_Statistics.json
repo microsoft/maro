@@ -462,7 +462,7 @@
       "targets": [
         {
           "groupBy": [],
-          "measurement": "hold_up",
+          "measurement": "delayed_laden",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -488,7 +488,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Hold Up",
+      "title": "Delayed Laden",
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",

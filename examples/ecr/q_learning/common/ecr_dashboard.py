@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+from enum import Enum
 from maro.utils.dashboard import DashboardBase
 
 
 class DashboardECR(DashboardBase):
-    def __init__(self, experiment: str, log_folder: str):
-        DashboardBase.__init__(self, experiment, log_folder)
+    def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+        DashboardBase.__init__(self, experiment, log_folder, log_enable, host, port, use_udp, udp_port)
 
     def upload_laden_executed(self, nodes_laden_executed, ep):
         """
@@ -166,12 +166,12 @@ class DashboardECR(DashboardBase):
             'experiment': self.experiment}, measurement='early_discharge')
 
 
-    def upload_hold_up(self, nodes_hold_up, ep):
+    def upload_delayed_laden(self, nodes_delayed_laden, ep):
         """
-        Upload scalars to hold_up table in database.
+        Upload scalars to delayed_laden table in database.
 
         Args:
-            nodes_laden_planed ({Dict}): dictionary of hold_up, key is node name, value is node hold_up value
+            nodes_laden_planed ({Dict}): dictionary of delayed_laden, key is node name, value is node delayed_laden value
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as scalars information to identify data of different ep in database
                 i.e.: 11
@@ -179,9 +179,9 @@ class DashboardECR(DashboardBase):
         Returns:
             None.
         """
-        nodes_hold_up['ep'] = ep
-        self.send(fields=nodes_hold_up, tag={
-            'experiment': self.experiment}, measurement='hold_up')
+        nodes_delayed_laden['ep'] = ep
+        self.send(fields=nodes_delayed_laden, tag={
+            'experiment': self.experiment}, measurement='delayed_laden')
 
     def upload_vessel_usage(self, vessel_usage, ep):
         """
@@ -199,3 +199,77 @@ class DashboardECR(DashboardBase):
         vessel_usage['ep'] = ep
         self.send(fields=vessel_usage, tag={
             'experiment': self.experiment}, measurement='vessel_usage')
+
+    def upload_event_delayed_laden(self, nodes_delayed_laden, ep, tick):
+        """
+        Upload scalars to event_delayed_laden table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of delayed_laden, key is node name, value is node delayed_laden value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+            tick (int): event tick of the data, used as scalars information to identify data of different tick in database
+                i.e.: 132
+
+        Returns:
+            None.
+        """
+        nodes_delayed_laden['ep'] = ep
+        nodes_delayed_laden['tick'] = tick
+        self.send(fields=nodes_delayed_laden, tag={
+            'experiment': self.experiment}, measurement='event_delayed_laden')
+
+    def upload_event_early_discharge(self, nodes_early_discharge, ep, tick):
+        """
+        Upload scalars to event_early_discharge table in database.
+
+        Args:
+            nodes_laden_planed ({Dict}): dictionary of early_discharge, key is node name, value is node early_discharge value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+            tick (int): event tick of the data, used as scalars information to identify data of different tick in database
+                i.e.: 132
+
+        Returns:
+            None.
+        """
+        nodes_early_discharge['ep'] = ep
+        nodes_early_discharge['tick'] = tick
+        self.send(fields=nodes_early_discharge, tag={
+            'experiment': self.experiment}, measurement='event_early_discharge')
+
+    def upload_event_shortage(self, nodes_event_shortage, ep, tick):
+        """
+        Upload scalars to event_shortage table in database.
+
+        Args:
+            nodes_event_shortage ({Dict}): dictionary of event_shortage, key is node name, value is node event_shortage value
+                i.e.:{"port1":1024, "port2":2048}
+            ep (int): current ep of the data, used as scalars information to identify data of different ep in database
+                i.e.: 11
+            tick (int): event tick of the data, used as scalars information to identify data of different tick in database
+                i.e.: 132
+
+        Returns:
+            None.
+        """
+        nodes_event_shortage['ep'] = ep
+        self.send(fields=nodes_event_shortage, tag={
+            'experiment': self.experiment}, measurement='event_shortage')
+
+
+class RanklistColumns(Enum):
+    """
+    Column names for rank list
+    Temporary use X000 to sort columns in rank list dashboard
+    TODO: investigate 
+    """                        
+    experiment = '0000_rl_experiment'
+    shortage = '1000_rl_shortage'
+    model_size = '2000_rl_model_size'
+    train_ep = '3000_rl_train_ep'
+    experience_quantity = '4000_rl_experience_quantity'
+    author = '5000_rl_author'
+    commit = '6000_rl_commit'

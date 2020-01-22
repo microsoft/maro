@@ -6,8 +6,8 @@
   "info": {
     "description": "heatmap chart panel for grafana",
     "author": {
-      "name": "MSRA",
-      "url": "http://www.microsort.com"
+      "name": "Microsoft ARD Incubation Team",
+      "url": "http://www.microsoft.com"
     },
     "keywords": ["heatmapchart", "panel"],
     "logos": {

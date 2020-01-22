@@ -1,18 +1,14 @@
 {
   "name": "stackchart-panel",
   "version": "0.0.1",
-  "description": "line chart panel for Grafana",
+  "description": "stack chart panel for Grafana",
   "scripts": {
     "build": "grafana-toolkit plugin:build",
     "test": "grafana-toolkit plugin:test",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/grafana/stackchart-panel.git"
-  },
-  "author": "Grafana Labs",
+  "author": "Microsoft ARD Incubation Team",
   "license": "MIT",
   "private": true,
   "dependencies": {
