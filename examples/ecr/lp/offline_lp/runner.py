@@ -86,11 +86,11 @@ class Runner:
         orders, tick_vessel_port_connection = self._record()
         self._env.reset()
 
-        # self._online_lp = self._load_online_lp_agent()
-        # self._set_seed(TRAIN_SEED)
-        # self._online_lp_iteraction()
-        # orders2, tick_vessel_port_connection2 = self._record()
-        # self._env.reset()
+        self._online_lp = self._load_online_lp_agent()
+        self._set_seed(TRAIN_SEED)
+        self._online_lp_iteraction()
+        orders2, tick_vessel_port_connection2 = self._record()
+        self._env.reset()
 
         self._lp = self._load_agent(orders, tick_vessel_port_connection)
         self._set_seed(TRAIN_SEED)
@@ -208,15 +208,15 @@ class Runner:
         agent = LPAgent(lp, action_shaping, self._port_idx2name, self._vessel_idx2name)
 
         # Only formulate at the beginning is right, for the initial values got are not same as the beginning of this tick
-        # initial_port_empty, initial_port_on_shipper, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
-        # lp.formulate_and_solve(current_tick=0,
-        #                        initial_port_empty=initial_port_empty,
-        #                        initial_port_on_shipper=initial_port_on_shipper,
-        #                        initial_port_on_consignee=initial_port_on_consignee,
-        #                        initial_port_full=initial_port_full,
-        #                        initial_vessel_empty=initial_vessel_empty,
-        #                        initial_vessel_full=initial_vessel_full
-        #                        )
+        initial_port_empty, initial_port_on_shipper, initial_port_on_consignee, initial_port_full, initial_vessel_empty, initial_vessel_full = self._get_initial_values()
+        lp.formulate_and_solve(current_tick=0,
+                               initial_port_empty=initial_port_empty,
+                               initial_port_on_shipper=initial_port_on_shipper,
+                               initial_port_on_consignee=initial_port_on_consignee,
+                               initial_port_full=initial_port_full,
+                               initial_vessel_empty=initial_vessel_empty,
+                               initial_vessel_full=initial_vessel_full
+                               )
         return agent
 
     def _load_online_lp_agent(self):

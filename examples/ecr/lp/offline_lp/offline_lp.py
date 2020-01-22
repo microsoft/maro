@@ -676,10 +676,10 @@ class LPReplayer():
                     for p2 in self._ports:
                         if get_num(self._vessel_full[step][vessel][p2]) > 0:
                             solution_logger.debug(f'    Full for {p2}: {get_num(self._vessel_full[step][vessel][p2])}')
-        # solution_logger.info(f'******************************************************************************************')
-        # solution_logger.info(f'Status: {self._solution_status}')
-        # solution_logger.info(f'Objective: {self._objective_gotten}')
-        # solution_logger.info(f'Total shortage: {self._total_shortage}')
+        solution_logger.info(f'******************************************************************************************')
+        solution_logger.info(f'Status: {self._solution_status}')
+        solution_logger.info(f'Objective: {self._objective_gotten}')
+        solution_logger.info(f'Total shortage: {self._total_shortage}')
 
     def formulate_and_solve(self,
                             current_tick: int,
@@ -716,11 +716,11 @@ class LPReplayer():
         lp_file_path = os.path.join(self._log_folder, f'{self._file_prefix}_{self._global_tick}.lp')
         problem.writeLP(lp_file_path)
 
-        # if self._load_action:
-        #     if problem.status != 1:
-        #         print(f'==================== NOT OPTIMAL SOLUTION FOR LP FORMULATION ====================')
-        # else:
-        #     assert (problem.status == 1)
+        if self._load_action:
+            if problem.status != 1:
+                print(f'==================== NOT OPTIMAL SOLUTION FOR LP FORMULATION ====================')
+        else:
+            assert (problem.status == 1)
 
         # Update the end point of apply buffer
         self._apply_buffer_end = current_tick + self._apply_buffer_size
@@ -754,17 +754,18 @@ class LPReplayer():
                       tick_orders: dict = None,
                       tick_vessel_port_connection: dict = None
                       ):
-        if current_tick >= self._apply_buffer_end:
-            self.formulate_and_solve(current_tick=current_tick,
-                                     initial_port_empty=initial_port_empty,
-                                     initial_port_on_shipper=initial_port_on_shipper,
-                                     initial_port_on_consignee=initial_port_on_consignee,
-                                     initial_port_full=initial_port_full,
-                                     initial_vessel_empty=initial_vessel_empty,
-                                     initial_vessel_full=initial_vessel_full,
-                                     tick_orders=tick_orders,
-                                     tick_vessel_port_connection=tick_vessel_port_connection
-                                     )
+        assert current_tick < self._apply_buffer_end
+        # if current_tick >= self._apply_buffer_end:
+        #     self.formulate_and_solve(current_tick=current_tick,
+        #                              initial_port_empty=initial_port_empty,
+        #                              initial_port_on_shipper=initial_port_on_shipper,
+        #                              initial_port_on_consignee=initial_port_on_consignee,
+        #                              initial_port_full=initial_port_full,
+        #                              initial_vessel_empty=initial_vessel_empty,
+        #                              initial_vessel_full=initial_vessel_full,
+        #                              tick_orders=tick_orders,
+        #                              tick_vessel_port_connection=tick_vessel_port_connection
+        #                              )
 
         if self._configs.enable_arrival_noise:
             step = self._find_next_decision_index(port_code=port_code, vessel_code=vessel_code)

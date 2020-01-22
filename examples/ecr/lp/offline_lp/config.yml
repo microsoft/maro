@@ -1,13 +1,13 @@
-experiment_name: "5p_ssddd_J_test"
+experiment_name: "5p_ssddd_l0.7"
 env:
   scenario: "ecr"
-  topology: "5p_ssddd_J"
-  max_tick: 1120
+  topology: "5p_ssddd_l0.7"
+  max_tick: 224
 lp:
   enable_arrival_noise: false
   params:
     window_size: 224
-    apply_buffer_size: 1
+    apply_buffer_size: 224
   factor:
     order_gain_factor: 1
     load_discharge_cost_factor: 0
