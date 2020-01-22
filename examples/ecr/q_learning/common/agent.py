@@ -15,13 +15,12 @@ from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 
 
 class Agent(object):
-    def __init__(self, agent_name, topology, algorithm, experience_pool: SimpleExperiencePool,
+    def __init__(self, agent_name, algorithm, experience_pool: SimpleExperiencePool,
                  state_shaping, action_shaping, reward_shaping,
                  batch_num, batch_size, min_train_experience_num,
                  log_enable: bool = True, log_folder: str = './',
                  dashboard_enable: bool = True, dashboard: object = None):
         self._agent_name = agent_name
-        self._topology = topology
         self._algorithm = algorithm
         self._experience_pool = experience_pool
         self._state_shaping = state_shaping
@@ -38,12 +37,10 @@ class Agent(object):
             self._logger = Logger(tag='agent', format_=LogFormat.simple,
                                   dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
 
-    def calculate_offline_rewards(self, current_ep: int):
+    def store_experience(self, current_ep: int):
         self._reward_shaping(self._agent_name, current_ep, self._algorithm.learning_index)
-
-    def store_experience(self):
         experience_set = self._reward_shaping.generate_experience(self._agent_name)
-        self._experience_pool.put(category_data_batches=[(name, content) for name, content in experience_set.items()])
+        self._experience_pool.put(category_data_batches=[(name, cache) for name, cache in experience_set.items()])
         if self._log_enable:
             experience_summary = {name: experience_set[name] for name in ['action', 'actual_action', 'reward']}
             self._logger.debug(f'Agent {self._agent_name} new appended exp: {experience_summary}')
@@ -51,7 +48,8 @@ class Agent(object):
 
         self._reward_shaping.clear_cache(self._agent_name)
 
-    def get_experience(self):
+    def get_experience(self, current_ep: int):
+        self._reward_shaping(self._agent_name, current_ep, self._algorithm.learning_index)
         return self._reward_shaping.generate_experience(self._agent_name)
 
     @property

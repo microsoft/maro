@@ -145,7 +145,6 @@ class Runner:
                       log_enable=DQN_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P,
                       dashboard_enable=DASHBOARD_ENABLE, dashboard=self.dashboard)
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx],
-                                          topology=self._topology,
                                           algorithm=dqn, experience_pool=experience_pool,
                                           state_shaping=state_shaping,
                                           action_shaping=action_shaping,
@@ -174,8 +173,7 @@ class Runner:
                 self._print_summary(ep=ep, is_train=True)
 
             for agent in self._agent_dict.values():
-                agent.calculate_offline_rewards(ep)
-                agent.store_experience()
+                agent.store_experience(current_ep=ep)
                 agent.train(current_ep=ep)
 
             self._env.reset()
