@@ -5,8 +5,8 @@
 import os
 
 MAX_TICK = 224
-SCHEDULE_NAME = 'config_adjustment_single_host_gf_VCRR_2.5'
-ALGORITHMS = ['tc'] # 'tc' 'lp'
+SCHEDULE_NAME = 'baseline_20200123'
+ALGORITHMS = ['tc', 'gf'] # 'tc' 'lp'
 WORK_DIR = '/maro_dev/examples/ecr/q_learning/single_host_mode'  # '/maro_dev/tools/replay_lp'
 BASE_CONFIG = '/home/starmie/maro/examples/ecr/q_learning/single_host_mode/config.yml'
 DOCKER_IMAGE_NAME = 'maro/dev'

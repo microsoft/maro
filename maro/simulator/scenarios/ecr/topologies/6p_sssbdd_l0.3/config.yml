@@ -353,7 +353,7 @@ stop_number:
 total_containers: 100000
 vessels:
   rt1_vessel_001:
-    capacity: 10080
+    capacity: 6720
     parking:
       duration: 1
       noise: 0
@@ -364,7 +364,7 @@ vessels:
       noise: 0
       speed: 10
   rt1_vessel_002:
-    capacity: 11200
+    capacity: 6720
     parking:
       duration: 1
       noise: 0
@@ -375,7 +375,7 @@ vessels:
       noise: 0
       speed: 10
   rt1_vessel_003:
-    capacity: 12320
+    capacity: 6720
     parking:
       duration: 1
       noise: 0
@@ -386,7 +386,7 @@ vessels:
       noise: 0
       speed: 10
   rt2_vessel_001:
-    capacity: 10710
+    capacity: 7140
     parking:
       duration: 1
       noise: 0
@@ -397,7 +397,7 @@ vessels:
       noise: 0
       speed: 10
   rt2_vessel_002:
-    capacity: 11900
+    capacity: 7140
     parking:
       duration: 1
       noise: 0
@@ -408,7 +408,7 @@ vessels:
       noise: 0
       speed: 10
   rt2_vessel_003:
-    capacity: 13090
+    capacity: 7140
     parking:
       duration: 1
       noise: 0
@@ -419,7 +419,7 @@ vessels:
       noise: 0
       speed: 10
   rt3_vessel_001:
-    capacity: 10710
+    capacity: 7140
     parking:
       duration: 1
       noise: 0
@@ -430,7 +430,7 @@ vessels:
       noise: 0
       speed: 10
   rt3_vessel_002:
-    capacity: 11900
+    capacity: 7140
     parking:
       duration: 1
       noise: 0
