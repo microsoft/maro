@@ -19,27 +19,28 @@ class RewardShaping:
         self._log_enable = log_enable
 
         if self._log_enable:
-            self._choose_action_logger = {}
+            self._choose_action_logger_dict = {}
             for agent_idx in self._agent_idx_list:
-                self._choose_action_logger[self._port_idx2name[agent_idx]] = Logger(tag=f'{self._port_idx2name[agent_idx]}.choose_action',
+                self._choose_action_logger_dict[self._port_idx2name[agent_idx]] = Logger(tag=f'{self._port_idx2name[agent_idx]}.choose_action',
                                                                                 format_=LogFormat.none,
                                                                                 dump_folder=log_folder, dump_mode='w', extension_name='csv',
                                                                                 auto_timestamp=False)
 
-    def __call__(self, agent_name, current_ep, learning_rate):
+    def __call__(self, agent_name: str, current_ep: int, learning_rate: float):
         return NotImplemented
 
-    def push(self, agent_name, content_dict):
+    def push(self, agent_name: str, matrix: dict):
         if agent_name not in self._cache:
             self._cache[agent_name] = defaultdict(list)
-        for name, content in content_dict.items():
-            self._cache[agent_name][name].append(content)
+        for name, cache in matrix.items():
+            self._cache[agent_name][name].append(cache)
 
-    def clear_cache(self, agent_name):
-        for name, cache in self._cache[agent_name].items():
-            cache.clear()
+    # def clear_cache(self, agent_name):
+    #     # for name, cache in self._cache[agent_name].items():
+    #     #     cache.clear()
+    #     self._cache[agent_name] = defaultdict(list)
 
-    def _align_cache_by_next_state(self, agent_name):
+    def _align_cache_by_next_state(self, agent_name: str):
         cache = self._cache[agent_name]
 
         cache['next_state'] = cache['state'][1:]
@@ -48,35 +49,35 @@ class RewardShaping:
             if name != 'next_state':
                 cache.pop()
 
-    def generate_experience(self, agent_name):
-        cache = self._cache[agent_name].copy()
+    def generate_experience(self, agent_name: str):
+        cache = self._cache[agent_name]
         experience_set = {name: cache[name] for name in ['state', 'action', 'reward', 'next_state', 'actual_action']}
         experience_set['info'] = [{'td_error': 1e10} for _ in range(len(cache['state']))]
+        self._cache[agent_name] = defaultdict(list)
         return experience_set
 
-    def _get_log_info(self, agent_name, idx, extra):
-        cache = self._cache[agent_name]
-        event = cache['decision_event'][idx]
-        max_load = str(event.action_scope.load)
-        max_discharge = str(event.action_scope.discharge)
-        return ','.join([str(event.tick), self._vessel_idx2name[event.vessel_idx], max_load, max_discharge] +
-                        [','.join([str(f) for f in cache[name][idx]]) if type(cache[name][idx]) == list else str(cache[name][idx])
-                         for name in extra])
-
-    def _record_logs(self, agent_name, current_ep, learning_rate):
-        self._choose_action_logger[agent_name].debug(f"episode {current_ep}, learning_index {learning_rate}:")
+    def _dump_logs(self, agent_name, current_ep, learning_rate):
+        # self._choose_action_logger_dict[agent_name].debug(f"episode {current_ep}, learning_index {learning_rate}:")
         extra = ['eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']
-        self._choose_action_logger[agent_name].debug(','.join(['tick', 'vessel_name', 'max_load', 'max_discharge'] + extra))
-        for i in range(len(self._cache[agent_name]['decision_event'])):
-            log_str = self._get_log_info(agent_name, i, extra)
-            self._choose_action_logger[agent_name].debug(' '*10 + log_str)
+        self._choose_action_logger_dict[agent_name].debug(','.join(['episode', 'learning_index', 'tick', 'vessel_name', 'max_load', 'max_discharge'] + extra))
+        cache = self._cache[agent_name]
+        event_list = cache['decision_event']
+        for i in range(len(event_list)):
+            event = event_list[i]
+            max_load = str(event.action_scope.load)
+            max_discharge = str(event.action_scope.discharge)
+            log_str = ','.join([str(event.tick), self._vessel_idx2name[event.vessel_idx], max_load, max_discharge] +
+                               [','.join([str(f) for f in cache[name][idx]]) if type(cache[name][idx]) == list else str(cache[name][idx])
+                                for name in extra])
+            self._choose_action_logger_dict[agent_name].debug(log_str)
 
 
 class TruncateReward(RewardShaping):
-    def __init__(self, env, agent_idx_list: [int], fulfillment_factor: float = 1.0,
+    def __init__(self, env, agent_idx_list: [int], offset: int = 100, fulfillment_factor: float = 1.0,
                  shortage_factor: float = 1.0, time_decay: float = 0.97, log_folder: str = './', log_enable: bool = True):
         super().__init__(env, log_folder=log_folder, log_enable=log_enable)
         self._agent_idx_list = agent_idx_list
+        self._offset = offset
         self._fulfillment_factor = fulfillment_factor
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
@@ -86,7 +87,7 @@ class TruncateReward(RewardShaping):
         snapshot_list = self._env.snapshot_list
         for i, tick in enumerate(cache['action_tick']):
             start_tick = tick + 1
-            end_tick = tick + 100
+            end_tick = tick + offset
             
             #calculate tc reward
             decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
@@ -101,7 +102,7 @@ class TruncateReward(RewardShaping):
         self._align_cache_by_next_state(agent_name)
 
         if self._log_enable:
-            self._record_logs(agent_name, current_ep, learning_rate)
+            self._dump_logs(agent_name, current_ep, learning_rate)
 
 
 class GoldenFingerReward(RewardShaping):
@@ -146,7 +147,7 @@ class GoldenFingerReward(RewardShaping):
             action2index = {v: i for i, v in enumerate(self._action_space)}
             if self._topology.startswith('4p_ssdd'):
                 best_action_idx_dict = {
-                    'supply_port_001': action2index[-0.5] if vessel_name.startswith('rt1') else action2index[-0.5],
+                    'supply_port_001': action2index[-0.7] if vessel_name.startswith('rt1') else action2index[-0.3],
                     'supply_port_002': action2index[-1.0],
                     'demand_port_001': action2index[1.0],
                     'demand_port_002': action2index[1.0]
@@ -176,7 +177,7 @@ class GoldenFingerReward(RewardShaping):
         self._align_cache_by_next_state(agent_name)
 
         if self._log_enable:
-            self._record_logs(agent_name, current_ep, learning_rate)
+            self._dump_logs(agent_name, current_ep, learning_rate)
         
         
 if __name__ == "__main__":
