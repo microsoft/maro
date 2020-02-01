@@ -206,7 +206,7 @@ class Runner:
             _, decision_event, is_done = self._env.step(None)
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
-                    decision_event=decision_event, eps=0, current_ep=ep)
+                    decision_event=decision_event, eps=0, current_ep=ep, is_train=False, trained_ep=self._max_train_ep)
                 _, decision_event, is_done = self._env.step(action)
 
             if self._log_enable:

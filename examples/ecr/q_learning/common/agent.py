@@ -200,7 +200,7 @@ class Agent(object):
         self._logger.debug(f'{self._agent_name} load module from {module_path}')
         pass
 
-    def choose_action(self, decision_event: DecisionEvent, eps: float, current_ep: int) -> Action:
+    def choose_action(self, decision_event: DecisionEvent, eps: float, current_ep: int, is_train: bool = False, trained_ep: int = 0) -> Action:
         """
         Args:
             decision_event (DecisionEvent): Environment decision event, which includes the action scope, environment
@@ -223,7 +223,7 @@ class Agent(object):
 
         state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
         is_random, action_index = self._algorithm.choose_action(
-            state=state, eps=eps, current_ep=current_ep)
+            state=state, eps=eps, current_ep=current_ep, is_train=is_train, trained_ep=trained_ep)
 
         self._state_cache.append(numpy_state)
         self._action_cache.append(action_index)
