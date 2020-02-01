@@ -589,7 +589,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
                 port.empty = port_empty + move_num
                 vessel.empty = vessel_empty - move_num
-                vessel.remaining_space = vessel_total_space - vessel_empty - vessel_full
+                vessel.remaining_space = (vessel_total_space - vessel.empty - vessel_full) * container_volume
 
                 evt.event_type = EcrEventType.DISCHARGE_EMPTY if move_num > 0 else EcrEventType.LOAD_EMPTY
 
