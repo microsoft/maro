@@ -340,7 +340,7 @@ class Runner:
                     {port_name: event.payload.early_discharge}, dashboard_ep,
                     event.tick)
 
-            elif event.event_type == EcrEventType.VESSEL_DEPARTURE:
+            elif event.event_type == EcrEventType.VESSEL_ARRIVAL:
                 cur_tick = event.tick
                 vessel_idx = event.payload.vessel_idx
                 column = vessel_idx * 3
