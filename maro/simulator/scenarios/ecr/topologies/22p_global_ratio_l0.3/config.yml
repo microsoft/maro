@@ -2,23 +2,243 @@ container_usage_proportion:
   period: 112
   sample_nodes:
   - - 0
+    - 0.015
+  - - 1
+    - 0.015007865924910917
+  - - 2
+    - 0.015031438950533788
+  - - 3
+    - 0.015070644907408821
+  - - 4
+    - 0.015125360439090883
+  - - 5
+    - 0.015195413390274502
+  - - 6
+    - 0.015280583348458162
+  - - 7
+    - 0.015380602337443566
+  - - 8
+    - 0.015495155660487904
+  - - 9
+    - 0.015623882890456232
+  - - 10
+    - 0.01576637900385858
+  - - 11
+    - 0.0159221956552037
+  - - 12
+    - 0.016090842587659852
+  - - 13
+    - 0.016271789175584174
+  - - 14
+    - 0.01646446609406726
+  - - 15
+    - 0.01666826711023998
+  - - 16
+    - 0.016882550990706333
+  - - 17
+    - 0.017106643519100972
+  - - 18
+    - 0.017339839617423317
+  - - 19
+    - 0.017581405564473802
+  - - 20
+    - 0.01783058130441221
+  - - 21
+    - 0.01808658283817455
+  - - 22
+    - 0.018348604690224164
+  - - 23
+    - 0.018615822442875754
+  - - 24
+    - 0.018887395330218427
+  - - 25
+    - 0.01916246888347632
+  - - 26
+    - 0.01944017761948346
+  - - 27
+    - 0.01971964776381404
+  - - 28
     - 0.02
+  - - 29
+    - 0.02028035223618596
+  - - 30
+    - 0.02055982238051654
+  - - 31
+    - 0.020837531116523682
+  - - 32
+    - 0.02111260466978157
+  - - 33
+    - 0.021384177557124247
+  - - 34
+    - 0.021651395309775834
+  - - 35
+    - 0.02191341716182545
+  - - 36
+    - 0.022169418695587792
+  - - 37
+    - 0.0224185944355262
+  - - 38
+    - 0.022660160382576684
+  - - 39
+    - 0.02289335648089903
+  - - 40
+    - 0.023117449009293668
+  - - 41
+    - 0.02333173288976002
+  - - 42
+    - 0.023535533905932736
+  - - 43
+    - 0.023728210824415827
+  - - 44
+    - 0.02390915741234015
+  - - 45
+    - 0.0240778043447963
+  - - 46
+    - 0.02423362099614142
+  - - 47
+    - 0.02437611710954377
+  - - 48
+    - 0.024504844339512097
+  - - 49
+    - 0.024619397662556435
+  - - 50
+    - 0.02471941665154184
+  - - 51
+    - 0.0248045866097255
+  - - 52
+    - 0.024874639560909118
+  - - 53
+    - 0.024929355092591178
+  - - 54
+    - 0.024968561049466213
+  - - 55
+    - 0.024992134075089083
+  - - 56
+    - 0.025
+  - - 57
+    - 0.024992134075089083
+  - - 58
+    - 0.024968561049466213
+  - - 59
+    - 0.024929355092591178
+  - - 60
+    - 0.024874639560909118
+  - - 61
+    - 0.0248045866097255
+  - - 62
+    - 0.02471941665154184
+  - - 63
+    - 0.024619397662556435
+  - - 64
+    - 0.024504844339512097
+  - - 65
+    - 0.02437611710954377
+  - - 66
+    - 0.024233620996141424
+  - - 67
+    - 0.024077804344796304
+  - - 68
+    - 0.023909157412340152
+  - - 69
+    - 0.02372821082441583
+  - - 70
+    - 0.02353553390593274
+  - - 71
+    - 0.02333173288976002
+  - - 72
+    - 0.023117449009293668
+  - - 73
+    - 0.02289335648089903
+  - - 74
+    - 0.022660160382576684
+  - - 75
+    - 0.022418594435526202
+  - - 76
+    - 0.022169418695587792
+  - - 77
+    - 0.021913417161825453
+  - - 78
+    - 0.021651395309775837
+  - - 79
+    - 0.021384177557124247
+  - - 80
+    - 0.021112604669781574
+  - - 81
+    - 0.020837531116523686
+  - - 82
+    - 0.02055982238051654
+  - - 83
+    - 0.020280352236185958
+  - - 84
+    - 0.02
+  - - 85
+    - 0.019719647763814043
+  - - 86
+    - 0.01944017761948346
+  - - 87
+    - 0.01916246888347632
+  - - 88
+    - 0.01888739533021843
+  - - 89
+    - 0.018615822442875758
+  - - 90
+    - 0.018348604690224167
+  - - 91
+    - 0.01808658283817455
+  - - 92
+    - 0.01783058130441221
+  - - 93
+    - 0.0175814055644738
+  - - 94
+    - 0.01733983961742332
+  - - 95
+    - 0.017106643519100975
+  - - 96
+    - 0.016882550990706333
+  - - 97
+    - 0.01666826711023998
+  - - 98
+    - 0.016464466094067265
+  - - 99
+    - 0.016271789175584174
+  - - 100
+    - 0.016090842587659852
+  - - 101
+    - 0.015922195655203697
+  - - 102
+    - 0.01576637900385858
+  - - 103
+    - 0.015623882890456233
+  - - 104
+    - 0.015495155660487904
+  - - 105
+    - 0.015380602337443568
+  - - 106
+    - 0.015280583348458162
+  - - 107
+    - 0.015195413390274502
+  - - 108
+    - 0.015125360439090883
+  - - 109
+    - 0.015070644907408821
+  - - 110
+    - 0.015031438950533788
   - - 111
-    - 0.02
+    - 0.015007865924910917
   sample_noise: 0
 container_volumes:
 - 1
 order_generate_mode: fixed
 ports:
   bremerhaven_ger:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.16
     order_distribution:
       source:
         noise: 0
@@ -49,14 +269,14 @@ ports:
           noise: 0
           proportion: 0.07600719296163895
   durban_sau:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.01
     order_distribution:
       source:
         noise: 0
@@ -75,14 +295,14 @@ ports:
           noise: 0
           proportion: 0.25147180645832923
   itagual_bra:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.01
     order_distribution:
       source:
         noise: 0
@@ -104,14 +324,14 @@ ports:
           noise: 0
           proportion: 0.20111381472441478
   leHavre_fra:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.06
     order_distribution:
       source:
         noise: 0
@@ -142,14 +362,14 @@ ports:
           noise: 0
           proportion: 0.09482875155430699
   losAngeles_usa:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.05
     order_distribution:
       source:
         noise: 0
@@ -171,14 +391,14 @@ ports:
           noise: 0
           proportion: 0.16156489600494922
   manzanillo_mex:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.05
     order_distribution:
       source:
         noise: 0
@@ -206,14 +426,14 @@ ports:
           noise: 0
           proportion: 0.23626940934624543
   melbourne_aus:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.015
     order_distribution:
       source:
         noise: 0
@@ -229,14 +449,14 @@ ports:
           noise: 0
           proportion: 0.33424473267164256
   montreal_can:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.015
     order_distribution:
       source:
         noise: 0
@@ -249,14 +469,14 @@ ports:
           noise: 0
           proportion: 0.4827558085875176
   newYork_usa:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.03
     order_distribution:
       source:
         noise: 0
@@ -269,14 +489,14 @@ ports:
           noise: 0
           proportion: 0.46674861114098054
   oakland_usa:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.03
     order_distribution:
       source:
         noise: 0
@@ -295,14 +515,14 @@ ports:
           noise: 0
           proportion: 0.23343723073025868
   princeRupert_can:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.015
     order_distribution:
       source:
         noise: 0
@@ -321,14 +541,14 @@ ports:
           noise: 0
           proportion: 0.23289324784523086
   pusan_kor:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.06
     order_distribution:
       source:
         noise: 0
@@ -368,14 +588,14 @@ ports:
           noise: 0
           proportion: 0.1691362922896707
   qingdao_chn:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.08
     order_distribution:
       source:
         noise: 0
@@ -427,14 +647,14 @@ ports:
           noise: 0
           proportion: 0.14348426444526224
   sanAntonio_par:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.01
     order_distribution:
       source:
         noise: 0
@@ -459,14 +679,14 @@ ports:
           noise: 0
           proportion: 0.18337139507029068
   santos_bra:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.01
     order_distribution:
       source:
         noise: 0
@@ -488,14 +708,14 @@ ports:
           noise: 0
           proportion: 0.20111381435029493
   seattle_usa:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.07
     order_distribution:
       source:
         noise: 0
@@ -523,14 +743,14 @@ ports:
           noise: 0
           proportion: 0.12514604095174878
   shanghai_chn:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.1
     order_distribution:
       source:
         noise: 0
@@ -579,14 +799,14 @@ ports:
           noise: 0
           proportion: 0.1570062958384047
   singapore_sgp:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.04
     order_distribution:
       source:
         noise: 0
@@ -638,14 +858,14 @@ ports:
           noise: 0
           proportion: 0.13012295462802295
   sydney_aus:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.015
     order_distribution:
       source:
         noise: 0
@@ -661,14 +881,14 @@ ports:
           noise: 0
           proportion: 0.3341813382448723
   vancouver_can:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.02
     order_distribution:
       source:
         noise: 0
@@ -693,14 +913,14 @@ ports:
           noise: 0
           proportion: 0.1631702922739467
   yantian_chn:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.07
     order_distribution:
       source:
         noise: 0
@@ -755,14 +975,14 @@ ports:
           noise: 0
           proportion: 0.17448788591166092
   yokohama_jpn:
-    capacity: 100000
+    capacity: 10000
     empty_return:
       buffer_ticks: 10
       noise: 0
     full_return:
       buffer_ticks: 10
       noise: 0
-    initial_container_proportion: 0.045454545454545456
+    initial_container_proportion: 0.08
     order_distribution:
       source:
         noise: 0
@@ -791,585 +1011,662 @@ ports:
           proportion: 0.14697441091807414
 routes:
   a3s:
-  - distance: 3200
+  - distance: 320
     port_name: yantian_chn
-  - distance: 2400
+  - distance: 240
     port_name: sydney_aus
-  - distance: 800
+  - distance: 80
     port_name: melbourne_aus
   asa:
-  - distance: 3200
+  - distance: 320
     port_name: singapore_sgp
-  - distance: 2600
+  - distance: 260
     port_name: sydney_aus
-  - distance: 600
+  - distance: 60
     port_name: melbourne_aus
   ate1:
-  - distance: 1600
+  - distance: 160
     port_name: newYork_usa
-  - distance: 2400
+  - distance: 240
     port_name: bremerhaven_ger
-  - distance: 400
+  - distance: 40
     port_name: leHavre_fra
   gex1:
-  - distance: 2200
+  - distance: 220
     port_name: montreal_can
-  - distance: 2200
+  - distance: 220
     port_name: bremerhaven_ger
-  - distance: 400
+  - distance: 40
     port_name: leHavre_fra
   ktx5:
-  - distance: 2400
+  - distance: 240
     port_name: singapore_sgp
-  - distance: 800
+  - distance: 80
     port_name: yantian_chn
-  - distance: 1400
+  - distance: 140
     port_name: yokohama_jpn
   ll4:
-  - distance: 800
+  - distance: 80
     port_name: shanghai_chn
-  - distance: 600
+  - distance: 60
     port_name: yantian_chn
-  - distance: 800
+  - distance: 80
     port_name: singapore_sgp
-  - distance: 3800
+  - distance: 380
     port_name: leHavre_fra
-  - distance: 800
+  - distance: 80
     port_name: bremerhaven_ger
-  - distance: 4200
+  - distance: 420
     port_name: singapore_sgp
-  - distance: 2000
+  - distance: 200
     port_name: qingdao_chn
-  - distance: 800
+  - distance: 80
     port_name: pusan_kor
   pcc1:
-  - distance: 2400
+  - distance: 240
     port_name: qingdao_chn
-  - distance: 400
+  - distance: 40
     port_name: shanghai_chn
-  - distance: 2400
+  - distance: 240
     port_name: princeRupert_can
-  - distance: 1200
+  - distance: 120
     port_name: losAngeles_usa
-  - distance: 1000
+  - distance: 100
     port_name: oakland_usa
   pcc2:
-  - distance: 800
+  - distance: 80
     port_name: shanghai_chn
-  - distance: 2800
+  - distance: 280
     port_name: losAngeles_usa
-  - distance: 1600
+  - distance: 160
     port_name: seattle_usa
-  - distance: 2800
+  - distance: 280
     port_name: qingdao_chn
   pnw1:
-  - distance: 800
+  - distance: 80
     port_name: yantian_chn
-  - distance: 2600
+  - distance: 260
     port_name: vancouver_can
-  - distance: 800
+  - distance: 80
     port_name: seattle_usa
-  - distance: 3200
+  - distance: 320
     port_name: pusan_kor
   pnw2:
-  - distance: 2000
+  - distance: 200
     port_name: singapore_sgp
-  - distance: 1200
+  - distance: 120
     port_name: yantian_chn
-  - distance: 800
+  - distance: 80
     port_name: shanghai_chn
-  - distance: 600
+  - distance: 60
     port_name: pusan_kor
-  - distance: 2000
+  - distance: 200
     port_name: seattle_usa
-  - distance: 400
+  - distance: 40
     port_name: vancouver_can
-  - distance: 5200
+  - distance: 520
     port_name: qingdao_chn
-  - distance: 600
+  - distance: 60
     port_name: shanghai_chn
   saf3:
-  - distance: 800
+  - distance: 80
     port_name: qingdao_chn
-  - distance: 400
+  - distance: 40
     port_name: shanghai_chn
-  - distance: 600
+  - distance: 60
     port_name: yantian_chn
-  - distance: 800
+  - distance: 80
     port_name: singapore_sgp
-  - distance: 2600
+  - distance: 260
     port_name: durban_sau
-  - distance: 3600
+  - distance: 360
     port_name: yantian_chn
   tla2:
-  - distance: 600
+  - distance: 60
     port_name: qingdao_chn
-  - distance: 600
+  - distance: 60
     port_name: shanghai_chn
-  - distance: 800
+  - distance: 80
     port_name: yantian_chn
-  - distance: 1000
+  - distance: 100
     port_name: singapore_sgp
-  - distance: 4600
+  - distance: 460
     port_name: itagual_bra
-  - distance: 200
+  - distance: 20
     port_name: santos_bra
-  - distance: 5800
+  - distance: 580
     port_name: singapore_sgp
-  - distance: 1400
+  - distance: 140
     port_name: yantian_chn
-  - distance: 800
+  - distance: 80
     port_name: shanghai_chn
   tlp1:
-  - distance: 1000
+  - distance: 100
     port_name: yantian_chn
-  - distance: 600
+  - distance: 60
     port_name: shanghai_chn
-  - distance: 600
+  - distance: 60
     port_name: qingdao_chn
-  - distance: 400
+  - distance: 40
     port_name: pusan_kor
-  - distance: 2600
+  - distance: 260
     port_name: manzanillo_mex
-  - distance: 1400
+  - distance: 140
     port_name: sanAntonio_par
-  - distance: 1800
+  - distance: 180
     port_name: manzanillo_mex
-  - distance: 2600
+  - distance: 260
     port_name: yokohama_jpn
-  - distance: 600
+  - distance: 60
     port_name: shanghai_chn
 stop_number:
 - 4
 - 3
 total_containers: 100000
 vessels:
-  a3s_vessel_001:
-    capacity: 18000
+  a3s_vessel_000:
+    capacity: 580
     parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: yantian_chn
-      route_name: a3s
-    sailing:
-      noise: 0
-      speed: 50
-  a3s_vessel_002:
-    capacity: 18000
-    parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: sydney_aus
-      route_name: a3s
-    sailing:
-      noise: 0
-      speed: 50
-  a3s_vessel_003:
-    capacity: 18000
-    parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: melbourne_aus
       route_name: a3s
     sailing:
       noise: 0
-      speed: 50
-  asa_vessel_001:
-    capacity: 18000
+      speed: 10
+  a3s_vessel_001:
+    capacity: 580
     parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: singapore_sgp
-      route_name: asa
-    sailing:
-      noise: 0
-      speed: 50
-  asa_vessel_002:
-    capacity: 18000
-    parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: sydney_aus
+      route_name: a3s
+    sailing:
+      noise: 0
+      speed: 10
+  asa_vessel_000:
+    capacity: 328
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: melbourne_aus
       route_name: asa
     sailing:
       noise: 0
-      speed: 50
-  asa_vessel_003:
-    capacity: 18000
+      speed: 10
+  asa_vessel_001:
+    capacity: 328
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: singapore_sgp
+      initial_port_name: melbourne_aus
       route_name: asa
     sailing:
       noise: 0
-      speed: 50
-  ate1_vessel_001:
-    capacity: 18000
+      speed: 10
+  ate1_vessel_000:
+    capacity: 3455
     parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: leHavre_fra
-      route_name: ate1
-    sailing:
-      noise: 0
-      speed: 50
-  ate1_vessel_002:
-    capacity: 18000
-    parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: newYork_usa
       route_name: ate1
     sailing:
       noise: 0
-      speed: 50
-  ate1_vessel_003:
-    capacity: 18000
+      speed: 10
+  ate1_vessel_001:
+    capacity: 3455
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: bremerhaven_ger
+      initial_port_name: leHavre_fra
       route_name: ate1
     sailing:
       noise: 0
-      speed: 50
-  gex1_vessel_001:
-    capacity: 18000
+      speed: 10
+  gex1_vessel_000:
+    capacity: 688
     parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: montreal_can
-      route_name: gex1
-    sailing:
-      noise: 0
-      speed: 50
-  gex1_vessel_002:
-    capacity: 18000
-    parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: bremerhaven_ger
       route_name: gex1
     sailing:
       noise: 0
-      speed: 50
-  gex1_vessel_003:
-    capacity: 18000
+      speed: 10
+  gex1_vessel_001:
+    capacity: 688
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: montreal_can
       route_name: gex1
     sailing:
       noise: 0
-      speed: 50
-  ktx5_vessel_001:
-    capacity: 18000
+      speed: 10
+  ktx5_vessel_000:
+    capacity: 849
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: yokohama_jpn
       route_name: ktx5
     sailing:
       noise: 0
-      speed: 50
-  ktx5_vessel_002:
-    capacity: 18000
+      speed: 10
+  ktx5_vessel_001:
+    capacity: 849
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: singapore_sgp
+      initial_port_name: yokohama_jpn
       route_name: ktx5
     sailing:
       noise: 0
-      speed: 50
-  ktx5_vessel_003:
-    capacity: 18000
+      speed: 10
+  ll4_vessel_000:
+    capacity: 3962
     parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: singapore_sgp
-      route_name: ktx5
-    sailing:
-      noise: 0
-      speed: 50
-  ll4_vessel_001:
-    capacity: 18000
-    parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: singapore_sgp
-      route_name: ll4
-    sailing:
-      noise: 0
-      speed: 50
-  ll4_vessel_002:
-    capacity: 18000
-    parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: qingdao_chn
-      route_name: ll4
-    sailing:
-      noise: 0
-      speed: 50
-  ll4_vessel_003:
-    capacity: 18000
-    parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: leHavre_fra
       route_name: ll4
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
+  ll4_vessel_001:
+    capacity: 3962
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: leHavre_fra
+      route_name: ll4
+    sailing:
+      noise: 0
+      speed: 10
+  ll4_vessel_002:
+    capacity: 3962
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: singapore_sgp
+      route_name: ll4
+    sailing:
+      noise: 0
+      speed: 10
+  ll4_vessel_003:
+    capacity: 3962
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: leHavre_fra
+      route_name: ll4
+    sailing:
+      noise: 0
+      speed: 10
+  ll4_vessel_004:
+    capacity: 3962
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: yantian_chn
+      route_name: ll4
+    sailing:
+      noise: 0
+      speed: 10
+  ll4_vessel_005:
+    capacity: 3962
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: singapore_sgp
+      route_name: ll4
+    sailing:
+      noise: 0
+      speed: 10
+  pcc1_vessel_000:
+    capacity: 2953
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: oakland_usa
+      route_name: pcc1
+    sailing:
+      noise: 0
+      speed: 10
   pcc1_vessel_001:
-    capacity: 18000
+    capacity: 2953
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: oakland_usa
+      initial_port_name: qingdao_chn
       route_name: pcc1
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   pcc1_vessel_002:
-    capacity: 18000
+    capacity: 2953
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: oakland_usa
       route_name: pcc1
     sailing:
       noise: 0
-      speed: 50
-  pcc1_vessel_003:
-    capacity: 18000
+      speed: 10
+  pcc2_vessel_000:
+    capacity: 1466
     parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: shanghai_chn
-      route_name: pcc1
-    sailing:
-      noise: 0
-      speed: 50
-  pcc2_vessel_001:
-    capacity: 18000
-    parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: losAngeles_usa
-      route_name: pcc2
-    sailing:
-      noise: 0
-      speed: 50
-  pcc2_vessel_002:
-    capacity: 18000
-    parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: seattle_usa
       route_name: pcc2
     sailing:
       noise: 0
-      speed: 50
-  pcc2_vessel_003:
-    capacity: 18000
+      speed: 10
+  pcc2_vessel_001:
+    capacity: 1466
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: losAngeles_usa
       route_name: pcc2
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
+  pcc2_vessel_002:
+    capacity: 1466
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: losAngeles_usa
+      route_name: pcc2
+    sailing:
+      noise: 0
+      speed: 10
+  pnw1_vessel_000:
+    capacity: 1277
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: yantian_chn
+      route_name: pnw1
+    sailing:
+      noise: 0
+      speed: 10
   pnw1_vessel_001:
-    capacity: 18000
+    capacity: 1277
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: vancouver_can
       route_name: pnw1
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   pnw1_vessel_002:
-    capacity: 18000
+    capacity: 1277
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: vancouver_can
+      initial_port_name: yantian_chn
       route_name: pnw1
     sailing:
       noise: 0
-      speed: 50
-  pnw1_vessel_003:
-    capacity: 18000
+      speed: 10
+  pnw2_vessel_000:
+    capacity: 538
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: vancouver_can
-      route_name: pnw1
+      initial_port_name: pusan_kor
+      route_name: pnw2
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   pnw2_vessel_001:
-    capacity: 18000
+    capacity: 538
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: shanghai_chn
       route_name: pnw2
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   pnw2_vessel_002:
-    capacity: 18000
+    capacity: 538
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: shanghai_chn
       route_name: pnw2
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   pnw2_vessel_003:
-    capacity: 18000
+    capacity: 538
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: singapore_sgp
+      initial_port_name: pusan_kor
       route_name: pnw2
     sailing:
       noise: 0
-      speed: 50
-  saf3_vessel_001:
-    capacity: 18000
+      speed: 10
+  pnw2_vessel_004:
+    capacity: 538
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: shanghai_chn
+      route_name: pnw2
+    sailing:
+      noise: 0
+      speed: 10
+  saf3_vessel_000:
+    capacity: 388
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: yantian_chn
       route_name: saf3
     sailing:
       noise: 0
-      speed: 50
-  saf3_vessel_002:
-    capacity: 18000
+      speed: 10
+  saf3_vessel_001:
+    capacity: 388
     parking:
-      duration: 2
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: yantian_chn
+      route_name: saf3
+    sailing:
+      noise: 0
+      speed: 10
+  saf3_vessel_002:
+    capacity: 388
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: singapore_sgp
+      route_name: saf3
+    sailing:
+      noise: 0
+      speed: 10
+  saf3_vessel_003:
+    capacity: 388
+    parking:
+      duration: 1
       noise: 0
     route:
       initial_port_name: durban_sau
       route_name: saf3
     sailing:
       noise: 0
-      speed: 50
-  saf3_vessel_003:
-    capacity: 18000
+      speed: 10
+  tla2_vessel_000:
+    capacity: 711
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: qingdao_chn
-      route_name: saf3
-    sailing:
-      noise: 0
-      speed: 50
-  tla2_vessel_001:
-    capacity: 18000
-    parking:
-      duration: 2
-      noise: 0
-    route:
-      initial_port_name: singapore_sgp
+      initial_port_name: itagual_bra
       route_name: tla2
     sailing:
       noise: 0
-      speed: 50
-  tla2_vessel_002:
-    capacity: 18000
+      speed: 10
+  tla2_vessel_001:
+    capacity: 711
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: santos_bra
       route_name: tla2
     sailing:
       noise: 0
-      speed: 50
-  tla2_vessel_003:
-    capacity: 18000
+      speed: 10
+  tla2_vessel_002:
+    capacity: 711
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: shanghai_chn
+      initial_port_name: singapore_sgp
       route_name: tla2
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
+  tla2_vessel_003:
+    capacity: 711
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: singapore_sgp
+      route_name: tla2
+    sailing:
+      noise: 0
+      speed: 10
+  tla2_vessel_004:
+    capacity: 711
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: qingdao_chn
+      route_name: tla2
+    sailing:
+      noise: 0
+      speed: 10
+  tla2_vessel_005:
+    capacity: 711
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: singapore_sgp
+      route_name: tla2
+    sailing:
+      noise: 0
+      speed: 10
+  tla2_vessel_006:
+    capacity: 711
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: santos_bra
+      route_name: tla2
+    sailing:
+      noise: 0
+      speed: 10
+  tlp1_vessel_000:
+    capacity: 3799
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: yantian_chn
+      route_name: tlp1
+    sailing:
+      noise: 0
+      speed: 10
   tlp1_vessel_001:
-    capacity: 18000
+    capacity: 3799
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
-      initial_port_name: yantian_chn
+      initial_port_name: manzanillo_mex
       route_name: tlp1
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   tlp1_vessel_002:
-    capacity: 18000
+    capacity: 3799
     parking:
-      duration: 2
+      duration: 1
       noise: 0
     route:
       initial_port_name: yantian_chn
       route_name: tlp1
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
   tlp1_vessel_003:
-    capacity: 18000
+    capacity: 3799
     parking:
-      duration: 2
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: manzanillo_mex
+      route_name: tlp1
+    sailing:
+      noise: 0
+      speed: 10
+  tlp1_vessel_004:
+    capacity: 3799
+    parking:
+      duration: 1
       noise: 0
     route:
       initial_port_name: sanAntonio_par
       route_name: tlp1
     sailing:
       noise: 0
-      speed: 50
+      speed: 10
