@@ -266,6 +266,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         for vessel in self._vessels:
             vessel.reset()
             vessel.capacity = self._data_generator.vessel_initial_info["capacity"][vessel.idx]
+            vessel.remaining_space = int(vessel.capacity / self._data_generator.container_volume)
             vessel.route_idx = self._data_generator.vessel_initial_info["route"][vessel.idx]
             vessel.early_discharge = 0
 
@@ -530,6 +531,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         vessel.full -= discharge_qty
         port.on_consignee += discharge_qty
+        vessel.remaining_space = vessel.capacity - (vessel.empty + vessel.full) * self._data_generator.container_volume
 
         self._full_on_vessels[vessel_idx: port_idx] -= discharge_qty
 
@@ -568,6 +570,8 @@ class EcrBusinessEngine(AbsBusinessEngine):
             if type(actions) is not list:
                 actions = [actions]
 
+            container_volume = self._data_generator.container_volume
+
             for action in actions:
                 vessel_idx = action.vessel_idx
                 port_idx = action.port_idx
@@ -576,14 +580,16 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 port = self._ports[port_idx]
                 port_empty = port.empty
                 vessel_empty = vessel.empty
+                vessel_full = vessel.full
 
-                vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
-                vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
+                vessel_total_space = int(floor(vessel.capacity / container_volume))
+                vessel_remaining_space = vessel_total_space - vessel_empty - vessel_full
 
                 assert -min(port.empty, vessel_remaining_space) <= move_num <= vessel_empty
 
                 port.empty = port_empty + move_num
                 vessel.empty = vessel_empty - move_num
+                vessel.remaining_space = (vessel_total_space - vessel.empty - vessel_full) * container_volume
 
                 evt.event_type = EcrEventType.DISCHARGE_EMPTY if move_num > 0 else EcrEventType.LOAD_EMPTY
 
