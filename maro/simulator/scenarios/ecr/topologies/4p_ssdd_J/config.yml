@@ -121,83 +121,68 @@ ports:
     capacity: 100000
     empty_return: {buffer_ticks: 1, noise: 0}
     full_return: {buffer_ticks: 1, noise: 0}
-    initial_container_proportion: 0.2
+    initial_container_proportion: 0.25
     order_distribution:
-      source: {noise: 0.04361182962399589, proportion: 0.25}
+      source: {noise: 0.01893072886530886, proportion: 0.33}
       targets:
-        transfer_port_001: {noise: 0.017708658254591027, proportion: 1}
+        supply_port_001: {noise: 0.09949943284485233, proportion: 1}
   demand_port_002:
     capacity: 100000
     empty_return: {buffer_ticks: 1, noise: 0}
     full_return: {buffer_ticks: 1, noise: 0}
-    initial_container_proportion: 0.2
+    initial_container_proportion: 0.25
     order_distribution:
-      source: {noise: 0.0025173009444251493, proportion: 0.25}
+      source: {noise: 0.025186889759705913, proportion: 0.67}
       targets:
-        transfer_port_001: {noise: 0.08051008707911927, proportion: 1}
+        supply_port_001: {noise: 0.005728806263826467, proportion: 0.2}
+        supply_port_002: {noise: 0.14498096061433366, proportion: 0.8}
   supply_port_001:
-    capacity: 100000
+    capacity: 1000000
     empty_return: {buffer_ticks: 1, noise: 0}
     full_return: {buffer_ticks: 1, noise: 0}
-    initial_container_proportion: 0.2
+    initial_container_proportion: 0.25
     order_distribution:
       source: {noise: 0.0, proportion: 0}
   supply_port_002:
     capacity: 100000
     empty_return: {buffer_ticks: 1, noise: 0}
     full_return: {buffer_ticks: 1, noise: 0}
-    initial_container_proportion: 0.2
+    initial_container_proportion: 0.25
     order_distribution:
       source: {noise: 0.0, proportion: 0}
-  transfer_port_001:
-    capacity: 100000
-    empty_return: {buffer_ticks: 1, noise: 0}
-    full_return: {buffer_ticks: 1, noise: 0}
-    initial_container_proportion: 0.2
-    order_distribution:
-      source: {noise: 0.03387833132726459, proportion: 0.5}
-      targets:
-        supply_port_001: {noise: 0.06242551359875366, proportion: 0.5}
-        supply_port_002: {noise: 0.09742498327055477, proportion: 0.5}
 routes:
   route_001:
-  - {distance: 60, port_name: transfer_port_001}
+  - {distance: 60, port_name: supply_port_001}
+  - {distance: 60, port_name: demand_port_001}
+  route_002:
   - {distance: 60, port_name: supply_port_001}
   - {distance: 60, port_name: supply_port_002}
-  route_002:
-  - {distance: 60, port_name: transfer_port_001}
-  - {distance: 60, port_name: demand_port_001}
   - {distance: 60, port_name: demand_port_002}
 stop_number: [4, 3]
 total_containers: 100000
 vessels:
   rt1_vessel_001:
-    capacity: 10500
-    parking: {duration: 1, noise: 0}
-    route: {initial_port_name: transfer_port_001, route_name: route_001}
-    sailing: {noise: 0, speed: 10}
-  rt1_vessel_002:
-    capacity: 10500
+    capacity: 6930
     parking: {duration: 1, noise: 0}
     route: {initial_port_name: supply_port_001, route_name: route_001}
-    sailing: {noise: 0, speed: 10}
-  rt1_vessel_003:
-    capacity: 10500
+    sailing: {noise: 1, speed: 8}
+  rt1_vessel_002:
+    capacity: 6930
     parking: {duration: 1, noise: 0}
-    route: {initial_port_name: supply_port_002, route_name: route_001}
-    sailing: {noise: 0, speed: 10}
+    route: {initial_port_name: demand_port_001, route_name: route_001}
+    sailing: {noise: 2, speed: 10}
   rt2_vessel_001:
-    capacity: 10500
+    capacity: 14070
     parking: {duration: 1, noise: 0}
-    route: {initial_port_name: transfer_port_001, route_name: route_002}
-    sailing: {noise: 0, speed: 10}
+    route: {initial_port_name: supply_port_001, route_name: route_002}
+    sailing: {noise: 2, speed: 12}
   rt2_vessel_002:
-    capacity: 10500
+    capacity: 14070
     parking: {duration: 1, noise: 0}
-    route: {initial_port_name: demand_port_001, route_name: route_002}
-    sailing: {noise: 0, speed: 10}
+    route: {initial_port_name: supply_port_002, route_name: route_002}
+    sailing: {noise: 2, speed: 8}
   rt2_vessel_003:
-    capacity: 10500
+    capacity: 14070
     parking: {duration: 1, noise: 0}
     route: {initial_port_name: demand_port_002, route_name: route_002}
-    sailing: {noise: 0, speed: 10}
+    sailing: {noise: 2, speed: 10}
