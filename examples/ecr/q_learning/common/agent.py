@@ -264,5 +264,5 @@ class Agent(object):
     def model_size(self):
         size = 0
         for para in self._algorithm.policy_net.parameters():
-            size += sys.getsizeof(para)
+            size += para.nelement()
         return size
