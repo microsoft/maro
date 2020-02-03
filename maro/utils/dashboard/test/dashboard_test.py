@@ -7,8 +7,7 @@ from maro.utils.dashboard import DashboardBase
 import sys
 import random
 
-dashboard = DashboardBase('test_dashboard_04','.')
-dashboard.setup_connection()
+dashboard = DashboardBase('test_dashboard_04', '.', True)
 
 
 class TestDashboardMethods(unittest.TestCase):

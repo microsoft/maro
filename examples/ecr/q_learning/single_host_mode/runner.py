@@ -258,8 +258,8 @@ class Runner:
             dashboard_ep = ep + self._max_train_ep
 
         # Upload shortage and booking by ep
-        self._dashboard.upload_booking(pretty_booking_dict, dashboard_ep)
-        self._dashboard.upload_shortage(pretty_shortage_dict, dashboard_ep)
+        self._dashboard.upload_ep_data(pretty_booking_dict, dashboard_ep, 'booking')
+        self._dashboard.upload_ep_data(pretty_shortage_dict, dashboard_ep, 'shortage')
 
         # Upload rank list
         if not is_train:
@@ -290,7 +290,7 @@ class Runner:
             for i, _ in enumerate(self._port_idx2name):
                 pretty_epsilon_dict[
                     self._port_idx2name[i]] = self._eps_list[ep]
-            self._dashboard.upload_epsilon(pretty_epsilon_dict, dashboard_ep)
+            self._dashboard.upload_ep_data(pretty_epsilon_dict, dashboard_ep, 'epsilon')
 
         # Prepare usage and delayed laden data source
         usage_list = self._env.snapshot_list.dynamic_nodes[::(
@@ -336,9 +336,9 @@ class Runner:
                 pretty_early_discharge_dict[
                     port_name] = pretty_early_discharge_dict.get(
                         port_name, 0) + event.payload.early_discharge
-                self._dashboard.upload_event_early_discharge(
+                self._dashboard.upload_tick_data(
                     {port_name: event.payload.early_discharge}, dashboard_ep,
-                    event.tick)
+                    event.tick, 'event_early_discharge')
 
             elif event.event_type == EcrEventType.VESSEL_ARRIVAL:
                 cur_tick = event.tick
@@ -346,12 +346,11 @@ class Runner:
                 column = vessel_idx * 3
                 cur_usage = {
                     'vessel': self._vessel_idx2name[vessel_idx],
-                    'tick': cur_tick,
                     'remaining_space': pretty_usage_list[cur_tick][column],
                     'empty': pretty_usage_list[cur_tick][column + 1],
                     'full': pretty_usage_list[cur_tick][column + 2]
                 }
-                self._dashboard.upload_vessel_usage(cur_usage, dashboard_ep)
+                self._dashboard.upload_tick_data(cur_usage, dashboard_ep, cur_tick, 'vessel_usage')
                 port_idx = event.payload.port_idx
                 port_name = self._port_idx2name[port_idx]
                 if not port_name in pretty_delayed_laden_dict:
@@ -368,26 +367,26 @@ class Runner:
                             port_idx][route_port_id]
                     cur_delayed_laden += pretty_delayed_laden_list[cur_tick][
                         port_idx][route_port_id]
-                self._dashboard.upload_event_delayed_laden(
-                    {port_name: cur_delayed_laden}, dashboard_ep, cur_tick)
+                self._dashboard.upload_tick_data(
+                    {port_name: cur_delayed_laden}, dashboard_ep, cur_tick, 'event_delayed_laden')
 
         for k in from_to_executed.keys():
             for kk in from_to_executed[k].keys():
-                self._dashboard.upload_laden_executed(
+                self._dashboard.upload_ep_data(
                     {
                         'from': self._port_idx2name[k],
                         'to': self._port_idx2name[kk],
                         'quantity': from_to_executed[k][kk]
-                    }, dashboard_ep)
+                    }, dashboard_ep, 'laden_executed')
 
         for k in from_to_planed.keys():
             for kk in from_to_planed[k].keys():
-                self._dashboard.upload_laden_planed(
+                self._dashboard.upload_ep_data(
                     {
                         'from': self._port_idx2name[k],
                         'to': self._port_idx2name[kk],
                         'quantity': from_to_planed[k][kk]
-                    }, dashboard_ep)
+                    }, dashboard_ep, 'laden_planed')
 
         total_early_discharge = 0
         for early_discharge in pretty_early_discharge_dict.values():
@@ -399,10 +398,10 @@ class Runner:
             total_delayed_laden += delayed_laden
         pretty_delayed_laden_dict['total'] = total_delayed_laden
 
-        self._dashboard.upload_early_discharge(pretty_early_discharge_dict,
-                                              dashboard_ep)
-        self._dashboard.upload_delayed_laden(pretty_delayed_laden_dict,
-                                            dashboard_ep)
+        self._dashboard.upload_ep_data(pretty_early_discharge_dict,
+                                              dashboard_ep, 'early_discharge')
+        self._dashboard.upload_ep_data(pretty_delayed_laden_dict,
+                                            dashboard_ep, 'delayed_laden')
 
         # upload event shortage
         ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.
@@ -420,8 +419,8 @@ class Runner:
                 if pretty_ep_shortage_list[i][j] > 0:
                     need_upload = True
             if need_upload:
-                self._dashboard.upload_event_shortage(pretty_ep_shortage_dict,
-                                                     dashboard_ep, i)
+                self._dashboard.upload_tick_data(pretty_ep_shortage_dict,
+                                                     dashboard_ep, i, 'event_shortage')
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)
