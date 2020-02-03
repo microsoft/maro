@@ -2,9 +2,9 @@ container_usage_proportion:
   period: 112
   sample_nodes:
   - - 0
-    - 0.02
+    - 0.008
   - - 111
-    - 0.02
+    - 0.008
   sample_noise: 0
 container_volumes:
 - 1
@@ -945,18 +945,18 @@ stop_number:
 total_containers: 100000
 vessels:
   a3s_vessel_000:
-    capacity: 580
+    capacity: 209
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: melbourne_aus
+      initial_port_name: yantian_chn
       route_name: a3s
     sailing:
       noise: 0
       speed: 10
   a3s_vessel_001:
-    capacity: 580
+    capacity: 232
     parking:
       duration: 1
       noise: 0
@@ -967,18 +967,18 @@ vessels:
       noise: 0
       speed: 10
   asa_vessel_000:
-    capacity: 328
+    capacity: 144
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: melbourne_aus
+      initial_port_name: singapore_sgp
       route_name: asa
     sailing:
       noise: 0
       speed: 10
   asa_vessel_001:
-    capacity: 328
+    capacity: 118
     parking:
       duration: 1
       noise: 0
@@ -989,7 +989,7 @@ vessels:
       noise: 0
       speed: 10
   ate1_vessel_000:
-    capacity: 3455
+    capacity: 1382
     parking:
       duration: 1
       noise: 0
@@ -1000,18 +1000,18 @@ vessels:
       noise: 0
       speed: 10
   ate1_vessel_001:
-    capacity: 3455
+    capacity: 1520
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: leHavre_fra
+      initial_port_name: bremerhaven_ger
       route_name: ate1
     sailing:
       noise: 0
       speed: 10
   gex1_vessel_000:
-    capacity: 688
+    capacity: 248
     parking:
       duration: 1
       noise: 0
@@ -1022,7 +1022,7 @@ vessels:
       noise: 0
       speed: 10
   gex1_vessel_001:
-    capacity: 688
+    capacity: 275
     parking:
       duration: 1
       noise: 0
@@ -1033,18 +1033,18 @@ vessels:
       noise: 0
       speed: 10
   ktx5_vessel_000:
-    capacity: 849
+    capacity: 372
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: yokohama_jpn
+      initial_port_name: singapore_sgp
       route_name: ktx5
     sailing:
       noise: 0
       speed: 10
   ktx5_vessel_001:
-    capacity: 849
+    capacity: 306
     parking:
       duration: 1
       noise: 0
@@ -1055,29 +1055,29 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_000:
-    capacity: 3962
+    capacity: 1584
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: leHavre_fra
+      initial_port_name: bremerhaven_ger
       route_name: ll4
     sailing:
       noise: 0
       speed: 10
   ll4_vessel_001:
-    capacity: 3962
+    capacity: 1742
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: leHavre_fra
+      initial_port_name: yantian_chn
       route_name: ll4
     sailing:
       noise: 0
       speed: 10
   ll4_vessel_002:
-    capacity: 3962
+    capacity: 1426
     parking:
       duration: 1
       noise: 0
@@ -1088,7 +1088,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_003:
-    capacity: 3962
+    capacity: 1584
     parking:
       duration: 1
       noise: 0
@@ -1099,29 +1099,29 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_004:
-    capacity: 3962
+    capacity: 1742
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: yantian_chn
+      initial_port_name: pusan_kor
       route_name: ll4
     sailing:
       noise: 0
       speed: 10
   ll4_vessel_005:
-    capacity: 3962
+    capacity: 1426
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: singapore_sgp
+      initial_port_name: qingdao_chn
       route_name: ll4
     sailing:
       noise: 0
       speed: 10
   pcc1_vessel_000:
-    capacity: 2953
+    capacity: 1181
     parking:
       duration: 1
       noise: 0
@@ -1132,7 +1132,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_001:
-    capacity: 2953
+    capacity: 1299
     parking:
       duration: 1
       noise: 0
@@ -1143,18 +1143,18 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_002:
-    capacity: 2953
+    capacity: 1063
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: oakland_usa
+      initial_port_name: princeRupert_can
       route_name: pcc1
     sailing:
       noise: 0
       speed: 10
   pcc2_vessel_000:
-    capacity: 1466
+    capacity: 586
     parking:
       duration: 1
       noise: 0
@@ -1165,7 +1165,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_001:
-    capacity: 1466
+    capacity: 644
     parking:
       duration: 1
       noise: 0
@@ -1176,29 +1176,29 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_002:
-    capacity: 1466
+    capacity: 528
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: losAngeles_usa
+      initial_port_name: shanghai_chn
       route_name: pcc2
     sailing:
       noise: 0
       speed: 10
   pnw1_vessel_000:
-    capacity: 1277
+    capacity: 511
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: yantian_chn
+      initial_port_name: seattle_usa
       route_name: pnw1
     sailing:
       noise: 0
       speed: 10
   pnw1_vessel_001:
-    capacity: 1277
+    capacity: 562
     parking:
       duration: 1
       noise: 0
@@ -1209,7 +1209,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_002:
-    capacity: 1277
+    capacity: 460
     parking:
       duration: 1
       noise: 0
@@ -1220,7 +1220,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_000:
-    capacity: 538
+    capacity: 215
     parking:
       duration: 1
       noise: 0
@@ -1231,29 +1231,29 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_001:
-    capacity: 538
+    capacity: 236
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: shanghai_chn
+      initial_port_name: yantian_chn
       route_name: pnw2
     sailing:
       noise: 0
       speed: 10
   pnw2_vessel_002:
-    capacity: 538
+    capacity: 194
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: shanghai_chn
+      initial_port_name: vancouver_can
       route_name: pnw2
     sailing:
       noise: 0
       speed: 10
   pnw2_vessel_003:
-    capacity: 538
+    capacity: 215
     parking:
       duration: 1
       noise: 0
@@ -1264,18 +1264,18 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_004:
-    capacity: 538
+    capacity: 236
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: shanghai_chn
+      initial_port_name: qingdao_chn
       route_name: pnw2
     sailing:
       noise: 0
       speed: 10
   saf3_vessel_000:
-    capacity: 388
+    capacity: 140
     parking:
       duration: 1
       noise: 0
@@ -1286,18 +1286,18 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_001:
-    capacity: 388
+    capacity: 155
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: yantian_chn
+      initial_port_name: qingdao_chn
       route_name: saf3
     sailing:
       noise: 0
       speed: 10
   saf3_vessel_002:
-    capacity: 388
+    capacity: 170
     parking:
       duration: 1
       noise: 0
@@ -1308,7 +1308,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_003:
-    capacity: 388
+    capacity: 140
     parking:
       duration: 1
       noise: 0
@@ -1319,7 +1319,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_000:
-    capacity: 711
+    capacity: 284
     parking:
       duration: 1
       noise: 0
@@ -1330,7 +1330,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_001:
-    capacity: 711
+    capacity: 312
     parking:
       duration: 1
       noise: 0
@@ -1341,7 +1341,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_002:
-    capacity: 711
+    capacity: 256
     parking:
       duration: 1
       noise: 0
@@ -1352,18 +1352,18 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_003:
-    capacity: 711
+    capacity: 284
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: singapore_sgp
+      initial_port_name: shanghai_chn
       route_name: tla2
     sailing:
       noise: 0
       speed: 10
   tla2_vessel_004:
-    capacity: 711
+    capacity: 312
     parking:
       duration: 1
       noise: 0
@@ -1374,29 +1374,18 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_005:
-    capacity: 711
+    capacity: 256
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: singapore_sgp
-      route_name: tla2
-    sailing:
-      noise: 0
-      speed: 10
-  tla2_vessel_006:
-    capacity: 711
-    parking:
-      duration: 1
-      noise: 0
-    route:
-      initial_port_name: santos_bra
+      initial_port_name: yantian_chn
       route_name: tla2
     sailing:
       noise: 0
       speed: 10
   tlp1_vessel_000:
-    capacity: 3799
+    capacity: 1519
     parking:
       duration: 1
       noise: 0
@@ -1407,7 +1396,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_001:
-    capacity: 3799
+    capacity: 1670
     parking:
       duration: 1
       noise: 0
@@ -1418,18 +1407,18 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_002:
-    capacity: 3799
+    capacity: 1368
     parking:
       duration: 1
       noise: 0
     route:
-      initial_port_name: yantian_chn
+      initial_port_name: pusan_kor
       route_name: tlp1
     sailing:
       noise: 0
       speed: 10
   tlp1_vessel_003:
-    capacity: 3799
+    capacity: 1519
     parking:
       duration: 1
       noise: 0
@@ -1440,12 +1429,23 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_004:
-    capacity: 3799
+    capacity: 1670
     parking:
       duration: 1
       noise: 0
     route:
       initial_port_name: sanAntonio_par
+      route_name: tlp1
+    sailing:
+      noise: 0
+      speed: 10
+  tlp1_vessel_005:
+    capacity: 1368
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: yokohama_jpn
       route_name: tlp1
     sailing:
       noise: 0

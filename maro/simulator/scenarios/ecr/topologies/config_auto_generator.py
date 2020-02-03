@@ -4,13 +4,13 @@ import math
 import shutil
 import random
 
-TOPOLOGY_LIST = ["4p_ssdd", "5p_ssddd", "6p_sssbdd", "22p_global_ratio"]
+TOPOLOGY_LIST = ["22p_global_ratio"]  # ["4p_ssdd", "5p_ssddd", "6p_sssbdd"]
 SAILING_TIME = 7
 VESSEL_CAPACITY_REDUNDANCY_RATIOS = [20, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.5, 2.5]
 VESSEL_CAPACITY_DELTA_RATIO = 0.1
-AVG_ORDER_RATIO = 0.02
-ORDER_RATIO_DELTA = 0.005
-ORDER_NOISE = 0.002
+AVG_ORDER_RATIO = 0.008  # 0.02
+ORDER_RATIO_DELTA = 0.002  # 0.005
+ORDER_NOISE = 0.0008  # 0.002
 PERIOD = 112
 
 
@@ -25,7 +25,7 @@ def save_new_topology(src: str):
     src_png_path = src + "_l0.0/topology.png"
 
     def save_new_level(level: int, config_dict: dict):
-        change_vessel_capacity(level)
+        change_vessel_capacity(level, config_dict)
         new_dict = src + "_l0." + str(level)
         os.makedirs(new_dict, exist_ok=True)
         with open(new_dict + "/config.yml", "w") as dump_file:
@@ -35,10 +35,16 @@ def save_new_topology(src: str):
         if os.path.exists(src_png_path):
             shutil.copyfile(src_png_path, new_dict + "/topology.png")
 
-    def change_vessel_capacity(level):
-        for vessel in src_dict["vessels"].values():
+    def change_vessel_capacity(level: int, config_dict: dict):
+        for vessel in config_dict["vessels"].values():
             route_proportion = route_proportions[vessel['route']['route_name']]
             vessel["capacity"] = int(AVG_ORDER_RATIO * route_proportion * SAILING_TIME * total_containers * VESSEL_CAPACITY_REDUNDANCY_RATIOS[level])
+        if level > 1:
+            add_vessel_variance(config_dict)
+
+    def add_vessel_variance(config_dict: dict):
+        for i, vessel in enumerate(src_dict["vessels"].values()):
+            vessel["capacity"] += int(vessel["capacity"] * VESSEL_CAPACITY_DELTA_RATIO * (i % 3 - 1))
 
     src_dict['container_usage_proportion']['period'] = PERIOD
     src_dict['container_usage_proportion']['sample_nodes'] = [[0, AVG_ORDER_RATIO], [PERIOD - 1, AVG_ORDER_RATIO]]
@@ -60,8 +66,6 @@ def save_new_topology(src: str):
 
     save_new_level(1, src_dict)
 
-    for i, vessel in enumerate(src_dict["vessels"].values()):
-        vessel["capacity"] += int(vessel["capacity"] * VESSEL_CAPACITY_DELTA_RATIO * (i % 3 - 1))
     save_new_level(2, src_dict)
 
     sine_distribution = [[i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA * math.cos(i / (PERIOD//2) * math.pi)] for i in range(PERIOD)]
@@ -95,6 +99,7 @@ def save_new_topology(src: str):
 
     for i, vessel in enumerate(src_dict["vessels"].values()):
         vessel["sailing"]["speed"] = int(vessel["sailing"]["speed"] * (10 - i % 3) / 10)
+        vessel["sailing"]["noise"] = math.ceil(generate_noise(vessel["sailing"]["speed"], 0, 0.2))
     save_new_level(7, src_dict)
 
     sine_fluctuate = [[i, abs(math.cos(i / (PERIOD//8) * math.pi))] for i in range(PERIOD//4)]
