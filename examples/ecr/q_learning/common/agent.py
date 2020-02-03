@@ -46,8 +46,6 @@ class Agent(object):
             self._logger.debug(f'Agent {self._agent_name} new appended exp: {experience_summary}')
             self._logger.debug(f'Agent {self._agent_name} current experience pool size: {self._experience_pool.size}')
 
-        self._reward_shaping.clear_cache(self._agent_name)
-
     def get_experience(self, current_ep: int):
         self._reward_shaping(self._agent_name, current_ep, self._algorithm.learning_index)
         return self._reward_shaping.generate_experience(self._agent_name)

@@ -25,6 +25,8 @@ class RewardShaping:
                                                                                 format_=LogFormat.none,
                                                                                 dump_folder=log_folder, dump_mode='w', extension_name='csv',
                                                                                 auto_timestamp=False)
+                self._choose_action_logger_dict[self._port_idx2name[agent_idx]].debug(
+                    ','.join(['episode', 'learning_index', 'tick', 'vessel_name', 'max_load', 'max_discharge', 'eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']))
 
     def __call__(self, agent_name: str, current_ep: int, learning_rate: float):
         return NotImplemented
@@ -34,11 +36,6 @@ class RewardShaping:
             self._cache[agent_name] = defaultdict(list)
         for name, cache in matrix.items():
             self._cache[agent_name][name].append(cache)
-
-    # def clear_cache(self, agent_name):
-    #     # for name, cache in self._cache[agent_name].items():
-    #     #     cache.clear()
-    #     self._cache[agent_name] = defaultdict(list)
 
     def _align_cache_by_next_state(self, agent_name: str):
         cache = self._cache[agent_name]
@@ -59,16 +56,18 @@ class RewardShaping:
     def _dump_logs(self, agent_name, current_ep, learning_rate):
         # self._choose_action_logger_dict[agent_name].debug(f"episode {current_ep}, learning_index {learning_rate}:")
         extra = ['eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']
-        self._choose_action_logger_dict[agent_name].debug(','.join(['episode', 'learning_index', 'tick', 'vessel_name', 'max_load', 'max_discharge'] + extra))
         cache = self._cache[agent_name]
         event_list = cache['decision_event']
         for i in range(len(event_list)):
             event = event_list[i]
             max_load = str(event.action_scope.load)
             max_discharge = str(event.action_scope.discharge)
-            log_str = ','.join([str(event.tick), self._vessel_idx2name[event.vessel_idx], max_load, max_discharge] +
-                               [','.join([str(f) for f in cache[name][idx]]) if type(cache[name][idx]) == list else str(cache[name][idx])
-                                for name in extra])
+            log_str = ','.join([str(current_ep), str(learning_rate), str(event.tick), self._vessel_idx2name[event.vessel_idx], max_load, max_discharge])
+            for name in extra:
+                if type(cache[name][i]) == np.ndarray:
+                    log_str += ',' + ','.join([str(f) for f in cache[name][i]])
+                else:
+                    log_str += ',' + str(cache[name][i])
             self._choose_action_logger_dict[agent_name].debug(log_str)
 
 
@@ -87,7 +86,7 @@ class TruncateReward(RewardShaping):
         snapshot_list = self._env.snapshot_list
         for i, tick in enumerate(cache['action_tick']):
             start_tick = tick + 1
-            end_tick = tick + offset
+            end_tick = tick + self._offset
             
             #calculate tc reward
             decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
