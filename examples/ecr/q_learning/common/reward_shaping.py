@@ -54,7 +54,6 @@ class RewardShaping:
         return experience_set
 
     def _dump_logs(self, agent_name, current_ep, learning_rate):
-        # self._choose_action_logger_dict[agent_name].debug(f"episode {current_ep}, learning_index {learning_rate}:")
         extra = ['eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']
         cache = self._cache[agent_name]
         event_list = cache['decision_event']
