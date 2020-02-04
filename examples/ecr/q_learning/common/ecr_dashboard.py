@@ -60,5 +60,6 @@ class RanklistColumns(Enum):
     model_size = '2000_rl_model_size'
     train_ep = '3000_rl_train_ep'
     experience_quantity = '4000_rl_experience_quantity'
+    initial_lr = '4500_rl_initial_lr'
     author = '5000_rl_author'
     commit = '6000_rl_commit'

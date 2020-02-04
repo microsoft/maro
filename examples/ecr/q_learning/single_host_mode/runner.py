@@ -145,13 +145,22 @@ class Runner:
         action_shaping = DiscreteActionShaping(action_space=action_space)
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()
+            # policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
+            #                   hidden_dims=[
+            #                       256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
+            #                   log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
+            # target_net = QNet(name=f'{self._port_idx2name[agent_idx]}.target', input_dim=state_shaping.dim,
+            #                   hidden_dims=[
+            #                       256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
+            #                   log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
+
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
-                              hidden_dims=[
-                                  256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
+                              hidden_dims=[ 
+                                  state_shaping.dim**2, state_shaping.dim*len(action_space), len(action_space)**2 ], output_dim=len(action_space), dropout_p=DROPOUT_P,
                               log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
             target_net = QNet(name=f'{self._port_idx2name[agent_idx]}.target', input_dim=state_shaping.dim,
-                              hidden_dims=[
-                                  256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
+                              hidden_dims=[ 
+                                  state_shaping.dim**2, state_shaping.dim*len(action_space), len(action_space)**2 ], output_dim=len(action_space), dropout_p=DROPOUT_P,
                               log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
             target_net.load_state_dict(policy_net.state_dict())
             dqn = DQN(policy_net=policy_net, target_net=target_net,
@@ -277,6 +286,7 @@ class Runner:
                         RanklistColumns.train_ep.value: self._max_train_ep,
                         RanklistColumns.experience_quantity.value: experience_qty,
                         RanklistColumns.model_size.value: model_size,
+                        RanklistColumns.initial_lr.value: LEARNING_RATE,
                         RanklistColumns.author.value: self._author,
                         RanklistColumns.commit.value: self._commit,
                         'scenario': self._scenario,
