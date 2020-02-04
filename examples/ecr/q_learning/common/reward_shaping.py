@@ -12,10 +12,10 @@ from maro.utils import Logger, LogFormat
 class RewardShaping:
     def __init__(self, env, log_folder: str = './', log_enable: bool = True):
         self._env = env
-        self._cache = {}
         self._port_idx2name = self._env.node_name_mapping['static']
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']
         self._agent_idx_list = self._env.agent_idx_list
+        self._cache = {self._port_idx2name[agent_idx]: defaultdict(list) for agent_idx in self._agent_idx_list}
         self._log_enable = log_enable
 
         if self._log_enable:
@@ -28,12 +28,13 @@ class RewardShaping:
                 self._choose_action_logger_dict[self._port_idx2name[agent_idx]].debug(
                     ','.join(['episode', 'learning_index', 'tick', 'vessel_name', 'max_load', 'max_discharge', 'eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']))
 
-    def __call__(self, agent_name: str, current_ep: int, learning_rate: float):
+    def calculate_reward(self, agent_name: str, current_ep: int, learning_rate: float):
         return NotImplemented
 
-    def push(self, agent_name: str, matrix: dict):
-        if agent_name not in self._cache:
-            self._cache[agent_name] = defaultdict(list)
+    def push_matrices(self, agent_name: str, matrix: dict):
+        """
+        store the cache from agents
+        """
         for name, cache in matrix.items():
             self._cache[agent_name][name].append(cache)
 
@@ -46,7 +47,10 @@ class RewardShaping:
             if name != 'next_state':
                 cache.pop()
 
-    def generate_experience(self, agent_name: str):
+    def pop_experience(self, agent_name: str):
+        """
+        return the experience, and clear the cache
+        """
         cache = self._cache[agent_name]
         experience_set = {name: cache[name] for name in ['state', 'action', 'reward', 'next_state', 'actual_action']}
         experience_set['info'] = [{'td_error': 1e10} for _ in range(len(cache['state']))]
@@ -80,7 +84,7 @@ class TruncateReward(RewardShaping):
         self._shortage_factor = shortage_factor
         self._time_decay_factor = time_decay
 
-    def __call__(self, agent_name, current_ep, learning_rate):
+    def calculate_reward(self, agent_name, current_ep, learning_rate):
         cache = self._cache[agent_name]
         snapshot_list = self._env.snapshot_list
         for i, tick in enumerate(cache['action_tick']):
@@ -105,14 +109,14 @@ class TruncateReward(RewardShaping):
 
 class GoldenFingerReward(RewardShaping):
     def __init__(self, env, topology, action_space: [float],
-                 base: int = 1, gamma: float = 0.5, log_folder: str = './', log_enable: bool = True):
+                 base: int = 10, gamma: float = 0.5, log_folder: str = './', log_enable: bool = True):
         super().__init__(env, log_folder=log_folder, log_enable=log_enable)
         self._topology = topology
         self._action_space = action_space
         self._base = base
         self._gamma = gamma
 
-    def __call__(self, agent_name, current_ep, learning_rate):
+    def calculate_reward(self, agent_name, current_ep, learning_rate):
         '''
         For 4p_ssdd_simple, the best action is:
         supply_port_001: load 70% for route 1 and 30% for route 2

@@ -38,8 +38,8 @@ class Agent(object):
                                   dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
 
     def store_experience(self, current_ep: int):
-        self._reward_shaping(self._agent_name, current_ep, self._algorithm.learning_index)
-        experience_set = self._reward_shaping.generate_experience(self._agent_name)
+        self._reward_shaping.calculate_reward(self._agent_name, current_ep, self._algorithm.learning_index)
+        experience_set = self._reward_shaping.pop_experience(self._agent_name)
         self._experience_pool.put(category_data_batches=[(name, cache) for name, cache in experience_set.items()])
         if self._log_enable:
             experience_summary = {name: experience_set[name] for name in ['action', 'actual_action', 'reward']}
@@ -47,8 +47,11 @@ class Agent(object):
             self._logger.debug(f'Agent {self._agent_name} current experience pool size: {self._experience_pool.size}')
 
     def get_experience(self, current_ep: int):
-        self._reward_shaping(self._agent_name, current_ep, self._algorithm.learning_index)
-        return self._reward_shaping.generate_experience(self._agent_name)
+        """
+        return the experience from reward shaping. Only used for distributed mode
+        """
+        self._reward_shaping.calculate_reward(self._agent_name, current_ep, self._algorithm.learning_index)
+        return self._reward_shaping.pop_experience(self._agent_name)
 
     @property
     def experience_pool(self):
@@ -148,15 +151,15 @@ class Agent(object):
                                              port_empty=port_states[0], vessel_remaining_space=vessel_states[2],
                                              early_discharge=early_discharge)
 
-        self._reward_shaping.push(self._agent_name,
-                                    {'state': numpy_state,
-                                     'action': action_index,
-                                     'actual_action': actual_action,
-                                     'action_tick': cur_tick,
-                                     'decision_event': decision_event,
-                                     'eps': eps,
-                                     'port_states': port_states,
-                                     'vessel_states': vessel_states})
+        self._reward_shaping.push_matrices(self._agent_name,
+                                            {'state': numpy_state,
+                                            'action': action_index,
+                                            'actual_action': actual_action,
+                                            'action_tick': cur_tick,
+                                            'decision_event': decision_event,
+                                            'eps': eps,
+                                            'port_states': port_states,
+                                            'vessel_states': vessel_states})
 
         env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
         if self._log_enable:
