@@ -13,6 +13,6 @@ Currently we have 2 commands:
 
     This command will default extract dashboard resources files to current directory.
 
-    Then you can use --dashboard start or --dashboard stop to start the Dashboard services or stop.sh to stop them.
+    Then you can use --dashboard start to start the Dashboard services, -- dashboard build to rebuild docker image for Dashboard services, or --dashboard stop to stop them.
 
     Read more about the Dashboard for MARO:  :doc:`Dashboard <./dashboard>`

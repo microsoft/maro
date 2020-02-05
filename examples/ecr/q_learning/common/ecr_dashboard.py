@@ -10,7 +10,6 @@ class DashboardECR(DashboardBase):
         DashboardBase.__init__(self, experiment, log_folder, log_enable, host, port, use_udp, udp_port)
 
     # for laden_executed, laden_planed, shortage, booking, q_value, d_error, loss, epsilon, early_discharge, delayed_laden
-    # 
     def upload_ep_data(self, fields, ep, measurement):
         """
         Upload ep data to measurement table in database.
@@ -20,6 +19,7 @@ class DashboardECR(DashboardBase):
                 i.e.:{"port1":1024, "port2":2048}
             ep (int): current ep of the data, used as fields information to identify data of different ep in database
                 i.e.: 11
+            measurement (str): specify the measurement which the data will be stored in.
 
         Returns:
             None.
@@ -40,6 +40,7 @@ class DashboardECR(DashboardBase):
                 i.e.: 11
             tick (int): event tick of the data, used as scalars information to identify data of different tick in database
                 i.e.: 132
+            measurement (str): specify the measurement which the data will be stored in.
 
         Returns:
             None.

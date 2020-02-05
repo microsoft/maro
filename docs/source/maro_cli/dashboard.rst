@@ -39,6 +39,7 @@ folder for extracting dashboard resource files:
     mkdir dashboard_services
     cd dashboard_services
     maro --dashboard
+    maro --dashboard start
 
 If you start in source code of maro project, just cd
 maro/utils/dashboard/dashboard\_resource
@@ -53,8 +54,6 @@ and then run the start.sh in resource files:
 
     bash start.sh
 
-or use command "maro --dashboard start" to start the dashboard services.
-
 -  Upload some data
 
 Use maro.utils.dashboard.DashboardBase object to upload some simple
@@ -65,8 +64,7 @@ data.
     from maro.utils.dashboard import DashboardBase
     import random
 
-    dashboard = DashboardBase('test_case_01', '.')
-    dashboard.setup_connection()
+    dashboard = DashboardBase('test_case_01', '.', True)
     for i in range(10):
         fields = {'student_01':random.random()*10*i,'student_02':random.random()*15*i}
         tag = {'ep':i}
@@ -77,7 +75,7 @@ data.
 
 Open url http://localhost:50303 in your browser.
 
-Login with the default user: admin and password: admin, change the password if
+Input user: admin and password: admin, skip the password change page if
 you wish to.
 
 Then Grafana will navigate to 'Home' dashboard, tap 'Home' in up-left
@@ -112,24 +110,20 @@ Setup Services
 Insert Upload Apis into experiment Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  New a DashboardBase object with experiment name
--  Make sure setup\_connection function of the object was called before
-   send data.
--  Set the parameters of setup\_connection if necessory, the
-   setup\_connection has 4 parameters:
+-  New a DashboardBase object with experiment name, log folder and log
+   enabled
+-  Set the parameters for influxdb if necessory, it has 4 more
+   parameters:
 
-   ::
-
-                host (str): influxdb ip address
-                port (int): influxdb http port
-                use_udp (bool): if use udp port to upload data to influxdb
-                udp_port (int): influxdb udp port
+   host (str): influxdb ip address, default is localhost port (int):
+   influxdb http port, default is 50301 use\_udp (bool): if use udp port
+   to upload data to influxdb, default is true udp\_port (int): influxdb
+   udp port, default is 50304
 
 .. code:: python
 
     from maro.utils.dashboard import DashboardBase
-    dashboard = DashboardBase('test_case_01', '.')
-    dashboard.setup_connection()
+    dashboard = DashboardBase('test_case_01', '.', True)
 
 Basic upload Api
 ^^^^^^^^^^^^^^^^
@@ -178,7 +172,7 @@ upload\_to\_ranklist() require 2 parameters:
 Customized Upload Apis
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The customized upload api includes upload\_d\_error(),
+The customized upload api includes upload\_ep\_data(),
 upload\_shortage()..., they packed the basic upload api. The customized
 upload api required some business data, reorganized them into basic api
 parameters, and send data to database via basic upload api.
@@ -188,22 +182,26 @@ parameters, and send data to database via basic upload api.
     from maro.utils.dashboard import DashboardBase
 
     class DashboardECR(DashboardBase):
-        def __init__(self, experiment: str, log_folder: str):
-            DashboardBase.__init__(self, experiment, log_folder)
+        def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+            DashboardBase.__init__(self, experiment, log_folder, log_enable, host, port, use_udp, udp_port)
 
-        def upload_shortage(self, nodes_shortage, ep):
-            nodes_shortage['ep'] = ep
-            self.send(fields=nodes_shortage, tag={
-                'experiment': self.experiment}, measurement='shortage')
+        def upload_ep_data(self, fields, ep, measurement):
+            fields['ep'] = ep
+            self.send(fields=fields, tag={
+                'experiment': self.experiment}, measurement=measurement)
 
-upload\_shortage() requires 2 parameters:
+upload\_ep\_data() requires 3 parameters:
 
--  nodes\_shortage ({Dict}): dictionary of shortage of different nodes,
-   key is node name, value is shortage value.
+-  fields ({Dict}): dictionary of ep data, key is ep data name, value is
+   ep data value.
 
    i.e.:{"port1":1024, "port2":2048}
 
--  ep (number): current ep, used as x axis data in dashboard charts.
+-  ep (int): current ep of the data, used as fields information to
+   identify data of different ep in database.
+
+-  measurement (str): specify the measurement which the data will be
+   stored in.
 
 Run Experiment
 ~~~~~~~~~~~~~~
@@ -220,18 +218,21 @@ View the Dashboards in Grafana
 -  Check the dashboards, you can switch between the predefined
    dashboards in the top left corner of the home page of Grafana.
 
-   -  The "Experiment Metric Statistics" dashboard provid the port
-      shortage - ep chart, port loss - ep chart, port exploration - ep
-      chart, port shortage pre ep chart, port q curve pre ep chart,
-      laden transfer between ports pre ep chart. You can switch data
-      between different experiments and episode of different charts in
-      the selects at the top of dashboard
-   -  The "Experiment Comparison" dashboard can compare a measurement of
-      a port between 2 different experiments
-   -  The "Shortage Ranklist" dashboard provid a demo rank list of test
-      shortages
-   -  The "Hello World" dashboard is used to review data uploaded in
-      Hello World section
+-  The "ECR Experiment Metric Statistics" dashboard provid the port
+   shortage - ep chart, port loss - ep chart, port exploration - ep
+   chart, port shortage pre ep chart, port q curve pre ep chart, laden
+   transfer between ports pre ep chart. You can switch data between
+   different experiments and episode of different charts in the selects
+   at the top of dashboard
+
+-  The "ECR Experiment Comparison" dashboard can compare a measurement
+   of a port between 2 different experiments
+
+-  The "ECR Shortage Ranklist" dashboard provid a demo rank list of test
+   shortages
+
+-  The "Hello World" dashboard is used to review data uploaded in Hello
+   World section
 
 -  You can customize the dashboard reference to
    https://grafana.com/docs/grafana/latest/
