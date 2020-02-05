@@ -37,6 +37,8 @@ cdef class GraphAttribute:
         # data type
         public int8_t dtype
 
+        public int8_t ptype
+
         public int8_t dsize
 
         # start index for this type
@@ -46,9 +48,10 @@ cdef class GraphAttribute:
 
         public int32_t slot_num
 
-    def __cinit__(self, str name, int8_t dtype, int32_t slot_num):
+    def __cinit__(self, str name, int8_t dtype, int8_t ptype, int32_t slot_num):
         self.name = name
         self.dtype = dtype
+        self.ptype = ptype
         self.slot_num = slot_num
 
         if dtype == AttributeType.BYTE:
@@ -113,7 +116,7 @@ cdef class Graph:
         if attr_key in self.attr_map:
             return
 
-        self.attr_map[attr_key] = GraphAttribute(name, data_type, slot_num)
+        self.attr_map[attr_key] = GraphAttribute(name, data_type, partition_type, slot_num)
 
     cpdef void setup(self):
         cdef int32_t total_size = self.cal_partition_size()
@@ -155,10 +158,12 @@ cdef class Graph:
         for i in range(len(attr_list)):
             attr = attr_list[i]
 
-            if attr.dtype == PartitionType.STATIC_NODE:
+            if attr.ptype == PartitionType.STATIC_NODE:
                 node_type_factor = self.static_node_num
-            elif attr.dtype == PartitionType.DYNAMIC_NODE:
+            elif attr.ptype == PartitionType.DYNAMIC_NODE:
                 node_type_factor = self.dynamic_node_num
+            else:
+                node_type_factor = 1
 
             attr_total_size = attr.dsize * attr.slot_num * node_type_factor
 
@@ -213,6 +218,8 @@ cdef class Graph:
             set_graph_attr_value[float](<float *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
         elif attr.dtype == AttributeType.DOUBLE:
             set_graph_attr_value[double](<double *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+
+
 
 def test():
     cdef int8_t a = 1

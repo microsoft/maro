@@ -7,7 +7,7 @@ g.reg_attr(PartitionType.DYNAMIC_NODE, "B", AttributeType.SHORT, 1)
 g.reg_attr(PartitionType.STATIC_NODE, "a", AttributeType.BYTE, 1)
 g.reg_attr(PartitionType.STATIC_NODE, "C", AttributeType.INT32, 1)
 g.reg_attr(PartitionType.STATIC_NODE, "D", AttributeType.INT64, 1)
-
+g.reg_attr(PartitionType.GENERAL, "E",AttributeType.INT64, 100)
 g.setup()
 
 
