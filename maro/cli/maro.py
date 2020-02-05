@@ -143,27 +143,7 @@ def start_dashboard():
         os.system(
             'powershell.exe -windowstyle hidden "docker-compose up -d"', shell=True, start_new_session=True)
     
-    localhosts = []
-    localhosts.append('localhost')
-    
-    try:
-        ip = get('https://api.ipify.org').text
-        if not ip is None:
-            localhosts.append(ip)
-    except Exception as e:
-        print('exception in getting public ip:', str(e))
-
-    # REFERENCE https://www.chenyudong.com/archives/python-get-local-ip-graceful.html
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-        if not ip in localhosts:
-            localhosts.append(ip)
-    except Exception as e:
-        print('exception in getting local ip:', str(e))
-    finally:
-        s.close()
+    localhosts = _get_ip_list()
 
     dashboard_port = '50303'
 
@@ -241,3 +221,32 @@ def build_dashboard():
     else:
         os.system(
             'powershell.exe -windowstyle hidden "docker-compose build --no-cache"', shell=True, start_new_session=True)
+
+
+def _get_ip_list():
+    print('Try to get ip list.')
+    localhosts = []
+    localhosts.append('localhost')
+    
+    try:
+        ip = get('https://api.ipify.org').text
+        if not ip is None:
+            print('Public IP address:', ip)
+            localhosts.append(ip)
+    except Exception as e:
+        print('exception in getting public ip:', str(e))
+
+    # REFERENCE https://www.chenyudong.com/archives/python-get-local-ip-graceful.html
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        if not ip in localhosts:
+            print('Local IP address:', ip)
+            localhosts.append(ip)
+    except Exception as e:
+        print('exception in getting local ip:', str(e))
+    finally:
+        s.close()
+
+    return localhosts
