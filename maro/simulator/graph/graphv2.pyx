@@ -120,20 +120,18 @@ cdef class Graph:
 
     cpdef void setup(self):
         cdef int32_t total_size = self.cal_partition_size()
-
-        print("total size", total_size)
+        self.size = total_size
 
         self.arr = view.array(shape=(1, total_size), itemsize=sizeof(int8_t), format="b")
 
         self.is_initialized = True
 
-        for _, attr in self.attr_map.items():
-            print(attr.dsize, attr.start_index, attr.dtype)
-
         cdef int32_t i = 0
 
         for i in range(total_size):
             self.arr[0, i] = 0
+
+        print("total size", total_size)
 
     cdef int32_t cal_partition_size(self):
         """
@@ -178,8 +176,7 @@ cdef class Graph:
             attr.start_index = int(size / cur_size)
             size += attr_total_size
 
-            print(attr.name, attr.dsize, attr.slot_num, attr.start_index)
-
+            print(attr.name, attr.start_index)
 
         return size
 
@@ -220,35 +217,51 @@ cdef class Graph:
             set_graph_attr_value[double](<double *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
 
 
+    cpdef reset(self):
+        cdef int64_t i = 0
 
-def test():
-    cdef int8_t a = 1
-    cdef int8_t b = 12
+        for i in range(self.size):
+            self.arr[0, i] = 0
 
-    print(sizeof(int8_t))
-    print(sizeof(int16_t))
-    print(sizeof(int32_t))
+    @property
+    def static_node_num(self) -> int:
+        return self.static_node_num
 
-    return a + b
-
-def test_byte_cast():
-    cdef view.array arr = view.array(shape=(1, 100), itemsize=sizeof(int8_t), format="c")
-
-    cdef int8_t[:, :] v = arr
-
-    v[0, 0] = 1
-
-    cdef char *aptr = <char *>arr.data
-
-    cdef float *bptr = <float *>arr.data
-
-    bptr[1] = 3.0
-
-    cdef int16_t *cptr = <int16_t *>arr.data
-
-    cptr[1] = 12
+    @property
+    def dynamic_node_num(self) -> int:
+        return self.dynamic_node_num
 
 
-    return v[0, 0], v[0, 1], v[0, 2], v[0, 3], v[0, 4], v[0, 5], v[0, 6], v[0, 7], bptr[1]
+cdef class SnapshotList:
+    cdef:
+        Graph graph
+        int32_t size
+        int64_t graph_size
+        view.array arr
+        int8_t[:,:,:] data
 
+        # index of latest snapshot
+        int32_t index
 
+    def __cinit__(self, int32_t size, Graph graph):
+        self.graph = graph
+        self.size = size
+        self.graph_size = graph.size
+        self.index = -1
+
+        self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
+        self.data = self.arr
+
+    cpdef void insert_snapshot(self, int32_t tick):
+        cdef int8_t[:, :] t= self.graph.arr
+        self.data[tick::] = t
+
+        print(self.data[tick, 0, 0])
+
+        cdef int8_t *p = <int8_t *>self.arr.data
+
+        print("int8_t ptr", p[0], p[152])
+
+        cdef int16_t *p2 = <int16_t *>self.arr.data
+
+        print("int16_t ptr", p2[5], p2[81])
