@@ -155,12 +155,15 @@ class DQN(object):
             self._q_curve_logger.debug(
                 'episode,learning_index,' + ','.join([str(i) for i in range(self._policy_net.output_dim)]))
 
-    def choose_action(self, state: torch.Tensor, eps: float, current_ep: int, is_train: bool = False, trained_ep: int = 0) -> (bool, int):
+    def choose_action(self, state: torch.Tensor, eps: float, current_ep: int, current_tick: int, is_train: bool = False, trained_ep: int = 0) -> (bool, int):
         '''
         Args:
             state (tensor): Environment state, which is a tensor.
             eps (float): Epsilon, which is used for exploration.
             current_ep (int): Current episode, which is used for logging.
+            current_tick (int): Current tick, which is used for dashboard.
+            is_train (bool): True is training, False is testing, which is used for dashboard.
+            trained_ep (int): Trained ep, if is test, which is used for dashboard.
 
         Returns:
             (bool, int): is_random, action_index
@@ -182,10 +185,10 @@ class DQN(object):
                         dashboard_ep += trained_ep
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
-                            scalars = {self._policy_net.name: q_values[i].item(), 'action': i}
+                            scalars = {self._policy_net.name: q_values[i].item(), 'action': i, 'tick': current_tick}
                             self._dashboard.upload_ep_data(scalars, dashboard_ep, 'q_value')
-
-                return False, q_values_batch.max(1)[1][0].item()
+                action = q_values_batch.max(1)[1][0].item()
+                return False, action
         else:
             return True, random.choice(range(self._policy_net.output_dim))
 

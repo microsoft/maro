@@ -138,7 +138,7 @@ def start_dashboard():
         return
     if not platform.system() == 'Windows':
         os.system(
-            'mkdir -p ./data/grafana;CURRENT_UID=$(id -u):$(id -g) docker-compose up -d')
+            'mkdir -p ./data/grafana; CURRENT_UID=$(id -u):$(id -g) docker-compose up -d')
     else:
         os.system(
             'powershell.exe -windowstyle hidden "docker-compose up -d"', shell=True, start_new_session=True)
@@ -242,10 +242,10 @@ def _get_ip_list():
         s.connect(('8.8.8.8', 80))
         ip = s.getsockname()[0]
         if not ip in localhosts:
-            print('Local IP address:', ip)
+            print('Private IP address:', ip)
             localhosts.append(ip)
     except Exception as e:
-        print('exception in getting local ip:', str(e))
+        print('exception in getting private ip:', str(e))
     finally:
         s.close()
 

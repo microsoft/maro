@@ -207,6 +207,8 @@ class Agent(object):
             snapshot, etc.
             eps (float): Epsilon, which is used for exploration.
             current_ep (int): Current episode, which is used for logging.
+            is_train (bool): True is training, False is testing, which is used for dashboard.
+            trained_ep (int): Trained ep, if is test, which is used for dashboard.
 
         Returns:
             (Action): Environment action.
@@ -223,7 +225,7 @@ class Agent(object):
 
         state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
         is_random, action_index = self._algorithm.choose_action(
-            state=state, eps=eps, current_ep=current_ep, is_train=is_train, trained_ep=trained_ep)
+            state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick, is_train=is_train, trained_ep=trained_ep)
 
         self._state_cache.append(numpy_state)
         self._action_cache.append(action_index)
@@ -262,7 +264,5 @@ class Agent(object):
 
     @property
     def model_size(self):
-        size = 0
-        for para in self._algorithm.policy_net.parameters():
-            size += para.nelement()
+        size = sum([parameter.nelement() for parameter in self._algorithm.policy_net.parameters()])
         return size
