@@ -36,7 +36,7 @@ def print_envs():
     envs = get_available_envs()
 
     for env in envs:
-        print(f'scenario: {env['scenario']}, topology: {env['topology']}')
+        print(f'scenario: {env["scenario"]}, topology: {env["topology"]}')
 
 
 def main():
