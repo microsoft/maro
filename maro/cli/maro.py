@@ -65,6 +65,8 @@ def main():
     Returns:
         None
     '''
+    global parser
+    global parser_dashboard
 
     parser = argparse.ArgumentParser('maro', description='MARO cli interface', add_help = False)
     parser.add_argument('-h','--help', action='store_true',
@@ -289,3 +291,7 @@ def _get_ip_list():
         s.close()
 
     return localhosts
+
+
+if __name__ == '__main__':
+    main()
