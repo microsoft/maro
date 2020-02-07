@@ -22,7 +22,7 @@ class QNet(nn.Module):
     '''
 
     def __init__(self, name: str, input_dim: int, hidden_dims: [int], output_dim: int, dropout_p: float,
-                 log_enable: bool = True, log_folder: str = './'):
+                 log_folder: str = None):
         '''
         Init deep Q network.
 
@@ -44,7 +44,7 @@ class QNet(nn.Module):
         self._layers = self._build_layers([input_dim] + hidden_dims)
         self._head = nn.Linear(hidden_dims[-1], output_dim)
         self._net = nn.Sequential(*self._layers, self._head)
-        self._log_enable = log_enable
+        self._log_enable = False if log_folder is None else True
         if self._log_enable:
             self._model_summary_logger = Logger(tag=f'{self._name}.model_summary', format_=LogFormat.none,
                                                 dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
@@ -111,7 +111,7 @@ class DQN(object):
                  lr: float,
                  target_update_frequency: int,
                  device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-                 log_enable: bool = True, log_folder: str = './', log_dropout_p: float = 0.0,
+                 log_folder: str = None, log_dropout_p: float = 0.0,
                  dashboard_enable: bool = True, dashboard: object = None):
         '''
         Args:
@@ -137,7 +137,7 @@ class DQN(object):
             self._policy_net.parameters(), lr=self._lr)
         self._learning_counter = 0
         self._target_update_frequency = target_update_frequency
-        self._log_enable = log_enable
+        self._log_enable = False if log_folder is None else True
         self._log_dropout_p = log_dropout_p
         self._log_folder = log_folder
         self._dashboard_enable = dashboard_enable

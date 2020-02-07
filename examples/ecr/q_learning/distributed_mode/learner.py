@@ -66,7 +66,7 @@ proxy = Proxy(group_name=os.environ['GROUP'],
 pending_envs = set(proxy.peers)  # environments the learner expects experiences from, required for forced sync
 
 if DASHBOARD_ENABLE:
-    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER, DASHBOARD_LOG_ENABLE, host=DASHBOARD_HOST,
+    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER, host=DASHBOARD_HOST,
                              port=DASHBOARD_PORT, use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
 
 
@@ -145,14 +145,14 @@ class Learner:
         """
         if not self._env_number:
             policy_net = QNet(*policy_net_parameters,
-                              log_enable=True, log_folder=LOG_FOLDER)
+                              log_folder=LOG_FOLDER)
             target_net = QNet(*target_net_parameters,
-                              log_enable=True, log_folder=LOG_FOLDER)
+                              log_folder=LOG_FOLDER)
             target_net.load_state_dict(policy_net.state_dict())
 
             self.algorithm = DQN(policy_net=policy_net, target_net=target_net,
                                  gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, lr=LEARNING_RATE,
-                                 log_enable=DQN_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P)
+                                 log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P)
 
         self._env_number += 1
 

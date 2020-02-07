@@ -6,8 +6,14 @@ from maro.utils.dashboard import DashboardBase
 
 
 class DashboardECR(DashboardBase):
-    def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
-        DashboardBase.__init__(self, experiment, log_folder, log_enable, host, port, use_udp, udp_port)
+    # static dictionary
+    field_static = {}
+    tag_static = {}
+    ranklist_static = {}
+
+
+    def __init__(self, experiment: str, log_folder: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+        DashboardBase.__init__(self, experiment, log_folder, host, port, use_udp, udp_port)
 
     # for laden_executed, laden_planed, shortage, booking, q_value, d_error, loss, epsilon, early_discharge, delayed_laden
     def upload_ep_data(self, fields, ep, measurement):
@@ -46,7 +52,8 @@ class DashboardECR(DashboardBase):
             None.
         """
         fields['ep'] = ep
-        fields['tick'] = tick
+        if not tick == None:
+            fields['tick'] = tick
         self.send(fields=fields, tag={
             'experiment': self.experiment}, measurement=measurement)
 
@@ -54,7 +61,7 @@ class RanklistColumns(Enum):
     """
     Column names for rank list
     Temporary use X000 to sort columns in rank list dashboard
-    TODO: investigate 
+    TODO: investigate better way of sorting the rank list columns
     """                        
     experiment = '0000_rl_experiment'
     shortage = '1000_rl_shortage'

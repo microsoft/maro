@@ -21,7 +21,7 @@ class Agent(object):
                  vessel_idx2name, algorithm, experience_pool: SimpleExperiencePool,
                  state_shaping, action_shaping, reward_shaping, batch_num, batch_size, min_train_experience_num,
                  agent_idx_list,
-                 log_enable: bool = True, log_folder: str = './', dashboard_enable: bool = True,
+                 log_folder: str = None, dashboard_enable: bool = True,
                  dashboard: object = None):
         self._agent_name = agent_name
         self._topology = topology
@@ -44,7 +44,7 @@ class Agent(object):
         self._batch_size = batch_size
         self._batch_num = batch_num
         self._min_train_experience_num = min_train_experience_num
-        self._log_enable = log_enable
+        self._log_enable = False if log_folder is None else True
         self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
 

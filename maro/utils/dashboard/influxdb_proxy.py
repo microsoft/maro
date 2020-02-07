@@ -17,15 +17,15 @@ class InfluxdbProxy:
     def __init__(self, host: str = 'localhost', port: int = 50301,
                  dbname: str = 'maro', timeout: int = 60,
                  use_udp: bool = True, udp_port: int = 50304,
-                 log_folder: str = None, log_enable: bool = False):
+                 log_folder: str = None):
                  
         self.client = InfluxDBClient(
             host, port, None, None, dbname, timeout=timeout, use_udp=use_udp, udp_port=udp_port)
-        self._log_enable = log_enable
+        self._log_enable = False if log_folder is None else True
         if self._log_enable:
             self.logger = Logger(tag='dashboard', format_=LogFormat.simple,
                                 dump_mode='w', auto_timestamp=False,
-                                dump_folder=log_folder if log_folder is not None else os.getcwd())
+                                dump_folder=log_folder)
 
         self.start_time = time.time()
 

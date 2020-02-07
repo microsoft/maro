@@ -80,9 +80,9 @@ DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 RANKLIST_ENABLE = config.dashboard.ranklist.enable
 AUTHOR = config.dashboard.ranklist.author
 COMMIT = config.dashboard.ranklist.commit
-DASHBOARD = None
+
 if DASHBOARD_ENABLE:
-    DASHBOARD = DashboardECR(EXPERIMENT_NAME, LOG_FOLDER, DASHBOARD_LOG_ENABLE,
+    DashboardECR(EXPERIMENT_NAME, LOG_FOLDER if DASHBOARD_LOG_ENABLE else None,
                                     host=DASHBOARD_HOST,
                                     port=DASHBOARD_PORT,
                                     use_udp=DASHBOARD_USE_UDP,
@@ -93,15 +93,14 @@ if DASHBOARD_ENABLE:
 
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float], log_enable: bool = True, dashboard_enable: bool = False, 
-                 dashboard: object = None, ranklist_enable: bool = False, author: str = "unknown", commit: str = "unknown"):
+                 eps_list: [float], log_enable: bool = True,  
+                 ranklist_enable: bool = False, author: str = "unknown", commit: str = "unknown"):
 
         # Init for dashboard
-        self._dashboard_enable = dashboard_enable
         self._ranklist_enable = ranklist_enable
         self._author = author
         self._commit = commit
-        self._dashboard = dashboard
+        self._dashboard = DashboardECR.get_dashboard()
         self._scenario = scenario
 
         self._set_seed(TRAIN_SEED)
@@ -148,15 +147,15 @@ class Runner:
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
                               hidden_dims=[
                                   256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
-                              log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
+                              log_folder=LOG_FOLDER if QNET_LOG_ENABLE else None)
             target_net = QNet(name=f'{self._port_idx2name[agent_idx]}.target', input_dim=state_shaping.dim,
                               hidden_dims=[
                                   256, 128, 64], output_dim=len(action_space), dropout_p=DROPOUT_P,
-                              log_enable=QNET_LOG_ENABLE, log_folder=LOG_FOLDER)
+                              log_folder=LOG_FOLDER if QNET_LOG_ENABLE else None)
             target_net.load_state_dict(policy_net.state_dict())
             dqn = DQN(policy_net=policy_net, target_net=target_net,
                       gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, lr=LEARNING_RATE,
-                      log_enable=DQN_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P,
+                      log_folder=LOG_FOLDER if DQN_LOG_ENABLE else None, log_dropout_p=DQN_LOG_DROPOUT_P,
                       dashboard_enable=DASHBOARD_ENABLE, dashboard=self._dashboard)
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx],
                                           topology=self._topology,
@@ -168,7 +167,7 @@ class Runner:
                                           batch_num=BATCH_NUM, batch_size=BATCH_SIZE,
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
                                           agent_idx_list=agent_idx_list,
-                                          log_enable=AGENT_LOG_ENABLE, log_folder=LOG_FOLDER,
+                                          log_folder=LOG_FOLDER if AGENT_LOG_ENABLE else None,
                                           dashboard_enable=DASHBOARD_ENABLE, dashboard=self._dashboard)
 
         return agent_dict
@@ -243,7 +242,7 @@ class Runner:
             self._logger.critical(
                 f'{self._env.name} | test | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, total booking: {pretty_booking_dict}, total shortage: {pretty_shortage_dict}')
 
-        if self._dashboard_enable:
+        if self._dashboard is not None:
             self._send_to_dashboard(ep, pretty_shortage_dict,
                                     pretty_booking_dict, is_train)
 
@@ -457,7 +456,7 @@ if __name__ == '__main__':
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
                     max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
                     max_test_ep=MAX_TEST_EP, eps_list=eps_list,
-                    log_enable=RUNNER_LOG_ENABLE, dashboard_enable=DASHBOARD_ENABLE, dashboard=DASHBOARD, 
+                    log_enable=RUNNER_LOG_ENABLE,
                     ranklist_enable=RANKLIST_ENABLE, author=AUTHOR, commit=COMMIT)
 
     runner.start()

@@ -182,8 +182,8 @@ parameters, and send data to database via basic upload api.
     from maro.utils.dashboard import DashboardBase
 
     class DashboardECR(DashboardBase):
-        def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
-            DashboardBase.__init__(self, experiment, log_folder, log_enable, host, port, use_udp, udp_port)
+        def __init__(self, experiment: str, log_folder: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+            DashboardBase.__init__(self, experiment, log_folder, host, port, use_udp, udp_port)
 
         def upload_ep_data(self, fields, ep, measurement):
             fields['ep'] = ep

@@ -4,22 +4,24 @@
 
 import os
 
-from .influxdb_proxy import InfluxdbProxy as dbProxy
+from .influxdb_proxy import InfluxdbProxy
 
-proxy = None
-config = None
+class Singleton(object):
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Singleton, cls).__new__(cls)
+        return cls._instance
 
-
-class DashboardBase():
-    _singleton = None
+class DashboardBase(Singleton):
     _connection = None
 
-    def __new__(cls, *a, **k):
-        if not cls._singleton:
-            cls._singleton = object.__new__(cls)
-        return cls._singleton
+    @classmethod
+    def get_dashboard(cls):
+        return cls._instance
 
-    def __init__(self, experiment: str, log_folder: str, log_enable: str, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+
+    def __init__(self, experiment: str, log_folder: str = None, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
         """Setup  dashboard with conf for dashboard
 
         Args:
@@ -31,12 +33,11 @@ class DashboardBase():
             use_udp (bool): if use udp port to upload data to influxdb
             udp_port (int): influxdb udp port
         """
-        self.config = None
         self.experiment = experiment
 
         if self._connection is None:
-            self._connection = dbProxy(
-                host=host, port=port, use_udp=use_udp, udp_port=udp_port, log_folder=log_folder, log_enable=log_enable)
+            self._connection = InfluxdbProxy(
+                host=host, port=port, use_udp=use_udp, udp_port=udp_port, log_folder=log_folder)
 
     def send(self, fields: dict, tag: dict, measurement: str) -> None:
         """Upload fields to database.
