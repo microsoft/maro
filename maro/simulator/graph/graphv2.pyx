@@ -242,26 +242,128 @@ cdef class SnapshotList:
 
         # index of latest snapshot
         int32_t index
+        int32_t cur_size
+        int32_t end_tick
 
     def __cinit__(self, int32_t size, Graph graph):
         self.graph = graph
         self.size = size
         self.graph_size = graph.size
         self.index = -1
+        self.cur_size = 0
+        self.end_tick = -1
 
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
         self.data = self.arr
 
     cpdef void insert_snapshot(self, int32_t tick):
         cdef int8_t[:, :] t= self.graph.arr
-        self.data[tick::] = t
+        
+        self.index += 1
 
-        print(self.data[tick, 0, 0])
+        # back to the beginning if we reach the end
+        if self.index >= self.size:
+            self.index = 0
 
-        cdef int8_t *p = <int8_t *>self.arr.data
+        self.cur_size += 1
 
-        print("int8_t ptr", p[0], p[152])
+        if self.cur_size >= self.size:
+            self.cur_size = self.size
 
-        cdef int16_t *p2 = <int16_t *>self.arr.data
+        self.data[self.index::] = t
+        
+        self.end_tick = tick
+        
 
-        print("int16_t ptr", p2[5], p2[81])
+        # print(self.data[tick, 0, 0])
+
+        # cdef int8_t *p = <int8_t *>self.arr.data
+
+        # print("int8_t ptr", p[0], p[152])
+
+        # cdef int16_t *p2 = <int16_t *>self.arr.data
+
+        # print("int16_t ptr", p2[5], p2[81])
+
+    cpdef np.ndarray get_attributes(self, int8_t node_type, list ticks, list ids, list attr_names, list attr_indices):
+        pass
+    
+    def ticks(self):
+        return [i for i in range(self.end_tick-self.cur_size+1, self.end_tick+1)]
+
+    def __len__(self):
+        return self.cur_size
+    
+    
+cdef class SnapshotNodeAccessor:
+    """
+    Wrapper to access node attributes with slice interface
+    """
+    cdef:
+        int8_t node_type
+        int16_t node_num
+        SnapshotList ss
+
+    def __cinit__(self, int8_t node_type, int16_t node_num, SnapshotList ss)
+        self.node_type = node_type
+        self.node_num = node_num
+        self.ss = ss
+
+    def __len__(self):
+        return len(self.ss)
+
+    def __setitem__(self, item, value):
+        pass
+
+    def __getitem__(self, slice item):
+        cdef list ticks
+        cdef list id_list
+        cdef list attribute_names
+        cdef list attribute_indices
+        cdef int32_t i
+
+        if item.start is None:
+            ticks = self.ss.ticks()
+        else:
+            if type(item.start) is not list:
+                ticks = [item.start]
+            else:
+                ticks = item.start
+
+        if item.stop is None:
+            id_list = [i for i in range(self.node_num)]
+        else:
+            if type(item.stop) is not list:
+                id_list = [item.stop]
+            else:
+                id_list = item.stop
+
+        if item.step is None or len(item.step) < 2:
+            return None # TODO: exception later
+
+        def tuple attributes = item.step
+
+        if type(attributes[0]) is not list:
+            attribute_names = [attributes[0]]
+        else:
+            attribute_names = attributes[0]
+
+        if type(attributes[1]) is not list:
+            attribute_indices = [attributes[1]]
+        else:
+            attribute_indices = attributes[1]
+        
+
+
+cdef class SnapshotGeneralAccessor:
+    """
+    Wrapper to access general data with slice interface
+    """
+    cdef:
+        SnapshotList ss
+
+    def __cinit__(self, SnapshotList ss):
+        self.ss = ss
+
+    def __getitem__(self, slice item):
+        pass
