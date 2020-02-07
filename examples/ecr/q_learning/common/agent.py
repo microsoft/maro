@@ -258,8 +258,6 @@ class Agent(object):
     @property
     def experience_quantity(self):
         qty = self._experience_pool.size['action']
-        # for quantity in self._experience_pool.size['action'].values():
-        #     qty += quantity
         return qty
 
     @property
