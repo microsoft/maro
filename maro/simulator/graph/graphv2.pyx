@@ -241,39 +241,47 @@ cdef class SnapshotList:
         int8_t[:,:,:] data
 
         # index of latest snapshot
-        int32_t index
-        int32_t cur_size
+        int32_t start_index
+        int32_t end_index
+        int32_t start_tick
         int32_t end_tick
+        int32_t tick
 
     def __cinit__(self, int32_t size, Graph graph):
         self.graph = graph
         self.size = size
         self.graph_size = graph.size
-        self.index = -1
-        self.cur_size = 0
+        self.start_index = -1
+        self.end_index = -1
+        self.start_tick = 0
         self.end_tick = -1
-
+        self.tick = -1
+        
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
         self.data = self.arr
 
-    cpdef void insert_snapshot(self, int32_t tick):
+    cpdef void insert_snapshot(self):
         cdef int8_t[:, :] t= self.graph.arr
         
-        self.index += 1
+        self.end_index += 1
+        self.tick += 1
 
         # back to the beginning if we reach the end
-        if self.index >= self.size:
-            self.index = 0
+        if self.end_index >= self.size:
+            self.end_index = 0
 
-        self.cur_size += 1
+        if self.end_index == self.start_index:
+            self.start_index += 1
+            self.start_tick += 1
 
-        if self.cur_size >= self.size:
-            self.cur_size = self.size
+        if self.start_index >= self.size or self.start_index == -1:
+            self.start_index = 0
 
-        self.data[self.index::] = t
+        self.data[self.end_index::] = t
+
+        self.end_tick = self.tick
         
-        self.end_tick = tick
-        
+        print(f"start index: {self.start_index}, end index: {self.end_index}, start tick: {self.start_tick}, end tick: {self.end_tick}")
 
         # print(self.data[tick, 0, 0])
 
@@ -286,7 +294,34 @@ cdef class SnapshotList:
         # print("int16_t ptr", p2[5], p2[81])
 
     cpdef np.ndarray get_attributes(self, int8_t node_type, list ticks, list ids, list attr_names, list attr_indices):
-        pass
+        
+        # used to check if id list is valid
+        
+        # check id
+    
+        # check ticks
+
+        # check attributes
+        cdef int32_t ticks_length = len(ticks)
+        cdef int32_t ids_length    = len(ids)
+        cdef int32_t attr_length = len(attr_names)
+        cdef int32_t index_length = len(attr_indices)
+
+        cdef int32_t tick
+        cdef int32_t node_id
+        cdef str attr_name
+        cdef int32_t attr_index
+
+        cdef np.ndarray result = np.zeros(ticks_length * ids_length * attr_length * index_length)
+
+        cdef float[:] result_view = result
+
+        for tick in ticks:
+            for node_id in ids:
+                for attr_name in attr_names:
+                    for attr_index in attr_indices:
+                        pass
+
     
     def ticks(self):
         return [i for i in range(self.end_tick-self.cur_size+1, self.end_tick+1)]
@@ -304,7 +339,7 @@ cdef class SnapshotNodeAccessor:
         int16_t node_num
         SnapshotList ss
 
-    def __cinit__(self, int8_t node_type, int16_t node_num, SnapshotList ss)
+    def __cinit__(self, int8_t node_type, int16_t node_num, SnapshotList ss):
         self.node_type = node_type
         self.node_num = node_num
         self.ss = ss
@@ -341,7 +376,7 @@ cdef class SnapshotNodeAccessor:
         if item.step is None or len(item.step) < 2:
             return None # TODO: exception later
 
-        def tuple attributes = item.step
+        cdef tuple attributes = item.step
 
         if type(attributes[0]) is not list:
             attribute_names = [attributes[0]]
