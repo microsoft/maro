@@ -8,6 +8,7 @@ import random
 import numpy as np
 import torch
 import yaml
+import time
 
 import maro.simulator.utils.random as sim_random
 from tqdm import tqdm
@@ -81,45 +82,31 @@ RANKLIST_ENABLE = config.dashboard.ranklist.enable
 AUTHOR = config.dashboard.ranklist.author
 COMMIT = config.dashboard.ranklist.commit
 
-if DASHBOARD_ENABLE:
-    DashboardECR(EXPERIMENT_NAME, LOG_FOLDER if DASHBOARD_LOG_ENABLE else None,
-                                    host=DASHBOARD_HOST,
-                                    port=DASHBOARD_PORT,
-                                    use_udp=DASHBOARD_USE_UDP,
-                                    udp_port=DASHBOARD_UDP_PORT)
 
 ####################################################### END OF INITIAL_PARAMETERS #######################################################
 
 
 class Runner:
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float], log_enable: bool = True,  
-                 ranklist_enable: bool = False, author: str = "unknown", commit: str = "unknown"):
+                 eps_list: [float], log_enable: bool = True):
 
         # Init for dashboard
-        self._ranklist_enable = ranklist_enable
-        self._author = author
-        self._commit = commit
-        self._dashboard = DashboardECR.get_dashboard()
         self._scenario = scenario
-
-        self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, max_tick)
         self._topology = topology
-        self._port_idx2name = self._env.node_name_mapping['static']
-        self._vessel_idx2name = self._env.node_name_mapping['dynamic']
-        self._agent_dict = self._load_agent(self._env.agent_idx_list)
         self._max_train_ep = max_train_ep
         self._max_test_ep = max_test_ep
         self._max_tick = max_tick
         self._eps_list = eps_list
         self._log_enable = log_enable
-
-
+        self._set_seed(TRAIN_SEED)
+        self._env = Env(scenario, topology, max_tick)
+        self._port_idx2name = self._env.node_name_mapping['static']
+        self._vessel_idx2name = self._env.node_name_mapping['dynamic']
+        self._agent_dict = self._load_agent(self._env.agent_idx_list)
         self._port_name2idx = {}
         for idx in self._port_idx2name.keys():
             self._port_name2idx[self._port_idx2name[idx]] = idx
-
+        self._train_time = OrderedDict()
         if log_enable:
             self._logger = Logger(tag='runner', format_=LogFormat.simple,
                                   dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
@@ -132,6 +119,36 @@ class Runner:
                 f"total_shortage")
 
     def _load_agent(self, agent_idx_list: [int]):
+        if DASHBOARD_ENABLE:
+            self._dashboard = DashboardECR(EXPERIMENT_NAME, LOG_FOLDER if DASHBOARD_LOG_ENABLE else None,
+                                            host=DASHBOARD_HOST,
+                                            port=DASHBOARD_PORT,
+                                            use_udp=DASHBOARD_USE_UDP,
+                                            udp_port=DASHBOARD_UDP_PORT)
+            self._ranklist_enable = RANKLIST_ENABLE
+            self._dashboard.set_ranklist_info({
+                RanklistColumns.experiment.value: self._dashboard.experiment,
+                RanklistColumns.author.value:AUTHOR, 
+                RanklistColumns.commit.value:COMMIT, 
+                RanklistColumns.initial_lr.value:LEARNING_RATE,
+                RanklistColumns.train_ep.value: self._max_train_ep,
+                'scenario': self._scenario,
+                'topology': self._topology,
+                'max_tick': self._max_tick
+                })
+            self._dashboard.set_static_info({
+                'scenario': self._scenario,
+                'topology': self._topology,
+                'max_tick': self._max_tick,
+                'max_train_ep': self._max_train_ep,
+                'max_test_ep': self._max_test_ep,
+                'author': AUTHOR,
+                'commit': COMMIT,
+                'initial_lr': LEARNING_RATE
+            })
+                        
+        else:
+            self._dashboard = None
         self._set_seed(QNET_SEED)
         agent_dict = {}
         state_shaping = StateShaping(env=self._env,
@@ -156,7 +173,7 @@ class Runner:
             dqn = DQN(policy_net=policy_net, target_net=target_net,
                       gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, lr=LEARNING_RATE,
                       log_folder=LOG_FOLDER if DQN_LOG_ENABLE else None, log_dropout_p=DQN_LOG_DROPOUT_P,
-                      dashboard_enable=DASHBOARD_ENABLE, dashboard=self._dashboard)
+                      dashboard=self._dashboard)
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx],
                                           topology=self._topology,
                                           port_idx2name=self._port_idx2name,
@@ -168,7 +185,7 @@ class Runner:
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
                                           agent_idx_list=agent_idx_list,
                                           log_folder=LOG_FOLDER if AGENT_LOG_ENABLE else None,
-                                          dashboard_enable=DASHBOARD_ENABLE, dashboard=self._dashboard)
+                                          dashboard=self._dashboard)
 
         return agent_dict
 
@@ -185,14 +202,20 @@ class Runner:
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
                 _, decision_event, is_done = self._env.step(action)
 
-            if self._log_enable:
-                self._print_summary(ep=ep, is_train=True)
-
+            train_time = OrderedDict()
+            train_time['total'] = 0
             for agent in self._agent_dict.values():
                 agent.calculate_offline_rewards(snapshot_list=self._env.snapshot_list, current_ep=ep)
                 agent.store_experience()
+                start = time.time()
                 agent.train(current_ep=ep)
+                train_time[agent._agent_name] = time.time() - start
+                train_time['total'] += train_time[agent._agent_name]
+            self._train_time[ep] = train_time
 
+            if self._log_enable:
+                self._print_summary(ep=ep, is_train=True)
+            
             self._env.reset()
 
         self._test()
@@ -256,9 +279,18 @@ class Runner:
         if not is_train:
             dashboard_ep = ep + self._max_train_ep
 
+        # Upload data for experiment info
+        self._dashboard.set_dynamic_info({'is_train':is_train, 'current_ep':ep})
+
+        if dashboard_ep == 0 :
+            self._dashboard.upload_exp_data(DashboardECR.static_info, None, None, 'static_info')
+        self._dashboard.upload_exp_data(DashboardECR.dynamic_info, dashboard_ep, None, 'dynamic_info')
+        if is_train:
+            self._dashboard.upload_exp_data(self._train_time[ep], ep, None, 'train_time')
+        
         # Upload data for ep shortage and ep booking
-        self._dashboard.upload_ep_data(pretty_booking_dict, dashboard_ep, 'booking')
-        self._dashboard.upload_ep_data(pretty_shortage_dict, dashboard_ep, 'shortage')
+        self._dashboard.upload_exp_data(pretty_booking_dict, dashboard_ep, None, 'booking')
+        self._dashboard.upload_exp_data(pretty_shortage_dict, dashboard_ep, None, 'shortage')
 
         # Pick and upload data for rank list
         if not is_train:
@@ -271,17 +303,9 @@ class Runner:
                 self._dashboard.upload_to_ranklist(
                     ranklist='experiment_ranklist',
                     fields={
-                        RanklistColumns.experiment.value: self._dashboard.experiment,
                         RanklistColumns.shortage.value: pretty_shortage_dict['total_shortage'],
-                        RanklistColumns.train_ep.value: self._max_train_ep,
                         RanklistColumns.experience_quantity.value: experience_qty,
                         RanklistColumns.model_size.value: model_size,
-                        RanklistColumns.initial_lr.value: LEARNING_RATE,
-                        RanklistColumns.author.value: self._author,
-                        RanklistColumns.commit.value: self._commit,
-                        'scenario': self._scenario,
-                        'topology': self._topology,
-                        'max_tick': self._max_tick
                     })
 
         # Pick and upload data for epsilon
@@ -290,7 +314,7 @@ class Runner:
             for i, _ in enumerate(self._port_idx2name):
                 pretty_epsilon_dict[
                     self._port_idx2name[i]] = self._eps_list[ep]
-            self._dashboard.upload_ep_data(pretty_epsilon_dict, dashboard_ep, 'epsilon')
+            self._dashboard.upload_exp_data(pretty_epsilon_dict, dashboard_ep, None,'epsilon')
 
         # Prepare usage and delayed laden data cache
         usage_list = self._env.snapshot_list.dynamic_nodes[::(
@@ -337,7 +361,7 @@ class Runner:
                 pretty_early_discharge_dict[
                     port_name] = pretty_early_discharge_dict.get(
                         port_name, 0) + event.payload.early_discharge
-                self._dashboard.upload_tick_data(
+                self._dashboard.upload_exp_data(
                     {port_name: event.payload.early_discharge}, dashboard_ep,
                     event.tick, 'event_early_discharge')
             
@@ -352,7 +376,7 @@ class Runner:
                     'empty': pretty_usage_list[cur_tick][column + 1],
                     'full': pretty_usage_list[cur_tick][column + 2]
                 }
-                self._dashboard.upload_tick_data(cur_usage, dashboard_ep, cur_tick, 'vessel_usage')
+                self._dashboard.upload_exp_data(cur_usage, dashboard_ep, cur_tick, 'vessel_usage')
                 # Pick and upload data for event delayed laden
                 port_idx = event.payload.port_idx
                 port_name = self._port_idx2name[port_idx]
@@ -370,41 +394,41 @@ class Runner:
                             port_idx][route_port_id]
                     cur_delayed_laden += pretty_delayed_laden_list[cur_tick][
                         port_idx][route_port_id]
-                self._dashboard.upload_tick_data(
+                self._dashboard.upload_exp_data(
                     {port_name: cur_delayed_laden}, dashboard_ep, cur_tick, 'event_delayed_laden')
         # Upload data for ep laden_planed and ep laden_executed
         for k in from_to_executed.keys():
             for kk in from_to_executed[k].keys():
-                self._dashboard.upload_ep_data(
+                self._dashboard.upload_exp_data(
                     {
                         'from': self._port_idx2name[k],
                         'to': self._port_idx2name[kk],
                         'quantity': from_to_executed[k][kk]
-                    }, dashboard_ep, 'laden_executed')
+                    }, dashboard_ep, None, 'laden_executed')
 
         for k in from_to_planed.keys():
             for kk in from_to_planed[k].keys():
-                self._dashboard.upload_ep_data(
+                self._dashboard.upload_exp_data(
                     {
                         'from': self._port_idx2name[k],
                         'to': self._port_idx2name[kk],
                         'quantity': from_to_planed[k][kk]
-                    }, dashboard_ep, 'laden_planed')
+                    }, dashboard_ep, None, 'laden_planed')
         # Upload data for ep early discharge
         total_early_discharge = 0
         for early_discharge in pretty_early_discharge_dict.values():
             total_early_discharge += early_discharge
         pretty_early_discharge_dict['total'] = total_early_discharge
-        self._dashboard.upload_ep_data(pretty_early_discharge_dict,
-                                              dashboard_ep, 'early_discharge')
+        self._dashboard.upload_exp_data(pretty_early_discharge_dict,
+                                              dashboard_ep, None, 'early_discharge')
         # Upload data for ep delayed laden
         total_delayed_laden = 0
         for delayed_laden in pretty_delayed_laden_dict.values():
             total_delayed_laden += delayed_laden
         pretty_delayed_laden_dict['total'] = total_delayed_laden
 
-        self._dashboard.upload_ep_data(pretty_delayed_laden_dict,
-                                            dashboard_ep, 'delayed_laden')
+        self._dashboard.upload_exp_data(pretty_delayed_laden_dict,
+                                            dashboard_ep, None,'delayed_laden')
 
         # Pick and upload data for event shortage
         ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.
@@ -422,7 +446,7 @@ class Runner:
                 if pretty_ep_shortage_list[i][j] > 0:
                     need_upload = True
             if need_upload:
-                self._dashboard.upload_tick_data(pretty_ep_shortage_dict,
+                self._dashboard.upload_exp_data(pretty_ep_shortage_dict,
                                                      dashboard_ep, i, 'event_shortage')
 
     def _set_seed(self, seed):
@@ -456,7 +480,6 @@ if __name__ == '__main__':
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
                     max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
                     max_test_ep=MAX_TEST_EP, eps_list=eps_list,
-                    log_enable=RUNNER_LOG_ENABLE,
-                    ranklist_enable=RANKLIST_ENABLE, author=AUTHOR, commit=COMMIT)
+                    log_enable=RUNNER_LOG_ENABLE)
 
     runner.start()

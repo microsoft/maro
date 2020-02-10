@@ -194,7 +194,7 @@ class Learner:
 
             self.experience_pool.update([('info', idx_list, sample_dict['info'])])
             if DASHBOARD_ENABLE:
-                dashboard.upload_ep_data({agent_name: loss}, episode, 'loss')
+                dashboard.upload_exp_data({agent_name: loss}, episode, None, 'loss')
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)

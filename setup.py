@@ -54,6 +54,7 @@ setup(
         'pyzmq',
         'influxdb',
         'requests',
+        'psutil',
     ],
     entry_points={
         "console_scripts": [

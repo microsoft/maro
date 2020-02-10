@@ -138,7 +138,7 @@ upload_to_ranklist() require 2 parameters:
 
 #### Customized Upload Apis
 
-The customized upload api includes upload_ep_data(), upload_shortage()..., they packed the basic upload api. The customized upload api required some business data, reorganized them into basic api parameters, and send data to database via basic upload api.
+The customized upload api includes upload_exp_data(), they packed the basic upload api. The customized upload api required some business data, reorganized them into basic api parameters, and send data to database via basic upload api.
 
 ```python
 from maro.utils.dashboard import DashboardBase
@@ -147,19 +147,23 @@ class DashboardECR(DashboardBase):
     def __init__(self, experiment: str, log_folder: str = None, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
         DashboardBase.__init__(self, experiment, log_folder, host, port, use_udp, udp_port)
 
-    def upload_ep_data(self, fields, ep, measurement):
+    def upload_ep_data(self, fields, ep, tick, measurement):
         fields['ep'] = ep
+        if tick is not None:
+            fields['tick'] = tick
         self.send(fields=fields, tag={
             'experiment': self.experiment}, measurement=measurement)
 ```
 
-upload_ep_data() requires 3 parameters:
+upload_exp_data() requires 4 parameters:
 
 - fields ({Dict}): dictionary of ep data, key is ep data name, value is ep data value.
 
     i.e.:{"port1":1024, "port2":2048}
 
 - ep (int): current ep of the data, used as fields information to identify data of different ep in database.
+
+- tick (int): current itck of the data, used as fields information to identify data of different ep in database. Set None if not needed.
 
 - measurement (str): specify the measurement which the data will be stored in.
 

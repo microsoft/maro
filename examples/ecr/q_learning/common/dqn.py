@@ -112,7 +112,7 @@ class DQN(object):
                  target_update_frequency: int,
                  device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                  log_folder: str = None, log_dropout_p: float = 0.0,
-                 dashboard_enable: bool = True, dashboard: object = None):
+                 dashboard: object = None):
         '''
         Args:
             policy_net (nn.Module): Policy Q net, which is used for choosing action.
@@ -140,7 +140,6 @@ class DQN(object):
         self._log_enable = False if log_folder is None else True
         self._log_dropout_p = log_dropout_p
         self._log_folder = log_folder
-        self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
         if self._log_enable:
             self._logger = Logger(tag='dqn', format_=LogFormat.simple,
@@ -179,14 +178,14 @@ class DQN(object):
                         for q_values in q_values_batch:
                             self._q_curve_logger.debug(f'{current_ep},{self._learning_counter},' + ','.join(
                                 [str(q_value.item()) for q_value in q_values]))
-                if self._dashboard_enable:
+                if self._dashboard is not None:
                     dashboard_ep = current_ep
                     if not is_train:
                         dashboard_ep += trained_ep
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item(), 'action': i, 'tick': current_tick}
-                            self._dashboard.upload_ep_data(scalars, dashboard_ep, 'q_value')
+                            self._dashboard.upload_exp_data(scalars, dashboard_ep, None, 'q_value')
                 action = q_values_batch.max(1)[1][0].item()
                 return False, action
         else:

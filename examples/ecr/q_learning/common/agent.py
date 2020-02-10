@@ -21,7 +21,7 @@ class Agent(object):
                  vessel_idx2name, algorithm, experience_pool: SimpleExperiencePool,
                  state_shaping, action_shaping, reward_shaping, batch_num, batch_size, min_train_experience_num,
                  agent_idx_list,
-                 log_folder: str = None, dashboard_enable: bool = True,
+                 log_folder: str = None,
                  dashboard: object = None):
         self._agent_name = agent_name
         self._topology = topology
@@ -45,7 +45,6 @@ class Agent(object):
         self._batch_num = batch_num
         self._min_train_experience_num = min_train_experience_num
         self._log_enable = False if log_folder is None else True
-        self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
 
         if reward_shaping == 'gf':
@@ -189,8 +188,8 @@ class Agent(object):
             if self._log_enable:
                 self._logger.info(f'{self._agent_name} learn loss: {loss}')
 
-            if self._dashboard_enable:
-                self._dashboard.upload_ep_data({self._agent_name: loss}, current_ep, 'loss')
+            if self._dashboard is not None:
+                self._dashboard.upload_exp_data({self._agent_name: loss}, current_ep, None, 'loss')
 
     def dump_modules(self, module_path: str):
         self._logger.debug(f'{self._agent_name} dump module to {module_path}')
