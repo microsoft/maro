@@ -280,20 +280,8 @@ cdef class SnapshotList:
         self.data[self.end_index::] = t
 
         self.end_tick = self.tick
-        
-        print(f"start index: {self.start_index}, end index: {self.end_index}, start tick: {self.start_tick}, end tick: {self.end_tick}")
 
-        # print(self.data[tick, 0, 0])
-
-        # cdef int8_t *p = <int8_t *>self.arr.data
-
-        # print("int8_t ptr", p[0], p[152])
-
-        # cdef int16_t *p2 = <int16_t *>self.arr.data
-
-        # print("int16_t ptr", p2[5], p2[81])
-
-    cpdef np.ndarray get_attributes(self, int8_t node_type, list ticks, list ids, list attr_names, list attr_indices):
+    cpdef np.ndarray get_node_attributes(self, int8_t node_type, list ticks, list ids, list attr_names, list attr_indices, float default_value):
         
         # used to check if id list is valid
         
@@ -312,16 +300,67 @@ cdef class SnapshotList:
         cdef str attr_name
         cdef int32_t attr_index
 
-        cdef np.ndarray result = np.zeros(ticks_length * ids_length * attr_length * index_length)
+        cdef np.ndarray result = np.zeros(ticks_length * ids_length * attr_length * index_length, dtype=np.float32)
 
         cdef float[:] result_view = result
 
+        cdef int32_t ridx = 0
+        cdef int32_t tindex = 0
+        cdef max_node_num = self.graph.static_node_num
+        attr_key = None
+
+        if node_type == PartitionType.DYNAMIC_NODE:
+            max_node_num = self.graph.dynamic_node_num
+        elif node_type == PartitionType.GENERAL:
+            max_node_num = 1
+
         for tick in ticks:
+            if not (self.start_tick <= tick <= self.end_tick):
+                ridx += ids_length * attr_length * index_length
+
+                continue
+
+            tindex = self.start_index + (tick - self.start_tick)
+
+            if tindex >= self.size:
+                tindex = tindex - self.size
+
             for node_id in ids:
+                if node_id < 0 or node_id >= max_node_num:
+                    ridx += attr_length * index_length
+
+                    continue
+
                 for attr_name in attr_names:
                     for attr_index in attr_indices:
-                        pass
+                        attr_key = (attr_name, node_type)
 
+                        if attr_key in self.graph.attr_map:
+                            attr = self.graph.attr_map[attr_key]
+                            attr_dtype = attr.dtype
+
+                            if attr_index < attr.slot_num:
+                                
+                                aindex = tindex * self.graph.size / attr.dsize + attr.start_index
+                                
+                                if attr_dtype == AttributeType.BYTE:
+                                    v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, 0)
+                                elif attr_dtype == AttributeType.SHORT:
+                                    v = get_graph_attr_value[int16_t](<int16_t*>self.arr.data, aindex, 0)
+                                elif attr_dtype == AttributeType.INT32:
+                                    v = get_graph_attr_value[int32_t](<int32_t*>self.arr.data, aindex, 0)
+                                elif attr_dtype == AttributeType.INT64:
+                                    v = get_graph_attr_value[int64_t](<int64_t*>self.arr.data, aindex, 0)
+                                elif attr_dtype == AttributeType.FLOAT32:
+                                    v = get_graph_attr_value[float](<float*>self.arr.data, aindex, 0)
+                                elif attr_dtype == AttributeType.DOUBLE:
+                                    v = get_graph_attr_value[double](<double*>self.arr.data, aindex, 0)
+
+                                result_view[ridx] = <float>v
+
+                        ridx += 1
+
+        return result
     
     def ticks(self):
         return [i for i in range(self.end_tick-self.cur_size+1, self.end_tick+1)]

@@ -12,9 +12,6 @@ g.setup()
 
 ss = SnapshotList(3, g)
 ss.insert_snapshot()
-ss.insert_snapshot()
-ss.insert_snapshot()
-ss.insert_snapshot()
 
 
 print("a", g.get_attr(PartitionType.STATIC_NODE, 0, "a", 0))
@@ -25,6 +22,11 @@ print("B", g.get_attr(PartitionType.DYNAMIC_NODE, 0, "B", 0))
 g.set_attr(PartitionType.DYNAMIC_NODE, 0, "B", 0, 1234)
 print("B", g.get_attr(PartitionType.DYNAMIC_NODE, 0, "B", 0))
 
+ss.insert_snapshot()
+ss.insert_snapshot()
+ss.insert_snapshot()
+
+print(ss.get_node_attributes(PartitionType.STATIC_NODE, [0, 1], [0], ["a"], [0], 0))
 
 # from graph import test_byte_cast
 
