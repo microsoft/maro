@@ -247,6 +247,10 @@ cdef class SnapshotList:
         int32_t end_tick
         int32_t tick
 
+        SnapshotNodeAccessor static_acc
+        SnapshotNodeAccessor dynamic_acc
+
+
     def __cinit__(self, int32_t size, Graph graph):
         self.graph = graph
         self.size = size
@@ -259,6 +263,17 @@ cdef class SnapshotList:
         
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
         self.data = self.arr
+
+        self.static_acc = SnapshotNodeAccessor(PartitionType.STATIC_NODE, self.graph.static_node_num, self)
+        self.dynamic_acc = SnapshotNodeAccessor(PartitionType.DYNAMIC_NODE, self.graph.dynamic_node_num, self)
+
+    @property
+    def static_nodes(self) -> SnapshotNodeAccessor:
+        return self.static_acc
+
+    @property
+    def dynamic_nodes(self) -> SnapshotNodeAccessor:
+        return self.dynamic_acc
 
     cpdef void insert_snapshot(self):
         cdef int8_t[:, :] t= self.graph.arr
@@ -427,7 +442,7 @@ cdef class SnapshotNodeAccessor:
         else:
             attribute_indices = attributes[1]
         
-
+        return self.ss.get_node_attributes(self.node_type, ticks, id_list, attribute_names, attribute_indices, 0)
 
 cdef class SnapshotGeneralAccessor:
     """
