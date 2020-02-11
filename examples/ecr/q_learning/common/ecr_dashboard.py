@@ -36,7 +36,7 @@ class DashboardECR(DashboardBase):
             None.
         """
         tag = {}
-        if DashboardECR.static_info['COMPONENT_NAME'] is not None:
+        if 'COMPONENT_NAME' in DashboardECR.static_info:
             tag['component_name'] = DashboardECR.static_info['COMPONENT_NAME']
         fields['ep'] = ep
         if tick is not None:
