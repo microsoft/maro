@@ -31,9 +31,12 @@ ss.insert_snapshot()
 
 print(ss.get_node_attributes(PartitionType.STATIC_NODE, [0, 1], [0], ["a"], [0], 0))
 print(ss.get_node_attributes(PartitionType.DYNAMIC_NODE, [0, 1], [0], ["B"], [0], 0))
+print(ss.get_general_attrs([0, 1], "E"))
 
 print(ss.static_nodes[[0, 1]:0:("a", 0)])
 print(ss.dynamic_nodes[[0, 1]:0:("B", 0)])
+print(ss.general[[0, 1]:"E"])
+
 
 # from graph import test_byte_cast
 

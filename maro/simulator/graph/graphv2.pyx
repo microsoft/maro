@@ -262,6 +262,7 @@ cdef class SnapshotList:
 
         SnapshotNodeAccessor static_acc
         SnapshotNodeAccessor dynamic_acc
+        SnapshotGeneralAccessor general_acc
 
 
     def __cinit__(self, int32_t size, Graph graph):
@@ -279,7 +280,7 @@ cdef class SnapshotList:
 
         self.static_acc = SnapshotNodeAccessor(PartitionType.STATIC_NODE, self.graph.static_node_num, self)
         self.dynamic_acc = SnapshotNodeAccessor(PartitionType.DYNAMIC_NODE, self.graph.dynamic_node_num, self)
-
+        self.general_acc = SnapshotGeneralAccessor(self)
     @property
     def static_nodes(self) -> SnapshotNodeAccessor:
         return self.static_acc
@@ -289,11 +290,11 @@ cdef class SnapshotList:
         return self.dynamic_acc
 
     @property
-    def general(self):
+    def general(self) -> SnapshotGeneralAccessor:
         """
         Access general data
         """
-        pass
+        return self.general_acc
 
     @property
     def maxtrix(self):
@@ -386,23 +387,78 @@ cdef class SnapshotList:
                                 aindex = tindex * self.graph.size / attr.dsize + attr.start_index
                                 
                                 if attr_dtype == AttributeType.BYTE:
-                                    v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, 0)
+                                    v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, attr_index)
                                 elif attr_dtype == AttributeType.SHORT:
-                                    v = get_graph_attr_value[int16_t](<int16_t*>self.arr.data, aindex, 0)
+                                    v = get_graph_attr_value[int16_t](<int16_t*>self.arr.data, aindex, attr_index)
                                 elif attr_dtype == AttributeType.INT32:
-                                    v = get_graph_attr_value[int32_t](<int32_t*>self.arr.data, aindex, 0)
+                                    v = get_graph_attr_value[int32_t](<int32_t*>self.arr.data, aindex, attr_index)
                                 elif attr_dtype == AttributeType.INT64:
-                                    v = get_graph_attr_value[int64_t](<int64_t*>self.arr.data, aindex, 0)
+                                    v = get_graph_attr_value[int64_t](<int64_t*>self.arr.data, aindex, attr_index)
                                 elif attr_dtype == AttributeType.FLOAT32:
-                                    v = get_graph_attr_value[float](<float*>self.arr.data, aindex, 0)
+                                    v = get_graph_attr_value[float](<float*>self.arr.data, aindex, attr_index)
                                 elif attr_dtype == AttributeType.DOUBLE:
-                                    v = get_graph_attr_value[double](<double*>self.arr.data, aindex, 0)
+                                    v = get_graph_attr_value[double](<double*>self.arr.data, aindex, attr_index)
 
                                 result_view[ridx] = <float>v
 
                         ridx += 1
 
         return result
+
+    def get_general_attrs(self, list ticks, str attr_name, float default_value=0):
+        """
+        
+        """
+        attr_key = (attr_name, <int8_t>PartitionType.GENERAL)
+
+        if attr_key not in self.graph.attr_map:
+            return None
+
+        cdef GraphAttribute attr = self.graph.attr_map[attr_key]
+        cdef int32_t length = attr.slot_num
+        cdef int32_t ticks_length = len(ticks)
+
+        cdef np.ndarray result = np.zeros((ticks_length, length), dtype=np.float32)
+        cdef float[:, :] ret_view = result
+        cdef int8_t attr_dtype = attr.dtype
+
+        cdef int32_t i, j
+        cdef int32_t tick
+        cdef int32_t tindex
+        cdef int32_t aindex
+
+
+        for i in range(ticks_length):
+            tick = ticks[i]
+
+            if not (self.start_tick <= tick <= self.end_tick):
+                continue
+
+            tindex = self.start_index + (tick - self.start_tick)
+
+            if tindex >= self.size:
+                tindex = tindex - self.size
+
+            aindex = <int32_t>(tindex * self.graph.size / attr.dsize) + attr.start_index
+
+            for j in range(length):
+                if attr_dtype == AttributeType.BYTE:
+                    v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, j)
+                elif attr_dtype == AttributeType.SHORT:
+                    v = get_graph_attr_value[int16_t](<int16_t*>self.arr.data, aindex, j)
+                elif attr_dtype == AttributeType.INT32:
+                    v = get_graph_attr_value[int32_t](<int32_t*>self.arr.data, aindex, j)
+                elif attr_dtype == AttributeType.INT64:
+                    v = get_graph_attr_value[int64_t](<int64_t*>self.arr.data, aindex, j)
+                elif attr_dtype == AttributeType.FLOAT32:
+                    v = get_graph_attr_value[float](<float*>self.arr.data, aindex, j)
+                elif attr_dtype == AttributeType.DOUBLE:
+                    v = get_graph_attr_value[double](<double*>self.arr.data, aindex, j)
+                
+                ret_view[i, j] = <float>v
+
+        return result
+
     
     def ticks(self):
         return [i for i in range(self.end_tick-self.cur_size+1, self.end_tick+1)]
@@ -484,4 +540,12 @@ cdef class SnapshotGeneralAccessor:
         self.ss = ss
 
     def __getitem__(self, slice item):
-        pass
+        cdef list ticks
+        cdef str attr_name = item.stop
+
+        if type(item.start) is not list:
+            ticks = [item.start]
+        else:
+            ticks = item.start
+
+        return self.ss.get_general_attrs(ticks, attr_name, 0)
