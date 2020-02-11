@@ -59,7 +59,7 @@ for i in range(10):
 
 Open URL [http://localhost:50303](http://localhost:50303) in your browser.
 
-Input user: admin and password: admin, skip the password change page if you wish to.
+Use default user: 'admin' and password: 'admin' to login.
 
 Then Grafana will navigate to the 'Home' dashboard, tap 'Home' in the up-left corner and select the 'Hello World' option.
 
