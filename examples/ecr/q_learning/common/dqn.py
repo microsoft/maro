@@ -185,7 +185,7 @@ class DQN(object):
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item(), 'action': i, 'tick': current_tick}
-                            self._dashboard.upload_exp_data(scalars, dashboard_ep, None, 'q_value')
+                            self._dashboard.upload_exp_data(scalars, dashboard_ep, None, 'event_q_value')
                 action = q_values_batch.max(1)[1][0].item()
                 return False, action
         else:
