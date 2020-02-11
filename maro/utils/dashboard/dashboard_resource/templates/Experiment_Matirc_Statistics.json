@@ -15,10 +15,519 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
-  "iteration": 1579165580659,
+  "id": 4,
+  "iteration": 1581410106138,
   "links": [],
   "panels": [
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 2,
+        "x": 0,
+        "y": 0
+      },
+      "id": 17,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "static_info",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "max_train_ep"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            }
+          ]
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Max Train Episode",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "10%",
+      "cacheTimeout": null,
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 7,
+        "w": 10,
+        "x": 2,
+        "y": 0
+      },
+      "id": 23,
+      "ignoreColumn": [
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "total",
+        "transfer_port_001"
+      ],
+      "interval": null,
+      "legend": {
+        "show": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "train_time",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Train Time",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "total",
+        "transfer_port_001"
+      ],
+      "x_axis": "ep"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "10%",
+      "cacheTimeout": null,
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 25,
+      "ignoreColumn": [
+        "memory_active",
+        "memory_buffers"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "cpu_percent",
+        "ep",
+        "memory_percent"
+      ],
+      "interval": null,
+      "legend": {
+        "show": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "dynamic_info",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"memory_percent\", \"ep\" FROM \"dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/) AND $timeFilter",
+          "rawQuery": false,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "cpu_percent"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "ep"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "memory_percent"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Node Workload",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "cpu_percent",
+        "ep",
+        "memory_percent"
+      ],
+      "x_axis": "ep"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 2,
+        "x": 0,
+        "y": 2
+      },
+      "id": 19,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "dynamic_info",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "is_train"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            }
+          ]
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Is Train",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 2,
+        "x": 0,
+        "y": 4
+      },
+      "id": 21,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "options": {},
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "dynamic_info",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"current_ep\"+1 FROM \"dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"is_train\" = true) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "current_ep"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "is_train",
+              "operator": "=",
+              "value": "true"
+            }
+          ]
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Trained Episode",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
     {
       "aggregation": "sum",
       "aggregationOptions": [
@@ -43,7 +552,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 0
+        "y": 7
       },
       "id": 2,
       "ignoreColumn": [
@@ -53,14 +562,38 @@
       ],
       "ignoreColumns": [
         "Time",
+        "bremerhaven_ger",
         "demand_port_001",
         "demand_port_002",
+        "durban_sau",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra",
+        "leHavre_fra",
+        "losAngeles_usa",
+        "manzanillo_mex",
+        "melbourne_aus",
+        "montreal_can",
+        "newYork_usa",
+        "oakland_usa",
+        "princeRupert_can",
+        "pusan_kor",
+        "qingdao_chn",
+        "sanAntonio_par",
+        "santos_bra",
+        "seattle_usa",
+        "shanghai_chn",
+        "singapore_sgp",
         "supply_port_001",
         "supply_port_002",
+        "sydney_aus",
         "total_shortage",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002",
+        "vancouver_can",
+        "yantian_chn",
+        "yokohama_jpn"
       ],
       "ignoreColums": "",
       "interval": null,
@@ -106,14 +639,38 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
+        "bremerhaven_ger",
         "demand_port_001",
         "demand_port_002",
+        "durban_sau",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra",
+        "leHavre_fra",
+        "losAngeles_usa",
+        "manzanillo_mex",
+        "melbourne_aus",
+        "montreal_can",
+        "newYork_usa",
+        "oakland_usa",
+        "princeRupert_can",
+        "pusan_kor",
+        "qingdao_chn",
+        "sanAntonio_par",
+        "santos_bra",
+        "seattle_usa",
+        "shanghai_chn",
+        "singapore_sgp",
         "supply_port_001",
         "supply_port_002",
+        "sydney_aus",
         "total_shortage",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002",
+        "vancouver_can",
+        "yantian_chn",
+        "yokohama_jpn"
       ],
       "x_axis": "ep"
     },
@@ -141,7 +698,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 0
+        "y": 7
       },
       "id": 4,
       "ignoreColumn": [
@@ -151,13 +708,37 @@
       ],
       "ignoreColumns": [
         "Time",
+        "bremerhaven_ger",
         "demand_port_001",
         "demand_port_002",
+        "durban_sau",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra",
+        "leHavre_fra",
+        "losAngeles_usa",
+        "manzanillo_mex",
+        "melbourne_aus",
+        "montreal_can",
+        "newYork_usa",
+        "oakland_usa",
+        "princeRupert_can",
+        "pusan_kor",
+        "qingdao_chn",
+        "sanAntonio_par",
+        "santos_bra",
+        "seattle_usa",
+        "shanghai_chn",
+        "singapore_sgp",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001"
+        "sydney_aus",
+        "transfer_port_001",
+        "transfer_port_002",
+        "vancouver_can",
+        "yantian_chn",
+        "yokohama_jpn"
       ],
       "ignoreColums": "",
       "interval": null,
@@ -203,13 +784,37 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
+        "bremerhaven_ger",
         "demand_port_001",
         "demand_port_002",
+        "durban_sau",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra",
+        "leHavre_fra",
+        "losAngeles_usa",
+        "manzanillo_mex",
+        "melbourne_aus",
+        "montreal_can",
+        "newYork_usa",
+        "oakland_usa",
+        "princeRupert_can",
+        "pusan_kor",
+        "qingdao_chn",
+        "sanAntonio_par",
+        "santos_bra",
+        "seattle_usa",
+        "shanghai_chn",
+        "singapore_sgp",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001"
+        "sydney_aus",
+        "transfer_port_001",
+        "transfer_port_002",
+        "vancouver_can",
+        "yantian_chn",
+        "yokohama_jpn"
       ],
       "x_axis": "ep"
     },
@@ -237,7 +842,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 0
+        "y": 7
       },
       "id": 6,
       "ignoreColumn": [
@@ -246,13 +851,37 @@
       ],
       "ignoreColumns": [
         "Time",
+        "bremerhaven_ger",
         "demand_port_001",
         "demand_port_002",
+        "durban_sau",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra",
+        "leHavre_fra",
+        "losAngeles_usa",
+        "manzanillo_mex",
+        "melbourne_aus",
+        "montreal_can",
+        "newYork_usa",
+        "oakland_usa",
+        "princeRupert_can",
+        "pusan_kor",
+        "qingdao_chn",
+        "sanAntonio_par",
+        "santos_bra",
+        "seattle_usa",
+        "shanghai_chn",
+        "singapore_sgp",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001"
+        "sydney_aus",
+        "transfer_port_001",
+        "transfer_port_002",
+        "vancouver_can",
+        "yantian_chn",
+        "yokohama_jpn"
       ],
       "interval": null,
       "legend": {
@@ -297,13 +926,37 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
+        "bremerhaven_ger",
         "demand_port_001",
         "demand_port_002",
+        "durban_sau",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra",
+        "leHavre_fra",
+        "losAngeles_usa",
+        "manzanillo_mex",
+        "melbourne_aus",
+        "montreal_can",
+        "newYork_usa",
+        "oakland_usa",
+        "princeRupert_can",
+        "pusan_kor",
+        "qingdao_chn",
+        "sanAntonio_par",
+        "santos_bra",
+        "seattle_usa",
+        "shanghai_chn",
+        "singapore_sgp",
         "supply_port_001",
         "supply_port_002",
-        "transfer_port_001"
+        "sydney_aus",
+        "transfer_port_001",
+        "transfer_port_002",
+        "vancouver_can",
+        "yantian_chn",
+        "yokohama_jpn"
       ],
       "x_axis": "ep"
     },
@@ -331,7 +984,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 15
       },
       "id": 13,
       "ignoreColumn": [
@@ -348,7 +1001,8 @@
         "supply_port_001",
         "supply_port_002",
         "total",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002"
       ],
       "ignoreColums": "",
       "interval": null,
@@ -401,7 +1055,8 @@
         "supply_port_001",
         "supply_port_002",
         "total",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002"
       ],
       "x_axis": "ep"
     },
@@ -429,7 +1084,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 15
       },
       "id": 15,
       "ignoreColumn": [
@@ -446,7 +1101,8 @@
         "supply_port_001",
         "supply_port_002",
         "total",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002"
       ],
       "ignoreColums": "",
       "interval": null,
@@ -499,7 +1155,8 @@
         "supply_port_001",
         "supply_port_002",
         "total",
-        "transfer_port_001"
+        "transfer_port_001",
+        "transfer_port_002"
       ],
       "x_axis": "ep"
     },
@@ -518,7 +1175,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 16
+        "y": 23
       },
       "id": 10,
       "interval": null,
@@ -630,7 +1287,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 16
+        "y": 23
       },
       "id": 8,
       "ignoreColumn": [
@@ -662,14 +1319,61 @@
       ],
       "ignoreColumns": [
         "Time",
+        "0",
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "2",
+        "20",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
         "action",
+        "action_1",
+        "bremerhaven_ger.policy",
         "demand_port_001.policy",
         "demand_port_002.policy",
+        "durban_sau.policy",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra.policy",
+        "leHavre_fra.policy",
+        "losAngeles_usa.policy",
+        "manzanillo_mex.policy",
+        "melbourne_aus.policy",
+        "montreal_can.policy",
+        "newYork_usa.policy",
+        "oakland_usa.policy",
+        "princeRupert_can.policy",
+        "pusan_kor.policy",
+        "qingdao_chn.policy",
+        "sanAntonio_par.policy",
+        "santos_bra.policy",
+        "seattle_usa.policy",
+        "shanghai_chn.policy",
+        "singapore_sgp.policy",
         "supply_port_001.policy",
         "supply_port_002.policy",
-        "transfer_port_001.policy"
+        "sydney_aus.policy",
+        "tick",
+        "transfer_port_001.policy",
+        "transfer_port_002.policy",
+        "vancouver_can.policy",
+        "yantian_chn.policy",
+        "yokohama_jpn.policy"
       ],
       "interval": null,
       "legend": {
@@ -687,7 +1391,7 @@
           "measurement": "q_value",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT * FROM \"q_value\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode) AND $timeFilter",
+          "query": "SELECT * FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -722,14 +1426,61 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
+        "0",
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "2",
+        "20",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
         "action",
+        "action_1",
+        "bremerhaven_ger.policy",
         "demand_port_001.policy",
         "demand_port_002.policy",
+        "durban_sau.policy",
         "ep",
+        "ep_1",
         "experiment",
+        "itagual_bra.policy",
+        "leHavre_fra.policy",
+        "losAngeles_usa.policy",
+        "manzanillo_mex.policy",
+        "melbourne_aus.policy",
+        "montreal_can.policy",
+        "newYork_usa.policy",
+        "oakland_usa.policy",
+        "princeRupert_can.policy",
+        "pusan_kor.policy",
+        "qingdao_chn.policy",
+        "sanAntonio_par.policy",
+        "santos_bra.policy",
+        "seattle_usa.policy",
+        "shanghai_chn.policy",
+        "singapore_sgp.policy",
         "supply_port_001.policy",
         "supply_port_002.policy",
-        "transfer_port_001.policy"
+        "sydney_aus.policy",
+        "tick",
+        "transfer_port_001.policy",
+        "transfer_port_002.policy",
+        "vancouver_can.policy",
+        "yantian_chn.policy",
+        "yokohama_jpn.policy"
       ],
       "x_axis": "action"
     },
@@ -747,7 +1498,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 16
+        "y": 23
       },
       "id": 12,
       "interval": null,
@@ -802,6 +1553,7 @@
       "xColumns": [
         "Time",
         "ep",
+        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -811,6 +1563,7 @@
       "yColumns": [
         "Time",
         "ep",
+        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -820,6 +1573,7 @@
       "zColumns": [
         "Time",
         "ep",
+        "ep_1",
         "experiment",
         "from",
         "quantity",
@@ -847,7 +1601,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 31
       },
       "id": 14,
       "ignoreColumn": [
@@ -928,6 +1682,7 @@
       "x_axis": "tick"
     }
   ],
+  "refresh": "",
   "schemaVersion": 21,
   "style": "dark",
   "tags": [],
@@ -936,10 +1691,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "tags": [],
-          "text": "event_test_13",
-          "value": "event_test_13"
+          "text": "review_0211_08",
+          "value": "review_0211_08"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
@@ -963,8 +1716,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "10",
-          "value": "10"
+          "text": "0",
+          "value": "0"
         },
         "datasource": "InfluxDB",
         "definition": "select \"ep\"  from \"shortage\"  WHERE \"experiment\"=~/^$experiment$/",
@@ -988,8 +1741,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "rt2_vessel_001",
-          "value": "rt2_vessel_001"
+          "text": "rt1_vessel_001",
+          "value": "rt1_vessel_001"
         },
         "datasource": "InfluxDB",
         "definition": "select \"vessel\"  from \"vessel_usage\"  WHERE \"experiment\"=~/^$experiment$/",
@@ -1013,7 +1766,7 @@
     ]
   },
   "time": {
-    "from": "2019-11-22T03:16:14.894Z",
+    "from": "now-1y",
     "to": "now"
   },
   "timepicker": {
@@ -1044,5 +1797,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 13
+  "version": 4
 }
