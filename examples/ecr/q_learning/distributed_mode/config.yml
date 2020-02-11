@@ -37,6 +37,11 @@ log:
     enable: true
 dashboard:
   enable: true
+  influxdb:
+    host: localhost
+    port: 50301
+    use_udp: true
+    udp_port: 50304
 
 docker_image: 'maro_dist'
 
@@ -47,12 +52,10 @@ redis:
 distributed:
   environment_runner:
     num: 2
-    receive_enabled: true
-    audience:
+    peers:
       - 'learner'
   learner:
     num: 5
-    receive_enabled: true
-    audience:
+    peers:
       - 'environment_runner'
 

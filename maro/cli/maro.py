@@ -136,10 +136,10 @@ def start_dashboard():
         return
     if not platform.system() == 'Windows':
         os.system(
-            'mkdir -p ./data/grafana;CURRENT_UID=$(id -u):$(id -g) docker-compose up&')
+            'mkdir -p ./data/grafana;CURRENT_UID=$(id -u):$(id -g) docker-compose up -d')
     else:
         subprocess.Popen(
-            'powershell.exe -windowstyle hidden "docker-compose up"', shell=True, start_new_session=True)
+            'powershell.exe -windowstyle hidden "docker-compose up -d"', shell=True, start_new_session=True)
     
     localhosts = []
     localhosts.append('localhost')
