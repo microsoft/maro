@@ -13,6 +13,6 @@ Currently, we have 2 commands:
 
     This command will show the help of the usage of the 'maro dashboard'.
 
-    Then you can use -u to extract dashboard files to the current working directory, -s to start the Dashboard services, -b to rebuild docker image for Dashboard services, or -t stop to stop them.
+    Then you can use -e to extract dashboard files to the current working directory, -s to start the Dashboard services, -b to rebuild docker image for Dashboard services, or -t stop to stop them.
 
     Read more about the Dashboard for MARO:  :doc:`Dashboard <./dashboard>`

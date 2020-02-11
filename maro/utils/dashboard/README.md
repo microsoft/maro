@@ -4,15 +4,15 @@
 
 The Dashboard is made of a set of tools for visualizing statistics data in an RL train experiment.
 
-We chose influxdb to store the experiment data and Grafana as front-end framework.
+We use influxdb to store the experiment data and Grafana as front-end framework.
 
-We supplied an easy way of starting the influxdb and Grafana services.
+We supply an easy way of starting the influxdb and Grafana services.
 
-We implemented a DashboardBase class for uploading data to the database in maro.utils.dashboard. You can customize your class base on the DashboardBase class.
+We implement a DashboardBase class for uploading data to the database in maro.utils.dashboard. You can customize your class base on the DashboardBase class.
 
-We defined 3 Grafana dashboards that show common experiment statistics data, experiments compare data and a rank list for experiments.
+We define 3 Grafana dashboards that show common experiment statistics data, experiments compare data and a rank list for experiments.
 
-We developed 3 Grafana panel plugins for you to customize your dashboard in Grafana: Simple line chart, Heatmap chart, stack bar chart. The simple line chart can show multiple lines in one chart. The heatmap chart can show z-axis data as different red rectangles on different x, y-axis values. The stack bar chart can show multiple bar series stacked together by the x-axis.
+We develop 3 Grafana panel plugins for you to customize your dashboard in Grafana: Simple line chart, Heatmap chart, stack bar chart. The simple line chart can show multiple lines in one chart. The heatmap chart can show z-axis data as different red rectangles on different x, y-axis values. The stack bar chart can show multiple bar series stacked together by the x-axis.
 
 ## Quick Start
 
@@ -23,11 +23,11 @@ If you pip installed MARO project, you need to make sure [docker](https://docs.d
 ```shell
 mkdir dashboard_services
 cd dashboard_services
-maro dashboard -u
+maro dashboard -e
 maro dashboard -s
 ```
 
-If you start in source code of maro project, just cd maro/utils/dashboard/dashboard_resource
+If you start in source code of MARO project, just cd maro/utils/dashboard/dashboard_resource
 
 ```shell
 cd maro/utils/dashboard/dashboard_resource
@@ -105,7 +105,7 @@ the basic upload API: send()
 dashboard.send(fields={'port1':5,'port2':12}, tag={'ep':15}, measurement='shortage')
 ```
 
-send() requires 3 parameters:
+send() requires 3 parameters (reference to [https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/](https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/)):
 
 - fields ({Dict}): a dictionary of fields, the key is a field name, value is field value, the data you want to draw in the dashboard charts.
 
@@ -151,7 +151,7 @@ upload_to_ranklist() require 2 parameters:
 
 #### Customized Upload Apis
 
-The customized upload API includes upload_exp_data(), they packed the basic upload API. The customized upload API required some business data, reorganized them into basic API parameters, and send data to the database via basic upload API.
+In the ECR example, the customized upload API includes upload_exp_data(), packs the basic upload API. The customized upload API requires some business data, reorganizes them into basic API parameters, and sends data to the database via basic upload API.
 
 ```python
 
@@ -161,7 +161,7 @@ class DashboardECR(DashboardBase):
     def __init__(self, experiment: str, log_folder: str = None, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
         DashboardBase.__init__(self, experiment, log_folder, host, port, use_udp, udp_port)
 
-    def upload_ep_data(self, fields, ep, tick, measurement):
+    def upload_exp_data(self, fields, ep, tick, measurement):
         fields['ep'] = ep
         if tick is not None:
             fields['tick'] = tick
@@ -171,13 +171,13 @@ class DashboardECR(DashboardBase):
 
 upload_exp_data() requires 4 parameters:
 
-- fields ({Dict}): dictionary of ep data, key is ep data name, value is ep data value.
+- fields ({Dict}): dictionary of experiment data, key is experiment data name, value is experiment data value.
 
     i.e.:{"port1":1024, "port2":2048}
 
-- ep (int): current ep of the data, used to identify data of different ep in the database.
+- ep (int): current ep of the experiment data, used to identify data of different ep in the database.
 
-- tick (int): current tick of the data, used to identify data of different ep in the database. Set None if it is not needed.
+- tick (int): current tick of the experiment data, used to identify data of different ep in the database. Set None if it is not needed.
 
 - measurement (str): specify the measurement in which the data will be stored in.
 

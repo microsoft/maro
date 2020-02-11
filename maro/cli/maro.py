@@ -82,7 +82,7 @@ def main():
 
     parser_dashboard = subparsers.add_parser(
         'dashboard', help='Extract dashboard file and start or stop dashboard for MARO')
-    parser_dashboard.add_argument('-u', '--unzip', action='store_true',
+    parser_dashboard.add_argument('-e', '--extract', action='store_true',
                                 help='Extract dashboard files to current directory')
     parser_dashboard.add_argument('-s', '--start', action='store_true',
                                 help='Start dashboard for MARO, if dashboard files are extracted to current directory')
