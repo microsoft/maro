@@ -194,7 +194,7 @@ class Runner:
 
         for ep in pbar:
             if self._dashboard is not None:
-                self._dashboard.set_dynamic_info({'is_train':False, 'current_ep':ep})
+                self._dashboard.set_dynamic_info({'is_train':True, 'current_ep':ep})
             self._set_seed(TRAIN_SEED + ep)
             pbar.set_description('train episode')
             _, decision_event, is_done = self._env.step(None)

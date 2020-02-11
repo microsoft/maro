@@ -206,8 +206,6 @@ class Agent(object):
             snapshot, etc.
             eps (float): Epsilon, which is used for exploration.
             current_ep (int): Current episode, which is used for logging.
-            is_train (bool): True is training, False is testing, which is used for dashboard.
-            trained_ep (int): Trained ep, if is test, which is used for dashboard.
 
         Returns:
             (Action): Environment action.

@@ -161,8 +161,6 @@ class DQN(object):
             eps (float): Epsilon, which is used for exploration.
             current_ep (int): Current episode, which is used for logging.
             current_tick (int): Current tick, which is used for dashboard.
-            is_train (bool): True is training, False is testing, which is used for dashboard.
-            trained_ep (int): Trained ep, if is test, which is used for dashboard.
 
         Returns:
             (bool, int): is_random, action_index
@@ -185,7 +183,7 @@ class DQN(object):
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item(), 'action': i}
-                            self._dashboard.upload_exp_data(scalars, dashboard_ep, current_tick, 'event_q_value')
+                            self._dashboard.upload_exp_data(scalars, dashboard_ep, current_tick, 'q_value')
                 action = q_values_batch.max(1)[1][0].item()
                 return False, action
         else:
