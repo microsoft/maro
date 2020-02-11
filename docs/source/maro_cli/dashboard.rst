@@ -65,7 +65,7 @@ data.
     from maro.utils.dashboard import DashboardBase
     import random
 
-    dashboard = DashboardBase('hello_world', '.', True)
+    dashboard = DashboardBase('hello_world', '.')
     for i in range(10):
         fields = {'student_01':random.random()*10*i,'student_02':random.random()*15*i}
         tag = {'ep':i}

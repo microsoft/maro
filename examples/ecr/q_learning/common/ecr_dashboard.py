@@ -38,8 +38,7 @@ class DashboardECR(DashboardBase):
         fields['ep'] = ep
         if tick is not None:
             fields['tick'] = tick
-        self.send(fields=fields, tag={
-            'experiment': self.experiment}, measurement=measurement)
+        self.send(fields=fields, tag={}, measurement=measurement)
     
     def set_static_info(self, info:dict) -> None:
         for info_name, info_value in info.items():
