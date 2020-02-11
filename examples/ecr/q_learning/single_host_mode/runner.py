@@ -193,6 +193,8 @@ class Runner:
         pbar = tqdm(range(self._max_train_ep))
 
         for ep in pbar:
+            if self._dashboard is not None:
+                self._dashboard.set_dynamic_info({'is_train':False, 'current_ep':ep})
             self._set_seed(TRAIN_SEED + ep)
             pbar.set_description('train episode')
             _, decision_event, is_done = self._env.step(None)
@@ -223,12 +225,14 @@ class Runner:
     def _test(self):
         pbar = tqdm(range(self._max_test_ep))
         for ep in pbar:
+            if self._dashboard is not None:
+                self._dashboard.set_dynamic_info({'is_train':False, 'current_ep':ep})
             self._set_seed(TEST_SEED)
             pbar.set_description('test episode')
             _, decision_event, is_done = self._env.step(None)
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
-                    decision_event=decision_event, eps=0, current_ep=ep, is_train=False, trained_ep=self._max_train_ep)
+                    decision_event=decision_event, eps=0, current_ep=ep)
                 _, decision_event, is_done = self._env.step(action)
 
             if self._log_enable:
@@ -280,7 +284,6 @@ class Runner:
             dashboard_ep = ep + self._max_train_ep
 
         # Upload data for experiment info
-        self._dashboard.set_dynamic_info({'is_train':is_train, 'current_ep':ep})
 
         if dashboard_ep == 0 :
             self._dashboard.upload_exp_data(DashboardECR.static_info, None, None, 'static_info')

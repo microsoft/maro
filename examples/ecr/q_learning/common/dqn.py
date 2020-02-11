@@ -154,7 +154,7 @@ class DQN(object):
             self._q_curve_logger.debug(
                 'episode,learning_index,' + ','.join([str(i) for i in range(self._policy_net.output_dim)]))
 
-    def choose_action(self, state: torch.Tensor, eps: float, current_ep: int, current_tick: int, is_train: bool = False, trained_ep: int = 0) -> (bool, int):
+    def choose_action(self, state: torch.Tensor, eps: float, current_ep: int, current_tick: int) -> (bool, int):
         '''
         Args:
             state (tensor): Environment state, which is a tensor.
@@ -180,8 +180,8 @@ class DQN(object):
                                 [str(q_value.item()) for q_value in q_values]))
                 if self._dashboard is not None:
                     dashboard_ep = current_ep
-                    if not is_train:
-                        dashboard_ep += trained_ep
+                    if not self._dashboard.dynamic_info['is_train']:
+                        dashboard_ep += self._dashboard.static_info['max_train_ep']
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item(), 'action': i, 'tick': current_tick}
