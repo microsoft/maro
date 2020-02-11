@@ -181,40 +181,53 @@ cdef class Graph:
         return size
 
     cpdef get_attr(self, int8_t node_type, int16_t node_id, str attr_name, int32_t slot_index):
+        """
+        Get value of attribute
+        """
         attr_key = (attr_name, node_type)
 
         attr = self.attr_map[attr_key]
+
+        if node_type == PartitionType.GENERAL or node_id is None:
+            node_id = 0
+        
+        aindex = attr.start_index + (attr.slot_num * node_id)
         
         if attr.dtype == AttributeType.BYTE:
-            return get_graph_attr_value[int8_t](<int8_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index)
+            return get_graph_attr_value[int8_t](<int8_t *>self.arr.data, aindex, slot_index)
         elif attr.dtype == AttributeType.SHORT:
-            return get_graph_attr_value[int16_t](<int16_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index)
+            return get_graph_attr_value[int16_t](<int16_t *>self.arr.data, aindex, slot_index)
         elif attr.dtype == AttributeType.INT32:
-            return get_graph_attr_value[int32_t](<int32_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index)
+            return get_graph_attr_value[int32_t](<int32_t *>self.arr.data, aindex, slot_index)
         elif attr.dtype == AttributeType.INT64:
-            return get_graph_attr_value[int64_t](<int64_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index)
+            return get_graph_attr_value[int64_t](<int64_t *>self.arr.data, aindex, slot_index)
         elif attr.dtype == AttributeType.FLOAT32:
-            return get_graph_attr_value[float](<float *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index)
+            return get_graph_attr_value[float](<float *>self.arr.data, aindex, slot_index)
         elif attr.dtype == AttributeType.DOUBLE:
-            return get_graph_attr_value[double](<double *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index)
+            return get_graph_attr_value[double](<double *>self.arr.data, aindex, slot_index)
 
     cpdef set_attr(self, int8_t node_type, int16_t node_id, str attr_name, int8_t slot_index, object value):
         attr_key = (attr_name, node_type)
 
         attr = self.attr_map[attr_key]
+        
+        if node_type == PartitionType.GENERAL or node_id is None:
+            node_id = 0
+
+        aindex = attr.start_index + (attr.slot_num * node_id)
 
         if attr.dtype == AttributeType.BYTE:
-            set_graph_attr_value[int8_t](<int8_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+            set_graph_attr_value[int8_t](<int8_t *>self.arr.data, aindex, slot_index, value)
         elif attr.dtype == AttributeType.SHORT:
-            set_graph_attr_value[int16_t](<int16_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+            set_graph_attr_value[int16_t](<int16_t *>self.arr.data, aindex, slot_index, value)
         elif attr.dtype == AttributeType.INT32:
-            set_graph_attr_value[int32_t](<int32_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+            set_graph_attr_value[int32_t](<int32_t *>self.arr.data, aindex, slot_index, value)
         elif attr.dtype == AttributeType.INT64:
-            set_graph_attr_value[int64_t](<int64_t *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+            set_graph_attr_value[int64_t](<int64_t *>self.arr.data, aindex, slot_index, value)
         elif attr.dtype == AttributeType.FLOAT32:
-            set_graph_attr_value[float](<float *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+            set_graph_attr_value[float](<float *>self.arr.data, aindex, slot_index, value)
         elif attr.dtype == AttributeType.DOUBLE:
-            set_graph_attr_value[double](<double *>self.arr.data, attr.start_index + (attr.slot_num * node_id), slot_index, value)
+            set_graph_attr_value[double](<double *>self.arr.data, aindex, slot_index, value)
 
 
     cpdef reset(self):
@@ -274,6 +287,20 @@ cdef class SnapshotList:
     @property
     def dynamic_nodes(self) -> SnapshotNodeAccessor:
         return self.dynamic_acc
+
+    @property
+    def general(self):
+        """
+        Access general data
+        """
+        pass
+
+    @property
+    def maxtrix(self):
+        """
+        Access general data and return the result as matrix (1, n)
+        """
+        pass
 
     cpdef void insert_snapshot(self):
         cdef int8_t[:, :] t= self.graph.arr
@@ -382,6 +409,8 @@ cdef class SnapshotList:
 
     def __len__(self):
         return self.cur_size
+
+
     
     
 cdef class SnapshotNodeAccessor:
