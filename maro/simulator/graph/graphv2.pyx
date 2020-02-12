@@ -70,11 +70,43 @@ cdef class GraphAttribute:
         self.dsize = dtype_size_map[dtype]
 
 # fused functions to access data
-cdef graph_data_type get_graph_attr_value(graph_data_type *data, int32_t start_index, int32_t slot_index):
+cdef graph_data_type get_value_from_ptr(graph_data_type *data, int32_t start_index, int32_t slot_index):
     return data[start_index + slot_index]
 
-cdef void set_graph_attr_value(graph_data_type *data, int32_t start_index, int32_t slot_index, graph_data_type value):
+cdef void set_value_from_ptr(graph_data_type *data, int32_t start_index, int32_t slot_index, graph_data_type value):
     data[start_index + slot_index] = value
+
+
+# functions to cast data to access data
+cdef object get_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex, int32_t sindex):
+    if dtype == GraphDataType.BYTE:
+        return get_value_from_ptr[int8_t](<int8_t *>arr.data, aindex, sindex)
+    elif dtype == GraphDataType.SHORT:
+        return get_value_from_ptr[int16_t](<int16_t *>arr.data, aindex, sindex)
+    elif dtype == GraphDataType.INT32:
+        return get_value_from_ptr[int32_t](<int32_t *>arr.data, aindex, sindex)
+    elif dtype == GraphDataType.INT64:
+        return get_value_from_ptr[int64_t](<int64_t *>arr.data, aindex, sindex)
+    elif dtype == GraphDataType.FLOAT32:
+        return get_value_from_ptr[float](<float *>arr.data, aindex, sindex)
+    elif dtype == GraphDataType.DOUBLE:
+        return get_value_from_ptr[double](<double *>arr.data, aindex, sindex)
+
+    return None
+
+cdef void set_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex, int32_t sindex, object value):
+    if dtype == GraphDataType.BYTE:
+        set_value_from_ptr[int8_t](<int8_t *>arr.data, aindex, sindex, value)
+    elif dtype == GraphDataType.SHORT:
+        set_value_from_ptr[int16_t](<int16_t *>arr.data, aindex, sindex, value)
+    elif dtype == GraphDataType.INT32:
+        set_value_from_ptr[int32_t](<int32_t *>arr.data, aindex, sindex, value)
+    elif dtype == GraphDataType.INT64:
+        set_value_from_ptr[int64_t](<int64_t *>arr.data, aindex, sindex, value)
+    elif dtype == GraphDataType.FLOAT32:
+        set_value_from_ptr[float](<float *>arr.data, aindex, sindex, value)
+    elif dtype == GraphDataType.DOUBLE:
+        set_value_from_ptr[double](<double *>arr.data, aindex, sindex, value)
 
 cdef class Graph:
     """
@@ -190,7 +222,7 @@ cdef class Graph:
         return size
 
     # TODO: refactor the node_id, to make it can be None value
-    cpdef get_attr(self, int8_t atype, int16_t node_id, str attr_name, int32_t slot_index):
+    cpdef object get_attr(self, int8_t atype, int16_t node_id, str attr_name, int32_t slot_index):
         """
         Get value of attribute
         """
@@ -201,21 +233,10 @@ cdef class Graph:
         if atype == AttributeType.GENERAL or node_id is None:
             node_id = 0
         
+        # index of current slot
         aindex = attr.start_index + (attr.slot_num * node_id)
         
-        # TODO: try to refactor this chunck
-        if attr.dtype == GraphDataType.BYTE:
-            return get_graph_attr_value[int8_t](<int8_t *>self.arr.data, aindex, slot_index)
-        elif attr.dtype == GraphDataType.SHORT:
-            return get_graph_attr_value[int16_t](<int16_t *>self.arr.data, aindex, slot_index)
-        elif attr.dtype == GraphDataType.INT32:
-            return get_graph_attr_value[int32_t](<int32_t *>self.arr.data, aindex, slot_index)
-        elif attr.dtype == GraphDataType.INT64:
-            return get_graph_attr_value[int64_t](<int64_t *>self.arr.data, aindex, slot_index)
-        elif attr.dtype == GraphDataType.FLOAT32:
-            return get_graph_attr_value[float](<float *>self.arr.data, aindex, slot_index)
-        elif attr.dtype == GraphDataType.DOUBLE:
-            return get_graph_attr_value[double](<double *>self.arr.data, aindex, slot_index)
+        return get_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index)
 
     cpdef set_attr(self, int8_t atype, int16_t node_id, str attr_name, int8_t slot_index, object value):
         attr_key = (attr_name, atype)
@@ -227,19 +248,7 @@ cdef class Graph:
 
         aindex = attr.start_index + (attr.slot_num * node_id)
 
-        if attr.dtype == GraphDataType.BYTE:
-            set_graph_attr_value[int8_t](<int8_t *>self.arr.data, aindex, slot_index, value)
-        elif attr.dtype == GraphDataType.SHORT:
-            set_graph_attr_value[int16_t](<int16_t *>self.arr.data, aindex, slot_index, value)
-        elif attr.dtype == GraphDataType.INT32:
-            set_graph_attr_value[int32_t](<int32_t *>self.arr.data, aindex, slot_index, value)
-        elif attr.dtype == GraphDataType.INT64:
-            set_graph_attr_value[int64_t](<int64_t *>self.arr.data, aindex, slot_index, value)
-        elif attr.dtype == GraphDataType.FLOAT32:
-            set_graph_attr_value[float](<float *>self.arr.data, aindex, slot_index, value)
-        elif attr.dtype == GraphDataType.DOUBLE:
-            set_graph_attr_value[double](<double *>self.arr.data, aindex, slot_index, value)
-
+        set_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index, value)
 
     cpdef reset(self):
         cdef int64_t i = 0
@@ -417,19 +426,7 @@ cdef class SnapshotList:
                                 
                                 aindex = tindex * self.graph.size / attr.dsize + attr.start_index
                                 
-                                # TODO: refactor later
-                                if attr_dtype == GraphDataType.BYTE:
-                                    v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, attr_index)
-                                elif attr_dtype == GraphDataType.SHORT:
-                                    v = get_graph_attr_value[int16_t](<int16_t*>self.arr.data, aindex, attr_index)
-                                elif attr_dtype == GraphDataType.INT32:
-                                    v = get_graph_attr_value[int32_t](<int32_t*>self.arr.data, aindex, attr_index)
-                                elif attr_dtype == GraphDataType.INT64:
-                                    v = get_graph_attr_value[int64_t](<int64_t*>self.arr.data, aindex, attr_index)
-                                elif attr_dtype == GraphDataType.FLOAT32:
-                                    v = get_graph_attr_value[float](<float*>self.arr.data, aindex, attr_index)
-                                elif attr_dtype == GraphDataType.DOUBLE:
-                                    v = get_graph_attr_value[double](<double*>self.arr.data, aindex, attr_index)
+                                v = get_attr_value_from_array(self.arr, attr_dtype, aindex, attr_index)
 
                                 result_view[ridx] = <float>v
 
@@ -474,18 +471,7 @@ cdef class SnapshotList:
             aindex = <int32_t>(tindex * self.graph.size / attr.dsize) + attr.start_index
 
             for j in range(length):
-                if attr_dtype == GraphDataType.BYTE:
-                    v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, j)
-                elif attr_dtype == GraphDataType.SHORT:
-                    v = get_graph_attr_value[int16_t](<int16_t*>self.arr.data, aindex, j)
-                elif attr_dtype == GraphDataType.INT32:
-                    v = get_graph_attr_value[int32_t](<int32_t*>self.arr.data, aindex, j)
-                elif attr_dtype == GraphDataType.INT64:
-                    v = get_graph_attr_value[int64_t](<int64_t*>self.arr.data, aindex, j)
-                elif attr_dtype == GraphDataType.FLOAT32:
-                    v = get_graph_attr_value[float](<float*>self.arr.data, aindex, j)
-                elif attr_dtype == GraphDataType.DOUBLE:
-                    v = get_graph_attr_value[double](<double*>self.arr.data, aindex, j)
+                v = get_attr_value_from_array(self.arr, attr_dtype, aindex, j)
                 
                 ret_view[i, j] = <float>v
 
