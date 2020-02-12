@@ -410,22 +410,22 @@ class Runner:
                 self._dashboard.upload_exp_data(
                     {port_name: cur_delayed_laden}, dashboard_ep, cur_tick, 'event_delayed_laden')
         # Upload data for ep laden_planed and ep laden_executed
-        for k in from_to_executed.keys():
-            for kk in from_to_executed[k].keys():
+        for laden_source in from_to_executed.keys():
+            for laden_dest in from_to_executed[laden_source].keys():
                 self._dashboard.upload_exp_data(
                     {
-                        'from': self._port_idx2name[k],
-                        'to': self._port_idx2name[kk],
-                        'quantity': from_to_executed[k][kk]
+                        'from': self._port_idx2name[laden_source],
+                        'to': self._port_idx2name[laden_dest],
+                        'quantity': from_to_executed[laden_source][laden_dest]
                     }, dashboard_ep, None, 'laden_executed')
 
-        for k in from_to_planed.keys():
-            for kk in from_to_planed[k].keys():
+        for laden_source in from_to_planed.keys():
+            for laden_dest in from_to_planed[laden_source].keys():
                 self._dashboard.upload_exp_data(
                     {
-                        'from': self._port_idx2name[k],
-                        'to': self._port_idx2name[kk],
-                        'quantity': from_to_planed[k][kk]
+                        'from': self._port_idx2name[laden_source],
+                        'to': self._port_idx2name[laden_dest],
+                        'quantity': from_to_planed[laden_source][laden_dest]
                     }, dashboard_ep, None, 'laden_planed')
         # Upload data for ep early discharge
         total_early_discharge = 0

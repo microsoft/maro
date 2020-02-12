@@ -1,0 +1,50 @@
+dashboard:
+  enable: true
+  influxdb:
+    host: localhost
+    port: 50301
+    udp_port: 50304
+    use_udp: true
+  ranklist:
+    author: your_name
+    commit: your_commit
+    enable: true
+env:
+  max_tick: 1120
+  scenario: ecr
+  topology: 5p_ssddd_l0.8
+experiment_name: baseline2
+log:
+  agent:
+    enable: true
+  dashboard:
+    enable: true
+  dqn:
+    dropout_p: 0.95
+    enable: true
+  qnet:
+    enable: true
+  runner:
+    enable: true
+qnet:
+  seed: 0
+test:
+  max_ep: 1
+  seed: 2048
+train:
+  batch_num: 10
+  batch_size: 128
+  dqn:
+    dropout_p: 0.0
+    gamma: 0.0
+    lr: 0.05
+    target_update_frequency: 5
+    tau: 0.1
+  exploration:
+    first_phase_reduce_proportion: 0.8
+    max_eps: 0.4
+    phase_split_point: 0.5
+  max_ep: 20
+  min_train_experience_num: 1024
+  reward_shaping: tc
+  seed: 1024
