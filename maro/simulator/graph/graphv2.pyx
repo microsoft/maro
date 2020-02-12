@@ -37,15 +37,19 @@ cdef class GraphAttribute:
         # data type
         public int8_t dtype
 
+        # partition type
         public int8_t ptype
 
+        # size of data type
         public int8_t dsize
 
         # start index for this type
         public int64_t start_index
 
+        # attribute name
         public str name
 
+        # number of slot
         public int32_t slot_num
 
     def __cinit__(self, str name, int8_t dtype, int8_t ptype, int32_t slot_num):
@@ -54,6 +58,7 @@ cdef class GraphAttribute:
         self.ptype = ptype
         self.slot_num = slot_num
 
+        # TODO: refactor later
         if dtype == AttributeType.BYTE:
             self.dsize = 1
         elif dtype == AttributeType.SHORT:
@@ -67,6 +72,7 @@ cdef class GraphAttribute:
         elif dtype == AttributeType.DOUBLE:
             self.dsize = 8
 
+# fused functions to access data
 cdef graph_data_type get_graph_attr_value(graph_data_type *data, int32_t start_index, int32_t slot_index):
     return data[start_index + slot_index]
 
@@ -81,6 +87,7 @@ cdef class Graph:
     3. general data partition: contains matrix(s) or other data that not related to any node type
     """
     cdef:
+        # actual data array
         view.array arr
 
         int16_t static_node_num
@@ -89,13 +96,13 @@ cdef class Graph:
         # static nodes first, dynamic, then data
         int32_t dynamic_start_idx
 
-        # attributes for partitions
+        # attributes for partitions, key is: (partition_type, name)
         dict attr_map
 
         # total size in byte
         int64_t size
 
-        #
+        # if graph already initialized
         bool is_initialized
 
     
@@ -108,9 +115,13 @@ cdef class Graph:
         self.attr_map = {}
 
     cpdef void reg_attr(self, int8_t partition_type, str name, int8_t data_type, int32_t slot_num):
+        """
+        Register attribute
+        """
         if self.is_initialized == True:
             return
 
+        # TODO: refactor later
         attr_key = (name, partition_type)
 
         if attr_key in self.attr_map:
@@ -119,23 +130,26 @@ cdef class Graph:
         self.attr_map[attr_key] = GraphAttribute(name, data_type, partition_type, slot_num)
 
     cpdef void setup(self):
+        """
+        Setup the graph memory based on registered attributes
+        """
         cdef int32_t total_size = self.cal_partition_size()
         self.size = total_size
 
+        # allocate memory
         self.arr = view.array(shape=(1, total_size), itemsize=sizeof(int8_t), format="b")
 
         self.is_initialized = True
 
+        # initial the fields
         cdef int32_t i = 0
 
         for i in range(total_size):
             self.arr[0, i] = 0
 
-        print("total size", total_size)
-
     cdef int32_t cal_partition_size(self):
         """
-        Calculate size of partition
+        Calculate size of partition, and update attribute start index
         """
         if len(self.attr_map) == 0:
             return 0
@@ -176,10 +190,9 @@ cdef class Graph:
             attr.start_index = int(size / cur_size)
             size += attr_total_size
 
-            print(attr.name, attr.start_index)
-
         return size
 
+    # TODO: refactor the node_id, to make it can be None value
     cpdef get_attr(self, int8_t node_type, int16_t node_id, str attr_name, int32_t slot_index):
         """
         Get value of attribute
@@ -193,6 +206,7 @@ cdef class Graph:
         
         aindex = attr.start_index + (attr.slot_num * node_id)
         
+        # TODO: try to refactor this chunck
         if attr.dtype == AttributeType.BYTE:
             return get_graph_attr_value[int8_t](<int8_t *>self.arr.data, aindex, slot_index)
         elif attr.dtype == AttributeType.SHORT:
@@ -248,16 +262,23 @@ cdef class Graph:
 cdef class SnapshotList:
     cdef:
         Graph graph
-        int32_t size
-        int64_t graph_size
-        view.array arr
-        int8_t[:,:,:] data
 
-        # index of latest snapshot
+        # total size of memory
+        int32_t size
+
+        # memory size of graph
+        int64_t graph_size
+
+        # actual data 
+        view.array arr
+
+        # index and tick for snapshot query
         int32_t start_index
         int32_t end_index
         int32_t start_tick
         int32_t end_tick
+
+        # internal tick 
         int32_t tick
 
         SnapshotNodeAccessor static_acc
@@ -276,11 +297,11 @@ cdef class SnapshotList:
         self.tick = -1
         
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
-        self.data = self.arr
 
         self.static_acc = SnapshotNodeAccessor(PartitionType.STATIC_NODE, self.graph.static_node_num, self)
         self.dynamic_acc = SnapshotNodeAccessor(PartitionType.DYNAMIC_NODE, self.graph.dynamic_node_num, self)
         self.general_acc = SnapshotGeneralAccessor(self)
+        
     @property
     def static_nodes(self) -> SnapshotNodeAccessor:
         return self.static_acc
@@ -302,6 +323,13 @@ cdef class SnapshotList:
         Access general data and return the result as matrix (1, n)
         """
         pass
+
+    cpdef reset(self):
+        self.start_index = -1
+        self.end_index = -1
+        self.start_tick = 0
+        self.end_tick = -1
+        self.tick = -1
 
     cpdef void insert_snapshot(self):
         cdef int8_t[:, :] t= self.graph.arr
@@ -386,6 +414,7 @@ cdef class SnapshotList:
                                 
                                 aindex = tindex * self.graph.size / attr.dsize + attr.start_index
                                 
+                                # TODO: refactor later
                                 if attr_dtype == AttributeType.BYTE:
                                     v = get_graph_attr_value[int8_t](<int8_t*>self.arr.data, aindex, attr_index)
                                 elif attr_dtype == AttributeType.SHORT:
