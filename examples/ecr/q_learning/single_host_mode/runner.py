@@ -202,6 +202,11 @@ class Runner:
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
+                if self._dashboard is not None:
+                    vessel_name = self._vessel_idx2name[action.vessel_idx]
+                    route_name = self._env.configs['vessels'][vessel_name]['route']['route_name']
+                    port_name = self._port_idx2name[action.port_idx]
+                    self._dashboard.upload_exp_data({f'series_{port_name}_x_{route_name}': action.quantity}, ep, decision_event.tick, 'actual_action')
                 _, decision_event, is_done = self._env.step(action)
 
             train_time = OrderedDict()
@@ -233,6 +238,11 @@ class Runner:
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep)
+                if self._dashboard is not None:
+                    vessel_name = self._vessel_idx2name[action.vessel_idx]
+                    route_name = self._env.configs['vessels'][vessel_name]['route']['route_name']
+                    port_name = self._port_idx2name[action.port_idx]
+                    self._dashboard.upload_exp_data({f'series_{port_name}_x_{route_name}': action.quantity}, ep + self._max_train_ep, decision_event.tick, 'actual_action')
                 _, decision_event, is_done = self._env.step(action)
 
             if self._log_enable:
