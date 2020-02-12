@@ -352,7 +352,7 @@ cdef class SnapshotList:
 
         self.end_tick = self.tick
 
-    cpdef np.ndarray get_node_attributes(self, int8_t node_type, list ticks, list ids, list attr_names, list attr_indices, float default_value):
+    cpdef np.ndarray get_node_attrs(self, int8_t node_type, list ticks, list ids, list attr_names, list attr_indices, float default_value):
         
         # used to check if id list is valid
         
@@ -434,7 +434,7 @@ cdef class SnapshotList:
 
         return result
 
-    def get_general_attrs(self, list ticks, str attr_name, float default_value=0):
+    def get_general_attr(self, list ticks, str attr_name, float default_value=0):
         """
         
         """
@@ -546,6 +546,7 @@ cdef class SnapshotNodeAccessor:
 
         cdef tuple attributes = item.step
 
+        # correct parameters
         if type(attributes[0]) is not list:
             attribute_names = [attributes[0]]
         else:
@@ -556,7 +557,7 @@ cdef class SnapshotNodeAccessor:
         else:
             attribute_indices = attributes[1]
         
-        return self.ss.get_node_attributes(self.node_type, ticks, id_list, attribute_names, attribute_indices, 0)
+        return self.ss.get_node_attrs(self.node_type, ticks, id_list, attribute_names, attribute_indices, 0)
 
 cdef class SnapshotGeneralAccessor:
     """
@@ -577,4 +578,4 @@ cdef class SnapshotGeneralAccessor:
         else:
             ticks = item.start
 
-        return self.ss.get_general_attrs(ticks, attr_name, 0)
+        return self.ss.get_general_attr(ticks, attr_name, 0)
