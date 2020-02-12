@@ -32,6 +32,15 @@ class PartitionType(IntEnum):
     DYNAMIC_NODE = 1
     GENERAL = 2
 
+cdef dict dtype_size_map = {
+    AttributeType.BYTE : sizeof(int8_t),
+    AttributeType.SHORT : sizeof(int16_t),
+    AttributeType.INT32 : sizeof(int32_t),
+    AttributeType.INT64 : sizeof(int64_t),
+    AttributeType.FLOAT32 : sizeof(float),
+    AttributeType.DOUBLE : sizeof(double)
+}
+
 cdef class GraphAttribute:
     cdef:
         # data type
@@ -58,19 +67,20 @@ cdef class GraphAttribute:
         self.ptype = ptype
         self.slot_num = slot_num
 
+        self.dsize = dtype_size_map[dtype]
         # TODO: refactor later
-        if dtype == AttributeType.BYTE:
-            self.dsize = 1
-        elif dtype == AttributeType.SHORT:
-            self.dsize = 2
-        elif dtype == AttributeType.INT32:
-            self.dsize = 4
-        elif dtype == AttributeType.INT64:
-            self.dsize = 8
-        elif dtype == AttributeType.FLOAT32:
-            self.dsize = 4
-        elif dtype == AttributeType.DOUBLE:
-            self.dsize = 8
+        # if dtype == AttributeType.BYTE:
+        #     self.dsize = 1
+        # elif dtype == AttributeType.SHORT:
+        #     self.dsize = 2
+        # elif dtype == AttributeType.INT32:
+        #     self.dsize = 4
+        # elif dtype == AttributeType.INT64:
+        #     self.dsize = 8
+        # elif dtype == AttributeType.FLOAT32:
+        #     self.dsize = 4
+        # elif dtype == AttributeType.DOUBLE:
+        #     self.dsize = 8
 
 # fused functions to access data
 cdef graph_data_type get_graph_attr_value(graph_data_type *data, int32_t start_index, int32_t slot_index):
@@ -272,6 +282,9 @@ cdef class SnapshotList:
         # actual data 
         view.array arr
 
+        # memory view of array
+        int8_t[:, :, :] data 
+
         # index and tick for snapshot query
         int32_t start_index
         int32_t end_index
@@ -297,6 +310,7 @@ cdef class SnapshotList:
         self.tick = -1
         
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
+        self.data = self.arr
 
         self.static_acc = SnapshotNodeAccessor(PartitionType.STATIC_NODE, self.graph.static_node_num, self)
         self.dynamic_acc = SnapshotNodeAccessor(PartitionType.DYNAMIC_NODE, self.graph.dynamic_node_num, self)
