@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 4,
-  "iteration": 1581538989034,
+  "iteration": 1581571210109,
   "links": [],
   "panels": [
     {
@@ -2040,6 +2040,100 @@
       "fontSize": "80%",
       "gridPos": {
         "h": 8,
+        "w": 16,
+        "x": 8,
+        "y": 39
+      },
+      "id": 30,
+      "ignoreColumn": "",
+      "ignoreColumns": [
+        "Time",
+        "series_demand_port_001_x_route_002",
+        "series_demand_port_002_x_route_002",
+        "series_supply_port_001_x_route_001",
+        "series_supply_port_002_x_route_001",
+        "series_transfer_port_001_x_route_001",
+        "series_transfer_port_001_x_route_002",
+        "tick"
+      ],
+      "interval": null,
+      "legend": {
+        "show": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "q_value",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT /^series_/, \"tick\" FROM \"actual_action\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ep",
+              "operator": "=~",
+              "value": "/^$episode$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Actual Action on Episode $episode ",
+      "type": "grafana-dotchart-panel",
+      "xColumns": [
+        "Time",
+        "series_demand_port_001_x_route_002",
+        "series_demand_port_002_x_route_002",
+        "series_supply_port_001_x_route_001",
+        "series_supply_port_002_x_route_001",
+        "series_transfer_port_001_x_route_001",
+        "series_transfer_port_001_x_route_002",
+        "tick"
+      ],
+      "x_axis": "tick"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "10%",
+      "cacheTimeout": null,
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
         "w": 24,
         "x": 0,
         "y": 47
@@ -2132,9 +2226,8 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "review_0211_08",
-          "value": "review_0211_08"
+          "text": "review_0213_01",
+          "value": "review_0213_01"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
@@ -2158,9 +2251,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
-          "text": "50",
-          "value": "50"
+          "tags": [],
+          "text": "5",
+          "value": "5"
         },
         "datasource": "InfluxDB",
         "definition": "select \"ep\"  from \"shortage\"  WHERE \"experiment\"=~/^$experiment$/",
@@ -2184,7 +2277,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": false,
           "text": "rt1_vessel_001",
           "value": "rt1_vessel_001"
         },
@@ -2266,5 +2358,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 8
+  "version": 10
 }
