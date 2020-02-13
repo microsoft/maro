@@ -178,7 +178,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
           switch (this.panel.aggregation) {
             case 'no':
               dataToPush = _.map(groupedSeries[j].values, (d: any) => {
-                return [d.x, d.y];
+                return [Number(d.x), d.y];
               })
               break;
             case 'sum':
