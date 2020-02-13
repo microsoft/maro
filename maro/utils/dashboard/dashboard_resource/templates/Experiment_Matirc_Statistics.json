@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 4,
-  "iteration": 1581571210109,
+  "iteration": 1581584785451,
   "links": [],
   "panels": [
     {
@@ -2023,9 +2023,10 @@
       "x_axis": "action"
     },
     {
-      "aggregation": "sum",
+      "aggregation": "no",
       "aggregationOptions": [
         "sum",
+        "no",
         "max",
         "min",
         "median",
@@ -2071,7 +2072,7 @@
           "measurement": "q_value",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT /^series_/, \"tick\" FROM \"actual_action\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+          "query": "SELECT /^series_/, \"tick\" FROM \"actual_action\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode ) AND $timeFilter",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -2102,7 +2103,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Actual Action on Episode $episode ",
+      "title": "Actual Action on Episode $episode",
       "type": "grafana-dotchart-panel",
       "xColumns": [
         "Time",
@@ -2226,8 +2227,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "review_0213_01",
-          "value": "review_0213_01"
+          "selected": false,
+          "text": "review_0213_02",
+          "value": "review_0213_02"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
@@ -2251,7 +2253,7 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
+          "selected": true,
           "text": "5",
           "value": "5"
         },
@@ -2277,6 +2279,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "rt1_vessel_001",
           "value": "rt1_vessel_001"
         },
@@ -2302,8 +2305,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "7",
-          "value": "7"
+          "selected": false,
+          "text": "14",
+          "value": "14"
         },
         "datasource": "InfluxDB",
         "definition": "select \"tick\" from \"q_value\" where \"experiment\" = '$experiment' and \"ep\" = $episode",
@@ -2358,5 +2362,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 10
+  "version": 13
 }
