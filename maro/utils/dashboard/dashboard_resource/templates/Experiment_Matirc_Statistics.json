@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 4,
-  "iteration": 1581410106138,
+  "iteration": 1581538989034,
   "links": [],
   "panels": [
     {
@@ -1319,36 +1319,10 @@
       ],
       "ignoreColumns": [
         "Time",
-        "0",
-        "1",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "2",
-        "20",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "action",
-        "action_1",
         "bremerhaven_ger.policy",
         "demand_port_001.policy",
         "demand_port_002.policy",
         "durban_sau.policy",
-        "ep",
-        "ep_1",
-        "experiment",
         "itagual_bra.policy",
         "leHavre_fra.policy",
         "losAngeles_usa.policy",
@@ -1368,12 +1342,12 @@
         "supply_port_001.policy",
         "supply_port_002.policy",
         "sydney_aus.policy",
-        "tick",
         "transfer_port_001.policy",
         "transfer_port_002.policy",
         "vancouver_can.policy",
         "yantian_chn.policy",
-        "yokohama_jpn.policy"
+        "yokohama_jpn.policy",
+        "action"
       ],
       "interval": null,
       "legend": {
@@ -1391,7 +1365,7 @@
           "measurement": "q_value",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT * FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+          "query": "SELECT /.policy$/, \"action\" FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -1426,36 +1400,10 @@
       "type": "grafana-linechart-panel",
       "xColumns": [
         "Time",
-        "0",
-        "1",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "2",
-        "20",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "action",
-        "action_1",
         "bremerhaven_ger.policy",
         "demand_port_001.policy",
         "demand_port_002.policy",
         "durban_sau.policy",
-        "ep",
-        "ep_1",
-        "experiment",
         "itagual_bra.policy",
         "leHavre_fra.policy",
         "losAngeles_usa.policy",
@@ -1475,12 +1423,12 @@
         "supply_port_001.policy",
         "supply_port_002.policy",
         "sydney_aus.policy",
-        "tick",
         "transfer_port_001.policy",
         "transfer_port_002.policy",
         "vancouver_can.policy",
         "yantian_chn.policy",
-        "yokohama_jpn.policy"
+        "yokohama_jpn.policy",
+        "action"
       ],
       "x_axis": "action"
     },
@@ -1593,6 +1541,499 @@
         "deviation"
       ],
       "aliasColors": {},
+      "breakPoint": "20%",
+      "cacheTimeout": null,
+      "combine": {
+        "label": "Others",
+        "threshold": 0
+      },
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 31
+      },
+      "id": 27,
+      "ignoreColumn": [
+        "Time",
+        "ep",
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "tick",
+        "transfer_port_001",
+        "transfer_port_002"
+      ],
+      "ignoreColums": "",
+      "interval": null,
+      "legend": {
+        "show": true,
+        "values": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "event_shortage",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT * FROM \"event_shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ep",
+              "operator": "=~",
+              "value": "/^$episode$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Shortage on Episode $episode",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "tick",
+        "transfer_port_001",
+        "transfer_port_002"
+      ],
+      "x_axis": "tick"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "20%",
+      "cacheTimeout": null,
+      "combine": {
+        "label": "Others",
+        "threshold": 0
+      },
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 31
+      },
+      "id": 28,
+      "ignoreColumn": [
+        "Time",
+        "ep",
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "tick",
+        "transfer_port_001",
+        "transfer_port_002"
+      ],
+      "ignoreColums": "",
+      "interval": null,
+      "legend": {
+        "show": true,
+        "values": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "event_shortage",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT * FROM \"event_early_discharge\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ep",
+              "operator": "=~",
+              "value": "/^$episode$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Early Discharge on Episode $episode",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "tick",
+        "transfer_port_001",
+        "transfer_port_002"
+      ],
+      "x_axis": "tick"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "20%",
+      "cacheTimeout": null,
+      "combine": {
+        "label": "Others",
+        "threshold": 0
+      },
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 31
+      },
+      "id": 29,
+      "ignoreColumn": [
+        "Time",
+        "ep",
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "tick",
+        "transfer_port_001",
+        "transfer_port_002"
+      ],
+      "ignoreColums": "",
+      "interval": null,
+      "legend": {
+        "show": true,
+        "values": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "event_shortage",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT * FROM \"event_delayed_laden\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ep",
+              "operator": "=~",
+              "value": "/^$episode$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Delayed Laden on Episode $episode",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "demand_port_001",
+        "demand_port_002",
+        "ep",
+        "experiment",
+        "supply_port_001",
+        "supply_port_002",
+        "tick",
+        "transfer_port_001",
+        "transfer_port_002"
+      ],
+      "x_axis": "tick"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
+      "breakPoint": "20%",
+      "cacheTimeout": null,
+      "combine": {
+        "label": "Others",
+        "threshold": 0
+      },
+      "datasource": null,
+      "fontSize": "80%",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 39
+      },
+      "id": 26,
+      "ignoreColumn": [
+        "Time",
+        "0",
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "2",
+        "20",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "action",
+        "ep",
+        "experiment"
+      ],
+      "ignoreColumns": [
+        "Time",
+        "bremerhaven_ger.policy",
+        "demand_port_001.policy",
+        "demand_port_002.policy",
+        "durban_sau.policy",
+        "itagual_bra.policy",
+        "leHavre_fra.policy",
+        "losAngeles_usa.policy",
+        "manzanillo_mex.policy",
+        "melbourne_aus.policy",
+        "montreal_can.policy",
+        "newYork_usa.policy",
+        "oakland_usa.policy",
+        "princeRupert_can.policy",
+        "pusan_kor.policy",
+        "qingdao_chn.policy",
+        "sanAntonio_par.policy",
+        "santos_bra.policy",
+        "seattle_usa.policy",
+        "shanghai_chn.policy",
+        "singapore_sgp.policy",
+        "supply_port_001.policy",
+        "supply_port_002.policy",
+        "sydney_aus.policy",
+        "transfer_port_001.policy",
+        "transfer_port_002.policy",
+        "vancouver_can.policy",
+        "yantian_chn.policy",
+        "yokohama_jpn.policy",
+        "action"
+      ],
+      "interval": null,
+      "legend": {
+        "show": true,
+        "values": true
+      },
+      "legendType": "Under graph",
+      "links": [],
+      "maxDataPoints": 3,
+      "nullPointMode": "connected",
+      "options": {},
+      "targets": [
+        {
+          "groupBy": [],
+          "measurement": "q_value",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT /.policy$/, \"action\" FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode AND \"tick\" = $action_tick) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "table",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "experiment",
+              "operator": "=~",
+              "value": "/^$experiment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "ep",
+              "operator": "=~",
+              "value": "/^$episode$/"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Q_Curve on Episode $episode at Tick $action_tick",
+      "type": "grafana-linechart-panel",
+      "xColumns": [
+        "Time",
+        "bremerhaven_ger.policy",
+        "demand_port_001.policy",
+        "demand_port_002.policy",
+        "durban_sau.policy",
+        "itagual_bra.policy",
+        "leHavre_fra.policy",
+        "losAngeles_usa.policy",
+        "manzanillo_mex.policy",
+        "melbourne_aus.policy",
+        "montreal_can.policy",
+        "newYork_usa.policy",
+        "oakland_usa.policy",
+        "princeRupert_can.policy",
+        "pusan_kor.policy",
+        "qingdao_chn.policy",
+        "sanAntonio_par.policy",
+        "santos_bra.policy",
+        "seattle_usa.policy",
+        "shanghai_chn.policy",
+        "singapore_sgp.policy",
+        "supply_port_001.policy",
+        "supply_port_002.policy",
+        "sydney_aus.policy",
+        "transfer_port_001.policy",
+        "transfer_port_002.policy",
+        "vancouver_can.policy",
+        "yantian_chn.policy",
+        "yokohama_jpn.policy",
+        "action"
+      ],
+      "x_axis": "action"
+    },
+    {
+      "aggregation": "sum",
+      "aggregationOptions": [
+        "sum",
+        "max",
+        "min",
+        "median",
+        "mean",
+        "variance",
+        "deviation"
+      ],
+      "aliasColors": {},
       "breakPoint": "10%",
       "cacheTimeout": null,
       "datasource": null,
@@ -1601,7 +2042,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 47
       },
       "id": 14,
       "ignoreColumn": [
@@ -1691,6 +2132,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": false,
           "text": "review_0211_08",
           "value": "review_0211_08"
         },
@@ -1716,8 +2158,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "0",
-          "value": "0"
+          "selected": false,
+          "text": "50",
+          "value": "50"
         },
         "datasource": "InfluxDB",
         "definition": "select \"ep\"  from \"shortage\"  WHERE \"experiment\"=~/^$experiment$/",
@@ -1741,6 +2184,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": false,
           "text": "rt1_vessel_001",
           "value": "rt1_vessel_001"
         },
@@ -1753,6 +2197,31 @@
         "name": "vessel",
         "options": [],
         "query": "select \"vessel\"  from \"vessel_usage\"  WHERE \"experiment\"=~/^$experiment$/",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "text": "7",
+          "value": "7"
+        },
+        "datasource": "InfluxDB",
+        "definition": "select \"tick\" from \"q_value\" where \"experiment\" = '$experiment' and \"ep\" = $episode",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Action Tick",
+        "multi": false,
+        "name": "action_tick",
+        "options": [],
+        "query": "select \"tick\" from \"q_value\" where \"experiment\" = '$experiment' and \"ep\" = $episode",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -1797,5 +2266,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 4
+  "version": 8
 }
