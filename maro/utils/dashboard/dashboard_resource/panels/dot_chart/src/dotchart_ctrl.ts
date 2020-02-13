@@ -172,7 +172,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
             }
           })
           .entries(dataSeries);
-        const groupedData: any[] = [];
+        let groupedData: any[] = [];
         for (let j = 0; j < groupedSeries.length; j++) {
           let dataToPush = [];
           switch (this.panel.aggregation) {
@@ -262,7 +262,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
           }
           if (this.panel.aggregation === 'no') {
-            groupedData.concat(dataToPush);
+            groupedData = groupedData.concat(dataToPush);
           }
           else {
             groupedData.push(dataToPush);
