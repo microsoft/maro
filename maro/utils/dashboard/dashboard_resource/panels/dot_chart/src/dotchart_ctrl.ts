@@ -30,7 +30,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
       ignoreColumn: '',
       ignoreColumns: [],
       aggregation: 'sum',
-      aggregationOptions: ['sum', 'max', 'min', 'median', 'mean', 'variance', 'deviation'],
+      aggregationOptions: ['sum', 'no', 'max', 'min', 'median', 'mean', 'variance', 'deviation'],
       legend: {
         show: true, // disable/enable legend
       },
@@ -174,10 +174,15 @@ class DotChartCtrl extends MetricsPanelCtrl {
           .entries(dataSeries);
         const groupedData: any[] = [];
         for (let j = 0; j < groupedSeries.length; j++) {
-          let datToPush = [];
+          let dataToPush = [];
           switch (this.panel.aggregation) {
+            case 'no':
+              dataToPush = _.map(groupedSeries[j].values, (d: any) => {
+                return [d.x, d.y];
+              })
+              break;
             case 'sum':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.sum(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -187,7 +192,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             case 'max':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.max(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -197,7 +202,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             case 'min':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.min(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -207,7 +212,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             case 'mean':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.mean(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -217,7 +222,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             case 'median':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.median(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -227,7 +232,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             case 'variance':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.variance(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -237,7 +242,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             case 'deviation':
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.deviation(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -247,7 +252,7 @@ class DotChartCtrl extends MetricsPanelCtrl {
               ];
               break;
             default:
-              datToPush = [
+              dataToPush = [
                 Number(groupedSeries[j].key),
                 d3.sum(
                   _.map(groupedSeries[j].values, (d: any) => {
@@ -256,7 +261,12 @@ class DotChartCtrl extends MetricsPanelCtrl {
                 ),
               ];
           }
-          groupedData.push(datToPush);
+          if (this.panel.aggregation === 'no') {
+            groupedData.concat(dataToPush);
+          }
+          else {
+            groupedData.push(dataToPush);
+          }
         }
 
         series.push({

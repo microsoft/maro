@@ -64,6 +64,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
           fill: false,
           // eg: rgba(255, 255, 255, 0.8)
           fillColor: null,
+          radius:1,
         },
         // 0 = no shadow
         shadowSize: 0,
@@ -125,6 +126,8 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       const formatted = ctrl.formatValue(item.datapoint[1]);
 
       body = '<div class="dotchart-tooltip-small"><div class="dotchart-tooltip-time">';
+      body += '<div class="dotchart-tooltip-value">' + _.escape(ctrl.panel.x_axis) + ': ' + _.escape(item.datapoint[0]);
+      body += '</div>';
       body += '<div class="dotchart-tooltip-value">' + _.escape(item.series.label) + ': ' + formatted;
       body += '</div>';
       body += '</div></div>';
