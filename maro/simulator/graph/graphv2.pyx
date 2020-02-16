@@ -143,7 +143,7 @@ cdef class Graph:
 
         self.attr_map = {}
 
-    cpdef void reg_attr(self, int8_t atype, str name, int8_t data_type, int32_t slot_num):
+    cpdef void register_attribute(self, int8_t atype, str name, int8_t data_type, int32_t slot_num):
         """
         Register attribute
         """
@@ -222,7 +222,7 @@ cdef class Graph:
         return size
 
     # TODO: refactor the node_id, to make it can be None value
-    cpdef object get_attr(self, int8_t atype, int16_t node_id, str attr_name, int32_t slot_index):
+    cpdef object get_attribute(self, int8_t atype, int16_t node_id, str attr_name, int32_t slot_index):
         """
         Get value of attribute
         """
@@ -238,7 +238,7 @@ cdef class Graph:
         
         return get_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index)
 
-    cpdef set_attr(self, int8_t atype, int16_t node_id, str attr_name, int8_t slot_index, object value):
+    cpdef set_attribute(self, int8_t atype, int16_t node_id, str attr_name, int8_t slot_index, object value):
         attr_key = (attr_name, atype)
 
         attr = self.attr_map[attr_key]
@@ -295,7 +295,7 @@ cdef class SnapshotList:
         SnapshotGeneralAccessor general_acc
 
 
-    def __cinit__(self, int32_t size, Graph graph):
+    def __cinit__(self, Graph graph, int32_t size, ):
         self.graph = graph
         self.size = size
         self.graph_size = graph.size
@@ -334,6 +334,27 @@ cdef class SnapshotList:
         """
         pass
 
+    @property
+    def dynamic_node_number(self) -> int:
+        return self.graph.dynamic_node_num
+
+    @property
+    def static_node_number(self) -> int:
+        return self.graph.static_node_num
+
+    @property
+    def attributes(self):
+        result = []
+
+        for attr_key, attr in self.graph.attr_map.items():
+            result.append({
+                "name": attr.name,
+                "slot length": attr.slot_num,
+                "attribute type": attr.atype
+            })
+
+        return result        
+
     cpdef reset(self):
         self.start_index = -1
         self.end_index = -1
@@ -364,7 +385,7 @@ cdef class SnapshotList:
 
         self.end_tick = self.tick
 
-    cpdef np.ndarray get_node_attrs(self, int8_t atype, list ticks, list ids, list attr_names, list attr_indices, float default_value):
+    cpdef np.ndarray get_node_attributes(self, int8_t atype, list ticks, list ids, list attr_names, list attr_indices, float default_value):
         
         # used to check if id list is valid
         
@@ -434,7 +455,7 @@ cdef class SnapshotList:
 
         return result
 
-    def get_general_attr(self, list ticks, str attr_name, float default_value=0):
+    def get_general_attribute(self, list ticks, str attr_name, float default_value=0):
         """
         
         """
@@ -546,7 +567,7 @@ cdef class SnapshotNodeAccessor:
         else:
             attr_indices = attributes[1]
         
-        return self.ss.get_node_attrs(self.atype, ticks, id_list, attr_names, attr_indices, 0)
+        return self.ss.get_node_attributes(self.atype, ticks, id_list, attr_names, attr_indices, 0)
 
 cdef class SnapshotGeneralAccessor:
     """
@@ -567,4 +588,4 @@ cdef class SnapshotGeneralAccessor:
         else:
             ticks = item.start
 
-        return self.ss.get_general_attr(ticks, attr_name, 0)
+        return self.ss.get_general_attribute(ticks, attr_name, 0)
