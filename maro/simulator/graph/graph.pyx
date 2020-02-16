@@ -257,11 +257,11 @@ cdef class Graph:
             self.arr[0, i] = 0
 
     @property
-    def static_node_num(self) -> int:
+    def static_node_number(self) -> int:
         return self.static_node_num
 
     @property
-    def dynamic_node_num(self) -> int:
+    def dynamic_node_number(self) -> int:
         return self.dynamic_node_num
 
 
@@ -328,11 +328,11 @@ cdef class SnapshotList:
         return self.general_acc
 
     @property
-    def maxtrix(self):
+    def matrix(self):
         """
         Access general data and return the result as matrix (1, n)
         """
-        pass
+        return self.general_acc
 
     @property
     def dynamic_node_number(self) -> int:
@@ -445,8 +445,8 @@ cdef class SnapshotList:
 
                             if attr_index < attr.slot_num:
                                 
-                                aindex = tindex * self.graph.size / attr.dsize + attr.start_index
-                                
+                                aindex = <int32_t>(tindex * self.graph.size / attr.dsize) + attr.start_index + (attr.slot_num * node_id)
+ 
                                 v = get_attr_value_from_array(self.arr, attr_dtype, aindex, attr_index)
 
                                 result_view[ridx] = <float>v
@@ -500,10 +500,10 @@ cdef class SnapshotList:
 
     
     def ticks(self):
-        return [i for i in range(self.end_tick-self.cur_size+1, self.end_tick+1)]
+        return [i for i in range(self.start_tick, self.end_tick+1)]
 
     def __len__(self):
-        return self.cur_size
+        return self.end_tick - self.start_tick + 1
 
 
     
