@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+from heapq import heappush, heappop
 from enum import IntEnum
 from collections import defaultdict
 from typing import List, Dict, Callable
@@ -40,8 +40,9 @@ class Event:
         payload (object): payload of this event
         tag (EventTag): tag mark of this event
     """
-    def __init__(self, tick: int, event_type: int, payload, tag: int):
+    def __init__(self, tick: int, event_type: int, payload, tag: int, priority: int = 0):
         self.tick = tick
+        self.priority = priority
         self.payload = None
         self.source = None
         self.target = None
@@ -50,6 +51,10 @@ class Event:
         self.tag = tag
         self.event_type = event_type
         self.state = EventState.PENDING
+
+    def __lt__(self, other):
+        # since heapq is small endian heap, so we expect self large than other, that we can make bigger number has higher priority
+        return self.priority > other.priority
 
     def __repr__(self):
         return f"{{ tick: {self.tick}, type: {self.event_type}, " \
@@ -62,9 +67,9 @@ class EventBuffer:
     """
     def __init__(self):
         self._pending_events = defaultdict(list)
+        self._pending_buffer = [] # used to hold poped cascade events
         self._handlers = defaultdict(list)
         self._finished_events = []  # used to hold all the events that being processed
-        self._current_index = 0  # index of current pending event
 
     def get_finished_events(self) -> List[Event]:
         """Get all the processed events, call this function before reset method
@@ -110,34 +115,36 @@ class EventBuffer:
             After reset the get_finished_event method will return empty list
         """
         self._pending_events = defaultdict(list)
+        self._pending_buffer = []
         self._finished_events = []
-        self._current_index = 0
 
-    def gen_atom_event(self, tick: int, event_type: int, payload: object) -> Event:
+    def gen_atom_event(self, tick: int, event_type: int, payload: object, priority: int = 0) -> Event:
         """Generate an atom event
 
         Args:
             tick (int): tick that the event will be processed
             event_type (int): type of this event
             payload (object): payload of event, used to pass data to handlers
+            priority (int): priority of this event, larger number has higher priority (executed first in same tick)
 
         Returns:
             Event: Event object with ATOM tag
         """
-        return Event(tick, event_type, payload, EventTag.ATOM)
+        return Event(tick, event_type, payload, EventTag.ATOM, priority)
 
-    def gen_cascade_event(self, tick: int, event_type: int, payload: object) -> Event:
+    def gen_cascade_event(self, tick: int, event_type: int, payload: object, priority: int = 0) -> Event:
         """Generate an cascade event that used to retrieve action from agent
 
         Args:
             tick (int): tick that the event will be processed
             event_type (int): type of this event
             payload (object): payload of event, used to pass data to handlers
+            priority (int): priority of this event, larger number has higher priority (executed first in same tick)
 
         Returns:
             Event: Event object with CASCADE tag
         """
-        return Event(tick, event_type, payload, EventTag.CASCADE)
+        return Event(tick, event_type, payload, EventTag.CASCADE, priority)
 
     def register_event_handler(self, event_type: int, handler: Callable):
         """Register an event with handler, when there is an event need to be processed, EventBuffer will invoke the handler
@@ -154,7 +161,11 @@ class EventBuffer:
         Args:
             event (Event): event to insert, usually get event object from get_atom_event or get_cascade_event
         """
-        self._pending_events[event.tick].append(event)
+        #self._pending_events[event.tick].append(event)
+        target_queue = self._pending_events[event.tick]
+
+        # we use lenght of current queue to make sure the insert order with same prority will not be changed
+        heappush(target_queue, (event, len(target_queue)))
 
     def execute(self, tick) -> List[Event]:
         """Process and dispatch event by tick
@@ -165,59 +176,72 @@ class EventBuffer:
         Returns:
             List[Event]: pending cascade event list
         """
+        # if there is event in pending pool, we should due with it
+        if len(self._pending_buffer) > 0:
+            self._process_event(self._pending_buffer[0])
+
+            del self._pending_buffer[0]
+
+            if len(self._pending_buffer) > 0 and self._pending_buffer[0].state == EventState.PENDING:
+                # if there is any pending cascade event, then process it 
+                return self._pending_buffer
+            else:
+                # or finish them, and add into finish pool
+                for event in self._pending_buffer:
+                    self._finished_events.append(event)
+
+        # process by ticks
         if tick in self._pending_events:
             cur_events = self._pending_events[tick]
 
             # 1. check if current events match tick
-            while self._current_index < len(cur_events):
-                event = cur_events[self._current_index]
+            while len(cur_events) > 0:
+                event, _ = cur_events[0]
 
                 # 2. check if it is a cascade event and its state, we only process cascade events that in pending state
                 if event.tag == EventTag.CASCADE and event.state == EventState.PENDING:
                     # NOTE: here we return all the cascade events next to current one
-                    result = []
 
-                    for j in range(self._current_index, len(cur_events)):
-                        if cur_events[j].tag == EventTag.CASCADE:
-                            result.append(cur_events[j])
+                    while len(cur_events) > 0:
+                        evt, _ = cur_events[0]
 
-                    return result
+                        if evt.tag == EventTag.CASCADE:
+                            self._pending_buffer.append(evt)
 
-                # 3. or it is an atom event, just invoke the handlers
-                if event.state == EventState.FINISHED:
-                    self._current_index += 1
-                    continue
+                            # pop as we find the result
+                            heappop(cur_events)
+                        else:
+                            break
 
-                # 3.1. if handler exist
-                if event.event_type and event.event_type in self._handlers:
-                    handlers = self._handlers[event.event_type]
+                    return self._pending_buffer
+                
+                self._process_event(event)
 
-                    for handler in handlers:
-                        handler(event)
-
-                # 3.2. sub events
-                for sub_event in event.immediate_event_list:
-                    if sub_event.event_type in self._handlers:
-                        handlers = self._handlers[sub_event.event_type]
-
-                        for handler in handlers:
-                            handler(sub_event)
-
-                        sub_event.state = EventState.FINISHED
-
-                event.state = EventState.FINISHED
-
-                # remove process event
-                # NOTE: bad performance
-                cur_events[self._current_index] = None
-                self._current_index += 1
-
-                self._finished_events.append(event)
-
-            # reset
-            self._current_index = 0
         return []
 
+    def _process_event(self, event: Event):
+        # 3. or it is an atom event, just invoke the handlers
+        if event.state != EventState.FINISHED:
+            # 3.1. if handler exist
+            if event.event_type and event.event_type in self._handlers:
+                handlers = self._handlers[event.event_type]
+
+                for handler in handlers:
+                    handler(event)
+
+            # 3.2. sub events
+            for sub_event in event.immediate_event_list:
+                if sub_event.event_type in self._handlers:
+                    handlers = self._handlers[sub_event.event_type]
+
+                    for handler in handlers:
+                        handler(sub_event)
+
+                    sub_event.state = EventState.FINISHED
+
+            event.state = EventState.FINISHED
+
+        self._finished_events.append(event)
 
                     
 
