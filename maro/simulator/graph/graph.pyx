@@ -568,7 +568,7 @@ cdef class SnapshotList:
         self.end_index = -1
         self.start_tick = 0
         self.end_tick = -1
-
+        
     cpdef void insert_snapshot(self, int32_t tick):
         '''Insert a snapshot from graph'''
         # check if the tick is valid
@@ -580,7 +580,7 @@ cdef class SnapshotList:
         # if tick is same with current end_tick, then means we need to override
         # NOTE: we do not support override previous snapshot now
         if tick == self.end_tick:
-            self.data[self.end_tick::] = t
+            self.data[tick::] = t
             
             return
 

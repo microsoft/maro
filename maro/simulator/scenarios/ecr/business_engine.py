@@ -221,11 +221,8 @@ class EcrBusinessEngine(AbsBusinessEngine):
         port: Port = self._ports[port_idx]
         vessel: Vessel = self._vessels[vessel_idx]
         vessel_empty = vessel.empty
-        vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
-        vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
-        vessel.remaining_space = vessel_remaining_space
 
-        return ActionScope(load=min(port.empty, vessel_remaining_space), discharge=vessel_empty)
+        return ActionScope(load=min(port.empty, vessel.remaining_space), discharge=vessel_empty)
 
     def early_discharge(self, vessel_idx: int) -> int:
         """
@@ -319,7 +316,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             self._ports.append(Port(self._graph, port_idx, port_name))
 
         for vessel_idx, vessel_name in self._data_generator.node_mapping["dynamic"].items():
-            self._vessels.append(Vessel(self._graph, vessel_idx, vessel_name))
+            self._vessels.append(Vessel(self._graph, vessel_idx, vessel_name, self._data_generator.container_volume))
 
         self._full_on_ports = GraphMatrixAccessor(self._graph, "full_on_ports", port_num, port_num)
         self._full_on_vessels = GraphMatrixAccessor(self._graph, "full_on_vessels", vessel_num, port_num)
@@ -489,9 +486,6 @@ class EcrBusinessEngine(AbsBusinessEngine):
             port.empty += early_discharge_number
             vessel.early_discharge = early_discharge_number
 
-        # update remaining space
-        vessel.remaining_space = vessel.capacity - (vessel.empty + vessel.full) * container_volume
-
     def _on_departure(self, evt: Event):
         """
         Handler to process event when there is a vessel leaving from port
@@ -579,11 +573,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 port_empty = port.empty
                 vessel_empty = vessel.empty
 
-                vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
-                vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
-                vessel.remaining_space = vessel_remaining_space
-
-                assert -min(port.empty, vessel_remaining_space) <= move_num <= vessel_empty
+                assert -min(port.empty, vessel.remaining_space) <= move_num <= vessel_empty
 
                 port.empty = port_empty + move_num
                 vessel.empty = vessel_empty - move_num

@@ -35,7 +35,7 @@ class DiscreteActionShaping():
             action_index (int): Module output.
         '''
         assert(0 <= action_index < len(self._action_space))
-
+        
         if action_index < self._zero_action_index:
             return max(round(self._action_space[action_index] * port_empty), -vessel_remaining_space)
 

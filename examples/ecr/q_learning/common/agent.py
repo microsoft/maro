@@ -232,11 +232,12 @@ class Agent(object):
         port_states = snapshot_list.static_nodes[
                       cur_tick: cur_port_idx: (['empty', 'full', 'on_shipper', 'on_consignee'], 0)]
         vessel_states = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
+                        cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space', 'capacity'], 0)]
         early_discharge = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
         self._port_states_cache.append(port_states)
         self._vessel_states_cache.append(vessel_states)
+
         actual_action = self._action_shaping(scope=action_scope, action_index=action_index, port_empty=port_states[0],
                                              vessel_remaining_space=vessel_states[2], early_discharge=early_discharge)
         self._actual_action_cache.append(actual_action)

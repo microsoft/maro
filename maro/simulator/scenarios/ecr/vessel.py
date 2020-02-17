@@ -11,7 +11,7 @@ class Vessel:
     Wrapper that present a vessel in ECR problem and hide the detail of graph accessing
     """
 
-    def __init__(self, graph: Graph, idx: int, name: str):
+    def __init__(self, graph: Graph, idx: int, name: str, container_volume: int):
         """
         Create a new instance of vessel
 
@@ -19,10 +19,13 @@ class Vessel:
             graph (Graph): graph that the vessel belongs to
             idx (int): index of this vessel
             name (str): name of this vessel
+            container_volume (int): container volume
         """
         self._graph = graph
         self._idx = idx
         self._name = name
+        self._container_volume = container_volume
+        self._total_space = 0
 
     def reset(self):
         """
@@ -36,6 +39,11 @@ class Vessel:
         Index of vessel
         """
         return self._idx
+    
+    @property
+    def total_space(self) -> int:
+        """Total space"""
+        return self._total_space
 
     @property
     def name(self) -> str:
@@ -55,6 +63,8 @@ class Vessel:
     def capacity(self, value: float):
         self._graph.set_attribute(AT_DYNAMIC, self._idx, "capacity", 0, value)
 
+        self._total_space = self._container_volume * value
+
     @property
     def empty(self) -> int:
         """
@@ -66,6 +76,8 @@ class Vessel:
     def empty(self, value: int):
         self._graph.set_attribute(AT_DYNAMIC, self._idx, "empty", 0, value)
 
+        self._update_remaining_space(self.full, value)
+
     @property
     def full(self) -> int:
         """
@@ -76,6 +88,8 @@ class Vessel:
     @full.setter
     def full(self, value: int):
         self._graph.set_attribute(AT_DYNAMIC, self._idx, "full", 0, value)
+
+        self._update_remaining_space(value, self.empty)
 
     @property
     def early_discharge(self) -> int:
@@ -126,10 +140,6 @@ class Vessel:
     def remaining_space(self):
         return self._graph.get_attribute(AT_DYNAMIC, self._idx, "remaining_space", 0)
 
-    @remaining_space.setter
-    def remaining_space(self, value: float):
-        self._graph.set_attribute(AT_DYNAMIC, self._idx, "remaining_space", 0, value)
-
     def set_stop_list(self, stop_list: tuple):
         """
         Set the future stops (configured in config) when the vessel arrive at a port
@@ -149,3 +159,6 @@ class Vessel:
                     AT_DYNAMIC, self._idx, feature[1], i, port_idx)
                 self._graph.set_attribute(
                     AT_DYNAMIC, self._idx, feature[2], i, tick)
+
+    def _update_remaining_space(self, full:int, empty: int):
+        self._graph.set_attribute(AT_DYNAMIC, self._idx, "remaining_space", 0, self._total_space - full - empty)
