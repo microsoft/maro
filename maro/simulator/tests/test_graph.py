@@ -4,13 +4,13 @@
 
 import unittest
 
-from maro.simulator.graph import Graph, GraphDataType, AttributeType, GraphAttribute
+from maro.simulator.graph import Graph, GraphDataType, GraphAttributeType, GraphAttribute
 
 STATIC_NODE_NUM = 10
 DYNAMIC_NODE_NUM = 10
-DYNAMIC_NODE = AttributeType.DYNAMIC_NODE
-STATIC_NODE = AttributeType.STATIC_NODE
-GENERAL = AttributeType.GENERAL
+DYNAMIC_NODE = GraphAttributeType.DYNAMIC_NODE
+STATIC_NODE = GraphAttributeType.STATIC_NODE
+GENERAL = GraphAttributeType.GENERAL
 
 class TestGraph(unittest.TestCase):
     def setUp(self):

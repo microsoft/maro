@@ -4,17 +4,17 @@
 
 import unittest
 
-from maro.simulator.graph import Graph, SnapshotList, GraphDataType, AttributeType, GraphAttribute
+from maro.simulator.graph import Graph, SnapshotList, GraphDataType, GraphAttributeType, GraphAttribute
 
 STATIC_NODE_NUM = 10
 DYNAMIC_NODE_NUM = 10
 MAX_TICK = 10
 
-STATIC = AttributeType.STATIC_NODE
-DYNAMIC = AttributeType.DYNAMIC_NODE
-GENERAL = AttributeType.GENERAL
+STATIC = GraphAttributeType.STATIC_NODE
+DYNAMIC = GraphAttributeType.DYNAMIC_NODE
+GENERAL = GraphAttributeType.GENERAL
 INT = GraphDataType.INT32
-FLOAT = GraphDataType.FLOAT32
+FLOAT = GraphDataType.FLOAT
 
 
 class TestGraph(unittest.TestCase):

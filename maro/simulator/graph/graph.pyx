@@ -11,6 +11,7 @@ from math import ceil
 
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 
+# fused type for graph data
 ctypedef fused graph_data_type:
     int8_t
     int16_t
@@ -21,7 +22,7 @@ ctypedef fused graph_data_type:
 
 class GraphDataType(IntEnum):
     """
-    
+    Data type of graph
     """
     BYTE = 0
     SHORT = 1
@@ -30,7 +31,10 @@ class GraphDataType(IntEnum):
     FLOAT = 4
     DOUBLE = 5
     
-class AttributeType(IntEnum):
+class GraphAttributeType(IntEnum):
+    """
+    Type of attribute belongs to
+    """
     STATIC_NODE = 0
     DYNAMIC_NODE = 1
     GENERAL = 2
@@ -43,10 +47,12 @@ cdef int8_t DT_INT64 = GraphDataType.INT64
 cdef int8_t DT_FLOAT = GraphDataType.FLOAT
 cdef int8_t DT_DOUBLE = GraphDataType.DOUBLE
 
-cdef int8_t AT_STATIC = AttributeType.STATIC_NODE
-cdef int8_t AT_DYNAMIC = AttributeType.DYNAMIC_NODE
-cdef int8_t AT_GENERAL = AttributeType.GENERAL
+cdef int8_t AT_STATIC = GraphAttributeType.STATIC_NODE
+cdef int8_t AT_DYNAMIC = GraphAttributeType.DYNAMIC_NODE
+cdef int8_t AT_GENERAL = GraphAttributeType.GENERAL
 
+# mapping from data type to size
+# TODO: any good ways for this?
 cdef dict dtype_size_map = {
     DT_BYTE : sizeof(int8_t),
     DT_SHORT : sizeof(int16_t),
@@ -56,7 +62,72 @@ cdef dict dtype_size_map = {
     DT_DOUBLE : sizeof(double)
 }
 
+class GraphError(Exception):
+    '''Base exception of graph'''
+    def __init__(self, msg):
+        self.message = msg
+
+
+class GraphMemoryError(GraphError):
+    '''Exception when we meet an memory issue when accessing graph'''
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class GraphInvalidAccessError(GraphError):
+    '''Exception that for invalid accessing, such as wrong index, etc.'''
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class GraphNotInitializeError(GraphError):
+    '''Graph being used while not being setup'''
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class GraphAttributeNotFoundError(GraphError):
+    '''Try to access graph with not registered attribute'''
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class GraphAttributeExistError(GraphError):
+    '''Try to register attribute with exist name'''
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class GraphAttributeNotRegisteredError(GraphError):
+    '''Try to setup a graph without registered any attributes'''
+    def __init__(self):
+        super().__init__("Graph has no attributes registered.")
+
+
+class GraphAlreadySetupError(GraphError):
+    '''Try to register an attribute after setup'''
+    def __init__(self):
+        super().__init__("Graph already being setup, cannot register attributes.")
+
+
+class GraphAlreadySetupError(GraphError):
+    '''Try to register an attribute after setup'''
+    def __init__(self):
+        super().__init__("Graph already being setup, cannot register attributes.")
+
+class SnapshotAccessError(GraphError):
+    '''Snapshot cannot be wrote'''
+    def __init__(self):
+        super().__init__("Snapshot cannot be wrote.")
+
+
+class SnapshotSliceError(GraphError):
+    '''Using invalid parameter to query snapshot with slice interface'''
+    def __init__(self, msg):
+        super().__init__(msg)
+
 cdef class GraphAttribute:
+    '''Used to wrapper attribute accessing information internally'''
     cdef:
         # data type: GraphDataType
         public int8_t dtype
@@ -68,7 +139,7 @@ cdef class GraphAttribute:
         public int8_t dsize
 
         # start index for this type
-        public int64_t start_index
+        public int32_t start_index
 
         # attribute name
         public str name
@@ -92,7 +163,8 @@ cdef void set_value_from_ptr(graph_data_type *data, int32_t start_index, int32_t
     data[start_index + slot_index] = value
 
 
-# functions to cast data to access data
+# functions to cast and access data
+# TODO: good ways to refine this?
 cdef object get_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex, int32_t sindex):
     if dtype == DT_BYTE:
         return get_value_from_ptr[int8_t](<int8_t *>arr.data, aindex, sindex)
@@ -124,18 +196,42 @@ cdef void set_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex
         set_value_from_ptr[double](<double *>arr.data, aindex, sindex, value)
 
 cdef class Graph:
-    """
-    Each Graph object will contain 3 types of attribute:
-    1. static node attributes
-    2. dynamic node attributes
-    3. general data partition: contains matrix(s) or other data that not related to any node type
-    """
+    '''Graph used to hold attributes for both static and dynamic nodes.
+    To initialize a graph, attributes must to be registered before setup.
+    Example:
+        Create a simple graph that with 10 static and 10 dynamic nodes, and attributes like "attr1", "attr2":
+            static_node_num = 10
+            dynamic_node_num = 10
+
+            # init the graph object first
+            graph = Graph(static_node_num, dynamic_node_num)
+
+            # then register attributes
+            # register an attribute named "attr1", its data type is float, can hold 1 value (slot)
+            graph.register_attribute(GraphAttributeType.DYNAMIC, "attr1", GraphDataType.FLOAT, 1)
+            
+            # register an attribute named "attr2", its data type is int, can hold 2 value (slots)
+            graph.register_attribute(GraphAttributeType.STATIC, "attr2", GraphDataType.INT32, 2)
+            
+            # then we can setup the graph for using
+            graph.setup()
+            
+            # the graph is ready to accessing now
+            # get an attribute (first slot) of a static node that id is 0
+            a1 = graph.get_attribute(GraphAttributeType.DYNAMIC, 0, "attr1", 0)
+            
+            # set an attribute (2nd slot) of a dynamic node that id is 0
+            graph.set_attribute(GraphAttributeType.DYNAMIC, 0, "attr1", 1, 123)
+    Args:
+        static_node_num (int): number of static nodes in graph
+        dynamic_node_num (int): number of dynamic nodes in graph
+    '''
     cdef:
         # actual data array
         view.array arr
 
-        int16_t static_node_num
-        int16_t dynamic_node_num
+        int32_t static_node_num
+        int32_t dynamic_node_num
 
         # static nodes first, dynamic, then data
         int32_t dynamic_start_idx
@@ -150,7 +246,7 @@ cdef class Graph:
         bool is_initialized
 
     
-    def __cinit__(self, int16_t static_node_num, int16_t dynamic_node_num):
+    def __cinit__(self, int32_t static_node_num, int32_t dynamic_node_num):
         self.static_node_num = static_node_num
         self.dynamic_node_num = dynamic_node_num
         self.size = 0
@@ -158,37 +254,120 @@ cdef class Graph:
 
         self.attr_map = {}
 
+    @property
+    def static_node_number(self) -> int:
+        '''int: Number of static nodes in current graph'''
+        return self.static_node_num
+
+    @property
+    def dynamic_node_number(self) -> int:
+        '''int: Number of dynamic nodes in current graph'''
+        return self.dynamic_node_num
+
     cpdef void register_attribute(self, int8_t atype, str name, int8_t data_type, int32_t slot_num):
-        """
-        Register attribute
-        """
+        '''Register an attribute for nodes in graph, then can access the new attribute with get/set_attribute methods.
+        NOTE: this method should be called before setup method
+        Args:
+            atype (GraphAttributeType): type of this attribute belongs to
+            name (str): name of the attribute 
+            data_type (GraphDataType): data type of attribute
+            slot_num (int): how many slots of this attributes can hold
+        Raises:
+            GraphAttributeExistError: if the name already being registered
+        '''
         if self.is_initialized == True:
+            # cannot register after setup
             return
 
         # TODO: refactor later
         attr_key = (name, atype)
 
         if attr_key in self.attr_map:
-            return
+            raise GraphAttributeExistError(f"Attribute name {name} already registered.")
 
         self.attr_map[attr_key] = GraphAttribute(name, data_type, atype, slot_num)
 
     cpdef void setup(self):
-        """
-        Setup the graph memory based on registered attributes
-        """
-        cdef int32_t total_size = self.cal_graph_size()
-        self.size = total_size
+        '''Setup the graph with registered attributes
+        Raises:
+            GraphAttributeNotRegisteredError: if not registered any attribute
+        '''
+        if self.is_initialized:
+            return
 
-        # allocate memory
-        self.arr = view.array(shape=(1, total_size), itemsize=sizeof(int8_t), format="b")
-
-        self.is_initialized = True
+        if len(self.attr_map) == 0:
+            raise GraphAttributeNotRegisteredError()
 
         # initial the fields
         cdef int32_t i = 0
+        self.size = self.cal_graph_size()
 
-        for i in range(total_size):
+        # allocate memory
+        self.arr = view.array(shape=(1, self.size), itemsize=sizeof(int8_t), format="b")
+
+        self.is_initialized = True
+
+        for i in range(self.size):
+            self.arr[0, i] = 0
+
+    # TODO: refactor the node_id, to make it can be None value
+    cpdef object get_attribute(self, int8_t atype, int32_t node_id, str attr_name, int32_t slot_index):
+        '''Get specified attribute value with general way
+        Args:
+            atype (GraphAttributeType): type of attribute belongs to
+            node_id (int): id the the resource node
+            attr_name (str): name of accessing attribute
+            slot_index (int): index of the attribute slot
+        Returns:
+            value of specified attribute slot
+        Raises:
+            GraphAttributeNotFoundError: specified attribute is not registered
+        '''
+        attr_key = (attr_name, atype)
+
+        if attr_key not in self.attr_map:
+            raise GraphAttributeNotFoundError(f"attribute {attr_name} is not registered.")
+
+        cdef GraphAttribute attr = self.attr_map[attr_key]
+
+        if atype == AT_GENERAL or node_id is None:
+            node_id = 0
+        
+        # index of current slot
+        cdef int32_t aindex = attr.start_index + (attr.slot_num * node_id)
+        
+        return get_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index)
+
+    cpdef set_attribute(self, int8_t atype, int32_t node_id, str attr_name, int32_t slot_index, object value):
+        '''Set specified attribute value
+        Args:
+            atype (GraphAttributeType): type of attribute belongs to
+            node_id (int): id the the resource node
+            attr_name (str): name of accessing attribute
+            slot_index (int): index of the attribute slot        
+            value (float/int): value to set
+        Raises:
+            GraphAttributeNotFoundError: specified attribute is not registered
+        '''
+        attr_key = (attr_name, atype)
+
+        if attr_key not in self.attr_map:
+            raise GraphAttributeNotFoundError(f"attribute {attr_name} is not registered.")
+
+        cdef GraphAttribute attr = self.attr_map[attr_key]
+        
+        if atype == AT_GENERAL or node_id is None:
+            node_id = 0
+
+        cdef int32_t aindex = attr.start_index + (attr.slot_num * node_id)
+
+        set_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index, value)
+
+    cpdef reset(self):
+        '''Reset all the attributes to default value'''
+        cdef int64_t i = 0
+
+        for i in range(self.size):
             self.arr[0, i] = 0
 
     cdef int32_t cal_graph_size(self):
@@ -236,51 +415,36 @@ cdef class Graph:
 
         return size
 
-    # TODO: refactor the node_id, to make it can be None value
-    cpdef object get_attribute(self, int8_t atype, int16_t node_id, str attr_name, int32_t slot_index):
-        """
-        Get value of attribute
-        """
-        attr_key = (attr_name, atype)
-
-        attr = self.attr_map[attr_key]
-
-        if atype == AT_GENERAL or node_id is None:
-            node_id = 0
-        
-        # index of current slot
-        aindex = attr.start_index + (attr.slot_num * node_id)
-        
-        return get_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index)
-
-    cpdef set_attribute(self, int8_t atype, int16_t node_id, str attr_name, int8_t slot_index, object value):
-        attr_key = (attr_name, atype)
-
-        attr = self.attr_map[attr_key]
-        
-        if atype == AT_GENERAL or node_id is None:
-            node_id = 0
-
-        aindex = attr.start_index + (attr.slot_num * node_id)
-
-        set_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index, value)
-
-    cpdef reset(self):
-        cdef int64_t i = 0
-
-        for i in range(self.size):
-            self.arr[0, i] = 0
-
-    @property
-    def static_node_number(self) -> int:
-        return self.static_node_num
-
-    @property
-    def dynamic_node_number(self) -> int:
-        return self.dynamic_node_num
-
 
 cdef class SnapshotList:
+    '''SnapshotList used to hold list of snapshots that taken from Graph object at a certain tick.
+
+    SnapshotList only provide interface to get data, cannot set data.
+
+    Examples:
+        it is recommended to use slice to query attributes.
+        . snapshot_list.static_nodes[[tick list]: [node id list]: ([attribute names], [attribute slot list])]
+        . snapshot_list.dynamic_nodes[[tick list]: [node id list]: ([attribute names], [attribute slot list])]
+
+        all the list parameter can be a single value.
+
+        if tick or node id list is None, then means query all.
+
+        # query 1st slot value of attribute "a1" for node 1 at all the ticks
+        snapshot_list.static_nodes[: 1: ("a1", 0)]
+
+        # query 1st and 2nd slot value of attribute "a1" for all the nodes at tick 0
+        snapshot_list.static_nodes[0: : ("a1", [0, 1])]
+
+        # query 1st slot value for attribute "a1" and "a2" for all the nodes at all the ticks
+        snapshot_list.static_nodes[:: (["a1", "a2"], 0)]
+
+        # query a matrix at tick 0
+        snapshot_list.matrix[0: "m1"]
+
+        # query matrix at tick 0 and 1
+        snapshot_list.matrix[[0, 1]: "m1"]
+    '''
     cdef:
         Graph graph
 
@@ -329,36 +493,79 @@ cdef class SnapshotList:
         
     @property
     def static_nodes(self) -> SnapshotNodeAccessor:
+        '''Same as dynamic_nodes, but for static nodes'''
         return self.static_acc
 
     @property
     def dynamic_nodes(self) -> SnapshotNodeAccessor:
+        '''Slice interface to query attribute value of dynamic nodes.
+
+        The slice like [tick: id: (attribute name, slot index]
+
+        tick: tick to query, can be a list
+        id: id of dynamic nodes to query, can be a list
+        attribute name: registered attribute to query, can be a list
+        slot index: slot to query, can be a list
+
+        Examples:
+            # query 1st slot value of attribute "a1" for node 1 at all the ticks
+            snapshot_list.dynamic_nodes[: 1: ("a1", 0)]
+
+            # query 1st and 2nd slot value of attribute "a1" for all the nodes at tick 0
+            snapshot_list.dynamic_nodes[0: : ("a1", [0, 1])]
+
+            # query 1st slot value for attribute "a1" and "a2" for all the nodes at all the ticks
+            snapshot_list.dynamic_nodes[:: (["a1", "a2"], 0)]
+
+        Returns:
+            np.ndarray: states numpy array (1d)
+        '''
         return self.dynamic_acc
 
     @property
     def general(self) -> SnapshotGeneralAccessor:
-        """
-        Access general data
-        """
+        '''Slice interface to access general attributes
+
+        The slice like [tick: name]
+
+        tick: tick to query, can be a list
+        name: name of the matrix to query
+
+        Examples:
+            # query a matrix at tick 0
+            snapshot_list.matrix[0: "m1"]
+
+            # query matrix at tick 0 and 1
+            snapshot_list.matrix[[0, 1]: "m1"]
+        '''
         return self.general_acc
 
     @property
     def matrix(self):
-        """
-        Access general data and return the result as matrix (1, n)
-        """
+        '''Same with general, used to fit previouse interface
+        '''
         return self.general_acc
 
     @property
     def dynamic_node_number(self) -> int:
+        '''int: Dynamic node number in each snapshot'''
         return self.graph.dynamic_node_num
 
     @property
     def static_node_number(self) -> int:
+        '''int: Static node number in each snapshot'''
         return self.graph.static_node_num
 
     @property
+    def ticks(self):
+        return [i for i in range(self.start_tick, self.end_tick+1)]
+
+    @property
     def attributes(self):
+        '''List of the attributes information in current snapshot
+        Returns:
+            list: A list of attribute details
+        '''
         result = []
 
         for attr_key, attr in self.graph.attr_map.items():
@@ -371,6 +578,8 @@ cdef class SnapshotList:
         return result        
 
     cpdef reset(self):
+        """Reset snapshot list
+        """
         self.start_index = -1
         self.end_index = -1
         self.start_tick = 0
@@ -378,6 +587,7 @@ cdef class SnapshotList:
         self.tick = -1
 
     cpdef void insert_snapshot(self):
+        '''Insert a snapshot from graph'''
         cdef int8_t[:, :] t= self.graph.arr
         
         self.end_index += 1
@@ -401,14 +611,31 @@ cdef class SnapshotList:
         self.end_tick = self.tick
 
     cpdef np.ndarray get_node_attributes(self, int8_t atype, list ticks, list ids, list attr_names, list attr_indices, float default_value):
+        '''Query states from snapshot list.
+        Note:
+            It is recommended that use slice interface instead of this raw method.
         
-        # used to check if id list is valid
-        
-        # check id
-    
-        # check ticks
-
-        # check attributes
+        Examples:
+            Query value at 1st slot of attributes "a1" and "a2" at tick (0, 1, 2) for dynamic nodes (3, 4, 5)
+            ...
+            ticks = [0, 1, 2]
+            node_ids = [3, 4, 5]
+            attrs = ["a1", "a2"]
+            slots = [0, ]
+            # this will return  3*3*2*1 size of numpy array (dim=1)
+            state = snapshotlist.get_attributes(ResourceNodeType.DYNAMIC, ticks, node_ids, attrs, slots)
+            # if you are not sure about the slot length of an attribute
+            slots = snapshotlist.get_slot_length("a1")
+        Args:
+            atype (GraphAttributeType): type of resource node, static or dynamic
+            ticks (list[int]): list of tick to query, if the tick not available, then related value will be 0
+            node_ids (list[int]): list of node id, if the id not exist, then the related value will be 0
+            attr_names (list[str]): attribute names to query, if the attribute not exist, then the related value will be 0
+            attr_indices (list[int]): slots of attributes to query, if the index is large than registered size, then related value will be set 0 for it
+            default_value(float): default value if quering is invalid
+        Returns:
+            np.ndarray: numpy array (dim=1, size=len(ticks) * len(node_ids) * len(attribute_names) * len(attribute_indices)) with result
+        '''
         cdef int32_t ticks_length = len(ticks)
         cdef int32_t ids_length    = len(ids)
         cdef int32_t attr_length = len(attr_names)
@@ -418,14 +645,15 @@ cdef class SnapshotList:
         cdef int32_t node_id
         cdef str attr_name
         cdef int32_t attr_index
-
-        cdef np.ndarray result = np.zeros(ticks_length * ids_length * attr_length * index_length, dtype=np.float32)
-
-        cdef float[:] result_view = result
-
-        cdef int32_t ridx = 0
-        cdef int32_t tindex = 0
+        cdef GraphAttribute attr
+        cdef int8_t attr_dtype
+        cdef int32_t ridx = 0 # index of result
+        cdef int32_t tindex = 0 # index of tick
+        cdef int32_t aindex = 0 # index of attribute
         cdef max_node_num = self.graph.static_node_num
+        cdef np.ndarray result = np.zeros(ticks_length * ids_length * attr_length * index_length, dtype=np.float32)
+        cdef float[:] result_view = result
+        
         attr_key = None
 
         if atype == AT_DYNAMIC:
@@ -471,9 +699,13 @@ cdef class SnapshotList:
         return result
 
     def get_general_attribute(self, list ticks, str attr_name, float default_value=0):
-        """
-        
-        """
+        '''Get value of a attribute for specified ticks.
+        NOTE: it is recommended to use slice method (snapshot_list.matrix) to query.
+        Args:
+            ticks (list): list of ticks to query
+            attr_name (str): name of attribute name to query
+            default_value(float): default value if quering is invalid
+        '''
         attr_key = (attr_name, AT_GENERAL)
 
         if attr_key not in self.graph.attr_map:
@@ -513,14 +745,8 @@ cdef class SnapshotList:
 
         return result
 
-    
-    def ticks(self):
-        return [i for i in range(self.start_tick, self.end_tick+1)]
-
     def __len__(self):
         return self.end_tick - self.start_tick + 1
-
-
     
     
 cdef class SnapshotNodeAccessor:
@@ -529,10 +755,10 @@ cdef class SnapshotNodeAccessor:
     """
     cdef:
         int8_t atype
-        int16_t node_num
+        int32_t node_num
         SnapshotList ss
 
-    def __cinit__(self, int8_t atype, int16_t node_num, SnapshotList ss):
+    def __cinit__(self, int8_t atype, int32_t node_num, SnapshotList ss):
         self.atype = atype
         self.node_num = node_num
         self.ss = ss
@@ -544,6 +770,7 @@ cdef class SnapshotNodeAccessor:
         pass
 
     def __getitem__(self, slice item):
+        '''Query states from snapshot'''
         cdef list ticks
         cdef list id_list
         cdef list attr_names
@@ -551,7 +778,7 @@ cdef class SnapshotNodeAccessor:
         cdef int32_t i
 
         if item.start is None:
-            ticks = self.ss.ticks()
+            ticks = self.ss.ticks
         else:
             if type(item.start) is not list:
                 ticks = [item.start]
