@@ -62,28 +62,11 @@ cdef dict dtype_size_map = {
     DT_DOUBLE : sizeof(double)
 }
 
+
 class GraphError(Exception):
     '''Base exception of graph'''
     def __init__(self, msg):
         self.message = msg
-
-
-class GraphMemoryError(GraphError):
-    '''Exception when we meet an memory issue when accessing graph'''
-    def __init__(self, msg):
-        super().__init__(msg)
-
-
-class GraphInvalidAccessError(GraphError):
-    '''Exception that for invalid accessing, such as wrong index, etc.'''
-    def __init__(self, msg):
-        super().__init__(msg)
-
-
-class GraphNotInitializeError(GraphError):
-    '''Graph being used while not being setup'''
-    def __init__(self, msg):
-        super().__init__(msg)
 
 
 class GraphAttributeNotFoundError(GraphError):
@@ -115,21 +98,18 @@ class GraphAlreadySetupError(GraphError):
     def __init__(self):
         super().__init__("Graph already being setup, cannot register attributes.")
 
+
 class SnapshotAccessError(GraphError):
     '''Snapshot cannot be wrote'''
     def __init__(self):
         super().__init__("Snapshot cannot be wrote.")
 
 
-class SnapshotSliceError(GraphError):
-    '''Using invalid parameter to query snapshot with slice interface'''
-    def __init__(self, msg):
-        super().__init__(msg)
-
 class SnapshotInvalidTick(GraphError):
     """Using invalid parameter to take snapshot"""
     def __init__(self, msg):
         super().__init__(msg)
+
 
 cdef class GraphAttribute:
     '''Used to wrapper attribute accessing information internally'''
