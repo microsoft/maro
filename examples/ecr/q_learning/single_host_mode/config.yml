@@ -2,9 +2,9 @@ experiment_name: "baseline"
 env:
   scenario: "ecr"
   topology: "5p_ssddd_l0.2"
-  max_tick: 112
+  max_tick: 1120
 train:
-  max_ep: 5 # max episode
+  max_ep: 500 # max episode
   batch_num: 10
   batch_size: 128
   min_train_experience_num: 1024 # when experience number is less than it, will not trigger train
