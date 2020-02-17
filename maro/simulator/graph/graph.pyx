@@ -20,11 +20,14 @@ ctypedef fused graph_data_type:
     double
 
 class GraphDataType(IntEnum):
+    """
+    
+    """
     BYTE = 0
     SHORT = 1
     INT32 = 2
     INT64 = 3
-    FLOAT32 = 4
+    FLOAT = 4
     DOUBLE = 5
     
 class AttributeType(IntEnum):
@@ -32,13 +35,25 @@ class AttributeType(IntEnum):
     DYNAMIC_NODE = 1
     GENERAL = 2
 
+# for internal use
+cdef int8_t DT_BYTE = GraphDataType.BYTE
+cdef int8_t DT_SHORT = GraphDataType.SHORT
+cdef int8_t DT_INT32 = GraphDataType.INT32
+cdef int8_t DT_INT64 = GraphDataType.INT64
+cdef int8_t DT_FLOAT = GraphDataType.FLOAT
+cdef int8_t DT_DOUBLE = GraphDataType.DOUBLE
+
+cdef int8_t AT_STATIC = AttributeType.STATIC_NODE
+cdef int8_t AT_DYNAMIC = AttributeType.DYNAMIC_NODE
+cdef int8_t AT_GENERAL = AttributeType.GENERAL
+
 cdef dict dtype_size_map = {
-    GraphDataType.BYTE : sizeof(int8_t),
-    GraphDataType.SHORT : sizeof(int16_t),
-    GraphDataType.INT32 : sizeof(int32_t),
-    GraphDataType.INT64 : sizeof(int64_t),
-    GraphDataType.FLOAT32 : sizeof(float),
-    GraphDataType.DOUBLE : sizeof(double)
+    DT_BYTE : sizeof(int8_t),
+    DT_SHORT : sizeof(int16_t),
+    DT_INT32 : sizeof(int32_t),
+    DT_INT64 : sizeof(int64_t),
+    DT_FLOAT : sizeof(float),
+    DT_DOUBLE : sizeof(double)
 }
 
 cdef class GraphAttribute:
@@ -79,33 +94,33 @@ cdef void set_value_from_ptr(graph_data_type *data, int32_t start_index, int32_t
 
 # functions to cast data to access data
 cdef object get_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex, int32_t sindex):
-    if dtype == GraphDataType.BYTE:
+    if dtype == DT_BYTE:
         return get_value_from_ptr[int8_t](<int8_t *>arr.data, aindex, sindex)
-    elif dtype == GraphDataType.SHORT:
+    elif dtype == DT_SHORT:
         return get_value_from_ptr[int16_t](<int16_t *>arr.data, aindex, sindex)
-    elif dtype == GraphDataType.INT32:
+    elif dtype == DT_INT32:
         return get_value_from_ptr[int32_t](<int32_t *>arr.data, aindex, sindex)
-    elif dtype == GraphDataType.INT64:
+    elif dtype == DT_INT64:
         return get_value_from_ptr[int64_t](<int64_t *>arr.data, aindex, sindex)
-    elif dtype == GraphDataType.FLOAT32:
+    elif dtype == DT_FLOAT:
         return get_value_from_ptr[float](<float *>arr.data, aindex, sindex)
-    elif dtype == GraphDataType.DOUBLE:
+    elif dtype == DT_DOUBLE:
         return get_value_from_ptr[double](<double *>arr.data, aindex, sindex)
 
     return None
 
 cdef void set_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex, int32_t sindex, object value):
-    if dtype == GraphDataType.BYTE:
+    if dtype == DT_BYTE:
         set_value_from_ptr[int8_t](<int8_t *>arr.data, aindex, sindex, value)
-    elif dtype == GraphDataType.SHORT:
+    elif dtype == DT_SHORT:
         set_value_from_ptr[int16_t](<int16_t *>arr.data, aindex, sindex, value)
-    elif dtype == GraphDataType.INT32:
+    elif dtype == DT_INT32:
         set_value_from_ptr[int32_t](<int32_t *>arr.data, aindex, sindex, value)
-    elif dtype == GraphDataType.INT64:
+    elif dtype == DT_INT64:
         set_value_from_ptr[int64_t](<int64_t *>arr.data, aindex, sindex, value)
-    elif dtype == GraphDataType.FLOAT32:
+    elif dtype == DT_FLOAT:
         set_value_from_ptr[float](<float *>arr.data, aindex, sindex, value)
-    elif dtype == GraphDataType.DOUBLE:
+    elif dtype == DT_DOUBLE:
         set_value_from_ptr[double](<double *>arr.data, aindex, sindex, value)
 
 cdef class Graph:
@@ -199,9 +214,9 @@ cdef class Graph:
         for i in range(len(attr_list)):
             attr = attr_list[i]
 
-            if attr.atype == AttributeType.STATIC_NODE:
+            if attr.atype == AT_STATIC:
                 node_type_factor = self.static_node_num
-            elif attr.atype == AttributeType.DYNAMIC_NODE:
+            elif attr.atype == AT_DYNAMIC:
                 node_type_factor = self.dynamic_node_num
             else:
                 node_type_factor = 1
@@ -230,7 +245,7 @@ cdef class Graph:
 
         attr = self.attr_map[attr_key]
 
-        if atype == AttributeType.GENERAL or node_id is None:
+        if atype == AT_GENERAL or node_id is None:
             node_id = 0
         
         # index of current slot
@@ -243,7 +258,7 @@ cdef class Graph:
 
         attr = self.attr_map[attr_key]
         
-        if atype == AttributeType.GENERAL or node_id is None:
+        if atype == AT_GENERAL or node_id is None:
             node_id = 0
 
         aindex = attr.start_index + (attr.slot_num * node_id)
@@ -308,8 +323,8 @@ cdef class SnapshotList:
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
         self.data = self.arr
 
-        self.static_acc = SnapshotNodeAccessor(AttributeType.STATIC_NODE, self.graph.static_node_num, self)
-        self.dynamic_acc = SnapshotNodeAccessor(AttributeType.DYNAMIC_NODE, self.graph.dynamic_node_num, self)
+        self.static_acc = SnapshotNodeAccessor(AT_STATIC, self.graph.static_node_num, self)
+        self.dynamic_acc = SnapshotNodeAccessor(AT_DYNAMIC, self.graph.dynamic_node_num, self)
         self.general_acc = SnapshotGeneralAccessor(self)
         
     @property
@@ -413,9 +428,9 @@ cdef class SnapshotList:
         cdef max_node_num = self.graph.static_node_num
         attr_key = None
 
-        if atype == AttributeType.DYNAMIC_NODE:
+        if atype == AT_DYNAMIC:
             max_node_num = self.graph.dynamic_node_num
-        elif atype == AttributeType.GENERAL:
+        elif atype == AT_GENERAL:
             max_node_num = 1
 
         for tick in ticks:
@@ -459,7 +474,7 @@ cdef class SnapshotList:
         """
         
         """
-        attr_key = (attr_name, AttributeType.GENERAL)
+        attr_key = (attr_name, AT_GENERAL)
 
         if attr_key not in self.graph.attr_map:
             return None
