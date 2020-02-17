@@ -225,7 +225,7 @@ class Env(AbsEnv):
                     break
 
                 # insert snapshot before each action
-                self._business_engine.snapshots.insert_snapshot(tick)
+                self._business_engine.snapshots.insert_snapshot(self._tick)
 
                 decision_events = [evt.payload for evt in pending_events]
 
