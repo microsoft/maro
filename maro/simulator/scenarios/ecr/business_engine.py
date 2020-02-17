@@ -310,9 +310,10 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         Initialize the graph basing on data generator
         """
-        self._graph = gen_ecr_graph(self._data_generator.port_num,
-                                    self._data_generator.vessel_num,
-                                    self._data_generator.stop_number)
+        port_num = self._data_generator.port_num
+        vessel_num = self._data_generator.vessel_num
+
+        self._graph = gen_ecr_graph(port_num, vessel_num, self._data_generator.stop_number)
 
         for port_idx, port_name in self._data_generator.node_mapping["static"].items():
             self._ports.append(Port(self._graph, port_idx, port_name))
@@ -320,9 +321,9 @@ class EcrBusinessEngine(AbsBusinessEngine):
         for vessel_idx, vessel_name in self._data_generator.node_mapping["dynamic"].items():
             self._vessels.append(Vessel(self._graph, vessel_idx, vessel_name))
 
-        self._full_on_ports = GraphMatrixAccessor(self._graph, "full_on_ports")
-        self._full_on_vessels = GraphMatrixAccessor(self._graph, "full_on_vessels")
-        self._vessel_plans = GraphMatrixAccessor(self._graph, "vessel_plans")
+        self._full_on_ports = GraphMatrixAccessor(self._graph, "full_on_ports", port_num, port_num)
+        self._full_on_vessels = GraphMatrixAccessor(self._graph, "full_on_vessels", vessel_num, port_num)
+        self._vessel_plans = GraphMatrixAccessor(self._graph, "vessel_plans", vessel_num, port_num)
 
         self._reset_nodes()
 
