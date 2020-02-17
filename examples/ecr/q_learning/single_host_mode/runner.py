@@ -202,11 +202,6 @@ class Runner:
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
-                if self._dashboard is not None:
-                    vessel_name = self._vessel_idx2name[action.vessel_idx]
-                    route_name = self._env.configs['vessels'][vessel_name]['route']['route_name']
-                    port_name = self._port_idx2name[action.port_idx]
-                    self._dashboard.upload_exp_data({f'series_{port_name}_x_{route_name}': action.quantity}, ep, decision_event.tick, 'actual_action')
                 _, decision_event, is_done = self._env.step(action)
 
             train_time = OrderedDict()
@@ -238,13 +233,7 @@ class Runner:
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep)
-                if self._dashboard is not None:
-                    vessel_name = self._vessel_idx2name[action.vessel_idx]
-                    route_name = self._env.configs['vessels'][vessel_name]['route']['route_name']
-                    port_name = self._port_idx2name[action.port_idx]
-                    self._dashboard.upload_exp_data({f'series_{port_name}_x_{route_name}': action.quantity}, ep + self._max_train_ep, decision_event.tick, 'actual_action')
                 _, decision_event, is_done = self._env.step(action)
-
             if self._log_enable:
                 self._print_summary(ep=ep, is_train=False)
 
@@ -305,6 +294,15 @@ class Runner:
         self._dashboard.upload_exp_data(pretty_booking_dict, dashboard_ep, None, 'booking')
         self._dashboard.upload_exp_data(pretty_shortage_dict, dashboard_ep, None, 'shortage')
 
+        pretty_fullfill_dict = OrderedDict()
+        for i in range(len(self._port_idx2name)):
+            pretty_fullfill_dict[self._port_idx2name[i]] = (
+                pretty_booking_dict[self._port_idx2name[i]] - pretty_shortage_dict[self._port_idx2name[i]])/pretty_booking_dict[self._port_idx2name[i]] * 100
+        pretty_fullfill_dict['total_fullfill'] = (
+            pretty_booking_dict['total_booking'] - pretty_shortage_dict['total_shortage'])/pretty_booking_dict['total_booking'] * 100
+        self._dashboard.upload_exp_data(
+            pretty_fullfill_dict, dashboard_ep, None, 'fullfill')
+
         # Pick and upload data for rank list
         if not is_train:
             if ep == self._max_test_ep - 1 and self._ranklist_enable:
@@ -344,10 +342,12 @@ class Runner:
         from_to_planed = {}
         pretty_early_discharge_dict = {}
         pretty_delayed_laden_dict = {}
+        pretty_tml_cost_dict = {}
 
-        # Check events and pick data for usage, delayed laden, laden planed, laden executed, early discharge
+        # Check events and pick data for usage, delayed laden, laden planed, laden executed, early discharge, actual_action, tml cost
         events = self._env.get_finished_events()
         for event in events:
+            self._logger.critical(f'{event.event_type.name}: {str(event.payload)}')
             # Pick data for ep laden executed
             if event.event_type == EcrEventType.DISCHARGE_FULL:
                 if event.payload.from_port_idx not in from_to_executed:
@@ -368,7 +368,7 @@ class Runner:
                         event.payload.dest_port_idx] = 0
                 from_to_planed[event.payload.src_port_idx][
                     event.payload.dest_port_idx] += event.payload.quantity
-            # Pick and upload data for event early discharge
+            # Pick and upload data for event early discharge, actual_action, tml cost
             elif event.event_type == EcrEventType.PENDING_DECISION:
                 port_name = self._port_idx2name[event.payload.port_idx]
                 pretty_early_discharge_dict[
@@ -377,7 +377,17 @@ class Runner:
                 self._dashboard.upload_exp_data(
                     {port_name: event.payload.early_discharge}, dashboard_ep,
                     event.tick, 'event_early_discharge')
-            
+                event_tml_cost = event.payload.early_discharge
+                for action in event.immediate_event_list:
+                    for action_payload in action.payload:
+                        event_tml_cost += abs(action_payload.quantity)
+                    vessel_name = self._vessel_idx2name[action_payload.vessel_idx]
+                    route_name = self._env.configs['vessels'][vessel_name]['route']['route_name']
+                    self._dashboard.upload_exp_data({f'actual_action_of_{port_name}_on_{route_name}': action_payload.quantity}, dashboard_ep, event.tick, 'actual_action')
+                pretty_tml_cost_dict[port_name] = pretty_tml_cost_dict.get(
+                        port_name, 0) + event_tml_cost
+                self._dashboard.upload_exp_data({port_name: event_tml_cost}, dashboard_ep, event.tick, 'event_tml_cost')
+                
             elif event.event_type == EcrEventType.VESSEL_ARRIVAL:
                 cur_tick = event.tick
                 # Pick and upload data for event vessel usage
@@ -409,6 +419,7 @@ class Runner:
                         port_idx][route_port_id]
                 self._dashboard.upload_exp_data(
                     {port_name: cur_delayed_laden}, dashboard_ep, cur_tick, 'event_delayed_laden')
+
         # Upload data for ep laden_planed and ep laden_executed
         for laden_source in from_to_executed.keys():
             for laden_dest in from_to_executed[laden_source].keys():
@@ -442,6 +453,15 @@ class Runner:
 
         self._dashboard.upload_exp_data(pretty_delayed_laden_dict,
                                             dashboard_ep, None,'delayed_laden')
+
+        # Upload data for ep tml cost
+        total_tml_cost = 0
+        for tml_cost in pretty_tml_cost_dict.values():
+            total_tml_cost += tml_cost
+        pretty_tml_cost_dict['total'] = total_tml_cost
+
+        self._dashboard.upload_exp_data(pretty_tml_cost_dict,
+                                            dashboard_ep, None,'tml_cost')
 
         # Pick and upload data for event shortage
         ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.
