@@ -225,8 +225,7 @@ class Env(AbsEnv):
                     break
 
                 # insert snapshot before each action
-                self._business_engine.snapshots.insert_snapshot(
-                    self.current_graph, self.tick)
+                self._business_engine.snapshots.insert_snapshot()
 
                 decision_events = [evt.payload for evt in pending_events]
 
@@ -246,8 +245,7 @@ class Env(AbsEnv):
                     rewards = rewards[0]
 
                 # generate a new atom event first
-                action_event = self._event_buffer.gen_atom_event(
-                    self._tick, DECISION_EVENT, actions)
+                action_event = self._event_buffer.gen_atom_event(self._tick, DECISION_EVENT, actions)
 
                 # 3. we just append the action into sub event of first pending cascade event
                 pending_events[0].state = EventState.EXECUTING

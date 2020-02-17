@@ -163,7 +163,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             port.acc_fulfillment = port.acc_booking - port.acc_shortage
 
         # before go to next tick, we will take a snapshot first
-        self._snapshots.insert_snapshot(self._graph, tick)
+        self._snapshots.insert_snapshot()
 
         # reset port statistics (by tick) fields
         for port in self._ports:

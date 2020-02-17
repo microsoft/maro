@@ -214,8 +214,11 @@ class EventBuffer:
                             break
 
                     return self._pending_buffer
+                else:
+                    # or pop and process it
+                    heappop(cur_events)
                 
-                self._process_event(event)
+                    self._process_event(event)
 
         return []
 
