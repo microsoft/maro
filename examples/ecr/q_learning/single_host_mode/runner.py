@@ -296,10 +296,12 @@ class Runner:
 
         pretty_fullfill_dict = OrderedDict()
         for i in range(len(self._port_idx2name)):
-            pretty_fullfill_dict[self._port_idx2name[i]] = (
-                pretty_booking_dict[self._port_idx2name[i]] - pretty_shortage_dict[self._port_idx2name[i]])/pretty_booking_dict[self._port_idx2name[i]] * 100
-        pretty_fullfill_dict['total_fullfill'] = (
-            pretty_booking_dict['total_booking'] - pretty_shortage_dict['total_shortage'])/pretty_booking_dict['total_booking'] * 100
+            if pretty_booking_dict[self._port_idx2name[i]] > 0:
+                pretty_fullfill_dict[self._port_idx2name[i]] = (
+                    pretty_booking_dict[self._port_idx2name[i]] - pretty_shortage_dict[self._port_idx2name[i]])/pretty_booking_dict[self._port_idx2name[i]] * 100
+        if pretty_booking_dict['total_booking'] > 0:
+            pretty_fullfill_dict['total_fullfill'] = (
+                pretty_booking_dict['total_booking'] - pretty_shortage_dict['total_shortage'])/pretty_booking_dict['total_booking'] * 100
         self._dashboard.upload_exp_data(
             pretty_fullfill_dict, dashboard_ep, None, 'fullfill')
 
