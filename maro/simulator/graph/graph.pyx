@@ -126,6 +126,11 @@ class SnapshotSliceError(GraphError):
     def __init__(self, msg):
         super().__init__(msg)
 
+class SnapshotInvalidTick(GraphError):
+    """Using invalid parameter to take snapshot"""
+    def __init__(self, msg):
+        super().__init__(msg)
+
 cdef class GraphAttribute:
     '''Used to wrapper attribute accessing information internally'''
     cdef:
@@ -482,7 +487,6 @@ cdef class SnapshotList:
         self.end_index = -1
         self.start_tick = 0
         self.end_tick = -1
-        self.tick = -1
         
         self.arr = view.array(shape=(size, 1, self.graph_size), itemsize=sizeof(int8_t), format="b")
         self.data = self.arr
@@ -584,14 +588,23 @@ cdef class SnapshotList:
         self.end_index = -1
         self.start_tick = 0
         self.end_tick = -1
-        self.tick = -1
 
-    cpdef void insert_snapshot(self):
+    cpdef void insert_snapshot(self, int32_t tick):
         '''Insert a snapshot from graph'''
+        # check if the tick is valid
+        if tick < self.end_tick or tick > self.end_tick + 1:
+            raise SnapshotInvalidTick(f"Invalid tick {tick} to take snapshot, we do not support override previous data")
+
         cdef int8_t[:, :] t= self.graph.arr
-        
+
+        # if tick is same with current end_tick, then means we need to override
+        # NOTE: we do not support override previous snapshot now
+        if tick == self.end_tick:
+            self.data[self.end_tick::] = t
+            
+            return
+
         self.end_index += 1
-        self.tick += 1
 
         # back to the beginning if we reach the end
         if self.end_index >= self.size:
@@ -608,7 +621,7 @@ cdef class SnapshotList:
 
         self.data[self.end_index::] = t
 
-        self.end_tick = self.tick
+        self.end_tick = tick
 
     cpdef np.ndarray get_node_attributes(self, int8_t atype, list ticks, list ids, list attr_names, list attr_indices, float default_value):
         '''Query states from snapshot list.

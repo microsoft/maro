@@ -163,7 +163,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             port.acc_fulfillment = port.acc_booking - port.acc_shortage
 
         # before go to next tick, we will take a snapshot first
-        self._snapshots.insert_snapshot()
+        self._snapshots.insert_snapshot(tick)
 
         # reset port statistics (by tick) fields
         for port in self._ports:
@@ -582,8 +582,6 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
                 vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
                 vessel.remaining_space = vessel_remaining_space
-
-                print(port.empty, vessel_remaining_space, move_num, vessel_empty)
 
                 assert -min(port.empty, vessel_remaining_space) <= move_num <= vessel_empty
 

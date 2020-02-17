@@ -4,7 +4,7 @@
 
 import unittest
 import os
-from maro.simulator.graph import GraphAttributeType, Graph, SnapshotList, ResourceNodeType
+from maro.simulator.graph import Graph, SnapshotList
 from maro.simulator.scenarios.ecr.port import Port
 from maro.simulator.scenarios.ecr.vessel import Vessel
 from maro.simulator.event_buffer import EventBuffer, EventState
@@ -13,7 +13,8 @@ from mock_data_generator import MockDataGenerator
 from maro.simulator.scenarios.ecr.graph_builder import gen_ecr_graph
 
 MAX_TICK = 20
-
+# AT_STATIC = GraphAttributeType.STATIC_NODE
+# AT_DYNAMIC = GraphAttributeType.DYNAMIC_NODE
 
 def next_step(eb: EventBuffer, be: EcrBusinessEngine, tick: int):
     if tick > 0:
@@ -30,7 +31,7 @@ def next_step(eb: EventBuffer, be: EcrBusinessEngine, tick: int):
 
         eb.execute(tick)
 
-    be.snapshots.insert_snapshot(be.graph, tick)
+    be.snapshots.insert_snapshot(tick)
 
 
 def setup_case(case_name: str):
@@ -212,20 +213,12 @@ class TestEcrScenarios(unittest.TestCase):
         # we have hard coded the future stops, here we just check if the value correct at each tick
         for i in range(tick - 1):
             # check if the future stop at tick 8 (vessel 0 arrive at port 1)
-            stop_list = be.snapshots.get_attributes(ResourceNodeType.DYNAMIC,
-                                                    [i, ],
-                                                    [0, ],
-                                                    ["past_stop_list", "past_stop_tick_list"],
-                                                    [0, 1])
+            stop_list = be.snapshots.dynamic_nodes[i:0:(["past_stop_list", "past_stop_tick_list"],[0, 1])]
             # check if the stop list value correct
             self.assertEqual(-1, stop_list[0])
             self.assertEqual(-1, stop_list[2])
 
-            stop_list = be.snapshots.get_attributes(ResourceNodeType.DYNAMIC,
-                                                    [i, ],
-                                                    [0, ],
-                                                    ["future_stop_list", "future_stop_tick_list"],
-                                                    [0, 1, 2])
+            stop_list = be.snapshots.dynamic_nodes[i:0:(["future_stop_list", "future_stop_tick_list"],[0, 1, 2])]
 
             self.assertEqual(2, stop_list[0])
             self.assertEqual(3, stop_list[1])
@@ -235,12 +228,8 @@ class TestEcrScenarios(unittest.TestCase):
             self.assertEqual(20, stop_list[5])
 
             # check if statistics data correct
-            order_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
-                                                       [i],
-                                                       [0],
-                                                       ["shortage", "acc_shortage", "booking", "acc_booking"],
-                                                       [0])
-
+            order_states = be.snapshots.static_nodes[i:0:(["shortage", "acc_shortage", "booking", "acc_booking"], 0)]
+            
             # all the value should be 0 for this case
             self.assertEqual(0, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
             self.assertEqual(0, order_states[1], f"acc_shortage of port 0 should be 0 until tick {i}")
@@ -248,11 +237,7 @@ class TestEcrScenarios(unittest.TestCase):
             self.assertEqual(0, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
 
             # check fulfillment
-            fulfill_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
-                                                         [i],
-                                                         [0],
-                                                         ["fulfillment", "acc_fulfillment"],
-                                                         [0])
+            fulfill_states = be.snapshots.static_nodes[i:0:(["fulfillment", "acc_fulfillment"], 0)]
 
             self.assertEqual(0, fulfill_states[0], f"fulfillment of port 0 should be 0 at tick {i}")
             self.assertEqual(0, fulfill_states[1], f"acc_fulfillment of port 0 should be 0 until tick {i}")
@@ -331,11 +316,7 @@ class TestEcrScenarios(unittest.TestCase):
         self.assertEqual(be._data_generator.total_containers, total_cntr_number, "containers number should be changed")
 
         # check if statistics data correct
-        order_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
-                                                   [7],
-                                                   [0],
-                                                   ["shortage", "acc_shortage", "booking", "acc_booking"],
-                                                   [0])
+        order_states = be.snapshots.static_nodes[7:0:(["shortage", "acc_shortage", "booking", "acc_booking"], 0)]
 
         # all the value should be 0 for this case
         self.assertEqual(1, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
@@ -344,11 +325,7 @@ class TestEcrScenarios(unittest.TestCase):
         self.assertEqual(101, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
 
         # check fulfillment
-        fulfill_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
-                                                     [7],
-                                                     [0],
-                                                     ["fulfillment", "acc_fulfillment"],
-                                                     [0])
+        fulfill_states = be.snapshots.static_nodes[7:0:(["fulfillment", "acc_fulfillment"], 0)]
 
         self.assertEqual(50, fulfill_states[0], f"fulfillment of port 0 should be 50 at tick {i}")
         self.assertEqual(100, fulfill_states[1], f"acc_fulfillment of port 0 should be 100 until tick {i}")
