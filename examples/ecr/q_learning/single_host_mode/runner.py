@@ -347,7 +347,6 @@ class Runner:
         # Check events and pick data for usage, delayed laden, laden planed, laden executed, early discharge, actual_action, tml cost
         events = self._env.get_finished_events()
         for event in events:
-            self._logger.critical(f'{event.event_type.name}: {str(event.payload)}')
             # Pick data for ep laden executed
             if event.event_type == EcrEventType.DISCHARGE_FULL:
                 if event.payload.from_port_idx not in from_to_executed:
@@ -387,7 +386,7 @@ class Runner:
                 pretty_tml_cost_dict[port_name] = pretty_tml_cost_dict.get(
                         port_name, 0) + event_tml_cost
                 self._dashboard.upload_exp_data({port_name: event_tml_cost}, dashboard_ep, event.tick, 'event_tml_cost')
-                
+
             elif event.event_type == EcrEventType.VESSEL_ARRIVAL:
                 cur_tick = event.tick
                 # Pick and upload data for event vessel usage
