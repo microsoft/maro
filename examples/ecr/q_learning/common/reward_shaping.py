@@ -6,7 +6,10 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.simulator.graph import SnapshotList, ResourceNodeType
+from maro.simulator.graph import SnapshotList, GraphAttributeType
+
+AT_STATIC = GraphAttributeType.STATIC_NODE
+AT_DYNAMIC = GraphAttributeType.DYNAMIC_NODE
 
 class RewardShaping():
     def __init__(self):
@@ -33,9 +36,9 @@ class TruncateReward(RewardShaping):
     def __call__(self, snapshot_list: SnapshotList, start_tick: int, end_tick: int): 
         decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick) for j in range(len(self._agent_idx_list))]
         tot_fulfillment = np.dot(snapshot_list.get_attributes(
-                    ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['fulfillment'], [0]), decay_list)
+                    AT_STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['fulfillment'], [0]), decay_list)
         tot_shortage = np.dot(snapshot_list.get_attributes(
-                    ResourceNodeType.STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['shortage'], [0]), decay_list)
+                    AT_STATIC, [i for i in range(start_tick, end_tick)], self._agent_idx_list, ['shortage'], [0]), decay_list)
 
         self._reward_cache.append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage))
 

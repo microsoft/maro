@@ -9,10 +9,7 @@ import numpy as np
 import torch
 
 from maro.simulator import Env
-from maro.simulator.graph import ResourceNodeType
 from maro.utils import Logger, LogFormat
-
-
 
 class StateShaping():
     def __init__(self,

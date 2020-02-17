@@ -583,6 +583,8 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
                 vessel.remaining_space = vessel_remaining_space
 
+                print(port.empty, vessel_remaining_space, move_num, vessel_empty)
+
                 assert -min(port.empty, vessel_remaining_space) <= move_num <= vessel_empty
 
                 port.empty = port_empty + move_num
