@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 4,
-  "iteration": 1581989703108,
+  "iteration": 1581989703110,
   "links": [],
   "panels": [
     {
@@ -463,7 +463,7 @@
       "targets": [
         {
           "groupBy": [],
-          "measurement": "train_time",
+          "measurement": "time_cost",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -2449,7 +2449,6 @@
         "other_time",
         "supply_port_001",
         "supply_port_002",
-        "total",
         "train_time",
         "transfer_port_001"
       ],
@@ -2465,7 +2464,7 @@
       "targets": [
         {
           "groupBy": [],
-          "measurement": "train_time",
+          "measurement": "time_cost",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -2504,7 +2503,6 @@
         "other_time",
         "supply_port_001",
         "supply_port_002",
-        "total",
         "train_time",
         "transfer_port_001"
       ],
@@ -2998,7 +2996,7 @@
           "measurement": "q_value",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT \"other_time\",\"train_time\",\"env_time\" FROM \"train_time\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+          "query": "SELECT \"other_time\",\"train_time\",\"env_time\" FROM \"time_cost\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -3138,8 +3136,8 @@
       {
         "allValue": null,
         "current": {
-          "text": "review_0218_01",
-          "value": "review_0218_01"
+          "text": "review_0218_02",
+          "value": "review_0218_02"
         },
         "datasource": "InfluxDB",
         "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
@@ -3269,5 +3267,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 29
+  "version": 31
 }
