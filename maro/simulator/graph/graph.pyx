@@ -1,5 +1,6 @@
 #cython: language_level=3
 
+import sys
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -737,6 +738,12 @@ cdef class SnapshotList:
                 ret_view[i, j] = <float>v
 
         return result
+
+    def dump(self):
+        if sys.byteorder == "little":
+            pass
+        else:
+            pass
 
     def __len__(self):
         return self.end_tick - self.start_tick + 1
