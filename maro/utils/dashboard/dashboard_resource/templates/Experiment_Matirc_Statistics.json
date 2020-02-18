@@ -759,7 +759,7 @@
       "targets": [
         {
           "groupBy": [],
-          "measurement": "fullfill",
+          "measurement": "fulfill",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -768,7 +768,7 @@
             [
               {
                 "params": [
-                  "total_fullfill"
+                  "total_fulfill"
                 ],
                 "type": "field"
               }
@@ -1076,7 +1076,7 @@
         "demand_port_002",
         "ep",
         "experiment",
-        "total_fullfill",
+        "total_fulfill",
         "transfer_port_001"
       ],
       "ignoreColums": "",
@@ -1093,7 +1093,7 @@
       "targets": [
         {
           "groupBy": [],
-          "measurement": "fullfill",
+          "measurement": "fulfill",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -1127,7 +1127,7 @@
         "demand_port_002",
         "ep",
         "experiment",
-        "total_fullfill",
+        "total_fulfill",
         "transfer_port_001"
       ],
       "x_axis": "ep"

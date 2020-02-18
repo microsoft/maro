@@ -193,40 +193,47 @@ class Runner:
         pbar = tqdm(range(self._max_train_ep))
 
         for ep in pbar:
+            time_dict = OrderedDict()
+            ep_start = time.time()
             if self._dashboard is not None:
-                self._dashboard.set_dynamic_info({'is_train':True, 'current_ep':ep})
+                self._dashboard.set_dynamic_info({'is_train':True, 'current_ep':ep, 'ep_progress':f'{ep}/{self._max_train_ep}'})
             self._set_seed(TRAIN_SEED + ep)
             pbar.set_description('train episode')
+            env_start = time.time()
             _, decision_event, is_done = self._env.step(None)
 
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
                 _, decision_event, is_done = self._env.step(action)
-
-            train_time = OrderedDict()
-            train_time['total'] = 0
+            time_dict['env_time'] = time.time() - env_start
+            time_dict['train_time'] = 0
             for agent in self._agent_dict.values():
                 agent.calculate_offline_rewards(snapshot_list=self._env.snapshot_list, current_ep=ep)
                 agent.store_experience()
-                start = time.time()
+                train_start = time.time()
                 agent.train(current_ep=ep)
-                train_time[agent._agent_name] = time.time() - start
-                train_time['total'] += train_time[agent._agent_name]
-            self._train_time[ep] = train_time
-
+                time_dict[agent._agent_name] = time.time() - train_start
+                time_dict['train_time'] += time_dict[agent._agent_name]
+            
             if self._log_enable:
                 self._print_summary(ep=ep, is_train=True)
             
             self._env.reset()
 
+            time_dict['ep_time'] = time.time() - ep_start
+            time_dict['other_time'] = time_dict['ep_time'] - time_dict['train_time'] - time_dict['env_time']
+            self._train_time[ep] = time_dict
+
+            if self._dashboard is not None:
+                self._dashboard.upload_exp_data(self._train_time[ep], ep, None, 'train_time')
         self._test()
 
     def _test(self):
         pbar = tqdm(range(self._max_test_ep))
         for ep in pbar:
             if self._dashboard is not None:
-                self._dashboard.set_dynamic_info({'is_train':False, 'current_ep':ep})
+                self._dashboard.set_dynamic_info({'is_train':False, 'current_ep':ep, 'ep_progress':f'{ep}/{self._max_test_ep}'})
             self._set_seed(TEST_SEED)
             pbar.set_description('test episode')
             _, decision_event, is_done = self._env.step(None)
@@ -287,23 +294,21 @@ class Runner:
         if dashboard_ep == 0 :
             self._dashboard.upload_exp_data(DashboardECR.static_info, None, None, 'static_info')
         self._dashboard.upload_exp_data(DashboardECR.dynamic_info, dashboard_ep, None, 'dynamic_info')
-        if is_train:
-            self._dashboard.upload_exp_data(self._train_time[ep], ep, None, 'train_time')
         
         # Upload data for ep shortage and ep booking
         self._dashboard.upload_exp_data(pretty_booking_dict, dashboard_ep, None, 'booking')
         self._dashboard.upload_exp_data(pretty_shortage_dict, dashboard_ep, None, 'shortage')
 
-        pretty_fullfill_dict = OrderedDict()
+        pretty_fulfill_dict = OrderedDict()
         for i in range(len(self._port_idx2name)):
             if pretty_booking_dict[self._port_idx2name[i]] > 0:
-                pretty_fullfill_dict[self._port_idx2name[i]] = (
+                pretty_fulfill_dict[self._port_idx2name[i]] = (
                     pretty_booking_dict[self._port_idx2name[i]] - pretty_shortage_dict[self._port_idx2name[i]])/pretty_booking_dict[self._port_idx2name[i]] * 100
         if pretty_booking_dict['total_booking'] > 0:
-            pretty_fullfill_dict['total_fullfill'] = (
+            pretty_fulfill_dict['total_fulfill'] = (
                 pretty_booking_dict['total_booking'] - pretty_shortage_dict['total_shortage'])/pretty_booking_dict['total_booking'] * 100
         self._dashboard.upload_exp_data(
-            pretty_fullfill_dict, dashboard_ep, None, 'fullfill')
+            pretty_fulfill_dict, dashboard_ep, None, 'fulfill')
 
         # Pick and upload data for rank list
         if not is_train:
