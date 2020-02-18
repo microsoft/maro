@@ -12,15 +12,15 @@ framework.
 
 We supply an easy way of starting the influxdb and Grafana services.
 
-We implemente a DashboardBase class for uploading data to the database
-in maro.utils.dashboard. You can customize your class base on the
+We implement a DashboardBase class for uploading data to the database in
+maro.utils.dashboard. You can customize your class base on the
 DashboardBase class.
 
 We define 3 Grafana dashboards that show common experiment statistics
-data, experiments compare data and a rank list for experiments.
+data, experiments data comparison and a rank list for experiments.
 
 We develop 3 Grafana panel plugins for you to customize your dashboard
-in Grafana: Simple line chart, Heatmap chart, stack bar chart. The
+in Grafana: Simple line chart, Heatmap chart, and stack bar chart. The
 simple line chart can show multiple lines in one chart. The heatmap
 chart can show z-axis data as different red rectangles on different x,
 y-axis values. The stack bar chart can show multiple bar series stacked
@@ -81,14 +81,14 @@ Use default user: 'admin' and password: 'admin' to login.
 Then Grafana will navigate to the 'Home' dashboard, tap 'Home' in the
 up-left corner and select the 'Hello World' option.
 
-Grafan will navigate to the 'Hello World' dashboard and the data chart
+Grafana will navigate to the 'Hello World' dashboard and the data chart
 panel will be shown in your browser.
 
-Detail in Deploy
-----------------
+Detail of Deploying
+-------------------
 
 To make the Dashboard work, you need to start the dockers for the
-dashboard first, in a local machine or a remote one. And then you can
+dashboard first, on a local machine or a remote one. And then you can
 insert the upload API into the experiment process, so the experiment
 data will be uploaded while the experiment running.
 
@@ -136,7 +136,8 @@ the basic upload API: send()
 
     dashboard.send(fields={'port1':5,'port2':12}, tag={'ep':15}, measurement='shortage')
 
-send() requires 3 parameters (reference to https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/):
+send() requires 3 parameters (reference to
+https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/):
 
 -  fields ({Dict}): a dictionary of fields, the key is a field name,
    value is field value, the data you want to draw in the dashboard
@@ -196,10 +197,10 @@ upload\_to\_ranklist() require 2 parameters:
 Customized Upload Apis
 ^^^^^^^^^^^^^^^^^^^^^^
 
-In the ECR example, the customized upload API includes upload\_exp\_data(), 
-they packs the basic upload API. The customized upload API requires some 
-business data, reorganizes them into basic API parameters, and sends data
-to the database via basic upload API.
+In the ECR example, the customized upload API includes
+upload\_exp\_data(), packs the basic upload API. The customized upload
+API requires some business data, reorganizes them into basic API
+parameters, and sends data to the database via basic upload API.
 
 .. code:: python
 
@@ -219,16 +220,16 @@ to the database via basic upload API.
 
 upload\_exp\_data() requires 4 parameters:
 
--  fields ({Dict}): dictionary of experiment data, key is experiment data 
-   name, value is experiment data value.
+-  fields ({Dict}): dictionary of experiment data, key is experiment
+   data name, value is experiment data value.
 
    i.e.:{"port1":1024, "port2":2048}
 
--  ep (int): current ep of the experiment data, used to identify data of 
+-  ep (int): current ep of the experiment data, used to identify data of
    different ep in the database.
 
--  tick (int): current tick of the experiment data, used to identify data
-   of different ep in the database. Set None if it is not needed.
+-  tick (int): current tick of the experiment data, used to identify
+   data of different ep in the database. Set None if it is not needed.
 
 -  measurement (str): specify the measurement in which the data will be
    stored in.

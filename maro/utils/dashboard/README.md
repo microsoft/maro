@@ -10,9 +10,9 @@ We supply an easy way of starting the influxdb and Grafana services.
 
 We implement a DashboardBase class for uploading data to the database in maro.utils.dashboard. You can customize your class base on the DashboardBase class.
 
-We define 3 Grafana dashboards that show common experiment statistics data, experiments compare data and a rank list for experiments.
+We define 3 Grafana dashboards that show common experiment statistics data, experiments data comparison and a rank list for experiments.
 
-We develop 3 Grafana panel plugins for you to customize your dashboard in Grafana: Simple line chart, Heatmap chart, stack bar chart. The simple line chart can show multiple lines in one chart. The heatmap chart can show z-axis data as different red rectangles on different x, y-axis values. The stack bar chart can show multiple bar series stacked together by the x-axis.
+We develop 3 Grafana panel plugins for you to customize your dashboard in Grafana: Simple line chart, Heatmap chart, and stack bar chart. The simple line chart can show multiple lines in one chart. The heatmap chart can show z-axis data as different red rectangles on different x, y-axis values. The stack bar chart can show multiple bar series stacked together by the x-axis.
 
 ## Quick Start
 
@@ -63,11 +63,11 @@ Use default user: 'admin' and password: 'admin' to login.
 
 Then Grafana will navigate to the 'Home' dashboard, tap 'Home' in the up-left corner and select the 'Hello World' option.
 
-Grafan will navigate to the 'Hello World' dashboard and the data chart panel will be shown in your browser.
+Grafana will navigate to the 'Hello World' dashboard and the data chart panel will be shown in your browser.
 
-## Detail in Deploy
+## Detail of Deploying
 
-To make the Dashboard work, you need to start the dockers for the dashboard first, in a local machine or a remote one. And then you can insert the upload API into the experiment process, so the experiment data will be uploaded while the experiment running.
+To make the Dashboard work, you need to start the dockers for the dashboard first, on a local machine or a remote one. And then you can insert the upload API into the experiment process, so the experiment data will be uploaded while the experiment running.
 
 ### Setup Services
 
