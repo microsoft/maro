@@ -241,6 +241,12 @@ cdef class Graph:
         self.attr_map = {}
 
     @property
+    def memory_size(self)->int:
+        """int: number of memory that cost (int byte)
+        """
+        return self.size
+
+    @property
     def static_node_number(self) -> int:
         '''int: Number of static nodes in current graph'''
         return self.static_node_num
@@ -434,7 +440,7 @@ cdef class SnapshotList:
     cdef:
         Graph graph
 
-        # total size of memory
+        # number of snapshot
         int32_t size
 
         # memory size of graph
@@ -460,7 +466,7 @@ cdef class SnapshotList:
         SnapshotGeneralAccessor general_acc
 
 
-    def __cinit__(self, Graph graph, int32_t size, ):
+    def __cinit__(self, Graph graph, int32_t size):
         self.graph = graph
         self.size = size
         self.graph_size = graph.size
@@ -475,6 +481,12 @@ cdef class SnapshotList:
         self.static_acc = SnapshotNodeAccessor(AT_STATIC, self.graph.static_node_num, self)
         self.dynamic_acc = SnapshotNodeAccessor(AT_DYNAMIC, self.graph.dynamic_node_num, self)
         self.general_acc = SnapshotGeneralAccessor(self)
+
+    @property
+    def memory_size(self)->int:
+        """int: number of memory that cost (int byte)
+        """
+        return self.size * self.graph_size
         
     @property
     def static_nodes(self) -> SnapshotNodeAccessor:
