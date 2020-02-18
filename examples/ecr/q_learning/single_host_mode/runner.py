@@ -106,7 +106,7 @@ class Runner:
         self._port_name2idx = {}
         for idx in self._port_idx2name.keys():
             self._port_name2idx[self._port_idx2name[idx]] = idx
-        self._train_time = OrderedDict()
+        self._time_cost = OrderedDict()
         if log_enable:
             self._logger = Logger(tag='runner', format_=LogFormat.simple,
                                   dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
@@ -196,7 +196,13 @@ class Runner:
             time_dict = OrderedDict()
             ep_start = time.time()
             if self._dashboard is not None:
-                self._dashboard.set_dynamic_info({'is_train':True, 'current_ep':ep, 'ep_progress':f'{ep}/{self._max_train_ep}'})
+                # set testing progress
+                if ep == 0:
+                    self._dashboard.set_dynamic_info(
+                        {'is_train': False, 'current_ep': 0, 'ep_progress': f'{0}/{self._max_test_ep}'})
+                # set training progress
+                self._dashboard.set_dynamic_info(
+                    {'is_train': True, 'current_ep': ep, 'ep_progress': f'{ep+1}/{self._max_train_ep}'})
             self._set_seed(TRAIN_SEED + ep)
             pbar.set_description('train episode')
             env_start = time.time()
@@ -223,28 +229,40 @@ class Runner:
 
             time_dict['ep_time'] = time.time() - ep_start
             time_dict['other_time'] = time_dict['ep_time'] - time_dict['train_time'] - time_dict['env_time']
-            self._train_time[ep] = time_dict
+            self._time_cost[ep] = time_dict
 
             if self._dashboard is not None:
-                self._dashboard.upload_exp_data(self._train_time[ep], ep, None, 'train_time')
+                self._dashboard.upload_exp_data(self._time_cost[ep], ep, None, 'time_cost')
         self._test()
 
     def _test(self):
         pbar = tqdm(range(self._max_test_ep))
         for ep in pbar:
+            time_dict = OrderedDict()
+            ep_start = time.time()
             if self._dashboard is not None:
-                self._dashboard.set_dynamic_info({'is_train':False, 'current_ep':ep, 'ep_progress':f'{ep}/{self._max_test_ep}'})
+                self._dashboard.set_dynamic_info(
+                    {'is_train': False, 'current_ep': ep, 'ep_progress': f'{ep+1}/{self._max_test_ep}'})
             self._set_seed(TEST_SEED)
             pbar.set_description('test episode')
+            env_start = time.time()
             _, decision_event, is_done = self._env.step(None)
             while not is_done:
                 action = self._agent_dict[decision_event.port_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep)
                 _, decision_event, is_done = self._env.step(action)
+            time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
                 self._print_summary(ep=ep, is_train=False)
 
             self._env.reset()
+
+            time_dict['ep_time'] = time.time() - ep_start
+            time_dict['other_time'] = time_dict['ep_time'] - time_dict['env_time']
+            self._time_cost[ep + self._max_train_ep] = time_dict
+
+            if self._dashboard is not None:
+                self._dashboard.upload_exp_data(time_dict, ep + self._max_train_ep, None, 'time_cost')
 
     def _print_summary(self, ep, is_train: bool = True):
         shortage_list = self._env.snapshot_list.static_nodes[
