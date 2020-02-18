@@ -4,7 +4,7 @@
 
 from time import time
 
-from maro.simulator.graph import SnapshotList, ResourceNodeType
+from maro.simulator.graph import SnapshotList, GraphAttributeType
 
 from maro.simulator.core import Env
 from maro.simulator.scenarios.ecr.common import Action
@@ -25,6 +25,9 @@ MAX_TICK = 1000
 READ_WRITE_NUMBER = 1000000
 STOP_NUMBER = (4, 4)
 
+AT_STATIC = GraphAttributeType.STATIC_NODE
+AT_DYNAMIC = GraphAttributeType.DYNAMIC_NODE
+
 
 def test_graph_only():
     start_time = time()
@@ -34,8 +37,8 @@ def test_graph_only():
     # read & write one attribute N times with simplified interface
     for _ in range(READ_WRITE_NUMBER):
         # NOTE: this is slow attribute accessing interface, we will typed interface later
-        v = g.get_attribute(ResourceNodeType.STATIC, 0, "empty", 0)
-        g.set_attribute(ResourceNodeType.STATIC, 0, 'empty', 0, v + 1)
+        v = g.get_attribute(AT_STATIC, 0, "empty", 0)
+        g.set_attribute(AT_STATIC, 0, 'empty', 0, v + 1)
 
     end_time = time()
 
@@ -63,7 +66,7 @@ def test_snapshot_list_only():
     attrs = ["empty", "laden", "on_shipper", "on_consignee"]
     indices = [0]
     for i in range(MAX_TICK):
-        state = ss.get_attributes(ResourceNodeType.STATIC, ticks, node_ids, attrs, indices)
+        state = ss.get_attributes(AT_STATIC, ticks, node_ids, attrs, indices)
 
     step_2_end_time = time()
 
@@ -92,6 +95,11 @@ def test_ecr():
     end_time = time()
 
     print(f"env total time cost: {end_time - start_time}")
+
+    print("snapshot size: ", env.snapshot_list.memory_size)
+    print("graph size: ", env.current_graph.memory_size)
+
+    input()
 
 
 test_graph_only()
