@@ -358,14 +358,11 @@ cdef class Graph:
     cpdef void save(self, bytes path):
         """Dump current graph data into bytes.
         The bytes contains following part:
-        1. header: 2 bytes (gf)
         2. version: 1 bytes
         3. endian type: 1 byte (0 or 1)
         4. size (in byte): 8 bytes
         5. data
         """
-        cdef int8_t header_size = 12
-        cdef char *name = "gf" 
         cdef int8_t version = 1 
         cdef int8_t etype
         cdef int8_t *data_ptr = <int8_t*>self.arr.data
@@ -376,28 +373,41 @@ cdef class Graph:
         else:
             etype = 1
 
-        fp = fopen(<char*>path, "w")
+        fp = fopen(path, "w")
 
         if not fp:
             # TODO: exception later
             return
         
-        fwrite(name, sizeof(char), 2, fp)
         fwrite(&version, sizeof(int8_t), 1, fp)
         fwrite(&etype, sizeof(int8_t), 1, fp)
         fwrite(data_ptr, sizeof(int8_t), self.size, fp)
 
         fclose(fp)    
     
-    cpdef load(self, data: bytes):
-        
+    cpdef load(self, bytes path):
         # read name, version, type, size
 
         # read all the data into <int8_t*>self.arr.data
 
         # go through all the attributes and swap bytes if endian is not same with current
 
-        pass
+        cdef FILE *fp
+        cdef int8_t[2] buffer
+        cdef int8_t *data_ptr = <int8_t*>self.arr.data
+
+        fp = fopen(path, "r")
+
+        # read header
+        fread(buffer, sizeof(int8_t), 2, fp)
+
+        # buffer[0] version
+        # buffer[1] endian type
+
+        # TODO: big endian support later
+        fread(data_ptr, sizeof(int8_t), self.size, fp)
+
+        fclose(fp)
 
     cdef int32_t cal_graph_size(self):
         """
