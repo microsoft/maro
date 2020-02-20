@@ -404,7 +404,7 @@ cdef class Graph:
         # buffer[0] version
         # buffer[1] endian type
 
-        # TODO: big endian support later
+        # TODO: different endian support later
         fread(data_ptr, sizeof(int8_t), self.size, fp)
 
         fclose(fp)
