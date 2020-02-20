@@ -11,6 +11,7 @@ from cpython cimport bool
 from math import ceil
 
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
+from libc.stdio cimport fopen, fwrite, fread, fclose, FILE
 
 # fused type for graph data
 ctypedef fused graph_data_type:
@@ -19,7 +20,6 @@ ctypedef fused graph_data_type:
     int32_t
     int64_t
     float
-    double
 
 class GraphDataType(IntEnum):
     """
@@ -30,7 +30,6 @@ class GraphDataType(IntEnum):
     INT32 = 2
     INT64 = 3
     FLOAT = 4
-    DOUBLE = 5
     
 class GraphAttributeType(IntEnum):
     """
@@ -46,7 +45,6 @@ cdef int8_t DT_SHORT = GraphDataType.SHORT
 cdef int8_t DT_INT32 = GraphDataType.INT32
 cdef int8_t DT_INT64 = GraphDataType.INT64
 cdef int8_t DT_FLOAT = GraphDataType.FLOAT
-cdef int8_t DT_DOUBLE = GraphDataType.DOUBLE
 
 cdef int8_t AT_STATIC = GraphAttributeType.STATIC_NODE
 cdef int8_t AT_DYNAMIC = GraphAttributeType.DYNAMIC_NODE
@@ -60,7 +58,6 @@ cdef dict dtype_size_map = {
     DT_INT32 : sizeof(int32_t),
     DT_INT64 : sizeof(int64_t),
     DT_FLOAT : sizeof(float),
-    DT_DOUBLE : sizeof(double)
 }
 
 
@@ -162,8 +159,6 @@ cdef object get_attr_value_from_array(view.array arr, int8_t dtype, int32_t aind
         return get_value_from_ptr[int64_t](<int64_t *>arr.data, aindex, sindex)
     elif dtype == DT_FLOAT:
         return get_value_from_ptr[float](<float *>arr.data, aindex, sindex)
-    elif dtype == DT_DOUBLE:
-        return get_value_from_ptr[double](<double *>arr.data, aindex, sindex)
 
     return None
 
@@ -178,8 +173,6 @@ cdef void set_attr_value_from_array(view.array arr, int8_t dtype, int32_t aindex
         set_value_from_ptr[int64_t](<int64_t *>arr.data, aindex, sindex, value)
     elif dtype == DT_FLOAT:
         set_value_from_ptr[float](<float *>arr.data, aindex, sindex, value)
-    elif dtype == DT_DOUBLE:
-        set_value_from_ptr[double](<double *>arr.data, aindex, sindex, value)
 
 cdef class Graph:
     '''Graph used to hold attributes for both static and dynamic nodes.
@@ -355,12 +348,56 @@ cdef class Graph:
 
         set_attr_value_from_array(self.arr, attr.dtype, aindex, slot_index, value)
 
-    cpdef reset(self):
+    cpdef void reset(self):
         '''Reset all the attributes to default value'''
         cdef int64_t i = 0
 
         for i in range(self.size):
             self.arr[0, i] = 0
+
+    cpdef void save(self, bytes path):
+        """Dump current graph data into bytes.
+        The bytes contains following part:
+        1. header: 2 bytes (gf)
+        2. version: 1 bytes
+        3. endian type: 1 byte (0 or 1)
+        4. size (in byte): 8 bytes
+        5. data
+        """
+        cdef int8_t header_size = 12
+        cdef char *name = "gf" 
+        cdef int8_t version = 1 
+        cdef int8_t etype
+        cdef int8_t *data_ptr = <int8_t*>self.arr.data
+        cdef FILE *fp
+
+        if sys.byteorder == "little":
+            etype = 0 # 0 means little endian, 1 means big endian
+        else:
+            etype = 1
+
+        fp = fopen(<char*>path, "w")
+
+        if not fp:
+            # TODO: exception later
+            return
+        
+        fwrite(name, sizeof(char), 2, fp)
+        fwrite(&version, sizeof(int8_t), 1, fp)
+        fwrite(&etype, sizeof(int8_t), 1, fp)
+        fwrite(data_ptr, sizeof(int8_t), self.size, fp)
+
+        fclose(fp)    
+    
+    cpdef load(self, data: bytes):
+        
+        # read name, version, type, size
+
+        # read all the data into <int8_t*>self.arr.data
+
+        # go through all the attributes and swap bytes if endian is not same with current
+
+        pass
 
     cdef int32_t cal_graph_size(self):
         """
@@ -375,7 +412,7 @@ cdef class Graph:
         cdef GraphAttribute attr = None
 
         attr_list = [attr for _, attr in self.attr_map.items()]
-        attr_list.sort(key=lambda x: x.dsize)
+        attr_list.sort(key=lambda x: x.dtype)
 
         cdef int32_t cur_size = attr_list[0].dsize
         cdef int32_t pre_size = cur_size
@@ -751,11 +788,7 @@ cdef class SnapshotList:
 
         return result
 
-    def dump(self):
-        if sys.byteorder == "little":
-            pass
-        else:
-            pass
+
 
     def __len__(self):
         return self.end_tick - self.start_tick + 1

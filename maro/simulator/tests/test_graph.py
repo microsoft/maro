@@ -113,6 +113,11 @@ class TestGraph(unittest.TestCase):
         with self.assertRaises(GraphAttributeNotFoundError) as ctx:
             self.graph.get_attribute(ResourceNodeType.DYNAMIC, 0, None, 0)
 
+    def test_dump(self):
+        self.graph.set_attribute(STATIC_NODE, 0, "a2", 0, 12)
+        
+        self.graph.save(b"graph.dat")
+
     def test_reset(self):
         self.graph.set_attribute(STATIC_NODE, 0, "a2", 0, 12)
 
