@@ -120,8 +120,6 @@ class EnvRunner(Runner):
         self._print_summary(ep=episode, is_train=True)
 
         for id_, agent in self._agent_dict.items():
-            agent.calculate_offline_rewards(
-                 self._env.snapshot_list, current_ep=episode)
             self.send_experience(id_, episode)
 
         self._env.reset()
@@ -143,7 +141,7 @@ class EnvRunner(Runner):
         Send experiences from current episode to learner
         """
         agent_name = self._env.node_name_mapping['static'][agent_id]
-        exp = self._agent_dict[agent_id].get_experience()
+        exp = self._agent_dict[agent_id].get_experience(episode)
         message = Message(type=MsgType.STORE_EXPERIENCE, source=self._proxy.name,
                           destination=self._agent2learner[agent_id],
                           payload={PayloadKey.AGENT_ID: agent_id, PayloadKey.EXPERIENCE: exp, PayloadKey.EPISODE: episode,

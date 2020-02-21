@@ -12,34 +12,20 @@ from tqdm import tqdm
 
 from maro.utils import SimpleExperiencePool, Logger, LogFormat
 from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
-from examples.ecr.q_learning.common.reward_shaping import TruncateReward, GoldenFingerReward
 
 
 class Agent(object):
-    def __init__(self, agent_name, topology, port_idx2name,
-                 vessel_idx2name, algorithm, experience_pool: SimpleExperiencePool,
-                 state_shaping, action_shaping, reward_shaping, batch_num, batch_size, min_train_experience_num,
-                 agent_idx_list,
-                 log_enable: bool = True, log_folder: str = './', dashboard_enable: bool = True,
-                 dashboard: object = None):
+    def __init__(self, agent_name, algorithm, experience_pool: SimpleExperiencePool,
+                 state_shaping, action_shaping, reward_shaping,
+                 batch_num, batch_size, min_train_experience_num,
+                 log_enable: bool = True, log_folder: str = './',
+                 dashboard_enable: bool = True, dashboard: object = None):
         self._agent_name = agent_name
-        self._topology = topology
-        self._port_idx2name = port_idx2name
-        self._vessel_idx2name = vessel_idx2name
         self._algorithm = algorithm
         self._experience_pool = experience_pool
         self._state_shaping = state_shaping
         self._action_shaping = action_shaping
-        self._state_cache = []
-        self._action_cache = []
-        self._action_tick_cache = []
-        self._actual_action_cache = []
-        self._reward_cache = []
-        self._next_state_cache = []
-        self._decision_event_cache = []
-        self._eps_cache = []
-        self._port_states_cache = []
-        self._vessel_states_cache = []
+        self._reward_shaping = reward_shaping
         self._batch_size = batch_size
         self._batch_num = batch_num
         self._min_train_experience_num = min_train_experience_num
@@ -47,94 +33,25 @@ class Agent(object):
         self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
 
-        if reward_shaping == 'gf':
-            self._reward_shaping = GoldenFingerReward(topology=self._topology, action_space=self._action_shaping.action_space, base=10)
-        else:
-            self._reward_shaping = TruncateReward(agent_idx_list=agent_idx_list)
-
         if self._log_enable:
             self._logger = Logger(tag='agent', format_=LogFormat.simple,
                                   dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
-            self._choose_action_logger = Logger(tag=f'{self._algorithm.policy_net.name}.choose_action',
-                                                format_=LogFormat.none,
-                                                dump_folder=log_folder, dump_mode='w', extension_name='csv',
-                                                auto_timestamp=False)
-            self._choose_action_logger.debug(
-                'episode,tick,learning_index,epislon,port_empty,port_full,port_on_shipper,port_on_consignee,vessel_empty,vessel_full,vessel_remaining_space,max_load_num,max_discharge_num,vessel_name,action_index,actual_action,reward')
 
-    def calculate_offline_rewards(self, snapshot_list, current_ep: int):
-        for i, tick in enumerate(self._action_tick_cache):
-            if type(self._reward_shaping) == GoldenFingerReward:
-                self._reward_shaping(port_name=self._port_idx2name[self._decision_event_cache[i].port_idx],
-                                     vessel_name=self._vessel_idx2name[self._decision_event_cache[i].vessel_idx],
-                                     action_index=self._action_cache[i])
-            else:
-                self._reward_shaping(snapshot_list=snapshot_list, start_tick=tick + 1, end_tick=tick + 100)
-
-        self._reward_cache = self._reward_shaping.reward_cache
-        self._next_state_cache = self._state_cache[1:]
-        self._state_cache = self._state_cache[:-1]
-        self._action_cache = self._action_cache[:-1]
-        self._actual_action_cache = self._actual_action_cache[:-1]
-        self._decision_event_cache = self._decision_event_cache[:-1]
-        self._port_states_cache = self._port_states_cache[:-1]
-        self._vessel_states_cache = self._vessel_states_cache[:-1]
+    def store_experience(self, current_ep: int):
+        self._reward_shaping.calculate_reward(self._agent_name, current_ep, self._algorithm.learning_index)
+        experience_set = self._reward_shaping.pop_experience(self._agent_name)
+        self._experience_pool.put(category_data_batches=[(name, cache) for name, cache in experience_set.items()])
         if self._log_enable:
+            experience_summary = {name: experience_set[name] for name in ['action', 'actual_action', 'reward']}
+            self._logger.debug(f'Agent {self._agent_name} new appended exp: {experience_summary}')
             self._logger.debug(f'Agent {self._agent_name} current experience pool size: {self._experience_pool.size}')
 
-        exp_summary = [{'action': action, 'actual_action': actual_action, 'reward': reward}
-                       for action, actual_action, reward in
-                       zip(self._action_cache, self._actual_action_cache, self._reward_cache)]
-
-        if self._log_enable:
-            self._logger.debug(f'Agent {self._agent_name} new appended exp: {exp_summary}')
-            for i, decision_event in enumerate(self._decision_event_cache):
-                episode = current_ep
-                tick = decision_event.tick
-                learning_index = self._algorithm.learning_index
-                epislon = self._eps_cache[i]
-                port_states = self._port_states_cache[i]
-                vessel_states = self._vessel_states_cache[i]
-                max_load_num = self._decision_event_cache[i].action_scope.load
-                max_discharge_num = self._decision_event_cache[i].action_scope.discharge
-                vessel_name = self._vessel_idx2name[self._decision_event_cache[i].vessel_idx]
-                action_index = self._action_cache[i]
-                actual_action = self._actual_action_cache[i]
-                reward = self._reward_cache[i]
-                log_str = f"{episode},{tick},{learning_index},{epislon},{','.join([str(f) for f in port_states])},{','.join([str(f) for f in vessel_states])},{max_load_num},{max_discharge_num},{vessel_name},{action_index},{actual_action},{reward}"
-                self._choose_action_logger.debug(log_str)
-
-    def store_experience(self):
-        self._experience_pool.put(category_data_batches=[
-            ('state', self._state_cache), ('action', self._action_cache),
-            ('reward', self._reward_cache), ('next_state', self._next_state_cache),
-            ('actual_action', self._actual_action_cache),
-            ('info', [{'td_error': 1e10}
-                      for i in range(len(self._state_cache))])
-        ])
-        self._clear_cache()
-
-    def get_experience(self):
-        temp_experience =  [('state', self._state_cache), ('action', self._action_cache),
-                            ('reward', self._reward_cache), ('next_state', self._next_state_cache),
-                            ('actual_action', self._actual_action_cache),
-                            ('info', [{'td_error': 1e10}
-                                    for i in range(len(self._state_cache))])
-                            ]
-        self._clear_cache()
-        return temp_experience
-
-    def _clear_cache(self):
-        self._action_tick_cache = []
-        self._next_state_cache = []
-        self._state_cache = []
-        self._action_cache = []
-        self._actual_action_cache = []
-        self._decision_event_cache = []
-        self._eps_cache = []
-        self._port_states_cache = []
-        self._vessel_states_cache = []
-        self._reward_shaping.clear_cache()
+    def get_experience(self, current_ep: int):
+        """
+        return the experience from reward shaping. Only used for distributed mode
+        """
+        self._reward_shaping.calculate_reward(self._agent_name, current_ep, self._algorithm.learning_index)
+        return self._reward_shaping.pop_experience(self._agent_name)
 
     @property
     def experience_pool(self):
@@ -224,22 +141,26 @@ class Agent(object):
         is_random, action_index = self._algorithm.choose_action(
             state=state, eps=eps, current_ep=current_ep)
 
-        self._state_cache.append(numpy_state)
-        self._action_cache.append(action_index)
-        self._action_tick_cache.append(cur_tick)
-        self._decision_event_cache.append(decision_event)
-        self._eps_cache.append(eps)
         port_states = snapshot_list.static_nodes[
                       cur_tick: cur_port_idx: (['empty', 'full', 'on_shipper', 'on_consignee'], 0)]
         vessel_states = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
         early_discharge = snapshot_list.dynamic_nodes[
                         cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
-        self._port_states_cache.append(port_states)
-        self._vessel_states_cache.append(vessel_states)
-        actual_action = self._action_shaping(scope=action_scope, action_index=action_index, port_empty=port_states[0],
-                                             vessel_remaining_space=vessel_states[2], early_discharge=early_discharge)
-        self._actual_action_cache.append(actual_action)
+        actual_action = self._action_shaping(scope=action_scope, action_index=action_index,
+                                             port_empty=port_states[0], vessel_remaining_space=vessel_states[2],
+                                             early_discharge=early_discharge)
+
+        self._reward_shaping.push_matrices(self._agent_name,
+                                            {'state': numpy_state,
+                                            'action': action_index,
+                                            'actual_action': actual_action,
+                                            'action_tick': cur_tick,
+                                            'decision_event': decision_event,
+                                            'eps': eps,
+                                            'port_states': port_states,
+                                            'vessel_states': vessel_states})
+
         env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
         if self._log_enable:
             self._logger.info(
