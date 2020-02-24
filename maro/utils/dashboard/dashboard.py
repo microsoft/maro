@@ -44,18 +44,13 @@ class DashboardBase(Singleton):
 
         Args:
             fields ({Dict}): dictionary of field values, key is field name, value is field value. 
-                Fields are a required piece of the InfluxDB data structure - you cannot have data in InfluxDB without fields. 
-                It’s also important to note that fields are not indexed.
+                Reference to https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/#field-key
                 i.e.:{"port1":1024, "port2":2048}
             tag ({Dict}): dictionary of tags, used for query data from database
-                Tags are optional. You don’t need to have tags in your data structure, 
-                but it’s generally a good idea to make use of them because, unlike fields, tags are indexed. 
-                This means that queries on tags are faster and that tags are ideal for storing commonly-queried metadata.
+                Reference to https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/#tag-key
                 i.e.:{"ep":5}
             measurement (string): type of field values, used as data table name in database
-                The measurement acts as a container for tags, fields, and the time column, 
-                and the measurement name is the description of the data that are stored in the associated fields. 
-                Measurement names are strings, and, for any SQL users out there, a measurement is conceptually similar to a table.
+                Reference to https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/#measurement
                 i.e.:"shortage"
         """
         tag['experiment'] = self.experiment

@@ -43,11 +43,11 @@ class DashboardECR(DashboardBase):
             fields['tick'] = tick
         self.send(fields=fields, tag=tag, measurement=measurement)
     
-    def set_static_info(self, info:dict) -> None:
+    def update_static_info(self, info:dict) -> None:
         for info_name, info_value in info.items():
             DashboardECR.static_info[info_name] = info_value
         
-    def set_dynamic_info(self, info:dict) -> None:
+    def update_dynamic_info(self, info:dict) -> None:
         for info_name, info_value in info.items():
             DashboardECR.dynamic_info[info_name] = info_value
         DashboardECR.dynamic_info['cpu_percent'] = psutil.cpu_percent()
@@ -55,14 +55,14 @@ class DashboardECR(DashboardBase):
         for memory_usage_name, memory_usage_value in memory_usage.items():
             DashboardECR.dynamic_info[f'memory_{memory_usage_name}'] = memory_usage_value
 
-    def set_ranklist_info(self, info:dict) -> None:
+    def update_ranklist_info(self, info:dict) -> None:
         for info_name, info_value in info.items():
             DashboardECR.ranklist_info[info_name] = info_value
 
     def upload_to_ranklist(self, ranklist: str, fields: dict) -> None:
         for info_name, info_value in DashboardECR.ranklist_info.items():
             fields[info_name] = info_value
-        super(DashboardECR, self).upload_to_ranklist(ranklist, fields)
+        super(DashboardECR, self).upload_to_ranklist(ranklist=ranklist, fields=fields)
         
 
 

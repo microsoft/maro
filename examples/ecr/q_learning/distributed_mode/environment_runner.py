@@ -74,7 +74,7 @@ class EnvRunner(Runner):
         super().__init__(scenario, topology, max_tick, max_train_ep, max_test_ep, eps_list,
                          log_enable=log_enable)
         if self._dashboard is not None:
-            self._dashboard.set_static_info({'COMPONENT_NAME':COMPONENT_NAME})
+            self._dashboard.update_static_info(info={'COMPONENT_NAME':COMPONENT_NAME})
         self._agent_idx_list = self._env.agent_idx_list
         self._agent2learner = {self._agent_idx_list[i]: 'learner.' + str(i) for i in range(len(self._agent_idx_list))}
         self._proxy = Proxy(group_name=os.environ['GROUP'],
@@ -95,7 +95,7 @@ class EnvRunner(Runner):
         setup the communication and trigger the training process.
         """
         if self._dashboard is not None:
-            self._dashboard.upload_exp_data(DashboardECR.static_info, None, None, 'static_info')
+            self._dashboard.upload_exp_data(fields=DashboardECR.static_info, ep=None, tick=None, measurement='static_info')
 
         self._proxy.join()
         self.send_net_parameters_to_learner()

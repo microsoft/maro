@@ -10,7 +10,7 @@ import time
 
 test_name = f'Hello_World_{time.time()}'
 
-dashboard = DashboardBase(test_name, '.')
+dashboard = DashboardBase(experiment=test_name, log_folder='.')
 
 
 class TestDashboardMethods(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestDashboardMethods(unittest.TestCase):
     def test_ranklist(self):
         # Test case 01: upoload to ranklist
         fields = {'shortage': random.random()*100}
-        dashboard.upload_to_ranklist(ranklist = 'test_shortage_ranklist', fields=fields)
+        dashboard.upload_to_ranklist(ranklist='test_shortage_ranklist', fields=fields)
         results = dashboard._connection.client.query('select * from "test_shortage_ranklist" where "experiment"= \'{test_name}\'')
         points = results.get_points()
         for point in points:
@@ -28,10 +28,9 @@ class TestDashboardMethods(unittest.TestCase):
         # Test case 02: upoload to hello world
         org_data = {}
         for i in range(10):
-            fields = {'student_01': random.random(
-            )*10*i, 'student_02': random.random()*15*i}
+            fields = {'student_01': random.random()*10*i, 'student_02': random.random()*15*i}
             tag = {'ep': i}
-            org_data[i]=fields
+            org_data[i] = fields
             measurement = 'score'
             dashboard.send(fields=fields, tag=tag, measurement=measurement)
         results = dashboard._connection.client.query('select * from "score" where "experiment"= \'{test_name}\'')

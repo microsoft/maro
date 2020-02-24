@@ -189,7 +189,7 @@ class Agent(object):
                 self._logger.info(f'{self._agent_name} learn loss: {loss}')
 
             if self._dashboard is not None:
-                self._dashboard.upload_exp_data({self._agent_name: loss}, current_ep, None, 'loss')
+                self._dashboard.upload_exp_data(fields={self._agent_name: loss}, ep=current_ep, tick=None, measurement='loss')
 
     def dump_modules(self, module_path: str):
         self._logger.debug(f'{self._agent_name} dump module to {module_path}')
