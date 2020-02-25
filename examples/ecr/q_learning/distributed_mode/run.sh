@@ -21,9 +21,9 @@ do
   do
       if [ $num -gt 1 ]
       then
-          GROUP=${experiment} COMPTYPE=${comp} COMPID=${i} python3 ${comp}.py &
+          LOG_LEVEL=PROGRESS GROUP=${experiment} COMPTYPE=${comp} COMPID=${i} python ${comp}.py &
       else
-          GROUP=${experiment} COMPTYPE=${comp} python3 ${comp}.py &
+          LOG_LEVEL=PROGRESS GROUP=${experiment} COMPTYPE=${comp} python ${comp}.py &
       fi
   done
 done

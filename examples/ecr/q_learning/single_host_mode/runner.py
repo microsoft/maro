@@ -19,6 +19,7 @@ from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
 from examples.ecr.q_learning.common.agent import Agent
 from examples.ecr.q_learning.common.dqn import QNet, DQN
+from examples.ecr.q_learning.common.reward_shaping import TruncateReward, GoldenFingerReward
 from examples.ecr.q_learning.common.state_shaping import StateShaping
 from examples.ecr.q_learning.common.action_shaping import DiscreteActionShaping
 from examples.ecr.q_learning.common.ecr_dashboard import DashboardECR, RanklistColumns
@@ -161,6 +162,14 @@ class Runner:
                                      vessel_attribute_list=['empty', 'full', 'remaining_space'])
         action_space = [round(i * 0.1, 1) for i in range(-10, 11)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
+        if REWARD_SHAPING == 'gf':
+            reward_shaping = GoldenFingerReward(env=self._env, topology=self._topology, action_space=action_space,
+                                                log_folder=LOG_FOLDER)
+        elif REWARD_SHAPING == 'tc':
+            reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list, log_folder=LOG_FOLDER)
+        else:
+            raise ValueError('Unsupported Reward Shaping')
+
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()
             policy_net = QNet(name=f'{self._port_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
@@ -177,15 +186,12 @@ class Runner:
                       log_folder=LOG_FOLDER if DQN_LOG_ENABLE else None, log_dropout_p=DQN_LOG_DROPOUT_P,
                       dashboard=self._dashboard)
             agent_dict[agent_idx] = Agent(agent_name=self._port_idx2name[agent_idx],
-                                          topology=self._topology,
-                                          port_idx2name=self._port_idx2name,
-                                          vessel_idx2name=self._vessel_idx2name,
                                           algorithm=dqn, experience_pool=experience_pool,
-                                          state_shaping=state_shaping, action_shaping=action_shaping,
-                                          reward_shaping=REWARD_SHAPING,
+                                          state_shaping=state_shaping,
+                                          action_shaping=action_shaping,
+                                          reward_shaping=reward_shaping,
                                           batch_num=BATCH_NUM, batch_size=BATCH_SIZE,
                                           min_train_experience_num=MIN_TRAIN_EXP_NUM,
-                                          agent_idx_list=agent_idx_list,
                                           log_folder=LOG_FOLDER if AGENT_LOG_ENABLE else None,
                                           dashboard=self._dashboard)
 
@@ -215,8 +221,8 @@ class Runner:
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
             for agent in self._agent_dict.values():
-                agent.calculate_offline_rewards(snapshot_list=self._env.snapshot_list, current_ep=ep)
-                agent.store_experience()
+                train_start = time.time()
+                agent.store_experience(current_ep=ep)
                 train_start = time.time()
                 agent.train(current_ep=ep)
                 time_dict[agent._agent_name] = time.time() - train_start

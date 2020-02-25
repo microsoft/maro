@@ -76,7 +76,8 @@ def on_new_experience(local_instance, proxy, message):
     Handles incoming experience from environment runner. The message must contain agent_id and experience.
     """
     # put experience into experience pool
-    local_instance.experience_pool.put(category_data_batches=message.payload[PayloadKey.EXPERIENCE])
+    exp = message.payload[PayloadKey.EXPERIENCE]
+    local_instance.experience_pool.put(category_data_batches=[(name, cache) for name, cache in exp.items()])
 
     if message.source in pending_envs:
         pending_envs.remove(message.source)
