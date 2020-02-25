@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 4,
-  "iteration": 1581989703110,
+  "iteration": 1582612417087,
   "links": [],
   "panels": [
     {
@@ -827,7 +827,7 @@
       },
       "id": 50,
       "panels": [],
-      "title": "Business Metrics All Episodes",
+      "title": "Business Metrics (All Episodes)",
       "type": "row"
     },
     {
@@ -1369,7 +1369,7 @@
       "x_axis": "ep"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "datasource": null,
       "gridPos": {
         "h": 1,
@@ -1378,1753 +1378,1756 @@
         "y": 22
       },
       "id": 52,
-      "panels": [],
-      "title": "Business Metrics in Episode $episode",
+      "panels": [
+        {
+          "aliasColors": {},
+          "breakPoint": "50%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "format": "short",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 7
+          },
+          "id": 10,
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "pieType": "pie",
+          "strokeWidth": 1,
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "shortage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT  /port/ FROM \"shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter ",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "demand_port_001"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "demand_port_002"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "supply_port_001"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "supply_port_002"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "transfer_port_001"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Shortage in Episode $episode",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 7
+          },
+          "id": 27,
+          "ignoreColumn": [
+            "Time",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001",
+            "transfer_port_002"
+          ],
+          "ignoreColums": "",
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "event_shortage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT * FROM \"event_shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Shortage in Episode $episode",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001",
+            "transfer_port_002"
+          ],
+          "x_axis": "tick"
+        },
+        {
+          "aliasColors": {},
+          "breakPoint": "10%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 7
+          },
+          "id": 12,
+          "interval": null,
+          "legend": {
+            "show": false,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "laden_executed",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT * FROM \"laden_executed\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Laden Transfer Heat Map in Episode $episode",
+          "type": "grafana-heatmapchart-panel",
+          "xColumns": [
+            "Time",
+            "ep",
+            "ep_1",
+            "experiment",
+            "from",
+            "quantity",
+            "to"
+          ],
+          "x_axis": "from",
+          "yColumns": [
+            "Time",
+            "ep",
+            "ep_1",
+            "experiment",
+            "from",
+            "quantity",
+            "to"
+          ],
+          "y_axis": "to",
+          "zColumns": [
+            "Time",
+            "ep",
+            "ep_1",
+            "experiment",
+            "from",
+            "quantity",
+            "to"
+          ],
+          "z_axis": "quantity"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 15
+          },
+          "id": 29,
+          "ignoreColumn": [
+            "Time",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001",
+            "transfer_port_002"
+          ],
+          "ignoreColums": "",
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "event_shortage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT * FROM \"event_delayed_laden\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Delayed Laden in Episode $episode",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001",
+            "transfer_port_002"
+          ],
+          "x_axis": "tick"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 15
+          },
+          "id": 28,
+          "ignoreColumn": [
+            "Time",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001",
+            "transfer_port_002"
+          ],
+          "ignoreColums": "",
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "event_shortage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT * FROM \"event_early_discharge\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Early Discharge in Episode $episode",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001",
+            "transfer_port_002"
+          ],
+          "x_axis": "tick"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 15
+          },
+          "id": 43,
+          "ignoreColumn": [
+            "Time",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001"
+          ],
+          "ignoreColums": "",
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "event_shortage",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT * FROM \"event_tml_cost\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Terminal Cost in Episode $episode",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "ep",
+            "experiment",
+            "supply_port_001",
+            "supply_port_002",
+            "tick",
+            "transfer_port_001"
+          ],
+          "x_axis": "tick"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "10%",
+          "cacheTimeout": null,
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 23
+          },
+          "id": 14,
+          "ignoreColumn": [
+            "Time",
+            "ep",
+            "experiment",
+            "tick",
+            "vessel"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "empty",
+            "ep",
+            "experiment",
+            "full",
+            "remaining_space",
+            "tick",
+            "vessel"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "q_value",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT * FROM \"vessel_usage\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode and \"vessel\" = '$vessel' ) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Vessel Usage of $vessel in Episode $episode",
+          "type": "grafana-stackchart-panel",
+          "xColumns": [
+            "Time",
+            "empty",
+            "ep",
+            "experiment",
+            "full",
+            "remaining_space",
+            "tick",
+            "vessel"
+          ],
+          "x_axis": "tick"
+        }
+      ],
+      "title": "Business Metrics (Episode $episode)",
       "type": "row"
     },
     {
-      "aliasColors": {},
-      "breakPoint": "50%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "format": "short",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 23
-      },
-      "id": 10,
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "pieType": "pie",
-      "strokeWidth": 1,
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "shortage",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT  /port/ FROM \"shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter ",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "demand_port_001"
-                ],
-                "type": "field"
-              }
-            ],
-            [
-              {
-                "params": [
-                  "demand_port_002"
-                ],
-                "type": "field"
-              }
-            ],
-            [
-              {
-                "params": [
-                  "supply_port_001"
-                ],
-                "type": "field"
-              }
-            ],
-            [
-              {
-                "params": [
-                  "supply_port_002"
-                ],
-                "type": "field"
-              }
-            ],
-            [
-              {
-                "params": [
-                  "transfer_port_001"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Shortage in Episode $episode",
-      "type": "grafana-piechart-panel",
-      "valueName": "current"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 23
-      },
-      "id": 27,
-      "ignoreColumn": [
-        "Time",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001",
-        "transfer_port_002"
-      ],
-      "ignoreColums": "",
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "event_shortage",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT * FROM \"event_shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Shortage in Episode $episode",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001",
-        "transfer_port_002"
-      ],
-      "x_axis": "tick"
-    },
-    {
-      "aliasColors": {},
-      "breakPoint": "10%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 23
-      },
-      "id": 12,
-      "interval": null,
-      "legend": {
-        "show": false,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "laden_executed",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT * FROM \"laden_executed\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Laden Transfer Heat Map in Episode $episode",
-      "type": "grafana-heatmapchart-panel",
-      "xColumns": [
-        "Time",
-        "ep",
-        "ep_1",
-        "experiment",
-        "from",
-        "quantity",
-        "to"
-      ],
-      "x_axis": "from",
-      "yColumns": [
-        "Time",
-        "ep",
-        "ep_1",
-        "experiment",
-        "from",
-        "quantity",
-        "to"
-      ],
-      "y_axis": "to",
-      "zColumns": [
-        "Time",
-        "ep",
-        "ep_1",
-        "experiment",
-        "from",
-        "quantity",
-        "to"
-      ],
-      "z_axis": "quantity"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 31
-      },
-      "id": 29,
-      "ignoreColumn": [
-        "Time",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001",
-        "transfer_port_002"
-      ],
-      "ignoreColums": "",
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "event_shortage",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT * FROM \"event_delayed_laden\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Delayed Laden in Episode $episode",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001",
-        "transfer_port_002"
-      ],
-      "x_axis": "tick"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 31
-      },
-      "id": 28,
-      "ignoreColumn": [
-        "Time",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001",
-        "transfer_port_002"
-      ],
-      "ignoreColums": "",
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "event_shortage",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT * FROM \"event_early_discharge\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Early Discharge in Episode $episode",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001",
-        "transfer_port_002"
-      ],
-      "x_axis": "tick"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 31
-      },
-      "id": 43,
-      "ignoreColumn": [
-        "Time",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001"
-      ],
-      "ignoreColums": "",
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "event_shortage",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT * FROM \"event_tml_cost\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Terminal Cost in Episode $episode",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "ep",
-        "experiment",
-        "supply_port_001",
-        "supply_port_002",
-        "tick",
-        "transfer_port_001"
-      ],
-      "x_axis": "tick"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "10%",
-      "cacheTimeout": null,
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 39
-      },
-      "id": 14,
-      "ignoreColumn": [
-        "Time",
-        "ep",
-        "experiment",
-        "tick",
-        "vessel"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "empty",
-        "ep",
-        "experiment",
-        "full",
-        "remaining_space",
-        "tick",
-        "vessel"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "q_value",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT * FROM \"vessel_usage\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode and \"vessel\" = '$vessel' ) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Vessel Usage of $vessel in Episode $episode",
-      "type": "grafana-stackchart-panel",
-      "xColumns": [
-        "Time",
-        "empty",
-        "ep",
-        "experiment",
-        "full",
-        "remaining_space",
-        "tick",
-        "vessel"
-      ],
-      "x_axis": "tick"
-    },
-    {
-      "collapsed": false,
+      "collapsed": true,
       "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 23
       },
       "id": 46,
-      "panels": [],
-      "title": "Training Metrics All Episodes",
+      "panels": [
+        {
+          "aggregation": "mean",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 0,
+            "y": 8
+          },
+          "id": 4,
+          "ignoreColumn": [
+            "Time",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "bremerhaven_ger",
+            "demand_port_001",
+            "demand_port_002",
+            "durban_sau",
+            "ep",
+            "ep_1",
+            "experiment",
+            "itagual_bra",
+            "leHavre_fra",
+            "losAngeles_usa",
+            "manzanillo_mex",
+            "melbourne_aus",
+            "montreal_can",
+            "newYork_usa",
+            "oakland_usa",
+            "princeRupert_can",
+            "pusan_kor",
+            "qingdao_chn",
+            "sanAntonio_par",
+            "santos_bra",
+            "seattle_usa",
+            "shanghai_chn",
+            "singapore_sgp",
+            "supply_port_001",
+            "supply_port_002",
+            "sydney_aus",
+            "transfer_port_001",
+            "transfer_port_002",
+            "vancouver_can",
+            "yantian_chn",
+            "yokohama_jpn"
+          ],
+          "ignoreColums": "",
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "loss",
+              "orderByTime": "ASC",
+              "policy": "autogen",
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Loss",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "bremerhaven_ger",
+            "demand_port_001",
+            "demand_port_002",
+            "durban_sau",
+            "ep",
+            "ep_1",
+            "experiment",
+            "itagual_bra",
+            "leHavre_fra",
+            "losAngeles_usa",
+            "manzanillo_mex",
+            "melbourne_aus",
+            "montreal_can",
+            "newYork_usa",
+            "oakland_usa",
+            "princeRupert_can",
+            "pusan_kor",
+            "qingdao_chn",
+            "sanAntonio_par",
+            "santos_bra",
+            "seattle_usa",
+            "shanghai_chn",
+            "singapore_sgp",
+            "supply_port_001",
+            "supply_port_002",
+            "sydney_aus",
+            "transfer_port_001",
+            "transfer_port_002",
+            "vancouver_can",
+            "yantian_chn",
+            "yokohama_jpn"
+          ],
+          "x_axis": "ep"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 8
+          },
+          "id": 6,
+          "ignoreColumn": [
+            "experiment",
+            "total"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "bremerhaven_ger",
+            "demand_port_001",
+            "demand_port_002",
+            "durban_sau",
+            "ep",
+            "ep_1",
+            "experiment",
+            "itagual_bra",
+            "leHavre_fra",
+            "losAngeles_usa",
+            "manzanillo_mex",
+            "melbourne_aus",
+            "montreal_can",
+            "newYork_usa",
+            "oakland_usa",
+            "princeRupert_can",
+            "pusan_kor",
+            "qingdao_chn",
+            "sanAntonio_par",
+            "santos_bra",
+            "seattle_usa",
+            "shanghai_chn",
+            "singapore_sgp",
+            "supply_port_001",
+            "supply_port_002",
+            "sydney_aus",
+            "transfer_port_001",
+            "transfer_port_002",
+            "vancouver_can",
+            "yantian_chn",
+            "yokohama_jpn"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "epsilon",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Exploration Ratio",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "bremerhaven_ger",
+            "demand_port_001",
+            "demand_port_002",
+            "durban_sau",
+            "ep",
+            "ep_1",
+            "experiment",
+            "itagual_bra",
+            "leHavre_fra",
+            "losAngeles_usa",
+            "manzanillo_mex",
+            "melbourne_aus",
+            "montreal_can",
+            "newYork_usa",
+            "oakland_usa",
+            "princeRupert_can",
+            "pusan_kor",
+            "qingdao_chn",
+            "sanAntonio_par",
+            "santos_bra",
+            "seattle_usa",
+            "shanghai_chn",
+            "singapore_sgp",
+            "supply_port_001",
+            "supply_port_002",
+            "sydney_aus",
+            "transfer_port_001",
+            "transfer_port_002",
+            "vancouver_can",
+            "yantian_chn",
+            "yokohama_jpn"
+          ],
+          "x_axis": "ep"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "10%",
+          "cacheTimeout": null,
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 10,
+            "x": 0,
+            "y": 16
+          },
+          "id": 23,
+          "ignoreColumn": [
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "env_time",
+            "ep",
+            "ep_time",
+            "experiment",
+            "other_time",
+            "supply_port_001",
+            "supply_port_002",
+            "train_time",
+            "transfer_port_001"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "time_cost",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Time Cost",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "demand_port_001",
+            "demand_port_002",
+            "env_time",
+            "ep",
+            "ep_time",
+            "experiment",
+            "other_time",
+            "supply_port_001",
+            "supply_port_002",
+            "train_time",
+            "transfer_port_001"
+          ],
+          "x_axis": "ep"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "10%",
+          "cacheTimeout": null,
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 14,
+            "x": 10,
+            "y": 16
+          },
+          "id": 25,
+          "ignoreColumn": [
+            "memory_active",
+            "memory_buffers"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "cpu_percent",
+            "ep",
+            "memory_percent"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "dynamic_info",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"memory_percent\", \"ep\" FROM \"dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/) AND $timeFilter",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "cpu_percent"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "ep"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "memory_percent"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Node Workload",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "cpu_percent",
+            "ep",
+            "memory_percent"
+          ],
+          "x_axis": "ep"
+        }
+      ],
+      "title": "Training Metrics (All Episodes)",
       "type": "row"
     },
     {
-      "aggregation": "mean",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 16,
-        "x": 0,
-        "y": 48
-      },
-      "id": 4,
-      "ignoreColumn": [
-        "Time",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "bremerhaven_ger",
-        "demand_port_001",
-        "demand_port_002",
-        "durban_sau",
-        "ep",
-        "ep_1",
-        "experiment",
-        "itagual_bra",
-        "leHavre_fra",
-        "losAngeles_usa",
-        "manzanillo_mex",
-        "melbourne_aus",
-        "montreal_can",
-        "newYork_usa",
-        "oakland_usa",
-        "princeRupert_can",
-        "pusan_kor",
-        "qingdao_chn",
-        "sanAntonio_par",
-        "santos_bra",
-        "seattle_usa",
-        "shanghai_chn",
-        "singapore_sgp",
-        "supply_port_001",
-        "supply_port_002",
-        "sydney_aus",
-        "transfer_port_001",
-        "transfer_port_002",
-        "vancouver_can",
-        "yantian_chn",
-        "yokohama_jpn"
-      ],
-      "ignoreColums": "",
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "loss",
-          "orderByTime": "ASC",
-          "policy": "autogen",
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Loss",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "bremerhaven_ger",
-        "demand_port_001",
-        "demand_port_002",
-        "durban_sau",
-        "ep",
-        "ep_1",
-        "experiment",
-        "itagual_bra",
-        "leHavre_fra",
-        "losAngeles_usa",
-        "manzanillo_mex",
-        "melbourne_aus",
-        "montreal_can",
-        "newYork_usa",
-        "oakland_usa",
-        "princeRupert_can",
-        "pusan_kor",
-        "qingdao_chn",
-        "sanAntonio_par",
-        "santos_bra",
-        "seattle_usa",
-        "shanghai_chn",
-        "singapore_sgp",
-        "supply_port_001",
-        "supply_port_002",
-        "sydney_aus",
-        "transfer_port_001",
-        "transfer_port_002",
-        "vancouver_can",
-        "yantian_chn",
-        "yokohama_jpn"
-      ],
-      "x_axis": "ep"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 48
-      },
-      "id": 6,
-      "ignoreColumn": [
-        "experiment",
-        "total"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "bremerhaven_ger",
-        "demand_port_001",
-        "demand_port_002",
-        "durban_sau",
-        "ep",
-        "ep_1",
-        "experiment",
-        "itagual_bra",
-        "leHavre_fra",
-        "losAngeles_usa",
-        "manzanillo_mex",
-        "melbourne_aus",
-        "montreal_can",
-        "newYork_usa",
-        "oakland_usa",
-        "princeRupert_can",
-        "pusan_kor",
-        "qingdao_chn",
-        "sanAntonio_par",
-        "santos_bra",
-        "seattle_usa",
-        "shanghai_chn",
-        "singapore_sgp",
-        "supply_port_001",
-        "supply_port_002",
-        "sydney_aus",
-        "transfer_port_001",
-        "transfer_port_002",
-        "vancouver_can",
-        "yantian_chn",
-        "yokohama_jpn"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "epsilon",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Exploration Ratio",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "bremerhaven_ger",
-        "demand_port_001",
-        "demand_port_002",
-        "durban_sau",
-        "ep",
-        "ep_1",
-        "experiment",
-        "itagual_bra",
-        "leHavre_fra",
-        "losAngeles_usa",
-        "manzanillo_mex",
-        "melbourne_aus",
-        "montreal_can",
-        "newYork_usa",
-        "oakland_usa",
-        "princeRupert_can",
-        "pusan_kor",
-        "qingdao_chn",
-        "sanAntonio_par",
-        "santos_bra",
-        "seattle_usa",
-        "shanghai_chn",
-        "singapore_sgp",
-        "supply_port_001",
-        "supply_port_002",
-        "sydney_aus",
-        "transfer_port_001",
-        "transfer_port_002",
-        "vancouver_can",
-        "yantian_chn",
-        "yokohama_jpn"
-      ],
-      "x_axis": "ep"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "10%",
-      "cacheTimeout": null,
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 0,
-        "y": 56
-      },
-      "id": 23,
-      "ignoreColumn": [
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "env_time",
-        "ep",
-        "ep_time",
-        "experiment",
-        "other_time",
-        "supply_port_001",
-        "supply_port_002",
-        "train_time",
-        "transfer_port_001"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "time_cost",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Time Cost",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "demand_port_001",
-        "demand_port_002",
-        "env_time",
-        "ep",
-        "ep_time",
-        "experiment",
-        "other_time",
-        "supply_port_001",
-        "supply_port_002",
-        "train_time",
-        "transfer_port_001"
-      ],
-      "x_axis": "ep"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "10%",
-      "cacheTimeout": null,
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 14,
-        "x": 10,
-        "y": 56
-      },
-      "id": 25,
-      "ignoreColumn": [
-        "memory_active",
-        "memory_buffers"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "cpu_percent",
-        "ep",
-        "memory_percent"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "dynamic_info",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"memory_percent\", \"ep\" FROM \"dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/) AND $timeFilter",
-          "rawQuery": false,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "cpu_percent"
-                ],
-                "type": "field"
-              }
-            ],
-            [
-              {
-                "params": [
-                  "ep"
-                ],
-                "type": "field"
-              }
-            ],
-            [
-              {
-                "params": [
-                  "memory_percent"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Node Workload",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "cpu_percent",
-        "ep",
-        "memory_percent"
-      ],
-      "x_axis": "ep"
-    },
-    {
-      "collapsed": false,
+      "collapsed": true,
       "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 64
+        "y": 24
       },
       "id": 54,
-      "panels": [],
-      "title": "Training Metrics Per-Episode",
+      "panels": [
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 10,
+            "x": 0,
+            "y": 9
+          },
+          "id": 26,
+          "ignoreColumn": [
+            "Time",
+            "0",
+            "1",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "2",
+            "20",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "action",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "bremerhaven_ger.policy",
+            "demand_port_001.policy",
+            "demand_port_002.policy",
+            "durban_sau.policy",
+            "itagual_bra.policy",
+            "leHavre_fra.policy",
+            "losAngeles_usa.policy",
+            "manzanillo_mex.policy",
+            "melbourne_aus.policy",
+            "montreal_can.policy",
+            "newYork_usa.policy",
+            "oakland_usa.policy",
+            "princeRupert_can.policy",
+            "pusan_kor.policy",
+            "qingdao_chn.policy",
+            "sanAntonio_par.policy",
+            "santos_bra.policy",
+            "seattle_usa.policy",
+            "shanghai_chn.policy",
+            "singapore_sgp.policy",
+            "supply_port_001.policy",
+            "supply_port_002.policy",
+            "sydney_aus.policy",
+            "transfer_port_001.policy",
+            "transfer_port_002.policy",
+            "vancouver_can.policy",
+            "yantian_chn.policy",
+            "yokohama_jpn.policy",
+            "action"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "q_value",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT /.policy$/, \"action\" FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode AND \"tick\" = $action_tick) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Q_Curve in Episode $episode on Tick $action_tick",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "bremerhaven_ger.policy",
+            "demand_port_001.policy",
+            "demand_port_002.policy",
+            "durban_sau.policy",
+            "itagual_bra.policy",
+            "leHavre_fra.policy",
+            "losAngeles_usa.policy",
+            "manzanillo_mex.policy",
+            "melbourne_aus.policy",
+            "montreal_can.policy",
+            "newYork_usa.policy",
+            "oakland_usa.policy",
+            "princeRupert_can.policy",
+            "pusan_kor.policy",
+            "qingdao_chn.policy",
+            "sanAntonio_par.policy",
+            "santos_bra.policy",
+            "seattle_usa.policy",
+            "shanghai_chn.policy",
+            "singapore_sgp.policy",
+            "supply_port_001.policy",
+            "supply_port_002.policy",
+            "sydney_aus.policy",
+            "transfer_port_001.policy",
+            "transfer_port_002.policy",
+            "vancouver_can.policy",
+            "yantian_chn.policy",
+            "yokohama_jpn.policy",
+            "action"
+          ],
+          "x_axis": "action"
+        },
+        {
+          "aggregation": "sum",
+          "aggregationOptions": [
+            "sum",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "20%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 9,
+            "x": 10,
+            "y": 9
+          },
+          "id": 8,
+          "ignoreColumn": [
+            "Time",
+            "0",
+            "1",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "2",
+            "20",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "action",
+            "ep",
+            "experiment"
+          ],
+          "ignoreColumns": [
+            "Time",
+            "bremerhaven_ger.policy",
+            "demand_port_001.policy",
+            "demand_port_002.policy",
+            "durban_sau.policy",
+            "itagual_bra.policy",
+            "leHavre_fra.policy",
+            "losAngeles_usa.policy",
+            "manzanillo_mex.policy",
+            "melbourne_aus.policy",
+            "montreal_can.policy",
+            "newYork_usa.policy",
+            "oakland_usa.policy",
+            "princeRupert_can.policy",
+            "pusan_kor.policy",
+            "qingdao_chn.policy",
+            "sanAntonio_par.policy",
+            "santos_bra.policy",
+            "seattle_usa.policy",
+            "shanghai_chn.policy",
+            "singapore_sgp.policy",
+            "supply_port_001.policy",
+            "supply_port_002.policy",
+            "sydney_aus.policy",
+            "transfer_port_001.policy",
+            "transfer_port_002.policy",
+            "vancouver_can.policy",
+            "yantian_chn.policy",
+            "yokohama_jpn.policy",
+            "action"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "q_value",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT /.policy$/, \"action\" FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Q_Curve in Episode $episode",
+          "type": "grafana-linechart-panel",
+          "xColumns": [
+            "Time",
+            "bremerhaven_ger.policy",
+            "demand_port_001.policy",
+            "demand_port_002.policy",
+            "durban_sau.policy",
+            "itagual_bra.policy",
+            "leHavre_fra.policy",
+            "losAngeles_usa.policy",
+            "manzanillo_mex.policy",
+            "melbourne_aus.policy",
+            "montreal_can.policy",
+            "newYork_usa.policy",
+            "oakland_usa.policy",
+            "princeRupert_can.policy",
+            "pusan_kor.policy",
+            "qingdao_chn.policy",
+            "sanAntonio_par.policy",
+            "santos_bra.policy",
+            "seattle_usa.policy",
+            "shanghai_chn.policy",
+            "singapore_sgp.policy",
+            "supply_port_001.policy",
+            "supply_port_002.policy",
+            "sydney_aus.policy",
+            "transfer_port_001.policy",
+            "transfer_port_002.policy",
+            "vancouver_can.policy",
+            "yantian_chn.policy",
+            "yokohama_jpn.policy",
+            "action"
+          ],
+          "x_axis": "action"
+        },
+        {
+          "aliasColors": {},
+          "breakPoint": "50%",
+          "cacheTimeout": null,
+          "combine": {
+            "label": "Others",
+            "threshold": 0
+          },
+          "datasource": null,
+          "fontSize": "80%",
+          "format": "short",
+          "gridPos": {
+            "h": 8,
+            "w": 5,
+            "x": 19,
+            "y": 9
+          },
+          "id": 55,
+          "interval": null,
+          "legend": {
+            "percentage": true,
+            "show": true,
+            "values": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "pieType": "pie",
+          "strokeWidth": 1,
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "q_value",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"other_time\",\"train_time\",\"env_time\" FROM \"time_cost\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Time Cost in Episode $episode",
+          "type": "grafana-piechart-panel",
+          "valueName": "current"
+        },
+        {
+          "aggregation": "no",
+          "aggregationOptions": [
+            "sum",
+            "no",
+            "max",
+            "min",
+            "median",
+            "mean",
+            "variance",
+            "deviation"
+          ],
+          "aliasColors": {},
+          "breakPoint": "10%",
+          "cacheTimeout": null,
+          "datasource": null,
+          "fontSize": "80%",
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 17
+          },
+          "id": 30,
+          "ignoreColumn": "",
+          "ignoreColumns": [
+            "Time",
+            "actual_action_of_demand_port_001_on_route_002",
+            "actual_action_of_demand_port_002_on_route_002",
+            "actual_action_of_supply_port_001_on_route_001",
+            "actual_action_of_supply_port_002_on_route_001",
+            "actual_action_of_transfer_port_001_on_route_001",
+            "actual_action_of_transfer_port_001_on_route_002",
+            "tick"
+          ],
+          "interval": null,
+          "legend": {
+            "show": true
+          },
+          "legendType": "Under graph",
+          "links": [],
+          "maxDataPoints": 3,
+          "nullPointMode": "connected",
+          "options": {},
+          "targets": [
+            {
+              "groupBy": [],
+              "measurement": "q_value",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT /^actual_action_/, \"tick\" FROM \"actual_action\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode ) AND $timeFilter",
+              "rawQuery": true,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "experiment",
+                  "operator": "=~",
+                  "value": "/^$experiment$/"
+                },
+                {
+                  "condition": "AND",
+                  "key": "ep",
+                  "operator": "=~",
+                  "value": "/^$episode$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Actual Action in Episode $episode",
+          "type": "grafana-dotchart-panel",
+          "xColumns": [
+            "Time",
+            "actual_action_of_demand_port_001_on_route_002",
+            "actual_action_of_demand_port_002_on_route_002",
+            "actual_action_of_supply_port_001_on_route_001",
+            "actual_action_of_supply_port_002_on_route_001",
+            "actual_action_of_transfer_port_001_on_route_001",
+            "actual_action_of_transfer_port_001_on_route_002",
+            "tick"
+          ],
+          "x_axis": "tick"
+        }
+      ],
+      "title": "Training Metrics (Per-Episode)",
       "type": "row"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 0,
-        "y": 65
-      },
-      "id": 26,
-      "ignoreColumn": [
-        "Time",
-        "0",
-        "1",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "2",
-        "20",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "action",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "bremerhaven_ger.policy",
-        "demand_port_001.policy",
-        "demand_port_002.policy",
-        "durban_sau.policy",
-        "itagual_bra.policy",
-        "leHavre_fra.policy",
-        "losAngeles_usa.policy",
-        "manzanillo_mex.policy",
-        "melbourne_aus.policy",
-        "montreal_can.policy",
-        "newYork_usa.policy",
-        "oakland_usa.policy",
-        "princeRupert_can.policy",
-        "pusan_kor.policy",
-        "qingdao_chn.policy",
-        "sanAntonio_par.policy",
-        "santos_bra.policy",
-        "seattle_usa.policy",
-        "shanghai_chn.policy",
-        "singapore_sgp.policy",
-        "supply_port_001.policy",
-        "supply_port_002.policy",
-        "sydney_aus.policy",
-        "transfer_port_001.policy",
-        "transfer_port_002.policy",
-        "vancouver_can.policy",
-        "yantian_chn.policy",
-        "yokohama_jpn.policy",
-        "action"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "q_value",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT /.policy$/, \"action\" FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode AND \"tick\" = $action_tick) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Q_Curve in Episode $episode on Tick $action_tick",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "bremerhaven_ger.policy",
-        "demand_port_001.policy",
-        "demand_port_002.policy",
-        "durban_sau.policy",
-        "itagual_bra.policy",
-        "leHavre_fra.policy",
-        "losAngeles_usa.policy",
-        "manzanillo_mex.policy",
-        "melbourne_aus.policy",
-        "montreal_can.policy",
-        "newYork_usa.policy",
-        "oakland_usa.policy",
-        "princeRupert_can.policy",
-        "pusan_kor.policy",
-        "qingdao_chn.policy",
-        "sanAntonio_par.policy",
-        "santos_bra.policy",
-        "seattle_usa.policy",
-        "shanghai_chn.policy",
-        "singapore_sgp.policy",
-        "supply_port_001.policy",
-        "supply_port_002.policy",
-        "sydney_aus.policy",
-        "transfer_port_001.policy",
-        "transfer_port_002.policy",
-        "vancouver_can.policy",
-        "yantian_chn.policy",
-        "yokohama_jpn.policy",
-        "action"
-      ],
-      "x_axis": "action"
-    },
-    {
-      "aggregation": "sum",
-      "aggregationOptions": [
-        "sum",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "20%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 9,
-        "x": 10,
-        "y": 65
-      },
-      "id": 8,
-      "ignoreColumn": [
-        "Time",
-        "0",
-        "1",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "2",
-        "20",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "action",
-        "ep",
-        "experiment"
-      ],
-      "ignoreColumns": [
-        "Time",
-        "bremerhaven_ger.policy",
-        "demand_port_001.policy",
-        "demand_port_002.policy",
-        "durban_sau.policy",
-        "itagual_bra.policy",
-        "leHavre_fra.policy",
-        "losAngeles_usa.policy",
-        "manzanillo_mex.policy",
-        "melbourne_aus.policy",
-        "montreal_can.policy",
-        "newYork_usa.policy",
-        "oakland_usa.policy",
-        "princeRupert_can.policy",
-        "pusan_kor.policy",
-        "qingdao_chn.policy",
-        "sanAntonio_par.policy",
-        "santos_bra.policy",
-        "seattle_usa.policy",
-        "shanghai_chn.policy",
-        "singapore_sgp.policy",
-        "supply_port_001.policy",
-        "supply_port_002.policy",
-        "sydney_aus.policy",
-        "transfer_port_001.policy",
-        "transfer_port_002.policy",
-        "vancouver_can.policy",
-        "yantian_chn.policy",
-        "yokohama_jpn.policy",
-        "action"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "q_value",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT /.policy$/, \"action\" FROM \"q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Q_Curve in Episode $episode",
-      "type": "grafana-linechart-panel",
-      "xColumns": [
-        "Time",
-        "bremerhaven_ger.policy",
-        "demand_port_001.policy",
-        "demand_port_002.policy",
-        "durban_sau.policy",
-        "itagual_bra.policy",
-        "leHavre_fra.policy",
-        "losAngeles_usa.policy",
-        "manzanillo_mex.policy",
-        "melbourne_aus.policy",
-        "montreal_can.policy",
-        "newYork_usa.policy",
-        "oakland_usa.policy",
-        "princeRupert_can.policy",
-        "pusan_kor.policy",
-        "qingdao_chn.policy",
-        "sanAntonio_par.policy",
-        "santos_bra.policy",
-        "seattle_usa.policy",
-        "shanghai_chn.policy",
-        "singapore_sgp.policy",
-        "supply_port_001.policy",
-        "supply_port_002.policy",
-        "sydney_aus.policy",
-        "transfer_port_001.policy",
-        "transfer_port_002.policy",
-        "vancouver_can.policy",
-        "yantian_chn.policy",
-        "yokohama_jpn.policy",
-        "action"
-      ],
-      "x_axis": "action"
-    },
-    {
-      "aliasColors": {},
-      "breakPoint": "50%",
-      "cacheTimeout": null,
-      "combine": {
-        "label": "Others",
-        "threshold": 0
-      },
-      "datasource": null,
-      "fontSize": "80%",
-      "format": "short",
-      "gridPos": {
-        "h": 8,
-        "w": 5,
-        "x": 19,
-        "y": 65
-      },
-      "id": 55,
-      "interval": null,
-      "legend": {
-        "percentage": true,
-        "show": true,
-        "values": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "pieType": "pie",
-      "strokeWidth": 1,
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "q_value",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"other_time\",\"train_time\",\"env_time\" FROM \"time_cost\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Time Cost in Episode $episode",
-      "type": "grafana-piechart-panel",
-      "valueName": "current"
-    },
-    {
-      "aggregation": "no",
-      "aggregationOptions": [
-        "sum",
-        "no",
-        "max",
-        "min",
-        "median",
-        "mean",
-        "variance",
-        "deviation"
-      ],
-      "aliasColors": {},
-      "breakPoint": "10%",
-      "cacheTimeout": null,
-      "datasource": null,
-      "fontSize": "80%",
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 73
-      },
-      "id": 30,
-      "ignoreColumn": "",
-      "ignoreColumns": [
-        "Time",
-        "actual_action_of_demand_port_001_on_route_002",
-        "actual_action_of_demand_port_002_on_route_002",
-        "actual_action_of_supply_port_001_on_route_001",
-        "actual_action_of_supply_port_002_on_route_001",
-        "actual_action_of_transfer_port_001_on_route_001",
-        "actual_action_of_transfer_port_001_on_route_002",
-        "tick"
-      ],
-      "interval": null,
-      "legend": {
-        "show": true
-      },
-      "legendType": "Under graph",
-      "links": [],
-      "maxDataPoints": 3,
-      "nullPointMode": "connected",
-      "options": {},
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "q_value",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT /^actual_action_/, \"tick\" FROM \"actual_action\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode ) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "table",
-          "select": [
-            [
-              {
-                "params": [
-                  "*"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "experiment",
-              "operator": "=~",
-              "value": "/^$experiment$/"
-            },
-            {
-              "condition": "AND",
-              "key": "ep",
-              "operator": "=~",
-              "value": "/^$episode$/"
-            }
-          ]
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Actual Action in Episode $episode",
-      "type": "grafana-dotchart-panel",
-      "xColumns": [
-        "Time",
-        "actual_action_of_demand_port_001_on_route_002",
-        "actual_action_of_demand_port_002_on_route_002",
-        "actual_action_of_supply_port_001_on_route_001",
-        "actual_action_of_supply_port_002_on_route_001",
-        "actual_action_of_transfer_port_001_on_route_001",
-        "actual_action_of_transfer_port_001_on_route_002",
-        "tick"
-      ],
-      "x_axis": "tick"
     }
   ],
   "refresh": "",
@@ -3136,6 +3139,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": false,
           "text": "review_0218_02",
           "value": "review_0218_02"
         },
@@ -3161,6 +3165,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": false,
           "text": "49",
           "value": "49"
         },
@@ -3186,6 +3191,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "rt1_vessel_001",
           "value": "rt1_vessel_001"
         },
@@ -3211,6 +3217,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": false,
           "text": "17",
           "value": "17"
         },
@@ -3267,5 +3274,5 @@
   "timezone": "",
   "title": "ECR Experiment Metric Statistics",
   "uid": "6N24hkbZk",
-  "version": 31
+  "version": 32
 }
