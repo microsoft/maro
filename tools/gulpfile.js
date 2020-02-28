@@ -178,19 +178,19 @@ gulp.task('ecr/gen_config', () => {
 
 /**
  * Visualize order distribution based on ECR configs.
- * @task {ecr/vis_order}
+ * @task {ecr/draw_order}
  * @arg {test} Test flag, not run cmd, only output cmd.
  */
-gulp.task('ecr/vis_order', () => {
+gulp.task('ecr/draw_order', () => {
   ecr_config.visualizeOrder(isTest);
 });
 
 /**
  * Visualize ECR topologies.
- * @task {ecr/vis_topo}
+ * @task {ecr/draw_topo}
  * @arg {test} Test flag, not run cmd, only output cmd.
  */
-gulp.task('ecr/vis_topo', () => {
+gulp.task('ecr/draw_topo', () => {
   ecr_config.visualizeTopology(isTest);
 });
 /*--------------------------ecr task end-----------------------------*/
