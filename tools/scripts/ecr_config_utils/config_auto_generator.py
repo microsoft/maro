@@ -5,7 +5,7 @@ import shutil
 import random
 
 
-TOPOLOGY_PATH = "../../../maro/simulator/scenarios/ecr/topologies/"
+TOPOLOGY_PATH = "../maro/simulator/scenarios/ecr/topologies/"
 TOPOLOGY_LIST = ["4p_ssdd", "5p_ssddd", "6p_sssbdd", "22p_global_trade"]
 SAILING_TIME = 7
 VESSEL_CAPACITY_REDUNDANCY_RATIOS = [20, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.5, 2.5]

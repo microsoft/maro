@@ -4,9 +4,10 @@ import copy
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import palettable.cmocean.sequential as cb
 
 
-TOPOLOGY_PATH = "../../../maro/simulator/scenarios/ecr/topologies/"
+TOPOLOGY_PATH = "../maro/simulator/scenarios/ecr/topologies/"
 
 
 def topo_visualizer_fixpos(nodes, node_groups, edges, edge_groups, path, route_groups, route=True, order=True):
@@ -30,13 +31,13 @@ def topo_visualizer_fixpos(nodes, node_groups, edges, edge_groups, path, route_g
         G.remove_edge(edge[0], edge[1])
 
     pos = None
-    if path.startswith('4p'):
+    if '4p' in path:
         pos = {'supply_port_002': [-0.9, 0.5], 'supply_port_001': [-0.9, -0.5],
                'demand_port_001': [0.9, -0.5], 'demand_port_002': [0.9, 0.5]}
-    elif path.startswith('5p'):
+    elif '5p' in path:
         pos = {'transfer_port_001': [-0., -0.], 'supply_port_001': [-0.9, 0.5], 'supply_port_002': [-0.9, -0.5],
                'demand_port_001': [0.9, -0.5], 'demand_port_002': [0.9, 0.5]}
-    elif path.startswith('6p'):
+    elif '6p' in path:
         pos = {'transfer_port_001': [0.4, -0.], 'transfer_port_002': [-0.4, -0.], 'supply_port_001': [-0.9, 0.5],
                'supply_port_002': [-0.9, -0.5],
                'demand_port_001': [0.9, -0.5], 'demand_port_002': [0.9, 0.5]}
@@ -262,7 +263,7 @@ if __name__ == '__main__':
     order_flag = True
     for path in pathlist:
         nodes, node_groups, edges, edge_groups, route_groups = parse_topo(path + "/config.yml")
-        if path.startswith('22p'):
+        if '22p' in path:
             topo_visualizer(nodes, node_groups, edges, edge_groups, path, route_groups, route=route_flag,
                             order=order_flag)
         else:

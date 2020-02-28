@@ -4,10 +4,11 @@ import getopt
 import numpy as np
 import matplotlib.pyplot as plt
 
+sys.path.append("..")
 from maro.simulator.scenarios.ecr.ecr_data_generator import EcrDataGenerator
 
 
-TOPOLOGY_PATH = "../../../maro/simulator/scenarios/ecr/topologies/"
+TOPOLOGY_PATH = "../maro/simulator/scenarios/ecr/topologies/"
 
 
 def draw_spacial_distribution(config_yml_path, max_tick, save_fig=False):
