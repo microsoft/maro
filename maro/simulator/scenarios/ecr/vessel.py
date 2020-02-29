@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+from math import floor
 from maro.simulator.graph import Graph, ResourceNodeType
 
 
@@ -62,7 +62,7 @@ class Vessel:
         self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "capacity", 0, value)
 
         # update our total space, so that we do not need calculate it all the time
-        self._total_space = self._container_volume * value
+        self._total_space = floor(value / self._container_volume)
 
     @property
     def empty(self) -> int:
