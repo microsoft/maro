@@ -143,6 +143,8 @@ Basic upload Api
 
 the basic upload API: send()
 
+:doc:`<../apidoc/maro.utils.dashboard>`
+
 .. code:: python
 
     dashboard.send(fields={'port1':5,'port2':12}, tag={'ep':15}, measurement='shortage')
@@ -178,6 +180,8 @@ Ranklist upload API
 ^^^^^^^^^^^^^^^^^^^
 
 The rank list upload API is upload\_to\_ranklist()
+
+:doc:`<../apidoc/maro.utils.dashboard>`
 
 .. code:: python
 
@@ -256,11 +260,23 @@ View the Dashboards in Grafana
    different experiments and an episode of different charts in the
    selects at the top of the dashboard
 
+.. image:: ../images/statistics.jpg
+  :width: 400
+  :alt: Alternative text
+
 -  The "ECR Experiment Comparison" dashboard can compare the measurement
    of a port between 2 different experiments
 
+.. image:: ../images/compare.jpg
+  :width: 400
+  :alt: Alternative text
+
 -  The "ECR Shortage Ranklist" dashboard provides a demo rank list of
    test shortages
+
+.. image:: ../images/ranklist.jpg
+  :width: 400
+  :alt: Alternative text
 
 -  The "Hello World" dashboard is used to review data uploaded in Hello
    World section
