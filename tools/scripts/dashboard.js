@@ -11,17 +11,17 @@ const os = require('os');
 const util = require(`${__dirname}/util`);
 
 const buildImage = (isTest) => {
-    const buildScript = `cd ../../maro/utils/dashboard/dashboard_resource; bash ./build.sh`;
+    const buildScript = `cd ../maro/utils/dashboard/dashboard_resource; bash ./build.sh; cd -`;
     util.exec(isTest, `local|${os.userInfo().username}@${os.hostname()}`, buildScript);
 };
 
 const startService = (isTest) => {
-    const startScript = `cd ../../maro/utils/dashboard/dashboard_resource; bash ./start.sh`;
+    const startScript = `cd ../maro/utils/dashboard/dashboard_resource; bash ./start.sh; cd -`;
     util.exec(isTest, `local|${os.userInfo().username}@${os.hostname()}`, startScript);
 };
 
 const stopService = (isTest) => {
-    const stopScript = `cd ../../maro/utils/dashboard/dashboard_resource; bash ./stop.sh`;
+    const stopScript = `cd ../maro/utils/dashboard/dashboard_resource; bash ./stop.sh; cd -`;
     util.exec(isTest, `local|${os.userInfo().username}@${os.hostname()}`, stopScript);
 };
 
