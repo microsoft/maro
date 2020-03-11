@@ -12,6 +12,7 @@ const gulp = require('gulp');
 const util = require(`${__dirname}/scripts/util`);
 const docker = require(`${__dirname}/scripts/docker`);
 const schedule = require(`${__dirname}/scripts/schedule`);
+const dashboard = require(`${__dirname}/scripts/dashboard`);
 const ecr_config = require(`${__dirname}/scripts/ecr_config`);
 
 // options
@@ -166,6 +167,35 @@ gulp.task('s/run', () => {
 });
 /*--------------------------schedule task end-----------------------------*/
 
+/*--------------------------dashboard task end-----------------------------*/
+/**
+ * Local build docker image for dashboard.
+ * @task {d/build_image}
+ * @arg {test} Test flag, not run cmd, only output cmd.
+ */
+gulp.task('d/build_image', () => {
+  dashboard.buildImage(isTest);
+});
+
+/**
+ * Local start docker container for dashboard.
+ * @task {d/startService}
+ * @arg {test} Test flag, not run cmd, only output cmd.
+ */
+gulp.task('d/startService', () => {
+  dashboard.startService(isTest);
+});
+
+/**
+ * Local stop docker container for dashboard.
+ * @task {d/stopService}
+ * @arg {test} Test flag, not run cmd, only output cmd.
+ */
+gulp.task('d/stopService', () => {
+  dashboard.stopService(isTest);
+});
+
+/*--------------------------docker task end-----------------------------*/
 /*--------------------------ecr task start-----------------------------*/
 /**
  * Generate ECR configs.

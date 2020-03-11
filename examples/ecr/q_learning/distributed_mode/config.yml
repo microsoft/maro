@@ -35,6 +35,8 @@ log:
     dropout_p: 0.95
   qnet:
     enable: true
+  dashboard:
+    enable: true
 dashboard:
   enable: true
   influxdb:
@@ -42,6 +44,10 @@ dashboard:
     port: 50301
     use_udp: true
     udp_port: 50304
+  ranklist:
+    enable: false
+    author: your_name
+    commit: your_commit
 
 docker_image: 'maro_dist'
 

@@ -4,33 +4,15 @@ Dashboard
 About
 -----
 
-Dashboard is made of a set of tools for visualizing statistics data in a
-RL train experiment.
-
-We choosed influxdb to store the experiment data, and Grafana as
-front-end framework.
-
-We supplied an easy way of starting the influxdb and Grafana services.
-
-We implemented a dashboard class for uploading data to data base in
-maro.utils.dashboard. You can customize the class set base on the
-dashboard class.
-
-We defined 3 Grafana dashboards which shows common experiment statistics
-data, experiment compare data and rank list for shortage.
-
-We developed 2 Grafana panel plugins for you to customize your own
-dashboard in Grafana: Simple line chart, Heatmap chart. Simple line
-chart can show multiple lines in one chart with little setup. Heatmap
-chart can show z axis data as different red rects on different x, y axis
-values.
+The Dashboard is made of a set of tools for visualizing key indicator
+statistics data in an RL training experiment.
 
 Quick Start
 -----------
 
 -  Start services
 
-If you pip installed maro project, you need to make sure
+If user pip installed MARO project, they need to make sure
 `docker <https://docs.docker.com/install/>`__ is installed and create a
 folder for extracting dashboard resource files:
 
@@ -38,9 +20,12 @@ folder for extracting dashboard resource files:
 
     mkdir dashboard_services
     cd dashboard_services
-    maro --dashboard
+    # Extract the dashboard resource files to the current working directory with the "-e" option.
+    maro dashboard -e
+    # Start the dashboard services with the "-s" option.
+    maro dashboard -s
 
-If you start in source code of maro project, just cd
+If user start in source code of MARO project, just cd
 maro/utils/dashboard/dashboard\_resource
 
 .. code:: shell
@@ -53,9 +38,7 @@ and then run the start.sh in resource files:
 
     bash start.sh
 
-or use command "maro --dashboard start" to start the dashboard services.
-
--  Upload some data
+-  Upload experiment data
 
 Use maro.utils.dashboard.DashboardBase object to upload some simple
 data.
@@ -65,8 +48,7 @@ data.
     from maro.utils.dashboard import DashboardBase
     import random
 
-    dashboard = DashboardBase('test_case_01', '.')
-    dashboard.setup_connection()
+    dashboard = DashboardBase('hello_world', '.')
     for i in range(10):
         fields = {'student_01':random.random()*10*i,'student_02':random.random()*15*i}
         tag = {'ep':i}
@@ -75,92 +57,131 @@ data.
 
 -  View the data chart in Grafana
 
-Open url http://localhost:50303 in your browser.
+Open URL http://localhost:50303 in the browser.
 
-Login with the default user: admin and password: admin, change the password if
-you wish to.
+Use default user: 'admin' and password: 'admin' to login.
 
-Then Grafana will navigate to 'Home' dashboard, tap 'Home' in up-left
-corner and select 'Hello World' option.
+Then Grafana will navigate to the 'Home' dashboard, tap 'Home' in the
+up-left corner and select the 'Hello World' option.
 
-Grafan will navigate to 'Hello World' dashboard and the data chart panel
-will be shown in your browser.
+Grafana will navigate to the 'Hello World' dashboard and the data chart
+panel will be shown in the browser.
 
-Deatil in Deploy
-----------------
+Backend
+-------
 
-To make the Dashboard work, you need to setup the dockers for dashboard
-first, in a local machine or a remote one. And then you can insert the
-upload apis into the experiment, so the experiment data will be uploaded
-while the experiment running.
+We use influxdb to store the experiment data and Grafana to visualize
+the experiment data.
+
+We use docker to setup the influxdb and Grafana services.
+
+We implement a DashboardBase class for uploading data to the influxdb in
+maro.utils.dashboard. Users can customize their class base on the
+DashboardBase class.
+
+Predefined Dashboard
+--------------------
+
+For the ECR scenario, We define 3 Grafana dashboards that show
+experiments statistics data, experiments data comparison and a rank list
+for experiments.
+
+Customized Panels
+-----------------
+
+We develop 4 Grafana panel plugins for users to customize their
+dashboard in Grafana: Simple line chart, Heatmap chart, stack bar chart,
+and dot chart. The simple line chart can show multiple lines in one
+chart. The heatmap chart can show z-axis data as different red
+rectangles on different x, y-axis values. The stack bar chart can show
+multiple bar series stacked together by the x-axis. The dot chart can
+show multiple dot series in one chart.
+
+Details of Deploying
+--------------------
+
+To make the Dashboard work, the users need to start the dockers for the
+dashboard first, on a local machine or a remote one. And then they can
+use the upload API to upload experiment data to the influxdb database.
 
 Setup Services
 ~~~~~~~~~~~~~~
 
 -  Install docker
--  Prepare user can run docker
--  Check out the socket ports for docker specified in
-   dashboard\_resource/docker-compose.yml are available, you can
-   customize the ports if necessory
--  Run dashboard\_resource/start.sh with the user, the docker for
-   influxdb and grafana will be started
+-  The socket port for the influxdb and Grafana can be customized in
+   dashboard\_resource/docker-compose.yml
+-  Run dashboard\_resource/start.sh, the docker for influxdb and Grafana
+   will be started
 
 .. code:: sh
 
     cd dashboard_resource; bash start.sh
 
-Insert Upload Apis into experiment Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Send experiment data
+~~~~~~~~~~~~~~~~~~~~
 
--  New a DashboardBase object with experiment name
--  Make sure setup\_connection function of the object was called before
-   send data.
--  Set the parameters of setup\_connection if necessory, the
-   setup\_connection has 4 parameters:
+-  New a DashboardBase object with experiment name, log folder
+-  Set the parameters for influxdb if necessary, it has 4 more optional
+   parameters:
 
-   ::
+   host (str): influxdb IP address, default is localhost
 
-                host (str): influxdb ip address
-                port (int): influxdb http port
-                use_udp (bool): if use udp port to upload data to influxdb
-                udp_port (int): influxdb udp port
+   port (int): influxdb Http port, default is 50301
+
+   use\_udp (bool): if use UDP port to upload data to influxdb, default
+   is true
+
+   udp\_port (int): influxdb UDP port, default is 50304
 
 .. code:: python
 
     from maro.utils.dashboard import DashboardBase
-    dashboard = DashboardBase('test_case_01', '.')
-    dashboard.setup_connection()
+    dashboard = DashboardBase(experiment='test_case_01', log_folder='.')
 
 Basic upload Api
 ^^^^^^^^^^^^^^^^
 
-the basic upload api is send()
+the basic upload API: send()
+
+:doc:`<../apidoc/maro.utils.dashboard>`
 
 .. code:: python
 
     dashboard.send(fields={'port1':5,'port2':12}, tag={'ep':15}, measurement='shortage')
 
-send() requires 3 parameters:
+send() requires 3 parameters :
 
--  fields ({Dict}): dictionary of fields, key is field name, value is
-   field value, the data you want to draw in the dashboard charts.
+-  fields ({Dict}): a dictionary of fields, the key is a field name,
+   value is field value, the data user wants to draw in the dashboard
+   charts.
+
+   Reference to
+   `field <https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/>`__\ #field-key
 
    i.e.:{"port1":1024, "port2":2048}
 
--  tag ({Dict}): dictionary of tag, used for query the specify data from
-   database for the dashboard charts.
+-  tag ({Dict}): a dictionary of tag, used to query the specified data
+   from the database for the dashboard charts.
+
+   Reference to
+   `tag <https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/#tag-key>`__
 
    i.e.:{"ep":5}
 
--  measurement (string): type of fields, used as data table name in
-   database.
+-  measurement (string): type of fields, used as a data table name in
+   the database.
+
+   Reference to
+   `measurement <https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/#measurement>`__
 
    i.e.:"shortage"
 
-Ranklist upload api
+Ranklist upload API
 ^^^^^^^^^^^^^^^^^^^
 
-The ranklist upload api is upload\_to\_ranklist()
+The rank list upload API is upload\_to\_ranklist()
+
+:doc:`<../apidoc/maro.utils.dashboard>`
 
 .. code:: python
 
@@ -168,42 +189,54 @@ The ranklist upload api is upload\_to\_ranklist()
 
 upload\_to\_ranklist() require 2 parameters:
 
--  ranklist ({Dict}): a ranklist dictionary, should contain "enabled"
-   and "name" attributes i.e.: { 'enabled': True 'name':
-   'test\_shortage\_ranklist' }
+-  rank list (str): a rank list name, used as a measurement in influxdb
 
--  fields ({Dict}): dictionary of field, key is field name, value is
-   field value i.e.:{"train":1024, "test":2048}
+   i.e.: 'test\_shortage\_ranklist'
 
-Customized Upload Apis
-^^^^^^^^^^^^^^^^^^^^^^
+-  fields ({Dict}): a dictionary of field, the key is a field name,
+   value is a field value
 
-The customized upload api includes upload\_d\_error(),
-upload\_shortage()..., they packed the basic upload api. The customized
-upload api required some business data, reorganized them into basic api
-parameters, and send data to database via basic upload api.
+   i.e.:{"train":1024, "test":2048}
+
+ECR scenario specific API
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the ECR scenario, the customized upload API includes
+upload\_exp\_data(), packs the basic upload API. The customized upload
+API requires some business data, reorganizes them into basic API
+parameters, and sends data to the database via basic upload API.
 
 .. code:: python
+
 
     from maro.utils.dashboard import DashboardBase
 
     class DashboardECR(DashboardBase):
-        def __init__(self, experiment: str, log_folder: str):
-            DashboardBase.__init__(self, experiment, log_folder)
+        def __init__(self, experiment: str, log_folder: str = None, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+            DashboardBase.__init__(self, experiment, log_folder, host, port, use_udp, udp_port)
 
-        def upload_shortage(self, nodes_shortage, ep):
-            nodes_shortage['ep'] = ep
-            self.send(fields=nodes_shortage, tag={
-                'experiment': self.experiment}, measurement='shortage')
+        def upload_exp_data(self, fields, ep, tick, measurement):
+            fields['ep'] = ep
+            if tick is not None:
+                fields['tick'] = tick
+            self.send(fields=fields, tag={
+                'experiment': self.experiment}, measurement=measurement)
 
-upload\_shortage() requires 2 parameters:
+upload\_exp\_data() requires 4 parameters:
 
--  nodes\_shortage ({Dict}): dictionary of shortage of different nodes,
-   key is node name, value is shortage value.
+-  fields ({Dict}): dictionary of experiment data, key is experiment
+   data name, value is experiment data value.
 
    i.e.:{"port1":1024, "port2":2048}
 
--  ep (number): current ep, used as x axis data in dashboard charts.
+-  ep (int): current ep of the experiment data, used to identify data of
+   different ep in the database.
+
+-  tick (int): current tick of the experiment data, used to identify
+   data of different ep in the database. Set None if it is not needed.
+
+-  measurement (str): specify the measurement in which the data will be
+   stored in.
 
 Run Experiment
 ~~~~~~~~~~~~~~
@@ -214,26 +247,41 @@ View the Dashboards in Grafana
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Open Grafana link http://localhost:50303 (update the host and port if
-   necessary) in the browser and log in with user "admin" password
-   "admin" (change the username and password if necessary)
+   necessary) in the browser and log in with default user "admin"
+   password "admin"
 
--  Check the dashboards, you can switch between the predefined
+-  Check the dashboards, user can switch between the predefined
    dashboards in the top left corner of the home page of Grafana.
 
-   -  The "Experiment Metric Statistics" dashboard provid the port
-      shortage - ep chart, port loss - ep chart, port exploration - ep
-      chart, port shortage pre ep chart, port q curve pre ep chart,
-      laden transfer between ports pre ep chart. You can switch data
-      between different experiments and episode of different charts in
-      the selects at the top of dashboard
-   -  The "Experiment Comparison" dashboard can compare a measurement of
-      a port between 2 different experiments
-   -  The "Shortage Ranklist" dashboard provid a demo rank list of test
-      shortages
-   -  The "Hello World" dashboard is used to review data uploaded in
-      Hello World section
+-  The "ECR Experiment Metric Statistics" dashboard provides the port
+   shortage - ep chart, port loss - ep chart, port exploration - ep
+   chart, port shortage pre ep chart, port q curve pre ep chart, laden
+   transfer between ports pre ep chart. User can switch data between
+   different experiments and an episode of different charts in the
+   selects at the top of the dashboard
 
--  You can customize the dashboard reference to
+.. image:: ../images/statistics.jpg
+  :width: 400
+  :alt: Alternative text
+
+-  The "ECR Experiment Comparison" dashboard can compare the measurement
+   of a port between 2 different experiments
+
+.. image:: ../images/compare.jpg
+  :width: 400
+  :alt: Alternative text
+
+-  The "ECR Shortage Ranklist" dashboard provides a demo rank list of
+   test shortages
+
+.. image:: ../images/ranklist.jpg
+  :width: 400
+  :alt: Alternative text
+
+-  The "Hello World" dashboard is used to review data uploaded in Hello
+   World section
+
+-  User can customize the dashboard reference to
    https://grafana.com/docs/grafana/latest/
 
 

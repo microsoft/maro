@@ -4,6 +4,7 @@
 
 from datetime import datetime
 import os
+import sys
 import random
 
 import numpy as np
@@ -18,8 +19,8 @@ class Agent(object):
     def __init__(self, agent_name, algorithm, experience_pool: SimpleExperiencePool,
                  state_shaping, action_shaping, reward_shaping,
                  batch_num, batch_size, min_train_experience_num,
-                 log_enable: bool = True, log_folder: str = './',
-                 dashboard_enable: bool = True, dashboard: object = None):
+                 log_folder: str = None,
+                 dashboard: object = None):
         self._agent_name = agent_name
         self._algorithm = algorithm
         self._experience_pool = experience_pool
@@ -29,8 +30,7 @@ class Agent(object):
         self._batch_size = batch_size
         self._batch_num = batch_num
         self._min_train_experience_num = min_train_experience_num
-        self._log_enable = log_enable
-        self._dashboard_enable = dashboard_enable
+        self._log_enable = False if log_folder is None else True
         self._dashboard = dashboard
 
         if self._log_enable:
@@ -105,8 +105,8 @@ class Agent(object):
             if self._log_enable:
                 self._logger.info(f'{self._agent_name} learn loss: {loss}')
 
-            if self._dashboard_enable:
-                self._dashboard.upload_loss({self._agent_name: loss}, current_ep)
+            if self._dashboard is not None:
+                self._dashboard.upload_exp_data(fields={self._agent_name: loss}, ep=current_ep, tick=None, measurement='loss')
 
     def dump_modules(self, module_path: str):
         self._logger.debug(f'{self._agent_name} dump module to {module_path}')
@@ -139,7 +139,7 @@ class Agent(object):
 
         state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
         is_random, action_index = self._algorithm.choose_action(
-            state=state, eps=eps, current_ep=current_ep)
+            state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick)
 
         port_states = snapshot_list.static_nodes[
                       cur_tick: cur_port_idx: (['empty', 'full', 'on_shipper', 'on_consignee'], 0)]
@@ -172,3 +172,13 @@ class Agent(object):
         load updated policy net parameters to the algorithm.
         """
         self._algorithm.load_policy_net_parameters(policy_net_parameters)
+
+    @property
+    def experience_quantity(self):
+        qty = self._experience_pool.size['action']
+        return qty
+
+    @property
+    def model_size(self):
+        size = sum([parameter.nelement() for parameter in self._algorithm.policy_net.parameters()])
+        return size

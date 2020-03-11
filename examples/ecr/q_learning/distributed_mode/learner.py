@@ -17,7 +17,7 @@ from maro.distributed import dist, Proxy, Message
 from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
 from examples.ecr.q_learning.common.dqn import QNet, DQN
 from examples.utils import log, get_peers
-from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
+from examples.ecr.q_learning.common.ecr_dashboard import DashboardECR
 
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
@@ -46,6 +46,7 @@ TAU = config.train.dqn.tau  # Soft update
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 TRAIN_SEED = config.train.seed
 DASHBOARD_ENABLE = config.dashboard.enable
+DASHBOARD_LOG_ENABLE = config.log.dashboard.enable
 DASHBOARD_HOST = config.dashboard.influxdb.host
 DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
@@ -65,9 +66,8 @@ proxy = Proxy(group_name=os.environ['GROUP'],
 pending_envs = set(proxy.peers)  # environments the learner expects experiences from, required for forced sync
 
 if DASHBOARD_ENABLE:
-    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER)
-    dashboard.setup_connection(host=DASHBOARD_HOST, port=DASHBOARD_PORT,
-                               use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
+    dashboard = DashboardECR(config.experiment_name, LOG_FOLDER, host=DASHBOARD_HOST,
+                             port=DASHBOARD_PORT, use_udp=DASHBOARD_USE_UDP, udp_port=DASHBOARD_UDP_PORT)
 
 
 @log(logger=logger)
@@ -146,14 +146,14 @@ class Learner:
         """
         if not self._env_number:
             policy_net = QNet(*policy_net_parameters,
-                              log_enable=True, log_folder=LOG_FOLDER)
+                              log_folder=LOG_FOLDER)
             target_net = QNet(*target_net_parameters,
-                              log_enable=True, log_folder=LOG_FOLDER)
+                              log_folder=LOG_FOLDER)
             target_net.load_state_dict(policy_net.state_dict())
 
             self.algorithm = DQN(policy_net=policy_net, target_net=target_net,
                                  gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, lr=LEARNING_RATE,
-                                 log_enable=DQN_LOG_ENABLE, log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P)
+                                 log_folder=LOG_FOLDER, log_dropout_p=DQN_LOG_DROPOUT_P)
 
         self._env_number += 1
 
@@ -195,7 +195,7 @@ class Learner:
 
             self.experience_pool.update([('info', idx_list, sample_dict['info'])])
             if DASHBOARD_ENABLE:
-                dashboard.upload_loss({agent_name: loss}, episode)
+                dashboard.upload_exp_data(fields={agent_name: loss}, ep=episode, tick=None, measurement='loss')
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)

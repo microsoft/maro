@@ -350,7 +350,7 @@ vessels:
       initial_port_name: supply_port_001
       route_name: route_001
     sailing:
-      noise: 2
+      noise: 1
       speed: 10
   rt1_vessel_003:
     capacity: 15400
@@ -361,7 +361,7 @@ vessels:
       initial_port_name: supply_port_002
       route_name: route_001
     sailing:
-      noise: 2
+      noise: 1
       speed: 10
   rt2_vessel_001:
     capacity: 12600

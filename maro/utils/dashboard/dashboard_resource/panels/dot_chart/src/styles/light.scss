@@ -1,0 +1,297 @@
+@import '../../node_modules/@grafana/toolkit/sass/_variables.light.scss';
+@import 'dotchart';
+
+.dotLabel > div {
+  color: $black;
+}
+
+.dotchart-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dotchart-panel--legend-right {
+  flex-direction: row;
+}
+
+.dotchart-panel--legend-right .dotchart-legend {
+  flex: 0 1 10px;
+  height: 100%;
+}
+
+_:-ms-fullscreen,
+:root .dotchart-panel--legend-right .dotchart-legend {
+  flex: 0 1 200px;
+}
+
+.dotchart-panel--legend-right .dotchart-legend-series {
+  display: block;
+  padding-left: 0px;
+}
+
+.dotchart-panel--legend-right .dotchart-legend-table .dotchart-legend-series {
+  display: table-row;
+}
+
+.dotchart-legend__container {
+  height: 100%;
+}
+
+.dotchart-panel__chart {
+  position: relative;
+  cursor: crosshair;
+  flex-grow: 1;
+  top: 10px;
+}
+
+.datapoints-warning {
+  pointer: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  margin-top: -50px;
+  margin-left: -100px;
+  width: 200px;
+  text-align: center;
+  cursor: auto;
+  padding: 10px;
+}
+
+.dotchart-legend {
+  flex: 0 1 auto;
+  margin: 0 1rem;
+  text-align: center;
+  padding-top: 6px;
+  position: relative;
+}
+
+.dotchart-legend .popover-content {
+  padding: 0;
+}
+
+.dotchart-legend-icon {
+  position: relative;
+  padding-right: 4px;
+  top: 1px;
+}
+
+.dotchart-legend-icon,
+.dotchart-legend-alias,
+.dotchart-legend-value {
+  cursor: pointer;
+  float: left;
+  white-space: nowrap;
+  font-size: 85%;
+  text-align: left;
+  color: 52545c;
+}
+
+.dotchart-legend-icon.current::before {
+  content: 'Current: ';
+}
+
+.dotchart-legend-icon.max::before {
+  content: 'Max: ';
+}
+
+.dotchart-legend-icon.min::before {
+  content: 'Min: ';
+}
+
+.dotchart-legend-icon.total::before {
+  content: 'Total: ';
+}
+
+.dotchart-legend-icon.avg::before {
+  content: 'Avg: ';
+}
+
+.dotchart-legend-alias.current::before {
+  content: 'Current: ';
+}
+
+.dotchart-legend-alias.max::before {
+  content: 'Max: ';
+}
+
+.dotchart-legend-alias.min::before {
+  content: 'Min: ';
+}
+
+.dotchart-legend-alias.total::before {
+  content: 'Total: ';
+}
+
+.dotchart-legend-alias.avg::before {
+  content: 'Avg: ';
+}
+
+.dotchart-legend-value.current::before {
+  content: 'Current: ';
+}
+
+.dotchart-legend-value.max::before {
+  content: 'Max: ';
+}
+
+.dotchart-legend-value.min::before {
+  content: 'Min: ';
+}
+
+.dotchart-legend-value.total::before {
+  content: 'Total: ';
+}
+
+.dotchart-legend-value.avg::before {
+  content: 'Avg: ';
+}
+
+.dotchart-legend-icon .fa {
+  font-size: 135%;
+  position: relative;
+  top: 1px;
+}
+
+.dotchart-legend-series {
+  float: left;
+  white-space: nowrap;
+  padding-left: 10px;
+}
+
+.dotchart-legend-series--right-y {
+  float: right;
+}
+
+.dotchart-legend-value {
+  padding-left: 6px;
+}
+
+.dotchart-legend-table tbody {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  padding-bottom: 1px;
+  padding-right: 5px;
+}
+
+.dotchart-legend-table .dotchart-legend-series {
+  display: table-row;
+  float: none;
+  padding-left: 0;
+}
+
+.dotchart-legend-table .dotchart-legend-series--right-y {
+  float: none;
+}
+
+.dotchart-legend-table .dotchart-legend-series--right-y .dotchart-legend-alias::after {
+  content: '(right-y)';
+  padding: 0 5px;
+  color: #767980;
+}
+
+.dotchart-legend-table td,
+.dotchart-legend-alias,
+.dotchart-legend-icon,
+.dotchart-legend-value {
+  float: none;
+  display: table-cell;
+  white-space: nowrap;
+  padding: 2px 10px;
+  text-align: right;
+}
+
+.dotchart-legend-table .dotchart-legend-icon {
+  width: 5px;
+  padding: 0;
+  top: 0;
+}
+
+.dotchart-legend-table .dotchart-legend-icon .fa {
+  top: 4px;
+}
+
+.dotchart-legend-table .dotchart-legend-value {
+  padding-left: 15px;
+}
+
+.dotchart-legend-table .dotchart-legend-alias {
+  padding-left: 7px;
+  text-align: left;
+  width: 95%;
+  max-width: 650px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.ps {
+  overflow: hidden auto !important;
+}
+
+.ps__rail-y {
+  display: none !important;
+}
+
+.dotchart-legend-table .dotchart-legend-series:nth-child(odd) {
+  background: #dde4ed;
+}
+
+.dotchart-legend-table .dotchart-legend-value.current::before {
+  content: '';
+}
+
+.dotchart-legend-table .dotchart-legend-value.max::before {
+  content: '';
+}
+
+.dotchart-legend-table .dotchart-legend-value.min::before {
+  content: '';
+}
+
+.dotchart-legend-table .dotchart-legend-value.total::before {
+  content: '';
+}
+
+.dotchart-legend-table .dotchart-legend-value.avg::before {
+  content: '';
+}
+
+.dotchart-legend-table th {
+  text-align: right;
+  padding: 0px 10px 1px 0;
+  font-weight: bold;
+  color: #61c2f2;
+  font-size: 85%;
+  white-space: nowrap;
+}
+
+.dotchart-legend-series-hidden .dotchart-legend-value,
+.dotchart-legend-series-hidden .dotchart-legend-alias {
+  color: #acb6bf;
+}
+
+.dotchart-tooltip {
+  white-space: nowrap;
+  font-size: 12px;
+  background-color: #dde4ed;
+  color: #35373f;
+}
+
+.dotchart-tooltip .dotchart-tooltip-time {
+  text-align: center;
+  position: relative;
+  top: -3px;
+  padding: 0.2rem;
+  font-weight: bold;
+  color: #35373f;
+}
+
+.dotchart-tooltip .dotchart-tooltip-value {
+  display: table-cell;
+  font-weight: bold;
+  padding-left: 15px;
+  text-align: right;
+}
