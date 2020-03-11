@@ -1,3 +1,8 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# This script is used to draw charts for corresponding topologies
+
 import glob
 import yaml
 import copy
@@ -113,7 +118,7 @@ def topo_visualizer_fixpos(nodes, node_groups, edges, edge_groups, path, route_g
 
     plt.axis('off')
     typ = 'route' if route else 'order_distribution'
-    plt.savefig(path + '/' + typ + '.eps', format='eps')
+    plt.savefig(path + '/' + typ + '.svg', format='svg')
     plt.show()
     plt.cla()
 
@@ -204,7 +209,7 @@ def topo_visualizer(nodes, node_groups, edges, edge_groups, path, route_groups, 
     plt.rcParams['figure.figsize'] = (200, 100)
     plt.axis('off')
     typ = 'route' if route else 'order_distribution'
-    plt.savefig(path + '/' + typ + '.eps', format='eps')
+    plt.savefig(path + '/' + typ + '.svg', format='svg')
     plt.show()
     plt.cla()
 

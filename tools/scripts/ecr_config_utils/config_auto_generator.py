@@ -1,9 +1,16 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# This script is used to generate a group of order config based on the initial level
+
 import os
 import yaml
 import math
 import shutil
 import random
 
+# TODO: add meta config
+# TODO: deep copy instead of multiple modifications
 
 TOPOLOGY_PATH = "../maro/simulator/scenarios/ecr/topologies/"
 TOPOLOGY_LIST = ["4p_ssdd", "5p_ssddd", "6p_sssbdd", "22p_global_trade"]
@@ -43,9 +50,9 @@ def save_new_topology(src: str):
             vessel["capacity"] = int(AVG_ORDER_RATIO * route_proportion * SAILING_TIME * total_containers *
                                      VESSEL_CAPACITY_REDUNDANCY_RATIOS[level])
         if level > 1:
-            add_vessel_variance(config_dict)
+            add_vessel_variance()
 
-    def add_vessel_variance(config_dict: dict):
+    def add_vessel_variance():
         for i, vessel in enumerate(src_dict["vessels"].values()):
             vessel["capacity"] += int(vessel["capacity"] * VESSEL_CAPACITY_DELTA_RATIO * (i % 3 - 1))
 

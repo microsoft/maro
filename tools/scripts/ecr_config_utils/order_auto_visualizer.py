@@ -1,4 +1,8 @@
-# this script used to show a chart for specified order config
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+# This script is used to draw charts for corresponding order configs
+
 import sys
 import getopt
 import numpy as np
