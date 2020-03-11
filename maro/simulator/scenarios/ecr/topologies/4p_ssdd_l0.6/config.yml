@@ -241,11 +241,11 @@ ports:
     initial_container_proportion: 0.25
     order_distribution:
       source:
-        noise: 0.04393421809276206
+        noise: 0.013600922063879235
         proportion: 0.33
       targets:
         supply_port_001:
-          noise: 0.17156394735666827
+          noise: 0.14750874914756004
           proportion: 1
   demand_port_002:
     capacity: 100000
@@ -258,14 +258,14 @@ ports:
     initial_container_proportion: 0.25
     order_distribution:
       source:
-        noise: 0.1319149168655205
+        noise: 0.1304516010305513
         proportion: 0.67
       targets:
         supply_port_001:
-          noise: 0.008724107359730438
+          noise: 0.024945191979644746
           proportion: 0.2
         supply_port_002:
-          noise: 0.08598347372448707
+          noise: 0.1570609939014448
           proportion: 0.8
   supply_port_001:
     capacity: 1000000
@@ -312,7 +312,7 @@ stop_number:
 total_containers: 100000
 vessels:
   rt1_vessel_001:
-    capacity: 9240
+    capacity: 8316
     parking:
       duration: 1
       noise: 1
@@ -334,7 +334,7 @@ vessels:
       noise: 2
       speed: 10
   rt2_vessel_001:
-    capacity: 18760
+    capacity: 20636
     parking:
       duration: 1
       noise: 1
@@ -345,7 +345,7 @@ vessels:
       noise: 2
       speed: 10
   rt2_vessel_002:
-    capacity: 18760
+    capacity: 16884
     parking:
       duration: 1
       noise: 1
@@ -364,5 +364,5 @@ vessels:
       initial_port_name: demand_port_002
       route_name: route_002
     sailing:
-      noise: 2
+      noise: 1
       speed: 10

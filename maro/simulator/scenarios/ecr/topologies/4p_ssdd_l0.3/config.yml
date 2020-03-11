@@ -312,7 +312,7 @@ stop_number:
 total_containers: 100000
 vessels:
   rt1_vessel_001:
-    capacity: 6930
+    capacity: 6237
     parking:
       duration: 1
       noise: 0
@@ -334,7 +334,7 @@ vessels:
       noise: 0
       speed: 10
   rt2_vessel_001:
-    capacity: 14070
+    capacity: 15477
     parking:
       duration: 1
       noise: 0
@@ -345,7 +345,7 @@ vessels:
       noise: 0
       speed: 10
   rt2_vessel_002:
-    capacity: 14070
+    capacity: 12663
     parking:
       duration: 1
       noise: 0
