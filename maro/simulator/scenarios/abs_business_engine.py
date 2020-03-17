@@ -18,8 +18,8 @@ class AbsBusinessEngine(ABC):
     """
     _event_buffer: EventBuffer
 
-    def __init__(self, event_buffer: EventBuffer, topology_path: str):
-        self._topology_path = topology_path
+    def __init__(self, event_buffer: EventBuffer, config_path: str):
+        self._config_path = config_path
         self._event_buffer = event_buffer
 
     @property
