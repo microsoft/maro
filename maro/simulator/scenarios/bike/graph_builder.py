@@ -8,10 +8,13 @@ def build(station_num: int):
 
     reg_attr = graph.register_attribute
 
-    reg_attr("bike_num", int_attr, 1)
+    reg_attr("inventory", int_attr, 1)
     reg_attr("fullfillment", int_attr, 1)
-    reg_attr("requirement", int_attr, 1)
+    reg_attr("orders", int_attr, 1)
     reg_attr("shortage", int_attr, 1)
+    reg_attr("gendor", int_attr, 3)
+    reg_attr("weekday", int_attr, 1)
+    reg_attr("usertype", int_attr, 3)
 
     graph.setup()
 

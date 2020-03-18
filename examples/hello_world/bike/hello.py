@@ -1,6 +1,6 @@
 from maro.simulator.core import Env
 
-env = Env("bike", "test", 100)
+env = Env("bike", "test", 48)
 
 reward, decision_event, is_done = env.step(None)
 

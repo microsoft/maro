@@ -1,3 +1,4 @@
-
+action_step: 0.5f # step(in hour) to take action
+start_datetime: "2019-12-02"
 data_file: "/Users/maple/projects/bike/data/data.bin"
-station_file: "/Users/maple/projects/maro/maro/simulator/scenarios/bike/topologies/test/config.yml"
+station_file: "/Users/maple/projects/maro/maro/simulator/scenarios/bike/topologies/test/stations.csv"

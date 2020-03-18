@@ -20,7 +20,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int):
         super().__init__(event_buffer, config_path)
 
+        self._max_tick = max_tick
         self._stations = []
+        self._station_map = {}
 
         config_path = os.path.join(config_path, "config.yml")
 
@@ -54,7 +56,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         orders = self._data_reader.get_orders(tick)
 
         for order in orders:
-            self._event_buffer.gen_atom_event(tick, )
+            print(order)
+            # self._event_buffer.gen_atom_event(tick, )
 
     @property
     def configs(self) -> dict:
@@ -123,17 +126,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 rows.append(l)
 
         self._graph = build(len(rows))
-
+  
         for i, r in enumerate(rows):
             if len(r) == 0:
                 break
 
-            station = Station(i, r[0], r[2], self._graph)
+            station = Station(i, int(r[0]), int(r[2]), self._graph)
 
             self._stations.append(station)
+            self._station_map[int(r[0])] = i
 
     def _init_data_reader(self):
-        self._data_reader = BikeDataReader(self._conf["data_file"])
+        self._data_reader = BikeDataReader(self._conf["data_file"], self._conf["start_datetime"], self._max_tick, self._station_map)
 
     
     def _reg_event(self):
