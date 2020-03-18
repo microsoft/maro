@@ -1,5 +1,5 @@
 # usage : 
-# ls -dQ ../../../ny/*.csv | xargs -i CONFIG=~/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml PYTHON_PATH=~/bikeData/maro/ python ./bike_from_csv.py {} ../../../ny/full/201306_202001.csv ../../../ny/station/
+# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python bike_form_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.csv /home/zhanyu/bikeData/ny/station/
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 _dashboard = DashboardBase('city_bike_0318', None,
                                             host=DASHBOARD_HOST,
                                             port=DASHBOARD_PORT,
-                                            dbname='citi_bike',
+                                            dbname='citibike',
                                             use_udp=DASHBOARD_USE_UDP,
                                             udp_port=DASHBOARD_UDP_PORT)
 
@@ -37,12 +37,8 @@ def process_bike_data(bike_data_file):
     if os.path.exists(bike_data_file):
         with open(bike_data_file, mode="r", encoding="utf-8") as bike_csv_file:
             bike_data = pd.read_csv(bike_csv_file)
+            print(bike_data_file)
             bike_data['date'] = pd.to_datetime(bike_data['starttime']).dt.date
-            bike_data['month'] = pd.to_datetime(bike_data['starttime']).dt.month
-            bike_data['weekday'] = pd.to_datetime(bike_data['starttime']).dt.weekday
-            bike_data['day'] = pd.to_datetime(bike_data['starttime']).dt.day
-            bike_data['hour'] = pd.to_datetime(bike_data['starttime']).dt.hour
-            print(bike_data)
 
             return bike_data
     return bike_data
@@ -86,18 +82,11 @@ if __name__ == "__main__":
     _dashboard.send(fields={'date':str(bike_data.loc[0,'date']),'stations':len(station_data)},tag={}, measurement='bike_station')
 
     if full_station_data == None:
-        with open(station_data_file, mode="w", encoding="utf-8") as station_out_file:
-            station_data.to_csv(station_out_file,index=False) 
+        with open(full_station_data_file, mode="w", encoding="utf-8") as full_station_out_file:
+            station_data.to_csv(full_station_out_file,index=False) 
     else:
         full_station_data = pd.concat([station_data,full_station_data]).drop_duplicates()
         with open(full_station_data_file, mode="w", encoding="utf-8") as full_station_out_file:
             full_station_data.to_csv(full_station_out_file,index=False)
 
-    # station_csv_file = station_data_file.replace('.json','.csv')
-    # print(station_csv_file)
-    # with open(station_csv_file, mode="w", encoding="utf-8") as station_out_file:
-    #     sample_station_data.to_csv(station_out_file,index=False)
-    #     to_influx = sample_station_data.to_dict('records')
-    #     for record in to_influx:
-    #         _dashboard.send(fields=record,tag={}, measurement='bike_station')
     
