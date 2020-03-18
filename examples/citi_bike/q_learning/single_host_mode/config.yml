@@ -1,0 +1,44 @@
+experiment_name: "baseline"
+env:
+  scenario: "citi_bike"
+  topology: "ny_201306_202001"
+  max_tick: -1 # stop until the data steam end
+train:
+  max_ep: 500 # max episode
+  batch_num: 10
+  batch_size: 128
+  min_train_experience_num: 1024 # when experience number is less than it, will not trigger train
+  reward_shaping: 'tc'
+  dqn:
+    target_update_frequency: 5 # target network update frequency
+    dropout_p: 0.0 # dropout parameter
+    gamma: 0.0 # reward decay
+    tau: 0.1 # soft update
+    lr: 0.05 # learning rate
+  exploration:
+    max_eps: 0.4 # max epsilon
+    phase_split_point: 0.5 # exploration two phase split point
+    first_phase_reduce_proportion: 0.8 # first phase reduce proportion of max_eps 
+  seed: 1024
+test:
+  max_ep: 10 # max episode
+  seed: 2048
+qnet:
+  seed: 0
+log:
+  runner:
+    enable: true
+  agent:
+    enable: false
+  dqn:
+    enable: false
+    dropout_p: 0.95
+  qnet:
+    enable: false
+dashboard:
+  enable: false
+  influxdb:
+    host: localhost
+    port: 50301
+    use_udp: true
+    udp_port: 50304
