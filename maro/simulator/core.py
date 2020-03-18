@@ -195,7 +195,7 @@ class Env(AbsEnv):
                                      0], "scenarios", self._scenario, "topologies", self._topology)
 
         self._business_engine = business_class(
-            self._event_buffer, topology_path, self._max_tick)
+            self._event_buffer, topology_path, self._max_tick, self._tick_units)
 
         # check if it meet our requirement
         if self._business_engine.graph is None:

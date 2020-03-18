@@ -18,9 +18,10 @@ class AbsBusinessEngine(ABC):
     """
     _event_buffer: EventBuffer
 
-    def __init__(self, event_buffer: EventBuffer, config_path: str):
+    def __init__(self, event_buffer: EventBuffer, config_path: str, tick_units: int):
         self._config_path = config_path
         self._event_buffer = event_buffer
+        self._tick_units = tick_units
 
     @property
     @abstractmethod

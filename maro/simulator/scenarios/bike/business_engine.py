@@ -21,8 +21,8 @@ class BikeEventType(IntEnum):
     BikeReturn = 11
 
 class BikeBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int):
-        super().__init__(event_buffer, config_path)
+    def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
+        super().__init__(event_buffer, config_path, tick_units)
 
         self._max_tick = max_tick
         self._stations = []
@@ -59,7 +59,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         Args:
             tick (int): tick to process
         """
-        print(f"************** cur tick: {unit_tick} ************************")
+        # print(f"************** cur tick: {unit_tick} ************************")
         orders = self._data_reader.get_orders(unit_tick)
 
         for order in orders:
@@ -124,8 +124,20 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         """
         
-
         self._snapshots.insert_snapshot(self._graph, tick)
+
+        if unit_tick == self._tick_units - 1:
+            # last unit tick of current tick
+            # we will reset some field
+            for station in self._stations:
+                station.shortage = 0
+                station.orders = 0
+                station.gendor_0 = 0
+                station.gendor_1 = 0
+                station.gendor_2 = 0
+                station.weekday = 0
+                station.customer = 0
+                station.subscriptor = 0
 
     def _init_graph(self):
         rows = []
@@ -167,12 +179,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         # update order count
         station.orders += 1
+        station.acc_orders += 1
         
         if station_inventory <= 0:
             # shortage
             station.shortage += 1
+            station.acc_shortage += 1
         else:
             station.inventory = station_inventory - 1
+
+            # TODO: update gender, weekday and usertype 
 
             # generate a bike return event by end tick
             return_payload = BikeReturnPayload(order.end_station)

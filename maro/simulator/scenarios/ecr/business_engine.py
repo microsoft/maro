@@ -19,7 +19,7 @@ from .port import Port
 from .vessel import Vessel
 
 class EcrBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology_path: str, max_tick: int):
+    def __init__(self, event_buffer: EventBuffer, topology_path: str, max_tick: int, tick_units: int):
         """
         Create a new instance of ECR Business Engine
 
@@ -28,7 +28,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             topology_path (str): full path to the topology folder
             max_tick (int): max tick that we will simulate
         """
-        super().__init__(event_buffer, topology_path)
+        super().__init__(event_buffer, topology_path, tick_units)
 
         config_path = os.path.join(topology_path, "config.yml")
 
