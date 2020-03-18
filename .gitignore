@@ -1,6 +1,7 @@
 *.pyc
 *.log
 *.csv
+*.DS_Store
 .idea/
 .vscode/
 build/
