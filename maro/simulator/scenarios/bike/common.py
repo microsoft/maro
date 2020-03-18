@@ -41,3 +41,31 @@ class BikeReturnPayload:
 
     def __repr__(self):
         return f"(Bike return payload, target station: {self.target_station}, number: {self.number})"
+
+
+class DecisionEvent:
+    def __init__(self, station_idx: int, tick: int, action_scope_func: callable):
+        self.station_idx = station_idx
+        self.tick = tick
+        self._action_scope = None
+        self._action_scope_func = action_scope_func
+
+    @property
+    def action_scope(self):
+        if self._action_scope is None:
+            self._action_scope = self._action_scope_func()
+
+        return self._action_scope_func
+
+class Action:
+    def __init__(self, station_idx:int, number: int):
+        self._station_idx = station_idx
+        self._num = number
+
+    @property
+    def station(self):
+        return self._station_idx
+
+    @property
+    def number(self):
+        return self._num

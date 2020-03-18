@@ -88,12 +88,11 @@ class BikeBusinessEngine(AbsBusinessEngine):
         for station in self._stations:
             station.reset()
 
-    def action_scope(self, port_idx: int, vessel_idx: int) -> object:
+    def action_scope(self, station_idx: int) -> object:
         """Get the action scope of specified agent
 
         Args:
-            port_idx (int): Port index of specified agent
-            vessel_idx(int): Vessel index to take the action
+            station_idx (int): index of station
 
         Returns:
             object: action scope object that may different for each scenario

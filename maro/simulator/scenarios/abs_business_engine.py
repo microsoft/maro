@@ -70,19 +70,6 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def action_scope(self, port_idx: int, vessel_idx: int) -> object:
-        """Get the action scope of specified agent
-
-        Args:
-            port_idx (int): Port index of specified agent
-            vessel_idx(int): Vessel index to take the action
-
-        Returns:
-            object: action scope object that may different for each scenario
-        """
-        pass
-
-    @abstractmethod
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
 
