@@ -1,5 +1,5 @@
 # usage :
-# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python bike_form_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.csv /home/zhanyu/bikeData/ny/station/
+# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python bike_form_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.station.csv /home/zhanyu/bikeData/ny/station/
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 _dashboard = DashboardBase('city_bike_0318', None,
                            host=DASHBOARD_HOST,
                            port=DASHBOARD_PORT,
-                           dbname='citibike',
+                           dbname='citi_bike',
                            use_udp=DASHBOARD_USE_UDP,
                            udp_port=DASHBOARD_UDP_PORT)
 
@@ -44,12 +44,12 @@ def process_bike_data(bike_data_file):
 
 
 def load_full_station_data(full_station_data_file):
-    station_data = None
+    data = None
     if os.path.exists(full_station_data_file):
         with open(full_station_data_file, mode="r", encoding="utf-8") as full_station_csv_file:
-            station_data = pd.read_csv(full_station_csv_file)
+            data = pd.read_csv(full_station_csv_file)
 
-    return station_data
+    return data
 
 
 def _gen_station_data(bike_data):
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     _dashboard.send(fields={'date': str(bike_data.loc[0, 'date']), 'stations': len(station_data)}, tag={}, measurement='bike_station')
 
-    if full_station_data == None:
+    if full_station_data is None:
         with open(full_station_data_file, mode="w", encoding="utf-8") as full_station_out_file:
             station_data.to_csv(full_station_out_file, index=False)
     else:
