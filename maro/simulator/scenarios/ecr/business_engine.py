@@ -76,7 +76,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         return self._snapshots
 
-    def step(self, tick: int):
+    def step(self, tick: int, unit_tick: int):
         """
         Called at each tick to generate orders and arrival events
 
@@ -151,7 +151,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         for evt in cascade_evt_list:
             self._event_buffer.insert_event(evt)
 
-    def post_step(self, tick):
+    def post_step(self, tick: int, unit_tick: int):
         """
         Post-process after each step
 

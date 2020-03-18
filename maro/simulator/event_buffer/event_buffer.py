@@ -154,6 +154,7 @@ class EventBuffer:
         Args:
             event (Event): event to insert, usually get event object from get_atom_event or get_cascade_event
         """
+
         self._pending_events[event.tick].append(event)
 
     def execute(self, tick) -> List[Event]:
@@ -165,6 +166,7 @@ class EventBuffer:
         Returns:
             List[Event]: pending cascade event list
         """
+
         if tick in self._pending_events:
             cur_events = self._pending_events[tick]
 

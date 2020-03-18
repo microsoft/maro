@@ -212,7 +212,7 @@ class Env(AbsEnv):
             # ask business engine to do thing for this tick, such as gen and push events
             # we do not push events now
             for unit_tick in range(self._tick * self._tick_units, (self._tick + 1) * self._tick_units):
-                self._business_engine.step(unit_tick)
+                self._business_engine.step(self._tick, unit_tick)
 
                 while True:
                     # we keep process all the events, util no more any events
@@ -258,7 +258,7 @@ class Env(AbsEnv):
                         for i in range(1, pending_event_length):
                             pending_events[i].state = EventState.FINISHED
 
-                self._business_engine.post_step(unit_tick)
+                self._business_engine.post_step(self._tick, unit_tick)
             self._tick += 1
 
         # reset the tick to avoid add one more time at the end of loop

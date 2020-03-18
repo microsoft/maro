@@ -1,6 +1,7 @@
 from maro.simulator.core import Env
 
-env = Env("bike", "test", 48)
+# 48 ticks (hours), 60 units (minutes) per tick
+env = Env("bike", "test", 10, tick_units=60)
 
 reward, decision_event, is_done = env.step(None)
 
