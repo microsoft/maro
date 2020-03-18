@@ -1,11 +1,11 @@
 
 
 class Order:
-    def __init__(self, start_station: int, end_station: int, duration: int, num: int=1):
+    def __init__(self, start_station: int, end_station: int, end_tick: int, num: int=1):
         self._start_station_idx = start_station
         self._end_station_idx = end_station
         self._num = num
-        self._duration = duration
+        self._end_tick = end_tick
 
     @property
     def start_station(self):
@@ -20,11 +20,11 @@ class Order:
         return self._num
 
     @property
-    def duration(self):
-        return self._duration
+    def end_tick(self):
+        return self._end_tick
 
     def __repr__(self):
-        return f"(Order start station: {self.start_station}, end station: {self.end_station}, duration: {self.duration})"
+        return f"(Order start station: {self.start_station}, end station: {self.end_station}, end tick: {self.end_tick})"
 
 class BikeReturnPayload:
     def __init__(self, tick: int, station_idx: int, num: int):
