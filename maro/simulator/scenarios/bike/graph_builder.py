@@ -15,6 +15,7 @@ def build(station_num: int):
     reg_attr("gendor", int_attr, 3)
     reg_attr("weekday", int_attr, 1)
     reg_attr("usertype", int_attr, 3)
+    reg_attr("capacity", int_attr, 1)
 
     graph.setup()
 
