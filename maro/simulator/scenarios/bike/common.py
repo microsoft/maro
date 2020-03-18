@@ -27,7 +27,17 @@ class Order:
         return f"(Order start station: {self.start_station}, end station: {self.end_station}, end tick: {self.end_tick})"
 
 class BikeReturnPayload:
-    def __init__(self, tick: int, station_idx: int, num: int):
-        self.tick = tick
-        self.station_idx = station_idx
-        self.num = num
+    def __init__(self, target_station_idx: int, num: int = 1):
+        self._target_station_idx = target_station_idx
+        self._num = num
+
+    @property
+    def target_station(self) -> int:
+        return self._target_station_idx
+
+    @property
+    def number(self) -> int:
+        return self._num
+
+    def __repr__(self):
+        return f"(Bike return payload, target station: {self.target_station}, number: {self.number})"

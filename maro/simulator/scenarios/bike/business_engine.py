@@ -1,16 +1,20 @@
 
-import os
 import csv
-
-from typing import Dict, List
-from maro.simulator.graph import Graph, SnapshotList
-from yaml import safe_load
-from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event
-from maro.simulator.scenarios import AbsBusinessEngine
-from .station import Station
-from .graph_builder import build
-from .data_reader import BikeDataReader
+import os
 from enum import IntEnum
+from typing import Dict, List
+
+from yaml import safe_load
+
+from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
+from maro.simulator.graph import Graph, SnapshotList
+from maro.simulator.scenarios import AbsBusinessEngine
+
+from .common import BikeReturnPayload, Order
+from .data_reader import BikeDataReader
+from .graph_builder import build
+from .station import Station
+
 
 class BikeEventType(IntEnum):
     Order = 10
@@ -36,6 +40,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         
         self._snapshots = SnapshotList(self._graph, max_tick)
 
+        self._reg_event()
+
     @property
     def graph(self) -> Graph:
         """Graph: Graph of current business engine
@@ -47,22 +53,24 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current graph"""
         return self._snapshots
 
-    def step(self, tick: int):
+    def step(self, tick: int, unit_tick: int):
         """Used to process events at specified tick, usually this is called by Env at each tick
 
         Args:
             tick (int): tick to process
         """
-        orders = self._data_reader.get_orders(tick)
+        print(f"************** cur tick: {unit_tick} ************************")
+        orders = self._data_reader.get_orders(unit_tick)
 
         for order in orders:
-            print(order)
-            # self._event_buffer.gen_atom_event(tick, )
+            evt = self._event_buffer.gen_atom_event(unit_tick, BikeEventType.Order, payload=order)
+
+            self._event_buffer.insert_event(evt)
 
     @property
     def configs(self) -> dict:
         """object: Configurations of this business engine"""
-        return {}
+        return self._conf
 
     def rewards(self, actions) -> float:
         """Calculate rewards based on actions
@@ -106,16 +114,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
         Returns:
             List[int]: list of port index
         """
-        return []
+        return [i for i in range(len(self._stations))]
 
-    def post_step(self, tick):
+    def post_step(self, tick: int, unit_tick: int):
         """Post-process at specified tick
 
         Args:
             tick (int): tick to process
 
         """
-        pass
+        
+
+        self._snapshots.insert_snapshot(self._graph, tick)
 
     def _init_graph(self):
         rows = []
@@ -146,7 +156,34 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
 
     def _on_order_gen(self, evt: Event):
-        pass
+        """On order generated:
+        1. try to remove a bike from inventory
+        2. update shortage, gendor, usertype and weekday statistics states"""
+
+        order: Order = evt.payload
+        station_idx: int = order.start_station
+        station: Station = self._stations[station_idx]
+        station_inventory = station.inventory
+
+        # update order count
+        station.orders += 1
+        
+        if station_inventory <= 0:
+            # shortage
+            station.shortage += 1
+        else:
+            station.inventory = station_inventory - 1
+
+            # generate a bike return event by end tick
+            return_payload = BikeReturnPayload(order.end_station)
+            bike_return_evt = self._event_buffer.gen_atom_event(order.end_tick, BikeEventType.BikeReturn, payload=return_payload)
+
+            self._event_buffer.insert_event(bike_return_evt)
 
     def _on_bike_return(self, evt: Event):
-        pass
+        payload: BikeReturnPayload = evt.payload
+        target_station: Station = self._stations[payload.target_station]
+
+
+        # TODO: what about more than capacity?
+        target_station.inventory += 1

@@ -36,11 +36,12 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def step(self, tick: int):
+    def step(self, tick: int, unit_tick):
         """Used to process events at specified tick, usually this is called by Env at each tick
 
         Args:
             tick (int): tick to process
+            unit_tick (int): unit tick of current step
         """
         pass
 
@@ -99,11 +100,11 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def post_step(self, tick):
+    def post_step(self, tick, unit_tick):
         """Post-process at specified tick
 
         Args:
             tick (int): tick to process
-
+            unit_tick (int): unit tick of current step
         """
         pass

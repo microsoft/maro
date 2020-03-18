@@ -12,10 +12,20 @@ def build(station_num: int):
     reg_attr("fullfillment", int_attr, 1)
     reg_attr("orders", int_attr, 1)
     reg_attr("shortage", int_attr, 1)
-    reg_attr("gendor", int_attr, 3)
-    reg_attr("weekday", int_attr, 1)
-    reg_attr("usertype", int_attr, 3)
     reg_attr("capacity", int_attr, 1)
+    reg_attr("acc_orders", int_attr, 1)
+    reg_attr("acc_shortage", int_attr, 1)
+    reg_attr("acc_fullfillment", int_attr, 1)
+    
+    # we split gendor into 3 fields
+    reg_attr("gendor_0", int_attr, 1)
+    reg_attr("gendor_1", int_attr, 1)
+    reg_attr("gendor_2", int_attr, 1)
+    reg_attr("weekday", int_attr, 1)
+
+    # usertype
+    reg_attr("subscriptor", int_attr, 1)
+    reg_attr("customer", int_attr, 2)
 
     graph.setup()
 
