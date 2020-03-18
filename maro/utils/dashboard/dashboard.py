@@ -21,7 +21,7 @@ class DashboardBase(Singleton):
         return cls._instance
 
 
-    def __init__(self, experiment: str, log_folder: str = None, host: str = 'localhost', port: int = 50301, use_udp: bool = True, udp_port: int = 50304):
+    def __init__(self, experiment: str, log_folder: str = None, host: str = 'localhost', port: int = 50301, dbname: str = 'maro', use_udp: bool = True, udp_port: int = 50304):
         """Setup  dashboard with conf for dashboard
 
         Args:
@@ -37,7 +37,7 @@ class DashboardBase(Singleton):
 
         if self._connection is None:
             self._connection = InfluxdbProxy(
-                host=host, port=port, use_udp=use_udp, udp_port=udp_port, log_folder=log_folder)
+                host=host, port=port, dbname=dbname, use_udp=use_udp, udp_port=udp_port, log_folder=log_folder)
 
     def send(self, fields: dict, tag: dict, measurement: str) -> None:
         """Upload fields to database.

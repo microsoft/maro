@@ -1,6 +1,33 @@
 import numpy as np
 import pandas as pd
 import json
+import os
+import io
+import sys
+import yaml
+
+from maro.utils.dashboard import DashboardBase
+from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
+
+CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
+
+with io.open(CONFIG_PATH, 'r') as in_file:
+    raw_config = yaml.safe_load(in_file)
+    config = convert_dottable(raw_config)
+
+# Config for dashboard
+
+DASHBOARD_HOST = config.dashboard.influxdb.host
+DASHBOARD_PORT = config.dashboard.influxdb.port
+DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
+DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
+
+_dashboard = DashboardBase('city_bike_0318', None,
+                                            host=DASHBOARD_HOST,
+                                            port=DASHBOARD_PORT,
+                                            dbname='citi_bike',
+                                            use_udp=DASHBOARD_USE_UDP,
+                                            udp_port=DASHBOARD_UDP_PORT)
 
 def process_bike_data(bike_data_file):
     bike_data = None
@@ -37,6 +64,15 @@ def process_station_data(station_data_file):
             station_data = raw_station_data.apply(_station_json_to_pd)
             #station_data['coordinates'] = station_data['features'].geometry.coordinates
             print(station_data)
+            station_csv_file = station_data_file.replace('.json','.csv')
+            print(station_csv_file)
+            print("bikes: ", station_data['bikes'].sum())
+            print("capacity: ", station_data['capacity'].sum())
+            with open(station_csv_file, mode="w", encoding="utf-8") as station_out_file:
+                station_data.to_csv(station_out_file,index=False)
+            to_influx = station_data.to_dict('records')
+            for record in to_influx:
+                _dashboard.send(fields=record,tag={}, measurement='bike_station')
     return station_data
 
 def _gen_station_data(bike_data):
@@ -56,12 +92,18 @@ def _agg_bike_data(bike_data, columns):
     return agg_data
 
 def _station_json_to_pd(json_data):
-    return pd.Series([json_data['geometry']['coordinates'][0], json_data['geometry']['coordinates'][1], json_data['properties']['station']['id'], json_data['properties']['station']['name'], json_data['properties']['station']['capacity']], index=['longitude', 'latitude', 'id', 'name', 'capacity'])
+    return pd.Series(
+        [json_data['geometry']['coordinates'][0], 
+        json_data['geometry']['coordinates'][1], 
+        json_data['properties']['station']['id'], 
+        json_data['properties']['station']['name'], 
+        json_data['properties']['station']['capacity'],
+        json_data['properties']['station']['bikes_available']
+        ], 
+        index=['longitude', 'latitude', 'id', 'name', 'capacity', 'bikes'])
 
 if __name__ == "__main__":
     #read bike data 
-    import os
-    import sys
     bike_data_file = sys.argv[1]
     weather_data_file = sys.argv[2]
     station_data_file = sys.argv[3]

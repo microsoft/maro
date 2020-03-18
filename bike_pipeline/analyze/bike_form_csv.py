@@ -1,0 +1,103 @@
+# usage : 
+# ls -dQ ../../../ny/*.csv | xargs -i CONFIG=~/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml PYTHON_PATH=~/bikeData/maro/ python ./bike_from_csv.py {} ../../../ny/full/201306_202001.csv ../../../ny/station/
+
+import numpy as np
+import pandas as pd
+import json
+import os
+import io
+import sys
+import yaml
+
+from maro.utils.dashboard import DashboardBase
+from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
+
+CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
+
+with io.open(CONFIG_PATH, 'r') as in_file:
+    raw_config = yaml.safe_load(in_file)
+    config = convert_dottable(raw_config)
+
+# Config for dashboard
+
+DASHBOARD_HOST = config.dashboard.influxdb.host
+DASHBOARD_PORT = config.dashboard.influxdb.port
+DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
+DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
+
+_dashboard = DashboardBase('city_bike_0318', None,
+                                            host=DASHBOARD_HOST,
+                                            port=DASHBOARD_PORT,
+                                            dbname='citi_bike',
+                                            use_udp=DASHBOARD_USE_UDP,
+                                            udp_port=DASHBOARD_UDP_PORT)
+
+def process_bike_data(bike_data_file):
+    bike_data = None
+    if os.path.exists(bike_data_file):
+        with open(bike_data_file, mode="r", encoding="utf-8") as bike_csv_file:
+            bike_data = pd.read_csv(bike_csv_file)
+            bike_data['date'] = pd.to_datetime(bike_data['starttime']).dt.date
+            bike_data['month'] = pd.to_datetime(bike_data['starttime']).dt.month
+            bike_data['weekday'] = pd.to_datetime(bike_data['starttime']).dt.weekday
+            bike_data['day'] = pd.to_datetime(bike_data['starttime']).dt.day
+            bike_data['hour'] = pd.to_datetime(bike_data['starttime']).dt.hour
+            print(bike_data)
+
+            return bike_data
+    return bike_data
+
+def load_full_station_data(station_data_file):
+    station_data = None
+    if os.path.exists(station_data_file):
+        with open(station_data_file, mode="r", encoding="utf-8") as station_csv_file:
+            station_data = pd.read_csv(station_csv_file)
+            
+    return station_data
+
+def _gen_station_data(bike_data):
+    gp_station_data_start = bike_data[['start station name','start station id', 'start station latitude', 'start station longitude']].drop_duplicates()
+    gp_station_data_start.rename(columns={'start station name':'station_name','start station id':'station_id','start station latitude':'station_latitude', 'start station longitude':'station_longitude'},inplace=True)
+
+    gp_station_data_end = bike_data[['end station name','end station id', 'end station latitude', 'end station longitude']].drop_duplicates()
+    gp_station_data_end.rename(columns={'end station name':'station_name','end station id':'station_id','end station latitude':'station_latitude', 'end station longitude':'station_longitude'},inplace=True)
+
+    station_data = pd.concat([gp_station_data_start, gp_station_data_end]).drop_duplicates().sort_values(by=['station_id'])
+    print(station_data)
+    return station_data
+
+if __name__ == "__main__":
+    #read bike data 
+    bike_data_file = sys.argv[1]
+    full_station_data_file = sys.argv[2]
+    tar_folder = sys.argv[3]
+
+    station_data_file = os.path.join(tar_folder, os.path.basename(bike_data_file))
+    
+    bike_data = process_bike_data(bike_data_file)
+
+    station_data = _gen_station_data(bike_data)
+
+    full_station_data = load_full_station_data(full_station_data_file)
+
+    with open(station_data_file, mode="w", encoding="utf-8") as station_out_file:
+            station_data.to_csv(station_out_file,index=False)
+
+    _dashboard.send(fields={'date':str(bike_data.loc[0,'date']),'stations':len(station_data)},tag={}, measurement='bike_station')
+
+    if full_station_data == None:
+        with open(station_data_file, mode="w", encoding="utf-8") as station_out_file:
+            station_data.to_csv(station_out_file,index=False) 
+    else:
+        full_station_data = pd.concat([station_data,full_station_data]).drop_duplicates()
+        with open(full_station_data_file, mode="w", encoding="utf-8") as full_station_out_file:
+            full_station_data.to_csv(full_station_out_file,index=False)
+
+    # station_csv_file = station_data_file.replace('.json','.csv')
+    # print(station_csv_file)
+    # with open(station_csv_file, mode="w", encoding="utf-8") as station_out_file:
+    #     sample_station_data.to_csv(station_out_file,index=False)
+    #     to_influx = sample_station_data.to_dict('records')
+    #     for record in to_influx:
+    #         _dashboard.send(fields=record,tag={}, measurement='bike_station')
+    
