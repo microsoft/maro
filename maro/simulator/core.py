@@ -211,54 +211,54 @@ class Env(AbsEnv):
         while self._tick < self._max_tick:
             # ask business engine to do thing for this tick, such as gen and push events
             # we do not push events now
-            self._business_engine.step(self._tick)
+            for unit_tick in range(self._tick * self._tick_units, (self._tick + 1) * self._tick_units):
+                self._business_engine.step(unit_tick)
 
-            while True:
-                # we keep process all the events, util no more any events
-                pending_events = self._event_buffer.execute(self._tick)
+                while True:
+                    # we keep process all the events, util no more any events
+                    pending_events = self._event_buffer.execute(unit_tick)
 
-                # processing pending events
-                pending_event_length: int = len(pending_events)
+                    # processing pending events
+                    pending_event_length: int = len(pending_events)
 
-                if pending_event_length == 0:
-                    # we have processed all the event of current tick, lets go for next tick
-                    break
+                    if pending_event_length == 0:
+                        # we have processed all the event of current tick, lets go for next tick
+                        break
 
-                # insert snapshot before each action
-                self._business_engine.snapshots.insert_snapshot(
-                    self.current_graph, self.tick)
+                    # insert snapshot before each action
+                    self._business_engine.snapshots.insert_snapshot(self.current_graph, self._tick)
 
-                decision_events = [evt.payload for evt in pending_events]
+                    decision_events = [evt.payload for evt in pending_events]
 
-                decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
+                    decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
 
-                # yield current state first, and waiting for action
-                actions = yield rewards, decision_events, False
+                    # yield current state first, and waiting for action
+                    actions = yield rewards, decision_events, False
 
-                if actions is not None and type(actions) is not list:
-                    actions = [actions]
+                    if actions is not None and type(actions) is not list:
+                        actions = [actions]
 
-                # calculate rewards
-                rewards = self._business_engine.rewards(actions)
+                    # calculate rewards
+                    rewards = self._business_engine.rewards(actions)
 
-                # unpack reward there is only one
-                if len(rewards) == 1:
-                    rewards = rewards[0]
+                    # unpack reward there is only one
+                    if len(rewards) == 1:
+                        rewards = rewards[0]
 
-                # generate a new atom event first
-                action_event = self._event_buffer.gen_atom_event(
-                    self._tick, DECISION_EVENT, actions)
+                    # generate a new atom event first
+                    action_event = self._event_buffer.gen_atom_event(
+                        self._tick, DECISION_EVENT, actions)
 
-                # 3. we just append the action into sub event of first pending cascade event
-                pending_events[0].state = EventState.EXECUTING
-                pending_events[0].immediate_event_list.append(action_event)
+                    # 3. we just append the action into sub event of first pending cascade event
+                    pending_events[0].state = EventState.EXECUTING
+                    pending_events[0].immediate_event_list.append(action_event)
 
-                if self._decision_mode == DecisionMode.Joint:
-                    # for joint event, we will disable following cascade event
-                    for i in range(1, pending_event_length):
-                        pending_events[i].state = EventState.FINISHED
+                    if self._decision_mode == DecisionMode.Joint:
+                        # for joint event, we will disable following cascade event
+                        for i in range(1, pending_event_length):
+                            pending_events[i].state = EventState.FINISHED
 
-            self._business_engine.post_step(self._tick)
+                self._business_engine.post_step(unit_tick)
             self._tick += 1
 
         # reset the tick to avoid add one more time at the end of loop
