@@ -131,7 +131,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             if len(r) == 0:
                 break
 
-            station = Station(i, int(r[0]), int(r[2]), self._graph)
+            station = Station(i, int(r[0]), int(r[2]), int(r[3]), self._graph)
 
             self._stations.append(station)
             self._station_map[int(r[0])] = i

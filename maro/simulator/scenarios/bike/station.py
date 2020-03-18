@@ -3,11 +3,12 @@ from maro.simulator.graph import Graph, ResourceNodeType
 static_node = ResourceNodeType.STATIC
 
 class Station:
-    def __init__(self, index: int, id: int, bikes: int, graph: Graph):
+    def __init__(self, index: int, id: int, bikes: int, capacity:int, graph: Graph):
         self._index = index
         self._graph = graph
         self._id = id
         self._bikes = bikes
+        self.capacity = capacity
 
     @property
     def id(self):
@@ -48,6 +49,14 @@ class Station:
     @shortage.setter
     def shortage(self, value: int):
         self._graph.set_attribute(static_node, self._idx, "shortage", 0, value)
+
+    @property
+    def capacity(self):
+        return self._graph.get_attribute(static_node, self._idx, "capacity", 0)
+
+    @capacity.setter
+    def capacity(self, value: int):
+        self._graph.set_attribute(static_node, self._idx, "capacity", 0, value)
 
     def reset(self):
         self.bikes = self._bikes
