@@ -20,17 +20,9 @@ with io.open(CONFIG_PATH, 'r') as in_file:
 
 # Config for dashboard
 
-DASHBOARD_HOST = config.dashboard.influxdb.host
-DASHBOARD_PORT = config.dashboard.influxdb.port
-DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
-DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 
 _dashboard = DashboardBase('city_bike_0318', None,
-                           host=DASHBOARD_HOST,
-                           port=DASHBOARD_PORT,
-                           dbname='citi_bike',
-                           use_udp=DASHBOARD_USE_UDP,
-                           udp_port=DASHBOARD_UDP_PORT)
+                           dbname='citi_bike')
 
 
 def process_bike_data(bike_data_file):
