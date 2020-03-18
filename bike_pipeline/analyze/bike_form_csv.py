@@ -44,7 +44,7 @@ def load_full_bike_data(full_bike_data_file):
 
 
 def _gp_bike_data(bike_data):
-    gp_bike_data = bike_data.groupby(['bikeid']).size().reset_index().rename(columns={'0','rides'},inplace=True)
+    gp_bike_data = bike_data.groupby(['bikeid']).size().reset_index().rename(columns={'0':'rides'},inplace=True)
 
     print(gp_bike_data)
     return gp_bike_data
