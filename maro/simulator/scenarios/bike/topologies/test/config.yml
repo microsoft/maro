@@ -1,4 +1,4 @@
 scope_percent: 0.9 # inventory * scope_percent = action scope
 start_datetime: "2019-12-02"
-data_file: "/Users/maple/projects/bike/data/data.bin"
-station_file: "/Users/maple/projects/maro/maro/simulator/scenarios/bike/topologies/test/stations.csv"
+data_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/data.bin"
+station_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/stations.csv"
