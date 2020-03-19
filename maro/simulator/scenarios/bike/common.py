@@ -10,8 +10,18 @@ class Order:
         self.usertype = usertype
         self.gendor = gendor
 
+    @property
+    def weekday(self):
+        return self.date.weekday()
+
     def __repr__(self):
         return f"(Order start station: {self.start_station}, end station: {self.end_station}, end tick: {self.end_tick})"
+
+class BikeTransferPaylod:
+    def __init__(self, from_station:int, to_station: int, number:int):
+        self.from_station = from_station
+        self.to_station = to_station
+        self.number = number
 
 class BikeReturnPayload:
     def __init__(self, target_station_idx: int, num: int = 1):
@@ -40,8 +50,9 @@ class DecisionEvent:
         return f"DecisionEvent(station: {self.station_idx}, action scope: {self.action_scope})"
 
 class Action:
-    def __init__(self, station_idx:int, number: int):
+    def __init__(self, station_idx:int, to_station: int, number: int):
         self.station = station_idx
+        self.to_station = to_station
         self.number = number
 
     def __repr__(self):

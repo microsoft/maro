@@ -11,7 +11,7 @@ from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.graph import Graph, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from .common import BikeReturnPayload, Order, DecisionEvent
+from .common import BikeReturnPayload, Order, DecisionEvent, Action, BikeTransferPaylod
 from .data_reader import BikeDataReader
 from .graph_builder import build
 from .station import Station
@@ -25,6 +25,7 @@ decision_dict = {
 class BikeEventType(IntEnum):
     Order = 10
     BikeReturn = 11
+    BikeTransfered = 12 # transfer bikes from a station to another
 
 class BikeBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
@@ -42,6 +43,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         with open(config_path) as fp:
             self._conf = safe_load(fp)
 
+        self._transfer_time = int(self._conf["transfer_time"])
         self._scope_percent = float(self._conf["scope_percent"])
 
         self._init_graph()
@@ -197,7 +199,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(BikeEventType.Order, self._on_order_gen)
         self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
-
+        self._event_buffer.register_event_handler(BikeEventType.BikeTransfered, self._on_bike_recieved)
 
     def _on_order_gen(self, evt: Event):
         """On order generated:
@@ -223,7 +225,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             # TODO: update gender, weekday and usertype 
             station.update_gendor(order.gendor)
             station.update_usertype(order.usertype)
-            # station.weekday = order.
+            station.weekday = order.weekday
 
             # generate a bike return event by end tick
             return_payload = BikeReturnPayload(order.end_station)
@@ -240,4 +242,21 @@ class BikeBusinessEngine(AbsBusinessEngine):
         target_station.inventory += 1
 
     def _on_action_recieved(self, evt: Event):
-        print(f"take action, {evt}")
+        action: Action  = None
+        
+        for action in evt.payload:
+            station: Station = self._stations[action.station]
+
+            executed_number = min(station.inventory, action.number)
+            station.inventory -= executed_number
+
+            payload = BikeTransferPaylod(action.station, action.to_station, action.number)
+            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + self._transfer_time, BikeEventType.BikeTransfered, payload)
+            self._event_buffer.insert_event(transfer_evt)
+
+    def _on_bike_recieved(self, evt: Event):
+        payload: BikeTransferPaylod = evt.payload
+        station: Station = self._stations[payload.to_station]
+
+        # TODO: what about if out of capacity
+        station.inventory += payload.number

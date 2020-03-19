@@ -247,7 +247,7 @@ class Env(AbsEnv):
 
                     # generate a new atom event first
                     action_event = self._event_buffer.gen_atom_event(
-                        self._tick, DECISION_EVENT, actions)
+                        unit_tick, DECISION_EVENT, actions)
 
                     # 3. we just append the action into sub event of first pending cascade event
                     pending_events[0].state = EventState.EXECUTING
