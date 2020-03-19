@@ -59,7 +59,7 @@ class BikeDataReader:
                 end_station_idx = self._station_map[item["end_station"]]
                 end_tick = tick + item["duration"]
 
-                order = Order(start_station_idx, end_station_idx, end_tick)
+                order = Order(item_time, start_station_idx, end_station_idx, end_tick)
 
                 ret.append(order)
 

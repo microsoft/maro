@@ -1,6 +1,7 @@
 
 import csv
 import os
+import math
 from enum import IntEnum
 from typing import Dict, List
 
@@ -10,11 +11,16 @@ from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.graph import Graph, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from .common import BikeReturnPayload, Order
+from .common import BikeReturnPayload, Order, DecisionEvent
 from .data_reader import BikeDataReader
 from .graph_builder import build
 from .station import Station
+from .abs_decisionstrategy import AbsDecisionStrategy
+from .percent_decisionstrategy import BikePercentDecisionStrategy
 
+decision_dict = {
+    'percent': BikePercentDecisionStrategy
+}
 
 class BikeEventType(IntEnum):
     Order = 10
@@ -24,6 +30,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
         super().__init__(event_buffer, config_path, tick_units)
 
+        self._decision_strategy = None
         self._max_tick = max_tick
         self._stations = []
         self._station_map = {}
@@ -35,12 +42,15 @@ class BikeBusinessEngine(AbsBusinessEngine):
         with open(config_path) as fp:
             self._conf = safe_load(fp)
 
+        self._scope_percent = float(self._conf["scope_percent"])
+
         self._init_graph()
         self._init_data_reader()
         
         self._snapshots = SnapshotList(self._graph, max_tick)
 
         self._reg_event()
+        self._init_decision_strategy()
 
     @property
     def graph(self) -> Graph:
@@ -66,6 +76,17 @@ class BikeBusinessEngine(AbsBusinessEngine):
             evt = self._event_buffer.gen_atom_event(unit_tick, BikeEventType.Order, payload=order)
 
             self._event_buffer.insert_event(evt)
+
+        stations_need_decision = self._decision_strategy.get_stations_need_decision(tick ,unit_tick)
+
+        if len(stations_need_decision) > 0:
+            # the env will take snapshot for use when we need an action, so we do not need to take action here
+            for station_idx in stations_need_decision:
+                deciton_payload = DecisionEvent(station_idx, tick, self.action_scope)
+                decision_evt  = self._event_buffer.gen_cascade_event(unit_tick, DECISION_EVENT, deciton_payload)
+
+                self._event_buffer.insert_event(decision_evt)
+
 
     @property
     def configs(self) -> dict:
@@ -97,7 +118,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
         Returns:
             object: action scope object that may different for each scenario
         """
-        pass
+        station: Station = self._stations[station_idx]
+        
+        return math.floor(station.inventory * self._scope_percent)
 
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
@@ -123,9 +146,10 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         """
         
-        self._snapshots.insert_snapshot(self._graph, tick)
-
         if unit_tick == self._tick_units - 1:
+            # take a snapshot at the end of tick
+            self._snapshots.insert_snapshot(self._graph, tick)
+
             # last unit tick of current tick
             # we will reset some field
             for station in self._stations:
@@ -160,10 +184,19 @@ class BikeBusinessEngine(AbsBusinessEngine):
     def _init_data_reader(self):
         self._data_reader = BikeDataReader(self._conf["data_file"], self._conf["start_datetime"], self._max_tick, self._station_map)
 
-    
+
+    def _init_decision_strategy(self):
+        decision_type = self._conf["decision"]["type"]
+
+        if decision_type in decision_dict:
+            self._decision_strategy = decision_dict[decision_type](self._stations, self._conf["decision"]["config"]) 
+        else:
+            raise "Invalid decision type"
+
     def _reg_event(self):
         self._event_buffer.register_event_handler(BikeEventType.Order, self._on_order_gen)
         self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
+        self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
 
 
     def _on_order_gen(self, evt: Event):
@@ -188,6 +221,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
             station.inventory = station_inventory - 1
 
             # TODO: update gender, weekday and usertype 
+            station.update_gendor(order.gendor)
+            station.update_usertype(order.usertype)
+            # station.weekday = order.
 
             # generate a bike return event by end tick
             return_payload = BikeReturnPayload(order.end_station)
@@ -202,3 +238,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         # TODO: what about more than capacity?
         target_station.inventory += 1
+
+    def _on_action_recieved(self, evt: Event):
+        print(f"take action, {evt}")

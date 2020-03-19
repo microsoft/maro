@@ -18,9 +18,9 @@ def build(station_num: int):
     reg_attr("acc_fullfillment", int_attr, 1)
     
     # we split gendor into 3 fields
-    reg_attr("gendor_0", int_attr, 1)
-    reg_attr("gendor_1", int_attr, 1)
-    reg_attr("gendor_2", int_attr, 1)
+    reg_attr("unknow_gendors", int_attr, 1)
+    reg_attr("males", int_attr, 1)
+    reg_attr("females", int_attr, 1)
     reg_attr("weekday", int_attr, 1)
 
     # usertype
