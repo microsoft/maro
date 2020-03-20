@@ -14,7 +14,7 @@ class BikePercentDecisionStrategy(AbsDecisionStrategy):
         ret = []
 
         for station in self._stations:
-            if station.inventory/station.capacity <= self._threshold:
+            if station.bikes/station.capacity <= self._threshold:
                 ret.append(station.index)
 
         return ret

@@ -11,3 +11,6 @@ while not is_done:
 
     reward, decision_event, is_done = env.step(Action(0, 0, 0))
 
+print("snapshot list length", len(env.snapshot_list))
+inv = env.snapshot_list.static_nodes[:0:("bikes", 0)]
+print(inv)

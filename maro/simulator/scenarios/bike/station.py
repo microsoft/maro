@@ -16,7 +16,7 @@ class Station:
         self._id = id
         self._bikes = bikes
         self.capacity = capacity
-        self.inventory = bikes
+        self.bikes = bikes
 
     @property
     def id(self):
@@ -27,12 +27,12 @@ class Station:
         return self._index
 
     @property
-    def inventory(self):
-        return self._graph.get_attribute(static_node, self._index, "inventory", 0)
+    def bikes(self):
+        return self._graph.get_attribute(static_node, self._index, "bikes", 0)
 
-    @inventory.setter
-    def inventory(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "inventory", 0, value)
+    @bikes.setter
+    def bikes(self, value: int):
+        self._graph.set_attribute(static_node, self._index, "bikes", 0, value)
 
     @property
     def fullfillment(self):
@@ -153,7 +153,7 @@ class Station:
             self.customer += num
 
     def reset(self):
-        self.inventory = self._bikes
+        self.bikes = self._bikes
         self.shortage = 0
         self.orders = 0
         self.requirement = 0
