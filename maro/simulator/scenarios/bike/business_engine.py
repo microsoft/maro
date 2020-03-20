@@ -1,7 +1,7 @@
 
 import csv
-import os
 import math
+import os
 from enum import IntEnum
 from typing import Dict, List
 
@@ -11,11 +11,12 @@ from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.graph import Graph, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from .common import BikeReturnPayload, Order, DecisionEvent, Action, BikeTransferPaylod
+from .abs_decisionstrategy import AbsDecisionStrategy
+from .cell import Cell
+from .common import (Action, BikeReturnPayload, BikeTransferPayload,
+                     DecisionEvent, Trip)
 from .data_reader import BikeDataReader
 from .graph_builder import build
-from .cell import Cell
-from .abs_decisionstrategy import AbsDecisionStrategy
 from .percent_decisionstrategy import BikePercentDecisionStrategy
 
 decision_dict = {
@@ -23,9 +24,9 @@ decision_dict = {
 }
 
 class BikeEventType(IntEnum):
-    Order = 10
-    BikeReturn = 11
-    BikeTransfered = 12 # transfer bikes from a cell to another
+    TripRequirement = 1    # a user need a bike
+    BikeReturn = 2         # user return the bike at target cell
+    BikeTransfermation = 3 # transfer bikes from a cell to another
 
 class BikeBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
@@ -65,32 +66,32 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current graph"""
         return self._snapshots
 
-    def step(self, tick: int, unit_tick: int):
-        """Used to process events at specified tick, usually this is called by Env at each tick
+    def step(self, tick: int, internal_tick: int):
+        """Used to process events at specified tick, usually this is called by Env at each internal tick
 
         Args:
             tick (int): tick to process
+            internal_tick (int): internal tick (in minute) to process trip data
         """
-        # print(f"************** cur tick: {unit_tick} ************************")
-        orders = self._data_reader.get_orders(unit_tick)
+
+        # get trip requiremnts for current internal tick (in minute)
+        trips = self._data_reader.get_trips(internal_tick)
         
-        # print(f"{len(orders)} orders generated.")
+        # generate events to process
+        for trip in trips:
+            trip_evt = self._event_buffer.gen_atom_event(internal_tick, BikeEventType.TripRequirement, payload=trip)
 
-        for order in orders:
-            evt = self._event_buffer.gen_atom_event(unit_tick, BikeEventType.Order, payload=order)
+            self._event_buffer.insert_event(trip_evt)
 
-            self._event_buffer.insert_event(evt)
+        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick ,internal_tick)
 
-        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick ,unit_tick)
+        # the env will take snapshot for use when we need an action, so we do not need to take action here
+        for cell_idx in cells_need_decision:
+            # we use tick (in hour) here, not internal tick, as agent do not need to known this
+            decision_payload = DecisionEvent(cell_idx, tick, self.action_scope)
+            decision_evt  = self._event_buffer.gen_cascade_event(unit_tick, DECISION_EVENT, deciton_payload)
 
-        if len(cells_need_decision) > 0:
-            # the env will take snapshot for use when we need an action, so we do not need to take action here
-            for cell_idx in cells_need_decision:
-                deciton_payload = DecisionEvent(cell_idx, tick, self.action_scope)
-                decision_evt  = self._event_buffer.gen_cascade_event(unit_tick, DECISION_EVENT, deciton_payload)
-
-                self._event_buffer.insert_event(decision_evt)
-
+            self._event_buffer.insert_event(decision_evt)
 
     @property
     def configs(self) -> dict:
@@ -110,13 +111,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset business engine"""
-        
+        # clear value in snapshots
         self._snapshots.reset()
 
+        # clear value in current graph
         self._graph.reset()
 
+        # prepare data pointer to beginning
         self._data_reader.reset()
 
+        # reset cell to initial value
         for cell in self._cells:
             cell.reset()
 
@@ -156,7 +160,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             tick (int): tick to process
 
         """
-        if math.fmod((unit_tick + 1), self._tick_units) == 0:
+        if (unit_tick + 1) % self._tick_units == 0:
             # take a snapshot at the end of tick
             self._snapshots.insert_snapshot(self._graph, tick)
 
@@ -206,18 +210,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
             raise "Invalid decision type"
 
     def _reg_event(self):
-        self._event_buffer.register_event_handler(BikeEventType.Order, self._on_order_gen)
+        self._event_buffer.register_event_handler(BikeEventType.TripRequirement, self._on_trip_gen)
         self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
-        self._event_buffer.register_event_handler(BikeEventType.BikeTransfered, self._on_bike_recieved)
+        self._event_buffer.register_event_handler(BikeEventType.BikeTransfermation , self._on_bike_recieved)
 
-    def _on_order_gen(self, evt: Event):
+    def _on_trip_gen(self, evt: Event):
         """On order generated:
         1. try to remove a bike from inventory
         2. update shortage, gendor, usertype and weekday statistics states"""
 
         order: Order = evt.payload
-        cell_idx: int = order.start_cell
+        cell_idx: int = order.from_cell
         cell: Cell = self._cells[cell_idx]
         cell_bikes = cell.bikes
 
@@ -236,14 +240,14 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.weekday = order.weekday
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(order.end_cell)
+            return_payload = BikeReturnPayload(order.from_cell, order.to_cell)
             bike_return_evt = self._event_buffer.gen_atom_event(order.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
     def _on_bike_return(self, evt: Event):
         payload: BikeReturnPayload = evt.payload
-        target_cell: Cell = self._cells[payload.target_cell]
+        target_cell: Cell = self._cells[payload.to_cell]
 
 
         # TODO: what about more than capacity?
@@ -253,13 +257,14 @@ class BikeBusinessEngine(AbsBusinessEngine):
         action: Action  = None
         
         for action in evt.payload:
-            cell: Cell = self._cells[action.cell]
+            cell: Cell = self._cells[action.from_cell]
 
             executed_number = min(cell.bikes, action.number)
             cell.bikes -= executed_number
 
-            payload = BikeTransferPaylod(action.cell, action.to_cell, action.number)
-            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + self._transfer_time, BikeEventType.BikeTransfered, payload)
+            payload = BikeTransferPaylod(action.from_cell, action.to_cell, action.number)
+            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + self._transfer_time, BikeEventType.BikeTransfermation, payload)
+            
             self._event_buffer.insert_event(transfer_evt)
 
     def _on_bike_recieved(self, evt: Event):
