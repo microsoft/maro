@@ -15,6 +15,7 @@ class Cell:
         self._graph = graph
         self._id = id
         self._bikes = bikes
+        self._capacity = capacity
         self.capacity = capacity
         self.bikes = bikes
 
@@ -129,10 +130,11 @@ class Cell:
             self.customer += num
 
     def reset(self):
+        self.capacity = self._capacity
         self.bikes = self._bikes
         self.shortage = 0
         self.orders = 0
-        self.requirement = 0
+        self.trip_requirement = 0
         self.unknow_gendors = 0
         self.males = 0
         self.females = 0

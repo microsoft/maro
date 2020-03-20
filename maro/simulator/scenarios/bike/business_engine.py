@@ -73,6 +73,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """
         # print(f"************** cur tick: {unit_tick} ************************")
         orders = self._data_reader.get_orders(unit_tick)
+        
+        # print(f"{len(orders)} orders generated.")
 
         for order in orders:
             evt = self._event_buffer.gen_atom_event(unit_tick, BikeEventType.Order, payload=order)
@@ -108,6 +110,13 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset business engine"""
+        
+        self._snapshots.reset()
+
+        self._graph.reset()
+
+        self._data_reader.reset()
+
         for cell in self._cells:
             cell.reset()
 
