@@ -1,5 +1,5 @@
 # usage :
-# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python bike_form_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.bike.csv /home/zhanyu/bikeData/ny/bike/
+# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python bike_from_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.bike.csv /home/zhanyu/bikeData/ny/bike/
 
 import numpy as np
 import pandas as pd
@@ -30,7 +30,7 @@ def process_bike_data(bike_data_file):
     if os.path.exists(bike_data_file):
         with open(bike_data_file, mode="r", encoding="utf-8") as bike_csv_file:
             bike_data = pd.read_csv(bike_csv_file)
-            bike_data['date'] = pd.to_datetime(bike_data['starttime']).dt.date
+            bike_data['bikeid'] = pd.to_numeric(bike_data['bikeid'],downcast='integer')
     return bike_data
 
 
