@@ -147,8 +147,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             tick (int): tick to process
 
         """
-        
-        if unit_tick == self._tick_units - 1:
+        if math.fmod((unit_tick + 1), self._tick_units) == 0:
             # take a snapshot at the end of tick
             self._snapshots.insert_snapshot(self._graph, tick)
 
