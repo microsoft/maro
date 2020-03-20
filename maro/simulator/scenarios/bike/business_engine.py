@@ -122,7 +122,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """
         station: Station = self._stations[station_idx]
         
-        return math.floor(station.inventory * self._scope_percent)
+        return math.floor(station.bikes * self._scope_percent)
 
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
@@ -147,8 +147,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             tick (int): tick to process
 
         """
-        
-        if unit_tick == self._tick_units - 1:
+        if math.fmod((unit_tick + 1), self._tick_units) == 0:
             # take a snapshot at the end of tick
             self._snapshots.insert_snapshot(self._graph, tick)
 
@@ -209,18 +208,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
         order: Order = evt.payload
         station_idx: int = order.start_station
         station: Station = self._stations[station_idx]
-        station_inventory = station.inventory
+        station_bikes = station.bikes
 
         # update order count
         station.orders += 1
         station.acc_orders += 1
         
-        if station_inventory <= 0:
+        if station_bikes <= 0:
             # shortage
             station.shortage += 1
             station.acc_shortage += 1
         else:
-            station.inventory = station_inventory - 1
+            station.bikes = station_bikes - 1
 
             # TODO: update gender, weekday and usertype 
             station.update_gendor(order.gendor)
@@ -239,7 +238,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
 
         # TODO: what about more than capacity?
-        target_station.inventory += 1
+        target_station.bikes += 1
 
     def _on_action_recieved(self, evt: Event):
         action: Action  = None
@@ -247,8 +246,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         for action in evt.payload:
             station: Station = self._stations[action.station]
 
-            executed_number = min(station.inventory, action.number)
-            station.inventory -= executed_number
+            executed_number = min(station.bikes, action.number)
+            station.bikes -= executed_number
 
             payload = BikeTransferPaylod(action.station, action.to_station, action.number)
             transfer_evt = self._event_buffer.gen_atom_event(evt.tick + self._transfer_time, BikeEventType.BikeTransfered, payload)
@@ -259,4 +258,4 @@ class BikeBusinessEngine(AbsBusinessEngine):
         station: Station = self._stations[payload.to_station]
 
         # TODO: what about if out of capacity
-        station.inventory += payload.number
+        station.bikes += payload.number

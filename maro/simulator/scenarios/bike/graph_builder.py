@@ -8,7 +8,7 @@ def build(station_num: int):
 
     reg_attr = graph.register_attribute
 
-    reg_attr("inventory", int_attr, 1)
+    reg_attr("bikes", int_attr, 1)
     reg_attr("fullfillment", int_attr, 1)
     reg_attr("orders", int_attr, 1)
     reg_attr("shortage", int_attr, 1)
@@ -17,6 +17,7 @@ def build(station_num: int):
     reg_attr("acc_shortage", int_attr, 1)
     reg_attr("acc_fullfillment", int_attr, 1)
     
+    # additional features
     # we split gendor into 3 fields
     reg_attr("unknow_gendors", int_attr, 1)
     reg_attr("males", int_attr, 1)
