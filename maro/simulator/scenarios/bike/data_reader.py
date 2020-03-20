@@ -5,17 +5,17 @@ from dateutil.relativedelta import relativedelta
 
 bike_dtype = np.dtype([
     ("start_time", "datetime64[s]"), # datetime
-    ("start_station", "i4"), # id
-    ("end_station", "i4"), # id
+    ("start_cell", "i4"), # id
+    ("end_cell", "i4"), # id
     ("duration", "i4"), # min
     ("gendor", "b"), 
     ("usertype", "b"), 
 ])
 
 class BikeDataReader:
-    def __init__(self, path: str, start_date: str, max_tick: int, station_map:dict):
+    def __init__(self, path: str, start_date: str, max_tick: int, cell_map:dict):
         self._index = 0
-        self._station_map = station_map
+        self._cell_map = cell_map
         self._start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
         self._max_tick = max_tick # hour
         self._end_date = self._start_date + relativedelta(hours=max_tick)
@@ -55,11 +55,11 @@ class BikeDataReader:
 
             if item_time >= start and item_time < end:
                 # an valid item
-                start_station_idx = self._station_map[item["start_station"]]
-                end_station_idx = self._station_map[item["end_station"]]
+                start_cell_idx = self._cell_map[item["start_cell"]]
+                end_cell_idx = self._cell_map[item["end_cell"]]
                 end_tick = tick + item["duration"]
 
-                order = Order(item_time.astype(datetime.datetime), start_station_idx, end_station_idx, end_tick)
+                order = Order(item_time.astype(datetime.datetime), start_cell_idx, end_cell_idx, end_tick)
 
                 ret.append(order)
 
