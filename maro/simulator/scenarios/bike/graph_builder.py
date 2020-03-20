@@ -1,6 +1,6 @@
 from maro.simulator.graph import Graph, GraphAttributeType
 
-int_attr = GraphAttributeType.INT
+INT32 = GraphAttributeType.INT
 
 
 def build(station_num: int):
@@ -8,25 +8,25 @@ def build(station_num: int):
 
     reg_attr = graph.register_attribute
 
-    reg_attr("bikes", int_attr, 1)
-    reg_attr("fullfillment", int_attr, 1)
-    reg_attr("orders", int_attr, 1)
-    reg_attr("shortage", int_attr, 1)
-    reg_attr("capacity", int_attr, 1)
-    reg_attr("acc_orders", int_attr, 1)
-    reg_attr("acc_shortage", int_attr, 1)
-    reg_attr("acc_fullfillment", int_attr, 1)
+    reg_attr("bikes", INT32, 1)
+    reg_attr("fullfillment", INT32, 1)
+    reg_attr("orders", INT32, 1)
+    reg_attr("shortage", INT32, 1)
+    reg_attr("capacity", INT32, 1)
+    reg_attr("acc_orders", INT32, 1)
+    reg_attr("acc_shortage", INT32, 1)
+    reg_attr("acc_fullfillment", INT32, 1)
     
     # additional features
     # we split gendor into 3 fields
-    reg_attr("unknow_gendors", int_attr, 1)
-    reg_attr("males", int_attr, 1)
-    reg_attr("females", int_attr, 1)
-    reg_attr("weekday", int_attr, 1)
+    reg_attr("unknow_gendors", INT32, 1)
+    reg_attr("males", INT32, 1)
+    reg_attr("females", INT32, 1)
+    reg_attr("weekday", INT32, 1)
 
     # usertype
-    reg_attr("subscriptor", int_attr, 1)
-    reg_attr("customer", int_attr, 2)
+    reg_attr("subscriptor", INT32, 1)
+    reg_attr("customer", INT32, 2)
 
     graph.setup()
 
