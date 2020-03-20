@@ -36,17 +36,17 @@ class Station:
 
     @property
     def fullfillment(self):
-        return self._graph.get_attribute(static_node, self._index, "fullfillment", 0)
+        return self._graph.get_attribute(static_node, self._index, "fulfillment", 0)
 
     @property
-    def orders(self):
-        return self._graph.get_attribute(static_node, self._index, "orders", 0)
+    def trip_requirement(self):
+        return self._graph.get_attribute(static_node, self._index, "trip_requirement", 0)
 
-    @orders.setter
-    def orders(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "orders", 0, value)
+    @trip_requirement.setter
+    def trip_requirement(self, value: int):
+        self._graph.set_attribute(static_node, self._index, "trip_requirement", 0, value)
 
-        self._update_fulfillment("fullfillment", value, self.shortage)
+        self._update_fulfillment("fulfillment", value, self.shortage)
 
     @property
     def shortage(self):
@@ -56,31 +56,7 @@ class Station:
     def shortage(self, value: int):
         self._graph.set_attribute(static_node, self._index, "shortage", 0, value)
 
-        self._update_fulfillment("fullfillment", self.orders, value)
-
-    @property
-    def acc_orders(self):
-        return self._graph.get_attribute(static_node, self._index, "acc_orders", 0)
-
-    @acc_orders.setter
-    def acc_orders(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "acc_orders", 0, value)
-
-        self._update_fulfillment("acc_fullfillment", value, self.orders)
-
-    @property
-    def acc_shortage(self):
-        return self._graph.get_attribute(static_node, self._index, "acc_shortage", 0)
-
-    @acc_shortage.setter
-    def acc_shortage(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "acc_shortage", 0, value)
-
-        self._update_fulfillment("acc_fullfillment", self.orders, value)
-
-    @property
-    def acc_fullfillment(self):
-        return self._graph.get_attribute(static_node, self._index, "acc_fullfillment", 0)
+        self._update_fulfillment("fulfillment", self.trip_requirement, value)
 
     @property
     def capacity(self):
@@ -157,8 +133,6 @@ class Station:
         self.shortage = 0
         self.orders = 0
         self.requirement = 0
-        self.acc_orders = 0
-        self.acc_shortage = 0
         self.unknow_gendors = 0
         self.males = 0
         self.females = 0
@@ -166,5 +140,5 @@ class Station:
         self.subscriptor = 0 
         self.customer = 0
 
-    def _update_fulfillment(self, field, orders, shortage):
-        self._graph.set_attribute(static_node, self._index, field, 0, orders - shortage)
+    def _update_fulfillment(self, field, trip_requirement, shortage):
+        self._graph.set_attribute(static_node, self._index, field, 0, trip_requirement - shortage)

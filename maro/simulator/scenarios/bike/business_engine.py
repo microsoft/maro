@@ -155,7 +155,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             # we will reset some field
             for station in self._stations:
                 station.shortage = 0
-                station.orders = 0
+                station.trip_requirement = 0
                 station.gendor_0 = 0
                 station.gendor_1 = 0
                 station.gendor_2 = 0
@@ -211,13 +211,11 @@ class BikeBusinessEngine(AbsBusinessEngine):
         station_bikes = station.bikes
 
         # update order count
-        station.orders += 1
-        station.acc_orders += 1
+        station.trip_requirement += 1
         
         if station_bikes <= 0:
             # shortage
             station.shortage += 1
-            station.acc_shortage += 1
         else:
             station.bikes = station_bikes - 1
 

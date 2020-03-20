@@ -1,7 +1,7 @@
 from maro.simulator.core import Env
 from maro.simulator.scenarios.bike.common import Action
 
-max_ticks = 2*24
+max_ticks = 10*24
 
 # 48 ticks (hours), 60 units (minutes) per tick
 env = Env("bike", "test", max_ticks, tick_units=60)
