@@ -14,7 +14,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from .common import BikeReturnPayload, Order, DecisionEvent, Action, BikeTransferPaylod
 from .data_reader import BikeDataReader
 from .graph_builder import build
-from .station import Station
+from .cell import Cell
 from .abs_decisionstrategy import AbsDecisionStrategy
 from .percent_decisionstrategy import BikePercentDecisionStrategy
 
@@ -25,7 +25,7 @@ decision_dict = {
 class BikeEventType(IntEnum):
     Order = 10
     BikeReturn = 11
-    BikeTransfered = 12 # transfer bikes from a station to another
+    BikeTransfered = 12 # transfer bikes from a cell to another
 
 class BikeBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
@@ -33,8 +33,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._decision_strategy = None
         self._max_tick = max_tick
-        self._stations = []
-        self._station_map = {}
+        self._cells = []
+        self._cell_map = {} # TODO: can be removed after we have actually have cell
 
         config_path = os.path.join(config_path, "config.yml")
 
@@ -79,12 +79,12 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             self._event_buffer.insert_event(evt)
 
-        stations_need_decision = self._decision_strategy.get_stations_need_decision(tick ,unit_tick)
+        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick ,unit_tick)
 
-        if len(stations_need_decision) > 0:
+        if len(cells_need_decision) > 0:
             # the env will take snapshot for use when we need an action, so we do not need to take action here
-            for station_idx in stations_need_decision:
-                deciton_payload = DecisionEvent(station_idx, tick, self.action_scope)
+            for cell_idx in cells_need_decision:
+                deciton_payload = DecisionEvent(cell_idx, tick, self.action_scope)
                 decision_evt  = self._event_buffer.gen_cascade_event(unit_tick, DECISION_EVENT, deciton_payload)
 
                 self._event_buffer.insert_event(decision_evt)
@@ -108,21 +108,21 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset business engine"""
-        for station in self._stations:
-            station.reset()
+        for cell in self._cells:
+            cell.reset()
 
-    def action_scope(self, station_idx: int) -> object:
+    def action_scope(self, cell_idx: int) -> object:
         """Get the action scope of specified agent
 
         Args:
-            station_idx (int): index of station
+            cell_idx (int): index of cell
 
         Returns:
             object: action scope object that may different for each scenario
         """
-        station: Station = self._stations[station_idx]
+        cell: Cell = self._cells[cell_idx]
         
-        return math.floor(station.bikes * self._scope_percent)
+        return math.floor(cell.bikes * self._scope_percent)
 
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
@@ -138,7 +138,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         Returns:
             List[int]: list of port index
         """
-        return [i for i in range(len(self._stations))]
+        return [i for i in range(len(self._cells))]
 
     def post_step(self, tick: int, unit_tick: int):
         """Post-process at specified tick
@@ -153,19 +153,19 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             # last unit tick of current tick
             # we will reset some field
-            for station in self._stations:
-                station.shortage = 0
-                station.trip_requirement = 0
-                station.gendor_0 = 0
-                station.gendor_1 = 0
-                station.gendor_2 = 0
-                station.weekday = 0
-                station.customer = 0
-                station.subscriptor = 0
+            for cell in self._cells:
+                cell.shortage = 0
+                cell.trip_requirement = 0
+                cell.unknow_gendors = 0
+                cell.males = 0
+                cell.females = 0
+                cell.weekday = 0
+                cell.customer = 0
+                cell.subscriptor = 0
 
     def _init_graph(self):
         rows = []
-        with open(self._conf["station_file"]) as fp:
+        with open(self._conf["cell_file"]) as fp:
             reader = csv.reader(fp)
 
             for l in reader:
@@ -177,20 +177,22 @@ class BikeBusinessEngine(AbsBusinessEngine):
             if len(r) == 0:
                 break
 
-            station = Station(i, int(r[0]), int(r[2]), int(r[3]), self._graph)
+            cell = Cell(i, int(r[0]), int(r[2]), int(r[3]), self._graph)
 
-            self._stations.append(station)
-            self._station_map[int(r[0])] = i
+            self._cells.append(cell)
+            self._cell_map[int(r[0])] = i
 
     def _init_data_reader(self):
-        self._data_reader = BikeDataReader(self._conf["data_file"], self._conf["start_datetime"], self._max_tick, self._station_map)
+        self._data_reader = BikeDataReader(self._conf["data_file"], 
+                                            self._conf["start_datetime"], 
+                                            self._max_tick, self._cell_map)
 
 
     def _init_decision_strategy(self):
         decision_type = self._conf["decision"]["type"]
 
         if decision_type in decision_dict:
-            self._decision_strategy = decision_dict[decision_type](self._stations, self._conf["decision"]["config"]) 
+            self._decision_strategy = decision_dict[decision_type](self._cells, self._conf["decision"]["config"]) 
         else:
             raise "Invalid decision type"
 
@@ -206,54 +208,54 @@ class BikeBusinessEngine(AbsBusinessEngine):
         2. update shortage, gendor, usertype and weekday statistics states"""
 
         order: Order = evt.payload
-        station_idx: int = order.start_station
-        station: Station = self._stations[station_idx]
-        station_bikes = station.bikes
+        cell_idx: int = order.start_cell
+        cell: Cell = self._cells[cell_idx]
+        cell_bikes = cell.bikes
 
         # update order count
-        station.trip_requirement += 1
+        cell.trip_requirement += 1
         
-        if station_bikes <= 0:
+        if cell_bikes <= 0:
             # shortage
-            station.shortage += 1
+            cell.shortage += 1
         else:
-            station.bikes = station_bikes - 1
+            cell.bikes = cell_bikes - 1
 
             # TODO: update gender, weekday and usertype 
-            station.update_gendor(order.gendor)
-            station.update_usertype(order.usertype)
-            station.weekday = order.weekday
+            cell.update_gendor(order.gendor)
+            cell.update_usertype(order.usertype)
+            cell.weekday = order.weekday
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(order.end_station)
+            return_payload = BikeReturnPayload(order.end_cell)
             bike_return_evt = self._event_buffer.gen_atom_event(order.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
     def _on_bike_return(self, evt: Event):
         payload: BikeReturnPayload = evt.payload
-        target_station: Station = self._stations[payload.target_station]
+        target_cell: Cell = self._cells[payload.target_cell]
 
 
         # TODO: what about more than capacity?
-        target_station.bikes += 1
+        target_cell.bikes += 1
 
     def _on_action_recieved(self, evt: Event):
         action: Action  = None
         
         for action in evt.payload:
-            station: Station = self._stations[action.station]
+            cell: Cell = self._cells[action.cell]
 
-            executed_number = min(station.bikes, action.number)
-            station.bikes -= executed_number
+            executed_number = min(cell.bikes, action.number)
+            cell.bikes -= executed_number
 
-            payload = BikeTransferPaylod(action.station, action.to_station, action.number)
+            payload = BikeTransferPaylod(action.cell, action.to_cell, action.number)
             transfer_evt = self._event_buffer.gen_atom_event(evt.tick + self._transfer_time, BikeEventType.BikeTransfered, payload)
             self._event_buffer.insert_event(transfer_evt)
 
     def _on_bike_recieved(self, evt: Event):
         payload: BikeTransferPaylod = evt.payload
-        station: Station = self._stations[payload.to_station]
+        cell: Cell = self._cells[payload.to_cell]
 
         # TODO: what about if out of capacity
-        station.bikes += payload.number
+        cell.bikes += payload.number

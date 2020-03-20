@@ -9,7 +9,7 @@ GENDOR_FEMALE = 2
 USERTYPE_SUBSCRIPTOR = 0
 USERTYPE_CUSTOMER = 1
 
-class Station:
+class Cell:
     def __init__(self, index: int, id: int, bikes: int, capacity:int, graph: Graph):
         self._index = index
         self._graph = graph
