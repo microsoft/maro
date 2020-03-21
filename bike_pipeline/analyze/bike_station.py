@@ -1,6 +1,6 @@
 # usage
 # export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/station/*.csv | xargs -i python bike_station.py {} /home/zhanyu/bikeData/maro/bike_pipeline/data/sample_station.json /home/zhanyu/bikeData/ny/station/init
-
+# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; python bike_station.py /home/zhanyu/bikeData/ny/full/201306_202001.station.csv /home/zhanyu/bikeData/maro/bike_pipeline/data/sample_station.json /home/zhanyu/bikeData/ny/station/init
 
 import numpy as np
 import pandas as pd
