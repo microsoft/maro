@@ -5,9 +5,9 @@ from dateutil.relativedelta import relativedelta
 
 bike_dtype = np.dtype([
     ("start_time", "datetime64[s]"), # datetime
-    ("start_cell", "i4"), # id
-    ("end_cell", "i4"), # id
-    ("duration", "i4"), # min
+    ("start_cell", "i2"), # id
+    ("end_cell", "i2"), # id
+    ("duration", "i2"), # min
     ("gendor", "b"), 
     ("usertype", "b"), 
 ])
