@@ -12,7 +12,7 @@ import yaml
 
 from maro.utils.dashboard import DashboardBase
 
-_dashboard = DashboardBase('city_bike_0318', None,
+_dashboard = DashboardBase('city_bike_0321', None,
                            dbname='citi_bike')
 
 
@@ -40,15 +40,19 @@ def process_station_data(station_data_file):
 
 
 def _station_json_to_pd(json_data):
-    return pd.Series(
+    json_frame = pd.Series(
         [json_data['geometry']['coordinates'][0],
          json_data['geometry']['coordinates'][1],
-         int(json_data['properties']['station']['id']),
+         json_data['properties']['station']['id'],
          json_data['properties']['station']['name'],
          json_data['properties']['station']['capacity'],
          json_data['properties']['station']['bikes_available']
          ],
         index=['station_longitude', 'station_latitude', 'station_id', 'station_name', 'capacity', 'bikes'])
+    json_frame['station_id'] = pd.to_numeric(json_frame['station_id'],errors='coerce',downcast='integer')
+    json_frame['station_latitude'] = pd.to_numeric(json_frame['station_latitude'],errors='coerce',downcast='integer')
+    json_frame['station_longitude'] = pd.to_numeric(json_frame['station_longitude'],errors='coerce',downcast='integer')
+    return json_frame
 
 
 if __name__ == "__main__":
@@ -61,8 +65,8 @@ if __name__ == "__main__":
 
     sample_station_data = process_station_data(station_json_file)
 
-    compare_station = pd.concat([station_data[['station_id', 'station_name', 'station_longitude', 'station_latitude']], sample_station_data[[
-                                'station_id', 'station_name', 'station_longitude', 'station_latitude']]]).drop_duplicates().sort_values(by=['station_id'])
+    compare_station = pd.concat([station_data[['station_id', 'station_name', 'station_longitude', 'station_latitude']], 
+        sample_station_data[['station_id', 'station_name', 'station_longitude', 'station_latitude']]]).drop_duplicates(subset=['station_id']).sort_values(by=['station_id'])
     compare_station['in_csv'] = compare_station['station_id'].isin(station_data['station_id'])
     compare_station['in_json'] = compare_station['station_id'].isin(sample_station_data['station_id'])
     compare_station = compare_station.join(sample_station_data[['station_id', 'capacity', 'bikes']].set_index('station_id'), on='station_id')
