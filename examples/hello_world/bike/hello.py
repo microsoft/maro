@@ -13,9 +13,7 @@ for i in range(total_ep):
     reward, decision_event, is_done = env.step(None)
 
     while not is_done:
-        decision_event.action_scope
-
-        reward, decision_event, is_done = env.step(Action(0, 0, 0))
+        reward, decision_event, is_done = env.step(Action(0, 1, 100))
 
     print("snapshot list length", len(env.snapshot_list))
     inv = env.snapshot_list.static_nodes[::("bikes", 0)]

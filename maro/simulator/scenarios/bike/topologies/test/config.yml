@@ -1,7 +1,9 @@
 decision:
-  threshold: 0.05
-transfer_time: 2 # time (minutes) cost to transfer bikes from one station to another
-scope_percent: 0.9 # inventory * scope_percent = action scope
+  resolution: 20 # frequence to check if a cell need an action
+  std: 20
+  scale: 10
+  high: 0.8
+  low: 0.05
 start_datetime: "2019-12-02"
 trip_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/trips.bin"
 cell_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/stations.csv"

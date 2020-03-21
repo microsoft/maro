@@ -83,7 +83,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         for cell_idx in cells_need_decision:
             # we use tick (in hour) here, not internal tick, as agent do not need to known this
             decision_payload = DecisionEvent(cell_idx, tick, self._decision_strategy.action_scope)
-            decision_evt  = self._event_buffer.gen_cascade_event(unit_tick, DECISION_EVENT, deciton_payload)
+            decision_evt  = self._event_buffer.gen_cascade_event(internal_tick, DECISION_EVENT, decision_payload)
 
             self._event_buffer.insert_event(decision_evt)
 
@@ -240,10 +240,12 @@ class BikeBusinessEngine(AbsBusinessEngine):
             executed_number = min(cell.bikes, action.number)
             cell.bikes -= executed_number
 
-            payload = BikeTransferPaylod(action.from_cell, action.to_cell, action.number)
+            payload = BikeTransferPayload(action.from_cell, action.to_cell, action.number)
 
             # TODO: apply random transfer ticks
-            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + 10, BikeEventType.BikeTransfermation, payload)
+            transfer_time = self._decision_strategy.transfer_time
+            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time, 
+                                                BikeEventType.BikeTransfermation, payload)
             
             self._event_buffer.insert_event(transfer_evt)
 
