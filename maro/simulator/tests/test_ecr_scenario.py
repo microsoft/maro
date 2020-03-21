@@ -18,9 +18,9 @@ MAX_TICK = 20
 def next_step(eb: EventBuffer, be: EcrBusinessEngine, tick: int):
     if tick > 0:
         # lets post process last tick first before start a new tick
-        be.post_step(tick - 1)
+        be.post_step(tick - 1, tick - 1)
 
-    be.step(tick)
+    be.step(tick, tick)
 
     pending_events = eb.execute(tick)
 
@@ -137,7 +137,7 @@ class TestEcrScenarios(unittest.TestCase):
         v = be.snapshots.matrix[2: "vessel_plans"]
 
         # since we already fixed the vessel plans, we just check the value
-        print(v)
+
         for i in range(2):
             self.assertEqual(11, v[0][i*3+0])
             self.assertEqual(-1, v[0][i*3+1])
