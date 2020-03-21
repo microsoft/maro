@@ -1,5 +1,5 @@
 # usage :
-# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python station_form_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.station.csv /home/zhanyu/bikeData/ny/station/
+# export CONFIG=/home/zhanyu/bikeData/maro/examples/citi_bike/q_learning/single_host_mode/config.yml; export PYTHONPATH=/home/zhanyu/bikeData/maro ; ls -dQ ../../../ny/*.csv | xargs -i python station_from_csv.py {} /home/zhanyu/bikeData/ny/full/201306_202001.station.csv /home/zhanyu/bikeData/ny/station/
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,18 @@ def process_bike_data(bike_data_file):
         with open(bike_data_file, mode="r", encoding="utf-8") as bike_csv_file:
             bike_data = pd.read_csv(bike_csv_file)
             print(bike_data_file)
+            bike_data.dropna(subset=['start station id','end station id'], inplace=True)
             bike_data['date'] = pd.to_datetime(bike_data['starttime']).dt.date
+            bike_data['starttime'] = pd.to_datetime(bike_data['starttime'])
+            bike_data['stoptime'] = pd.to_datetime(bike_data['stoptime'])
+            bike_data['start station id'] = pd.to_numeric(bike_data['start station id'],errors='coerce',downcast='integer')
+            bike_data['end station id'] = pd.to_numeric(bike_data['end station id'],errors='coerce',downcast='integer')
+            bike_data['start station latitude'] = pd.to_numeric(bike_data['start station latitude'],downcast='float')
+            bike_data['start station longitude'] = pd.to_numeric(bike_data['start station longitude'],downcast='float')
+            bike_data['end station latitude'] = pd.to_numeric(bike_data['end station latitude'],downcast='float')
+            bike_data['end station longitude'] = pd.to_numeric(bike_data['end station longitude'],downcast='float')
+            bike_data['birth year'] = pd.to_numeric(bike_data['birth year'],errors='coerce',downcast='integer')
+            bike_data['gender'] = pd.to_numeric(bike_data['gender'],errors='coerce',downcast='integer')
     return bike_data
 
 
@@ -45,11 +56,11 @@ def load_full_station_data(full_station_data_file):
 
 
 def _gen_station_data(bike_data):
-    gp_station_data_start = bike_data[['start station name', 'start station id', 'start station latitude', 'start station longitude']].drop_duplicates()
+    gp_station_data_start = bike_data[['start station name', 'start station id', 'start station latitude', 'start station longitude']].drop_duplicates(subset=['start station id'])
     gp_station_data_start.rename(columns={'start station name': 'station_name', 'start station id': 'station_id',
                                           'start station latitude': 'station_latitude', 'start station longitude': 'station_longitude'}, inplace=True)
 
-    gp_station_data_end = bike_data[['end station name', 'end station id', 'end station latitude', 'end station longitude']].drop_duplicates()
+    gp_station_data_end = bike_data[['end station name', 'end station id', 'end station latitude', 'end station longitude']].drop_duplicates(subset=['end station id'])
     gp_station_data_end.rename(columns={'end station name': 'station_name', 'end station id': 'station_id', 'end station latitude': 'station_latitude', 'end station longitude': 'station_longitude'}, inplace=True)
 
     station_data = pd.concat([gp_station_data_start, gp_station_data_end]).drop_duplicates().sort_values(by=['station_id'])
