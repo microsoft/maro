@@ -14,7 +14,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from .cell import Cell
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
                      DecisionEvent, Trip)
-from .data_reader import BikeDataReader
+from .trip_reader import BikeTripReader
 from .decision_strategy import BikeDecisionStrategy
 from .resource_builder import build
 
@@ -176,7 +176,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             self._cell_map[int(r[0])] = i
 
     def _init_data_reader(self):
-        self._data_reader = BikeDataReader(self._conf["trip_file"], 
+        self._data_reader = BikeTripReader(self._conf["trip_file"], 
                                             self._conf["start_datetime"], 
                                             self._max_tick, self._cell_map)
 

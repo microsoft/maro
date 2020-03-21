@@ -1,7 +1,9 @@
-import numpy as np
 import datetime
-from .common import Trip
+
+import numpy as np
 from dateutil.relativedelta import relativedelta
+
+from .common import Trip
 
 bike_dtype = np.dtype([
     ("start_time", "datetime64[s]"), # datetime
@@ -12,7 +14,8 @@ bike_dtype = np.dtype([
     ("usertype", "b"), 
 ])
 
-class BikeDataReader:
+class BikeTripReader:
+    """Reader"""
     def __init__(self, path: str, start_date: str, max_tick: int, cell_map:dict):
         self._index = 0
         self._cell_map = cell_map
@@ -35,7 +38,7 @@ class BikeDataReader:
         self._index = 0
 
     def get_trips(self, internal_tick: int):
-        """get next event of specified internal_tick, return None if not exist"""
+        """get next event of specified internal_tick, return [] if not exist"""
         trips = []
 
         # start time of current tick
