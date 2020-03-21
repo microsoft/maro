@@ -1,10 +1,10 @@
 
 
-class Order:
+class Trip:
     def __init__(self, date, start_cell: int, end_cell: int, end_tick: int, usertype: int = 0, gendor:int = 0, num: int=1):
         self.date = date
-        self.start_cell = start_cell
-        self.end_cell = end_cell
+        self.from_cell = start_cell
+        self.to_cell = end_cell
         self.number = num
         self.end_tick = end_tick
         self.usertype = usertype
@@ -15,21 +15,22 @@ class Order:
         return self.date.weekday()
 
     def __repr__(self):
-        return f"(Order start cell: {self.start_cell}, end cell: {self.end_cell}, end tick: {self.end_tick})"
+        return f"(Order start cell: {self.from_cell}, end cell: {self.to_cell}, end tick: {self.end_tick})"
 
-class BikeTransferPaylod:
+class BikeTransferPayload:
     def __init__(self, from_cell:int, to_cell: int, number:int):
         self.from_cell = from_cell
         self.to_cell = to_cell
         self.number = number
 
 class BikeReturnPayload:
-    def __init__(self, target_cell_idx: int, num: int = 1):
-        self.target_cell = target_cell_idx
+    def __init__(self, from_cell: int, to_cell: int, num: int = 1):
+        self.from_cell = from_cell
+        self.to_cell = to_cell
         self.number = num
 
     def __repr__(self):
-        return f"(Bike return payload, target cell: {self.target_cell}, number: {self.number})"
+        return f"(Bike return payload, target cell: {self.to_cell}, number: {self.number})"
 
 
 class DecisionEvent:
@@ -50,8 +51,8 @@ class DecisionEvent:
         return f"DecisionEvent(cell: {self.cell_idx}, action scope: {self.action_scope})"
 
 class Action:
-    def __init__(self, cell_idx:int, to_cell: int, number: int):
-        self.cell = cell_idx
+    def __init__(self, from_cell: int, to_cell: int, number: int):
+        self.from_cell = from_cell
         self.to_cell = to_cell
         self.number = number
 

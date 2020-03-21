@@ -36,7 +36,7 @@ class Cell:
         self._graph.set_attribute(static_node, self._index, "bikes", 0, value)
 
     @property
-    def fullfillment(self):
+    def fulfillment(self):
         return self._graph.get_attribute(static_node, self._index, "fulfillment", 0)
 
     @property
@@ -68,12 +68,12 @@ class Cell:
         self._graph.set_attribute(static_node, self._index, "capacity", 0, value)
 
     @property
-    def unknow_gendors(self):
-        return self._graph.get_attribute(static_node, self._index, "unknow_gendors", 0)
+    def unknown_gendors(self):
+        return self._graph.get_attribute(static_node, self._index, "unknown_gendors", 0)
 
-    @unknow_gendors.setter
-    def unknow_gendors(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "unknow_gendors", 0, value)
+    @unknown_gendors.setter
+    def unknown_gendors(self, value: int):
+        self._graph.set_attribute(static_node, self._index, "unknown_gendors", 0, value)
 
     @property
     def males(self):
@@ -121,7 +121,7 @@ class Cell:
         elif gendor == GENDOR_MALE:
             self.males += num
         else:
-            self.unknow_gendors += num
+            self.unknown_gendors += num
 
     def update_usertype(self, usertype: int, num: int = 1):
         if usertype == USERTYPE_SUBSCRIPTOR:
@@ -133,9 +133,8 @@ class Cell:
         self.capacity = self._capacity
         self.bikes = self._bikes
         self.shortage = 0
-        self.orders = 0
         self.trip_requirement = 0
-        self.unknow_gendors = 0
+        self.unknown_gendors = 0
         self.males = 0
         self.females = 0
         self.weekday = 0
