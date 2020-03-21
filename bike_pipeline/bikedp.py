@@ -253,22 +253,23 @@ def read_src_file(file: str):
             reader = csv.DictReader(fp)
 
             for l in reader:
-                item = (
-                    cal_durations(deal_int(l["tripduration"])),
-                    deal_datetime(l["starttime"]),
-                    deal_int(l["start station id"]),
-                    deal_str(l["start station name"]),
-                    deal_int(l["end station id"]),
-                    deal_str(l['end station name']),
-                    deal_float(l["start station latitude"]),
-                    deal_float(l["start station longitude"]),
-                    deal_float(l["end station latitude"]),
-                    deal_float(l["end station longitude"]),
-                    deal_usertype(l["usertype"]),
-                    deal_int(l["gender"])
-                )
+                if "NULL" not in l.values() and "\"NULL\"" not in l.values() and "'NULL'" not in l.values():
+                    item = (
+                        cal_durations(deal_int(l["tripduration"])),
+                        deal_datetime(l["starttime"]),
+                        deal_int(l["start station id"]),
+                        deal_str(l["start station name"]),
+                        deal_int(l["end station id"]),
+                        deal_str(l['end station name']),
+                        deal_float(l["start station latitude"]),
+                        deal_float(l["start station longitude"]),
+                        deal_float(l["end station latitude"]),
+                        deal_float(l["end station longitude"]),
+                        deal_usertype(l["usertype"]),
+                        deal_int(l["gender"])
+                    )
 
-                ret.append(item)
+                    ret.append(item)
 
                 # stations[item[2]] = (item[3], item[6], item[7]) # start station, log and lat
                 # stations[item[4]] = (item[5], item[8], item[9]) # end station, log and lat
