@@ -3,17 +3,15 @@
 
 
 import os
-
-from typing import Dict, Tuple, List, Any
 from importlib import import_module
-from inspect import isclass, getmembers
-
-from .graph import Graph
-from .graph import SnapshotList
+from inspect import getmembers, isclass
+from typing import Any, Dict, List, Tuple
 
 from .abs_core import AbsEnv, DecisionMode
-from .event_buffer import EventBuffer, EventState, DECISION_EVENT
+from .event_buffer import DECISION_EVENT, EventBuffer, EventState
+from .frame import Frame, SnapshotList
 from .scenarios import AbsBusinessEngine
+
 
 class BusinessEngineNotFoundError(Exception):
     """Cannot load and initialize related business engine class"""
@@ -130,9 +128,9 @@ class Env(AbsEnv):
         return self._name
 
     @property
-    def current_graph(self) -> Graph:
-        """Graph: Graph of current environment"""
-        return self._business_engine.graph
+    def current_frame(self) -> Frame:
+        """Frame: Frame of current environment"""
+        return self._business_engine.frame
 
     @property
     def tick(self) -> int:
@@ -143,7 +141,7 @@ class Env(AbsEnv):
     def snapshot_list(self) -> SnapshotList:
         """SnapshotList: Current snapshot list
 
-        a snapshot list contains all the snapshots of graph at each tick
+        a snapshot list contains all the snapshots of frame at each tick
         """
         return self._business_engine.snapshots
 
@@ -198,9 +196,8 @@ class Env(AbsEnv):
             self._event_buffer, topology_path, self._max_tick, self._tick_units)
 
         # check if it meet our requirement
-        if self._business_engine.graph is None:
-            raise BusinessInitializationError(
-                "graph of business engine is None")
+        if self._business_engine.frame is None:
+            raise BusinessInitializationError("frame of business engine is None")
 
     def _simulate(self):
         """
@@ -226,7 +223,7 @@ class Env(AbsEnv):
                         break
 
                     # insert snapshot before each action
-                    self._business_engine.snapshots.insert_snapshot(self.current_graph, self._tick)
+                    self._business_engine.snapshots.insert_snapshot(self.current_frame, self._tick)
 
                     decision_events = [evt.payload for evt in pending_events]
 

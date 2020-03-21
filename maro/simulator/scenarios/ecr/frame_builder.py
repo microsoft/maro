@@ -2,16 +2,16 @@
 # Licensed under the MIT license.
 
 
-from maro.simulator.graph import Graph, GraphAttributeType
+from maro.simulator.frame import Frame, FrameAttributeType
 
-int_attr = GraphAttributeType.INT
-float_attr = GraphAttributeType.FLOAT
-mat_attr = GraphAttributeType.INT_MAT
+int_attr = FrameAttributeType.INT
+float_attr = FrameAttributeType.FLOAT
+mat_attr = FrameAttributeType.INT_MAT
 
 
-def gen_ecr_graph(port_num: int, vessel_num: int, stop_nums: tuple):
+def gen_ecr_frame(port_num: int, vessel_num: int, stop_nums: tuple):
     """
-    Used to generated an ECR graph with predefined attributes
+    Used to generated an ECR frame with predefined attributes
 
     Args:
         port_num (int): number of ports
@@ -19,11 +19,11 @@ def gen_ecr_graph(port_num: int, vessel_num: int, stop_nums: tuple):
         stop_nums (tuple[int, int]): number of stops (past and future)
 
     Returns:
-        Graph object that already setup
+        Frame object that already setup
     """
-    graph = Graph(port_num, vessel_num)
+    frame = Frame(port_num, vessel_num)
 
-    register_attribute = graph.register_attribute
+    register_attribute = frame.register_attribute
 
     # attributes for vessel and port
     register_attribute("empty", int_attr, 1)
@@ -71,6 +71,6 @@ def gen_ecr_graph(port_num: int, vessel_num: int, stop_nums: tuple):
     # planed route info for vessels
     register_attribute("vessel_plans", mat_attr, vessel_num * port_num, vessel_num, port_num)
 
-    graph.setup()
+    frame.setup()
 
-    return graph
+    return frame

@@ -8,15 +8,16 @@ from typing import Dict, List
 from yaml import safe_load
 
 from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
-from maro.simulator.graph import Graph, SnapshotList
+from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 
 from .cell import Cell
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
                      DecisionEvent, Trip)
-from .trip_reader import BikeTripReader
 from .decision_strategy import BikeDecisionStrategy
-from .resource_builder import build
+from .frame_builder import build
+from .trip_reader import BikeTripReader
+
 
 class BikeEventType(IntEnum):
     """Events we need to handled to process trip logic"""
@@ -40,23 +41,23 @@ class BikeBusinessEngine(AbsBusinessEngine):
         with open(config_path) as fp:
             self._conf = safe_load(fp)
 
-        self._init_graph()
+        self._init_frame()
         self._init_data_reader()
         
-        self._snapshots = SnapshotList(self._graph, max_tick)
+        self._snapshots = SnapshotList(self._frame, max_tick)
 
         self._reg_event()
         self._init_decision_strategy()
 
     @property
-    def graph(self) -> Graph:
-        """Graph: Graph of current business engine
+    def frame(self) -> Frame:
+        """Frame: Frame of current business engine
         """
-        return self._graph
+        return self._frame
 
     @property
     def snapshots(self) -> SnapshotList:
-        """SnapshotList: Snapshot list of current graph"""
+        """SnapshotList: Snapshot list of current frame"""
         return self._snapshots
 
     def step(self, tick: int, internal_tick: int):
@@ -107,8 +108,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         # clear value in snapshots
         self._snapshots.reset()
 
-        # clear value in current graph
-        self._graph.reset()
+        # clear value in current frame
+        self._frame.reset()
 
         # prepare data pointer to beginning
         self._data_reader.reset()
@@ -142,7 +143,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """
         if (unit_tick + 1) % self._tick_units == 0:
             # take a snapshot at the end of tick
-            self._snapshots.insert_snapshot(self._graph, tick)
+            self._snapshots.insert_snapshot(self._frame, tick)
 
             # last unit tick of current tick
             # we will reset some field
@@ -156,7 +157,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 cell.customer = 0
                 cell.subscriptor = 0
 
-    def _init_graph(self):
+    def _init_frame(self):
         rows = []
         with open(self._conf["cell_file"]) as fp:
             reader = csv.reader(fp)
@@ -164,13 +165,13 @@ class BikeBusinessEngine(AbsBusinessEngine):
             for l in reader:
                 rows.append(l)
 
-        self._graph = build(len(rows))
+        self._frame = build(len(rows))
   
         for i, r in enumerate(rows):
             if len(r) == 0:
                 break
 
-            cell = Cell(i, int(r[0]), int(r[2]), int(r[3]), self._graph)
+            cell = Cell(i, int(r[0]), int(r[2]), int(r[3]), self._frame)
 
             self._cells.append(cell)
             self._cell_map[int(r[0])] = i

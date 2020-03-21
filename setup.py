@@ -10,11 +10,11 @@ from Cython.Distutils import build_ext
 import numpy
 
 # include c file if needed
-graph_ext = Extension("maro.simulator.graph",
-          sources=["maro/simulator/graph/graph.pyx"],
+frame_ext = Extension("maro.simulator.frame",
+          sources=["maro/simulator/frame/frame.pyx"],
           include_dirs=[numpy.get_include()])
 
-graph_ext.cython_directives = {"embedsignature": True}
+frame_ext.cython_directives = {"embedsignature": True}
 
 setup(
     name="maro",
@@ -72,7 +72,7 @@ setup(
         ('maro_dashboard', ['maro/utils/dashboard/resource.tar.gz'])
     ],
     ext_modules=[
-        graph_ext,
+        frame_ext,
     ],
     zip_safe=False
 )

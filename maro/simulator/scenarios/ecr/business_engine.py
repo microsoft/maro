@@ -3,20 +3,22 @@
 
 
 import os
-from math import floor, ceil
+from math import ceil, floor
 
-from maro.simulator.graph import Graph, SnapshotList
 from yaml import safe_load
 
-from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event
+from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
+from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
-from .common import Stop, Order, VesselDischargePayload, VesselStatePayload, EcrEventType, DecisionEvent, \
-    ActionScope
+
+from .common import (ActionScope, DecisionEvent, EcrEventType, Order, Stop,
+                     VesselDischargePayload, VesselStatePayload)
 from .ecr_data_generator import EcrDataGenerator
-from .graph_builder import gen_ecr_graph
-from .matrix_accessor import GraphMatrixAccessor
+from .frame_builder import gen_ecr_frame
+from .matrix_accessor import FrameMatrixAccessor
 from .port import Port
 from .vessel import Vessel
+
 
 class EcrBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, topology_path: str, max_tick: int, tick_units: int):
@@ -40,15 +42,15 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         self._vessels = []
         self._ports = []
-        self._graph = None
-        self._full_on_ports: GraphMatrixAccessor = None
-        self._full_on_vessels: GraphMatrixAccessor = None
-        self._vessel_plans: GraphMatrixAccessor = None
+        self._frame = None
+        self._full_on_ports: FrameMatrixAccessor = None
+        self._full_on_vessels: FrameMatrixAccessor = None
+        self._vessel_plans: FrameMatrixAccessor = None
 
-        self._init_graph()
+        self._init_frame()
 
-        # snapshot list should be initialized after graph
-        self._snapshots = SnapshotList(self._graph, max_tick)
+        # snapshot list should be initialized after frame
+        self._snapshots = SnapshotList(self._frame, max_tick)
 
         self._register_events()
 
@@ -63,16 +65,16 @@ class EcrBusinessEngine(AbsBusinessEngine):
         return self._data_generator.get_pure_config()
 
     @property
-    def graph(self) -> Graph:
+    def frame(self) -> Frame:
         """
-        Graph of current business engine
+        Frame of current business engine
         """
-        return self._graph
+        return self._frame
 
     @property
     def snapshots(self) -> SnapshotList:
         """
-        Snapshot list of current graph
+        Snapshot list of current frame
         """
         return self._snapshots
 
@@ -163,7 +165,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             port.acc_fulfillment = port.acc_booking - port.acc_shortage
 
         # before go to next tick, we will take a snapshot first
-        self._snapshots.insert_snapshot(self._graph, tick)
+        self._snapshots.insert_snapshot(self._frame, tick)
 
         # reset port statistics (by tick) fields
         for port in self._ports:
@@ -192,12 +194,12 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """
-        Reset the business engine, it will reset graph value
+        Reset the business engine, it will reset frame value
         """
 
         self._snapshots.reset()
 
-        self._graph.reset()
+        self._frame.reset()
 
         self._reset_nodes()
 
@@ -307,23 +309,23 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 dep_evt = self._event_buffer.gen_atom_event(stop.leave_tick, EcrEventType.VESSEL_DEPARTURE, payload)
                 self._event_buffer.insert_event(dep_evt)
 
-    def _init_graph(self):
+    def _init_frame(self):
         """
-        Initialize the graph basing on data generator
+        Initialize the frame basing on data generator
         """
-        self._graph = gen_ecr_graph(self._data_generator.port_num,
+        self._frame = gen_ecr_frame(self._data_generator.port_num,
                                     self._data_generator.vessel_num,
                                     self._data_generator.stop_number)
 
         for port_idx, port_name in self._data_generator.node_mapping["static"].items():
-            self._ports.append(Port(self._graph, port_idx, port_name))
+            self._ports.append(Port(self._frame, port_idx, port_name))
 
         for vessel_idx, vessel_name in self._data_generator.node_mapping["dynamic"].items():
-            self._vessels.append(Vessel(self._graph, vessel_idx, vessel_name))
+            self._vessels.append(Vessel(self._frame, vessel_idx, vessel_name))
 
-        self._full_on_ports = GraphMatrixAccessor(self._graph, "full_on_ports")
-        self._full_on_vessels = GraphMatrixAccessor(self._graph, "full_on_vessels")
-        self._vessel_plans = GraphMatrixAccessor(self._graph, "vessel_plans")
+        self._full_on_ports = FrameMatrixAccessor(self._frame, "full_on_ports")
+        self._full_on_vessels = FrameMatrixAccessor(self._frame, "full_on_vessels")
+        self._vessel_plans = FrameMatrixAccessor(self._frame, "vessel_plans")
 
         self._reset_nodes()
 

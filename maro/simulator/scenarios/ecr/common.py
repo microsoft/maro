@@ -3,7 +3,7 @@
 
 
 from enum import IntEnum
-from maro.simulator.graph import SnapshotList
+from maro.simulator.frame import SnapshotList
 
 
 class VesselState(IntEnum):

@@ -4,14 +4,14 @@
 
 from time import time
 
-from maro.simulator.graph import SnapshotList, ResourceNodeType
+from maro.simulator.frame import SnapshotList, FrameNodeType
 
 from maro.simulator.core import Env
 from maro.simulator.scenarios.ecr.common import Action
-from maro.simulator.scenarios.ecr.graph_builder import gen_ecr_graph
+from maro.simulator.scenarios.ecr.frame_builder import gen_ecr_frame
 
 '''
-in this file we will test performance for graph, snapshotlist, and ecr scenario,with following config
+in this file we will test performance for frame, snapshotlist, and ecr scenario,with following config
 
 1. dynamic node: 100
 2. static node: 100
@@ -26,24 +26,24 @@ READ_WRITE_NUMBER = 1000000
 STOP_NUMBER = (4, 4)
 
 
-def test_graph_only():
+def test_frame_only():
     start_time = time()
 
-    g = gen_ecr_graph(STATIC_NODE_NUMBER, DYNAMIC_NODE_NUMBER, STOP_NUMBER)
+    g = gen_ecr_frame(STATIC_NODE_NUMBER, DYNAMIC_NODE_NUMBER, STOP_NUMBER)
 
     # read & write one attribute N times with simplified interface
     for _ in range(READ_WRITE_NUMBER):
         # NOTE: this is slow attribute accessing interface, we will typed interface later
-        v = g.get_attribute(ResourceNodeType.STATIC, 0, "empty", 0)
-        g.set_attribute(ResourceNodeType.STATIC, 0, 'empty', 0, v + 1)
+        v = g.get_attribute(FrameNodeType.STATIC, 0, "empty", 0)
+        g.set_attribute(FrameNodeType.STATIC, 0, 'empty', 0, v + 1)
 
     end_time = time()
 
-    print(f"graph total time cost: {end_time - start_time}")
+    print(f"frame total time cost: {end_time - start_time}")
 
 
 def test_snapshot_list_only():
-    g = gen_ecr_graph(STATIC_NODE_NUMBER, DYNAMIC_NODE_NUMBER, STOP_NUMBER)
+    g = gen_ecr_frame(STATIC_NODE_NUMBER, DYNAMIC_NODE_NUMBER, STOP_NUMBER)
 
     ss = SnapshotList(g, MAX_TICK)
 
@@ -63,7 +63,7 @@ def test_snapshot_list_only():
     attrs = ["empty", "laden", "on_shipper", "on_consignee"]
     indices = [0]
     for i in range(MAX_TICK):
-        state = ss.get_attributes(ResourceNodeType.STATIC, ticks, node_ids, attrs, indices)
+        state = ss.get_attributes(FrameNodeType.STATIC, ticks, node_ids, attrs, indices)
 
     step_2_end_time = time()
 
@@ -94,6 +94,6 @@ def test_ecr():
     print(f"env total time cost: {end_time - start_time}")
 
 
-test_graph_only()
+test_frame_only()
 test_snapshot_list_only()
 test_ecr()

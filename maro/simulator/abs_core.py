@@ -3,11 +3,13 @@
 
 
 from abc import ABC, abstractmethod
-from .graph import SnapshotList, Graph
 from enum import IntEnum
-from typing import Dict, Tuple, List, Any
+from typing import Any, Dict, List, Tuple
+
 from maro.simulator.event_buffer import Event, EventBuffer
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
+
+from .frame import Frame, SnapshotList
 
 
 class DecisionMode(IntEnum):
@@ -102,7 +104,7 @@ class AbsEnv(ABC):
     @property
     @abstractmethod
     def snapshot_list(self) -> SnapshotList:
-        """Current snapshot list, a snapshot list contains all the snapshots of graph at each tick
+        """Current snapshot list, a snapshot list contains all the snapshots of frame at each tick
         """
         pass
 

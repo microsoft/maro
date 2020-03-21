@@ -28,20 +28,20 @@ cdef ATTR_TYPE_INT = 1
 cdef ATTR_TYPE_INT_MAT = 2
 
 
-class GraphAttributeType(IntEnum):
+class FrameAttributeType(IntEnum):
     '''Data type of registered attribute, can be FLOAT or INT now'''
     FLOAT = ATTR_TYPE_FLOAT
     INT = ATTR_TYPE_INT
     INT_MAT = ATTR_TYPE_INT_MAT
 
 
-class ResourceNodeType(IntEnum):
-    '''Type of nodes in graph, STATIC and DYNAMIC for now'''
+class FrameNodeType(IntEnum):
+    '''Type of nodes in frame, STATIC and DYNAMIC for now'''
     STATIC = NODE_TYPE_STATIC
     DYNAMIC = NODE_TYPE_DYNAMIC
 
 
-cdef class GraphAttribute:
+cdef class FrameAttribute:
     '''Used to wrapper attribute accessing information internally'''
     cdef:
         public UINT attribute_type
@@ -63,66 +63,61 @@ cdef class GraphAttribute:
         self.column_num = column_num
 
 
-class GraphError(Exception):
-    '''Base exception of graph'''
+class FrameError(Exception):
+    '''Base exception of Frame'''
     def __init__(self, msg):
         self.message = msg
 
 
-class GraphMemoryError(GraphError):
-    '''Exception when we meet an memory issue when accessing graph'''
+class FrameMemoryError(FrameError):
+    '''Exception when we meet an memory issue when accessing Frame'''
     def __init__(self, msg):
         super().__init__(msg)
 
 
-class GraphInvalidAccessError(GraphError):
+class FrameInvalidAccessError(FrameError):
     '''Exception that for invalid accessing, such as wrong index, etc.'''
     def __init__(self, msg):
         super().__init__(msg)
 
 
-class GraphNotInitializeError(GraphError):
-    '''Graph being used while not being setup'''
+class FrameNotInitializeError(FrameError):
+    '''Frame being used while not being setup'''
     def __init__(self, msg):
         super().__init__(msg)
 
 
-class GraphAttributeNotFoundError(GraphError):
-    '''Try to access graph with not registered attribute'''
+class FrameAttributeNotFoundError(FrameError):
+    '''Try to access Frame with not registered attribute'''
     def __init__(self, msg):
         super().__init__(msg)
 
 
-class GraphAttributeExistError(GraphError):
+class FrameAttributeExistError(FrameError):
     '''Try to register attribute with exist name'''
     def __init__(self, msg):
         super().__init__(msg)
 
 
-class GraphAttributeNotRegisteredError(GraphError):
-    '''Try to setup a graph without registered any attributes'''
+class FrameAttributeNotRegisteredError(FrameError):
+    '''Try to setup a Frame without registered any attributes'''
     def __init__(self):
-        super().__init__("Graph has no attributes registered.")
+        super().__init__("Frame has no attributes registered.")
 
 
-class GraphAlreadySetupError(GraphError):
+class FrameAlreadySetupError(FrameError):
     '''Try to register an attribute after setup'''
     def __init__(self):
-        super().__init__("Graph already being setup, cannot register attributes.")
+        super().__init__("Frame already being setup, cannot register attributes.")
 
 
-class GraphAlreadySetupError(GraphError):
-    '''Try to register an attribute after setup'''
-    def __init__(self):
-        super().__init__("Graph already being setup, cannot register attributes.")
-
-class SnapshotAccessError(GraphError):
+class SnapshotAccessError(FrameError):
     '''Snapshot cannot be wrote'''
     def __init__(self):
         super().__init__("Snapshot cannot be wrote.")
 
 
-class SnapshotSliceError(GraphError):
+class SnapshotSliceError(FrameError):
     '''Using invalid parameter to query snapshot with slice interface'''
     def __init__(self, msg):
         super().__init__(msg)
@@ -148,7 +143,7 @@ class SnapshotSliceError(GraphError):
 # int_row_size: size of each row in int data block
 # static_node_num: static node number that used to calculate offset
 
-cdef inline UINT get_attribute_offset(UINT node_type, UINT node_id, GraphAttribute attribute, UINT attribute_index, UINT float_row_size, UINT int_row_size, UINT static_node_num):
+cdef inline UINT get_attribute_offset(UINT node_type, UINT node_id, FrameAttribute attribute, UINT attribute_index, UINT float_row_size, UINT int_row_size, UINT static_node_num):
     cdef UINT node_offset = node_type * static_node_num + node_id
     cdef UINT attr_offset = attribute.start_index + attribute_index
     cdef UINT attr_type = attribute.attribute_type
@@ -159,44 +154,44 @@ cdef inline UINT get_attribute_offset(UINT node_type, UINT node_id, GraphAttribu
         return node_offset * int_row_size + attr_offset      
 
 
-cdef class Graph:
-    '''Graph used to hold attributes for both static and dynamic nodes.
+cdef class Frame:
+    '''Frame used to hold attributes for both static and dynamic nodes.
 
-    To initialize a graph, attributes must to be registered before setup.
+    To initialize a Frame, attributes must to be registered before setup.
 
     Example:
-        Create a simple graph that with 10 static and 10 dynamic nodes, and attributes like "attr1", "attr2":
+        Create a simple Frame that with 10 static and 10 dynamic nodes, and attributes like "attr1", "attr2":
             static_node_num = 10
             dynamic_node_num = 10
 
-            # init the graph object first
-            graph = Graph(static_node_num, dynamic_node_num)
+            # init the Frame object first
+            frame = Frame(static_node_num, dynamic_node_num)
 
             # then register attributes
 
             # register an attribute named "attr1", its data type is float, can hold 1 value (slot)
-            graph.register_attribute("attr1",  GraphAttributeType.FLOAT, 1)
+            frame.register_attribute("attr1",  FrameAttributeType.FLOAT, 1)
 
             # register an attribute named "attr2", its data type is int, can hold 2 value (slots)
-            graph.register_attribute("attr2", GraphAttributeType.INT, 2)
+            frame.register_attribute("attr2", FrameAttributeType.INT, 2)
 
-            # then we can setup the graph for using
-            graph.setup()
+            # then we can setup the Frame for using
+            frame.setup()
 
-            # the graph is ready to accessing now
+            # the frame is ready to accessing now
 
             # get an attribute (first slot) of a static node that id is 0
-            a1 = graph.get_attribute(ResourceNodeType.STATIC, 0, "attr1", 0)
+            a1 = frame.get_attribute(FrameNodeType.STATIC, 0, "attr1", 0)
 
             # set an attribute (2nd slot) of a dynamic node that id is 0
-            graph.set_attribute(ResourceNodeType.DYNAMIC, 0, "attr2", 1, 123)
+            frame.set_attribute(FrameNodeType.DYNAMIC, 0, "attr2", 1, 123)
 
     Args:
-        static_node_num (int): number of static nodes in graph
-        dynamic_node_num (int): number of dynamic nodes in graph
+        static_node_num (int): number of static nodes in Frame
+        dynamic_node_num (int): number of dynamic nodes in Frame
     '''
     cdef:
-        # memory view to hold graph attributes
+        # memory view to hold frame attributes
         FLOAT [:] float_data_block
         INT [:] int_data_block
         INT [:] int_mat_data_block
@@ -225,16 +220,16 @@ cdef class Graph:
         self.attribute_map = {}
 
     cpdef setup(self):
-        '''Setup the graph with registered attributes
+        '''Setup the Frame with registered attributes
 
         Raises:
-            GraphAttributeNotRegisteredError: if not registered any attribute
+            FrameAttributeNotRegisteredError: if not registered any attribute
         '''
         if self.is_initialized:
             return
 
         if len(self.attribute_map) == 0:
-            raise GraphAttributeNotRegisteredError()
+            raise FrameAttributeNotRegisteredError()
 
         self.is_initialized = True
 
@@ -264,26 +259,25 @@ cdef class Graph:
             self.int_mat_data_block[index] = 0
 
     cpdef void register_attribute(self, str name, UINT attribute_type, UINT size, UINT row_num=0, UINT column_num=0):
-        '''Register an attribute for nodes in graph, then can access the new attribute with get/set_attribute methods.
+        '''Register an attribute for nodes in Frame, then can access the new attribute with get/set_attribute methods.
 
         NOTE: this method should be called before setup method
 
         Args:
             name (str): name of the attribute 
-            attribute_type (GraphAttributeType): data type of attribute, only float and int now
+            attribute_type (FrameAttributeType): data type of attribute, only float and int now
             size (int): how many slots of this attributes can hold
             row_num (int): matrix row number, for matrix attribute only
             colum_num (int): matrix column number, for matrix attribute only
 
         Raises:
-            GraphAttributeExistError: if the name already being registered
-            GraphAlreadySetupError: if graph already being setup
+            FrameAttributeExistError: if the name already being registered
         '''
         if self.is_initialized == True:
             return
 
         if name in self.attribute_map:
-            raise GraphAttributeExistError(f"Attribute name {name} already registered.")
+            raise FrameAttributeExistError(f"Attribute name {name} already registered.")
 
         cdef UINT start_index = 0
 
@@ -297,7 +291,7 @@ cdef class Graph:
             start_index = self.int_mat_row_size
             self.int_mat_row_size += size
 
-        cdef GraphAttribute new_attribute = GraphAttribute(name, attribute_type, size, start_index, row_num, column_num)
+        cdef FrameAttribute new_attribute = FrameAttribute(name, attribute_type, size, start_index, row_num, column_num)
 
         self.attribute_map[name] = new_attribute
 
@@ -305,8 +299,8 @@ cdef class Graph:
         '''Get specified attribute value with general way
 
         Args:
-            node_type (ResourceNodeType): resource node type, static or dynamic
-            node_id (int): id the the resource node
+            node_type (FrameNodeType): Frame node type, static or dynamic
+            node_id (int): id the the Frame node
             attribute_name (str): name of accessing attribute
             attribute_index (int): index of the attribute slot
 
@@ -314,13 +308,13 @@ cdef class Graph:
             value of specified attribute slot, can be float or int fow now
 
         Raises:
-            GraphAttributeNotFoundError: specified attribute is not registered
+            FrameAttributeNotFoundError: specified attribute is not registered
         '''
         if attribute_name not in self.attribute_map:
-            raise GraphAttributeNotFoundError(f"Attribute {attribute_name} is not registered.")
+            raise FrameAttributeNotFoundError(f"Attribute {attribute_name} is not registered.")
 
         cdef UINT offset = get_attribute_offset(node_type, node_id, self.attribute_map[attribute_name], attribute_index, self.float_row_size, self.int_row_size, self.static_node_num)
-        cdef GraphAttribute attribute = self.attribute_map[attribute_name]
+        cdef FrameAttribute attribute = self.attribute_map[attribute_name]
         cdef UINT attribute_type = attribute.attribute_type
 
         if attribute_type == ATTR_TYPE_FLOAT:            
@@ -332,20 +326,20 @@ cdef class Graph:
         '''Set specified attribute value
 
         Args:
-            node_type (ResourceNodeType): resource node type, static or dynamic
-            node_id (int): id the the resource node
+            node_type (FrameNodeType): Frame node type, static or dynamic
+            node_id (int): id the the Frame node
             attribute_name (str): name of accessing attribute
             attribute_index (int): index of the attribute slot        
             value (float/int): value to set
 
         Raises:
-            GraphAttributeNotFoundError: specified attribute is not registered
+            FrameAttributeNotFoundError: specified attribute is not registered
         '''
         if attribute_name not in self.attribute_map:
-            raise GraphAttributeNotFoundError(f"attribute {attribute_name} is not registered.")
+            raise FrameAttributeNotFoundError(f"attribute {attribute_name} is not registered.")
 
         cdef UINT offset = get_attribute_offset(node_type, node_id, self.attribute_map[attribute_name], attribute_index, self.float_row_size, self.int_row_size, self.static_node_num)
-        cdef GraphAttribute attribute = self.attribute_map[attribute_name]
+        cdef FrameAttribute attribute = self.attribute_map[attribute_name]
         cdef UINT attribute_type = attribute.attribute_type
 
         if attribute_type == ATTR_TYPE_FLOAT:
@@ -365,13 +359,13 @@ cdef class Graph:
             value (int): value to set
 
         Raises:
-            GraphAttributeNotFoundError: if attribute not find
+            FrameAttributeNotFoundError: if attribute not find
 
         '''
         if attribute_name not in self.attribute_map:
-            raise GraphAttributeNotFoundError(f"attribute {attribute_name} is not registered.")
+            raise FrameAttributeNotFoundError(f"attribute {attribute_name} is not registered.")
 
-        cdef GraphAttribute attribute = self.attribute_map[attribute_name]
+        cdef FrameAttribute attribute = self.attribute_map[attribute_name]
         cdef UINT attribute_type = attribute.attribute_type
         cdef UINT attribute_size = attribute.size
         cdef UINT offset = attribute.start_index
@@ -379,10 +373,10 @@ cdef class Graph:
         cdef UINT column_num = attribute.column_num
 
         if attribute_type != ATTR_TYPE_INT_MAT:
-            raise GraphInvalidAccessError(f"Attribute {attribute_name} is not a int matrix attribute")
+            raise FrameInvalidAccessError(f"Attribute {attribute_name} is not a int matrix attribute")
 
         if row_index >= row_num or column_index > column_num:
-            raise GraphInvalidAccessError(f"Length of input value not match attribute")
+            raise FrameInvalidAccessError(f"Length of input value not match attribute")
 
         self.int_mat_data_block[offset + row_index * column_num + column_index] = value
 
@@ -396,10 +390,10 @@ cdef class Graph:
             column_index (int): index of the column
 
         Raises:
-            GraphAttributeNotFoundError: if attribute not find
+            FrameAttributeNotFoundError: if attribute not find
 
         '''
-        cdef GraphAttribute attribute = self.attribute_map[attribute_name]
+        cdef FrameAttribute attribute = self.attribute_map[attribute_name]
         cdef UINT attribute_type = attribute.attribute_type
         cdef UINT attribute_size = attribute.size
         cdef UINT offset = attribute.start_index
@@ -407,21 +401,21 @@ cdef class Graph:
         cdef UINT column_num = attribute.column_num
 
         if attribute_type != ATTR_TYPE_INT_MAT:
-            raise GraphInvalidAccessError(f"Attribute {attribute_name} is not a int matrix attribute")
+            raise FrameInvalidAccessError(f"Attribute {attribute_name} is not a int matrix attribute")
 
         if row_index >= row_num or column_index > column_num:
-            raise GraphInvalidAccessError(f"Length of input value not match attribute")
+            raise FrameInvalidAccessError(f"Length of input value not match attribute")
 
         return self.int_mat_data_block[offset + row_index * column_num + column_index]
 
     @property
     def static_node_number(self) -> int:
-        '''int: Number of static nodes in current graph'''
+        '''int: Number of static nodes in current Frame'''
         return self.static_node_num
 
     @property
     def dynamic_node_number(self) -> int:
-        '''int: Number of dynamic nodes in current graph'''
+        '''int: Number of dynamic nodes in current Frame'''
         return self.dynamic_node_num
 
 
@@ -429,7 +423,7 @@ cdef class Graph:
 
 
 cdef class SnapshotList:
-    '''SnapshotList used to hold list of snapshots that taken from Graph object at a certain tick.
+    '''SnapshotList used to hold list of snapshots that taken from Frame object at a certain tick.
 
     SnapshotList only provide interface to get data, cannot set data.
 
@@ -462,7 +456,7 @@ cdef class SnapshotList:
         SnapshotAccessor _static_nodes
         SnapshotMatrixAccessor _matrix
 
-        # each row is a graph of a tick
+        # each row is a frame of a tick
         FLOAT [:, :] float_data_block
         INT [:, :] int_data_block
         INT [:, :] int_mat_data_block
@@ -471,45 +465,45 @@ cdef class SnapshotList:
         INT latest_index
 
         # used for quick access to avoid repeatly calculations
-        UINT graph_float_block_size
-        UINT graph_int_block_size
-        UINT graph_float_row_size
-        UINT graph_int_row_size
-        UINT graph_int_mat_size
+        UINT frame_float_block_size
+        UINT frame_int_block_size
+        UINT frame_float_row_size
+        UINT frame_int_row_size
+        UINT frame_int_mat_size
         UINT static_node_num
         UINT dynamic_node_num
 
-        # refence to graph attributes, used to map attribute name
+        # refence to frame attributes, used to map attribute name
         dict attribute_map
     
-    def __cinit__(self, Graph graph, UINT max_tick):
+    def __cinit__(self, Frame frame, UINT max_tick):
         '''Create a new instance of SnapshotList
 
         Args:
-            graph (Graph): graph that need to take the shape, later we can only accept this shape of graph to take snapshot
+            frame (Frame): frame that need to take the shape, later we can only accept this shape of frame to take snapshot
             max_tick (int): max ticks in this snapshot list
         '''
 
-        self._dynamic_nodes = SnapshotAccessor(ResourceNodeType.DYNAMIC, graph.dynamic_node_num, self)
-        self._static_nodes = SnapshotAccessor(ResourceNodeType.STATIC, graph.static_node_num, self)
+        self._dynamic_nodes = SnapshotAccessor(FrameNodeType.DYNAMIC, frame.dynamic_node_num, self)
+        self._static_nodes = SnapshotAccessor(FrameNodeType.STATIC, frame.static_node_num, self)
         self._matrix = SnapshotMatrixAccessor(self)
 
-        cdef UINT total_node_num = graph.static_node_num + graph.dynamic_node_num
+        cdef UINT total_node_num = frame.static_node_num + frame.dynamic_node_num
 
-        self.dynamic_node_num = graph.dynamic_node_num
-        self.static_node_num = graph.static_node_num
-        self.graph_float_row_size = graph.float_row_size
-        self.graph_int_row_size = graph.int_row_size
-        self.graph_float_block_size = total_node_num * graph.float_row_size
-        self.graph_int_block_size = total_node_num * graph.int_row_size
-        self.graph_int_mat_size = graph.int_mat_row_size
+        self.dynamic_node_num = frame.dynamic_node_num
+        self.static_node_num = frame.static_node_num
+        self.frame_float_row_size = frame.float_row_size
+        self.frame_int_row_size = frame.int_row_size
+        self.frame_float_block_size = total_node_num * frame.float_row_size
+        self.frame_int_block_size = total_node_num * frame.int_row_size
+        self.frame_int_mat_size = frame.int_mat_row_size
 
-        self.float_data_block = np.zeros((max_tick, self.graph_float_block_size), dtype=FLOAT_DTYPE)
-        self.int_data_block = np.zeros((max_tick, self.graph_int_block_size), dtype=INT_DTYPE)
-        self.int_mat_data_block = np.zeros((max_tick, self.graph_int_mat_size), dtype=INT_DTYPE)
+        self.float_data_block = np.zeros((max_tick, self.frame_float_block_size), dtype=FLOAT_DTYPE)
+        self.int_data_block = np.zeros((max_tick, self.frame_int_block_size), dtype=INT_DTYPE)
+        self.int_mat_data_block = np.zeros((max_tick, self.frame_int_mat_size), dtype=INT_DTYPE)
 
         self.latest_index = -1 # no snapshot 
-        self.attribute_map = graph.attribute_map
+        self.attribute_map = frame.attribute_map
 
     def reset(self):
         self.latest_index = -1
@@ -528,16 +522,16 @@ cdef class SnapshotList:
 
         return 0
 
-    cpdef void insert_snapshot(self, Graph graph, UINT tick):
-        '''Insert a snapshot from specified graph
+    cpdef void insert_snapshot(self, Frame frame, UINT tick):
+        '''Insert a snapshot from specified frame
 
         Args:
-            graph (Graph): graph to take snapshot
-            tick (int): tick of current graph
+            frame (Frame): frame to take snapshot
+            tick (int): tick of current frame
         '''
-        self.float_data_block[tick:] = graph.float_data_block
-        self.int_data_block[tick:] = graph.int_data_block
-        self.int_mat_data_block[tick:] = graph.int_mat_data_block
+        self.float_data_block[tick:] = frame.float_data_block
+        self.int_data_block[tick:] = frame.int_data_block
+        self.int_mat_data_block[tick:] = frame.int_mat_data_block
 
         self.latest_index = tick
 
@@ -548,12 +542,12 @@ cdef class SnapshotList:
         Example:
             get 1st slot value of attribute "a1" from dynamic node "12" at tick "100"
 
-            attr_value = snapshotlist.get_attribute(100, ResourceNodeType.DYNAMIC, 12, "a1", 0)
+            attr_value = snapshotlist.get_attribute(100, FrameNodeType.DYNAMIC, 12, "a1", 0)
 
         Args:
             tick (int): tick of the snapshot
-            node_type (ResourceNodeType): resource node type to get
-            node_id (int): id of the resource node
+            node_type (FrameNodeType): frame node type to get
+            node_id (int): id of the frame node
             attribute_name (str): name of the attribute
             attribute_index (int): slot index of the attribute
 
@@ -561,24 +555,24 @@ cdef class SnapshotList:
             int/float: value
 
         Raises:
-            GraphAttributeNotFoundError: if the attribute name not being registered
+            FrameAttributeNotFoundError: if the attribute name not being registered
         '''
         
         if attribute_name not in self.attribute_map:
-            raise GraphAttributeNotFoundError(f"cannot find attribute {attribute_name} in current graph.")
+            raise FrameAttributeNotFoundError(f"cannot find attribute {attribute_name} in current frame.")
 
-        cdef GraphAttribute attribute = self.attribute_map[attribute_name]
+        cdef FrameAttribute attribute = self.attribute_map[attribute_name]
         cdef UINT node_offset = node_type* self.static_node_num + node_id
         cdef UINT attribute_offset = attribute.start_index + attribute_index
         cdef attribute_type = attribute.attribute_type
 
 
         if attribute_type == ATTR_TYPE_FLOAT:            
-            return self.float_data_block[tick, node_offset * self.graph_float_row_size + attribute_offset]
+            return self.float_data_block[tick, node_offset * self.frame_float_row_size + attribute_offset]
         elif attribute_type == ATTR_TYPE_INT:
-            return self.int_data_block[tick, node_offset * self.graph_int_row_size + attribute_offset]
+            return self.int_data_block[tick, node_offset * self.frame_int_row_size + attribute_offset]
 
-        raise GraphInvalidAccessError("invalid type to access")
+        raise FrameInvalidAccessError("invalid type to access")
 
     cpdef np.ndarray get_matrix(self, list ticks, str attribute_name):
         '''Get a matrix attribute for specified ticks.
@@ -590,13 +584,13 @@ cdef class SnapshotList:
             attribute_name (str): name of attribute name to query
         '''
         if attribute_name not in self.attribute_map:
-            raise GraphAttributeNotFoundError(f"cannot find attribute {attribute_name} in current graph.")
+            raise FrameAttributeNotFoundError(f"cannot find attribute {attribute_name} in current frame.")
 
-        cdef GraphAttribute attribute = self.attribute_map[attribute_name]
+        cdef FrameAttribute attribute = self.attribute_map[attribute_name]
         cdef attribute_type = attribute.attribute_type
 
         if attribute_type != ATTR_TYPE_INT_MAT:
-            raise GraphInvalidAccessError(f"Attribute is not a matrix, please use get_attribute to retrieve value")
+            raise FrameInvalidAccessError(f"Attribute is not a matrix, please use get_attribute to retrieve value")
 
         cdef ticks_length = len(ticks)
         cdef attribute_size = attribute.size
@@ -643,7 +637,7 @@ cdef class SnapshotList:
             # if you are not sure about the slot length of an attribute
             slots = snapshotlist.get_slot_length("a1")
         Args:
-            node_type (ResourceNodeType): type of resource node, static or dynamic
+            node_type (FrameNodeType): type of resource node, static or dynamic
             ticks (list[int]): list of tick to query, if the tick not available, then related value will be 0
             node_ids (list[int]): list of node id, if the id not exist, then the related value will be 0
             attribute_names (list[str]): attribute names to query, if the attribute not exist, then the related value will be 0
@@ -658,8 +652,8 @@ cdef class SnapshotList:
         cdef UINT attr_offset = 0
         cdef UINT attr_type = ATTR_TYPE_FLOAT
         cdef UINT static_node_num = self.static_node_num
-        cdef UINT float_row_size = self.graph_float_row_size
-        cdef UINT int_row_size = self.graph_int_row_size
+        cdef UINT float_row_size = self.frame_float_row_size
+        cdef UINT int_row_size = self.frame_int_row_size
         cdef UINT index = 0
 
         cdef UINT max_node_num = self.static_node_num
@@ -701,7 +695,7 @@ cdef class SnapshotList:
                             attr_type = attr.attribute_type
 
                             if attr_type == ATTR_TYPE_INT_MAT:
-                                raise GraphInvalidAccessError(f"{attr_name} is not support in get_attributes interface")
+                                raise FrameInvalidAccessError(f"{attr_name} is not support in get_attributes interface")
 
                             if attr_index < attr.size:
                                 node_offset = node_type * static_node_num + node_id

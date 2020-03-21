@@ -1,6 +1,6 @@
-from maro.simulator.graph import Graph, ResourceNodeType
+from maro.simulator.frame import Frame, FrameNodeType
 
-static_node = ResourceNodeType.STATIC
+static_node = FrameNodeType.STATIC
 
 GENDOR_UNKNOWN = 0
 GENDOR_MALE = 1
@@ -10,9 +10,9 @@ USERTYPE_SUBSCRIPTOR = 0
 USERTYPE_CUSTOMER = 1
 
 class Cell:
-    def __init__(self, index: int, id: int, bikes: int, capacity:int, graph: Graph):
+    def __init__(self, index: int, id: int, bikes: int, capacity:int, frame: Frame):
         self._index = index
-        self._graph = graph
+        self._frame = frame
         self._id = id
         self._bikes = bikes
         self._capacity = capacity
@@ -29,91 +29,91 @@ class Cell:
 
     @property
     def bikes(self):
-        return self._graph.get_attribute(static_node, self._index, "bikes", 0)
+        return self._frame.get_attribute(static_node, self._index, "bikes", 0)
 
     @bikes.setter
     def bikes(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "bikes", 0, value)
+        self._frame.set_attribute(static_node, self._index, "bikes", 0, value)
 
     @property
     def fulfillment(self):
-        return self._graph.get_attribute(static_node, self._index, "fulfillment", 0)
+        return self._frame.get_attribute(static_node, self._index, "fulfillment", 0)
 
     @property
     def trip_requirement(self):
-        return self._graph.get_attribute(static_node, self._index, "trip_requirement", 0)
+        return self._frame.get_attribute(static_node, self._index, "trip_requirement", 0)
 
     @trip_requirement.setter
     def trip_requirement(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "trip_requirement", 0, value)
+        self._frame.set_attribute(static_node, self._index, "trip_requirement", 0, value)
 
         self._update_fulfillment("fulfillment", value, self.shortage)
 
     @property
     def shortage(self):
-        return self._graph.get_attribute(static_node, self._index, "shortage", 0)
+        return self._frame.get_attribute(static_node, self._index, "shortage", 0)
 
     @shortage.setter
     def shortage(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "shortage", 0, value)
+        self._frame.set_attribute(static_node, self._index, "shortage", 0, value)
 
         self._update_fulfillment("fulfillment", self.trip_requirement, value)
 
     @property
     def capacity(self):
-        return self._graph.get_attribute(static_node, self._index, "capacity", 0)
+        return self._frame.get_attribute(static_node, self._index, "capacity", 0)
 
     @capacity.setter
     def capacity(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "capacity", 0, value)
+        self._frame.set_attribute(static_node, self._index, "capacity", 0, value)
 
     @property
     def unknown_gendors(self):
-        return self._graph.get_attribute(static_node, self._index, "unknown_gendors", 0)
+        return self._frame.get_attribute(static_node, self._index, "unknown_gendors", 0)
 
     @unknown_gendors.setter
     def unknown_gendors(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "unknown_gendors", 0, value)
+        self._frame.set_attribute(static_node, self._index, "unknown_gendors", 0, value)
 
     @property
     def males(self):
-        return self._graph.get_attribute(static_node, self._index, "males", 0)
+        return self._frame.get_attribute(static_node, self._index, "males", 0)
 
     @males.setter
     def males(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "males", 0, value)
+        self._frame.set_attribute(static_node, self._index, "males", 0, value)
 
     @property
     def females(self):
-        return self._graph.get_attribute(static_node, self._index, "females", 0)
+        return self._frame.get_attribute(static_node, self._index, "females", 0)
 
     @females.setter
     def females(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "females", 0, value)
+        self._frame.set_attribute(static_node, self._index, "females", 0, value)
 
     @property
     def weekday(self):
-        return self._graph.get_attribute(static_node, self._index, "weekday", 0)
+        return self._frame.get_attribute(static_node, self._index, "weekday", 0)
 
     @weekday.setter
     def weekday(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "weekday", 0, value)       
+        self._frame.set_attribute(static_node, self._index, "weekday", 0, value)       
 
     @property
     def subscriptor(self):
-        return self._graph.get_attribute(static_node, self._index, "subscriptor", 0)
+        return self._frame.get_attribute(static_node, self._index, "subscriptor", 0)
 
     @subscriptor.setter
     def subscriptor(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "subscriptor", 0, value)       
+        self._frame.set_attribute(static_node, self._index, "subscriptor", 0, value)       
 
     @property
     def customer(self):
-        return self._graph.get_attribute(static_node, self._index, "customer", 0)
+        return self._frame.get_attribute(static_node, self._index, "customer", 0)
 
     @customer.setter
     def customer(self, value: int):
-        self._graph.set_attribute(static_node, self._index, "customer", 0, value)     
+        self._frame.set_attribute(static_node, self._index, "customer", 0, value)     
 
     def update_gendor(self, gendor: int, num: int=1):
         if gendor == GENDOR_FEMALE:
@@ -142,4 +142,4 @@ class Cell:
         self.customer = 0
 
     def _update_fulfillment(self, field, trip_requirement, shortage):
-        self._graph.set_attribute(static_node, self._index, field, 0, trip_requirement - shortage)
+        self._frame.set_attribute(static_node, self._index, field, 0, trip_requirement - shortage)

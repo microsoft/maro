@@ -1,12 +1,12 @@
-from maro.simulator.graph import Graph, GraphAttributeType
+from maro.simulator.frame import Frame, FrameAttributeType
 
-INT = GraphAttributeType.INT
+INT = FrameAttributeType.INT
 
 
 def build(cell_num: int):
-    graph = Graph(cell_num, 0)
+    frame = Frame(cell_num, 0)
 
-    reg_attr = graph.register_attribute
+    reg_attr = frame.register_attribute
 
     reg_attr("bikes", INT, 1)
     reg_attr("fulfillment", INT, 1)
@@ -25,6 +25,6 @@ def build(cell_num: int):
     reg_attr("subscriptor", INT, 1)
     reg_attr("customer", INT, 2)
 
-    graph.setup()
+    frame.setup()
 
-    return graph
+    return frame

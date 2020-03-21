@@ -4,13 +4,13 @@
 
 import unittest
 import os
-from maro.simulator.graph import GraphAttributeType, Graph, SnapshotList, ResourceNodeType
+from maro.simulator.frame import FrameAttributeType, Frame, SnapshotList, FrameNodeType
 from maro.simulator.scenarios.ecr.port import Port
 from maro.simulator.scenarios.ecr.vessel import Vessel
 from maro.simulator.event_buffer import EventBuffer, EventState
 from maro.simulator.scenarios.ecr.business_engine import EcrBusinessEngine, EcrEventType
 from mock_data_generator import MockDataGenerator
-from maro.simulator.scenarios.ecr.graph_builder import gen_ecr_graph
+from maro.simulator.scenarios.ecr.frame_builder import gen_ecr_frame
 
 MAX_TICK = 20
 
@@ -30,7 +30,7 @@ def next_step(eb: EventBuffer, be: EcrBusinessEngine, tick: int):
 
         eb.execute(tick)
 
-    be.snapshots.insert_snapshot(be.graph, tick)
+    be.snapshots.insert_snapshot(be.frame, tick)
 
 
 def setup_case(case_name: str):
@@ -51,19 +51,19 @@ def mock_ecr_init_func(self, event_buffer, topology_path, max_tick):
 
     self._vessels = []
     self._ports = []
-    self._graph = None
+    self._frame = None
 
-    self._init_graph()
+    self._init_frame()
 
-    self._snapshots = SnapshotList(self._graph, max_tick)
+    self._snapshots = SnapshotList(self._frame, max_tick)
 
     self._register_events()
 
     self._load_departure_events()
 
 
-def mock_graph(port_num, vessel_num, future_stop_number):
-    return gen_ecr_graph(port_num, vessel_num, future_stop_number)
+def mock_frame(port_num, vessel_num, future_stop_number):
+    return gen_ecr_frame(port_num, vessel_num, future_stop_number)
 
 
 class TestEcrScenarios(unittest.TestCase):
@@ -75,10 +75,10 @@ class TestEcrScenarios(unittest.TestCase):
         be: EcrBusinessEngine = None
         eb, be = setup_case("case_01")
 
-        # check graph
-        self.assertEqual(3, be.graph.static_node_number, "static node number should be same with port number after "
+        # check frame
+        self.assertEqual(3, be.frame.static_node_number, "static node number should be same with port number after "
                                                          "initialization")
-        self.assertEqual(2, be.graph.dynamic_node_number, "dynamic node number should be same with vessel number "
+        self.assertEqual(2, be.frame.dynamic_node_number, "dynamic node number should be same with vessel number "
                                                           "after initialization")
 
         # check snapshot
@@ -212,7 +212,7 @@ class TestEcrScenarios(unittest.TestCase):
         # we have hard coded the future stops, here we just check if the value correct at each tick
         for i in range(tick - 1):
             # check if the future stop at tick 8 (vessel 0 arrive at port 1)
-            stop_list = be.snapshots.get_attributes(ResourceNodeType.DYNAMIC,
+            stop_list = be.snapshots.get_attributes(FrameNodeType.DYNAMIC,
                                                     [i, ],
                                                     [0, ],
                                                     ["past_stop_list", "past_stop_tick_list"],
@@ -221,7 +221,7 @@ class TestEcrScenarios(unittest.TestCase):
             self.assertEqual(-1, stop_list[0])
             self.assertEqual(-1, stop_list[2])
 
-            stop_list = be.snapshots.get_attributes(ResourceNodeType.DYNAMIC,
+            stop_list = be.snapshots.get_attributes(FrameNodeType.DYNAMIC,
                                                     [i, ],
                                                     [0, ],
                                                     ["future_stop_list", "future_stop_tick_list"],
@@ -235,7 +235,7 @@ class TestEcrScenarios(unittest.TestCase):
             self.assertEqual(20, stop_list[5])
 
             # check if statistics data correct
-            order_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
+            order_states = be.snapshots.get_attributes(FrameNodeType.STATIC,
                                                        [i],
                                                        [0],
                                                        ["shortage", "acc_shortage", "booking", "acc_booking"],
@@ -248,7 +248,7 @@ class TestEcrScenarios(unittest.TestCase):
             self.assertEqual(0, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
 
             # check fulfillment
-            fulfill_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
+            fulfill_states = be.snapshots.get_attributes(FrameNodeType.STATIC,
                                                          [i],
                                                          [0],
                                                          ["fulfillment", "acc_fulfillment"],
@@ -331,7 +331,7 @@ class TestEcrScenarios(unittest.TestCase):
         self.assertEqual(be._data_generator.total_containers, total_cntr_number, "containers number should be changed")
 
         # check if statistics data correct
-        order_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
+        order_states = be.snapshots.get_attributes(FrameNodeType.STATIC,
                                                    [7],
                                                    [0],
                                                    ["shortage", "acc_shortage", "booking", "acc_booking"],
@@ -344,7 +344,7 @@ class TestEcrScenarios(unittest.TestCase):
         self.assertEqual(101, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
 
         # check fulfillment
-        fulfill_states = be.snapshots.get_attributes(ResourceNodeType.STATIC,
+        fulfill_states = be.snapshots.get_attributes(FrameNodeType.STATIC,
                                                      [7],
                                                      [0],
                                                      ["fulfillment", "acc_fulfillment"],

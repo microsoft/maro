@@ -4,9 +4,9 @@
 
 from abc import ABC, abstractmethod
 from typing import Dict, List
-from maro.simulator.graph import Graph, SnapshotList
 
 from maro.simulator.event_buffer import EventBuffer
+from maro.simulator.frame import Frame, SnapshotList
 
 
 class AbsBusinessEngine(ABC):
@@ -25,15 +25,15 @@ class AbsBusinessEngine(ABC):
 
     @property
     @abstractmethod
-    def graph(self) -> Graph:
-        """Graph: Graph of current business engine
+    def frame(self) -> Frame:
+        """Frame: Frame of current business engine
         """
         pass
 
     @property
     @abstractmethod
     def snapshots(self) -> SnapshotList:
-        """SnapshotList: Snapshot list of current graph"""
+        """SnapshotList: Snapshot list of current frame"""
         pass
 
     @abstractmethod
