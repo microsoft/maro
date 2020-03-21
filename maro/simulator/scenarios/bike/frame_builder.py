@@ -19,11 +19,16 @@ def build(cell_num: int):
     reg_attr("unknown_gendors", INT, 1)
     reg_attr("males", INT, 1)
     reg_attr("females", INT, 1)
-    reg_attr("weekday", INT, 1)
-
+    
     # usertype
     reg_attr("subscriptor", INT, 1)
     reg_attr("customer", INT, 2)
+
+    # TODO: these attributes should be a byte value with latest branch later
+    reg_attr("weekday", INT, 1)
+    reg_attr("temperature", INT, 1)
+    reg_attr("weather", INT, 1)
+    reg_attr("holiday", INT, 1)
 
     frame.setup()
 
