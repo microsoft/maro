@@ -11,19 +11,15 @@ from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.graph import Graph, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 
-from .abs_decisionstrategy import AbsDecisionStrategy
 from .cell import Cell
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
                      DecisionEvent, Trip)
 from .data_reader import BikeDataReader
-from .graph_builder import build
-from .percent_decisionstrategy import BikePercentDecisionStrategy
-
-decision_dict = {
-    'percent': BikePercentDecisionStrategy
-}
+from .decision_strategy import BikeDecisionStrategy
+from .resource_builder import build
 
 class BikeEventType(IntEnum):
+    """Events we need to handled to process trip logic"""
     TripRequirement = 1    # a user need a bike
     BikeReturn = 2         # user return the bike at target cell
     BikeTransfermation = 3 # transfer bikes from a cell to another
@@ -43,9 +39,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         with open(config_path) as fp:
             self._conf = safe_load(fp)
-
-        self._transfer_time = int(self._conf["transfer_time"])
-        self._scope_percent = float(self._conf["scope_percent"])
 
         self._init_graph()
         self._init_data_reader()
@@ -88,7 +81,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         # the env will take snapshot for use when we need an action, so we do not need to take action here
         for cell_idx in cells_need_decision:
             # we use tick (in hour) here, not internal tick, as agent do not need to known this
-            decision_payload = DecisionEvent(cell_idx, tick, self.action_scope)
+            decision_payload = DecisionEvent(cell_idx, tick, self._decision_strategy.action_scope)
             decision_evt  = self._event_buffer.gen_cascade_event(unit_tick, DECISION_EVENT, deciton_payload)
 
             self._event_buffer.insert_event(decision_evt)
@@ -123,19 +116,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
         # reset cell to initial value
         for cell in self._cells:
             cell.reset()
-
-    def action_scope(self, cell_idx: int) -> object:
-        """Get the action scope of specified agent
-
-        Args:
-            cell_idx (int): index of cell
-
-        Returns:
-            object: action scope object that may different for each scenario
-        """
-        cell: Cell = self._cells[cell_idx]
-        
-        return math.floor(cell.bikes * self._scope_percent)
 
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
@@ -196,22 +176,19 @@ class BikeBusinessEngine(AbsBusinessEngine):
             self._cell_map[int(r[0])] = i
 
     def _init_data_reader(self):
-        self._data_reader = BikeDataReader(self._conf["data_file"], 
+        self._data_reader = BikeDataReader(self._conf["trip_file"], 
                                             self._conf["start_datetime"], 
                                             self._max_tick, self._cell_map)
 
 
     def _init_decision_strategy(self):
-        decision_type = self._conf["decision"]["type"]
-
-        if decision_type in decision_dict:
-            self._decision_strategy = decision_dict[decision_type](self._cells, self._conf["decision"]["config"]) 
-        else:
-            raise "Invalid decision type"
+        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
 
     def _reg_event(self):
         self._event_buffer.register_event_handler(BikeEventType.TripRequirement, self._on_trip_gen)
         self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
+        
+        # decision event, predefined in event buffer
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
         self._event_buffer.register_event_handler(BikeEventType.BikeTransfermation , self._on_bike_recieved)
 
@@ -263,7 +240,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.bikes -= executed_number
 
             payload = BikeTransferPaylod(action.from_cell, action.to_cell, action.number)
-            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + self._transfer_time, BikeEventType.BikeTransfermation, payload)
+
+            # TODO: apply random transfer ticks
+            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + 10, BikeEventType.BikeTransfermation, payload)
             
             self._event_buffer.insert_event(transfer_evt)
 
