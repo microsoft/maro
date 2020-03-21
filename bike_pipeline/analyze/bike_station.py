@@ -52,6 +52,7 @@ def _station_json_to_pd(json_data):
     json_frame['station_id'] = pd.to_numeric(json_frame['station_id'],errors='coerce',downcast='integer')
     json_frame['station_latitude'] = pd.to_numeric(json_frame['station_latitude'],errors='coerce',downcast='integer')
     json_frame['station_longitude'] = pd.to_numeric(json_frame['station_longitude'],errors='coerce',downcast='integer')
+    return json_frame
 
 
 if __name__ == "__main__":
