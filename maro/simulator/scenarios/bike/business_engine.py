@@ -68,7 +68,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             internal_tick (int): internal tick (in minute) to process trip data
         """
 
-        # get trip requiremnts for current internal tick (in minute)
+        # get trip requirements for current internal tick (in minute)
         trips = self._data_reader.get_trips(internal_tick)
         
         # generate events to process
@@ -190,8 +190,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
         
         # decision event, predefined in event buffer
-        self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
-        self._event_buffer.register_event_handler(BikeEventType.BikeTransfermation , self._on_bike_recieved)
+        self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_received)
+        self._event_buffer.register_event_handler(BikeEventType.BikeTransfermation , self._on_bike_received)
 
     def _on_trip_gen(self, evt: Event):
         """On order generated:
@@ -231,7 +231,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         # TODO: what about more than capacity?
         target_cell.bikes += 1
 
-    def _on_action_recieved(self, evt: Event):
+    def _on_action_received(self, evt: Event):
         action: Action  = None
         
         for action in evt.payload:
@@ -249,7 +249,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             
             self._event_buffer.insert_event(transfer_evt)
 
-    def _on_bike_recieved(self, evt: Event):
+    def _on_bike_received(self, evt: Event):
         payload: BikeTransferPaylod = evt.payload
         cell: Cell = self._cells[payload.to_cell]
 

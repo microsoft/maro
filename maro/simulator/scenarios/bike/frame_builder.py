@@ -22,7 +22,7 @@ def build(cell_num: int):
     
     # usertype
     reg_attr("subscriptor", INT, 1)
-    reg_attr("customer", INT, 2)
+    reg_attr("customer", INT, 1)
 
     # TODO: these attributes should be a byte value with latest branch later
     reg_attr("weekday", INT, 1)
