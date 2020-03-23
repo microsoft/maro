@@ -2,7 +2,7 @@ decision:
   resolution: 20 # frequence to check if a cell need an action
   std: 20
   scale: 10
-  high: 0.3 # TODO: name
+  high: 0.5 # TODO: name
   low: 0.05
 reward:
   alpha: 0.4
