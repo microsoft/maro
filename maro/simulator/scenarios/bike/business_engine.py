@@ -50,7 +50,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._reg_event()
 
-        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
+        self._decision_strategy = BikeDecisionStrategy(
+            self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
 
     @property
@@ -187,13 +188,13 @@ class BikeBusinessEngine(AbsBusinessEngine):
             self._cell_map[int(r[0])] = i
 
     def _init_data_reader(self):
-        self._data_reader = BikeTripReader(self._conf["trip_file"], 
-                                            self._conf["start_datetime"], 
-                                            self._max_tick, self._cell_map)
+        self._data_reader = BikeTripReader(self._conf["trip_file"],
+                                           self._conf["start_datetime"],
+                                           self._max_tick, self._cell_map)
 
     def _reg_event(self):
         self._event_buffer.register_event_handler(
-            BikeEventType.TripRequirement, self._on_trip_gen)
+            BikeEventType.TripRequirement, self._on_trip_requirement)
         self._event_buffer.register_event_handler(
             BikeEventType.BikeReturn, self._on_bike_return)
 
@@ -203,17 +204,17 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(
             BikeEventType.BikeTransfermation, self._on_bike_received)
 
-    def _on_trip_gen(self, evt: Event):
-        """On order generated:
-        1. try to remove a bike from inventory
-        2. update shortage, gendor, usertype and weekday statistics states"""
+    def _on_trip_requirement(self, evt: Event):
+        """On trip requirement handler:
+        1. try to fulfill the trip requirement in this cell
+        2. update inventory, shortage, gendor, usertype and weekday statistics states"""
 
-        order: Order = evt.payload
-        cell_idx: int = order.from_cell
+        trip: Trip = evt.payload
+        cell_idx: int = trip.from_cell
         cell: Cell = self._cells[cell_idx]
         cell_bikes = cell.bikes
 
-        # update order count
+        # update trip count
         cell.trip_requirement += 1
 
         if cell_bikes <= 0:
@@ -223,14 +224,14 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.bikes = cell_bikes - 1
 
             # TODO: update gender, weekday and usertype
-            cell.update_gendor(order.gendor)
-            cell.update_usertype(order.usertype)
-            cell.weekday = order.weekday
+            cell.update_gendor(trip.gendor)
+            cell.update_usertype(trip.usertype)
+            cell.weekday = trip.weekday
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(order.from_cell, order.to_cell)
+            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell)
             bike_return_evt = self._event_buffer.gen_atom_event(
-                order.end_tick, BikeEventType.BikeReturn, payload=return_payload)
+                trip.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
