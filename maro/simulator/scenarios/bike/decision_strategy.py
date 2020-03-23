@@ -7,10 +7,10 @@ class BikeDecisionStrategy:
         self._cells = cells
 
         self.resolution = options["resolution"]
-        self.std = options["std"]
-        self.high = options["high"]
-        self.low = options["low"]
-        self.scale = options["scale"]
+        self.time_mean = options["effective_time_mean"]
+        self.high_water_mark_ratio = options["high_water_mark_ratio"]
+        self.low_water_mark_ratio = options["low_water_mark_ratio"]
+        self.time_std = options["effective_time_std"]
 
     def get_cells_need_decision(self, tick: int, internal_tick: int) -> list:
         """Get cells that need to take an action from agent at current tick"""
@@ -20,7 +20,7 @@ class BikeDecisionStrategy:
         if (internal_tick + 1) % self.resolution == 0:
             for cell in self._cells:
                 # if cell has too many available bikes, then we ask an action
-                if cell.bikes/cell.capacity >= self.high:
+                if cell.bikes/cell.capacity >= self.high_water_mark_ratio:
                     cells.append(cell.index)
 
         return cells
@@ -30,9 +30,9 @@ class BikeDecisionStrategy:
         cell: Cell = self._cells[cell_idx]
 
         # how many bikes we can supply to other cells
-        return floor(cell.bikes * (1-self.low))
+        return floor(cell.bikes * (1 - self.low_water_mark_ratio))
 
     @property
     def transfer_time(self):
         """Transfer time from one cell to another"""
-        return round(np.random.normal(self.std, scale=self.scale))
+        return round(np.random.normal(self.time_mean, scale=self.time_std))
