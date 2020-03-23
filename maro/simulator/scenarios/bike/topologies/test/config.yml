@@ -1,9 +1,13 @@
 decision:
   resolution: 20 # frequence to check if a cell need an action
-  std: 20
-  scale: 10
-  high: 0.8 # TODO: name
-  low: 0.05
+  effective_time_mean: 20
+  effective_time_std: 10
+  high_water_mark_ratio: 0.5 # TODO: name
+  low_water_mark_ratio: 0.05
+reward: # reward options
+  alpha: 0.4
+  beta: 0.3
+  gamma: 0.3
 start_datetime: "2019-12-02"
 trip_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/trips.bin"
 cell_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/stations.csv"
