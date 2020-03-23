@@ -255,7 +255,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
             payload = BikeTransferPayload(
                 action.from_cell, action.to_cell, action.number)
 
-            # TODO: apply random transfer ticks
             transfer_time = self._decision_strategy.transfer_time
             transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
                                                              BikeEventType.BikeTransfermation, payload)
