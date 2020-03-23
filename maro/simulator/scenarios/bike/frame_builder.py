@@ -9,6 +9,7 @@ def build(cell_num: int):
     reg_attr = frame.register_attribute
 
     reg_attr("bikes", INT, 1)
+    reg_attr("docks", INT, 1)
     reg_attr("fulfillment", INT, 1)
     reg_attr("trip_requirement", INT, 1)
     reg_attr("shortage", INT, 1)
@@ -19,7 +20,7 @@ def build(cell_num: int):
     reg_attr("unknown_gendors", INT, 1)
     reg_attr("males", INT, 1)
     reg_attr("females", INT, 1)
-    
+
     # usertype
     reg_attr("subscriptor", INT, 1)
     reg_attr("customer", INT, 1)
