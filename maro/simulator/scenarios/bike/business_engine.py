@@ -24,7 +24,7 @@ class BikeEventType(IntEnum):
     """Events we need to handled to process trip logic"""
     TripRequirement = 1    # a user need a bike
     BikeReturn = 2         # user return the bike at target cell
-    BikeTransfermation = 3  # transfer bikes from a cell to another
+    BikeReceived = 3  # transfer bikes from a cell to another
 
 
 class BikeBusinessEngine(AbsBusinessEngine):
@@ -202,7 +202,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(
             DECISION_EVENT, self._on_action_received)
         self._event_buffer.register_event_handler(
-            BikeEventType.BikeTransfermation, self._on_bike_received)
+            BikeEventType.BikeReceived, self._on_bike_received)
 
     def _on_trip_requirement(self, evt: Event):
         """On trip requirement handler:
@@ -257,7 +257,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             transfer_time = self._decision_strategy.transfer_time
             transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
-                                                             BikeEventType.BikeTransfermation, payload)
+                                                             BikeEventType.BikeReceived, payload)
 
             self._event_buffer.insert_event(transfer_evt)
 
