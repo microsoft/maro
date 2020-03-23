@@ -1,0 +1,35 @@
+FROM python:3.7.5
+
+WORKDIR /maro_dist
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# base
+RUN apt-get update --fix-missing  && apt-get install -y sudo && apt-get install -y apt-utils
+RUN apt-get install -y wget && apt-get install -y --no-install-recommends curl
+RUN apt-get install -y zsh && apt-get install -y git-core
+RUN apt-get install -y jq
+RUN apt-get install -y vim
+RUN apt-get install -y inotify-tools
+RUN apt-get install -y htop
+RUN apt-get install gcc
+RUN apt-get install -y redis-server
+RUN apt-get install -y libzmq3-dev
+RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+# oh my zsh
+RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || echo hi
+RUN chsh -s `which zsh` && wget https://raw.githubusercontent.com/ArthurJiang/config/master/.zshrc -O ~/.zshrc
+
+# copy/install requirements
+COPY ./requirements.dev.txt /maro_dist/requirements.dev.txt
+
+RUN pip install -r requirements.dev.txt
+
+# set env
+ENV LANG en_US.utf8
+
+ENV PYTHONPATH "/maro_dist:${PYTHONPATH}"
+
+CMD ["zsh"]
+

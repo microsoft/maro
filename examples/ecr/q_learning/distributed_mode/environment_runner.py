@@ -37,9 +37,6 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
-COMPONENT_TYPE = os.environ['COMPTYPE']
-COMPONENT_ID = os.environ.get('COMPID', None)
-COMPONENT_NAME = '.'.join([COMPONENT_TYPE,COMPONENT_ID])
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
 MAX_TICK = config.env.max_tick
@@ -57,7 +54,7 @@ BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
 REWARD_SHAPING = config.train.reward_shaping
-TRAIN_SEED = config.train.seed + int(COMPONENT_ID if COMPONENT_ID is not None else 0)
+TRAIN_SEED = config.train.seed + int(str(config.self_id).split('.')[-1])
 TEST_SEED = config.test.seed
 QNET_SEED = config.qnet.seed
 RUNNER_LOG_ENABLE = config.log.runner.enable
@@ -74,16 +71,16 @@ class EnvRunner(Runner):
                          log_enable=log_enable, dashboard_enable=dashboard_enable)
         self._agent_idx_list = self._env.agent_idx_list
         self._agent2learner = {self._agent_idx_list[i]: 'learner.' + str(i) for i in range(len(self._agent_idx_list))}
-        self._proxy = Proxy(group_name=os.environ['GROUP'],
-                            component_name=COMPONENT_NAME,
-                            peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
+        self._proxy = Proxy(group_name=config.group_name,
+                            component_name=config.self_id,
+                            peer_name_list=config.peers_id,
                             redis_address=(config.redis.host, config.redis.port),
                             logger=self._logger)
 
         if log_enable:
-            self._logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
+            self._logger = Logger(tag=config.self_id, format_=LogFormat.simple,
                                   dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
-            self._performance_logger = Logger(tag=f'{COMPONENT_NAME}.performance', format_=LogFormat.none,
+            self._performance_logger = Logger(tag=f'{config.self_id}.performance', format_=LogFormat.none,
                                               dump_folder=LOG_FOLDER, dump_mode='w', extension_name='csv',
                                               auto_timestamp=False)
 

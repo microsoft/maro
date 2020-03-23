@@ -16,7 +16,7 @@ from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 from maro.distributed import dist, Proxy, Message
 from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
 from examples.ecr.q_learning.common.dqn import QNet, DQN
-from examples.utils import log, get_peers
+from examples.utils import log
 from examples.ecr.q_learning.common.dashboard_ex import DashboardECR
 
 
@@ -51,14 +51,11 @@ DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
 DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 
-COMPONENT_TYPE = os.environ['COMPTYPE']
-COMPONENT_ID = os.environ['COMPID']
-COMPONENT_NAME = '.'.join([COMPONENT_TYPE, COMPONENT_ID])
-logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
+logger = Logger(tag=config.self_id, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
-proxy = Proxy(group_name=os.environ['GROUP'],
-              component_name=COMPONENT_NAME,
-              peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
+proxy = Proxy(group_name=config.group_name,
+              component_name=config.self_id,
+              peer_name_list=config.peers_id,
               redis_address=(config.redis.host, config.redis.port),
               logger=logger)
 
@@ -118,7 +115,7 @@ def on_env_checkout(local_instance, proxy, message):
     if message.source in pending_envs:
         pending_envs.remove(message.source)
         if len(pending_envs) == 0:
-            logger.critical(f"{COMPONENT_NAME} exited")
+            logger.critical(f"{config.self_id} exited")
             sys.exit(1)
 
 

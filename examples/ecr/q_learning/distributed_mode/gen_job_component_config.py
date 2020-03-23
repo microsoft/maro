@@ -31,7 +31,7 @@ def convert():
     component_id_list_dict = dict()
     for component_type in component_list:
         component_id_list_dict[component_type] = \
-            [component_type + '_' + str(i).zfill(3) for i in range(int(dist_config[component_type]['num']))]
+            [component_type + '.' + str(i) for i in range(int(dist_config[component_type]['num']))]
 
     for component_type in component_list:
         peers_id_list = []
@@ -44,6 +44,7 @@ def convert():
             component_config.pop('distributed')
 
             component_config['self_id'] = component_id
+            component_config['self_component_type'] = component_type
             component_config['peers_id'] = peers_id_list
             component_config['group_name'] = group_name
             component_config['resources'] = dist_config['resources'][component_type]
