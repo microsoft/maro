@@ -4,6 +4,13 @@ decision:
   scale: 10
   high: 0.8 # TODO: name
   low: 0.05
+# TODO: @chaos
+# decision:
+#   resolution: 20
+#   effective_time_mean: 20
+#   effective_time_std: 10
+#   high_water_mark_ratio: 0.4
+#   low_water_mark_ratio: 0.05
 start_datetime: "2019-12-02"
 trip_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/trips.bin"
 cell_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/stations.csv"
