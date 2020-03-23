@@ -108,7 +108,86 @@ from collections import defaultdict
 """
 # NOTE: the order will affect the result data
 input_file_list = [
-    "201912-citibike-tripdata.csv"
+    "201306-citibike-tripdata.csv",
+    "201307-citibike-tripdata.csv",
+    "201308-citibike-tripdata.csv",
+    "201309-citibike-tripdata.csv",
+    "201310-citibike-tripdata.csv",
+    "201311-citibike-tripdata.csv",
+    "201312-citibike-tripdata.csv",
+    "201401-citibike-tripdata.csv",
+    "201402-citibike-tripdata.csv",
+    "201403-citibike-tripdata.csv",
+    "201404-citibike-tripdata.csv",
+    "201405-citibike-tripdata.csv",
+    "201406-citibike-tripdata.csv",
+    "201407-citibike-tripdata.csv",
+    "201408-citibike-tripdata.csv",
+    "201409-citibike-tripdata.csv",
+    "201410-citibike-tripdata.csv",
+    "201411-citibike-tripdata.csv",
+    "201412-citibike-tripdata.csv",
+    "201501-citibike-tripdata.csv",
+    "201502-citibike-tripdata.csv",
+    "201503-citibike-tripdata.csv",
+    "201504-citibike-tripdata.csv",
+    "201505-citibike-tripdata.csv",
+    "201506-citibike-tripdata.csv",
+    "201507-citibike-tripdata.csv",
+    "201508-citibike-tripdata.csv",
+    "201509-citibike-tripdata.csv",
+    "201510-citibike-tripdata.csv",
+    "201511-citibike-tripdata.csv",
+    "201512-citibike-tripdata.csv",
+    "201601-citibike-tripdata.csv",
+    "201602-citibike-tripdata.csv",
+    "201603-citibike-tripdata.csv",
+    "201604-citibike-tripdata.csv",
+    "201605-citibike-tripdata.csv",
+    "201606-citibike-tripdata.csv",
+    "201607-citibike-tripdata.csv",
+    "201608-citibike-tripdata.csv",
+    "201609-citibike-tripdata.csv",
+    "201610-citibike-tripdata.csv",
+    "201611-citibike-tripdata.csv",
+    "201612-citibike-tripdata.csv",
+    "201701-citibike-tripdata.csv",
+    "201702-citibike-tripdata.csv",
+    "201703-citibike-tripdata.csv",
+    "201704-citibike-tripdata.csv",
+    "201705-citibike-tripdata.csv",
+    "201706-citibike-tripdata.csv",
+    "201707-citibike-tripdata.csv",
+    "201708-citibike-tripdata.csv",
+    "201709-citibike-tripdata.csv",
+    "201710-citibike-tripdata.csv",
+    "201711-citibike-tripdata.csv",
+    "201712-citibike-tripdata.csv",
+    "201801-citibike-tripdata.csv",
+    "201802-citibike-tripdata.csv",
+    "201803-citibike-tripdata.csv",
+    "201804-citibike-tripdata.csv",
+    "201805-citibike-tripdata.csv",
+    "201806-citibike-tripdata.csv",
+    "201807-citibike-tripdata.csv",
+    "201808-citibike-tripdata.csv",
+    "201809-citibike-tripdata.csv",
+    "201810-citibike-tripdata.csv",
+    "201811-citibike-tripdata.csv",
+    "201812-citibike-tripdata.csv",
+    "201901-citibike-tripdata.csv",
+    "201902-citibike-tripdata.csv",
+    "201903-citibike-tripdata.csv",
+    "201904-citibike-tripdata.csv",
+    "201905-citibike-tripdata.csv",
+    "201906-citibike-tripdata.csv",
+    "201907-citibike-tripdata.csv",
+    "201908-citibike-tripdata.csv",
+    "201909-citibike-tripdata.csv",
+    "201910-citibike-tripdata.csv",
+    "201911-citibike-tripdata.csv",
+    "201912-citibike-tripdata.csv",
+    "202001-citibike-tripdata.csv"
 ]
 
 usertype_map={
@@ -119,6 +198,7 @@ usertype_map={
 data_file_name = "data.bin"
 mapping_file_name = "map.csv"
 distance_table_name = "distance.csv"
+cell_file_name = "cell.csv"
 
 
 output_data_dtype = np.dtype([
@@ -128,6 +208,8 @@ output_data_dtype = np.dtype([
     ("duration", "i4"), # min
     ("gendor", "b"), 
     ("usertype", "b"), 
+    ("start_cell", "i2"),
+    ("end_cell", "i2")
 ])
 
 
@@ -171,22 +253,23 @@ def read_src_file(file: str):
             reader = csv.DictReader(fp)
 
             for l in reader:
-                item = (
-                    cal_durations(deal_int(l["tripduration"])),
-                    deal_datetime(l["starttime"]),
-                    deal_int(l["start station id"]),
-                    deal_str(l["start station name"]),
-                    deal_int(l["end station id"]),
-                    deal_str(l['end station name']),
-                    deal_float(l["start station latitude"]),
-                    deal_float(l["start station longitude"]),
-                    deal_float(l["end station latitude"]),
-                    deal_float(l["end station longitude"]),
-                    deal_usertype(l["usertype"]),
-                    deal_int(l["gender"])
-                )
+                if "NULL" not in l.values() and "\"NULL\"" not in l.values() and "'NULL'" not in l.values():
+                    item = (
+                        cal_durations(deal_int(l["tripduration"])),
+                        deal_datetime(l["starttime"]),
+                        deal_int(l["start station id"]),
+                        deal_str(l["start station name"]),
+                        deal_int(l["end station id"]),
+                        deal_str(l['end station name']),
+                        deal_float(l["start station latitude"]),
+                        deal_float(l["start station longitude"]),
+                        deal_float(l["end station latitude"]),
+                        deal_float(l["end station longitude"]),
+                        deal_usertype(l["usertype"]),
+                        deal_int(l["gender"])
+                    )
 
-                ret.append(item)
+                    ret.append(item)
 
                 # stations[item[2]] = (item[3], item[6], item[7]) # start station, log and lat
                 # stations[item[4]] = (item[5], item[8], item[9]) # end station, log and lat
@@ -199,6 +282,19 @@ def distinct_stations(s: dict, d: dict):
 
     return s
 
+def station_to_cell(station_file_path: str):
+    cell_data = None
+    station_data = None
+    if os.path.exists(station_file_path):
+        with open(station_file_path, mode="r", encoding="utf-8") as station_file:
+            raw_station_data = pd.read_csv(station_file)
+            cell_data = raw_station_data[['hex_id','neighbors']].drop_duplicates(subset=['hex_id']).reset_index()
+            cell_data['cell_id'] = pd.to_numeric(cell_data.index)
+            station_data = raw_station_data.join(cell_data[['cell_id','hex_id']].set_index('hex_id'), on='hex_id')
+            print(station_data,cell_data)
+    return cell_data, station_data
+    
+
 
 ######### output ############
 
@@ -206,6 +302,7 @@ def distinct_stations(s: dict, d: dict):
 def init(output_folder: str):
     data_path = os.path.join(output_folder, data_file_name)
     map_path = os.path.join(output_folder, mapping_file_name)
+    cell_path = os.path.join(output_folder, cell_file_name)
 
     np.memmap()
 
@@ -216,18 +313,8 @@ def concat(data: list, file: str, station_data: pd.DataFrame):
     item_num = len(data)
 
     for d in data:
-        from_cell_id = station_data.loc[int(station_data['station_id']) == d[2], 'hex_id']
-        to_cell_id = station_data.loc[int(station_data['station_id']) == d[4], 'hex_id']
-        print((
-            d[1],
-            d[2],
-            d[4],
-            d[0],
-            d[10],
-            d[11],
-            from_cell_id,
-            to_cell_id
-        ))
+        start_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[2], 'cell_id'].values[0]
+        end_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[4], 'cell_id'].values[0]
         ret.append((
             d[1],
             d[2],
@@ -235,10 +322,9 @@ def concat(data: list, file: str, station_data: pd.DataFrame):
             d[0],
             d[10],
             d[11],
-            from_cell_id,
-            to_cell_id
+            start_cell_id,
+            end_cell_id
         ))
-
     # get the file size
     file_size = 0
 
@@ -307,6 +393,7 @@ if __name__ == "__main__":
     station_file_path = sys.argv[3]
 
     output_data_path = os.path.join(output_folder, data_file_name)
+    cell_file_path = os.path.join(output_folder, cell_file_name)
 
     if len(sys.argv) >= 5:
         # tick type
@@ -317,10 +404,17 @@ if __name__ == "__main__":
 
     station_map = {}
 
-    station_data = read_station_file(station_file_path)
+    # station_data = read_station_file(station_file_path)
+
+    cell_data, station_data = station_to_cell(station_file_path)
+
+    with open(cell_file_path, mode="w", encoding="utf-8") as cell_file:
+        cell_data.to_csv(cell_file)
 
     for src_file in input_file_list:
         src_full_path = os.path.join(input_folder, src_file)
+
+        print(src_full_path)
 
         r,s = read_src_file(src_full_path)
 

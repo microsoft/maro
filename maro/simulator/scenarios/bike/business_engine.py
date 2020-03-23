@@ -24,7 +24,8 @@ class BikeEventType(IntEnum):
     """Events we need to handled to process trip logic"""
     TripRequirement = 1    # a user need a bike
     BikeReturn = 2         # user return the bike at target cell
-    BikeTransfermation = 3 # transfer bikes from a cell to another
+    BikeTransfermation = 3  # transfer bikes from a cell to another
+
 
 class BikeBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
@@ -33,7 +34,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._decision_strategy = None
         self._max_tick = max_tick
         self._cells = []
-        self._cell_map = {} # TODO: can be removed after we have actually have cell
+        self._cell_map = {}  # TODO: can be removed after we have actually have cell
 
         config_path = os.path.join(config_path, "config.yml")
 
@@ -44,7 +45,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._init_frame()
         self._init_data_reader()
-        
+
         self._snapshots = SnapshotList(self._frame, max_tick)
 
         self._reg_event()
@@ -71,22 +72,26 @@ class BikeBusinessEngine(AbsBusinessEngine):
             internal_tick (int): internal tick (in minute) to process trip data
         """
 
-        # get trip requiremnts for current internal tick (in minute)
+        # get trip requirements for current internal tick (in minute)
         trips = self._data_reader.get_trips(internal_tick)
-        
+
         # generate events to process
         for trip in trips:
-            trip_evt = self._event_buffer.gen_atom_event(internal_tick, BikeEventType.TripRequirement, payload=trip)
+            trip_evt = self._event_buffer.gen_atom_event(
+                internal_tick, BikeEventType.TripRequirement, payload=trip)
 
             self._event_buffer.insert_event(trip_evt)
 
-        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick ,internal_tick)
+        cells_need_decision = self._decision_strategy.get_cells_need_decision(
+            tick, internal_tick)
 
         # the env will take snapshot for use when we need an action, so we do not need to take action here
         for cell_idx in cells_need_decision:
             # we use tick (in hour) here, not internal tick, as agent do not need to known this
-            decision_payload = DecisionEvent(cell_idx, tick, self._decision_strategy.action_scope)
-            decision_evt  = self._event_buffer.gen_cascade_event(internal_tick, DECISION_EVENT, decision_payload)
+            decision_payload = DecisionEvent(
+                cell_idx, tick, self._decision_strategy.action_scope)
+            decision_evt = self._event_buffer.gen_cascade_event(
+                internal_tick, DECISION_EVENT, decision_payload)
 
             self._event_buffer.insert_event(decision_evt)
 
@@ -171,7 +176,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 rows.append(l)
 
         self._frame = build(len(rows))
-  
+
         for i, r in enumerate(rows):
             if len(r) == 0:
                 break
@@ -187,12 +192,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
                                             self._max_tick, self._cell_map)
 
     def _reg_event(self):
-        self._event_buffer.register_event_handler(BikeEventType.TripRequirement, self._on_trip_gen)
-        self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
-        
+        self._event_buffer.register_event_handler(
+            BikeEventType.TripRequirement, self._on_trip_gen)
+        self._event_buffer.register_event_handler(
+            BikeEventType.BikeReturn, self._on_bike_return)
+
         # decision event, predefined in event buffer
-        self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
-        self._event_buffer.register_event_handler(BikeEventType.BikeTransfermation , self._on_bike_recieved)
+        self._event_buffer.register_event_handler(
+            DECISION_EVENT, self._on_action_received)
+        self._event_buffer.register_event_handler(
+            BikeEventType.BikeTransfermation, self._on_bike_received)
 
     def _on_trip_gen(self, evt: Event):
         """On order generated:
@@ -206,21 +215,22 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         # update order count
         cell.trip_requirement += 1
-        
+
         if cell_bikes <= 0:
             # shortage
             cell.shortage += 1
         else:
             cell.bikes = cell_bikes - 1
 
-            # TODO: update gender, weekday and usertype 
+            # TODO: update gender, weekday and usertype
             cell.update_gendor(order.gendor)
             cell.update_usertype(order.usertype)
             cell.weekday = order.weekday
 
             # generate a bike return event by end tick
             return_payload = BikeReturnPayload(order.from_cell, order.to_cell)
-            bike_return_evt = self._event_buffer.gen_atom_event(order.end_tick, BikeEventType.BikeReturn, payload=return_payload)
+            bike_return_evt = self._event_buffer.gen_atom_event(
+                order.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
@@ -228,31 +238,33 @@ class BikeBusinessEngine(AbsBusinessEngine):
         payload: BikeReturnPayload = evt.payload
         target_cell: Cell = self._cells[payload.to_cell]
 
-
         # TODO: what about more than capacity?
+        # Search the adjacent cell, and put the bike to the nearest neighbor, and add an extra transfer cost
         target_cell.bikes += 1
 
-    def _on_action_recieved(self, evt: Event):
-        action: Action  = None
-        
+    def _on_action_received(self, evt: Event):
+        action: Action = None
+
         for action in evt.payload:
             cell: Cell = self._cells[action.from_cell]
 
             executed_number = min(cell.bikes, action.number)
             cell.bikes -= executed_number
 
-            payload = BikeTransferPayload(action.from_cell, action.to_cell, action.number)
+            payload = BikeTransferPayload(
+                action.from_cell, action.to_cell, action.number)
 
             # TODO: apply random transfer ticks
             transfer_time = self._decision_strategy.transfer_time
-            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time, 
-                                                BikeEventType.BikeTransfermation, payload)
-            
+            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
+                                                             BikeEventType.BikeTransfermation, payload)
+
             self._event_buffer.insert_event(transfer_evt)
 
-    def _on_bike_recieved(self, evt: Event):
+    def _on_bike_received(self, evt: Event):
         payload: BikeTransferPaylod = evt.payload
         cell: Cell = self._cells[payload.to_cell]
 
         # TODO: what about if out of capacity
+        # Search the adjacent cell, and put the bike to the nearest neighbor, and add an extra transfer cost
         cell.bikes += payload.number
