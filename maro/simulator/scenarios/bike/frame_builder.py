@@ -29,6 +29,7 @@ def build(cell_num: int):
     reg_attr("temperature", INT, 1)
     reg_attr("weather", INT, 1)
     reg_attr("holiday", INT, 1)
+    reg_attr("extra_cost", INT, 1)
 
     frame.setup()
 

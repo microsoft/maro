@@ -11,6 +11,7 @@ class CellReward:
         
         cell: Cell = self._cells[cell_idx]
 
+        # TODO: add extra cost
         reward = self._alpha * cell.shortage + self._beta * cell.fulfillment + self._gamma * cell.trip_requirement
 
         return reward
