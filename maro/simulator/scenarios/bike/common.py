@@ -57,4 +57,4 @@ class Action:
         self.number = number
 
     def __repr__(self):
-        return f"Action(cell: {self.cell}, number: {self.number})"
+        return f"Action(from cell: {self.from_cell}, to cell: {self.to_cell}, number: {self.number})"
