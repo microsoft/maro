@@ -17,6 +17,7 @@ from .common import (Action, BikeReturnPayload, BikeTransferPayload,
 from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
 from .trip_reader import BikeTripReader
+from .cell_reward import CellReward
 
 
 class BikeEventType(IntEnum):
@@ -47,7 +48,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._snapshots = SnapshotList(self._frame, max_tick)
 
         self._reg_event()
-        self._init_decision_strategy()
+
+        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
+        self._reward = CellReward(self._cells, self._conf["reward"])
 
     @property
     def frame(self) -> Frame:
@@ -101,7 +104,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
         Returns:
             float: reward based on actions
         """
-        return []
+        rewards = [self._reward.reward(action.from_cell) for action in actions]
+
+        return rewards
 
     def reset(self):
         """Reset business engine"""
@@ -180,10 +185,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._data_reader = BikeTripReader(self._conf["trip_file"], 
                                             self._conf["start_datetime"], 
                                             self._max_tick, self._cell_map)
-
-
-    def _init_decision_strategy(self):
-        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
 
     def _reg_event(self):
         self._event_buffer.register_event_handler(BikeEventType.TripRequirement, self._on_trip_gen)
