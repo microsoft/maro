@@ -22,3 +22,10 @@ for i in range(total_ep):
 
     print(f"bike number at station 0 (index not id) in {max_ticks} hours.")
     print(inv[:, 0]) # 1st column means bikes station of station 0 at all the ticks
+
+    # features for cell index: 0
+    feature_names = ["bikes", "shortage", "trip_requirement", "temperature", "weather", "holiday"]
+    features = env.snapshot_list.static_nodes[:0:(feature_names, 0)]
+    features = features.reshape(max_ticks, 6) # one tick one row, features in each row
+    print(feature_names)
+    print(features)
