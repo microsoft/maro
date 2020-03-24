@@ -113,7 +113,31 @@ class Cell:
 
     @customer.setter
     def customer(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "customer", 0, value)     
+        self._frame.set_attribute(static_node, self._index, "customer", 0, value)   
+
+    @property
+    def temperature(self):
+        return self._frame.get_attribute(static_node, self._index, "temperature", 0)
+
+    @temperature.setter
+    def temperature(self, value: float):
+        self._frame.set_attribute(static_node, self._index, "temperature", 0, value)
+
+    @property
+    def weather(self):
+        return self._frame.get_attribute(static_node, self._index, "weather", 0)
+
+    @weather.setter
+    def weather(self, value: int):
+        self._frame.set_attribute(static_node, self._index, "weather" ,0, value)
+
+    @property
+    def holiday(self):
+        return self._frame.get_attribute(static_node, self._index, "holiday", 0)
+
+    @holiday.setter
+    def holiday(self, value: int):
+        self._frame.set_attribute(static_node, self._index, "holiday", 0, value)  
 
     def update_gendor(self, gendor: int, num: int=1):
         if gendor == GENDOR_FEMALE:
