@@ -204,9 +204,9 @@ cell_file_name = "cell.csv"
 
 output_data_dtype = np.dtype([
     ("start_time", "datetime64[s]"), # datetime
-    ("start_station", "i4"), # id
-    ("end_station", "i4"), # id
-    ("duration", "i4"), # min
+    ("start_station", "i2"), # id
+    ("end_station", "i2"), # id
+    ("duration", "i2"), # min
     ("gendor", "b"), 
     ("usertype", "b"), 
     ("start_cell", "i2"),
@@ -289,6 +289,7 @@ def read_src_file(file: str):
             ret['gender'] = pd.to_numeric(ret['gender'],errors='coerce',downcast='integer')
             ret['usertype'] = ret['usertype'].apply(str).apply(lambda x: 0 if x in ['Subscriber','subscriber'] else 1 if x in ['Customer','customer'] else 2)
             ret.dropna(subset=['start station id','end station id'], inplace=True)
+            ret.drop(ret[ret['tripduration'] <= 1].index, axis=0, inplace=True)
 
     return ret, stations
 
@@ -306,6 +307,8 @@ def station_to_cell(station_file_path: str):
             raw_station_data = pd.read_csv(station_file)
             cell_data = raw_station_data[['hex_id', 'capacity', 'init']].groupby(['hex_id']).sum().reset_index()
             cell_data['cell_id'] = pd.to_numeric(cell_data.index)
+            cell_data['capacity'] = pd.to_numeric(cell_data['capacity'], downcast='integer')
+            cell_data['init'] = pd.to_numeric(cell_data['init'], downcast='integer')
             station_data = raw_station_data.join(cell_data[['cell_id','hex_id']].set_index('hex_id'), on='hex_id')
             print(station_data,cell_data)
             mapping_data = station_data[['cell_id','hex_id','neighbors']].drop_duplicates(subset=['cell_id'])
@@ -449,7 +452,7 @@ if __name__ == "__main__":
     cell_data, station_data, mapping_data = station_to_cell(station_file_path)
 
     with open(cell_file_path, mode="w", encoding="utf-8") as cell_file:
-        cell_data.to_csv(cell_file, index=False)
+        cell_data.to_csv(cell_file, index=False, header=False)
 
     with open(mapping_file_path, mode="w", encoding="utf-8") as mapping_file:
         mapping_data.to_csv(mapping_file, index=False, header=False)
@@ -462,8 +465,8 @@ if __name__ == "__main__":
         r,s = read_src_file(src_full_path)
 
         # s = distinct_stations(station_map, s)
-
-        concat(r, output_data_path, station_data)
+        if r is not None:
+            concat(r, output_data_path, station_data)
 
     # map_full_path = os.path.join(output_folder, mapping_file_name)
     # save_mapping(station_map, map_full_path)
