@@ -22,15 +22,15 @@ class DiscreteActionShaping():
         self._action_space = action_space
         
 
-    def __call__(self, scope: ActionScope, action_index: int, station_bike: float, dest_neighbor_remaining_space: float) -> int:
+    def __call__(self, scope: ActionScope, action_index: int) -> int:
         '''
         Args:
             scope (ActionScope): Action actual available scope.
                         e.g. {'discharge': 0, 'load': 2000}
             action_index (int): Module output.
         '''
-
-        return max(round(self._action_space[action_index] * station_bike), dest_neighbor_remaining_space)
+        # To do: obtain station bike and neighbor capacity from scope
+        return max(round(self._action_space[action_index] * scope), scope)
 
 
     @property

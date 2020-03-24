@@ -1,8 +1,8 @@
 experiment_name: "baseline"
 env:
-  scenario: "citi_bike"
-  topology: "ny_201306_202001"
-  max_tick: -1 # stop until the data steam end
+  scenario: "bike"
+  topology: "test"
+  max_tick: 500 # stop until the data steam end
 train:
   max_ep: 500 # max episode
   batch_num: 10
@@ -27,13 +27,15 @@ qnet:
   seed: 0
 log:
   runner:
-    enable: true
+    enable: false
   agent:
     enable: false
   dqn:
     enable: false
     dropout_p: 0.95
   qnet:
+    enable: false
+  dashboard:
     enable: false
 dashboard:
   enable: false
@@ -42,3 +44,7 @@ dashboard:
     port: 50301
     use_udp: true
     udp_port: 50304
+  ranklist:
+    enable: false
+    author: your_name
+    commit: your_commit

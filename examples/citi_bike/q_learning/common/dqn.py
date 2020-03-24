@@ -172,7 +172,7 @@ class DQN(object):
         if sample > eps:
             with torch.no_grad():
                 q_values_batch = self._policy_net(state)
-                q_values_batch_mean = torch.mean(q_values_batch.mean, dim = 0)
+                q_values_batch_mean = torch.mean(q_values_batch, dim = 0)
                 if self._log_enable:
                     sample = random.random()
                     if sample > self._log_dropout_p: 

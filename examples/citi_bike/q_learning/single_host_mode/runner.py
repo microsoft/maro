@@ -19,16 +19,17 @@ from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
 from examples.citi_bike.q_learning.common.agent import Agent
 from examples.citi_bike.q_learning.common.dqn import QNet, DQN
-from examples.citi_bike.q_learning.common.reward_shaping import TruncateReward, GoldenFingerReward
+from examples.citi_bike.q_learning.common.reward_shaping import TruncateReward
 from examples.citi_bike.q_learning.common.state_shaping import StateShaping
 from examples.citi_bike.q_learning.common.action_shaping import DiscreteActionShaping
 # from examples.citi_bike.q_learning.common.citi_bike_dashboard import Dashboardciti_bike, RanklistColumns
-from maro.simulator.scenarios.citi_bike.common import citi_bikeEventType
+from maro.simulator.scenarios.bike.business_engine import BikeEventType
 
 
 ####################################################### START OF INITIAL_PARAMETERS #######################################################
 
 CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
+#/home/xinran/maro/examples/citi_bike/q_learning/single_host_mode/
 
 with io.open(CONFIG_PATH, 'r') as in_file:
     raw_config = yaml.safe_load(in_file)
@@ -49,7 +50,7 @@ MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
 PHASE_SPLIT_POINT = config.train.exploration.phase_split_point  # exploration two phase split point
-FIRST_PHASE_REDUCE_PROstationION = config.train.exploration.first_phase_reduce_prostationion  # first phase reduce prostationion of max_eps
+FIRST_PHASE_REDUCE_PROPORTION = config.train.exploration.first_phase_reduce_proportion  # first phase reduce prostationion of max_eps
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 LEARNING_RATE = config.train.dqn.lr
 DROPOUT_P = config.train.dqn.dropout_p
@@ -76,9 +77,9 @@ REWARD_SHAPING = config.train.reward_shaping
 DASHBOARD_ENABLE = config.dashboard.enable
 DASHBOARD_LOG_ENABLE = config.log.dashboard.enable
 DASHBOARD_HOST = config.dashboard.influxdb.host
-DASHBOARD_station = config.dashboard.influxdb.station
+DASHBOARD_PORT = config.dashboard.influxdb.port
 DASHBOARD_USE_UDP = config.dashboard.influxdb.use_udp
-DASHBOARD_UDP_station = config.dashboard.influxdb.udp_station
+DASHBOARD_UDP_PORT = config.dashboard.influxdb.udp_port
 RANKLIST_ENABLE = config.dashboard.ranklist.enable
 AUTHOR = config.dashboard.ranklist.author
 COMMIT = config.dashboard.ranklist.commit
@@ -101,30 +102,31 @@ class Runner:
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
-        self._station_idx2name = self._env.node_name_mapping
+        # self._station_idx2name = self._env.node_name_mapping
+        self._station_idx2name = {key:key for key in self._env.agent_idx_list}
         self._agent_dict = self._load_agent(self._env.agent_idx_list)
         self._station_name2idx = {}
         for idx in self._station_idx2name.keys():
             self._station_name2idx[self._station_idx2name[idx]] = idx
         self._time_cost = OrderedDict()
-        if log_enable:
-            self._logger = Logger(tag='runner', format_=LogFormat.simple,
-                                  dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
-            self._performance_logger = Logger(tag=f'runner.performance', format_=LogFormat.none,
-                                              dump_folder=LOG_FOLDER, dump_mode='w', extension_name='csv',
-                                              auto_timestamp=False)
-            self._performance_logger.debug(
-                f"episode,epsilon,{','.join([station_name + '_booking' for station_name in self._station_idx2name.values()])},"
-                f"total_booking,{','.join([station_name + '_shortage' for station_name in self._station_idx2name.values()])},"
-                f"total_shortage")
+        # if log_enable:
+        #     self._logger = Logger(tag='runner', format_=LogFormat.simple,
+        #                           dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
+        #     self._performance_logger = Logger(tag=f'runner.performance', format_=LogFormat.none,
+        #                                       dump_folder=LOG_FOLDER, dump_mode='w', extension_name='csv',
+        #                                       auto_timestamp=False)
+        #     self._performance_logger.debug(
+        #         f"episode,epsilon,{','.join([str(station_name) + '_booking' for station_name in self._station_idx2name])},"
+        #         f"total_booking,{','.join([str(station_name) + '_shortage' for station_name in self._station_idx2name])},"
+        #         f"total_shortage")
 
     def _load_agent(self, agent_idx_list: [int]):
         if DASHBOARD_ENABLE:
             self._dashboard = Dashboardciti_bike(EXPERIMENT_NAME, LOG_FOLDER if DASHBOARD_LOG_ENABLE else None,
                                             host=DASHBOARD_HOST,
-                                            station=DASHBOARD_station,
+                                            port=DASHBOARD_PORT,
                                             use_udp=DASHBOARD_USE_UDP,
-                                            udp_station=DASHBOARD_UDP_station)
+                                            udp_port=DASHBOARD_UDP_PORT)
             self._ranklist_enable = RANKLIST_ENABLE
             self._dashboard.update_ranklist_info(
                 info={
@@ -156,17 +158,14 @@ class Runner:
         state_shaping = StateShaping(env=self._env,
                                      relative_tick_list=[-1, -2, -3, -4, -5, -6, -7],
                                      neighbor_number = 6,
-                                     station_attribute_list=["bikes","fullfillment","orders","shortage","capacity","acc_orders","acc_shortage",
-                                     "acc_fullfillment","unknow_gendors","males","females","weekday","subscriptor","customer"])
+                                     station_attribute_list=["bikes","fullfillment","trip_requirement","shortage","capacity",
+                                     "unknow_gendors","males","females","weekday","weather","holiday","temperature","subscriptor","customer","extra_cost"])
         action_space = [round((1/6)*i,2) for i in range(0, 6)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
-        if REWARD_SHAPING == 'gf':
-            reward_shaping = GoldenFingerReward(env=self._env, topology=self._topology, action_space=action_space,
-                                                log_folder=LOG_FOLDER)
-        elif REWARD_SHAPING == 'tc':
+        if REWARD_SHAPING == 'tc':
             reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list, log_folder=LOG_FOLDER)
         else:
-            raise ValueError('Unsupstationed Reward Shaping')
+            raise ValueError('Unsuported Reward Shaping')
 
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()
@@ -210,10 +209,10 @@ class Runner:
             self._set_seed(TRAIN_SEED + ep)
             pbar.set_description('train episode')
             env_start = time.time()
-            _, decision_event, is_done = self._env.step(None)
+            _, decision_event, is_done =self._env.step(None)
 
             while not is_done:
-                action = self._agent_dict[decision_event.station_idx].choose_action(
+                action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
                 _, decision_event, is_done = self._env.step(action)
             time_dict['env_time'] = time.time() - env_start
@@ -249,11 +248,11 @@ class Runner:
             self._set_seed(TEST_SEED)
             pbar.set_description('test episode')
             env_start = time.time()
-            _, decision_event, is_done = self._env.step(None)
+            _, decision_event, is_done =self._env.step(None)
             while not is_done:
-                action = self._agent_dict[decision_event.station_idx].choose_action(
-                    decision_event=decision_event, eps=0, current_ep=ep)
-                _, decision_event, is_done = self._env.step(action)
+                action = self._agent_dict[decision_event.cell_idx].choose_action(
+                    decision_event=decision_event, eps=0, curent_ep=ep)
+                _, decision_event, is_done =self._env.step(action)
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
                 self._print_summary(ep=ep, is_train=False)
@@ -370,21 +369,21 @@ class Runner:
         events = self._env.get_finished_events()
         for event in events:
             # Pick data for ep laden executed
-            if event.event_type == citi_bikeEventType.DISCHARGE_FULL:
+            if event.event_type == BikeEventType.DISCHARGE_FULL:
                 if event.payload.from_station_idx not in from_to_executed:
                     from_to_executed[event.payload.from_station_idx] = {}
                 if event.payload.station_idx not in from_to_executed[event.payload.from_station_idx]:
                     from_to_executed[event.payload.from_station_idx][event.payload.station_idx] = 0
                 from_to_executed[event.payload.from_station_idx][event.payload.station_idx] += event.payload.quantity
             # Pick data for ep laden planed
-            elif event.event_type == citi_bikeEventType.ORDER:
+            elif event.event_type == BikeEventType.ORDER:
                 if event.payload.src_station_idx not in from_to_planed:
                     from_to_planed[event.payload.src_station_idx] = {}
                 if event.payload.dest_station_idx not in from_to_planed[event.payload.src_station_idx]:
                     from_to_planed[event.payload.src_station_idx][event.payload.dest_station_idx] = 0
                 from_to_planed[event.payload.src_station_idx][event.payload.dest_station_idx] += event.payload.quantity
             # Pick and upload data for event early discharge, actual_action, tml cost
-            elif event.event_type == citi_bikeEventType.PENDING_DECISION:
+            elif event.event_type == BikeEventType.PENDING_DECISION:
                 station_name = self._station_idx2name[event.payload.station_idx]
                 pretty_early_discharge_dict[station_name] = pretty_early_discharge_dict.get(station_name, 0) + event.payload.early_discharge
                 self._dashboard.upload_exp_data(fields={station_name: event.payload.early_discharge}, ep=dashboard_ep, tick=event.tick, measurement='event_early_discharge')
@@ -398,7 +397,7 @@ class Runner:
                 pretty_tml_cost_dict[station_name] = pretty_tml_cost_dict.get(station_name, 0) + event_tml_cost
                 self._dashboard.upload_exp_data(fields={station_name: event_tml_cost}, ep=dashboard_ep, tick=event.tick, measurement='event_tml_cost')
 
-            elif event.event_type == citi_bikeEventType.VESSEL_ARRIVAL:
+            elif event.event_type == BikeEventType.VESSEL_ARRIVAL:
                 cur_tick = event.tick
                 # Pick and upload data for event vessel usage
                 vessel_idx = event.payload.vessel_idx
@@ -489,9 +488,9 @@ class Runner:
 
 if __name__ == '__main__':
     phase_split_point = PHASE_SPLIT_POINT
-    first_phase_eps_delta = MAX_EPS * FIRST_PHASE_REDUCE_PROstationION
+    first_phase_eps_delta = MAX_EPS * FIRST_PHASE_REDUCE_PROPORTION
     first_phase_total_ep = MAX_TRAIN_EP * phase_split_point
-    second_phase_eps_delta = MAX_EPS * (1 - FIRST_PHASE_REDUCE_PROstationION)
+    second_phase_eps_delta = MAX_EPS * (1 - FIRST_PHASE_REDUCE_PROPORTION)
     second_phase_total_ep = MAX_TRAIN_EP * (1 - phase_split_point)
 
     first_phase_eps_step = first_phase_eps_delta / (first_phase_total_ep + 1e-10)
