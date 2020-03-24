@@ -152,10 +152,11 @@ class Cell:
         # here we use cached neighbors to speedup
         return self._neighbors_cache
 
-    def set_neighbors(self, beighbors: list):
+    def set_neighbors(self, neighbors: list):
         self._neighbors_cache = []
 
-        for i, cell_idx in enumerate(beighbors):
+        for i, cell_idx in enumerate(neighbors):
+      
             self._neighbors_cache.append(cell_idx)
             self._frame.set_attribute(static_node, self._index, "neighbors", i, cell_idx)
 
@@ -185,6 +186,8 @@ class Cell:
         self.subscriptor = 0 
         self.customer = 0
         self.holiday = WORKDAY
+
+        self.set_neighbors(self._neighbors_cache)
 
     def _update_fulfillment(self, field, trip_requirement, shortage):
         self._frame.set_attribute(static_node, self._index, field, 0, trip_requirement - shortage)
