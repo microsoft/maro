@@ -189,6 +189,8 @@ input_file_list = [
     "201911-citibike-tripdata.csv",
     "201912-citibike-tripdata.csv",
     "202001-citibike-tripdata.csv"
+
+    # "sample.csv"
 ]
 
 usertype_map={
@@ -277,9 +279,9 @@ def read_src_file(file: str):
             ret = pd.read_csv(fp)
             
             ret['tripduration'] = pd.to_numeric(pd.to_numeric(ret['tripduration'], downcast='integer') /60, downcast='integer')
-            ret['starttime'] = pd.to_datetime(ret['starttime']).astype(np.int64)
+            ret['starttime'] = pd.to_datetime(ret['starttime'])
             ret['start station id'] = pd.to_numeric(ret['start station id'],errors='coerce',downcast='integer')
-            ret['stoptime'] = pd.to_datetime(ret['stoptime']).astype(np.int64)
+            ret['stoptime'] = pd.to_datetime(ret['stoptime'])
             ret['end station id'] = pd.to_numeric(ret['end station id'],errors='coerce',downcast='integer')
             ret['start station latitude'] = pd.to_numeric(ret['start station latitude'],downcast='float')
             ret['start station longitude'] = pd.to_numeric(ret['start station longitude'],downcast='float')
@@ -313,7 +315,7 @@ def station_to_cell(station_file_path: str):
             print(station_data,cell_data)
             mapping_data = station_data[['cell_id','hex_id','neighbors']].drop_duplicates(subset=['cell_id'])
             mapping_data['mapping'] = mapping_data['neighbors'].apply(lambda x: _gen_neighbor_mapping(x, mapping_data[['cell_id','hex_id']]))
-            mapping_map = pd.DataFrame(0, index=np.arange(len(mapping_data)), columns=np.arange(len(mapping_data)))
+            mapping_map = pd.DataFrame(-1, index=np.arange(len(mapping_data)), columns=np.arange(6))
             mapping_data[['cell_id','mapping']].apply(lambda x:  _fill_mapping(x, mapping_map),axis=1)
             cell_data = cell_data[['cell_id','capacity','init']]
             print(mapping_map)
@@ -327,11 +329,13 @@ def _gen_neighbor_mapping(neighbors: str, neighbors_mapping: pd.DataFrame):
     return ret
 
 def _fill_mapping(row, mapping_map: pd.DataFrame):
-    for y in row['mapping']:
+    c = 0
+    for i in range(len(row['mapping'])):
         x = row['cell_id']
-        if x != y:
-            mapping_map.loc[x,y] = 1
-            mapping_map.loc[y,x] = 1
+        if row['mapping'][i] != x:
+            mapping_map.loc[x,c] = int(row['mapping'][i])
+            c += 1
+
 
 ######### output ############
 
@@ -451,10 +455,10 @@ if __name__ == "__main__":
 
     cell_data, station_data, mapping_data = station_to_cell(station_file_path)
 
-    with open(cell_file_path, mode="w", encoding="utf-8") as cell_file:
-        cell_data.to_csv(cell_file, index=False, header=False)
+    with open(cell_file_path, mode="w", encoding="utf-8", newline='') as cell_file:
+        cell_data.to_csv(cell_file, index=False)
 
-    with open(mapping_file_path, mode="w", encoding="utf-8") as mapping_file:
+    with open(mapping_file_path, mode="w", encoding="utf-8", newline='') as mapping_file:
         mapping_data.to_csv(mapping_file, index=False, header=False)
 
     for src_file in input_file_list:
