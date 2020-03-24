@@ -42,8 +42,9 @@ class QNet(nn.Module):
         self._hidden_dims = hidden_dims
         self._output_dim = output_dim
         self._layers = self._build_layers([input_dim] + hidden_dims)
-        self._head = nn.Linear(hidden_dims[-1], output_dim)
-        self._net = nn.Sequential(*self._layers, self._head)
+        self._head1 = nn.Linear(hidden_dims[-1], output_dim)
+        self._head2 = nn.Linear(hidden_dims[-1], output_dim)
+        self._net = nn.Sequential(*self._layers)
         self._log_enable = False if log_folder is None else True
         if self._log_enable:
             self._model_summary_logger = Logger(tag=f'{self._name}.model_summary', format_=LogFormat.none,
@@ -56,6 +57,7 @@ class QNet(nn.Module):
 
     def forward(self, x):
         q_values_batch = self._net(x)
+        q_values_batch = torch.stack((self._head1(q_values_batch), self._head2(q_values_batch)),0)
         return q_values_batch
 
     @property
@@ -170,24 +172,25 @@ class DQN(object):
         if sample > eps:
             with torch.no_grad():
                 q_values_batch = self._policy_net(state)
+                q_values_batch_mean = torch.mean(q_values_batch.mean, dim = 0)
                 if self._log_enable:
                     sample = random.random()
-                    if sample > self._log_dropout_p:
-                        for q_values in q_values_batch:
+                    if sample > self._log_dropout_p: 
+                        for q_values in q_values_batch_mean:
                             self._q_curve_logger.debug(f'{current_ep},{self._learning_counter},' + ','.join(
                                 [str(q_value.item()) for q_value in q_values]))
                 if self._dashboard is not None:
                     dashboard_ep = current_ep
                     if not self._dashboard.dynamic_info['is_train']:
                         dashboard_ep += self._dashboard.static_info['max_train_ep']
-                    for q_values in q_values_batch:
+                    for q_values in q_values_batch_mean:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item(), 'action': i}
                             self._dashboard.upload_exp_data(fields=scalars, ep=dashboard_ep, tick=current_tick, measurement='q_value')
-                action = q_values_batch.max(1)[1][0].item()
+                action = [x.max(1)[1][0].item() for x in q_values_batch]
                 return False, action
         else:
-            return True, random.choice(range(self._policy_net.output_dim))
+            return True, [random.choice(range(self._policy_net.output_dim)),random.choice(range(self._policy_net.output_dim))]
 
     def learn(self, state_batch: torch.Tensor, action_batch: torch.Tensor, reward_batch: torch.Tensor,
               next_state_batch: torch.Tensor, current_ep: int) -> float:
@@ -198,11 +201,11 @@ class DQN(object):
 
         self._policy_net.train()
         policy_state_action_values = self._policy_net(
-            state_batch).gather(1, action_batch.long())
+            state_batch).mean(dim=0).gather(1, action_batch.long())
         # self._logger.debug(f'policy state action values: {policy_state_action_values}')
 
         target_next_state_values = self._target_net(
-            next_state_batch).max(1)[0].view(-1, 1).detach()
+            next_state_batch).max(1,0)[0].mean(dim=0).view(-1, 1).detach()
         # self._logger.debug(f'target next state values: {target_next_state_values}')
 
         expected_state_action_values = reward_batch + \

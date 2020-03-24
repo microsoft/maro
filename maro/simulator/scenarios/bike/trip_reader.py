@@ -58,7 +58,7 @@ class BikeTripReader:
                 end_tick = internal_tick + item["duration"]
 
                 trip = Trip(item_time.astype(datetime.datetime), start_cell_idx, end_cell_idx, end_tick)
-
+                
                 trips.append(trip)
 
                 self._index += 1

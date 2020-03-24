@@ -2,6 +2,7 @@
 import csv
 import math
 import os
+import holidays
 from enum import IntEnum
 from typing import Dict, List
 
@@ -18,6 +19,7 @@ from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
 from .trip_reader import BikeTripReader
 from .cell_reward import CellReward
+from .weather_lut import WeatherLut
 
 
 class BikeEventType(IntEnum):
@@ -35,6 +37,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._max_tick = max_tick
         self._cells = []
         self._cell_map = {}  # TODO: can be removed after we have actually have cell
+        self._us_holidays = holidays.US() # holidays for US, as we are using NY data
 
         config_path = os.path.join(config_path, "config.yml")
 
@@ -50,9 +53,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._reg_event()
 
-        self._decision_strategy = BikeDecisionStrategy(
-            self._cells, self._conf["decision"])
+        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
+        self._weather_lut = WeatherLut(self._conf["weather_file"], self._conf["start_datetime"])
 
     @property
     def frame(self) -> Frame:
@@ -227,6 +230,14 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.update_gendor(trip.gendor)
             cell.update_usertype(trip.usertype)
             cell.weekday = trip.weekday
+
+            cell.holiday = trip.date in self._us_holidays
+
+            # weather info
+            weather = self._weather_lut[trip.date]
+
+            cell.weather = weather.type
+            cell.temperature = weather.avg_temp
 
             # generate a bike return event by end tick
             return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell)
