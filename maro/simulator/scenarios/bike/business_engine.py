@@ -2,6 +2,7 @@
 import csv
 import math
 import os
+import holidays
 from enum import IntEnum
 from typing import Dict, List
 
@@ -36,6 +37,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._max_tick = max_tick
         self._cells = []
         self._cell_map = {}  # TODO: can be removed after we have actually have cell
+        self._us_holidays = holidays.US() # holidays for US, as we are using NY data
 
         config_path = os.path.join(config_path, "config.yml")
 
@@ -229,6 +231,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.update_usertype(trip.usertype)
             cell.weekday = trip.weekday
 
+            cell.holiday = trip.date in self._us_holidays
+
+            # weather info
             weather = self._weather_lut[trip.date]
 
             cell.weather = weather.type

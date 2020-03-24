@@ -28,3 +28,4 @@ sphinx
 recommonmark
 sphinx_rtd_theme
 python-dateutil
+holidays

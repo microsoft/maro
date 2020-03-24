@@ -9,6 +9,9 @@ GENDOR_FEMALE = 2
 USERTYPE_SUBSCRIPTOR = 0
 USERTYPE_CUSTOMER = 1
 
+HOLIDAY = 0
+WORKDAY = 1
+
 class Cell:
     def __init__(self, index: int, id: int, bikes: int, capacity:int, frame: Frame):
         self._index = index
@@ -133,11 +136,13 @@ class Cell:
 
     @property
     def holiday(self):
-        return self._frame.get_attribute(static_node, self._index, "holiday", 0)
+        val = self._frame.get_attribute(static_node, self._index, "holiday", 0)
+
+        return val == HOLIDAY
 
     @holiday.setter
-    def holiday(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "holiday", 0, value)  
+    def holiday(self, value: bool):
+        self._frame.set_attribute(static_node, self._index, "holiday", 0, HOLIDAY if value else WORKDAY)  
 
     def update_gendor(self, gendor: int, num: int=1):
         if gendor == GENDOR_FEMALE:
@@ -164,6 +169,7 @@ class Cell:
         self.weekday = 0
         self.subscriptor = 0 
         self.customer = 0
+        self.holiday = WORKDAY
 
     def _update_fulfillment(self, field, trip_requirement, shortage):
         self._frame.set_attribute(static_node, self._index, field, 0, trip_requirement - shortage)
