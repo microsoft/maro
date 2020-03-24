@@ -130,26 +130,24 @@ class Agent(object):
 
         action_scope = decision_event.action_scope
         cur_tick = decision_event.tick
-        cur_port_idx = decision_event.port_idx
-        cur_vessel_idx = decision_event.vessel_idx
+        cur_station_idx = decision_event.station_idx
+        cur_neighbor_idx = decision_event.neighbor_idx
         snapshot_list = decision_event.snapshot_list
 
         numpy_state = self._state_shaping(
-            cur_tick=cur_tick, cur_port_idx=cur_port_idx, cur_vessel_idx=cur_vessel_idx)
+            cur_tick=cur_tick, cur_station_idx=cur_station_idx, cur_neighbor_idx_list=cur_neighbor_idx)
 
         state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
         is_random, action_index = self._algorithm.choose_action(
             state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick)
-
-        port_states = snapshot_list.static_nodes[
-                      cur_tick: cur_port_idx: (['empty', 'full', 'on_shipper', 'on_consignee'], 0)]
-        vessel_states = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
-        early_discharge = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
-        actual_action = self._action_shaping(scope=action_scope, action_index=action_index,
-                                             port_empty=port_states[0], vessel_remaining_space=vessel_states[2],
-                                             early_discharge=early_discharge)
+        dest_neighbor_idx = action_index[0]
+        station_states = snapshot_list.static_nodes[
+                      cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
+        neighbor_states = snapshot_list.static_nodes[
+                      cur_tick: dest_neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
+        
+        actual_action = self._action_shaping(scope=action_scope[dest_neighbor_idx], action_index=action_index,
+                                             station_bike=station_states[0], dest_neighbor_remaining_space=neighbor_states[1]-neighbor_states[0])
 
         self._reward_shaping.push_matrices(self._agent_name,
                                             {'state': numpy_state,
@@ -158,10 +156,10 @@ class Agent(object):
                                             'action_tick': cur_tick,
                                             'decision_event': decision_event,
                                             'eps': eps,
-                                            'port_states': port_states,
-                                            'vessel_states': vessel_states})
+                                            'station_states': station_states,
+                                            'neighbor_states': neighbor_states})
 
-        env_action = Action(cur_vessel_idx, cur_port_idx, actual_action)
+        env_action = Action(cur_station_idx, actual_action)
         if self._log_enable:
             self._logger.info(
                 f'{self._agent_name} decision_event: {decision_event}, env_action: {env_action}, is_random: {is_random}')
