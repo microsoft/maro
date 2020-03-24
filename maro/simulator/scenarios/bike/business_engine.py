@@ -18,7 +18,7 @@ from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
 from .trip_reader import BikeTripReader
 from .cell_reward import CellReward
-from .weather_lut import read_weather
+from .weather_lut import WeatherLut
 
 
 class BikeEventType(IntEnum):
@@ -53,7 +53,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
-        self._weather_dict = read_weather(self._conf["weather_file"], self._conf["start_datetime"])
+        self._weather_lut = WeatherLut(self._conf["weather_file"], self._conf["start_datetime"])
 
     @property
     def frame(self) -> Frame:
@@ -228,6 +228,11 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.update_gendor(trip.gendor)
             cell.update_usertype(trip.usertype)
             cell.weekday = trip.weekday
+
+            weather = self._weather_lut[trip.date]
+
+            cell.weather = weather.type
+            cell.temperature = weather.avg_temp
 
             # generate a bike return event by end tick
             return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell)

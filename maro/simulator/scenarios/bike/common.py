@@ -1,7 +1,7 @@
 
 
 class Trip:
-    def __init__(self, date, start_cell: int, end_cell: int, end_tick: int, usertype: int = 0, gendor: int = 0, num: int = 1):
+    def __init__(self, date: int, start_cell: int, end_cell: int, end_tick: int, usertype: int = 0, gendor: int = 0, num: int = 1):
         self.date = date
         self.from_cell = start_cell
         self.to_cell = end_cell

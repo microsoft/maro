@@ -14,10 +14,13 @@ class WeatherType(IntEnum):
 
 class Weather:
     def __init__(self, type: WeatherType, avg_temp: float):
-        self.type = WeatherType
+        self.type = type
         self.avg_temp = avg_temp
 
+    def __repr__(self):
+        return f"Weather(type: {self.type}, avg temp: {self.avg_temp})"
 
+# numpy dtype in file
 weather_type = np.dtype(
     [
         ("date", "datetime64[s]"),
@@ -26,20 +29,37 @@ weather_type = np.dtype(
     ]
 )
 
-def read_weather(file_path: str, start_date_str: str):
-    """Read the weather file and return a loopup table with day (tick%24) as key"""
-    start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
 
-    assert os.path.exists(file_path)
+class WeatherLut:
+    """Lookup table to query weather information for a day"""
+    def __init__(self, weather_file: str, start_date_str: str):
+        assert os.path.exists(weather_file)
 
-    arr = np.load(file_path)
+        self.start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
 
-    weather_lut = {}
+        self._weather_lut = {}
 
-    for item in arr[arr["date"]>=start_date]:
-        cur_date = item["date"].astype(datetime.datetime)
-        delta = cur_date - start_date
-        weather_lut[delta.days] = Weather(item["weather"], item["temp"])
+        self._cache_lut(weather_file)
 
-    return weather_lut
+    def _cache_lut(self, weather_file: str):
+        arr = np.load(weather_file)
 
+        # we only keep sub-set of weathers in memory to reduce cost
+        for item in arr[arr["date"] >= self.start_date]:
+            cur_date = item["date"].astype(datetime.datetime)
+            delta = cur_date - self.start_date
+
+            self._weather_lut[delta.days] = Weather(WeatherType(item["weather"]), item["temp"])
+
+        arr = None
+
+    def __len__(self):
+        return len(self._weather_lut)
+
+    def __getitem__(self, key):
+        if type(key) is datetime.datetime:
+            delta = key - self.start_date
+
+            key = delta.days
+
+        return self._weather_lut[key]
