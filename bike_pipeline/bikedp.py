@@ -1,7 +1,8 @@
 # usage:
-# python bikedp.py ../../ny ../../ny/bin ../../ny/full/h3_201306_202001.station.csv
+# python bikedp.py ../../ny ../../ny/bin2 ../../ny/full/h3_201306_202001.station.csv
 
 import os
+import re
 import sys
 import csv
 import math
@@ -203,15 +204,14 @@ cell_file_name = "cell.csv"
 
 output_data_dtype = np.dtype([
     ("start_time", "datetime64[s]"), # datetime
-    ("start_station", "i4"), # id
-    ("end_station", "i4"), # id
-    ("duration", "i4"), # min
+    ("start_station", "i2"), # id
+    ("end_station", "i2"), # id
+    ("duration", "i2"), # min
     ("gendor", "b"), 
     ("usertype", "b"), 
     ("start_cell", "i2"),
     ("end_cell", "i2")
 ])
-
 
 ######### input ############
 
@@ -250,29 +250,46 @@ def read_src_file(file: str):
     if os.path.exists(file):
         with open(file) as fp:
 
-            reader = csv.DictReader(fp)
+            # reader = csv.DictReader(fp)
 
-            for l in reader:
-                if "NULL" not in l.values() and "\"NULL\"" not in l.values() and "'NULL'" not in l.values():
-                    item = (
-                        cal_durations(deal_int(l["tripduration"])),
-                        deal_datetime(l["starttime"]),
-                        deal_int(l["start station id"]),
-                        deal_str(l["start station name"]),
-                        deal_int(l["end station id"]),
-                        deal_str(l['end station name']),
-                        deal_float(l["start station latitude"]),
-                        deal_float(l["start station longitude"]),
-                        deal_float(l["end station latitude"]),
-                        deal_float(l["end station longitude"]),
-                        deal_usertype(l["usertype"]),
-                        deal_int(l["gender"])
-                    )
+            # for l in reader:
+            #     if "NULL" not in l.values() and "\"NULL\"" not in l.values() and "'NULL'" not in l.values():
+            #         item = (
+            #             cal_durations(deal_int(l["tripduration"])),
+            #             deal_datetime(l["starttime"]),
+            #             deal_int(l["start station id"]),
+            #             deal_str(l["start station name"]),
+            #             deal_int(l["end station id"]),
+            #             deal_str(l['end station name']),
+            #             deal_float(l["start station latitude"]),
+            #             deal_float(l["start station longitude"]),
+            #             deal_float(l["end station latitude"]),
+            #             deal_float(l["end station longitude"]),
+            #             deal_usertype(l["usertype"]),
+            #             deal_int(l["gender"])
+            #         )
 
-                    ret.append(item)
+            #         ret.append(item)
 
                 # stations[item[2]] = (item[3], item[6], item[7]) # start station, log and lat
                 # stations[item[4]] = (item[5], item[8], item[9]) # end station, log and lat
+
+            ret = pd.read_csv(fp)
+            
+            ret['tripduration'] = pd.to_numeric(pd.to_numeric(ret['tripduration'], downcast='integer') /60, downcast='integer')
+            ret['starttime'] = pd.to_datetime(ret['starttime']).astype(np.int64)
+            ret['start station id'] = pd.to_numeric(ret['start station id'],errors='coerce',downcast='integer')
+            ret['stoptime'] = pd.to_datetime(ret['stoptime']).astype(np.int64)
+            ret['end station id'] = pd.to_numeric(ret['end station id'],errors='coerce',downcast='integer')
+            ret['start station latitude'] = pd.to_numeric(ret['start station latitude'],downcast='float')
+            ret['start station longitude'] = pd.to_numeric(ret['start station longitude'],downcast='float')
+            ret['end station latitude'] = pd.to_numeric(ret['end station latitude'],downcast='float')
+            ret['end station longitude'] = pd.to_numeric(ret['end station longitude'],downcast='float')
+            ret['birth year'] = pd.to_numeric(ret['birth year'],errors='coerce',downcast='integer')
+            ret['gender'] = pd.to_numeric(ret['gender'],errors='coerce',downcast='integer')
+            ret['usertype'] = ret['usertype'].apply(str).apply(lambda x: 0 if x in ['Subscriber','subscriber'] else 1 if x in ['Customer','customer'] else 2)
+            ret.dropna(subset=['start station id','end station id'], inplace=True)
+            ret.drop(ret[ret['tripduration'] <= 1].index, axis=0, inplace=True)
 
     return ret, stations
 
@@ -288,13 +305,33 @@ def station_to_cell(station_file_path: str):
     if os.path.exists(station_file_path):
         with open(station_file_path, mode="r", encoding="utf-8") as station_file:
             raw_station_data = pd.read_csv(station_file)
-            cell_data = raw_station_data[['hex_id','neighbors']].drop_duplicates(subset=['hex_id']).reset_index()
+            cell_data = raw_station_data[['hex_id', 'capacity', 'init']].groupby(['hex_id']).sum().reset_index()
             cell_data['cell_id'] = pd.to_numeric(cell_data.index)
+            cell_data['capacity'] = pd.to_numeric(cell_data['capacity'], downcast='integer')
+            cell_data['init'] = pd.to_numeric(cell_data['init'], downcast='integer')
             station_data = raw_station_data.join(cell_data[['cell_id','hex_id']].set_index('hex_id'), on='hex_id')
             print(station_data,cell_data)
-    return cell_data, station_data
+            mapping_data = station_data[['cell_id','hex_id','neighbors']].drop_duplicates(subset=['cell_id'])
+            mapping_data['mapping'] = mapping_data['neighbors'].apply(lambda x: _gen_neighbor_mapping(x, mapping_data[['cell_id','hex_id']]))
+            mapping_map = pd.DataFrame(0, index=np.arange(len(mapping_data)), columns=np.arange(len(mapping_data)))
+            mapping_data[['cell_id','mapping']].apply(lambda x:  _fill_mapping(x, mapping_map),axis=1)
+            cell_data = cell_data[['cell_id','capacity','init']]
+            print(mapping_map)
+    return cell_data, station_data, mapping_map
     
+def _gen_neighbor_mapping(neighbors: str, neighbors_mapping: pd.DataFrame):
+    hex_list = re.findall(r'[0-9a-fA-F]+', neighbors)
+    hex_df = pd.DataFrame(pd.Series(hex_list), columns=['hex_id']).join(neighbors_mapping.set_index('hex_id'),on = 'hex_id').reset_index()
+    hex_df.dropna(subset=['cell_id'], inplace=True)
+    ret = hex_df['cell_id'].tolist()
+    return ret
 
+def _fill_mapping(row, mapping_map: pd.DataFrame):
+    for y in row['mapping']:
+        x = row['cell_id']
+        if x != y:
+            mapping_map.loc[x,y] = 1
+            mapping_map.loc[y,x] = 1
 
 ######### output ############
 
@@ -307,26 +344,31 @@ def init(output_folder: str):
     np.memmap()
 
 
-def concat(data: list, file: str, station_data: pd.DataFrame):
-    ret = []
+def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame):
+    ret = data[['starttime', 'start station id', 'end station id', 'tripduration', 'usertype', 'gender']]
 
     item_num = len(data)
 
-    for d in data:
-        start_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[2], 'cell_id'].values[0]
-        end_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[4], 'cell_id'].values[0]
-        ret.append((
-            d[1],
-            d[2],
-            d[4],
-            d[0],
-            d[10],
-            d[11],
-            start_cell_id,
-            end_cell_id
-        ))
+    # for d in data:
+    #     start_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[2], 'cell_id'].values[0]
+    #     end_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[4], 'cell_id'].values[0]
+    #     ret.append((
+    #         d[1],
+    #         d[2],
+    #         d[4],
+    #         d[0],
+    #         d[10],
+    #         d[11],
+    #         start_cell_id,
+    #         end_cell_id
+    #     ))
     # get the file size
     file_size = 0
+    ret = ret.join(station_data[['station_id', 'cell_id']].set_index('station_id'), on='start station id').rename(columns={'cell_id':'start_cell'})
+    ret = ret.join(station_data[['station_id', 'cell_id']].set_index('station_id'), on='end station id').rename(columns={'cell_id':'end_cell'})
+    ret = ret.rename(columns={ 'starttime':'start_time', 'start station id':'start_station', 'end station id':'end_station', 'tripduration':'duration'})
+    ret = ret[['start_time', 'start_station', 'end_station', 'duration', 'gender', 'usertype', 'start_cell', 'end_cell']]
+    ret = list(ret.itertuples(index=False, name=None))
 
     if not os.path.exists(file):
         with open(file, "w+") as fp:
@@ -394,6 +436,7 @@ if __name__ == "__main__":
 
     output_data_path = os.path.join(output_folder, data_file_name)
     cell_file_path = os.path.join(output_folder, cell_file_name)
+    mapping_file_path = os.path.join(output_folder, mapping_file_name)
 
     if len(sys.argv) >= 5:
         # tick type
@@ -406,10 +449,13 @@ if __name__ == "__main__":
 
     # station_data = read_station_file(station_file_path)
 
-    cell_data, station_data = station_to_cell(station_file_path)
+    cell_data, station_data, mapping_data = station_to_cell(station_file_path)
 
     with open(cell_file_path, mode="w", encoding="utf-8") as cell_file:
-        cell_data.to_csv(cell_file)
+        cell_data.to_csv(cell_file, index=False, header=False)
+
+    with open(mapping_file_path, mode="w", encoding="utf-8") as mapping_file:
+        mapping_data.to_csv(mapping_file, index=False, header=False)
 
     for src_file in input_file_list:
         src_full_path = os.path.join(input_folder, src_file)
@@ -419,8 +465,8 @@ if __name__ == "__main__":
         r,s = read_src_file(src_full_path)
 
         # s = distinct_stations(station_map, s)
-
-        concat(r, output_data_path, station_data)
+        if r is not None:
+            concat(r, output_data_path, station_data)
 
     # map_full_path = os.path.join(output_folder, mapping_file_name)
     # save_mapping(station_map, map_full_path)
