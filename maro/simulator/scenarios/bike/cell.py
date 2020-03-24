@@ -12,8 +12,10 @@ USERTYPE_CUSTOMER = 1
 HOLIDAY = 0
 WORKDAY = 1
 
+CELL_BEIGHBOR_NUM = 6
+
 class Cell:
-    def __init__(self, index: int, id: int, bikes: int, capacity:int, frame: Frame):
+    def __init__(self, index: int, capacity:int, bikes: int, frame: Frame):
         self._index = index
         self._frame = frame
         self._id = id
@@ -21,6 +23,8 @@ class Cell:
         self._capacity = capacity
         self.capacity = capacity
         self.bikes = bikes
+
+        self._neighbors_cache = None # since the neighbors will not change, so we can keep it here
 
     @property
     def id(self):
@@ -143,6 +147,17 @@ class Cell:
     @holiday.setter
     def holiday(self, value: bool):
         self._frame.set_attribute(static_node, self._index, "holiday", 0, HOLIDAY if value else WORKDAY)  
+
+    def get_neighbors(self):
+        # here we use cached neighbors to speedup
+        return self._neighbors_cache
+
+    def set_neighbors(self, beighbors: list):
+        self._neighbors_cache = []
+
+        for i, cell_idx in enumerate(beighbors):
+            self._neighbors_cache.append(cell_idx)
+            self._frame.set_attribute(static_node, self._index, "neighbors", i, cell_idx)
 
     def update_gendor(self, gendor: int, num: int=1):
         if gendor == GENDOR_FEMALE:

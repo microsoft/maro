@@ -17,6 +17,7 @@ from .common import (Action, BikeReturnPayload, BikeTransferPayload,
                      DecisionEvent, Trip)
 from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
+from .adj_reader import read_adj_info
 from .trip_reader import BikeTripReader
 from .cell_reward import CellReward
 from .weather_lut import WeatherLut
@@ -36,7 +37,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._decision_strategy = None
         self._max_tick = max_tick
         self._cells = []
-        self._cell_map = {}  # TODO: can be removed after we have actually have cell
         self._us_holidays = holidays.US() # holidays for US, as we are using NY data
 
         config_path = os.path.join(config_path, "config.yml")
@@ -53,10 +53,13 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._reg_event()
 
+        self._adj = read_adj_info(self._conf["adj_file"])
         self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
         self._weather_lut = WeatherLut(self._conf["weather_file"], self._conf["start_datetime"])
 
+        self._update_cell_adj()
+        
     @property
     def frame(self) -> Frame:
         """Frame: Frame of current business engine
@@ -174,26 +177,29 @@ class BikeBusinessEngine(AbsBusinessEngine):
     def _init_frame(self):
         rows = []
         with open(self._conf["cell_file"]) as fp:
-            reader = csv.reader(fp)
+            reader = csv.DictReader(fp)
 
             for l in reader:
                 rows.append(l)
 
         self._frame = build(len(rows))
 
-        for i, r in enumerate(rows):
+        for r in rows:
             if len(r) == 0:
                 break
 
-            cell = Cell(i, int(r[0]), int(r[2]), int(r[3]), self._frame)
+            cell = Cell(int(r["cell_id"]), int(r["capacity"]), int(r["init"]), self._frame)
 
             self._cells.append(cell)
-            self._cell_map[int(r[0])] = i
 
     def _init_data_reader(self):
         self._data_reader = BikeTripReader(self._conf["trip_file"],
                                            self._conf["start_datetime"],
-                                           self._max_tick, self._cell_map)
+                                           self._max_tick)
+
+    def _update_cell_adj(self):
+        for cell in self._cells:
+            cell.set_neighbors(self._adj[cell.index])
 
     def _reg_event(self):
         self._event_buffer.register_event_handler(

@@ -10,5 +10,6 @@ reward: # reward options
   gamma: 0.3
 start_datetime: "2019-12-02"
 trip_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/trips.bin"
-cell_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/stations.csv"
+cell_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/cell.csv"
+adj_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/map.csv"
 weather_file: "/Users/maple/projects/maro/bike_pipeline/data/sample/weather.npy"
