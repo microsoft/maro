@@ -186,15 +186,7 @@ class Cell:
     def reset(self):
         self.capacity = self._capacity
         self.bikes = self._bikes
-        self.shortage = 0
-        self.trip_requirement = 0
-        self.unknown_gendors = 0
-        self.males = 0
-        self.females = 0
-        self.weekday = 0
-        self.subscriptor = 0 
-        self.customer = 0
-        self.holiday = WORKDAY
+
 
         self.set_neighbors(self._neighbors_cache)
 

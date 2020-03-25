@@ -173,7 +173,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 cell.weekday = 0
                 cell.customer = 0
                 cell.subscriptor = 0
-                cell.extra_bikes = 0
+                cell.extra_cost = 0
 
     def _init_frame(self):
         rows = []

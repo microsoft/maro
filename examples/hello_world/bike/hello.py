@@ -14,7 +14,7 @@ for i in range(total_ep):
     reward, decision_event, is_done = env.step(None)
 
     while not is_done:
-        reward, decision_event, is_done = env.step(Action(0, 1, 100))
+        reward, decision_event, is_done = env.step(Action(0, 1, 0))
 
 print("snapshot list length", len(env.snapshot_list))
 inv = env.snapshot_list.static_nodes[::("bikes", 0)]
@@ -38,3 +38,9 @@ neighbors = env.snapshot_list.static_nodes[0::("neighbors", [0, 1, 2, 3, 4, 5])]
 neighbors = neighbors.reshape(len(env.agent_idx_list), 6)
 print("neighbors")
 print(neighbors)
+
+# extra cost
+extra_cost = env.snapshot_list.static_nodes[:1:("extra_cost", 0)]
+
+print("extra cost of cell 1 (2nd)")
+print(extra_cost)
