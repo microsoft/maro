@@ -12,7 +12,7 @@ import torch
 from tqdm import tqdm
 
 from maro.utils import SimpleExperiencePool, Logger, LogFormat
-from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
+from maro.simulator.scenarios.bike.common import Action, DecisionEvent
 
 
 class Agent(object):
@@ -130,36 +130,31 @@ class Agent(object):
 
         action_scope = decision_event.action_scope
         cur_tick = decision_event.tick
-        cur_station_idx = decision_event.station_idx
-        cur_neighbor_idx = decision_event.neighbor_idx
-        snapshot_list = decision_event.snapshot_list
-
+        cur_station_idx = decision_event.cell_idx
         numpy_state = self._state_shaping(
-            cur_tick=cur_tick, cur_station_idx=cur_station_idx, cur_neighbor_idx_list=cur_neighbor_idx)
+            cur_tick=cur_tick, cur_station_idx=cur_station_idx)
 
         state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
-        is_random, action_index = self._algorithm.choose_action(
+        is_random, model_action = self._algorithm.choose_action(
             state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick)
-        dest_neighbor_idx = action_index[0]
-        station_states = snapshot_list.static_nodes[
-                      cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
-        neighbor_states = snapshot_list.static_nodes[
-                      cur_tick: dest_neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
-        
-        actual_action = self._action_shaping(scope=action_scope[dest_neighbor_idx], action_index=action_index,
-                                             station_bike=station_states[0], dest_neighbor_remaining_space=neighbor_states[1]-neighbor_states[0])
+        # station_states = snapshot_list.static_nodes[
+        #               cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
+        # neighbor_states = snapshot_list.static_nodes[
+        #               cur_tick: dest_neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
+        neighbor_index = model_action[0]
+        actual_action = self._action_shaping(scope=action_scope, action_index=model_action[1])
 
         self._reward_shaping.push_matrices(self._agent_name,
                                             {'state': numpy_state,
-                                            'action': action_index,
+                                            'action': neighbor_index,
                                             'actual_action': actual_action,
                                             'action_tick': cur_tick,
                                             'decision_event': decision_event,
-                                            'eps': eps,
-                                            'station_states': station_states,
-                                            'neighbor_states': neighbor_states})
+                                            'eps': eps})
+                                            # ,'station_states': station_states,
+                                            # 'neighbor_states': neighbor_states})
 
-        env_action = Action(cur_station_idx, actual_action)
+        env_action = Action(cur_station_idx, neighbor_index, actual_action)
         if self._log_enable:
             self._logger.info(
                 f'{self._agent_name} decision_event: {decision_event}, env_action: {env_action}, is_random: {is_random}')
