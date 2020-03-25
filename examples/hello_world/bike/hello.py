@@ -1,3 +1,4 @@
+import numpy as np
 from maro.simulator.frame import FrameNodeType
 from maro.simulator.core import Env
 from maro.simulator.scenarios.bike.common import Action
@@ -40,7 +41,16 @@ print("neighbors")
 print(neighbors)
 
 # extra cost
-extra_cost = env.snapshot_list.static_nodes[:1:("extra_cost", 0)]
-
-print("extra cost of cell 1 (2nd)")
+extra_cost = env.snapshot_list.static_nodes[::("extra_cost", 0)]
+extra_cost = extra_cost.reshape(max_ticks, len(env.agent_idx_list))
+print("extra cost for cells in all ticks")
 print(extra_cost)
+
+# NOTE: code to check if there is any extra cost
+# for i, r in enumerate(extra_cost):
+#     non_zero_extra_cost_cell_index = np.where(r>0)[0]
+
+#     if len(non_zero_extra_cost_cell_index):
+#         # print("tick", i, non_zero_extra_cost_cell_index)
+#         print("tick", i, non_zero_extra_cost_cell_index)
+#         print(r[r>0])

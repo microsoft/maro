@@ -281,9 +281,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         if cell_bikes + 1 > cell_capacity:
             self._move_to_neighbor(cell, 1)
 
-            # extra cost from source cell
-            from_cell = self._cells[payload.from_cell]
-            from_cell.extra_cost += 1
+            # extra cost of current cell, as we do not know whoes action caused this
+            cell.extra_cost += 1
         else:
             cell.bikes += 1
 
