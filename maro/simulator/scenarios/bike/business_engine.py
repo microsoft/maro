@@ -173,6 +173,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 cell.weekday = 0
                 cell.customer = 0
                 cell.subscriptor = 0
+                cell.extra_bikes = 0
 
     def _init_frame(self):
         rows = []
@@ -212,6 +213,21 @@ class BikeBusinessEngine(AbsBusinessEngine):
             DECISION_EVENT, self._on_action_received)
         self._event_buffer.register_event_handler(
             BikeEventType.BikeReceived, self._on_bike_received)
+
+    def _move_to_neighbor(self, cell: Cell, bike_number: int):
+        # TODO: support move to 2-step neighbors
+        for neighbor in cell.neighbors:
+            accept_number = neighbor.capacity - neighbor.bikes
+
+            # how many bikes this cell can accept
+            accept_number = min(accept_number, bike_number)
+
+            neighbor.bikes += accept_number
+
+            bike_number = bike_number - accept_number
+
+            if bike_number == 0:
+                break
 
     def _on_trip_requirement(self, evt: Event):
         """On trip requirement handler:
@@ -254,11 +270,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def _on_bike_return(self, evt: Event):
         payload: BikeReturnPayload = evt.payload
-        target_cell: Cell = self._cells[payload.to_cell]
+        cell: Cell = self._cells[payload.to_cell]
 
-        # TODO: what about more than capacity?
-        # Search the adjacent cell, and put the bike to the nearest neighbor, and add an extra transfer cost
-        target_cell.bikes += 1
+        cell_bikes = cell.bikes
+        cell_capacity = cell.capacity
+
+        if cell_bikes + 1 > cell_capacity:
+            self._move_to_neighbor(cell, 1)
+            cell.extra_cost += 1
+        else:
+            cell.bikes += 1
 
     def _on_action_received(self, evt: Event):
         action: Action = None
@@ -285,6 +306,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
         payload: BikeTransferPaylod = evt.payload
         cell: Cell = self._cells[payload.to_cell]
 
-        # TODO: what about if out of capacity
-        # Search the adjacent cell, and put the bike to the nearest neighbor, and add an extra transfer cost
-        cell.bikes += payload.number
+        cell_bikes = cell.bikes
+        cell_capacity = cell.capacity
+        accept_number = payload.number
+
+        if cell_bikes + accept_number > cell_capacity:
+            accept_number = cell_capacity - cell_bikes
+            extra_bikes = payload.number - accept_number
+
+            self._move_to_neighbor(cell, extra_bikes)
+
+            cell.extra_cost += extra_bikes
+
+        cell.bikes += accept_number

@@ -149,6 +149,14 @@ class Cell:
         self._frame.set_attribute(static_node, self._index, "holiday", 0, HOLIDAY if value else WORKDAY)  
 
     @property
+    def extra_cost(self):
+        return self._frame.get_attribute(static_node, self._index, "extra_cost", 0)
+
+    @extra_cost.setter
+    def extra_cost(self, value):
+        self._frame.set_attribute(static_node, self._index, "extra_cost", 0, value)
+
+    @property
     def neighbors(self):
         # here we use cached neighbors to speedup
         return self._neighbors_cache
