@@ -216,7 +216,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def _move_to_neighbor(self, cell: Cell, bike_number: int):
         # TODO: support move to 2-step neighbors
-        for neighbor in cell.neighbors:
+        for neighbor_idx in cell.neighbors:
+            neighbor = self._cells[neighbor_idx]
             accept_number = neighbor.capacity - neighbor.bikes
 
             # how many bikes this cell can accept
@@ -228,6 +229,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             if bike_number == 0:
                 break
+
+        # assert bike_number == 0
 
     def _on_trip_requirement(self, evt: Event):
         """On trip requirement handler:
