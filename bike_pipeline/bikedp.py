@@ -318,8 +318,9 @@ def station_to_cell(station_file_path: str):
             mapping_map = pd.DataFrame(-1, index=np.arange(len(mapping_data)), columns=np.arange(6))
             mapping_data[['cell_id','mapping']].apply(lambda x:  _fill_mapping(x, mapping_map),axis=1)
             cell_data = cell_data[['cell_id','capacity','init']]
-            print(mapping_map)
-    return cell_data, station_data, mapping_map
+            drop_cell = pd.to_numeric( mapping_map[mapping_map.sum(axis=1)==-6].index).to_list()
+            print(mapping_map,drop_cell)
+    return cell_data, station_data, mapping_map, drop_cell
     
 def _gen_neighbor_mapping(neighbors: str, neighbors_mapping: pd.DataFrame):
     hex_list = re.findall(r'[0-9a-fA-F]+', neighbors)
@@ -348,10 +349,8 @@ def init(output_folder: str):
     np.memmap()
 
 
-def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame):
+def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame, drop_cell: list):
     ret = data[['starttime', 'start station id', 'end station id', 'tripduration', 'usertype', 'gender']]
-
-    item_num = len(data)
 
     # for d in data:
     #     start_cell_id = station_data.loc[pd.to_numeric(station_data['station_id'], downcast='integer') == d[2], 'cell_id'].values[0]
@@ -372,6 +371,10 @@ def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame):
     ret = ret.join(station_data[['station_id', 'cell_id']].set_index('station_id'), on='end station id').rename(columns={'cell_id':'end_cell'})
     ret = ret.rename(columns={ 'starttime':'start_time', 'start station id':'start_station', 'end station id':'end_station', 'tripduration':'duration'})
     ret = ret[['start_time', 'start_station', 'end_station', 'duration', 'gender', 'usertype', 'start_cell', 'end_cell']]
+
+    # drop cell have no neighbors
+    ret.drop(ret[ret['start_cell'].apply(lambda x: x in drop_cell) | ret['end_cell'] .apply(lambda x: x in drop_cell)].index, axis=0, inplace=True)
+    
     ret = list(ret.itertuples(index=False, name=None))
 
     if not os.path.exists(file):
@@ -383,6 +386,7 @@ def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame):
         file_size = fp.tell()
 
     # append to the end
+    item_num = len(ret)
     arr = np.memmap(file, dtype=output_data_dtype, offset=file_size, shape=(item_num, ))
 
     arr[:] = np.array(ret, dtype=output_data_dtype)
@@ -453,7 +457,7 @@ if __name__ == "__main__":
 
     # station_data = read_station_file(station_file_path)
 
-    cell_data, station_data, mapping_data = station_to_cell(station_file_path)
+    cell_data, station_data, mapping_data, drop_cell = station_to_cell(station_file_path)
 
     with open(cell_file_path, mode="w", encoding="utf-8", newline='') as cell_file:
         cell_data.to_csv(cell_file, index=False)
@@ -470,7 +474,7 @@ if __name__ == "__main__":
 
         # s = distinct_stations(station_map, s)
         if r is not None:
-            concat(r, output_data_path, station_data)
+            concat(r, output_data_path, station_data, drop_cell)
 
     # map_full_path = os.path.join(output_folder, mapping_file_name)
     # save_mapping(station_map, map_full_path)
