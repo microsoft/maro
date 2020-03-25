@@ -86,7 +86,7 @@ class Agent(object):
             state_batch = torch.from_numpy(
                 np.array(sample_dict['state'])).view(-1, self._algorithm.policy_net.input_dim)
             action_batch = torch.from_numpy(
-                np.array(sample_dict['action'])).view(-1, 1)
+                np.array([sample_dict['action']])).permute(2,1,0)#.view(2, -1, 1)
             reward_batch = torch.from_numpy(
                 np.array(sample_dict['reward'])).view(-1, 1)
             next_state_batch = torch.from_numpy(
@@ -116,11 +116,11 @@ class Agent(object):
         self._logger.debug(f'{self._agent_name} load module from {module_path}')
         pass
 
-    def choose_action(self, decision_event: DecisionEvent, eps: float, current_ep: int) -> Action:
+    def choose_action(self, decision_event: DecisionEvent, eps: float, current_ep: int, snapshot_list) -> Action:
         """
         Args:
-            decision_event (DecisionEvent): Environment decision event, which includes the action scope, environment
-            snapshot, etc.
+            decision_event (DecisionEvent): Environment decision event, which includes the action scope, etc.
+            snapshot_list: Environment snapshot.
             eps (float): Epsilon, which is used for exploration.
             current_ep (int): Current episode, which is used for logging.
 
@@ -131,33 +131,36 @@ class Agent(object):
         action_scope = decision_event.action_scope
         cur_tick = decision_event.tick
         cur_station_idx = decision_event.cell_idx
+        cur_neighbor_idx_list = [int(x) for x in snapshot_list.static_nodes[0:cur_station_idx:("neighbors",[x for x in range(6)])]]
+        
         numpy_state = self._state_shaping(
-            cur_tick=cur_tick, cur_station_idx=cur_station_idx)
+            cur_tick=cur_tick, cur_station_idx=cur_station_idx, cur_neighbor_idx_list= cur_neighbor_idx_list)
 
         state = torch.from_numpy(numpy_state).view(1, len(numpy_state))
         is_random, model_action = self._algorithm.choose_action(
             state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick)
-        # station_states = snapshot_list.static_nodes[
-        #               cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
-        # neighbor_states = snapshot_list.static_nodes[
-        #               cur_tick: dest_neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
 
-        # NOTE: this result contains padding id "-1", which means invalid cell
-        # neighbors = snapshot_list.static_nodes[0:cur_station_idx:("neighbors", 0)]
-        neighbor_index = model_action[0]
-        actual_action = self._action_shaping(scope=action_scope, action_index=model_action[1])
+        neighbor_idx = cur_neighbor_idx_list[model_action[0]]
+        neighbor_scope = action_scope[neighbor_idx] if neighbor_idx!= -1 else 0
+        actual_action = self._action_shaping(action_idx= model_action[1], station_scope = action_scope[cur_station_idx],
+                                            neighbor_scope = neighbor_scope)
 
+        station_states = snapshot_list.static_nodes[
+                      cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
+        neighbor_states = snapshot_list.static_nodes[
+                      cur_tick: neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
         self._reward_shaping.push_matrices(self._agent_name,
                                             {'state': numpy_state,
-                                            'action': neighbor_index,
-                                            'actual_action': actual_action,
+                                            'action': model_action,
+                                            'actual_action': [neighbor_idx, actual_action],
                                             'action_tick': cur_tick,
                                             'decision_event': decision_event,
-                                            'eps': eps})
-                                            # ,'station_states': station_states,
-                                            # 'neighbor_states': neighbor_states})
+                                            'eps': eps,
+                                            'station_states':station_states,
+                                            'neighbor_states':neighbor_states})
 
-        env_action = Action(cur_station_idx, neighbor_index, actual_action)
+        neighbor_idx = neighbor_idx if neighbor_idx!= -1 else 0                                    
+        env_action = Action(cur_station_idx, neighbor_idx, actual_action)
         if self._log_enable:
             self._logger.info(
                 f'{self._agent_name} decision_event: {decision_event}, env_action: {env_action}, is_random: {is_random}')

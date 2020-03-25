@@ -27,15 +27,10 @@ class StateShaping():
             (neighbor_number + 1) * \
             len(self._station_attribute_list)
             
-    def __call__(self, cur_tick: int, cur_station_idx: int):
+    def __call__(self, cur_tick: int, cur_station_idx: int, cur_neighbor_idx_list: [int]):
         ticks = [cur_tick] + [cur_tick + rt for rt in self._relative_tick_list]
-        # To do: obtain neighbor id from snapshot list
-        # cur_neighbor_idx_list = self._env.snapshot_list.static_nodes[ticks: [cur_station_idx]: ('neightbors', 0)]
 
-        # NOTE: the result contains padding cell id "-1", means invalid cell
-        neighbors = self._env.snapshot_list.static_nodes[0:cur_station_idx:("neighbors", 0)]
-
-        cur_neighbor_idx_list = [0]*6
+        # cur_neighbor_idx_list = [0]*6
         station_features = self._env.snapshot_list.static_nodes[ticks: [cur_station_idx] + list(cur_neighbor_idx_list): (self._station_attribute_list, 0)]
 
         return station_features

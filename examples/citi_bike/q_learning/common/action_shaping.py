@@ -22,7 +22,7 @@ class DiscreteActionShaping():
         self._action_space = action_space
         
 
-    def __call__(self, scope: ActionScope, action_index: int) -> int:
+    def __call__(self, action_idx: int, station_scope: int, neighbor_scope: int) -> int:
         '''
         Args:
             scope (ActionScope): Action actual available scope.
@@ -35,10 +35,10 @@ class DiscreteActionShaping():
         # 2. neighbor cells: max bikes can accept 
 
         # To do: obtain station bike and neighbor capacity from scope
-        # return max(round(self._action_space[action_index] * scope), scope)
+        return max(int(self._action_space[action_idx] * station_scope), neighbor_scope)
 
-        # TODO: for runpass
-        return 0
+        # # TODO: for runpass
+        # return 0
 
 
     @property

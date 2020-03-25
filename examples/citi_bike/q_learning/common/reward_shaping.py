@@ -17,15 +17,15 @@ class RewardShaping:
         self._cache = {self._station_idx2name[agent_idx]: defaultdict(list) for agent_idx in self._agent_idx_list}
         self._log_enable = log_enable
 
-        # if self._log_enable:
-        #     self._choose_action_logger_dict = {}
-        #     for agent_idx in self._agent_idx_list:
-        #         self._choose_action_logger_dict[self._station_idx2name[agent_idx]] = Logger(tag=f'{self._station_idx2name[agent_idx]}.choose_action',
-        #                                                                         format_=LogFormat.none,
-        #                                                                         dump_folder=log_folder, dump_mode='w', extension_name='csv',
-        #                                                                         auto_timestamp=False)
-        #         self._choose_action_logger_dict[self._station_idx2name[agent_idx]].debug(
-        #             ','.join(['episode', 'learning_index', 'tick', 'vessel_name', 'max_load', 'max_discharge', 'eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']))
+        if self._log_enable:
+            self._choose_action_logger_dict = {}
+            for agent_idx in self._agent_idx_list:
+                self._choose_action_logger_dict[self._station_idx2name[agent_idx]] = Logger(tag=f'{self._station_idx2name[agent_idx]}.choose_action',
+                                                                                format_=LogFormat.none,
+                                                                                dump_folder=log_folder, dump_mode='w', extension_name='csv',
+                                                                                auto_timestamp=False)
+                self._choose_action_logger_dict[self._station_idx2name[agent_idx]].debug(
+                    ','.join(['episode', 'learning_index', 'tick', 'vessel_name', 'max_load', 'max_discharge', 'eps', 'port_states', 'vessel_states', 'action', 'actual_action', 'reward']))
 
     def calculate_reward(self, agent_name: str, current_ep: int, learning_rate: float):
         return NotImplemented
