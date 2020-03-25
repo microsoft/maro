@@ -141,6 +141,9 @@ class Agent(object):
         #               cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
         # neighbor_states = snapshot_list.static_nodes[
         #               cur_tick: dest_neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
+
+        # NOTE: this result contains padding id "-1", which means invalid cell
+        # neighbors = snapshot_list.static_nodes[0:cur_station_idx:("neighbors", 0)]
         neighbor_index = model_action[0]
         actual_action = self._action_shaping(scope=action_scope, action_index=model_action[1])
 

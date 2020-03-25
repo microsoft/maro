@@ -6,7 +6,6 @@ from collections import defaultdict
 
 import numpy as np
 
-from maro.simulator.graph import SnapshotList, ResourceNodeType
 from maro.utils import Logger, LogFormat
 
 class RewardShaping:
@@ -95,12 +94,16 @@ class TruncateReward(RewardShaping):
             #calculate tc reward
             decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
                       for _ in range(len(self._agent_idx_list))]
-            tot_fulfillment = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                            self._agent_idx_list, ['fulfillment'], [0]), decay_list)
-            tot_shortage = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                            self._agent_idx_list, ['shortage'], [0]), decay_list)
-            tot_cost = np.dot(snapshot_list.get_attributes(ResourceNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                            self._agent_idx_list, ['extra_cost'], [0]), decay_list)
+
+            
+            fulfillments = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:('fulfillment', 0)]
+            tot_fulfillment = np.dot(fulfillments, decay_list)
+
+            shortages = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:("shortage", 0)]
+            tot_shortage = np.dot(shortages, decay_list)
+
+            costs = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:("extra_cost", 0)]
+            tot_cost = np.dot(costs, decay_list)
 
             cache['reward'].append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage
                                               - self._cost_factor * tot_cost))

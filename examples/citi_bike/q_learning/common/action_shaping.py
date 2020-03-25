@@ -29,8 +29,16 @@ class DiscreteActionShaping():
                         e.g. {'discharge': 0, 'load': 2000}
             action_index (int): Module output.
         '''
+        # here the scope is a dict with cell id as key, value is bikes number
+        # keys:
+        # 1. cell id which need an action: max bikes can be moved from this cell
+        # 2. neighbor cells: max bikes can accept 
+
         # To do: obtain station bike and neighbor capacity from scope
-        return max(round(self._action_space[action_index] * scope), scope)
+        # return max(round(self._action_space[action_index] * scope), scope)
+
+        # TODO: for runpass
+        return 0
 
 
     @property
