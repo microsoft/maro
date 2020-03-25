@@ -267,16 +267,19 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell: Cell = self._cells[action.from_cell]
 
             executed_number = min(cell.bikes, action.number)
-            cell.bikes -= executed_number
 
-            payload = BikeTransferPayload(
-                action.from_cell, action.to_cell, action.number)
+            # insert into event buffer if we have bikes to transfer
+            if executed_number > 0:
+                cell.bikes -= executed_number
 
-            transfer_time = self._decision_strategy.transfer_time
-            transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
-                                                             BikeEventType.BikeReceived, payload)
+                payload = BikeTransferPayload(
+                    action.from_cell, action.to_cell, executed_number)
 
-            self._event_buffer.insert_event(transfer_evt)
+                transfer_time = self._decision_strategy.transfer_time
+                transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
+                                                                BikeEventType.BikeReceived, payload)
+
+                self._event_buffer.insert_event(transfer_evt)
 
     def _on_bike_received(self, evt: Event):
         payload: BikeTransferPaylod = evt.payload

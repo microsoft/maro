@@ -28,9 +28,21 @@ class BikeDecisionStrategy:
     def action_scope(self, cell_idx: int):
         """Calculate action scope base on config"""
         cell: Cell = self._cells[cell_idx]
+        neighbor_num = len(cell.neighbors)
+        scope = {}
 
-        # how many bikes we can supply to other cells
-        return floor(cell.bikes * (1 - self.low_water_mark_ratio))
+        # how many bikes we can supply to other cells from current cell
+        scope[cell_idx] = floor(cell.bikes * (1 - self.low_water_mark_ratio))
+
+        for neighbor_idx in cell.neighbors:
+            if neighbor_idx >=0:
+                neighbor_cell = self._cells[neighbor_idx]
+
+                # we should not transfer bikes to a cell which already meet the high water mark ratio
+                max_bikes = floor(neighbor_cell.capacity * self.high_water_mark_ratio)
+                scope[neighbor_idx] = max(max_bikes - neighbor_cell.bikes, 0)
+        
+        return scope
 
     @property
     def transfer_time(self):

@@ -148,7 +148,8 @@ class Cell:
     def holiday(self, value: bool):
         self._frame.set_attribute(static_node, self._index, "holiday", 0, HOLIDAY if value else WORKDAY)  
 
-    def get_neighbors(self):
+    @property
+    def neighbors(self):
         # here we use cached neighbors to speedup
         return self._neighbors_cache
 
