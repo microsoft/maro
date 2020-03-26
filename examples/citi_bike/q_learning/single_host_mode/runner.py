@@ -247,7 +247,7 @@ class Runner:
             _, decision_event, is_done =self._env.step(None)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
-                    decision_event=decision_event, eps=0, curent_ep=ep)
+                    decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done =self._env.step(action)
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
