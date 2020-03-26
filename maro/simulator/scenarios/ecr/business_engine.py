@@ -286,7 +286,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
     def _register_events(self):
         """
-        Register events that we need
+        Register events
         """
         register_handler = self._event_buffer.register_event_handler
 
