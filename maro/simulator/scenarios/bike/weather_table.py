@@ -30,18 +30,18 @@ weather_type = np.dtype(
 )
 
 
-class WeatherLut:
+class WeatherTable:
     """Lookup table to query weather information for a day"""
     def __init__(self, weather_file: str, start_date_str: str):
         assert os.path.exists(weather_file)
 
         self.start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
 
-        self._weather_lut = {}
+        self._weather_dict = {}
 
-        self._cache_lut(weather_file)
+        self._cache_table(weather_file)
 
-    def _cache_lut(self, weather_file: str):
+    def _cache_table(self, weather_file: str):
         arr = np.load(weather_file)
 
         # we only keep sub-set of weathers in memory to reduce cost
@@ -49,12 +49,12 @@ class WeatherLut:
             cur_date = item["date"].astype(datetime.datetime)
             delta = cur_date - self.start_date
 
-            self._weather_lut[delta.days] = Weather(WeatherType(item["weather"]), item["temp"])
+            self._weather_dict[delta.days] = Weather(WeatherType(item["weather"]), item["temp"])
 
         arr = None
 
     def __len__(self):
-        return len(self._weather_lut)
+        return len(self._weather_dict)
 
     def __getitem__(self, key):
         if type(key) is datetime.datetime:
@@ -62,4 +62,4 @@ class WeatherLut:
 
             key = delta.days
 
-        return self._weather_lut[key]
+        return self._weather_dict[key]

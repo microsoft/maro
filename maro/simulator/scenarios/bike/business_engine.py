@@ -20,7 +20,7 @@ from .frame_builder import build
 from .adj_reader import read_adj_info
 from .trip_reader import BikeTripReader
 from .cell_reward import CellReward
-from .weather_lut import WeatherLut
+from .weather_table import WeatherTable
 
 
 class BikeEventType(IntEnum):
@@ -56,7 +56,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._adj = read_adj_info(self._conf["adj_file"])
         self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
-        self._weather_lut = WeatherLut(self._conf["weather_file"], self._conf["start_datetime"])
+        self._weather_table = WeatherTable(self._conf["weather_file"], self._conf["start_datetime"])
 
         self._update_cell_adj()
         
@@ -270,7 +270,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.holiday = trip.date in self._us_holidays
 
             # weather info
-            weather = self._weather_lut[trip.date]
+            weather = self._weather_table[trip.date]
 
             cell.weather = weather.type
             cell.temperature = weather.avg_temp
