@@ -7,7 +7,7 @@ from maro.simulator.frame import Frame, FrameNodeType
 
 class Port:
     """
-    Present a port in ECR problem, and hide detail of frame accessing
+    Port entity, helper class for accessing the underlying frame
     """
 
     def __init__(self, frame: Frame, idx: int, name: str):
@@ -46,13 +46,14 @@ class Port:
     @property
     def empty(self) -> int:
         """
-        Number of empty containers on board
+        Number of empty containers in the port
         """
         return self._frame.get_attribute(FrameNodeType.STATIC, self._idx, "empty", 0)
 
     @empty.setter
     def empty(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "empty", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "empty", 0, value)
 
     @property
     def full(self) -> int:
@@ -63,7 +64,8 @@ class Port:
 
     @full.setter
     def full(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "full", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "full", 0, value)
 
     @property
     def on_shipper(self) -> int:
@@ -75,7 +77,8 @@ class Port:
 
     @on_shipper.setter
     def on_shipper(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "on_shipper", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "on_shipper", 0, value)
 
     @property
     def on_consignee(self) -> int:
@@ -86,7 +89,8 @@ class Port:
 
     @on_consignee.setter
     def on_consignee(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "on_consignee", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "on_consignee", 0, value)
 
     @property
     def shortage(self) -> int:
@@ -97,7 +101,8 @@ class Port:
 
     @shortage.setter
     def shortage(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "shortage", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "shortage", 0, value)
 
         self._update_fulfilment(value, self.booking)
 
@@ -110,7 +115,8 @@ class Port:
 
     @acc_shortage.setter
     def acc_shortage(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "acc_shortage", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "acc_shortage", 0, value)
 
     @property
     def capacity(self) -> float:
@@ -121,7 +127,8 @@ class Port:
 
     @capacity.setter
     def capacity(self, value: float):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "capacity", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "capacity", 0, value)
 
     @property
     def booking(self) -> int:
@@ -132,7 +139,8 @@ class Port:
 
     @booking.setter
     def booking(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "booking", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "booking", 0, value)
 
         self._update_fulfilment(self.shortage, value)
 
@@ -145,7 +153,8 @@ class Port:
 
     @acc_booking.setter
     def acc_booking(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "acc_booking", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "acc_booking", 0, value)
 
     @property
     def fulfillment(self) -> float:
@@ -156,7 +165,8 @@ class Port:
         """
         Fulfillment of current tick
         """
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "fulfillment", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "fulfillment", 0, value)
 
     @property
     def acc_fulfillment(self) -> int:
@@ -164,7 +174,8 @@ class Port:
 
     @acc_fulfillment.setter
     def acc_fulfillment(self, value: int):
-        self._frame.set_attribute(FrameNodeType.STATIC, self._idx, "acc_fulfillment", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.STATIC, self._idx, "acc_fulfillment", 0, value)
 
     def _update_fulfilment(self, shortage: int, booking: int):
         # update fulfillment

@@ -7,7 +7,7 @@ from maro.simulator.frame import Frame, FrameNodeType
 
 class Vessel:
     """
-    Present a vessel in ECR problem and hide the detail of frame accessing
+    Vessel entity, helper class for accessing the underlying frame
     """
 
     def __init__(self, frame: Frame, idx: int, name: str):
@@ -52,7 +52,8 @@ class Vessel:
 
     @capacity.setter
     def capacity(self, value: float):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "capacity", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "capacity", 0, value)
 
     @property
     def empty(self) -> int:
@@ -63,7 +64,8 @@ class Vessel:
 
     @empty.setter
     def empty(self, value: int):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "empty", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "empty", 0, value)
 
     @property
     def full(self) -> int:
@@ -74,7 +76,8 @@ class Vessel:
 
     @full.setter
     def full(self, value: int):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "full", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "full", 0, value)
 
     @property
     def early_discharge(self) -> int:
@@ -85,7 +88,8 @@ class Vessel:
 
     @early_discharge.setter
     def early_discharge(self, value: int):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "early_discharge", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "early_discharge", 0, value)
 
     @property
     def last_loc_idx(self) -> int:
@@ -96,7 +100,8 @@ class Vessel:
 
     @last_loc_idx.setter
     def last_loc_idx(self, value: int):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "last_loc_idx", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "last_loc_idx", 0, value)
 
     @property
     def next_loc_idx(self) -> int:
@@ -107,7 +112,8 @@ class Vessel:
 
     @next_loc_idx.setter
     def next_loc_idx(self, value: int):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "next_loc_idx", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "next_loc_idx", 0, value)
 
     @property
     def route_idx(self) -> int:
@@ -118,7 +124,8 @@ class Vessel:
 
     @route_idx.setter
     def route_idx(self, value: int):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "route_idx", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "route_idx", 0, value)
 
     @property
     def remaining_space(self):
@@ -126,7 +133,8 @@ class Vessel:
 
     @remaining_space.setter
     def remaining_space(self, value: float):
-        self._frame.set_attribute(FrameNodeType.DYNAMIC, self._idx, "remaining_space", 0, value)
+        self._frame.set_attribute(
+            FrameNodeType.DYNAMIC, self._idx, "remaining_space", 0, value)
 
     def set_stop_list(self, stop_list: tuple):
         """
