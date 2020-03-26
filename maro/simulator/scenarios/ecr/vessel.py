@@ -7,7 +7,7 @@ from maro.simulator.frame import Frame, FrameNodeType
 
 class Vessel:
     """
-    Wrapper that present a vessel in ECR problem and hide the detail of frame accessing
+    Present a vessel in ECR problem and hide the detail of frame accessing
     """
 
     def __init__(self, frame: Frame, idx: int, name: str):
@@ -46,7 +46,7 @@ class Vessel:
     @property
     def capacity(self) -> float:
         """
-        Capacity of vessel, when the contains on board reach the capacity, the vessel cannot load any container
+        Capacity of vessel, when the onboard container number reach the capacity, the vessel cannot load any container
         """
         return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "capacity", 0)
 
