@@ -7,7 +7,7 @@ train:
   max_ep: 500 # max episode
   batch_num: 10
   batch_size: 128
-  min_train_experience_num: 1024 # when experience number is less than it, will not trigger train
+  min_train_experience_num: 10 # when experience number is less than it, will not trigger train
   reward_shaping: 'tc'
   dqn:
     target_update_frequency: 5 # target network update frequency
@@ -27,7 +27,7 @@ qnet:
   seed: 0
 log:
   runner:
-    enable: false
+    enable: true
   agent:
     enable: false
   dqn:

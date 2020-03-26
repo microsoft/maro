@@ -127,14 +127,15 @@ class DQN(object):
             device: Torch current device.
         '''
         super(DQN, self).__init__()
-        self._policy_net = policy_net.to(device)
+        self._device = device
+        # self._device = 'cpu'
+        self._policy_net = policy_net.to(self._device)
         self._policy_net.eval()
-        self._target_net = target_net.to(device)
+        self._target_net = target_net.to(self._device)
         self._target_net.eval()
         self._gamma = gamma
         self._tau = tau
         self._lr = lr
-        self._device = device
         self._optimizer = optim.RMSprop(
             self._policy_net.parameters(), lr=self._lr)
         self._learning_counter = 0
@@ -201,11 +202,10 @@ class DQN(object):
 
         self._policy_net.train()
         policy_state_action_values = self._policy_net(
-            state_batch).mean(dim=0).gather(1, action_batch.long())
+            state_batch).gather(2, action_batch.long()).mean(dim=0)
         # self._logger.debug(f'policy state action values: {policy_state_action_values}')
 
-        target_next_state_values = self._target_net(
-            next_state_batch).max(1,0)[0].mean(dim=0).view(-1, 1).detach()
+        target_next_state_values = self._target_net(next_state_batch).max(2)[0].mean(dim=0).view(-1, 1).detach()
         # self._logger.debug(f'target next state values: {target_next_state_values}')
 
         expected_state_action_values = reward_batch + \

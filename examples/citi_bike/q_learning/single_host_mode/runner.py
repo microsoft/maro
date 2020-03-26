@@ -28,7 +28,7 @@ from maro.simulator.scenarios.bike.business_engine import BikeEventType
 
 ####################################################### START OF INITIAL_PARAMETERS #######################################################
 
-CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
+CONFIG_PATH = os.environ.get('CONFIG') or '/home/xinran/maro/examples/citi_bike/q_learning/single_host_mode/config.yml'
 #/home/xinran/maro/examples/citi_bike/q_learning/single_host_mode/
 
 with io.open(CONFIG_PATH, 'r') as in_file:
@@ -109,16 +109,12 @@ class Runner:
         for idx in self._station_idx2name.keys():
             self._station_name2idx[self._station_idx2name[idx]] = idx
         self._time_cost = OrderedDict()
-        # if log_enable:
-        #     self._logger = Logger(tag='runner', format_=LogFormat.simple,
-        #                           dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
+        if log_enable:
+            self._logger = Logger(tag='runner', format_=LogFormat.simple,
+                                  dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
         #     self._performance_logger = Logger(tag=f'runner.performance', format_=LogFormat.none,
         #                                       dump_folder=LOG_FOLDER, dump_mode='w', extension_name='csv',
         #                                       auto_timestamp=False)
-        #     self._performance_logger.debug(
-        #         f"episode,epsilon,{','.join([str(station_name) + '_booking' for station_name in self._station_idx2name])},"
-        #         f"total_booking,{','.join([str(station_name) + '_shortage' for station_name in self._station_idx2name])},"
-        #         f"total_shortage")
 
     def _load_agent(self, agent_idx_list: [int]):
         if DASHBOARD_ENABLE:
@@ -213,7 +209,7 @@ class Runner:
 
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
-                    decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep)
+                    decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done = self._env.step(action)
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
@@ -251,7 +247,7 @@ class Runner:
             _, decision_event, is_done =self._env.step(None)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
-                    decision_event=decision_event, eps=0, curent_ep=ep)
+                    decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done =self._env.step(action)
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
@@ -268,32 +264,32 @@ class Runner:
 
     def _print_summary(self, ep, is_train: bool = True):
         shortage_list = self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('acc_shortage', 0)]
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
         pretty_shortage_dict = OrderedDict()
         tot_shortage = 0
         for i, shortage in enumerate(shortage_list):
             pretty_shortage_dict[self._station_idx2name[i]] = shortage
             tot_shortage += shortage
-        pretty_shortage_dict['total_shortage'] = tot_shortage
+        pretty_shortage_dict['total'] = tot_shortage
 
         booking_list = self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('acc_booking', 0)]
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
         pretty_booking_dict = OrderedDict()
         tot_booking = 0
         for i, booking in enumerate(booking_list):
             pretty_booking_dict[self._station_idx2name[i]] = booking
             tot_booking += booking
-        pretty_booking_dict['total_booking'] = tot_booking
+        pretty_booking_dict['total'] = tot_booking
 
 
         if is_train:
-            self._performance_logger.debug(
-                f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
+            # self._performance_logger.debug(
+            #     f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
             self._logger.critical(
-                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, total booking: {pretty_booking_dict}, total shortage: {pretty_shortage_dict}')
+                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, total booking: {tot_booking}, total shortage: {tot_shortage}')
         else:
             self._logger.critical(
-                f'{self._env.name} | test | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, total booking: {pretty_booking_dict}, total shortage: {pretty_shortage_dict}')
+                f'{self._env.name} | test | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, total booking: {tot_booking}, total shortage: {tot_shortage}')
 
         if self._dashboard is not None:
             self._send_to_dashboard(ep, pretty_shortage_dict, pretty_booking_dict, is_train)
