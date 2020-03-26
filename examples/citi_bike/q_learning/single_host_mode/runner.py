@@ -268,7 +268,7 @@ class Runner:
         pretty_shortage_dict = OrderedDict()
         tot_shortage = 0
         for i, shortage in enumerate(shortage_list):
-            pretty_shortage_dict[self._station_idx2name[i]] = shortage
+            pretty_shortage_dict[str(self._station_idx2name[i])] = shortage
             tot_shortage += shortage
         pretty_shortage_dict['total'] = tot_shortage
 
@@ -277,7 +277,7 @@ class Runner:
         pretty_booking_dict = OrderedDict()
         tot_booking = 0
         for i, booking in enumerate(booking_list):
-            pretty_booking_dict[self._station_idx2name[i]] = booking
+            pretty_booking_dict[str(self._station_idx2name[i])] = booking
             tot_booking += booking
         pretty_booking_dict['total'] = tot_booking
 
@@ -316,8 +316,8 @@ class Runner:
 
         pretty_fulfill_dict = OrderedDict()
         for i in range(len(self._station_idx2name)):
-            if pretty_booking_dict[self._station_idx2name[i]] > 0:
-                pretty_fulfill_dict[self._station_idx2name[i]] = (pretty_booking_dict[self._station_idx2name[i]] - pretty_shortage_dict[self._station_idx2name[i]]) / pretty_booking_dict[self._station_idx2name[i]] * 100
+            if pretty_booking_dict[str(self._station_idx2name[i])] > 0:
+                pretty_fulfill_dict[str(self._station_idx2name[i])] = (pretty_booking_dict[str(self._station_idx2name[i])] - pretty_shortage_dict[str(self._station_idx2name[i])]) / pretty_booking_dict[str(self._station_idx2name[i])] * 100
         if pretty_booking_dict['total'] > 0:
             pretty_fulfill_dict['total_fulfill'] = (pretty_booking_dict['total'] - pretty_shortage_dict['total']) / pretty_booking_dict['total'] * 100
         self._dashboard.upload_exp_data(fields=pretty_fulfill_dict, ep=dashboard_ep, tick=None, measurement='bike_fulfill')
@@ -345,7 +345,7 @@ class Runner:
         if is_train:
             pretty_epsilon_dict = OrderedDict()
             for i, _ in enumerate(self._station_idx2name):
-                pretty_epsilon_dict[self._station_idx2name[i]] = self._eps_list[ep]
+                pretty_epsilon_dict[str(self._station_idx2name[i])] = self._eps_list[ep]
             self._dashboard.upload_exp_data(fields=pretty_epsilon_dict, ep=dashboard_ep, tick=None, measurement='bike_epsilon')
 
         # Prepare usage and delayed laden data cache
@@ -477,7 +477,7 @@ class Runner:
             need_upload = False
             pretty_ep_shortage_dict = OrderedDict()
             for j in range(len(self._station_idx2name)):
-                pretty_ep_shortage_dict[self._station_idx2name[j]] = pretty_ep_shortage_list[i][j]
+                pretty_ep_shortage_dict[str(self._station_idx2name[j])] = pretty_ep_shortage_list[i][j]
                 if pretty_ep_shortage_list[i][j] > 0:
                     need_upload = True
             if need_upload:
