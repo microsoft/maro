@@ -214,8 +214,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(
             BikeEventType.BikeReceived, self._on_bike_received)
 
-    def _move_to_neighbor(self, cell: Cell, bike_number: int):
-        # TODO: support move to 2-step neighbors
+    def _move_to_neighbor(self, src_cell: Cell, cell: Cell, bike_number: int, step: int = 1):
+        # move to 1-step neighbors
         for neighbor_idx in cell.neighbors:
             neighbor = self._cells[neighbor_idx]
             accept_number = neighbor.capacity - neighbor.bikes
@@ -229,8 +229,19 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             if bike_number == 0:
                 break
+        
+        if step == 1 and bike_number > 0:
+            # 2-step neighbors
+            for neighbor_idx in cell.neighbors:
+                self._move_to_neighbor(src_cell, bike_number, neighbor_idx, step=2)
 
-        # assert bike_number == 0
+                if bike_number == 0:
+                    break
+
+            # if there still some more bikes, return it to source cell
+            if bike_number > 0:
+                src_cell.bikes += bike_number
+        
 
     def _on_trip_requirement(self, evt: Event):
         """On trip requirement handler:
@@ -279,7 +290,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         cell_capacity = cell.capacity
 
         if cell_bikes + 1 > cell_capacity:
-            self._move_to_neighbor(cell, 1)
+            self._move_to_neighbor(self._cells[payload.from_cell], cell, 1)
 
             # extra cost of current cell, as we do not know whoes action caused this
             cell.extra_cost += 1
@@ -319,7 +330,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             accept_number = cell_capacity - cell_bikes
             extra_bikes = payload.number - accept_number
 
-            self._move_to_neighbor(cell, extra_bikes)
+            self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
 
             # extra cost from source cell
             from_cell = self._cells[payload.from_cell]
