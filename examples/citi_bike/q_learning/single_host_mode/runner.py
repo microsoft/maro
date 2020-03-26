@@ -231,7 +231,7 @@ class Runner:
             self._time_cost[ep] = time_dict
 
             if self._dashboard is not None:
-                self._dashboard.upload_exp_data(fields=self._time_cost[ep], ep=ep, tick=None, measurement='time_cost')
+                self._dashboard.upload_exp_data(fields=self._time_cost[ep], ep=ep, tick=None, measurement='bike_time_cost')
         self._test()
 
     def _test(self):
@@ -260,7 +260,7 @@ class Runner:
             self._time_cost[ep + self._max_train_ep] = time_dict
 
             if self._dashboard is not None:
-                self._dashboard.upload_exp_data(fields=time_dict, ep=ep + self._max_train_ep, tick=None, measurement='time_cost')
+                self._dashboard.upload_exp_data(fields=time_dict, ep=ep + self._max_train_ep, tick=None, measurement='bike_time_cost')
 
     def _print_summary(self, ep, is_train: bool = True):
         shortage_list = self._env.snapshot_list.static_nodes[
@@ -307,12 +307,12 @@ class Runner:
         # Upload data for experiment info
 
         if dashboard_ep == 0:
-            self._dashboard.upload_exp_data(fields=Dashboardciti_bike.static_info, ep=None, tick=None, measurement='static_info')
-        self._dashboard.upload_exp_data(fields=Dashboardciti_bike.dynamic_info, ep=dashboard_ep, tick=None, measurement='dynamic_info')
+            self._dashboard.upload_exp_data(fields=Dashboardciti_bike.static_info, ep=None, tick=None, measurement='bike_static_info')
+        self._dashboard.upload_exp_data(fields=Dashboardciti_bike.dynamic_info, ep=dashboard_ep, tick=None, measurement='bike_dynamic_info')
 
         # Upload data for ep shortage and ep booking
-        self._dashboard.upload_exp_data(fields=pretty_booking_dict, ep=dashboard_ep, tick=None, measurement='booking')
-        self._dashboard.upload_exp_data(fields=pretty_shortage_dict, ep=dashboard_ep, tick=None, measurement='shortage')
+        self._dashboard.upload_exp_data(fields=pretty_booking_dict, ep=dashboard_ep, tick=None, measurement='bike_booking')
+        self._dashboard.upload_exp_data(fields=pretty_shortage_dict, ep=dashboard_ep, tick=None, measurement='bike_shortage')
 
         pretty_fulfill_dict = OrderedDict()
         for i in range(len(self._station_idx2name)):
@@ -320,7 +320,7 @@ class Runner:
                 pretty_fulfill_dict[self._station_idx2name[i]] = (pretty_booking_dict[self._station_idx2name[i]] - pretty_shortage_dict[self._station_idx2name[i]]) / pretty_booking_dict[self._station_idx2name[i]] * 100
         if pretty_booking_dict['total'] > 0:
             pretty_fulfill_dict['total_fulfill'] = (pretty_booking_dict['total'] - pretty_shortage_dict['total']) / pretty_booking_dict['total'] * 100
-        self._dashboard.upload_exp_data(fields=pretty_fulfill_dict, ep=dashboard_ep, tick=None, measurement='fulfill')
+        self._dashboard.upload_exp_data(fields=pretty_fulfill_dict, ep=dashboard_ep, tick=None, measurement='bike_fulfill')
 
         # Pick and upload data for rank list
         if not is_train:
@@ -346,7 +346,7 @@ class Runner:
             pretty_epsilon_dict = OrderedDict()
             for i, _ in enumerate(self._station_idx2name):
                 pretty_epsilon_dict[self._station_idx2name[i]] = self._eps_list[ep]
-            self._dashboard.upload_exp_data(fields=pretty_epsilon_dict, ep=dashboard_ep, tick=None, measurement='epsilon')
+            self._dashboard.upload_exp_data(fields=pretty_epsilon_dict, ep=dashboard_ep, tick=None, measurement='bike_epsilon')
 
         # Prepare usage and delayed laden data cache
         usage_list = self._env.snapshot_list.static_nodes[::(['docks', 'bikes'], 0)]
