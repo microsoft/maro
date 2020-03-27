@@ -6,6 +6,7 @@ import io
 import os
 import random
 import numpy as np
+import pandas as pd
 import torch
 import yaml
 import time
@@ -223,8 +224,7 @@ class Runner:
                 agent.store_experience(current_ep=ep)
                 train_start = time.time()
                 agent.train(current_ep=ep)
-                time_dict[agent._agent_name] = time.time() - train_start
-                time_dict['train_time'] += time_dict[agent._agent_name]
+                time_dict['train_time'] += time.time() - train_start
 
             if self._log_enable:
                 self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode = 'train')
@@ -342,7 +342,7 @@ class Runner:
             self._logger.critical(
                 f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
 
-        if self._dashboard is not None:
+        if self._dashboard is not None and mode != 'no_action':
             self._send_to_dashboard(ep, pretty_shortage_dict, pretty_requirement_dict, is_train)
 
     def _send_to_dashboard(self,
@@ -400,8 +400,10 @@ class Runner:
             self._dashboard.upload_exp_data(fields=pretty_epsilon_dict, ep=dashboard_ep, tick=None, measurement='bike_epsilon')
 
         # Prepare usage and delayed laden data cache
-        usage_list = self._env.snapshot_list.static_nodes[::(['docks', 'bikes'], 0)]
-        pretty_usage_list = usage_list.reshape(self._max_tick, len(self._station_idx2name) * 2)
+        usage_list = self._env.snapshot_list.static_nodes[::(['bikes'], 0)]
+        pretty_usage_list = usage_list.reshape(self._max_tick, len(self._station_idx2name) )
+        capacity_list = self._env.snapshot_list.static_nodes[0::(['capacity'], 0)]
+        pretty_capacity_df = capacity_list.reshape(1, len(self._station_idx2name) )
 
         # TODO: remove after confirmed no longer needed
         # delayed_laden_list = self._env.snapshot_list.matrix[[x for x in range(0, self._max_tick)]:"full_on_stations"]
@@ -452,14 +454,14 @@ class Runner:
             elif event.event_type == BikeEventType.BikeReceived:
                 cur_tick = event.tick
                 # Pick and upload data for event vessel usage
-                cell_idx = event.payload.to_cell
-                column = cell_idx * 2
-                cur_usage = {
-                    'station': self._station_idx2name[cell_idx],
-                    'bikes': pretty_usage_list[cur_tick][column],
-                    'docks': pretty_usage_list[cur_tick][column + 1]
-                }
-                self._dashboard.upload_exp_data(fields=cur_usage, ep=dashboard_ep, tick=cur_tick, measurement='bike_station_usage')
+                # cell_idx = event.payload.to_cell
+                # column = cell_idx * 2
+                # cur_usage = {
+                #     'station': self._station_idx2name[cell_idx],
+                #     'bikes': pretty_usage_list[cur_tick][column],
+                #     'docks': pretty_usage_list[cur_tick][column + 1]
+                # }
+                # self._dashboard.upload_exp_data(fields=cur_usage, ep=dashboard_ep, tick=cur_tick, measurement='bike_station_usage')
 
                 # TODO: remove after confirmed no longer needed
                 # Pick and upload data for event delayed laden
@@ -534,6 +536,14 @@ class Runner:
             if need_upload:
                 self._dashboard.upload_exp_data(fields=pretty_ep_shortage_dict, ep=dashboard_ep, tick=i, measurement='bike_event_shortage')
 
+        # Pick and upload data for event vessel usage
+        pretty_usage_df = pd.DataFrame(pretty_usage_list)
+        shift_usage_df = pretty_usage_df.shift(periods=1)
+        result_df = (pretty_usage_df != shift_usage_df)
+        print(pretty_usage_df,result_df)
+        #result_df.apply(lambda x: x.apply(lambda y:  _send_usage(y, x.name)), axis=1)
+        result_df.apply(lambda x: self._send_usage(x , pretty_usage_df, pretty_capacity_df, dashboard_ep), axis=1)
+
     def _set_seed(self, seed):
         torch.manual_seed(seed)
         if torch.cuda.is_available():
@@ -541,6 +551,17 @@ class Runner:
         np.random.seed(seed)
         random.seed(seed)
         sim_random.seed(seed)
+
+    def _send_usage(self, series_x, usage, capacity, ep):
+        tick = series_x.name
+        for idx in series_x.index:
+            if series_x[idx]:
+                cur_usage = {
+                    'station': str(idx),
+                    'bikes': usage[idx][series_x.name],
+                    'docks': capacity[0][idx] - usage[idx][series_x.name]
+                }
+                self._dashboard.upload_exp_data(fields=cur_usage, ep=ep, tick=tick, measurement='bike_station_usage')
 
 
 if __name__ == '__main__':
