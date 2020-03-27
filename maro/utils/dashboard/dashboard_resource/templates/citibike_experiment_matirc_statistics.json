@@ -1,0 +1,4262 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "id": 5,
+    "iteration": 1585328899819,
+    "links": [],
+    "panels": [
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 48,
+        "panels": [],
+        "title": "Overall Statistics",
+        "type": "row"
+      },
+      {
+        "cacheTimeout": null,
+        "colorBackground": false,
+        "colorPostfix": true,
+        "colorPrefix": true,
+        "colorValue": true,
+        "colors": [
+          "#FF9830",
+          "rgba(237, 129, 40, 0.89)",
+          "#d44a3a"
+        ],
+        "datasource": null,
+        "format": "none",
+        "gauge": {
+          "maxValue": 100,
+          "minValue": 0,
+          "show": false,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 2,
+          "x": 0,
+          "y": 1
+        },
+        "id": 21,
+        "interval": null,
+        "links": [],
+        "mappingType": 1,
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1
+          },
+          {
+            "name": "range to text",
+            "value": 2
+          }
+        ],
+        "maxDataPoints": 100,
+        "nullPointMode": "connected",
+        "nullText": null,
+        "options": {},
+        "postfix": "",
+        "postfixFontSize": "50%",
+        "prefix": "",
+        "prefixFontSize": "50%",
+        "rangeMaps": [
+          {
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }
+        ],
+        "sparkline": {
+          "fillColor": "rgba(31, 118, 189, 0.18)",
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "show": false,
+          "ymax": null,
+          "ymin": null
+        },
+        "tableColumn": "",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "dynamic_info",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT \"ep_progress\" FROM \"bike_dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"is_train\" = true) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "current_ep"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "is_train",
+                "operator": "=",
+                "value": "true"
+              }
+            ]
+          }
+        ],
+        "thresholds": "",
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Training Progress",
+        "type": "singlestat",
+        "valueFontSize": "80%",
+        "valueMaps": [
+          {
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }
+        ],
+        "valueName": "current"
+      },
+      {
+        "cacheTimeout": null,
+        "colorBackground": false,
+        "colorValue": true,
+        "colors": [
+          "#B877D9",
+          "rgba(237, 129, 40, 0.89)",
+          "#d44a3a"
+        ],
+        "datasource": null,
+        "format": "none",
+        "gauge": {
+          "maxValue": 100,
+          "minValue": 0,
+          "show": false,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 2,
+          "x": 2,
+          "y": 1
+        },
+        "id": 32,
+        "interval": null,
+        "links": [],
+        "mappingType": 1,
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1
+          },
+          {
+            "name": "range to text",
+            "value": 2
+          }
+        ],
+        "maxDataPoints": 100,
+        "nullPointMode": "connected",
+        "nullText": null,
+        "options": {},
+        "postfix": "",
+        "postfixFontSize": "50%",
+        "prefix": "",
+        "prefixFontSize": "50%",
+        "rangeMaps": [
+          {
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }
+        ],
+        "sparkline": {
+          "fillColor": "rgba(31, 118, 189, 0.18)",
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "show": false,
+          "ymax": null,
+          "ymin": null
+        },
+        "tableColumn": "",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "dynamic_info",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT \"ep_progress\" FROM \"bike_dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"is_train\" = false) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "current_ep"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "is_train",
+                "operator": "=",
+                "value": "true"
+              }
+            ]
+          }
+        ],
+        "thresholds": "",
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Testing Progress",
+        "type": "singlestat",
+        "valueFontSize": "80%",
+        "valueMaps": [
+          {
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }
+        ],
+        "valueName": "current"
+      },
+      {
+        "datasource": null,
+        "gridPos": {
+          "h": 4,
+          "w": 3,
+          "x": 4,
+          "y": 1
+        },
+        "id": 34,
+        "options": {
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "mappings": [],
+              "max": 100,
+              "min": 0,
+              "thresholds": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "override": {},
+            "values": false
+          },
+          "orientation": "auto",
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "6.5.2",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_dynamic_info",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cpu_percent"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "CPU Percent",
+        "type": "gauge"
+      },
+      {
+        "datasource": null,
+        "gridPos": {
+          "h": 4,
+          "w": 3,
+          "x": 7,
+          "y": 1
+        },
+        "id": 35,
+        "options": {
+          "fieldOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "defaults": {
+              "mappings": [],
+              "max": 100,
+              "min": 0,
+              "thresholds": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "override": {},
+            "values": false
+          },
+          "orientation": "auto",
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "6.5.2",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_dynamic_info",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "memory_percent"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Memory Percent",
+        "type": "gauge"
+      },
+      {
+        "cacheTimeout": null,
+        "colorBackground": false,
+        "colorPostfix": true,
+        "colorValue": true,
+        "colors": [
+          "#5794F2",
+          "rgba(237, 129, 40, 0.89)",
+          "#d44a3a"
+        ],
+        "datasource": null,
+        "format": "none",
+        "gauge": {
+          "maxValue": 100,
+          "minValue": 0,
+          "show": false,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 3,
+          "x": 10,
+          "y": 1
+        },
+        "id": 37,
+        "interval": null,
+        "links": [],
+        "mappingType": 1,
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1
+          },
+          {
+            "name": "range to text",
+            "value": 2
+          }
+        ],
+        "maxDataPoints": 100,
+        "nullPointMode": "connected",
+        "nullText": null,
+        "options": {},
+        "postfix": "s",
+        "postfixFontSize": "50%",
+        "prefix": "",
+        "prefixFontSize": "50%",
+        "rangeMaps": [
+          {
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }
+        ],
+        "sparkline": {
+          "fillColor": "rgba(31, 118, 189, 0.18)",
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "show": false,
+          "ymax": null,
+          "ymin": null
+        },
+        "tableColumn": "",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_time_cost",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "ep_time"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "thresholds": "",
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Total Time Cost",
+        "type": "singlestat",
+        "valueFontSize": "80%",
+        "valueMaps": [
+          {
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }
+        ],
+        "valueName": "total"
+      },
+      {
+        "cacheTimeout": null,
+        "colorBackground": false,
+        "colorValue": true,
+        "colors": [
+          "#C4162A",
+          "rgba(237, 129, 40, 0.89)",
+          "#C4162A"
+        ],
+        "datasource": null,
+        "format": "none",
+        "gauge": {
+          "maxValue": 100,
+          "minValue": 0,
+          "show": false,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 3,
+          "x": 13,
+          "y": 1
+        },
+        "id": 39,
+        "interval": null,
+        "links": [],
+        "mappingType": 1,
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1
+          },
+          {
+            "name": "range to text",
+            "value": 2
+          }
+        ],
+        "maxDataPoints": 100,
+        "nullPointMode": "connected",
+        "nullText": null,
+        "options": {},
+        "postfix": "",
+        "postfixFontSize": "50%",
+        "prefix": "",
+        "prefixFontSize": "50%",
+        "rangeMaps": [
+          {
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }
+        ],
+        "sparkline": {
+          "fillColor": "rgba(31, 118, 189, 0.18)",
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "show": false,
+          "ymax": null,
+          "ymin": null
+        },
+        "tableColumn": "",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_shortage",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "total"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "thresholds": "",
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Current Shortage",
+        "type": "singlestat",
+        "valueFontSize": "80%",
+        "valueMaps": [
+          {
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }
+        ],
+        "valueName": "current"
+      },
+      {
+        "cacheTimeout": null,
+        "colorBackground": false,
+        "colorValue": true,
+        "colors": [
+          "#FADE2A",
+          "rgba(237, 129, 40, 0.89)",
+          "#d44a3a"
+        ],
+        "datasource": null,
+        "format": "none",
+        "gauge": {
+          "maxValue": 100,
+          "minValue": 0,
+          "show": false,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 3,
+          "x": 16,
+          "y": 1
+        },
+        "id": 40,
+        "interval": null,
+        "links": [],
+        "mappingType": 1,
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1
+          },
+          {
+            "name": "range to text",
+            "value": 2
+          }
+        ],
+        "maxDataPoints": 100,
+        "nullPointMode": "connected",
+        "nullText": null,
+        "options": {},
+        "postfix": "",
+        "postfixFontSize": "50%",
+        "prefix": "",
+        "prefixFontSize": "50%",
+        "rangeMaps": [
+          {
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }
+        ],
+        "sparkline": {
+          "fillColor": "rgba(31, 118, 189, 0.18)",
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "show": false,
+          "ymax": null,
+          "ymin": null
+        },
+        "tableColumn": "",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_booking",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "total"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "thresholds": "",
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Current Booking",
+        "type": "singlestat",
+        "valueFontSize": "80%",
+        "valueMaps": [
+          {
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }
+        ],
+        "valueName": "current"
+      },
+      {
+        "cacheTimeout": null,
+        "colorBackground": false,
+        "colorPostfix": true,
+        "colorValue": true,
+        "colors": [
+          "#299c46",
+          "#FADE2A",
+          "#d44a3a"
+        ],
+        "datasource": null,
+        "decimals": 2,
+        "format": "none",
+        "gauge": {
+          "maxValue": 100,
+          "minValue": 0,
+          "show": false,
+          "thresholdLabels": false,
+          "thresholdMarkers": true
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 5,
+          "x": 19,
+          "y": 1
+        },
+        "id": 44,
+        "interval": null,
+        "links": [],
+        "mappingType": 1,
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1
+          },
+          {
+            "name": "range to text",
+            "value": 2
+          }
+        ],
+        "maxDataPoints": 100,
+        "nullPointMode": "connected",
+        "nullText": null,
+        "options": {},
+        "postfix": "%",
+        "postfixFontSize": "50%",
+        "prefix": "",
+        "prefixFontSize": "50%",
+        "rangeMaps": [
+          {
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }
+        ],
+        "sparkline": {
+          "fillColor": "rgba(31, 118, 189, 0.18)",
+          "full": false,
+          "lineColor": "rgb(31, 120, 193)",
+          "show": false,
+          "ymax": null,
+          "ymin": null
+        },
+        "tableColumn": "",
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_fulfill",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "total_fulfill"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "thresholds": "",
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Current Fulfillment Ratio",
+        "type": "singlestat",
+        "valueFontSize": "80%",
+        "valueMaps": [
+          {
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }
+        ],
+        "valueName": "current"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 5
+        },
+        "id": 50,
+        "panels": [],
+        "title": "Business Metrics (All Episodes)",
+        "type": "row"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 6
+        },
+        "id": 41,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "1",
+          "10",
+          "104",
+          "106",
+          "107",
+          "109",
+          "111",
+          "115",
+          "117",
+          "120",
+          "13",
+          "135",
+          "136",
+          "14",
+          "142",
+          "143",
+          "145",
+          "148",
+          "149",
+          "15",
+          "150",
+          "154",
+          "155",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "170",
+          "173",
+          "188",
+          "20",
+          "21",
+          "22",
+          "24",
+          "31",
+          "33",
+          "36",
+          "39",
+          "4",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "59",
+          "6",
+          "61",
+          "66",
+          "67",
+          "68",
+          "70",
+          "74",
+          "79",
+          "8",
+          "81",
+          "82",
+          "83",
+          "85",
+          "9",
+          "90",
+          "98",
+          "ep",
+          "experiment",
+          "total_fulfill"
+        ],
+        "ignoreColums": "",
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_fulfill",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Fulfillment Ratio",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "1",
+          "10",
+          "104",
+          "106",
+          "107",
+          "109",
+          "111",
+          "115",
+          "117",
+          "120",
+          "13",
+          "135",
+          "136",
+          "14",
+          "142",
+          "143",
+          "145",
+          "148",
+          "149",
+          "15",
+          "150",
+          "154",
+          "155",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "170",
+          "173",
+          "188",
+          "20",
+          "21",
+          "22",
+          "24",
+          "31",
+          "33",
+          "36",
+          "39",
+          "4",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "59",
+          "6",
+          "61",
+          "66",
+          "67",
+          "68",
+          "70",
+          "74",
+          "79",
+          "8",
+          "81",
+          "82",
+          "83",
+          "85",
+          "9",
+          "90",
+          "98",
+          "ep",
+          "experiment",
+          "total_fulfill"
+        ],
+        "x_axis": "ep"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 6
+        },
+        "id": 2,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "11",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "12",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129",
+          "13",
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "14",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "15",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "16",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "17",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "18",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "19",
+          "190",
+          "191",
+          "192",
+          "2",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "3",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "4",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "6",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "7",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "8",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "9",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "ep",
+          "experiment",
+          "total"
+        ],
+        "ignoreColums": "",
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_shortage",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Shortage",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "11",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "12",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129",
+          "13",
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "14",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "15",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "16",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "17",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "18",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "19",
+          "190",
+          "191",
+          "192",
+          "2",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "3",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "4",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "6",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "7",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "8",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "9",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "ep",
+          "experiment",
+          "total"
+        ],
+        "x_axis": "ep"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 6
+        },
+        "id": 42,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [],
+        "ignoreColums": "",
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "tml_cost",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Terminal Cost",
+        "type": "grafana-linechart-panel",
+        "xColumns": [],
+        "x_axis": "ep"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 14
+        },
+        "id": 52,
+        "panels": [],
+        "title": "Business Metrics (Episode $episode)",
+        "type": "row"
+      },
+      {
+        "aliasColors": {},
+        "breakPoint": "50%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "format": "short",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 15
+        },
+        "id": 10,
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "pieType": "pie",
+        "strokeWidth": 1,
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "shortage",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT  /^[0-9]+$/ FROM \"bike_shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter ",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "demand_port_001"
+                  ],
+                  "type": "field"
+                }
+              ],
+              [
+                {
+                  "params": [
+                    "demand_port_002"
+                  ],
+                  "type": "field"
+                }
+              ],
+              [
+                {
+                  "params": [
+                    "supply_port_001"
+                  ],
+                  "type": "field"
+                }
+              ],
+              [
+                {
+                  "params": [
+                    "supply_port_002"
+                  ],
+                  "type": "field"
+                }
+              ],
+              [
+                {
+                  "params": [
+                    "transfer_port_001"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Shortage in Episode $episode",
+        "type": "grafana-piechart-panel",
+        "valueName": "current"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 15
+        },
+        "id": 27,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "11",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "12",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129",
+          "13",
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "14",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "15",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "16",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "17",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "18",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "19",
+          "190",
+          "191",
+          "192",
+          "2",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "3",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "4",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "6",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "7",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "8",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "9",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "ep",
+          "experiment",
+          "tick"
+        ],
+        "ignoreColums": "",
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "event_shortage",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT * FROM \"bike_event_shortage\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Shortage in Episode $episode",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "11",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "12",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129",
+          "13",
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "14",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "15",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "16",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "17",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "18",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "19",
+          "190",
+          "191",
+          "192",
+          "2",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "3",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "4",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "6",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "7",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "8",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "9",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "ep",
+          "experiment",
+          "tick"
+        ],
+        "x_axis": "tick"
+      },
+      {
+        "aliasColors": {},
+        "breakPoint": "10%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 15
+        },
+        "id": 12,
+        "interval": null,
+        "legend": {
+          "show": false,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "laden_executed",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT * FROM \"bike_ride_executed\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Rides Heat Map in Episode $episode",
+        "type": "grafana-heatmapchart-panel",
+        "xColumns": [
+          "Time",
+          "ep",
+          "experiment",
+          "from",
+          "quantity",
+          "to"
+        ],
+        "x_axis": "from",
+        "yColumns": [
+          "Time",
+          "ep",
+          "experiment",
+          "from",
+          "quantity",
+          "to"
+        ],
+        "y_axis": "to",
+        "zColumns": [
+          "Time",
+          "ep",
+          "experiment",
+          "from",
+          "quantity",
+          "to"
+        ],
+        "z_axis": "quantity"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "10%",
+        "cacheTimeout": null,
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 16,
+          "x": 0,
+          "y": 23
+        },
+        "id": 14,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment",
+          "tick",
+          "vessel"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "bikes",
+          "docks",
+          "ep",
+          "experiment",
+          "station",
+          "tick"
+        ],
+        "interval": null,
+        "legend": {
+          "show": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "q_value",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT * FROM \"bike_station_usage\" WHERE (\"experiment\" =~ /^$experiment$/ AND  \"ep\" = $episode  and \"station\" = '$station') AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Station Usage of $vessel in Episode $episode",
+        "type": "grafana-stackchart-panel",
+        "xColumns": [
+          "Time",
+          "bikes",
+          "docks",
+          "ep",
+          "experiment",
+          "station",
+          "tick"
+        ],
+        "x_axis": "tick"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 23
+        },
+        "id": 43,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [],
+        "ignoreColums": "",
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "event_shortage",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT * FROM \"event_tml_cost\" WHERE (\"experiment\" =~ /^$experiment$/ AND \"ep\" = $episode) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Terminal Cost in Episode $episode",
+        "type": "grafana-linechart-panel",
+        "xColumns": [],
+        "x_axis": "tick"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 31
+        },
+        "id": 46,
+        "panels": [],
+        "title": "Training Metrics (All Episodes)",
+        "type": "row"
+      },
+      {
+        "aggregation": "mean",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 16,
+          "x": 0,
+          "y": 32
+        },
+        "id": 4,
+        "ignoreColumn": [
+          "Time",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [],
+        "ignoreColums": "",
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "loss",
+            "orderByTime": "ASC",
+            "policy": "autogen",
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Loss",
+        "type": "grafana-linechart-panel",
+        "xColumns": [],
+        "x_axis": "ep"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 32
+        },
+        "id": 6,
+        "ignoreColumn": [
+          "experiment",
+          "total"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "11",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "12",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129",
+          "13",
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "14",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "15",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "16",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "17",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "18",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "19",
+          "190",
+          "191",
+          "192",
+          "2",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "3",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "4",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "6",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "7",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "8",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "9",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "ep",
+          "experiment"
+        ],
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_epsilon",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Exploration Ratio",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "11",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "12",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129",
+          "13",
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "14",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "15",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "16",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168",
+          "169",
+          "17",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "18",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "19",
+          "190",
+          "191",
+          "192",
+          "2",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "3",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "4",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "5",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "6",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "7",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "8",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "9",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "ep",
+          "experiment"
+        ],
+        "x_axis": "ep"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "10%",
+        "cacheTimeout": null,
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 10,
+          "x": 0,
+          "y": 40
+        },
+        "id": 23,
+        "ignoreColumn": [
+          "experiment"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "env_time",
+          "ep",
+          "ep_time",
+          "experiment",
+          "other_time",
+          "train_time"
+        ],
+        "interval": null,
+        "legend": {
+          "show": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_time_cost",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Time Cost",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "env_time",
+          "ep",
+          "ep_time",
+          "experiment",
+          "other_time",
+          "train_time"
+        ],
+        "x_axis": "ep"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "10%",
+        "cacheTimeout": null,
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 14,
+          "x": 10,
+          "y": 40
+        },
+        "id": 25,
+        "ignoreColumn": [
+          "memory_active",
+          "memory_buffers"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "cpu_percent",
+          "ep",
+          "memory_percent"
+        ],
+        "interval": null,
+        "legend": {
+          "show": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "bike_dynamic_info",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT \"memory_percent\", \"ep\" FROM \"dynamic_info\" WHERE (\"experiment\" =~ /^$experiment$/) AND $timeFilter",
+            "rawQuery": false,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "cpu_percent"
+                  ],
+                  "type": "field"
+                }
+              ],
+              [
+                {
+                  "params": [
+                    "ep"
+                  ],
+                  "type": "field"
+                }
+              ],
+              [
+                {
+                  "params": [
+                    "memory_percent"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Node Workload",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "cpu_percent",
+          "ep",
+          "memory_percent"
+        ],
+        "x_axis": "ep"
+      },
+      {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 48
+        },
+        "id": 54,
+        "panels": [],
+        "title": "Training Metrics (Per-Episode)",
+        "type": "row"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 10,
+          "x": 0,
+          "y": 49
+        },
+        "id": 26,
+        "ignoreColumn": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "2",
+          "20",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "action",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "0.policy",
+          "1.policy",
+          "104.policy",
+          "105.policy",
+          "106.policy",
+          "107.policy",
+          "108.policy",
+          "109.policy",
+          "11.policy",
+          "110.policy",
+          "111.policy",
+          "112.policy",
+          "113.policy",
+          "116.policy",
+          "117.policy",
+          "119.policy",
+          "12.policy",
+          "120.policy",
+          "13.policy",
+          "135.policy",
+          "136.policy",
+          "14.policy",
+          "142.policy",
+          "143.policy",
+          "144.policy",
+          "145.policy",
+          "146.policy",
+          "147.policy",
+          "148.policy",
+          "149.policy",
+          "15.policy",
+          "150.policy",
+          "151.policy",
+          "155.policy",
+          "156.policy",
+          "16.policy",
+          "160.policy",
+          "161.policy",
+          "162.policy",
+          "163.policy",
+          "164.policy",
+          "166.policy",
+          "167.policy",
+          "168.policy",
+          "169.policy",
+          "17.policy",
+          "170.policy",
+          "172.policy",
+          "173.policy",
+          "175.policy",
+          "18.policy",
+          "181.policy",
+          "182.policy",
+          "184.policy",
+          "185.policy",
+          "186.policy",
+          "19.policy",
+          "2.policy",
+          "20.policy",
+          "22.policy",
+          "23.policy",
+          "24.policy",
+          "25.policy",
+          "26.policy",
+          "27.policy",
+          "31.policy",
+          "32.policy",
+          "33.policy",
+          "34.policy",
+          "35.policy",
+          "36.policy",
+          "37.policy",
+          "38.policy",
+          "39.policy",
+          "4.policy",
+          "40.policy",
+          "41.policy",
+          "42.policy",
+          "43.policy",
+          "44.policy",
+          "45.policy",
+          "46.policy",
+          "48.policy",
+          "49.policy",
+          "5.policy",
+          "51.policy",
+          "52.policy",
+          "53.policy",
+          "54.policy",
+          "55.policy",
+          "56.policy",
+          "57.policy",
+          "58.policy",
+          "59.policy",
+          "6.policy",
+          "61.policy",
+          "62.policy",
+          "65.policy",
+          "66.policy",
+          "67.policy",
+          "68.policy",
+          "69.policy",
+          "7.policy",
+          "70.policy",
+          "71.policy",
+          "74.policy",
+          "76.policy",
+          "77.policy",
+          "79.policy",
+          "8.policy",
+          "80.policy",
+          "81.policy",
+          "82.policy",
+          "83.policy",
+          "84.policy",
+          "85.policy",
+          "9.policy",
+          "93.policy",
+          "94.policy",
+          "action"
+        ],
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "q_value",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT /.policy$/, \"action\" FROM \"bike_q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode AND \"tick\" = $action_tick) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Q_Curve in Episode $episode on Tick $action_tick",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "0.policy",
+          "1.policy",
+          "104.policy",
+          "105.policy",
+          "106.policy",
+          "107.policy",
+          "108.policy",
+          "109.policy",
+          "11.policy",
+          "110.policy",
+          "111.policy",
+          "112.policy",
+          "113.policy",
+          "116.policy",
+          "117.policy",
+          "119.policy",
+          "12.policy",
+          "120.policy",
+          "13.policy",
+          "135.policy",
+          "136.policy",
+          "14.policy",
+          "142.policy",
+          "143.policy",
+          "144.policy",
+          "145.policy",
+          "146.policy",
+          "147.policy",
+          "148.policy",
+          "149.policy",
+          "15.policy",
+          "150.policy",
+          "151.policy",
+          "155.policy",
+          "156.policy",
+          "16.policy",
+          "160.policy",
+          "161.policy",
+          "162.policy",
+          "163.policy",
+          "164.policy",
+          "166.policy",
+          "167.policy",
+          "168.policy",
+          "169.policy",
+          "17.policy",
+          "170.policy",
+          "172.policy",
+          "173.policy",
+          "175.policy",
+          "18.policy",
+          "181.policy",
+          "182.policy",
+          "184.policy",
+          "185.policy",
+          "186.policy",
+          "19.policy",
+          "2.policy",
+          "20.policy",
+          "22.policy",
+          "23.policy",
+          "24.policy",
+          "25.policy",
+          "26.policy",
+          "27.policy",
+          "31.policy",
+          "32.policy",
+          "33.policy",
+          "34.policy",
+          "35.policy",
+          "36.policy",
+          "37.policy",
+          "38.policy",
+          "39.policy",
+          "4.policy",
+          "40.policy",
+          "41.policy",
+          "42.policy",
+          "43.policy",
+          "44.policy",
+          "45.policy",
+          "46.policy",
+          "48.policy",
+          "49.policy",
+          "5.policy",
+          "51.policy",
+          "52.policy",
+          "53.policy",
+          "54.policy",
+          "55.policy",
+          "56.policy",
+          "57.policy",
+          "58.policy",
+          "59.policy",
+          "6.policy",
+          "61.policy",
+          "62.policy",
+          "65.policy",
+          "66.policy",
+          "67.policy",
+          "68.policy",
+          "69.policy",
+          "7.policy",
+          "70.policy",
+          "71.policy",
+          "74.policy",
+          "76.policy",
+          "77.policy",
+          "79.policy",
+          "8.policy",
+          "80.policy",
+          "81.policy",
+          "82.policy",
+          "83.policy",
+          "84.policy",
+          "85.policy",
+          "9.policy",
+          "93.policy",
+          "94.policy",
+          "action"
+        ],
+        "x_axis": "action"
+      },
+      {
+        "aggregation": "sum",
+        "aggregationOptions": [
+          "sum",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "20%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 9,
+          "x": 10,
+          "y": 49
+        },
+        "id": 8,
+        "ignoreColumn": [
+          "Time",
+          "0",
+          "1",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "2",
+          "20",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "action",
+          "ep",
+          "experiment"
+        ],
+        "ignoreColumns": [
+          "Time",
+          "0.policy",
+          "1.policy",
+          "104.policy",
+          "105.policy",
+          "106.policy",
+          "107.policy",
+          "108.policy",
+          "109.policy",
+          "11.policy",
+          "110.policy",
+          "111.policy",
+          "112.policy",
+          "113.policy",
+          "116.policy",
+          "117.policy",
+          "119.policy",
+          "12.policy",
+          "120.policy",
+          "13.policy",
+          "135.policy",
+          "136.policy",
+          "14.policy",
+          "142.policy",
+          "143.policy",
+          "144.policy",
+          "145.policy",
+          "146.policy",
+          "147.policy",
+          "148.policy",
+          "149.policy",
+          "15.policy",
+          "150.policy",
+          "151.policy",
+          "155.policy",
+          "156.policy",
+          "16.policy",
+          "160.policy",
+          "161.policy",
+          "162.policy",
+          "163.policy",
+          "164.policy",
+          "166.policy",
+          "167.policy",
+          "168.policy",
+          "169.policy",
+          "17.policy",
+          "170.policy",
+          "172.policy",
+          "173.policy",
+          "175.policy",
+          "18.policy",
+          "181.policy",
+          "182.policy",
+          "184.policy",
+          "185.policy",
+          "186.policy",
+          "19.policy",
+          "2.policy",
+          "20.policy",
+          "22.policy",
+          "23.policy",
+          "24.policy",
+          "25.policy",
+          "26.policy",
+          "27.policy",
+          "31.policy",
+          "32.policy",
+          "33.policy",
+          "34.policy",
+          "35.policy",
+          "36.policy",
+          "37.policy",
+          "38.policy",
+          "39.policy",
+          "4.policy",
+          "40.policy",
+          "41.policy",
+          "42.policy",
+          "43.policy",
+          "44.policy",
+          "45.policy",
+          "46.policy",
+          "48.policy",
+          "49.policy",
+          "5.policy",
+          "51.policy",
+          "52.policy",
+          "53.policy",
+          "54.policy",
+          "55.policy",
+          "56.policy",
+          "57.policy",
+          "58.policy",
+          "59.policy",
+          "6.policy",
+          "61.policy",
+          "62.policy",
+          "65.policy",
+          "66.policy",
+          "67.policy",
+          "68.policy",
+          "69.policy",
+          "7.policy",
+          "70.policy",
+          "71.policy",
+          "74.policy",
+          "76.policy",
+          "77.policy",
+          "79.policy",
+          "8.policy",
+          "80.policy",
+          "81.policy",
+          "82.policy",
+          "83.policy",
+          "84.policy",
+          "85.policy",
+          "9.policy",
+          "93.policy",
+          "94.policy",
+          "action"
+        ],
+        "interval": null,
+        "legend": {
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "q_value",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT /.policy$/, \"action\" FROM \"bike_q_value\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Q_Curve in Episode $episode",
+        "type": "grafana-linechart-panel",
+        "xColumns": [
+          "Time",
+          "0.policy",
+          "1.policy",
+          "104.policy",
+          "105.policy",
+          "106.policy",
+          "107.policy",
+          "108.policy",
+          "109.policy",
+          "11.policy",
+          "110.policy",
+          "111.policy",
+          "112.policy",
+          "113.policy",
+          "116.policy",
+          "117.policy",
+          "119.policy",
+          "12.policy",
+          "120.policy",
+          "13.policy",
+          "135.policy",
+          "136.policy",
+          "14.policy",
+          "142.policy",
+          "143.policy",
+          "144.policy",
+          "145.policy",
+          "146.policy",
+          "147.policy",
+          "148.policy",
+          "149.policy",
+          "15.policy",
+          "150.policy",
+          "151.policy",
+          "155.policy",
+          "156.policy",
+          "16.policy",
+          "160.policy",
+          "161.policy",
+          "162.policy",
+          "163.policy",
+          "164.policy",
+          "166.policy",
+          "167.policy",
+          "168.policy",
+          "169.policy",
+          "17.policy",
+          "170.policy",
+          "172.policy",
+          "173.policy",
+          "175.policy",
+          "18.policy",
+          "181.policy",
+          "182.policy",
+          "184.policy",
+          "185.policy",
+          "186.policy",
+          "19.policy",
+          "2.policy",
+          "20.policy",
+          "22.policy",
+          "23.policy",
+          "24.policy",
+          "25.policy",
+          "26.policy",
+          "27.policy",
+          "31.policy",
+          "32.policy",
+          "33.policy",
+          "34.policy",
+          "35.policy",
+          "36.policy",
+          "37.policy",
+          "38.policy",
+          "39.policy",
+          "4.policy",
+          "40.policy",
+          "41.policy",
+          "42.policy",
+          "43.policy",
+          "44.policy",
+          "45.policy",
+          "46.policy",
+          "48.policy",
+          "49.policy",
+          "5.policy",
+          "51.policy",
+          "52.policy",
+          "53.policy",
+          "54.policy",
+          "55.policy",
+          "56.policy",
+          "57.policy",
+          "58.policy",
+          "59.policy",
+          "6.policy",
+          "61.policy",
+          "62.policy",
+          "65.policy",
+          "66.policy",
+          "67.policy",
+          "68.policy",
+          "69.policy",
+          "7.policy",
+          "70.policy",
+          "71.policy",
+          "74.policy",
+          "76.policy",
+          "77.policy",
+          "79.policy",
+          "8.policy",
+          "80.policy",
+          "81.policy",
+          "82.policy",
+          "83.policy",
+          "84.policy",
+          "85.policy",
+          "9.policy",
+          "93.policy",
+          "94.policy",
+          "action"
+        ],
+        "x_axis": "action"
+      },
+      {
+        "aliasColors": {},
+        "breakPoint": "50%",
+        "cacheTimeout": null,
+        "combine": {
+          "label": "Others",
+          "threshold": 0
+        },
+        "datasource": null,
+        "fontSize": "80%",
+        "format": "short",
+        "gridPos": {
+          "h": 8,
+          "w": 5,
+          "x": 19,
+          "y": 49
+        },
+        "id": 55,
+        "interval": null,
+        "legend": {
+          "percentage": true,
+          "show": true,
+          "values": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "pieType": "pie",
+        "strokeWidth": 1,
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "q_value",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT \"other_time\",\"train_time\",\"env_time\" FROM \"bike_time_cost\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "time_series",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Time Cost in Episode $episode",
+        "type": "grafana-piechart-panel",
+        "valueName": "current"
+      },
+      {
+        "aggregation": "no",
+        "aggregationOptions": [
+          "sum",
+          "no",
+          "max",
+          "min",
+          "median",
+          "mean",
+          "variance",
+          "deviation"
+        ],
+        "aliasColors": {},
+        "breakPoint": "10%",
+        "cacheTimeout": null,
+        "datasource": null,
+        "fontSize": "80%",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 57
+        },
+        "id": 30,
+        "ignoreColumn": "",
+        "ignoreColumns": [],
+        "interval": null,
+        "legend": {
+          "show": true
+        },
+        "legendType": "Under graph",
+        "links": [],
+        "maxDataPoints": 3,
+        "nullPointMode": "connected",
+        "options": {},
+        "targets": [
+          {
+            "groupBy": [],
+            "measurement": "q_value",
+            "orderByTime": "ASC",
+            "policy": "default",
+            "query": "SELECT /^actual_action_/, \"tick\" FROM \"bike_actual_action\" WHERE (\"experiment\" = '$experiment' AND  \"ep\" = $episode ) AND $timeFilter",
+            "rawQuery": true,
+            "refId": "A",
+            "resultFormat": "table",
+            "select": [
+              [
+                {
+                  "params": [
+                    "*"
+                  ],
+                  "type": "field"
+                }
+              ]
+            ],
+            "tags": [
+              {
+                "key": "experiment",
+                "operator": "=~",
+                "value": "/^$experiment$/"
+              },
+              {
+                "condition": "AND",
+                "key": "ep",
+                "operator": "=~",
+                "value": "/^$episode$/"
+              }
+            ]
+          }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Actual Action in Episode $episode",
+        "type": "grafana-dotchart-panel",
+        "xColumns": [],
+        "x_axis": "tick"
+      }
+    ],
+    "refresh": "",
+    "schemaVersion": 21,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "allValue": null,
+          "current": {
+            "tags": [],
+            "text": "bike_dashboard_0328_01",
+            "value": "bike_dashboard_0328_01"
+          },
+          "datasource": "InfluxDB",
+          "definition": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Experiment",
+          "multi": false,
+          "name": "experiment",
+          "options": [],
+          "query": "SHOW TAG VALUES ON \"maro\" WITH KEY = \"experiment\" ",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        },
+        {
+          "allValue": null,
+          "current": {
+            "tags": [],
+            "text": "25",
+            "value": "25"
+          },
+          "datasource": "InfluxDB",
+          "definition": "select \"ep\"  from \"bike_shortage\"  WHERE \"experiment\"=~/^$experiment$/",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Episode",
+          "multi": false,
+          "name": "episode",
+          "options": [],
+          "query": "select \"ep\"  from \"bike_shortage\"  WHERE \"experiment\"=~/^$experiment$/",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        },
+        {
+          "allValue": null,
+          "current": {
+            "text": "0",
+            "value": "0"
+          },
+          "datasource": "InfluxDB",
+          "definition": "select \"station\"  from \"bike_station_usage\"  WHERE \"experiment\"=~/^$experiment$/",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Station",
+          "multi": false,
+          "name": "station",
+          "options": [],
+          "query": "select \"station\"  from \"bike_station_usage\"  WHERE \"experiment\"=~/^$experiment$/",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        },
+        {
+          "allValue": null,
+          "current": {
+            "text": "359",
+            "value": "359"
+          },
+          "datasource": "InfluxDB",
+          "definition": "select \"tick\" from \"bike_q_value\" where \"experiment\" = '$experiment' and \"ep\" = $episode",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Action Tick",
+          "multi": false,
+          "name": "action_tick",
+          "options": [],
+          "query": "select \"tick\" from \"bike_q_value\" where \"experiment\" = '$experiment' and \"ep\" = $episode",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1y",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "time_options": [
+        "5m",
+        "15m",
+        "1h",
+        "6h",
+        "12h",
+        "24h",
+        "2d",
+        "7d",
+        "30d"
+      ]
+    },
+    "timezone": "",
+    "title": "Citibike Experiment Metric Statistics",
+    "uid": "CEp6atrZz",
+    "version": 13
+  }
