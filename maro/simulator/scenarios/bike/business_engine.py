@@ -246,7 +246,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 if neighbor_idx < 0:
                     continue
 
-                cost += self._move_to_neighbor(src_cell, bike_number, self._cells[neighbor_idx], step=2)
+                cost += self._move_to_neighbor(src_cell, self._cells[neighbor_idx], bike_number, step=2)
 
                 if bike_number == 0:
                     break

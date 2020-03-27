@@ -17,6 +17,7 @@ from datetime import datetime
 from maro.simulator import Env
 from maro.utils import SimpleExperiencePool, Logger, LogFormat, convert_dottable
 
+from maro.simulator.scenarios.bike.common import Action
 from examples.citi_bike.q_learning.common.agent import Agent
 from examples.citi_bike.q_learning.common.dqn import QNet, DQN
 from examples.citi_bike.q_learning.common.reward_shaping import TruncateReward
@@ -206,15 +207,15 @@ class Runner:
             pbar.set_description('train episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            tot_shortage, tot_booking = 0,0
+            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done = self._env.step(action)
-                tot_shortage += sum(self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)])
-                tot_booking += sum(self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)])
+                shortage_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
+                requirement_list += self._env.snapshot_list.static_nodes[
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
             for agent in self._agent_dict.values():
@@ -226,7 +227,7 @@ class Runner:
                 time_dict['train_time'] += time_dict[agent._agent_name]
 
             if self._log_enable:
-                self._print_summary(ep=ep, is_train=True, tot_shortage=tot_shortage, tot_booking=tot_booking)
+                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode = 'train')
 
             self._env.reset()
 
@@ -237,6 +238,7 @@ class Runner:
             if self._dashboard is not None:
                 self._dashboard.upload_exp_data(fields=self._time_cost[ep], ep=ep, tick=None, measurement='bike_time_cost')
         self._test()
+        self._baseline()
 
     def _test(self):
         pbar = tqdm(range(self._max_test_ep))
@@ -249,18 +251,18 @@ class Runner:
             pbar.set_description('test episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            tot_shortage, tot_booking = 0, 0
+            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done =self._env.step(action)
-                tot_shortage += sum(self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)])
-                tot_booking += sum(self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)])
+                shortage_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
+                requirement_list += self._env.snapshot_list.static_nodes[
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
-                self._print_summary(ep=ep, is_train=False, tot_shortage=tot_shortage, tot_booking=tot_booking)
+                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode='test')
 
             self._env.reset()
 
@@ -271,19 +273,77 @@ class Runner:
             if self._dashboard is not None:
                 self._dashboard.upload_exp_data(fields=time_dict, ep=ep + self._max_train_ep, tick=None, measurement='bike_time_cost')
 
-    def _print_summary(self, ep, is_train: bool = True, tot_shortage=0, tot_booking=0):
+    def _baseline(self):
+        pbar = tqdm(range(self._max_test_ep))
+        for ep in pbar:
+            time_dict = OrderedDict()
+            ep_start = time.time()
+            self._set_seed(TEST_SEED)
+            pbar.set_description('baseline no action episode')
+            env_start = time.time()
+            _, decision_event, is_done =self._env.step(None)
+            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
+            while not is_done:
+                _, decision_event, is_done =self._env.step(Action(0,0,0))
+                shortage_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
+                requirement_list += self._env.snapshot_list.static_nodes[
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
+            if self._log_enable:
+                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode='no_action')
+
+            self._env.reset()
         
-        if is_train:
+        pbar = tqdm(range(self._max_test_ep))
+        for ep in pbar:
+            time_dict = OrderedDict()
+            ep_start = time.time()
+            self._set_seed(TEST_SEED)
+            pbar.set_description('baseline random action episode')
+            env_start = time.time()
+            _, decision_event, is_done =self._env.step(None)
+            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
+            while not is_done:
+                action = self._agent_dict[decision_event.cell_idx].choose_action(
+                    decision_event=decision_event, eps=1, current_ep=ep, snapshot_list= self._env.snapshot_list)
+                _, decision_event, is_done =self._env.step(action)
+                shortage_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
+                requirement_list += self._env.snapshot_list.static_nodes[
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
+            if self._log_enable:
+                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode='random_action')
+
+            self._env.reset()
+
+    def _print_summary(self, ep, shortage_list, requirement_list, mode = 'train'):
+        pretty_shortage_dict = OrderedDict()
+        tot_shortage = 0
+        for i, shortage in enumerate(shortage_list):
+            pretty_shortage_dict[str(self._station_idx2name[i])] = shortage
+            tot_shortage += shortage
+        pretty_shortage_dict['total'] = tot_shortage
+
+        pretty_requirement_dict = OrderedDict()
+        trip_requirement = 0
+        for i, requirement in enumerate(requirement_list):
+            pretty_requirement_dict[str(self._station_idx2name[i])] = requirement
+            trip_requirement += requirement
+        pretty_requirement_dict['total'] = trip_requirement
+
+        if mode == 'train':
+            is_train = True
             # self._performance_logger.debug(
             #     f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
             self._logger.critical(
-                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, total booking: {tot_booking}, total shortage: {tot_shortage}')
+                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
         else:
+            is_train = False
             self._logger.critical(
-                f'{self._env.name} | test | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, total booking: {tot_booking}, total shortage: {tot_shortage}')
+                f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
 
         if self._dashboard is not None:
-            self._send_to_dashboard(ep, pretty_shortage_dict, pretty_booking_dict, is_train)
+            self._send_to_dashboard(ep, pretty_shortage_dict, pretty_requirement_dict, is_train)
 
     def _send_to_dashboard(self,
                            ep,
