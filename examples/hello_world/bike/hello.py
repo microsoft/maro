@@ -32,6 +32,9 @@ features = features.reshape(max_ticks, len(feature_names)) # one tick one row, f
 print(feature_names)
 print(features)
 
+print("total trips:", sum(features[:, 2]))
+print("total shortage:", sum(features[:, 1]))
+
 #neighbors
 #NOTE: since the neighbors will not change, so we can just query 1st tick
 # -1 means invalid cell id
