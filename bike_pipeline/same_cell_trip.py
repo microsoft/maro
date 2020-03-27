@@ -421,12 +421,6 @@ if __name__ == "__main__":
 
     cell_data, station_data, mapping_data, drop_cell = station_to_cell(station_file_path)
 
-    with open(cell_file_path, mode="w", encoding="utf-8", newline='') as cell_file:
-        cell_data.to_csv(cell_file, index=False)
-
-    with open(mapping_file_path, mode="w", encoding="utf-8", newline='') as mapping_file:
-        mapping_data.to_csv(mapping_file, index=False, header=False)
-
     total_st = 0
     total_at = 0
     for src_file in input_file_list:
