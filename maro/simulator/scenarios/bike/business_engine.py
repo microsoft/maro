@@ -215,25 +215,35 @@ class BikeBusinessEngine(AbsBusinessEngine):
             BikeEventType.BikeReceived, self._on_bike_received)
 
     def _move_to_neighbor(self, src_cell: Cell, cell: Cell, bike_number: int, step: int = 1):
+        cost = 0
+
         # move to 1-step neighbors
         for neighbor_idx in cell.neighbors:
+
+            # ignore source cell
+            if neighbor_idx == src_cell.index:
+                continue
+
             neighbor = self._cells[neighbor_idx]
             accept_number = neighbor.capacity - neighbor.bikes
 
             # how many bikes this cell can accept
             accept_number = min(accept_number, bike_number)
-
             neighbor.bikes += accept_number
+            cost += accept_number
 
             bike_number = bike_number - accept_number
 
             if bike_number == 0:
                 break
         
+        # cost of current step
+        cost = self._calculate_extra_cost(cost, step)
+
         if step == 1 and bike_number > 0:
             # 2-step neighbors
             for neighbor_idx in cell.neighbors:
-                self._move_to_neighbor(src_cell, bike_number, neighbor_idx, step=2)
+                cost += self._move_to_neighbor(src_cell, bike_number, neighbor_idx, step=2)
 
                 if bike_number == 0:
                     break
@@ -241,7 +251,14 @@ class BikeBusinessEngine(AbsBusinessEngine):
             # if there still some more bikes, return it to source cell
             if bike_number > 0:
                 src_cell.bikes += bike_number
+
+                # TODO: remove hard coded step
+                cost += self._calculate_extra_cost(bike_number, 3)
         
+        return cost
+
+    def _calculate_extra_cost(self, number: int, step: int = 1):
+        return number * step
 
     def _on_trip_requirement(self, evt: Event):
         """On trip requirement handler:
@@ -290,10 +307,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         cell_capacity = cell.capacity
 
         if cell_bikes + 1 > cell_capacity:
-            self._move_to_neighbor(self._cells[payload.from_cell], cell, 1)
-
             # extra cost of current cell, as we do not know whoes action caused this
-            cell.extra_cost += 1
+            cell.extra_cost += self._move_to_neighbor(self._cells[payload.from_cell], cell, 1)
         else:
             cell.bikes += 1
 
@@ -334,12 +349,12 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         if cell_bikes + accept_number > cell_capacity:
             accept_number = cell_capacity - cell_bikes
-            extra_bikes = payload.number - accept_number
+            # extra_bikes = payload.number - accept_number
 
-            self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
+            extra_cost = self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
 
             # extra cost from source cell
             from_cell = self._cells[payload.from_cell]
-            from_cell.extra_cost += extra_bikes
+            from_cell.extra_cost += extra_cost
 
         cell.bikes += accept_number
