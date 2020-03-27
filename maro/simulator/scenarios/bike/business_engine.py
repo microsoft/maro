@@ -301,7 +301,14 @@ class BikeBusinessEngine(AbsBusinessEngine):
         action: Action = None
 
         for action in evt.payload:
-            cell: Cell = self._cells[action.from_cell]
+            from_cell_idx: int = action.from_cell
+            to_cell_idx: int = action.to_cell
+
+            # ignore invalid cell idx
+            if from_cell_idx < 0 or to_cell_idx < 0:
+                continue
+
+            cell: Cell = self._cells[from_cell_idx]
 
             executed_number = min(cell.bikes, action.number)
 
@@ -309,8 +316,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             if executed_number > 0:
                 cell.bikes -= executed_number
 
-                payload = BikeTransferPayload(
-                    action.from_cell, action.to_cell, executed_number)
+                payload = BikeTransferPayload(from_cell_idx, to_cell_idx, executed_number)
 
                 transfer_time = self._decision_strategy.transfer_time
                 transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
