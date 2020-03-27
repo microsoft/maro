@@ -12,10 +12,10 @@ reward: # reward options
   beta: 0.3
   gamma: 0.3
 start_datetime: "2019-12-02"
-trip_file: "./bike_pipeline/data/sample/trips.bin"
-cell_file: "./bike_pipeline/data/sample/cell.csv"
-adj_file: "./bike_pipeline/data/sample/map.csv"
-weather_file: "./bike_pipeline/data/sample/weather.npy"
+trip_file: "../../../../bike_pipeline/data/sample/trips.bin"
+cell_file: "../../../../bike_pipeline/data/sample/cell.csv"
+adj_file: "../../../../bike_pipeline/data/sample/map.csv"
+weather_file: "../../../../bike_pipeline/data/sample/weather.npy"
 # trip_file: "/home/xinran/maro/bike_pipeline/data/sample/trips.bin"
 # cell_file: "/home/xinran/maro/bike_pipeline/data/sample/cell.csv"
 # adj_file: "/home/xinran/maro/bike_pipeline/data/sample/map.csv"
