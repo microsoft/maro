@@ -220,8 +220,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         # move to 1-step neighbors
         for neighbor_idx in cell.neighbors:
 
-            # ignore source cell
-            if neighbor_idx == src_cell.index:
+            # ignore source cell and padding cell
+            if neighbor_idx == src_cell.index or neighbor_idx < 0:
                 continue
 
             neighbor = self._cells[neighbor_idx]
@@ -243,7 +243,10 @@ class BikeBusinessEngine(AbsBusinessEngine):
         if step == 1 and bike_number > 0:
             # 2-step neighbors
             for neighbor_idx in cell.neighbors:
-                cost += self._move_to_neighbor(src_cell, bike_number, neighbor_idx, step=2)
+                if neighbor_idx < 0:
+                    continue
+                
+                cost += self._move_to_neighbor(src_cell, bike_number, self._cells[neighbor_idx], step=2)
 
                 if bike_number == 0:
                     break
