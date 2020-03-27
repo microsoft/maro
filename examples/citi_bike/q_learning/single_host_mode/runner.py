@@ -540,8 +540,6 @@ class Runner:
         pretty_usage_df = pd.DataFrame(pretty_usage_list)
         shift_usage_df = pretty_usage_df.shift(periods=1)
         result_df = (pretty_usage_df != shift_usage_df)
-        print(pretty_usage_df,result_df)
-        #result_df.apply(lambda x: x.apply(lambda y:  _send_usage(y, x.name)), axis=1)
         result_df.apply(lambda x: self._send_usage(x , pretty_usage_df, pretty_capacity_df, dashboard_ep), axis=1)
 
     def _set_seed(self, seed):
