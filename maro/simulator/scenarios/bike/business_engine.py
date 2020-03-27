@@ -3,6 +3,7 @@ import csv
 import math
 import os
 import holidays
+import random
 from enum import IntEnum
 from typing import Dict, List
 
@@ -57,6 +58,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
         self._weather_table = WeatherTable(self._conf["weather_file"], self._conf["start_datetime"])
+
+        self._trip_adjust_rate = self._conf["trip_adjustment"]["adjust_rate"]
+        self._trip_adjust_value = self._conf["trip_adjustment"]["adjust_value"]
 
         self._update_cell_adj()
         
@@ -273,14 +277,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
         cell: Cell = self._cells[cell_idx]
         cell_bikes = cell.bikes
 
-        # update trip count
-        cell.trip_requirement += 1
+        adjusted_number = evt.payload.number + (self._trip_adjust_value if random.random() < self._trip_adjust_rate else 0)
 
-        if cell_bikes <= 0:
+        # update trip count
+        cell.trip_requirement += adjusted_number
+
+        if cell_bikes - adjusted_number < 0:
             # shortage
-            cell.shortage += 1
+            cell.shortage += adjusted_number
         else:
-            cell.bikes = cell_bikes - 1
+            cell.bikes = cell_bikes - adjusted_number
 
             # TODO: update gender, weekday and usertype
             cell.update_gendor(trip.gendor)
@@ -296,7 +302,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.temperature = weather.avg_temp
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell)
+            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell,adjusted_number)
             bike_return_evt = self._event_buffer.gen_atom_event(
                 trip.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
@@ -308,12 +314,13 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         cell_bikes = cell.bikes
         cell_capacity = cell.capacity
+        return_number = evt.payload.number
 
-        if cell_bikes + 1 > cell_capacity:
+        if cell_bikes + return_number > cell_capacity:
             # extra cost of current cell, as we do not know whoes action caused this
-            cell.extra_cost += self._move_to_neighbor(self._cells[payload.from_cell], cell, 1)
+            cell.extra_cost += self._move_to_neighbor(self._cells[payload.from_cell], cell, return_number)
         else:
-            cell.bikes += 1
+            cell.bikes += return_number
 
     def _on_action_received(self, evt: Event):
         action: Action = None
