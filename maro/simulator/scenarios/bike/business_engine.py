@@ -245,7 +245,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             for neighbor_idx in cell.neighbors:
                 if neighbor_idx < 0:
                     continue
-                
+
                 cost += self._move_to_neighbor(src_cell, bike_number, self._cells[neighbor_idx], step=2)
 
                 if bike_number == 0:
@@ -352,7 +352,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         if cell_bikes + accept_number > cell_capacity:
             accept_number = cell_capacity - cell_bikes
-            # extra_bikes = payload.number - accept_number
+            extra_bikes = payload.number - accept_number
 
             extra_cost = self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
 
