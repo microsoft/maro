@@ -206,11 +206,15 @@ class Runner:
             pbar.set_description('train episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-
+            tot_shortage, tot_booking = 0,0
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done = self._env.step(action)
+                tot_shortage += sum(self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)])
+                tot_booking += sum(self._env.snapshot_list.static_nodes[
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)])
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
             for agent in self._agent_dict.values():
@@ -222,7 +226,7 @@ class Runner:
                 time_dict['train_time'] += time_dict[agent._agent_name]
 
             if self._log_enable:
-                self._print_summary(ep=ep, is_train=True)
+                self._print_summary(ep=ep, is_train=True, tot_shortage=tot_shortage, tot_booking=tot_booking)
 
             self._env.reset()
 
@@ -245,13 +249,18 @@ class Runner:
             pbar.set_description('test episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
+            tot_shortage, tot_booking = 0, 0
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done =self._env.step(action)
+                tot_shortage += sum(self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)])
+                tot_booking += sum(self._env.snapshot_list.static_nodes[
+                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)])
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
-                self._print_summary(ep=ep, is_train=False)
+                self._print_summary(ep=ep, is_train=False, tot_shortage=tot_shortage, tot_booking=tot_booking)
 
             self._env.reset()
 
@@ -262,26 +271,8 @@ class Runner:
             if self._dashboard is not None:
                 self._dashboard.upload_exp_data(fields=time_dict, ep=ep + self._max_train_ep, tick=None, measurement='bike_time_cost')
 
-    def _print_summary(self, ep, is_train: bool = True):
-        shortage_list = self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
-        pretty_shortage_dict = OrderedDict()
-        tot_shortage = 0
-        for i, shortage in enumerate(shortage_list):
-            pretty_shortage_dict[str(self._station_idx2name[i])] = shortage
-            tot_shortage += shortage
-        pretty_shortage_dict['total'] = tot_shortage
-
-        booking_list = self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
-        pretty_booking_dict = OrderedDict()
-        tot_booking = 0
-        for i, booking in enumerate(booking_list):
-            pretty_booking_dict[str(self._station_idx2name[i])] = booking
-            tot_booking += booking
-        pretty_booking_dict['total'] = tot_booking
-
-
+    def _print_summary(self, ep, is_train: bool = True, tot_shortage=0, tot_booking=0):
+        
         if is_train:
             # self._performance_logger.debug(
             #     f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
