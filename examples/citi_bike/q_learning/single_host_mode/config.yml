@@ -2,12 +2,12 @@ experiment_name: "baseline"
 env:
   scenario: "bike"
   topology: "test"
-  max_tick: 500 # stop until the data steam end
+  max_tick: 525600 # stop until the data steam end # 525600 tick per year
 train:
   max_ep: 500 # max episode
   batch_num: 10
   batch_size: 128
-  min_train_experience_num: 10 # when experience number is less than it, will not trigger train
+  min_train_experience_num: 1280 # when experience number is less than it, will not trigger train
   reward_shaping: 'tc'
   dqn:
     target_update_frequency: 5 # target network update frequency
