@@ -293,7 +293,6 @@ class BikeBusinessEngine(AbsBusinessEngine):
         else:
             cell.bikes = cell_bikes - adjusted_number
 
-            # TODO: update gender, weekday and usertype
             cell.update_gendor(trip.gendor)
             cell.update_usertype(trip.usertype)
             cell.weekday = trip.weekday
