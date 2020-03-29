@@ -5,6 +5,7 @@ decision:
   high_water_mark_ratio: 0.5 # TODO: name
   low_water_mark_ratio: 0.05
 trip_adjustment:
+  bike_discount: 1
   adjust_rate: 0.5
   adjust_value: 1
 reward: # reward options

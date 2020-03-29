@@ -189,11 +189,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._frame = build(len(rows))
 
+        bike_discount = 1
+
+        if "bike_discount" in self._conf["trip_adjustment"]:
+            bike_discount = float(self._conf["trip_adjustment"]["bike_discount"])
+
         for r in rows:
             if len(r) == 0:
                 break
 
-            cell = Cell(int(r["cell_id"]), int(r["capacity"]), int(r["init"]), self._frame)
+            cell = Cell(int(r["cell_id"]), int(r["capacity"]), round(int(r["init"]) * bike_discount), self._frame)
 
             self._cells.append(cell)
 
