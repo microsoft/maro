@@ -283,15 +283,21 @@ class BikeBusinessEngine(AbsBusinessEngine):
         cell_bikes = cell.bikes
 
         adjusted_number = evt.payload.number + (self._trip_adjust_value if random.random() < self._trip_adjust_rate else 0)
-
+        
         # update trip count
         cell.trip_requirement += adjusted_number
 
-        if cell_bikes - adjusted_number < 0:
-            # shortage
-            cell.shortage += adjusted_number
-        else:
-            cell.bikes = cell_bikes - adjusted_number
+        shortage = adjusted_number - cell_bikes
+        executed_num = adjusted_number
+
+        # update shortage and execute number if we have shortage
+        if shortage > 0:
+            cell.shortage += shortage
+
+            executed_num = adjusted_number - shortage
+
+        if executed_num > 0:
+            cell.bikes = cell_bikes - executed_num
 
             cell.update_gendor(trip.gendor)
             cell.update_usertype(trip.usertype)
@@ -306,7 +312,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.temperature = weather.avg_temp
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell,adjusted_number)
+            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell, executed_num)
             bike_return_evt = self._event_buffer.gen_atom_event(
                 trip.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
