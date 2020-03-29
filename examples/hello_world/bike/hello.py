@@ -17,6 +17,13 @@ for i in range(total_ep):
     while not is_done:
         reward, decision_event, is_done = env.step(Action(0, 1, 0))
 
+    #
+    trip_requirements = env.snapshot_list.static_nodes[::("trip_requirement", 0)]
+    print(f"total trips (ep {i}):", sum(trip_requirements))
+
+    shortages = env.snapshot_list.static_nodes[::("shortage", 0)]
+    print(f"total shortage (ep {i}:", sum(shortages))
+
 print("snapshot list length", len(env.snapshot_list))
 inv = env.snapshot_list.static_nodes[::("bikes", 0)]
 
@@ -32,8 +39,7 @@ features = features.reshape(max_ticks, len(feature_names)) # one tick one row, f
 print(feature_names)
 print(features)
 
-print("total trips:", sum(features[:, 2]))
-print("total shortage:", sum(features[:, 1]))
+
 
 #neighbors
 #NOTE: since the neighbors will not change, so we can just query 1st tick
