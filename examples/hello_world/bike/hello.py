@@ -16,10 +16,10 @@ for i in range(total_ep):
 
     while not is_done:
         reward, decision_event, is_done = env.step(Action(0, 1, 0))
-        
+
     #
     trip_requirements = env.snapshot_list.static_nodes[::("trip_requirement", 0)]
-    print("total trips:", sum(trip_requirements))
+    print(f"total trips (ep {i}):", sum(trip_requirements))
 
 print("snapshot list length", len(env.snapshot_list))
 inv = env.snapshot_list.static_nodes[::("bikes", 0)]
