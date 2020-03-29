@@ -1,28 +1,33 @@
-experiment_name: "baseline"
+experiment_name: "BASE_MAXTIC2000_YEAR19_TRIP0_LR0.005_COST1"
 env:
   scenario: "bike"
-  topology: "test"
-  max_tick: 525600 # stop until the data steam end # 525600 tick per year
+  topology: "train"
+  max_tick: 2000 # stop until the data steam end # 525600 tick per year
 train:
-  max_ep: 500 # max episode
+  max_ep: 300 # max episode
   batch_num: 10
   batch_size: 128
-  min_train_experience_num: 1280 # when experience number is less than it, will not trigger train
+  min_train_experience_num: 128 # when experience number is less than it, will not trigger train
   reward_shaping: 'tc'
   dqn:
     target_update_frequency: 5 # target network update frequency
     dropout_p: 0.0 # dropout parameter
     gamma: 0.0 # reward decay
     tau: 0.1 # soft update
-    lr: 0.05 # learning rate
+    lr: 0.005 # learning rate
   exploration:
     max_eps: 0.4 # max epsilon
     phase_split_point: 0.5 # exploration two phase split point
-    first_phase_reduce_proportion: 0.8 # first phase reduce proportion of max_eps 
+    first_phase_reduce_proportion: 0.8 # first phase reduce proportion of max_eps
+  reward:
+    shortage_factor: 1
+    cost_factor: 1
   seed: 1024
 test:
-  max_ep: 10 # max episode
+  max_ep: 5 # max episode
   seed: 2048
+  topology: "test"
+  max_tick: 2000
 qnet:
   seed: 0
 log:

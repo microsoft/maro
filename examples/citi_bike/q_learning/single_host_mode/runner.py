@@ -46,7 +46,9 @@ with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as ou
 EXPERIMENT_NAME = config.experiment_name
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
+TEST_TOPOLOGY = config.test.topology
 MAX_TICK = config.env.max_tick
+TEST_TICK = config.test.max_tick
 MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
@@ -60,6 +62,8 @@ TAU = config.train.dqn.tau  # Soft update
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
+COST_FACTOR = config.train.reward.cost_factor
+SHORTAGE_FACTOR = config.train.reward.shortage_factor
 TRAIN_SEED = config.train.seed
 TEST_SEED = config.test.seed
 QNET_SEED = config.qnet.seed
@@ -103,6 +107,7 @@ class Runner:
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
         self._env = Env(scenario, topology, max_tick)
+        self._test_env = Env(scenario, TEST_TOPOLOGY, TEST_TICK)
         # self._station_idx2name = self._env.node_name_mapping
         self._station_idx2name = {key:key for key in self._env.agent_idx_list}
         self._agent_dict = self._load_agent(self._env.agent_idx_list)
@@ -160,7 +165,8 @@ class Runner:
         action_space = [round((1/6)*i,2) for i in range(0, 6)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
         if REWARD_SHAPING == 'tc':
-            reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list, log_folder=LOG_FOLDER)
+            reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list, log_folder=LOG_FOLDER, 
+                                        cost_factor= COST_FACTOR, shortage_factor = SHORTAGE_FACTOR)
         else:
             raise ValueError('Unsuported Reward Shaping')
 
@@ -207,15 +213,13 @@ class Runner:
             pbar.set_description('train episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
+            feature_list = [0]*3*len(self._env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done = self._env.step(action)
-                shortage_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
-                requirement_list += self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
+                feature_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
             for agent in self._agent_dict.values():
@@ -227,7 +231,7 @@ class Runner:
                 time_dict['train_time'] += time_dict[agent._agent_name]
 
             if self._log_enable:
-                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode = 'train')
+                self._print_summary(ep=ep, feature_list= feature_list, mode = 'train')
 
             self._env.reset()
 
@@ -250,21 +254,19 @@ class Runner:
             self._set_seed(TEST_SEED)
             pbar.set_description('test episode')
             env_start = time.time()
-            _, decision_event, is_done =self._env.step(None)
-            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
+            _, decision_event, is_done = self._test_env.step(None)
+            feature_list = [0]*3*len(self._test_env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
-                    decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._env.snapshot_list)
-                _, decision_event, is_done =self._env.step(action)
-                shortage_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
-                requirement_list += self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
+                    decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._test_env.snapshot_list)
+                _, decision_event, is_done = self._test_env.step(action)
+                feature_list += self._test_env.snapshot_list.static_nodes[
+                        self._test_env.tick: self._test_env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
-                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode='test')
+                self._print_summary(ep=ep, feature_list= feature_list, mode='test')
 
-            self._env.reset()
+            self._test_env.reset()
 
             time_dict['ep_time'] = time.time() - ep_start
             time_dict['other_time'] = time_dict['ep_time'] - time_dict['env_time']
@@ -282,15 +284,13 @@ class Runner:
             pbar.set_description('baseline no action episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
+            feature_list = [0]*3*len(self._env.agent_idx_list)
             while not is_done:
                 _, decision_event, is_done =self._env.step(Action(0,0,0))
-                shortage_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
-                requirement_list += self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
+                feature_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
             if self._log_enable:
-                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode='no_action')
+                self._print_summary(ep=ep, feature_list= feature_list, mode='no_action')
 
             self._env.reset()
         
@@ -302,45 +302,53 @@ class Runner:
             pbar.set_description('baseline random action episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            shortage_list, requirement_list = [0]*len(self._env.agent_idx_list), [0]*len(self._env.agent_idx_list)
+            feature_list = [0]*3*len(self._env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=1, current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done =self._env.step(action)
-                shortage_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('shortage', 0)]
-                requirement_list += self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('trip_requirement', 0)]
+                feature_list += self._env.snapshot_list.static_nodes[
+                        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
             if self._log_enable:
-                self._print_summary(ep=ep, shortage_list= shortage_list, requirement_list=requirement_list, mode='random_action')
+                self._print_summary(ep=ep, feature_list= feature_list, mode='random_action')
 
             self._env.reset()
 
-    def _print_summary(self, ep, shortage_list, requirement_list, mode = 'train'):
+    def _print_summary(self, ep, feature_list, mode = 'train'):
+        feature_list = feature_list.reshape(-1,3).transpose((1,0))
+        #  shortage_list, requirement_list, cost_list
+        
         pretty_shortage_dict = OrderedDict()
         tot_shortage = 0
-        for i, shortage in enumerate(shortage_list):
+        for i, shortage in enumerate(feature_list[0]):
             pretty_shortage_dict[str(self._station_idx2name[i])] = shortage
             tot_shortage += shortage
         pretty_shortage_dict['total'] = tot_shortage
 
         pretty_requirement_dict = OrderedDict()
         trip_requirement = 0
-        for i, requirement in enumerate(requirement_list):
+        for i, requirement in enumerate(feature_list[1]):
             pretty_requirement_dict[str(self._station_idx2name[i])] = requirement
             trip_requirement += requirement
         pretty_requirement_dict['total'] = trip_requirement
+
+        pretty_cost_dict = OrderedDict()
+        tot_cost = 0
+        for i, cost in enumerate(feature_list[2]):
+            pretty_cost_dict[str(self._station_idx2name[i])] = cost
+            tot_cost += cost
+        pretty_cost_dict['total'] = tot_cost
 
         if mode == 'train':
             is_train = True
             # self._performance_logger.debug(
             #     f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
             self._logger.critical(
-                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
+                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
         else:
             is_train = False
             self._logger.critical(
-                f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
+                f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
 
         if self._dashboard is not None:
             self._send_to_dashboard(ep, pretty_shortage_dict, pretty_requirement_dict, is_train)
@@ -568,3 +576,4 @@ if __name__ == '__main__':
                     log_enable=RUNNER_LOG_ENABLE)
 
     runner.start()
+    # runner._baseline()
