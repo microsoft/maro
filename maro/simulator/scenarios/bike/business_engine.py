@@ -49,8 +49,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._init_data_reader() # NOTE: we should read the data first, to get correct max tick if max_tick is -1
         self._init_frame()
 
-        frame_num = ceil(max_tick / frame_resolution)
-
+        frame_num = ceil(self._max_tick / frame_resolution)
+        
         self._snapshots = SnapshotList(self._frame, frame_num)
 
         self._adj = read_adj_info(self._conf["adj_file"])
@@ -98,6 +98,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
             decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_payload)
 
             self._event_buffer.insert_event(decision_evt)
+
+        return self._max_tick == tick + 1 # last tick
 
     @property
     def configs(self) -> dict:
@@ -199,7 +201,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def _init_data_reader(self):
         self._data_reader = BikeTripReader(self._conf["trip_file"],
-                                           self._conf["start_datetime"],
+                                           self._start_tick,
                                            self._max_tick)
 
         self._max_tick = self._data_reader.max_tick

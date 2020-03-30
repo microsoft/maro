@@ -1,5 +1,5 @@
 import datetime
-
+from math import ceil
 import numpy as np
 from dateutil.relativedelta import relativedelta
 
@@ -18,14 +18,16 @@ bike_dtype = np.dtype([
 
 class BikeTripReader:
     """Reader"""
-    def __init__(self, path: str, start_date: str, max_tick: int):
+    def __init__(self, path: str, start_tick: int, max_tick: int):
         self._index = 0
         self.max_tick = max_tick #
         self._arr = np.memmap(path, dtype=bike_dtype, mode="c")
 
         # this will be the tick = 0
-        start_date = self._arr[0]["start_time"].astype(datetime.datetime)
-        self.start_date = datetime.datetime(start_date.year, start_date.month, start_date.day, start_date.hour, start_date.minute)
+        self.beginning_date = self._arr[0]["start_time"].astype(datetime.datetime)
+        self.start_date = self.beginning_date + relativedelta(minutes=start_tick)
+        self.start_date = datetime.datetime(self.start_date.year, self.start_date.month,
+                                             self.start_date.day, self.start_date.hour, self.start_date.minute)
         
         start_filter = self._arr["start_time"] >= self.start_date
 
@@ -35,7 +37,7 @@ class BikeTripReader:
             self._data_view = self._arr[start_filter]
             
             # update actual max tick
-            self.max_tick = (self._data_view[-1].astype(datetime.datetime) - self.start_date).minute
+            self.max_tick = ceil((self._data_view[-1]["start_time"].astype(datetime.datetime) - self.start_date).total_seconds()/60)
         elif max_tick > 0:
 
             end_date = self.start_date + relativedelta(minutes=max_tick)
@@ -59,7 +61,7 @@ class BikeTripReader:
         trips = []
 
         # start time of current tick
-        start = self.start_date + relativedelta(minutes=tick)
+        start = self.beginning_date + relativedelta(minutes=tick)
 
         # next minute
         end = start + relativedelta(minutes=1)

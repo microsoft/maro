@@ -39,11 +39,14 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def step(self, tick: int):
+    def step(self, tick: int) -> bool:
         """Used to process events at specified tick, usually this is called by Env at each tick
 
         Args:
             tick (int): tick to process
+
+        Returns:
+            bool: if scenario end at this tick
         """
         pass
 

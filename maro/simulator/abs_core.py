@@ -33,7 +33,7 @@ class AbsEnv(ABC):
             max_tick (int): max tick of this environment
             frame_resolution (int): how many ticks will take a snapshot
         """
-        self._tick = 0
+        self._tick = start_tick
         self._scenario = scenario
         self._topology = topology
         self._start_tick = start_tick

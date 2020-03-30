@@ -5,7 +5,7 @@ from maro.simulator.scenarios.bike.common import Action
 from maro.simulator.utils.random import random
 
 start_tick = 0
-max_ticks = 2 * 24 * 60
+max_ticks = -1 #2 * 24 * 60
 total_ep = 2
 
 # 48 ticks (hours), 60 units (minutes) per tick

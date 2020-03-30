@@ -98,7 +98,7 @@ class Env(AbsEnv):
     def reset(self):
         """Reset environment"""
         # . reset self
-        self._tick = 0
+        self._tick = self._start_tick
 
         self._simulate_generator.close()
         self._simulate_generator = self._simulate()
@@ -200,11 +200,12 @@ class Env(AbsEnv):
         this is the generator to wrap each episode process
         """
         rewards = None  # default value of reward
+        is_end_tick = False
 
-        while self._tick < self._max_tick:
+        while True:
             # ask business engine to do thing for this tick, such as gen and push events
             # we do not push events now
-            self._business_engine.step(self._tick)
+            is_end_tick = self._business_engine.step(self._tick)
 
             while True:
                 # we keep process all the events, util no more any events
@@ -250,8 +251,11 @@ class Env(AbsEnv):
                         pending_events[i].state = EventState.FINISHED
 
                 self._business_engine.post_step(self._tick)
-
+            
             self._tick += 1
+
+            if is_end_tick:
+                break
 
         # reset the tick to avoid add one more time at the end of loop
         self._tick = self._max_tick - 1
