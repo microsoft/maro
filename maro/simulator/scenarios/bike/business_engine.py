@@ -40,7 +40,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._decision_strategy = None
         self._max_tick = max_tick
         self._cells = []
-        self._us_holidays = holidays.US() # holidays for US, as we are using NY data
+        self._us_holidays = holidays.US()  # holidays for US, as we are using NY data
 
         config_path = os.path.join(config_path, "config.yml")
 
@@ -57,15 +57,17 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._reg_event()
 
         self._adj = read_adj_info(self._conf["adj_file"])
-        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
+        self._decision_strategy = BikeDecisionStrategy(
+            self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
-        self._weather_table = WeatherTable(self._conf["weather_file"], self._conf["start_datetime"])
+        self._weather_table = WeatherTable(
+            self._conf["weather_file"], self._conf["start_datetime"])
 
         self._trip_adjust_rate = self._conf["trip_adjustment"]["adjust_rate"]
         self._trip_adjust_value = self._conf["trip_adjustment"]["adjust_value"]
 
         self._update_cell_adj()
-        
+
     @property
     def frame(self) -> Frame:
         """Frame: Frame of current business engine
@@ -194,13 +196,15 @@ class BikeBusinessEngine(AbsBusinessEngine):
         bike_discount = 1
 
         if "bike_discount" in self._conf["trip_adjustment"]:
-            bike_discount = float(self._conf["trip_adjustment"]["bike_discount"])
+            bike_discount = float(
+                self._conf["trip_adjustment"]["bike_discount"])
 
         for r in rows:
             if len(r) == 0:
                 break
 
-            cell = Cell(int(r["cell_id"]), int(r["capacity"]), round(int(r["init"]) * bike_discount), self._frame)
+            cell = Cell(int(r["cell_id"]), int(r["capacity"]), round(
+                int(r["init"]) * bike_discount), self._frame)
 
             self._cells.append(cell)
 
@@ -247,7 +251,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             if bike_number == 0:
                 break
-        
+
         # cost of current step
         cost = self._calculate_extra_cost(cost, step)
 
@@ -257,7 +261,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 if neighbor_idx < 0:
                     continue
 
-                cost += self._move_to_neighbor(src_cell, self._cells[neighbor_idx], bike_number, step=2)
+                cost += self._move_to_neighbor(src_cell,
+                                               self._cells[neighbor_idx], bike_number, step=2)
 
                 if bike_number == 0:
                     break
@@ -268,7 +273,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
                 # TODO: remove hard coded step
                 cost += self._calculate_extra_cost(bike_number, 3)
-        
+
         return cost
 
     def _calculate_extra_cost(self, number: int, step: int = 1):
@@ -288,8 +293,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         # disable adjust if the rate is less equal 0
         if self._trip_adjust_rate > 0:
-            adjusted_number += (self._trip_adjust_value if bikes_adjust_rand.random() < self._trip_adjust_rate else 0) 
-        
+            adjusted_number += (self._trip_adjust_value if bikes_adjust_rand.random()
+                                < self._trip_adjust_rate else 0)
+
         # update trip count
         cell.trip_requirement += adjusted_number
 
@@ -318,7 +324,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
             cell.temperature = weather.avg_temp
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell, executed_num)
+            return_payload = BikeReturnPayload(
+                trip.from_cell, trip.to_cell, executed_num)
             bike_return_evt = self._event_buffer.gen_atom_event(
                 trip.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
@@ -333,8 +340,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
         return_number = evt.payload.number
 
         if cell_bikes + return_number > cell_capacity:
-            # extra cost of current cell, as we do not know whoes action caused this
-            cell.extra_cost += self._move_to_neighbor(self._cells[payload.from_cell], cell, return_number)
+            # extra cost of current cell, as we do not know whose action caused this
+            cell.extra_cost += self._move_to_neighbor(
+                self._cells[payload.from_cell], cell, return_number)
         else:
             cell.bikes += return_number
 
@@ -357,11 +365,12 @@ class BikeBusinessEngine(AbsBusinessEngine):
             if executed_number > 0:
                 cell.bikes -= executed_number
 
-                payload = BikeTransferPayload(from_cell_idx, to_cell_idx, executed_number)
+                payload = BikeTransferPayload(
+                    from_cell_idx, to_cell_idx, executed_number)
 
                 transfer_time = self._decision_strategy.transfer_time
                 transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
-                                                                BikeEventType.BikeReceived, payload)
+                                                                 BikeEventType.BikeReceived, payload)
 
                 self._event_buffer.insert_event(transfer_evt)
 
@@ -377,7 +386,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
             accept_number = cell_capacity - cell_bikes
             extra_bikes = payload.number - accept_number
 
-            extra_cost = self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
+            extra_cost = self._move_to_neighbor(
+                self._cells[payload.from_cell], cell, extra_bikes)
 
             # extra cost from source cell
             from_cell = self._cells[payload.from_cell]
