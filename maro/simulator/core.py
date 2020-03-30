@@ -3,6 +3,7 @@
 
 
 import os
+from math import floor
 from importlib import import_module
 from inspect import getmembers, isclass
 from typing import Any, Dict, List, Tuple
@@ -37,21 +38,18 @@ class Env(AbsEnv):
         have their own business_engine.py file.
 
     Args:
-        scenario (str): scenario name under maro.simulator/scenarios folder
-        topology (topology): topology name under specified scenario folder
-        max_tick (int): max tick of this environment, default is 100
+        scenario (str): scenario name under maro/sim/scenarios folder
+        topology (str): topology name under specified scenario folder
+        start_tick (int): start tick of the scenario, usually used for pre-processed data streaming
+        max_tick (int): max tick of this environment
+        frame_resolution (int): how many ticks will take a snapshot
         decision_mode (DecisionMode): decision mode that specified interactive mode with agent
 
     """
-    def __init__(self, scenario: str, topology: str, max_tick: int = 100, tick_units: int = 1, decision_mode=DecisionMode.Sequential):
-        assert max_tick > 0
+    def __init__(self, scenario: str, topology: str, start_tick: int = 0, max_tick: int = 100, 
+                    frame_resolution: int = 1, decision_mode=DecisionMode.Sequential):
+        super().__init__(scenario, topology, start_tick, max_tick, frame_resolution, decision_mode)
 
-        super().__init__(scenario, topology, max_tick, tick_units, decision_mode)
-
-        self._scenario = scenario
-        self._topology = topology
-        self._max_tick = max_tick
-        self._tick = 0
         self._name = f'{self._scenario}:{self._topology}'
         self._business_engine: AbsBusinessEngine = None
 
@@ -83,8 +81,7 @@ class Env(AbsEnv):
         """
 
         try:
-            reward, decision_event, _is_done = self._simulate_generator.send(
-                action)
+            reward, decision_event, _is_done = self._simulate_generator.send(action)
         except StopIteration:
             return None, None, True
 
@@ -186,14 +183,13 @@ class Env(AbsEnv):
                 break
 
         if business_class is None:
-            raise BusinessEngineNotFoundError(
-                "Business engine not find for scenario ecr")
+            raise BusinessEngineNotFoundError("Business engine not find for scenario ecr")
 
         topology_path = os.path.join(os.path.split(os.path.realpath(__file__))[
                                      0], "scenarios", self._scenario, "topologies", self._topology)
 
         self._business_engine = business_class(
-            self._event_buffer, topology_path, self._max_tick, self._tick_units)
+            self._event_buffer, topology_path, self._start_tick, self._max_tick, self._frame_resolution)
 
         # check if it meet our requirement
         if self._business_engine.frame is None:
@@ -208,54 +204,53 @@ class Env(AbsEnv):
         while self._tick < self._max_tick:
             # ask business engine to do thing for this tick, such as gen and push events
             # we do not push events now
-            for unit_tick in range(self._tick * self._tick_units, (self._tick + 1) * self._tick_units):
-                self._business_engine.step(self._tick, unit_tick)
+            self._business_engine.step(self._tick)
 
-                while True:
-                    # we keep process all the events, util no more any events
-                    pending_events = self._event_buffer.execute(unit_tick)
+            while True:
+                # we keep process all the events, util no more any events
+                pending_events = self._event_buffer.execute(self._tick)
 
-                    # processing pending events
-                    pending_event_length: int = len(pending_events)
+                # processing pending events
+                pending_event_length: int = len(pending_events)
 
-                    if pending_event_length == 0:
-                        # we have processed all the event of current tick, lets go for next tick
-                        break
+                if pending_event_length == 0:
+                    # we have processed all the event of current tick, lets go for next tick
+                    break
 
-                    # insert snapshot before each action
-                    self._business_engine.snapshots.insert_snapshot(self.current_frame, self._tick)
+                # insert snapshot before each action
+                self._business_engine.snapshots.insert_snapshot(self.current_frame, floor(self._tick / self._frame_resolution))
 
-                    decision_events = [evt.payload for evt in pending_events]
+                decision_events = [evt.payload for evt in pending_events]
 
-                    decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
+                decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
 
-                    # yield current state first, and waiting for action
-                    actions = yield rewards, decision_events, False
+                # yield current state first, and waiting for action
+                actions = yield rewards, decision_events, False
 
-                    if actions is not None and type(actions) is not list:
-                        actions = [actions]
+                if actions is not None and type(actions) is not list:
+                    actions = [actions]
 
-                    # calculate rewards
-                    rewards = self._business_engine.rewards(actions)
+                # calculate rewards
+                rewards = self._business_engine.rewards(actions)
 
-                    # unpack reward there is only one
-                    if len(rewards) == 1:
-                        rewards = rewards[0]
+                # unpack reward there is only one
+                if len(rewards) == 1:
+                    rewards = rewards[0]
 
-                    # generate a new atom event first
-                    action_event = self._event_buffer.gen_atom_event(
-                        unit_tick, DECISION_EVENT, actions)
+                # generate a new atom event first
+                action_event = self._event_buffer.gen_atom_event(self._tick, DECISION_EVENT, actions)
 
-                    # 3. we just append the action into sub event of first pending cascade event
-                    pending_events[0].state = EventState.EXECUTING
-                    pending_events[0].immediate_event_list.append(action_event)
+                # 3. we just append the action into sub event of first pending cascade event
+                pending_events[0].state = EventState.EXECUTING
+                pending_events[0].immediate_event_list.append(action_event)
 
-                    if self._decision_mode == DecisionMode.Joint:
-                        # for joint event, we will disable following cascade event
-                        for i in range(1, pending_event_length):
-                            pending_events[i].state = EventState.FINISHED
+                if self._decision_mode == DecisionMode.Joint:
+                    # for joint event, we will disable following cascade event
+                    for i in range(1, pending_event_length):
+                        pending_events[i].state = EventState.FINISHED
 
-                self._business_engine.post_step(self._tick, unit_tick)
+                self._business_engine.post_step(self._tick)
+
             self._tick += 1
 
         # reset the tick to avoid add one more time at the end of loop

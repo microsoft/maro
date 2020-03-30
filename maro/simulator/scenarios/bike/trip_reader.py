@@ -20,15 +20,27 @@ class BikeTripReader:
     """Reader"""
     def __init__(self, path: str, start_date: str, max_tick: int):
         self._index = 0
-        self._start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-        self._max_tick = max_tick # hour
-        self._end_date = self._start_date + relativedelta(hours=max_tick)
+        self._max_tick = max_tick #
         self._arr = np.memmap(path, dtype=bike_dtype, mode="c")
+
+        # this will be the tick = 0
+        start_date = self._arr[0]["start_time"].astype(datetime.datetime)
+        self.start_date = datetime.datetime(start_date.year, start_date.month, start_date.day, start_date.hour, start_date.minute)
         
-        start_filter = self._arr["start_time"] >= self._start_date
-        end_filter = self._arr["start_time"] <= self._end_date
-        
-        self._data_view = self._arr[start_filter & end_filter]
+        start_filter = self._arr["start_time"] >= self.start_date
+
+        self._data_view = None
+
+        if max_tick == -1:
+            self._data_view = self._arr[start_filter]
+        elif max_tick > 0:
+            end_date = self.start_date + relativedelta(minutes=max_tick)
+            end_filter = self._arr["start_time"] <= end_date
+
+            self._data_view = self._arr[start_filter & end_filter]
+        else:
+            raise "Invalid max tick to initialize."
+
         self._total_items = len(self._data_view)
 
         self.reset()
@@ -38,12 +50,12 @@ class BikeTripReader:
         
         self._index = 0
 
-    def get_trips(self, internal_tick: int):
-        """get next event of specified internal_tick, return [] if not exist"""
+    def get_trips(self, tick: int):
+        """get next event of specified tick, return [] if not exist"""
         trips = []
 
         # start time of current tick
-        start = self._start_date + relativedelta(minutes=internal_tick)
+        start = self.start_date + relativedelta(minutes=tick)
 
         # next minute
         end = start + relativedelta(minutes=1)
@@ -56,7 +68,7 @@ class BikeTripReader:
                 # an valid item
                 start_cell_idx = item["start_cell"]
                 end_cell_idx = item["end_cell"]
-                end_tick = internal_tick + item["duration"]
+                end_tick = tick + item["duration"]
 
                 trip = Trip(item_time.astype(datetime.datetime), start_cell_idx, end_cell_idx, end_tick)
                 

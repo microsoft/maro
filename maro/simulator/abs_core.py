@@ -22,20 +22,23 @@ class AbsEnv(ABC):
     """The main MARO simulator abstract class, which provides interfaces to agents.
     """
 
-    def __init__(self, scenario: str, topology: str, max_tick: int = 100, tick_units: int = 1, decision_mode=DecisionMode.Sequential):
+    def __init__(self, scenario: str, topology: str, start_tick: int = 0, max_tick: int = 100, 
+                    frame_resolution: int = 1, decision_mode=DecisionMode.Sequential):
         """Create a new instance of environment
 
         Args:
             scenario (str): scenario name under maro/sim/scenarios folder
-            topology (topology): topology name under specified scenario folder
+            topology (str): topology name under specified scenario folder
+            start_tick (int): start tick of the scenario, usually used for pre-processed data streaming
             max_tick (int): max tick of this environment
-            tick_units (int): how many units per tick, used to control tick unit, the size of snapshot will be same with max_tick, other part with use the tick unit to push the simulator
+            frame_resolution (int): how many ticks will take a snapshot
         """
         self._tick = 0
         self._scenario = scenario
         self._topology = topology
+        self._start_tick = start_tick
         self._max_tick = max_tick
-        self._tick_units = tick_units
+        self._frame_resolution = frame_resolution
         self._decision_mode = decision_mode
         self._business_engine: AbsBusinessEngine = None
         self._event_buffer: EventBuffer = None
