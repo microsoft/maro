@@ -21,7 +21,7 @@ from .vessel import Vessel
 
 
 class EcrBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology_path: str, max_tick: int, tick_units: int):
+    def __init__(self, event_buffer: EventBuffer, config_path: str, start_tick: int, max_tick: int, frame_resolution: int):
         """
         Create a new instance of ECR Business Engine
 
@@ -30,9 +30,9 @@ class EcrBusinessEngine(AbsBusinessEngine):
             topology_path (str): full path to the topology folder
             max_tick (int): max tick that we will simulate
         """
-        super().__init__(event_buffer, topology_path, tick_units)
+        super().__init__(event_buffer, config_path, start_tick, max_tick, frame_resolution)        
 
-        config_path = os.path.join(topology_path, "config.yml")
+        config_path = os.path.join(config_path, "config.yml")
 
         self._data_generator = EcrDataGenerator(max_tick, config_path)
 
@@ -78,7 +78,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         return self._snapshots
 
-    def step(self, tick: int, unit_tick: int):
+    def step(self, tick: int):
         """
         Called at each tick to generate orders and arrival events
 
@@ -153,7 +153,9 @@ class EcrBusinessEngine(AbsBusinessEngine):
         for evt in cascade_evt_list:
             self._event_buffer.insert_event(evt)
 
-    def post_step(self, tick: int, unit_tick: int):
+        return tick + 1 == self._max_tick
+
+    def post_step(self, tick: int):
         """
         Post-process after each step
 
