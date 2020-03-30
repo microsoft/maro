@@ -63,6 +63,9 @@ class BikeTripReader:
                 trips.append(trip)
 
                 self._index += 1
+            elif item_time < start:
+                # used to filter invalid dataset
+                self._index += 1
             else:
                 break
             
