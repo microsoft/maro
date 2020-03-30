@@ -20,7 +20,7 @@ class BikeTripReader:
     """Reader"""
     def __init__(self, path: str, start_date: str, max_tick: int):
         self._index = 0
-        self._max_tick = max_tick #
+        self.max_tick = max_tick #
         self._arr = np.memmap(path, dtype=bike_dtype, mode="c")
 
         # this will be the tick = 0
@@ -33,7 +33,11 @@ class BikeTripReader:
 
         if max_tick == -1:
             self._data_view = self._arr[start_filter]
+            
+            # update actual max tick
+            self.max_tick = (self._data_view[-1].astype(datetime.datetime) - self.start_date).minute
         elif max_tick > 0:
+
             end_date = self.start_date + relativedelta(minutes=max_tick)
             end_filter = self._arr["start_time"] <= end_date
 

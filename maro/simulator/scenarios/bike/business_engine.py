@@ -46,8 +46,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         self._reg_event()
         self._read_config()
+        self._init_data_reader() # NOTE: we should read the data first, to get correct max tick if max_tick is -1
         self._init_frame()
-        self._init_data_reader()
 
         frame_num = ceil(max_tick / frame_resolution)
 
@@ -201,6 +201,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._data_reader = BikeTripReader(self._conf["trip_file"],
                                            self._conf["start_datetime"],
                                            self._max_tick)
+
+        self._max_tick = self._data_reader.max_tick
 
     def _read_config(self):
         with open(os.path.join(self._config_path, "config.yml")) as fp:

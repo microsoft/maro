@@ -5,8 +5,7 @@ from maro.simulator.scenarios.bike.common import Action
 from maro.simulator.utils.random import random
 
 start_tick = 0
-hours = 2 * 24
-max_ticks = hours * 60
+max_ticks = 2 * 24 * 60
 total_ep = 2
 
 # 48 ticks (hours), 60 units (minutes) per tick
@@ -28,7 +27,9 @@ for i in range(total_ep):
     shortages = env.snapshot_list.static_nodes[::("shortage", 0)]
     print(f"total shortage (ep {i}:", sum(shortages))
 
-print("snapshot list length", len(env.snapshot_list))
+hours = len(env.snapshot_list)
+
+print("snapshot list length", hours)
 inv = env.snapshot_list.static_nodes[::("bikes", 0)]
 
 inv = inv.reshape(hours, len(env.agent_idx_list)) # hours, cells
