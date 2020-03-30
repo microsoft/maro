@@ -453,29 +453,17 @@ class Runner:
 
             elif event.event_type == BikeEventType.BikeReceived:
                 cur_tick = event.tick
-                # Pick and upload data for event vessel usage
-                # cell_idx = event.payload.to_cell
-                # column = cell_idx * 2
-                # cur_usage = {
-                #     'station': self._station_idx2name[cell_idx],
-                #     'bikes': pretty_usage_list[cur_tick][column],
-                #     'docks': pretty_usage_list[cur_tick][column + 1]
-                # }
-                # self._dashboard.upload_exp_data(fields=cur_usage, ep=dashboard_ep, tick=cur_tick, measurement='bike_station_usage')
+            
+            # decison event from which upload actual action
+            elif event.event_type == 0:
+                cur_tick = event.tick
+                cell_idx = event.payload.cell_idx
+                for action_event in event.immediate_event_list:
+                    for action in action_event.payload:
+                        action_num = action.number
+                        action_target = action.to_cell
+                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_idx}_to_{action_target}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
 
-                # TODO: remove after confirmed no longer needed
-                # Pick and upload data for event delayed laden
-                # station_idx = event.payload.station_idx
-                # station_name = self._station_idx2name[station_idx]
-                # if not station_name in pretty_delayed_laden_dict:
-                #     pretty_delayed_laden_dict[station_name] = 0
-                # cur_route = self._env.configs['routes'][self._env.configs['vessels'][self._vessel_idx2name[vessel_idx]]['route']['route_name']]
-                # cur_delayed_laden = 0
-                # for route_station in cur_route:
-                #     route_station_id = self._station_name2idx[route_station['station_name']]
-                #     pretty_delayed_laden_dict[station_name] += pretty_delayed_laden_list[cur_tick][station_idx][route_station_id]
-                #     cur_delayed_laden += pretty_delayed_laden_list[cur_tick][station_idx][route_station_id]
-                # self._dashboard.upload_exp_data(fields={station_name: cur_delayed_laden}, ep=dashboard_ep, tick=cur_tick, measurement='event_delayed_laden')
 
         # Upload data for ep laden_planed and ep laden_executed
         for laden_source in from_to_executed.keys():
