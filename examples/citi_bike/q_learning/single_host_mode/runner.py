@@ -490,8 +490,8 @@ class Runner:
             for laden_dest in from_to_executed[laden_source].keys():
                 self._dashboard.upload_exp_data(
                     fields={
-                        'from': self._station_idx2name[laden_source],
-                        'to': self._station_idx2name[laden_dest],
+                        'from': str(self._station_idx2name[laden_source]),
+                        'to': str(self._station_idx2name[laden_dest]),
                         'quantity': from_to_executed[laden_source][laden_dest]
                     }, 
                     ep=dashboard_ep, tick=None, measurement='bike_ride_executed')
@@ -500,8 +500,8 @@ class Runner:
             for laden_dest in from_to_planed[laden_source].keys():
                 self._dashboard.upload_exp_data(
                     fields={
-                        'from': self._station_idx2name[laden_source],
-                        'to': self._station_idx2name[laden_dest],
+                        'from': str(self._station_idx2name[laden_source]),
+                        'to': str(self._station_idx2name[laden_dest]),
                         'quantity': from_to_planed[laden_source][laden_dest]
                     }, 
                     ep=dashboard_ep, tick=None, measurement='bike_ride_planed')

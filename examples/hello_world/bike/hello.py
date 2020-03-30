@@ -2,6 +2,7 @@ import numpy as np
 from maro.simulator.frame import FrameNodeType
 from maro.simulator.core import Env
 from maro.simulator.scenarios.bike.common import Action
+from maro.simulator.utils.random import random
 
 max_ticks = 2*24
 total_ep = 2
@@ -10,6 +11,7 @@ total_ep = 2
 env = Env("bike", "test", max_ticks, tick_units=60)
 
 for i in range(total_ep):
+    random.seed(1)
     env.reset()
 
     reward, decision_event, is_done = env.step(None)
