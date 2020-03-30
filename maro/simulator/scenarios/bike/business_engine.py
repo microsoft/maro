@@ -8,7 +8,7 @@ from enum import IntEnum
 from typing import Dict, List
 
 from yaml import safe_load
-
+from maro.simulator.utils.random import random
 from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
@@ -22,6 +22,8 @@ from .adj_reader import read_adj_info
 from .trip_reader import BikeTripReader
 from .cell_reward import CellReward
 from .weather_table import WeatherTable
+
+bikes_adjust_rand = random["bikes_adjust"]
 
 
 class BikeEventType(IntEnum):
@@ -282,7 +284,11 @@ class BikeBusinessEngine(AbsBusinessEngine):
         cell: Cell = self._cells[cell_idx]
         cell_bikes = cell.bikes
 
-        adjusted_number = evt.payload.number + (self._trip_adjust_value if random.random() < self._trip_adjust_rate else 0)
+        adjusted_number = trip.number
+
+        # disable adjust if the rate is less equal 0
+        if self._trip_adjust_rate > 0:
+            adjusted_number += (self._trip_adjust_value if bikes_adjust_rand.random() < self._trip_adjust_rate else 0) 
         
         # update trip count
         cell.trip_requirement += adjusted_number
