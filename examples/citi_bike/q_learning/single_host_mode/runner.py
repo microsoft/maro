@@ -437,8 +437,7 @@ class Runner:
         # pretty_early_discharge_dict = {}
         # pretty_delayed_laden_dict = {}
 
-        # TODO: bring back after have decision
-        # pretty_tml_cost_dict = {}
+        pretty_tml_cost_dict = {}
 
         # Check events and pick data for usage, delayed laden, laden planed, laden executed, early discharge, actual_action, tml cost
         events = self._env.get_finished_events()
@@ -476,15 +475,20 @@ class Runner:
             elif event.event_type == BikeEventType.BikeReceived:
                 cur_tick = event.tick
             
-            # decison event from which upload actual action
+            # decison event from which upload actual action and tml cost
             elif event.event_type == 0:
                 cur_tick = event.tick
                 cell_idx = event.payload.cell_idx
+                cell_name = str(self._station_idx2name[cell_idx])
+                event_tml_cost = 0
                 for action_event in event.immediate_event_list:
                     for action in action_event.payload:
                         action_num = action.number
                         action_target = action.to_cell
-                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_idx}_to_{action_target}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
+                        target_name = str(self._station_idx2name[action_target])
+                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_name}_to_{target_name}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
+                pretty_tml_cost_dict[cell_name] = pretty_tml_cost_dict.get(cell_name, 0) + event_tml_cost
+                self._dashboard.upload_exp_data(fields={cell_name: event_tml_cost}, ep=dashboard_ep, tick=event.tick, measurement='bike_event_tml_cost')
 
 
         # Upload data for ep laden_planed and ep laden_executed
@@ -508,30 +512,13 @@ class Runner:
                     }, 
                     ep=dashboard_ep, tick=None, measurement='bike_ride_planed')
 
-        # TODO: remove after confirmed no longer needed
-        # Upload data for ep early discharge
-        # total_early_discharge = 0
-        # for early_discharge in pretty_early_discharge_dict.values():
-        #     total_early_discharge += early_discharge
-        # pretty_early_discharge_dict['total'] = total_early_discharge
-        # self._dashboard.upload_exp_data(fields=pretty_early_discharge_dict, ep=dashboard_ep, tick=None, measurement='early_discharge')
-
-        # TODO: remove after confirmed no longer needed
-        # Upload data for ep delayed laden
-        # total_delayed_laden = 0
-        # for delayed_laden in pretty_delayed_laden_dict.values():
-        #     total_delayed_laden += delayed_laden
-        # pretty_delayed_laden_dict['total'] = total_delayed_laden
-        # self._dashboard.upload_exp_data(fields=pretty_delayed_laden_dict, ep=dashboard_ep, tick=None, measurement='delayed_laden')
-
-        # TODO: bring back after have decision
         # Upload data for ep tml cost
-        # total_tml_cost = 0
-        # for tml_cost in pretty_tml_cost_dict.values():
-        #     total_tml_cost += tml_cost
-        # pretty_tml_cost_dict['total'] = total_tml_cost
+        total_tml_cost = 0
+        for tml_cost in pretty_tml_cost_dict.values():
+            total_tml_cost += tml_cost
+        pretty_tml_cost_dict['total'] = total_tml_cost
 
-        # self._dashboard.upload_exp_data(fields=pretty_tml_cost_dict, ep=dashboard_ep, tick=None, measurement='tml_cost')
+        self._dashboard.upload_exp_data(fields=pretty_tml_cost_dict, ep=dashboard_ep, tick=None, measurement='bike_tml_cost')
 
         # Pick and upload data for event shortage
         ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.agent_idx_list:('shortage',0)]
