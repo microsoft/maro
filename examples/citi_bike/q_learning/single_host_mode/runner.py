@@ -107,7 +107,7 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, max_tick)
+        self._env = Env(scenario, topology, max_tick, tick_units=60)
         self._test_env = Env(scenario, TEST_TOPOLOGY, TEST_TICK)
         # self._station_idx2name = self._env.node_name_mapping
         self._station_idx2name = {key:key for key in self._env.agent_idx_list}
@@ -214,13 +214,16 @@ class Runner:
             pbar.set_description('train episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            feature_list = [0]*3*len(self._env.agent_idx_list)
+            feature_list = []#[0]*3*len(self._env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done = self._env.step(action)
-                feature_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+                #feature_list += self._env.snapshot_list.static_nodes[
+                #        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
             for agent in self._agent_dict.values():
@@ -251,7 +254,7 @@ class Runner:
             ep_start = time.time()
             if self._dashboard is not None:
                 self._dashboard.update_dynamic_info(info={'is_train': False, 'current_ep': ep, 'ep_progress': f'{ep+1}/{self._max_test_ep}'})
-            self._set_seed(TEST_SEED)
+            self._set_seed(TEST_SEED + ep)
             pbar.set_description('test episode')
             env_start = time.time()
             _, decision_event, is_done = self._test_env.step(None)
@@ -260,8 +263,11 @@ class Runner:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._test_env.snapshot_list)
                 _, decision_event, is_done = self._test_env.step(action)
-                feature_list += self._test_env.snapshot_list.static_nodes[
-                        self._test_env.tick: self._test_env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+                # feature_list += self._test_env.snapshot_list.static_nodes[
+                #         self._test_env.tick: self._test_env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='test')
@@ -280,17 +286,22 @@ class Runner:
         for ep in pbar:
             time_dict = OrderedDict()
             ep_start = time.time()
-            self._set_seed(TEST_SEED)
+            self._set_seed(4096 + ep)
             pbar.set_description('baseline no action episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            feature_list = [0]*3*len(self._env.agent_idx_list)
+            feature_list = [] #*3*len(self._env.agent_idx_list)
             while not is_done:
-                _, decision_event, is_done =self._env.step(Action(0,0,0))
-                feature_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+                _, decision_event, is_done =self._env.step(Action(0,1,0))
+                # feature_list += self._env.snapshot_list.static_nodes[
+                #         self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='no_action')
+            
 
             self._env.reset()
         
@@ -298,24 +309,27 @@ class Runner:
         for ep in pbar:
             time_dict = OrderedDict()
             ep_start = time.time()
-            self._set_seed(TEST_SEED)
+            self._set_seed(8192 + ep)
             pbar.set_description('baseline random action episode')
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
-            feature_list = [0]*3*len(self._env.agent_idx_list)
+            feature_list = []#[0]*3*len(self._env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=1, current_ep=ep, snapshot_list= self._env.snapshot_list)
                 _, decision_event, is_done =self._env.step(action)
-                feature_list += self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+                #feature_list += self._env.snapshot_list.static_nodes[
+                #        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='random_action')
 
             self._env.reset()
 
     def _print_summary(self, ep, feature_list, mode = 'train'):
-        feature_list = feature_list.reshape(-1,3).transpose((1,0))
+        # feature_list = np.array(feature_list).reshape(-1,3).transpose((1,0))
         #  shortage_list, requirement_list, cost_list
         
         pretty_shortage_dict = OrderedDict()

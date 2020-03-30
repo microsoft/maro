@@ -159,7 +159,7 @@ class Agent(object):
                                             'station_states':station_states,
                                             'neighbor_states':neighbor_states})
 
-        neighbor_idx = neighbor_idx if neighbor_idx!= -1 else cur_neighbor_idx_list[0]                                 
+        neighbor_idx = neighbor_idx if neighbor_idx!= -1 else cur_station_idx                                 
         env_action = Action(cur_station_idx, neighbor_idx, actual_action)
         if self._log_enable:
             self._logger.info(
