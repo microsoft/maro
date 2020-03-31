@@ -226,13 +226,8 @@ class Env(AbsEnv):
                 # insert snapshot before each action
                 self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
 
-                decision_events = []
-
-                # correct 
+                decision_events = [evt.payload for evt in pending_events]
                 
-                [evt.payload for evt in pending_events]
-                
-
                 decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
 
                 # yield current state first, and waiting for action
