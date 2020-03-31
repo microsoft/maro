@@ -337,14 +337,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         cell_bikes = cell.bikes
         cell_capacity = cell.capacity
-        return_number = evt.payload.number
+        return_number = payload.number
 
         if cell_bikes + return_number > cell_capacity:
+            return_number = cell_capacity - cell_bikes
+
+        if return_number > 0:
+            cell.bikes += return_number
+
+        if payload.number != return_number:
             # extra cost of current cell, as we do not know whose action caused this
             cell.extra_cost += self._move_to_neighbor(
-                self._cells[payload.from_cell], cell, return_number)
-        else:
-            cell.bikes += return_number
+                self._cells[payload.from_cell], cell, payload.number - return_number)
 
     def _on_action_received(self, evt: Event):
         action: Action = None
