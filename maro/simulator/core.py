@@ -257,6 +257,10 @@ class Env(AbsEnv):
             if is_end_tick:
                 break
 
+        # make sure we have no missing data
+        if self._tick % self._frame_resolution != 0:
+            self._business_engine.snapshots.insert_snapshot(self.current_frame, floor(self._tick / self._frame_resolution))
+
         # reset the tick to avoid add one more time at the end of loop
         self._tick = self._max_tick - 1
 
