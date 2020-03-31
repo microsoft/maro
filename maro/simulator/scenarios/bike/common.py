@@ -39,6 +39,7 @@ class DecisionEvent:
     def __init__(self, cell_idx: int, tick: int, action_scope_func: callable):
         self.cell_idx = cell_idx
         self.tick = tick
+        self.frame_index = 0
         self._action_scope = None
         self._action_scope_func = action_scope_func
 

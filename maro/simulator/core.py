@@ -135,6 +135,11 @@ class Env(AbsEnv):
         return self._tick
 
     @property
+    def frame_index(self)->int:
+        """int: frame index in snapshot list for current tick"""
+        return floor((self._tick - self._start_tick) / self._frame_resolution)
+
+    @property
     def snapshot_list(self) -> SnapshotList:
         """SnapshotList: Current snapshot list
 
@@ -219,10 +224,14 @@ class Env(AbsEnv):
                     break
 
                 # insert snapshot before each action
-                self._business_engine.snapshots.insert_snapshot(self.current_frame, 
-                    floor(self._tick - self._start_tick / self._frame_resolution))
+                self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
 
-                decision_events = [evt.payload for evt in pending_events]
+                decision_events = []
+
+                # correct 
+                
+                [evt.payload for evt in pending_events]
+                
 
                 decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
 
@@ -260,8 +269,7 @@ class Env(AbsEnv):
 
         # make sure we have no missing data
         if self._tick % self._frame_resolution != 0:
-            self._business_engine.snapshots.insert_snapshot(self.current_frame, 
-                floor(self._tick - self._start_tick / self._frame_resolution))
+            self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
 
         # reset the tick to avoid add one more time at the end of loop
         self._tick = self._max_tick - 1

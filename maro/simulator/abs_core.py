@@ -99,6 +99,11 @@ class AbsEnv(ABC):
         pass
 
     @property
+    def frame_index(self)->int:
+        """int: frame index in snapshot list for current tick"""
+        pass
+
+    @property
     @abstractmethod
     def node_name_mapping(self) -> Dict[str, List]:
         """Dict[str, List]: Resource node name mapping that configured for current environment"""

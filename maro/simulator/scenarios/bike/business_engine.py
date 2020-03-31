@@ -94,7 +94,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         # the env will take snapshot for use when we need an action, so we do not need to take action here
         for cell_idx in cells_need_decision:
-            decision_payload = DecisionEvent(cell_idx, tick, self._decision_strategy.action_scope)
+            decision_payload = DecisionEvent(cell_idx, tick, 
+                     floor((tick - self._start_tick) / self._frame_resolution),
+                     self._decision_strategy.action_scope)
             decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_payload)
 
             self._event_buffer.insert_event(decision_evt)
