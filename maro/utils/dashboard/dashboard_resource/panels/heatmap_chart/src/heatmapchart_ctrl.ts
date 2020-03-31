@@ -29,6 +29,7 @@ class HeatmapChartCtrl extends MetricsPanelCtrl {
       yColumns: [],
       z_axis: 'heat',
       zColumns: [],
+      rectBlank: 10,
 
       links: [],
       datasource: null,

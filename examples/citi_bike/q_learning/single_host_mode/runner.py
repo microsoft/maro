@@ -267,9 +267,9 @@ class Runner:
                 _, decision_event, is_done = self._test_env.step(action)
                 # feature_list += self._test_env.snapshot_list.static_nodes[
                 #         self._test_env.tick: self._test_env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
-            feature_list.append(self._test_env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
-            feature_list.append(self._test_env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
-            feature_list.append(self._test_env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._test_env.snapshot_list.static_nodes[:: ('shortage', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
+            feature_list.append(self._test_env.snapshot_list.static_nodes[:: ('trip_requirement', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
+            feature_list.append(self._test_env.snapshot_list.static_nodes[:: ('extra_cost', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='test')
@@ -356,28 +356,33 @@ class Runner:
         pretty_cost_dict['total'] = tot_cost
 
         if mode == 'train':
-            is_train = True
             # self._performance_logger.debug(
             #     f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
             self._logger.critical(
                 f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
         else:
-            is_train = False
             self._logger.critical(
                 f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
 
         if self._dashboard is not None and mode != 'no_action':
-            self._send_to_dashboard(ep, pretty_shortage_dict, pretty_requirement_dict, is_train)
+            self._send_to_dashboard(ep, pretty_shortage_dict, pretty_requirement_dict, mode)
 
     def _send_to_dashboard(self,
                            ep,
                            pretty_shortage_dict,
                            pretty_booking_dict,
-                           is_train: bool = True):
+                           mode: str = "train"):
         # Test ep follows Train ep
         dashboard_ep = ep
-        if not is_train:
+        if mode == "train":
+            env = self._env
+            tick_number = self._max_tick
+        elif mode == "test":
             dashboard_ep = ep + self._max_train_ep
+            env = self._test_env
+            tick_number = TEST_TICK
+        else:
+            return
 
         # Upload data for experiment info
 
@@ -398,7 +403,7 @@ class Runner:
         self._dashboard.upload_exp_data(fields=pretty_fulfill_dict, ep=dashboard_ep, tick=None, measurement='bike_fulfill')
 
         # Pick and upload data for rank list
-        if not is_train:
+        if mode == 'test':
             if ep == self._max_test_ep - 1 and self._ranklist_enable:
                 model_size = 0
                 experience_qty = 0
@@ -417,33 +422,25 @@ class Runner:
                     })
 
         # Pick and upload data for epsilon
-        if is_train:
+        if mode == "train":
             pretty_epsilon_dict = OrderedDict()
             for i, _ in enumerate(self._station_idx2name):
                 pretty_epsilon_dict[str(self._station_idx2name[i])] = self._eps_list[ep]
             self._dashboard.upload_exp_data(fields=pretty_epsilon_dict, ep=dashboard_ep, tick=None, measurement='bike_epsilon')
 
         # Prepare usage and delayed laden data cache
-        usage_list = self._env.snapshot_list.static_nodes[::(['bikes'], 0)]
-        pretty_usage_list = usage_list.reshape(self._max_tick, len(self._station_idx2name) )
-        capacity_list = self._env.snapshot_list.static_nodes[0::(['capacity'], 0)]
+        usage_list = env.snapshot_list.static_nodes[::(['bikes'], 0)]
+        pretty_usage_list = usage_list.reshape(tick_number, len(self._station_idx2name) )
+        capacity_list = env.snapshot_list.static_nodes[0::(['capacity'], 0)]
         pretty_capacity_df = capacity_list.reshape(1, len(self._station_idx2name) )
-
-        # TODO: remove after confirmed no longer needed
-        # delayed_laden_list = self._env.snapshot_list.matrix[[x for x in range(0, self._max_tick)]:"full_on_stations"]
-        # pretty_delayed_laden_list = delayed_laden_list.reshape(self._max_tick, len(self._station_idx2name), len(self._station_idx2name))
 
         from_to_executed = {}
         from_to_planed = {}
-        # TODO: remove after confirmed no longer needed
-        # pretty_early_discharge_dict = {}
-        # pretty_delayed_laden_dict = {}
 
-        # TODO: bring back after have decision
-        # pretty_tml_cost_dict = {}
+        pretty_tml_cost_dict = {}
 
         # Check events and pick data for usage, delayed laden, laden planed, laden executed, early discharge, actual_action, tml cost
-        events = self._env.get_finished_events()
+        events = env.get_finished_events()
         for event in events:
             # Pick data for ep laden executed
             if event.event_type == BikeEventType.BikeReturn:
@@ -459,34 +456,25 @@ class Runner:
                 if event.payload.to_cell not in from_to_planed[event.payload.from_cell]:
                     from_to_planed[event.payload.from_cell][event.payload.to_cell] = 0
                 from_to_planed[event.payload.from_cell][event.payload.to_cell] += event.payload.number
-            # TODO: bring back after have decision
-            # Pick and upload data for event early discharge, actual_action, tml cost
-            # elif event.event_type == BikeEventType.PENDING_DECISION:
-            #     station_name = self._station_idx2name[event.payload.station_idx]
-            #     pretty_early_discharge_dict[station_name] = pretty_early_discharge_dict.get(station_name, 0) + event.payload.early_discharge
-            #     self._dashboard.upload_exp_data(fields={station_name: event.payload.early_discharge}, ep=dashboard_ep, tick=event.tick, measurement='event_early_discharge')
-            #     event_tml_cost = event.payload.early_discharge
-            #     for action in event.immediate_event_list:
-            #         for action_payload in action.payload:
-            #             event_tml_cost += abs(action_payload.quantity)
-            #         vessel_name = self._vessel_idx2name[action_payload.vessel_idx]
-            #         route_name = self._env.configs['vessels'][vessel_name]['route']['route_name']
-            #         self._dashboard.upload_exp_data(fields={f'actual_action_of_{station_name}_on_{route_name}':action_payload.quantity}, ep=dashboard_ep, tick=event.tick, measurement='actual_action')
-            #     pretty_tml_cost_dict[station_name] = pretty_tml_cost_dict.get(station_name, 0) + event_tml_cost
-            #     self._dashboard.upload_exp_data(fields={station_name: event_tml_cost}, ep=dashboard_ep, tick=event.tick, measurement='event_tml_cost')
 
             elif event.event_type == BikeEventType.BikeReceived:
-                cur_tick = event.tick
+                pass
             
-            # decison event from which upload actual action
+            # decison event from which upload actual action and tml cost
             elif event.event_type == 0:
                 cur_tick = event.tick
                 cell_idx = event.payload.cell_idx
+                cell_name = str(self._station_idx2name[cell_idx])
+                event_tml_cost = 0
                 for action_event in event.immediate_event_list:
                     for action in action_event.payload:
                         action_num = action.number
                         action_target = action.to_cell
-                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_idx}_to_{action_target}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
+                        target_name = str(self._station_idx2name[action_target])
+                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_name}_to_{target_name}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
+                        event_tml_cost += action.number
+                pretty_tml_cost_dict[cell_name] = pretty_tml_cost_dict.get(cell_name, 0) + event_tml_cost
+                self._dashboard.upload_exp_data(fields={cell_name: event_tml_cost}, ep=dashboard_ep, tick=event.tick, measurement='bike_event_tml_cost')
 
 
         # Upload data for ep laden_planed and ep laden_executed
@@ -510,35 +498,18 @@ class Runner:
                     }, 
                     ep=dashboard_ep, tick=None, measurement='bike_ride_planed')
 
-        # TODO: remove after confirmed no longer needed
-        # Upload data for ep early discharge
-        # total_early_discharge = 0
-        # for early_discharge in pretty_early_discharge_dict.values():
-        #     total_early_discharge += early_discharge
-        # pretty_early_discharge_dict['total'] = total_early_discharge
-        # self._dashboard.upload_exp_data(fields=pretty_early_discharge_dict, ep=dashboard_ep, tick=None, measurement='early_discharge')
-
-        # TODO: remove after confirmed no longer needed
-        # Upload data for ep delayed laden
-        # total_delayed_laden = 0
-        # for delayed_laden in pretty_delayed_laden_dict.values():
-        #     total_delayed_laden += delayed_laden
-        # pretty_delayed_laden_dict['total'] = total_delayed_laden
-        # self._dashboard.upload_exp_data(fields=pretty_delayed_laden_dict, ep=dashboard_ep, tick=None, measurement='delayed_laden')
-
-        # TODO: bring back after have decision
         # Upload data for ep tml cost
-        # total_tml_cost = 0
-        # for tml_cost in pretty_tml_cost_dict.values():
-        #     total_tml_cost += tml_cost
-        # pretty_tml_cost_dict['total'] = total_tml_cost
+        total_tml_cost = 0
+        for tml_cost in pretty_tml_cost_dict.values():
+            total_tml_cost += tml_cost
+        pretty_tml_cost_dict['total'] = total_tml_cost
 
-        # self._dashboard.upload_exp_data(fields=pretty_tml_cost_dict, ep=dashboard_ep, tick=None, measurement='tml_cost')
+        self._dashboard.upload_exp_data(fields=pretty_tml_cost_dict, ep=dashboard_ep, tick=None, measurement='bike_tml_cost')
 
         # Pick and upload data for event shortage
-        ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.agent_idx_list:('shortage',0)]
-        pretty_ep_shortage_list = ep_shortage_list.reshape(self._max_tick, len(self._station_idx2name))
-        for i in range(self._max_tick):
+        ep_shortage_list = env.snapshot_list.static_nodes[:env.agent_idx_list:('shortage',0)]
+        pretty_ep_shortage_list = ep_shortage_list.reshape(tick_number, len(self._station_idx2name))
+        for i in range(tick_number):
             need_upload = False
             pretty_ep_shortage_dict = OrderedDict()
             for j in range(len(self._station_idx2name)):
@@ -553,6 +524,21 @@ class Runner:
         shift_usage_df = pretty_usage_df.shift(periods=1)
         result_df = (pretty_usage_df != shift_usage_df)
         result_df.apply(lambda x: self._send_usage(x , pretty_usage_df, pretty_capacity_df, dashboard_ep), axis=1)
+
+        # Pick and upload data for extra cost
+        ep_ex_cost_list = env.snapshot_list.static_nodes[:env.agent_idx_list:('extra_cost',0)]
+        pretty_ep_ex_cost_list = ep_ex_cost_list.reshape(tick_number, len(self._station_idx2name))
+        for i in range(tick_number):
+            need_upload = False
+            pretty_ep_ex_cost_dict = OrderedDict()
+            for j in range(len(self._station_idx2name)):
+                pretty_ep_ex_cost_dict["ex_cost"+str(self._station_idx2name[j])] = pretty_ep_ex_cost_list[i][j]
+                if pretty_ep_ex_cost_list[i][j] > 0:
+                    need_upload = True
+            if need_upload:
+                self._dashboard.upload_exp_data(fields=pretty_ep_ex_cost_dict, ep=dashboard_ep, tick=i, measurement='bike_event_ex_cost')
+            if i == tick_number -1:
+                self._dashboard.upload_exp_data(fields=pretty_ep_ex_cost_dict, ep=dashboard_ep, tick=None, measurement='bike_ex_cost')
 
     def _set_seed(self, seed):
         torch.manual_seed(seed)

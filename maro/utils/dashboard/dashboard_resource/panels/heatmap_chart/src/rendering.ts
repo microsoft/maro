@@ -102,8 +102,19 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
         z: data[i].z,
       });
     }
-    let rectWidth = chartWidth / xArray.length - 1;
-    let rectHeight = chartHeight / yArray.length - 1;
+    // let rectWidth = chartWidth / xArray.length - 1;
+    // let rectHeight = chartHeight / yArray.length - 1;
+    // if (rectWidth <= 0) {
+    //   rectWidth = 1;
+    // }
+    // if (rectHeight <= 0) {
+    //   rectHeight = 1;
+    // }
+    const totalSpace = ctrl.panel.rectBlank;
+    let rectWidth = (chartWidth -totalSpace )/ xArray.length;
+    let rectHeight = (chartHeight -totalSpace )/ yArray.length;
+    const rectSpaceWidth = totalSpace / xArray.length;
+    const rectSpaceHeight = totalSpace / yArray.length;
     if (rectWidth <= 0) {
       rectWidth = 1;
     }
@@ -117,7 +128,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .append('g')
       .attr('class', 'heatRect')
       .attr('transform', d => {
-        return 'translate(' + (rectWidth + 2) * d.x + ',' + (rectHeight + 2) * d.y + ')';
+        return 'translate(' + (rectWidth + rectSpaceWidth) * d.x + ',' + (rectHeight + rectSpaceHeight) * d.y + ')';
       })
       .append('rect')
       .attr('width', rectWidth)
@@ -137,7 +148,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .append('g')
       .attr('class', 'heatX')
       .attr('transform', (d, i) => {
-        return 'translate(' + (rectWidth + 2) * (i + 0.5) + ',' + (chartHeight + 20) + ')';
+        return 'translate(' + (rectWidth + rectSpaceWidth) * (i + 0.5) + ',' + (chartHeight + 20) + ')';
       })
       .append('text')
       .attr('class', 'gf-form-label')
@@ -160,14 +171,14 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .append('g')
       .attr('class', 'heatY')
       .attr('transform', (d, i) => {
-        return 'translate(' + 0 + ',' + (rectHeight + 2) * i + ')';
+        return 'translate(' + 0 + ',' + (rectHeight + rectSpaceHeight) * i + ')';
       })
       .append('text')
       .attr('class', 'gf-form-label')
       .attr('text-anchor', 'end')
       .attr('fill', d3.rgb(125, 125, 125).toString())
       .attr('transform', () => {
-        return 'rotate(-45 20,' + rectHeight / 2 + ')';
+        return 'rotate(-45 0,' + rectHeight / 2 + ')';
       })
       .text(d => {
         return d.length > 10 ? d.substring(0, 7) + '...' : d;

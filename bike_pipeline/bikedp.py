@@ -277,21 +277,22 @@ def read_src_file(file: str):
                 # stations[item[4]] = (item[5], item[8], item[9]) # end station, log and lat
 
             ret = pd.read_csv(fp)
-            
+            ret = ret[['tripduration','starttime','start station id','end station id','gender','usertype']]
             ret['tripduration'] = pd.to_numeric(pd.to_numeric(ret['tripduration'], downcast='integer') /60, downcast='integer')
             ret['starttime'] = pd.to_datetime(ret['starttime'])
             ret['start station id'] = pd.to_numeric(ret['start station id'],errors='coerce',downcast='integer')
-            ret['stoptime'] = pd.to_datetime(ret['stoptime'])
+            # ret['stoptime'] = pd.to_datetime(ret['stoptime'])
             ret['end station id'] = pd.to_numeric(ret['end station id'],errors='coerce',downcast='integer')
-            ret['start station latitude'] = pd.to_numeric(ret['start station latitude'],downcast='float')
-            ret['start station longitude'] = pd.to_numeric(ret['start station longitude'],downcast='float')
-            ret['end station latitude'] = pd.to_numeric(ret['end station latitude'],downcast='float')
-            ret['end station longitude'] = pd.to_numeric(ret['end station longitude'],downcast='float')
-            ret['birth year'] = pd.to_numeric(ret['birth year'],errors='coerce',downcast='integer')
+            # ret['start station latitude'] = pd.to_numeric(ret['start station latitude'],downcast='float')
+            # ret['start station longitude'] = pd.to_numeric(ret['start station longitude'],downcast='float')
+            # ret['end station latitude'] = pd.to_numeric(ret['end station latitude'],downcast='float')
+            # ret['end station longitude'] = pd.to_numeric(ret['end station longitude'],downcast='float')
+            # ret['birth year'] = pd.to_numeric(ret['birth year'],errors='coerce',downcast='integer')
             ret['gender'] = pd.to_numeric(ret['gender'],errors='coerce',downcast='integer')
             ret['usertype'] = ret['usertype'].apply(str).apply(lambda x: 0 if x in ['Subscriber','subscriber'] else 1 if x in ['Customer','customer'] else 2)
             ret.dropna(subset=['start station id','end station id'], inplace=True)
             ret.drop(ret[ret['tripduration'] <= 1].index, axis=0, inplace=True)
+            ret = ret.sort_values(by='starttime',ascending=True)
 
     return ret, stations
 
