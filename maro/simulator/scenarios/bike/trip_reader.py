@@ -24,10 +24,10 @@ class BikeTripReader:
         self._arr = np.memmap(path, dtype=bike_dtype, mode="c")
 
         # this will be the tick = 0
-        self.beginning_date = self._arr[0]["start_time"].astype(datetime.datetime)
+        first_date = self._arr[0]["start_time"].astype(datetime.datetime)
+        self.beginning_date = datetime.datetime(first_date.year, first_date.month,
+                                                first_date.day, first_date.hour, first_date.minute)
         self.start_date = self.beginning_date + relativedelta(minutes=start_tick)
-        self.start_date = datetime.datetime(self.start_date.year, self.start_date.month,
-                                             self.start_date.day, self.start_date.hour, self.start_date.minute)
         
         start_filter = self._arr["start_time"] >= self.start_date
 
@@ -37,10 +37,10 @@ class BikeTripReader:
             self._data_view = self._arr[start_filter]
             
             # update actual max tick
-            self.max_tick = ceil((self._data_view[-1]["start_time"].astype(datetime.datetime) - self.start_date).total_seconds()/60)
+            self.max_tick = ceil((self._data_view[-1]["start_time"].astype(datetime.datetime) - self.beginning_date).total_seconds()/60)
         elif max_tick > 0:
 
-            end_date = self.start_date + relativedelta(minutes=max_tick)
+            end_date = self.beginning_date + relativedelta(minutes=max_tick)
             end_filter = self._arr["start_time"] <= end_date
 
             self._data_view = self._arr[start_filter & end_filter]
@@ -48,6 +48,7 @@ class BikeTripReader:
             raise "Invalid max tick to initialize."
 
         self._total_items = len(self._data_view)
+
 
         self.reset()
 
@@ -68,7 +69,7 @@ class BikeTripReader:
 
         while self._index < self._total_items:
             item = self._data_view[self._index]
-            item_time = item["start_time"]
+            item_time = item["start_time"].astype(datetime.datetime)
 
             if item_time >= start and item_time < end:
                 # an valid item
@@ -76,15 +77,16 @@ class BikeTripReader:
                 end_cell_idx = item["end_cell"]
                 end_tick = tick + item["duration"]
 
-                trip = Trip(item_time.astype(datetime.datetime), start_cell_idx, end_cell_idx, end_tick)
+                trip = Trip(item_time, start_cell_idx, end_cell_idx, end_tick)
                 
                 trips.append(trip)
 
                 self._index += 1
             elif item_time < start:
                 # used to filter invalid dataset
+
                 self._index += 1
             else:
                 break
-            
+
         return trips
