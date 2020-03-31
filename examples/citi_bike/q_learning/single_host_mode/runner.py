@@ -48,8 +48,10 @@ EXPERIMENT_NAME = config.experiment_name
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
 TEST_TOPOLOGY = config.test.topology
-MAX_TICK = config.env.max_tick
-TEST_TICK = config.test.max_tick
+TRAIN_START_TICK = config.env.start_tick
+TRAIN_MAX_TICK = config.env.max_tick
+TEST_START_TICK = config.test.start_tick
+TEST_MAX_TICK = config.test.max_tick
 MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
@@ -107,8 +109,8 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, start_tick=0, max_tick=max_tick, frame_resolution=60)
-        self._test_env = Env(scenario, topology, start_tick=480960, max_tick=TEST_TICK, frame_resolution=60)
+        self._env = Env(scenario, topology, start_tick=TRAIN_START_TICK, max_tick=TRAIN_MAX_TICK, frame_resolution=60)
+        self._test_env = Env(scenario, TEST_TOPOLOGY, start_tick=TEST_START_TICK, max_tick=TEST_MAX_TICK, frame_resolution=60)
         # self._station_idx2name = self._env.node_name_mapping
         self._station_idx2name = {key:key for key in self._env.agent_idx_list}
         self._agent_dict = self._load_agent(self._env.agent_idx_list)
@@ -592,7 +594,7 @@ if __name__ == '__main__':
     eps_list[-1] = 0.0
 
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
-                    max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
+                    max_tick=TRAIN_START_TICK, max_train_ep=MAX_TRAIN_EP,
                     max_test_ep=MAX_TEST_EP, eps_list=eps_list,
                     log_enable=RUNNER_LOG_ENABLE)
 
