@@ -178,7 +178,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .attr('text-anchor', 'end')
       .attr('fill', d3.rgb(125, 125, 125).toString())
       .attr('transform', () => {
-        return 'rotate(-45 20,' + rectHeight / 2 + ')';
+        return 'rotate(-45 0,' + rectHeight / 2 + ')';
       })
       .text(d => {
         return d.length > 10 ? d.substring(0, 7) + '...' : d;
