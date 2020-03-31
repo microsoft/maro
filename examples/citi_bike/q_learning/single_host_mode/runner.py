@@ -107,8 +107,8 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, max_tick, tick_units=60)
-        self._test_env = Env(scenario, TEST_TOPOLOGY, TEST_TICK)
+        self._env = Env(scenario, topology, start_tick=0, max_tick=max_tick, frame_resolution=60)
+        self._test_env = Env(scenario, topology, start_tick=480960, max_tick=TEST_TICK, frame_resolution=60)
         # self._station_idx2name = self._env.node_name_mapping
         self._station_idx2name = {key:key for key in self._env.agent_idx_list}
         self._agent_dict = self._load_agent(self._env.agent_idx_list)
