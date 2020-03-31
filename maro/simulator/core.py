@@ -250,7 +250,7 @@ class Env(AbsEnv):
                     for i in range(1, pending_event_length):
                         pending_events[i].state = EventState.FINISHED
 
-                self._business_engine.post_step(self._tick)
+            self._business_engine.post_step(self._tick)
             
             self._tick += 1
 
