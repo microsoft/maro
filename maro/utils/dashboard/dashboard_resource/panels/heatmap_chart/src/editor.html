@@ -19,5 +19,13 @@
         <select class="gf-form-input" ng-model="ctrl.panel.z_axis" ng-options="t for t in ctrl.panel.zColumns" ng-change="ctrl.render()"></select>
       </div>
     </div>
+    <div class="gf-form">
+      <span class="gf-form-label width-8">z_axis</span>
+      <div class="gf-form-select-wrapper max-width-10">
+        <input type="number" class="gf-form-input max-width-5" placeholder="10"
+        bs-tooltip="'Set total blank width among the rects'" data-placement="right"
+        ng-model="ctrl.panel.rectBlank" ng-change="ctrl.render()" ng-model-onblur>      
+      </div>
+    </div>
 
 </div>

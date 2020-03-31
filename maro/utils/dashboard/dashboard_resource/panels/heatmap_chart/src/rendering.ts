@@ -102,8 +102,19 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
         z: data[i].z,
       });
     }
-    let rectWidth = chartWidth / xArray.length - 1;
-    let rectHeight = chartHeight / yArray.length - 1;
+    // let rectWidth = chartWidth / xArray.length - 1;
+    // let rectHeight = chartHeight / yArray.length - 1;
+    // if (rectWidth <= 0) {
+    //   rectWidth = 1;
+    // }
+    // if (rectHeight <= 0) {
+    //   rectHeight = 1;
+    // }
+    let totalSpace = ctrl.panel.rectBlank;
+    let rectWidth = (chartWidth -totalSpace )/ xArray.length;
+    let rectHeight = (chartHeight -totalSpace )/ yArray.length;
+    let rectSpaceWidth = totalSpace / xArray.length;
+    let rectSpaceHeight = totalSpace / yArray.length;
     if (rectWidth <= 0) {
       rectWidth = 1;
     }
@@ -117,7 +128,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .append('g')
       .attr('class', 'heatRect')
       .attr('transform', d => {
-        return 'translate(' + (rectWidth + 2) * d.x + ',' + (rectHeight + 2) * d.y + ')';
+        return 'translate(' + (rectWidth + rectSpaceWidth) * d.x + ',' + (rectHeight + rectSpaceHeight) * d.y + ')';
       })
       .append('rect')
       .attr('width', rectWidth)
@@ -137,7 +148,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .append('g')
       .attr('class', 'heatX')
       .attr('transform', (d, i) => {
-        return 'translate(' + (rectWidth + 2) * (i + 0.5) + ',' + (chartHeight + 20) + ')';
+        return 'translate(' + (rectWidth + rectSpaceWidth) * (i + 0.5) + ',' + (chartHeight + 20) + ')';
       })
       .append('text')
       .attr('class', 'gf-form-label')
