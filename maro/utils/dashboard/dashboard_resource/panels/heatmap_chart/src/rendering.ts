@@ -171,7 +171,7 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       .append('g')
       .attr('class', 'heatY')
       .attr('transform', (d, i) => {
-        return 'translate(' + 0 + ',' + (rectHeight + 2) * i + ')';
+        return 'translate(' + 0 + ',' + (rectHeight + rectSpaceHeight) * i + ')';
       })
       .append('text')
       .attr('class', 'gf-form-label')
