@@ -110,11 +110,11 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
     // if (rectHeight <= 0) {
     //   rectHeight = 1;
     // }
-    let totalSpace = ctrl.panel.rectBlank;
+    const totalSpace = ctrl.panel.rectBlank;
     let rectWidth = (chartWidth -totalSpace )/ xArray.length;
     let rectHeight = (chartHeight -totalSpace )/ yArray.length;
-    let rectSpaceWidth = totalSpace / xArray.length;
-    let rectSpaceHeight = totalSpace / yArray.length;
+    const rectSpaceWidth = totalSpace / xArray.length;
+    const rectSpaceHeight = totalSpace / yArray.length;
     if (rectWidth <= 0) {
       rectWidth = 1;
     }
