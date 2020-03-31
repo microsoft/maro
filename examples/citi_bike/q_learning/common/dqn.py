@@ -184,10 +184,15 @@ class DQN(object):
                     dashboard_ep = current_ep
                     if not self._dashboard.dynamic_info['is_train']:
                         dashboard_ep += self._dashboard.static_info['max_train_ep']
-                    for q_values in q_values_batch_mean:
+                    for q_values in q_values_batch[0]:
                         for i in range(len(q_values)):
                             scalars = {self._policy_net.name: q_values[i].item(), 'action': i}
-                            self._dashboard.upload_exp_data(fields=scalars, ep=dashboard_ep, tick=current_tick, measurement='bike_q_value')
+                            self._dashboard.upload_exp_data(fields=scalars, ep=dashboard_ep, tick=current_tick, measurement='bike_q_value_neighbor')
+                    for q_values in q_values_batch[1]:
+                        for i in range(len(q_values)):
+                            scalars = {self._policy_net.name: q_values[i].item(), 'action': i}
+                            self._dashboard.upload_exp_data(fields=scalars, ep=dashboard_ep, tick=current_tick, measurement='bike_q_value_number')
+                
                 action = [x.max(1)[1][0].item() for x in q_values_batch]
                 return False, action
         else:
