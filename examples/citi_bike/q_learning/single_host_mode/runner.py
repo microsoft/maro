@@ -580,7 +580,7 @@ if __name__ == '__main__':
     eps_list[-1] = 0.0
 
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
-                    max_tick=TRAIN_START_TICK, max_train_ep=MAX_TRAIN_EP,
+                    max_tick=TRAIN_MAX_TICK, max_train_ep=MAX_TRAIN_EP,
                     max_test_ep=MAX_TEST_EP, eps_list=eps_list,
                     log_enable=RUNNER_LOG_ENABLE)
 
