@@ -12,7 +12,6 @@ reward: # reward options
   alpha: 0.4
   beta: 0.3
   gamma: 0.3
-start_datetime: "2019-12-01"
 # trip_file: "../../../../bike_pipeline/data/sample/trips.bin"
 # cell_file: "../../../../bike_pipeline/data/sample/cell.csv"
 # adj_file: "../../../../bike_pipeline/data/sample/map.csv"
