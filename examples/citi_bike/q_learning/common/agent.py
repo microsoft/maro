@@ -32,6 +32,7 @@ class Agent(object):
         self._min_train_experience_num = min_train_experience_num
         self._log_enable = False if log_folder is None else True
         self._dashboard = dashboard
+        self._neighbors = None
 
         if self._log_enable:
             self._logger = Logger(tag='agent', format_=LogFormat.simple,
@@ -128,10 +129,14 @@ class Agent(object):
             (Action): Environment action.
         """
 
+        # cache the neighbors, as they will not be changed
+        if self._neighbors is None:
+            self._neighbors = snapshot_list.static_nodes[0::("neighbors",[x for x in range(6)])].reshape(-1, 6).astype(int)
+
         action_scope = decision_event.action_scope
         cur_tick = decision_event.frame_index
         cur_station_idx = decision_event.cell_idx
-        cur_neighbor_idx_list = [int(x) for x in snapshot_list.static_nodes[0:cur_station_idx:("neighbors",[x for x in range(6)])]]
+        cur_neighbor_idx_list = self._neighbors[cur_station_idx]
         
         numpy_state = self._state_shaping(
             cur_tick=cur_tick, cur_station_idx=cur_station_idx, cur_neighbor_idx_list= cur_neighbor_idx_list)
