@@ -1,5 +1,5 @@
 import datetime
-
+from math import ceil
 import numpy as np
 from dateutil.relativedelta import relativedelta
 
@@ -18,18 +18,37 @@ bike_dtype = np.dtype([
 
 class BikeTripReader:
     """Reader"""
-    def __init__(self, path: str, start_date: str, max_tick: int):
+    def __init__(self, path: str, start_tick: int, max_tick: int):
         self._index = 0
-        self._start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-        self._max_tick = max_tick # hour
-        self._end_date = self._start_date + relativedelta(hours=max_tick)
+        self.max_tick = max_tick #
         self._arr = np.memmap(path, dtype=bike_dtype, mode="c")
+
+        # this will be the tick = 0
+        first_date = self._arr[0]["start_time"].astype(datetime.datetime)
+        self.beginning_date = datetime.datetime(first_date.year, first_date.month,
+                                                first_date.day, first_date.hour, first_date.minute)
+        self.start_date = self.beginning_date + relativedelta(minutes=start_tick)
         
-        start_filter = self._arr["start_time"] >= self._start_date
-        end_filter = self._arr["start_time"] <= self._end_date
-        
-        self._data_view = self._arr[start_filter & end_filter]
+        start_filter = self._arr["start_time"] >= self.start_date
+
+        self._data_view = None
+
+        if max_tick == -1:
+            self._data_view = self._arr[start_filter]
+            
+            # update actual max tick
+            self.max_tick = ceil((self._data_view[-1]["start_time"].astype(datetime.datetime) - self.beginning_date).total_seconds()/60)
+        elif max_tick > 0:
+
+            end_date = self.beginning_date + relativedelta(minutes=max_tick)
+            end_filter = self._arr["start_time"] <= end_date
+
+            self._data_view = self._arr[start_filter & end_filter]
+        else:
+            raise "Invalid max tick to initialize."
+
         self._total_items = len(self._data_view)
+
 
         self.reset()
 
@@ -38,35 +57,36 @@ class BikeTripReader:
         
         self._index = 0
 
-    def get_trips(self, internal_tick: int):
-        """get next event of specified internal_tick, return [] if not exist"""
+    def get_trips(self, tick: int):
+        """get next event of specified tick, return [] if not exist"""
         trips = []
 
         # start time of current tick
-        start = self._start_date + relativedelta(minutes=internal_tick)
+        start = self.beginning_date + relativedelta(minutes=tick)
 
         # next minute
         end = start + relativedelta(minutes=1)
 
         while self._index < self._total_items:
             item = self._data_view[self._index]
-            item_time = item["start_time"]
+            item_time = item["start_time"].astype(datetime.datetime)
 
             if item_time >= start and item_time < end:
                 # an valid item
                 start_cell_idx = item["start_cell"]
                 end_cell_idx = item["end_cell"]
-                end_tick = internal_tick + item["duration"]
+                end_tick = tick + item["duration"]
 
-                trip = Trip(item_time.astype(datetime.datetime), start_cell_idx, end_cell_idx, end_tick)
+                trip = Trip(item_time, start_cell_idx, end_cell_idx, end_tick)
                 
                 trips.append(trip)
 
                 self._index += 1
             elif item_time < start:
                 # used to filter invalid dataset
+
                 self._index += 1
             else:
                 break
-            
+
         return trips

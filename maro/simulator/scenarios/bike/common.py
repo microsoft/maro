@@ -36,9 +36,10 @@ class BikeReturnPayload:
 
 
 class DecisionEvent:
-    def __init__(self, cell_idx: int, tick: int, action_scope_func: callable):
+    def __init__(self, cell_idx: int, tick: int, frame_index: int, action_scope_func: callable):
         self.cell_idx = cell_idx
         self.tick = tick
+        self.frame_index = frame_index
         self._action_scope = None
         self._action_scope_func = action_scope_func
 

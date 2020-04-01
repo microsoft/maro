@@ -2,6 +2,7 @@ experiment_name: "BASE_MAXTIC2000_YEAR19_TRIP0_LR0.005_COST1"
 env:
   scenario: "bike"
   topology: "train"
+  start_tick: 0 
   max_tick: 2000 # stop until the data steam end # 525600 tick per year
 train:
   max_ep: 300 # max episode
@@ -26,8 +27,9 @@ train:
 test:
   max_ep: 5 # max episode
   seed: 2048
-  topology: "test"
-  max_tick: 2000
+  topology: "train"
+  start_tick: 480960 # 2019-12-01
+  max_tick: 482960 # 480960 + 2000
 qnet:
   seed: 0
 log:

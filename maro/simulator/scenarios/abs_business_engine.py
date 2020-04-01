@@ -18,10 +18,12 @@ class AbsBusinessEngine(ABC):
     """
     _event_buffer: EventBuffer
 
-    def __init__(self, event_buffer: EventBuffer, config_path: str, tick_units: int):
+    def __init__(self, event_buffer: EventBuffer, config_path: str, start_tick: int, max_tick: int, frame_resolution: int):
         self._config_path = config_path
         self._event_buffer = event_buffer
-        self._tick_units = tick_units
+        self._start_tick = start_tick
+        self._max_tick = max_tick
+        self._frame_resolution = frame_resolution
 
     @property
     @abstractmethod
@@ -37,12 +39,14 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def step(self, tick: int, unit_tick):
+    def step(self, tick: int) -> bool:
         """Used to process events at specified tick, usually this is called by Env at each tick
 
         Args:
             tick (int): tick to process
-            unit_tick (int): unit tick of current step
+
+        Returns:
+            bool: if scenario end at this tick
         """
         pass
 
@@ -88,11 +92,10 @@ class AbsBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def post_step(self, tick, unit_tick):
+    def post_step(self, tick):
         """Post-process at specified tick
 
         Args:
             tick (int): tick to process
-            unit_tick (int): unit tick of current step
         """
         pass

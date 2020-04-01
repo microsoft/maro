@@ -129,7 +129,7 @@ class Agent(object):
         """
 
         action_scope = decision_event.action_scope
-        cur_tick = decision_event.tick
+        cur_tick = decision_event.frame_index
         cur_station_idx = decision_event.cell_idx
         cur_neighbor_idx_list = [int(x) for x in snapshot_list.static_nodes[0:cur_station_idx:("neighbors",[x for x in range(6)])]]
         
