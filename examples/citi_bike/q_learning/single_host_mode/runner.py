@@ -468,11 +468,12 @@ class Runner:
                 event_tml_cost = 0
                 for action_event in event.immediate_event_list:
                     for action in action_event.payload:
-                        action_num = action.number
-                        action_target = action.to_cell
-                        target_name = str(self._station_idx2name[action_target])
-                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_name}_to_{target_name}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
-                        event_tml_cost += action.number
+                        if action.number > 0:
+                            action_num = action.number
+                            action_target = action.to_cell
+                            target_name = str(self._station_idx2name[action_target])
+                            self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_name}_to_{target_name}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
+                            event_tml_cost += action.number
                 pretty_tml_cost_dict[cell_name] = pretty_tml_cost_dict.get(cell_name, 0) + event_tml_cost
                 self._dashboard.upload_exp_data(fields={cell_name: event_tml_cost}, ep=dashboard_ep, tick=event.tick, measurement='bike_event_tml_cost')
 
