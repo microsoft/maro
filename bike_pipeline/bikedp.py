@@ -1,5 +1,5 @@
 # usage:
-# python bikedp.py ../../ny ../../ny/bin2 ../../ny/full/h3_201306_202001.station.csv
+# python bikedp.py ../../ny ../../ny/bin2019v2 ../../ny/full/h3_201306_202001.station.csv
 
 import os
 import re
@@ -168,8 +168,6 @@ def station_to_cell(station_file_path: str):
     station_data = None
     # cell neighbors data
     mapping_map = None
-    # no neighbors cells
-    drop_cell = None
 
     if os.path.exists(station_file_path):
         with open(station_file_path, mode="r", encoding="utf-8") as station_file:
@@ -225,10 +223,11 @@ def _fill_mapping(row, mapping_map: pd.DataFrame):
 
 
 def _filter_mapping(row, cell_list):
-    for cell in row:
-        if cell not in cell_list:
-            cell = -1
-    return row
+    ret = row.copy()
+    for idx in row.index:
+        if row[idx] != -1 and row[idx] not in cell_list:
+            ret[idx] = -1
+    return ret
 
 ######### output ############
 
@@ -249,10 +248,13 @@ def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame, mapping_ma
     data_cell = pd.concat(used_cells).drop_duplicates().sort_values(by=['cell_id']).reset_index()
     data_mapping_data = mapping_data.set_index('cell_id')
     data_mapping_data = data_cell.join(data_mapping_data, on='cell_id').set_index('cell_id').drop(['index'], axis = 1)
-    data_mapping_data = data_mapping_data.apply(lambda x: _filter_mapping(x,data_cell), axis = 1)
+    data_mapping_data_drop = data_mapping_data.copy().apply(lambda x: _filter_mapping(x,data_cell['cell_id'].to_list()), axis = 1)
 
-    print(data_mapping_data)
-    drop_cell = pd.to_numeric(data_mapping_data[data_mapping_data.sum(axis=1) == -6].index).to_list()
+    # print(data_mapping_data)
+    drop_mapping_data = data_mapping_data_drop[data_mapping_data_drop.sum(axis=1) == -6]
+    # print(drop_mapping_data)
+    # print(data_mapping_data[pd.to_numeric(data_mapping_data.index).isin (pd.to_numeric(drop_mapping_data.index))])
+    drop_cell = pd.to_numeric(drop_mapping_data.index).to_list()
     print(drop_cell)
     # drop cell have no neighbors
     ret.drop(ret[ret['start_cell'].apply(lambda x: x in drop_cell) | ret['end_cell'] .apply(lambda x: x in drop_cell)].index, axis=0, inplace=True)
@@ -317,7 +319,7 @@ if __name__ == "__main__":
     data_cell_init = data_cell_init[['cell_id', 'capacity', 'init']]
 
     data_mapping_data = data_cell_init[['cell_id']].join(mapping_data.set_index('cell_id'), on='cell_id')
-    data_mapping_data= data_mapping_data.apply(lambda x: _filter_mapping(x,data_cell_init['cell_id']), axis = 1)
+    data_mapping_data= data_mapping_data.apply(lambda x: _filter_mapping(x,data_cell_init['cell_id'].to_list()), axis = 1)
 
 
     # write cell init file
