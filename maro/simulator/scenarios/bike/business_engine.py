@@ -53,7 +53,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             self._extra_cost_mode = ExtraCostMode(self._conf["extra_cost_mode"])
         else:
             self._extra_cost_mode = ExtraCostMode.Source
-            
+
         frame_num = ceil(self._max_tick / frame_resolution)
         
         self._snapshots = SnapshotList(self._frame, frame_num)
@@ -392,11 +392,19 @@ class BikeBusinessEngine(AbsBusinessEngine):
             elif self._extra_cost_mode == ExtraCostMode.Target:
                 cell.extra_cost += extra_cost
             elif self._extra_cost_mode == ExtraCostMode.TargetNeighbors:
-                for neighbor_idx in cell.neighbors:
-                    if neighbor_idx > 0:
-                        neighbor: Cell = self._cells[neighbor_idx]
+                valid_neighbors = [idx for idx in cell.neighbors if idx > 0]
 
-                        # TODO: shall we avg this value to neighbors?
-                        neighbor.extra_cost += extra_cost
+                if len(valid_neighbors) > 0:
+                    avg_cost = round(extra_cost/len(valid_neighbors))
+
+                    for neighbor_idx in valid_neighbors:
+                        if neighbor_idx > 0:
+                            neighbor: Cell = self._cells[neighbor_idx]
+
+                            neighbor.extra_cost += avg_cost
+                else:
+                    # if we have no neighbors, then assign to source
+                    from_cell = self._cells[payload.from_cell]
+                    from_cell.extra_cost += extra_cost
 
         cell.bikes += accept_number
