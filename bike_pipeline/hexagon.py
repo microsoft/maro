@@ -21,7 +21,11 @@ class hexagon():
         # hexagon_df = df.drop_duplicates(subset=["station_latitude","station_longitude"])
         # print(hexagon_df)
         hexagon_df = self.counts_by_hexagon(hexagon_df, self.scale)
-        hexagon_df["neighbors"] = hexagon_df["hex_id"].apply(lambda x: h3.k_ring(x,self.order))
+        hexagon_df["neighbors_1"] = hexagon_df["hex_id"].apply(lambda x: list(h3.k_ring_distances(x,4)[1]))
+        hexagon_df["neighbors_2"] = hexagon_df["hex_id"].apply(lambda x: list(h3.k_ring_distances(x,4)[2]))
+        hexagon_df["neighbors_3"] = hexagon_df["hex_id"].apply(lambda x: list(h3.k_ring_distances(x,4)[3]))
+
+        print(hexagon_df)
         return hexagon_df
     
     def get_neighbors(self, loc=None, hex_id=None):
@@ -111,7 +115,7 @@ class hexagon():
         print('avg station num in a hexagon: ', total_num, avg_num)
         return df
 
-#filepath = "datasets_demo/busstops_Toulouse.geojson"
-filepath = '/home/zhanyu/bikeData/ny/station/init/201306_202001.station.csv'
-savepath = 'h3_' + filepath.split('/')[-1]
-hexagon(filepath, savepath, 8, 1)
+filepath = "d:\\work\\bike\\data\\201306_202001.station.csv"
+#filepath = '/home/zhanyu/bikeData/ny/station/init/201306_202001.station.csv'
+savepath = os.path.join(os.path.dirname(filepath), 'h3_' + os.path.basename(filepath))
+hexagon(filepath, savepath, 8, 2)
