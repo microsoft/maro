@@ -1,4 +1,4 @@
-
+from enum import Enum
 
 class Trip:
     def __init__(self, date: int, start_cell: int, end_cell: int, end_tick: int, usertype: int = 0, gendor: int = 0, num: int = 1):
@@ -62,3 +62,9 @@ class Action:
 
     def __repr__(self):
         return f"Action(from cell: {self.from_cell}, to cell: {self.to_cell}, number: {self.number})"
+
+
+class ExtraCostMode(Enum):
+    Source = "source"
+    Target = "target"
+    TargetNeighbors = "target_neighbors"
