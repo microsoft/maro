@@ -19,7 +19,7 @@ from .adj_reader import read_adj_info
 from .cell import Cell
 from .cell_reward import CellReward
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
-                     DecisionEvent, Trip)
+                     DecisionEvent, Trip, ExtraCostMode)
 from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
 from .trip_reader import BikeTripReader
@@ -49,6 +49,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._init_data_reader() # NOTE: we should read the data first, to get correct max tick if max_tick is -1
         self._init_frame()
 
+        self._extra_cost_mode = ExtraCostMode(self._conf["extra_cost_mode"])
         frame_num = ceil(self._max_tick / frame_resolution)
         
         self._snapshots = SnapshotList(self._frame, frame_num)
@@ -380,8 +381,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             extra_cost = self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
 
-            # extra cost from source cell
-            from_cell = self._cells[payload.from_cell]
-            from_cell.extra_cost += extra_cost
+            if self._extra_cost_mode == ExtraCostMode.Source:
+                # extra cost from source cell
+                from_cell = self._cells[payload.from_cell]
+                from_cell.extra_cost += extra_cost
+            elif self._extra_cost_mode == ExtraCostMode.Target:
+                cell.extra_cost += extra_cost
+            elif self._extra_cost_mode == ExtraCostMode.TargetNeighbors:
+                for neighbor_idx in cell.neighbors:
+                    if neighbor_idx > 0:
+                        neighbor: Cell = self._cells[neighbor_idx]
+
+                        # TODO: shall we avg this value to neighbors?
+                        neighbor.extra_cost += extra_cost
 
         cell.bikes += accept_number
