@@ -49,7 +49,11 @@ class BikeBusinessEngine(AbsBusinessEngine):
         self._init_data_reader() # NOTE: we should read the data first, to get correct max tick if max_tick is -1
         self._init_frame()
 
-        self._extra_cost_mode = ExtraCostMode(self._conf["extra_cost_mode"])
+        if "extra_cost_mode" in self._conf:
+            self._extra_cost_mode = ExtraCostMode(self._conf["extra_cost_mode"])
+        else:
+            self._extra_cost_mode = ExtraCostMode.Source
+            
         frame_num = ceil(self._max_tick / frame_resolution)
         
         self._snapshots = SnapshotList(self._frame, frame_num)
