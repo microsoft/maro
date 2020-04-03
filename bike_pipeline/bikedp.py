@@ -256,9 +256,11 @@ def concat(data: pd.DataFrame, file: str, station_data: pd.DataFrame, mapping_ma
     # print(data_mapping_data[pd.to_numeric(data_mapping_data.index).isin (pd.to_numeric(drop_mapping_data.index))])
     drop_cell = pd.to_numeric(drop_mapping_data.index).to_list()
     print(drop_cell)
+    before = len(ret)
     # drop cell have no neighbors
     ret.drop(ret[ret['start_cell'].apply(lambda x: x in drop_cell) | ret['end_cell'] .apply(lambda x: x in drop_cell)].index, axis=0, inplace=True)
-
+    after = len(ret)
+    print(f"{before - after}/{before} rows droped {((before - after)/before * 100):.2f}%")
     mem_output = list(ret.itertuples(index=False, name=None))
 
     if not os.path.exists(file):
@@ -302,7 +304,7 @@ if __name__ == "__main__":
         src_full_path = os.path.join(input_folder, src_file)
 
         # show current process file
-        print(src_full_path)
+        print(f"processing {src_full_path}")
 
         r, s = read_src_file(src_full_path)
 
@@ -312,7 +314,6 @@ if __name__ == "__main__":
     # filter cell by data
     data_cell = pd.concat(data_cell_dfs).drop_duplicates(subset=['cell_id']).sort_values(by=['cell_id']).reset_index()
     data_cell = data_cell[['cell_id']]
-    print(data_cell)
     data_cell_init = data_cell.join(cell_init.set_index('cell_id'), on='cell_id')
 
     data_cell_name = data_cell_init[['cell_id','hex_id']]
