@@ -2,10 +2,10 @@ decision:
   resolution: 20 # frequence to check if a cell need an action
   effective_time_mean: 20
   effective_time_std: 10
-  high_water_mark_ratio: 0.5 # TODO: name
+  high_water_mark_ratio: 0.9 # TODO: name
   low_water_mark_ratio: 0.05
 trip_adjustment:
-  bike_discount: 0.5
+  bike_discount: 0.3
   adjust_rate: 1
   adjust_value: 1
 reward: # reward options
@@ -17,7 +17,7 @@ start_datetime: "2019-01-01"
 # cell_file: "../../../../bike_pipeline/data/sample/cell.csv"
 # adj_file: "../../../../bike_pipeline/data/sample/map.csv"
 # weather_file: "../../../../bike_pipeline/data/sample/weather.npy"
-trip_file: "/home/zhanyu/bikeData/ny/bin2019/data.bin"
+trip_file: "/home/xinran/bike_data/data.bin"
 cell_file: "/home/xinran/maro/bike_pipeline/data/sample/cell.csv"
 adj_file: "/home/xinran/maro/bike_pipeline/data/sample/map.csv"
 weather_file: "/home/xinran/maro/bike_pipeline/data/sample/weather.npy"
