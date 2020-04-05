@@ -1,13 +1,14 @@
-experiment_name: "TRAIN_MAXTIC5000_TRIP1_0.3_LR0.00005_COST0.5"
+experiment_name: "TRAIN_MAXTIC5000_TRIP1_0.3_LR0.00005_COST0.5_0.5"
 env:
   scenario: "bike"
   topology: "train"
   start_tick: 0 
-  max_tick: 2000 # stop until the data steam end # 525600 tick per year
+  max_tick: 480960 # stop until the data steam end
+  decision_mode: 1 # joint-->1,sequential-->0
 train:
-  max_ep: 300 # max episode
+  max_ep: 100 # max episode
   batch_num: 2
-  batch_size: 512
+  batch_size: 256
   min_train_experience_num: 256 # when experience number is less than it, will not trigger train
   reward_shaping: 'tc'
   dqn:
@@ -29,7 +30,7 @@ test:
   seed: 2048
   topology: "train"
   start_tick: 480960 # 2019-12-01
-  max_tick: 482960 # 480960 + 2000
+  max_tick: 485960 # 480960 + 2000
 qnet:
   seed: 0
 log:

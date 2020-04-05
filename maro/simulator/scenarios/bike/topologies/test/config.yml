@@ -13,11 +13,11 @@ reward: # reward options
   beta: 0.3
   gamma: 0.3
 extra_cost_mode: source # source, target, target_neighbors
-# trip_file: "../../../../bike_pipeline/data/sample/trips.bin"
-# cell_file: "../../../../bike_pipeline/data/sample/cell.csv"
-# adj_file: "../../../../bike_pipeline/data/sample/map.csv"
-# weather_file: "../../../../bike_pipeline/data/sample/weather.npy"
-trip_file: "/home/xinran/bike_data/data.bin"
-cell_file: "/home/xinran/maro/bike_pipeline/data/sample/cell.csv"
-adj_file: "/home/xinran/maro/bike_pipeline/data/sample/map.csv"
-weather_file: "/home/xinran/maro/bike_pipeline/data/sample/weather.npy"
+trip_file: "../../../../bike_pipeline/data/sample/trips.bin"
+cell_file: "../../../../bike_pipeline/data/sample/cell.csv"
+adj_file: "../../../../bike_pipeline/data/sample/map.csv"
+weather_file: "../../../../bike_pipeline/data/sample/weather.npy"
+# trip_file: "/home/xinran/bike_data/data.bin"
+# cell_file: "/home/xinran/maro/bike_pipeline/data/sample/cell.csv"
+# adj_file: "/home/xinran/maro/bike_pipeline/data/sample/map.csv"
+# weather_file: "/home/xinran/maro/bike_pipeline/data/sample/weather.npy"

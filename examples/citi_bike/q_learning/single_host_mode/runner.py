@@ -23,7 +23,7 @@ from examples.citi_bike.q_learning.common.agent import Agent
 from examples.citi_bike.q_learning.common.dqn import QNet, DQN
 from examples.citi_bike.q_learning.common.reward_shaping import TruncateReward
 from examples.citi_bike.q_learning.common.state_shaping import StateShaping
-from examples.citi_bike.q_learning.common.action_shaping import DiscreteActionShaping
+from examples.citi_bike.q_learning.common.action_shaping import DiscreteActionShaping, ListActionShaping
 from examples.citi_bike.q_learning.common.citi_bike_dashboard import Dashboardciti_bike, RanklistColumns
 from maro.simulator.scenarios.bike.business_engine import BikeEventType
 
@@ -75,6 +75,7 @@ AGENT_LOG_ENABLE = config.log.agent.enable
 DQN_LOG_ENABLE = config.log.dqn.enable
 DQN_LOG_DROPOUT_P = config.log.dqn.dropout_p
 QNET_LOG_ENABLE = config.log.qnet.enable
+DECISION_MODE =config.env.decision_mode
 
 if config.train.reward_shaping not in {'gf', 'tc'}:
     raise ValueError('Unsupstationed reward shaping. Currently supstationed reward shaping types: "gf", "tc"')
@@ -109,9 +110,8 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, start_tick=TRAIN_START_TICK, max_tick=TRAIN_MAX_TICK, frame_resolution=60)
-        self._test_env = Env(scenario, TEST_TOPOLOGY, start_tick=TEST_START_TICK, max_tick=TEST_MAX_TICK, frame_resolution=60)
-        # self._station_idx2name = self._env.node_name_mapping
+        self._env = Env(scenario, topology, decision_mode= DECISION_MODE, start_tick=TRAIN_START_TICK, max_tick=TRAIN_MAX_TICK, frame_resolution=60)
+        self._test_env = Env(scenario, TEST_TOPOLOGY, decision_mode= DECISION_MODE, start_tick=TEST_START_TICK, max_tick=TEST_MAX_TICK, frame_resolution=60)
         self._station_idx2name = {key:key for key in self._env.agent_idx_list}
         self._agent_dict = self._load_agent(self._env.agent_idx_list)
         self._station_name2idx = {}
@@ -217,17 +217,29 @@ class Runner:
             env_start = time.time()
             _, decision_event, is_done =self._env.step(None)
             feature_list = []#[0]*3*len(self._env.agent_idx_list)
-            while not is_done:
-                action = self._agent_dict[decision_event.cell_idx].choose_action(
-                    decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
-                _, decision_event, is_done = self._env.step(action)
-                #feature_list += self._env.snapshot_list.static_nodes[
-                #        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
+            if DECISION_MODE == 0 :
+                while not is_done:
+                    action = self._agent_dict[decision_event.cell_idx].choose_action(
+                        decision_event=decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
+                    _, decision_event, is_done = self._env.step(action)
+            else:
+                action_list_shaping = ListActionShaping()
+                while not is_done:
+                    action_list = []
+                    for single_decision_event in decision_event:
+                        action = self._agent_dict[single_decision_event.cell_idx].choose_action(
+                            decision_event=single_decision_event, eps=self._eps_list[ep], current_ep=ep, snapshot_list= self._env.snapshot_list)
+                        action_list.append(action)
+                        action_list_shaping.append_action_scope(single_decision_event.action_scope)
+                    action_list = action_list_shaping(action_list)
+                    _, decision_event, is_done = self._env.step(action_list)
+            
             feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             time_dict['env_time'] = time.time() - env_start
             time_dict['train_time'] = 0
+            
             for agent in self._agent_dict.values():
                 train_start = time.time()
                 agent.store_experience(current_ep=ep)
