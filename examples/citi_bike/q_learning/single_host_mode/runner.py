@@ -48,8 +48,10 @@ EXPERIMENT_NAME = config.experiment_name
 SCENARIO = config.env.scenario
 TOPOLOGY = config.env.topology
 TEST_TOPOLOGY = config.test.topology
-MAX_TICK = config.env.max_tick
-TEST_TICK = config.test.max_tick
+TRAIN_START_TICK = config.env.start_tick
+TRAIN_MAX_TICK = config.env.max_tick
+TEST_START_TICK = config.test.start_tick
+TEST_MAX_TICK = config.test.max_tick
 MAX_TRAIN_EP = config.train.max_ep
 MAX_TEST_EP = config.test.max_ep
 MAX_EPS = config.train.exploration.max_eps
@@ -107,8 +109,8 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, max_tick, tick_units=60)
-        self._test_env = Env(scenario, TEST_TOPOLOGY, TEST_TICK, tick_units=60)
+        self._env = Env(scenario, topology, start_tick=TRAIN_START_TICK, max_tick=TRAIN_MAX_TICK, frame_resolution=60)
+        self._test_env = Env(scenario, TEST_TOPOLOGY, start_tick=TEST_START_TICK, max_tick=TEST_MAX_TICK, frame_resolution=60)
         # self._station_idx2name = self._env.node_name_mapping
         self._station_idx2name = {key:key for key in self._env.agent_idx_list}
         self._agent_dict = self._load_agent(self._env.agent_idx_list)
@@ -258,16 +260,16 @@ class Runner:
             pbar.set_description('test episode')
             env_start = time.time()
             _, decision_event, is_done = self._test_env.step(None)
-            feature_list = [] # [0]*3*len(self._test_env.agent_idx_list)
+            feature_list = []# [0]*3*len(self._test_env.agent_idx_list)
             while not is_done:
                 action = self._agent_dict[decision_event.cell_idx].choose_action(
                     decision_event=decision_event, eps=0, current_ep=ep, snapshot_list= self._test_env.snapshot_list)
                 _, decision_event, is_done = self._test_env.step(action)
                 # feature_list += self._test_env.snapshot_list.static_nodes[
                 #         self._test_env.tick: self._test_env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
-            feature_list.append(self._test_env.snapshot_list.static_nodes[:self._test_env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
-            feature_list.append(self._test_env.snapshot_list.static_nodes[:self._test_env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
-            feature_list.append(self._test_env.snapshot_list.static_nodes[:self._test_env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
+            feature_list.append(self._test_env.snapshot_list.static_nodes[:: ('shortage', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
+            feature_list.append(self._test_env.snapshot_list.static_nodes[:: ('trip_requirement', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
+            feature_list.append(self._test_env.snapshot_list.static_nodes[:: ('extra_cost', 0)].reshape(-1,len(self._test_env.agent_idx_list)).sum(0))
             time_dict['env_time'] = time.time() - env_start
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='test')
@@ -295,9 +297,9 @@ class Runner:
                 _, decision_event, is_done =self._env.step(Action(0,1,0))
                 # feature_list += self._env.snapshot_list.static_nodes[
                 #         self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
-            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
-            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
-            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='no_action')
@@ -320,9 +322,9 @@ class Runner:
                 _, decision_event, is_done =self._env.step(action)
                 #feature_list += self._env.snapshot_list.static_nodes[
                 #        self._env.tick: self._env.agent_idx_list: (['shortage','trip_requirement','extra_cost'], 0)]
-            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
-            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
-            feature_list.append(self._env.snapshot_list.static_nodes[:self._env.agent_idx_list: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:: ('shortage', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:: ('trip_requirement', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
+            feature_list.append(self._env.snapshot_list.static_nodes[:: ('extra_cost', 0)].reshape(-1,len(self._env.agent_idx_list)).sum(0))
             if self._log_enable:
                 self._print_summary(ep=ep, feature_list= feature_list, mode='random_action')
 
@@ -374,11 +376,11 @@ class Runner:
         dashboard_ep = ep
         if mode == "train":
             env = self._env
-            tick_number = self._max_tick
+            #tick_number = self._max_tick
         elif mode == "test":
             dashboard_ep = ep + self._max_train_ep
             env = self._test_env
-            tick_number = TEST_TICK
+            #tick_number = TEST_TICK
         else:
             return
 
@@ -428,9 +430,9 @@ class Runner:
 
         # Prepare usage and delayed laden data cache
         usage_list = env.snapshot_list.static_nodes[::(['bikes'], 0)]
-        pretty_usage_list = usage_list.reshape(tick_number, len(self._station_idx2name) )
+        pretty_usage_list = usage_list.reshape(-1, len(self._station_idx2name) )
         capacity_list = env.snapshot_list.static_nodes[0::(['capacity'], 0)]
-        pretty_capacity_df = capacity_list.reshape(1, len(self._station_idx2name) )
+        pretty_capacity_df = capacity_list.reshape(-1, len(self._station_idx2name) )
 
         from_to_executed = {}
         from_to_planed = {}
@@ -466,11 +468,12 @@ class Runner:
                 event_tml_cost = 0
                 for action_event in event.immediate_event_list:
                     for action in action_event.payload:
-                        action_num = action.number
-                        action_target = action.to_cell
-                        target_name = str(self._station_idx2name[action_target])
-                        self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_name}_to_{target_name}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
-                        event_tml_cost += action.number
+                        if action.number > 0:
+                            action_num = action.number
+                            action_target = action.to_cell
+                            target_name = str(self._station_idx2name[action_target])
+                            self._dashboard.upload_exp_data(fields={f'actual_action_of_{cell_name}_to_{target_name}':action_num}, ep=dashboard_ep, tick=cur_tick, measurement='bike_actual_action')
+                            event_tml_cost += action.number
                 pretty_tml_cost_dict[cell_name] = pretty_tml_cost_dict.get(cell_name, 0) + event_tml_cost
                 self._dashboard.upload_exp_data(fields={cell_name: event_tml_cost}, ep=dashboard_ep, tick=event.tick, measurement='bike_event_tml_cost')
 
@@ -506,8 +509,8 @@ class Runner:
 
         # Pick and upload data for event shortage
         ep_shortage_list = env.snapshot_list.static_nodes[:env.agent_idx_list:('shortage',0)]
-        pretty_ep_shortage_list = ep_shortage_list.reshape(tick_number, len(self._station_idx2name))
-        for i in range(tick_number):
+        pretty_ep_shortage_list = ep_shortage_list.reshape(-1, len(self._station_idx2name))
+        for i in range(len(pretty_ep_shortage_list)):
             need_upload = False
             pretty_ep_shortage_dict = OrderedDict()
             for j in range(len(self._station_idx2name)):
@@ -525,8 +528,8 @@ class Runner:
 
         # Pick and upload data for extra cost
         ep_ex_cost_list = env.snapshot_list.static_nodes[:env.agent_idx_list:('extra_cost',0)]
-        pretty_ep_ex_cost_list = ep_ex_cost_list.reshape(tick_number, len(self._station_idx2name))
-        for i in range(tick_number):
+        pretty_ep_ex_cost_list = ep_ex_cost_list.reshape(-1, len(self._station_idx2name))
+        for i in range(len(pretty_ep_ex_cost_list)):
             need_upload = False
             pretty_ep_ex_cost_dict = OrderedDict()
             for j in range(len(self._station_idx2name)):
@@ -535,7 +538,7 @@ class Runner:
                     need_upload = True
             if need_upload:
                 self._dashboard.upload_exp_data(fields=pretty_ep_ex_cost_dict, ep=dashboard_ep, tick=i, measurement='bike_event_ex_cost')
-            if i == tick_number -1:
+            if i == len(pretty_ep_ex_cost_list) -1:
                 self._dashboard.upload_exp_data(fields=pretty_ep_ex_cost_dict, ep=dashboard_ep, tick=None, measurement='bike_ex_cost')
 
     def _set_seed(self, seed):
@@ -578,7 +581,7 @@ if __name__ == '__main__':
     eps_list[-1] = 0.0
 
     runner = Runner(scenario=SCENARIO, topology=TOPOLOGY,
-                    max_tick=MAX_TICK, max_train_ep=MAX_TRAIN_EP,
+                    max_tick=TRAIN_MAX_TICK, max_train_ep=MAX_TRAIN_EP,
                     max_test_ep=MAX_TEST_EP, eps_list=eps_list,
                     log_enable=RUNNER_LOG_ENABLE)
 

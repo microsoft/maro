@@ -2,25 +2,27 @@
 import csv
 import math
 import os
-import holidays
 import random
 from enum import IntEnum
+from math import floor, ceil
 from typing import Dict, List
 
+import holidays
 from yaml import safe_load
-from maro.simulator.utils.random import random
+
 from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
+from maro.simulator.utils.random import random
 
+from .adj_reader import read_adj_info
 from .cell import Cell
+from .cell_reward import CellReward
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
-                     DecisionEvent, Trip)
+                     DecisionEvent, Trip, ExtraCostMode)
 from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
-from .adj_reader import read_adj_info
 from .trip_reader import BikeTripReader
-from .cell_reward import CellReward
 from .weather_table import WeatherTable
 
 bikes_adjust_rand = random["bikes_adjust"]
@@ -34,34 +36,32 @@ class BikeEventType(IntEnum):
 
 
 class BikeBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, config_path: str, max_tick: int, tick_units: int):
-        super().__init__(event_buffer, config_path, tick_units)
+    def __init__(self, event_buffer: EventBuffer, config_path: str, start_tick: int, max_tick: int, frame_resolution: int):
+        super().__init__(event_buffer, config_path, start_tick, max_tick, frame_resolution)
 
+        self._conf = None
         self._decision_strategy = None
-        self._max_tick = max_tick
         self._cells = []
         self._us_holidays = holidays.US()  # holidays for US, as we are using NY data
 
-        config_path = os.path.join(config_path, "config.yml")
-
-        self._conf = None
-
-        with open(config_path) as fp:
-            self._conf = safe_load(fp)
-
-        self._init_frame()
-        self._init_data_reader()
-
-        self._snapshots = SnapshotList(self._frame, max_tick)
-
         self._reg_event()
+        self._read_config()
+        self._init_data_reader() # NOTE: we should read the data first, to get correct max tick if max_tick is -1
+        self._init_frame()
+
+        if "extra_cost_mode" in self._conf:
+            self._extra_cost_mode = ExtraCostMode(self._conf["extra_cost_mode"])
+        else:
+            self._extra_cost_mode = ExtraCostMode.Source
+
+        frame_num = ceil(self._max_tick / frame_resolution)
+        
+        self._snapshots = SnapshotList(self._frame, frame_num)
 
         self._adj = read_adj_info(self._conf["adj_file"])
-        self._decision_strategy = BikeDecisionStrategy(
-            self._cells, self._conf["decision"])
+        self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
         self._reward = CellReward(self._cells, self._conf["reward"])
-        self._weather_table = WeatherTable(
-            self._conf["weather_file"], self._conf["start_datetime"])
+        self._weather_table = WeatherTable(self._conf["weather_file"], self._data_reader.start_date)
 
         self._trip_adjust_rate = self._conf["trip_adjustment"]["adjust_rate"]
         self._trip_adjust_value = self._conf["trip_adjustment"]["adjust_value"]
@@ -79,36 +79,34 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current frame"""
         return self._snapshots
 
-    def step(self, tick: int, internal_tick: int):
+    def step(self, tick: int):
         """Used to process events at specified tick, usually this is called by Env at each internal tick
 
         Args:
             tick (int): tick to process
-            internal_tick (int): internal tick (in minute) to process trip data
         """
 
         # get trip requirements for current internal tick (in minute)
-        trips = self._data_reader.get_trips(internal_tick)
+        trips = self._data_reader.get_trips(tick)
 
         # generate events to process
         for trip in trips:
-            trip_evt = self._event_buffer.gen_atom_event(
-                internal_tick, BikeEventType.TripRequirement, payload=trip)
+            trip_evt = self._event_buffer.gen_atom_event(tick, BikeEventType.TripRequirement, payload=trip)
 
             self._event_buffer.insert_event(trip_evt)
 
-        cells_need_decision = self._decision_strategy.get_cells_need_decision(
-            tick, internal_tick)
+        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick)
 
         # the env will take snapshot for use when we need an action, so we do not need to take action here
         for cell_idx in cells_need_decision:
-            # we use tick (in hour) here, not internal tick, as agent do not need to known this
-            decision_payload = DecisionEvent(
-                cell_idx, tick, self._decision_strategy.action_scope)
-            decision_evt = self._event_buffer.gen_cascade_event(
-                internal_tick, DECISION_EVENT, decision_payload)
+            decision_payload = DecisionEvent(cell_idx, tick, 
+                     floor((tick - self._start_tick) / self._frame_resolution),
+                     self._decision_strategy.action_scope)
+            decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_payload)
 
             self._event_buffer.insert_event(decision_evt)
+
+        return self._max_tick == tick + 1 # last tick
 
     @property
     def configs(self) -> dict:
@@ -159,16 +157,16 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """
         return [i for i in range(len(self._cells))]
 
-    def post_step(self, tick: int, unit_tick: int):
+    def post_step(self, tick: int):
         """Post-process at specified tick
 
         Args:
             tick (int): tick to process
 
         """
-        if (unit_tick + 1) % self._tick_units == 0:
+        if (tick + 1) % self._frame_resolution == 0:
             # take a snapshot at the end of tick
-            self._snapshots.insert_snapshot(self._frame, tick)
+            self._snapshots.insert_snapshot(self._frame, floor((tick - self._start_tick)/self._frame_resolution))
 
             # last unit tick of current tick
             # we will reset some field
@@ -210,24 +208,26 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
     def _init_data_reader(self):
         self._data_reader = BikeTripReader(self._conf["trip_file"],
-                                           self._conf["start_datetime"],
+                                           self._start_tick,
                                            self._max_tick)
+
+        self._max_tick = self._data_reader.max_tick
+
+    def _read_config(self):
+        with open(os.path.join(self._config_path, "config.yml")) as fp:
+            self._conf = safe_load(fp)
 
     def _update_cell_adj(self):
         for cell in self._cells:
             cell.set_neighbors(self._adj[cell.index])
 
     def _reg_event(self):
-        self._event_buffer.register_event_handler(
-            BikeEventType.TripRequirement, self._on_trip_requirement)
-        self._event_buffer.register_event_handler(
-            BikeEventType.BikeReturn, self._on_bike_return)
+        self._event_buffer.register_event_handler(BikeEventType.TripRequirement, self._on_trip_requirement)
+        self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
 
         # decision event, predefined in event buffer
-        self._event_buffer.register_event_handler(
-            DECISION_EVENT, self._on_action_received)
-        self._event_buffer.register_event_handler(
-            BikeEventType.BikeReceived, self._on_bike_received)
+        self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_received)
+        self._event_buffer.register_event_handler(BikeEventType.BikeReceived, self._on_bike_received)
 
     def _move_to_neighbor(self, src_cell: Cell, cell: Cell, bike_number: int, step: int = 1):
         cost = 0
@@ -261,8 +261,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
                 if neighbor_idx < 0:
                     continue
 
-                cost += self._move_to_neighbor(src_cell,
-                                               self._cells[neighbor_idx], bike_number, step=2)
+                cost += self._move_to_neighbor(src_cell, self._cells[neighbor_idx], bike_number, step=2)
 
                 if bike_number == 0:
                     break
@@ -293,8 +292,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         # disable adjust if the rate is less equal 0
         if self._trip_adjust_rate > 0:
-            adjusted_number += (self._trip_adjust_value if bikes_adjust_rand.random()
-                                < self._trip_adjust_rate else 0)
+            adjusted_number += (self._trip_adjust_value if bikes_adjust_rand.random() < self._trip_adjust_rate else 0)
 
         # update trip count
         cell.trip_requirement += adjusted_number
@@ -313,21 +311,18 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             cell.update_gendor(trip.gendor)
             cell.update_usertype(trip.usertype)
-            cell.weekday = trip.weekday
 
-            cell.holiday = trip.date in self._us_holidays
-
-            # weather info
+            # TODO: we can update following fields when the day is changed to save time
             weather = self._weather_table[trip.date]
 
+            cell.weekday = trip.weekday
+            cell.holiday = trip.date in self._us_holidays
             cell.weather = weather.type
             cell.temperature = weather.avg_temp
 
             # generate a bike return event by end tick
-            return_payload = BikeReturnPayload(
-                trip.from_cell, trip.to_cell, executed_num)
-            bike_return_evt = self._event_buffer.gen_atom_event(
-                trip.end_tick, BikeEventType.BikeReturn, payload=return_payload)
+            return_payload = BikeReturnPayload(trip.from_cell, trip.to_cell, executed_num)
+            bike_return_evt = self._event_buffer.gen_atom_event(trip.end_tick, BikeEventType.BikeReturn, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
@@ -347,8 +342,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         if payload.number != return_number:
             # extra cost of current cell, as we do not know whose action caused this
-            cell.extra_cost += self._move_to_neighbor(
-                self._cells[payload.from_cell], cell, payload.number - return_number)
+            cell.extra_cost += self._move_to_neighbor(self._cells[payload.from_cell], cell, payload.number - return_number)
 
     def _on_action_received(self, evt: Event):
         action: Action = None
@@ -369,8 +363,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             if executed_number > 0:
                 cell.bikes -= executed_number
 
-                payload = BikeTransferPayload(
-                    from_cell_idx, to_cell_idx, executed_number)
+                payload = BikeTransferPayload(from_cell_idx, to_cell_idx, executed_number)
 
                 transfer_time = self._decision_strategy.transfer_time
                 transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
@@ -390,11 +383,28 @@ class BikeBusinessEngine(AbsBusinessEngine):
             accept_number = cell_capacity - cell_bikes
             extra_bikes = payload.number - accept_number
 
-            extra_cost = self._move_to_neighbor(
-                self._cells[payload.from_cell], cell, extra_bikes)
+            extra_cost = self._move_to_neighbor(self._cells[payload.from_cell], cell, extra_bikes)
 
-            # extra cost from source cell
-            from_cell = self._cells[payload.from_cell]
-            from_cell.extra_cost += extra_cost
+            if self._extra_cost_mode == ExtraCostMode.Source:
+                # extra cost from source cell
+                from_cell = self._cells[payload.from_cell]
+                from_cell.extra_cost += extra_cost
+            elif self._extra_cost_mode == ExtraCostMode.Target:
+                cell.extra_cost += extra_cost
+            elif self._extra_cost_mode == ExtraCostMode.TargetNeighbors:
+                valid_neighbors = [idx for idx in cell.neighbors if idx > 0]
+
+                if len(valid_neighbors) > 0:
+                    avg_cost = round(extra_cost/len(valid_neighbors))
+
+                    for neighbor_idx in valid_neighbors:
+                        if neighbor_idx > 0:
+                            neighbor: Cell = self._cells[neighbor_idx]
+
+                            neighbor.extra_cost += avg_cost
+                else:
+                    # if we have no neighbors, then assign to source
+                    from_cell = self._cells[payload.from_cell]
+                    from_cell.extra_cost += extra_cost
 
         cell.bikes += accept_number

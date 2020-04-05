@@ -4,11 +4,12 @@ from maro.simulator.core import Env
 from maro.simulator.scenarios.bike.common import Action
 from maro.simulator.utils.random import random
 
-max_ticks = 2*24
+start_tick = 0
+max_ticks = -1 #2 * 24 * 60
 total_ep = 2
 
 # 48 ticks (hours), 60 units (minutes) per tick
-env = Env("bike", "test", max_ticks, tick_units=60)
+env = Env("bike", "test", start_tick, max_ticks, frame_resolution=60)
 
 for i in range(total_ep):
     random.seed(1)
@@ -26,18 +27,20 @@ for i in range(total_ep):
     shortages = env.snapshot_list.static_nodes[::("shortage", 0)]
     print(f"total shortage (ep {i}:", sum(shortages))
 
-print("snapshot list length", len(env.snapshot_list))
+hours = len(env.snapshot_list)
+
+print("snapshot list length", hours)
 inv = env.snapshot_list.static_nodes[::("bikes", 0)]
 
-inv = inv.reshape(max_ticks, len(env.agent_idx_list)) # max_ticks, cells
+inv = inv.reshape(hours, len(env.agent_idx_list)) # hours, cells
 
-print(f"bike number at cell 0 (index not id) in {max_ticks} hours.")
+print(f"bike number at cell 0 (index not id) in {hours} hours.")
 print(inv[:, 0]) # 1st column means bikes station of station 0 at all the ticks
 
 # features for cell index: 0
 feature_names = ["bikes", "shortage", "trip_requirement", "temperature", "weather", "holiday"]
 features = env.snapshot_list.static_nodes[:0:(feature_names, 0)]
-features = features.reshape(max_ticks, len(feature_names)) # one tick one row, features in each row
+features = features.reshape(hours, len(feature_names)) # one tick one row, features in each row
 print(feature_names)
 print(features)
 
@@ -53,7 +56,7 @@ print(neighbors)
 
 # extra cost
 extra_cost = env.snapshot_list.static_nodes[::("extra_cost", 0)]
-extra_cost = extra_cost.reshape(max_ticks, len(env.agent_idx_list))
+extra_cost = extra_cost.reshape(hours, len(env.agent_idx_list))
 print("extra cost for cells in all ticks")
 print(extra_cost)
 

@@ -1,4 +1,4 @@
-
+from enum import Enum
 
 class Trip:
     def __init__(self, date: int, start_cell: int, end_cell: int, end_tick: int, usertype: int = 0, gendor: int = 0, num: int = 1):
@@ -36,9 +36,10 @@ class BikeReturnPayload:
 
 
 class DecisionEvent:
-    def __init__(self, cell_idx: int, tick: int, action_scope_func: callable):
+    def __init__(self, cell_idx: int, tick: int, frame_index: int, action_scope_func: callable):
         self.cell_idx = cell_idx
         self.tick = tick
+        self.frame_index = frame_index
         self._action_scope = None
         self._action_scope_func = action_scope_func
 
@@ -61,3 +62,9 @@ class Action:
 
     def __repr__(self):
         return f"Action(from cell: {self.from_cell}, to cell: {self.to_cell}, number: {self.number})"
+
+
+class ExtraCostMode(Enum):
+    Source = "source"
+    Target = "target"
+    TargetNeighbors = "target_neighbors"

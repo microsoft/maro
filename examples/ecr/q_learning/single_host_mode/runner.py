@@ -100,7 +100,7 @@ class Runner:
         self._eps_list = eps_list
         self._log_enable = log_enable
         self._set_seed(TRAIN_SEED)
-        self._env = Env(scenario, topology, max_tick)
+        self._env = Env(scenario, topology, max_tick = max_tick)
         self._port_idx2name = self._env.node_name_mapping['static']
         self._vessel_idx2name = self._env.node_name_mapping['dynamic']
         self._agent_dict = self._load_agent(self._env.agent_idx_list)

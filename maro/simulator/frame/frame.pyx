@@ -463,6 +463,7 @@ cdef class SnapshotList:
 
         # index of latest snapshot
         INT latest_index
+        INT max_tick
 
         # used for quick access to avoid repeatly calculations
         UINT frame_float_block_size
@@ -502,6 +503,7 @@ cdef class SnapshotList:
         self.int_data_block = np.zeros((max_tick, self.frame_int_block_size), dtype=INT_DTYPE)
         self.int_mat_data_block = np.zeros((max_tick, self.frame_int_mat_size), dtype=INT_DTYPE)
 
+        self.max_tick = max_tick
         self.latest_index = -1 # no snapshot 
         self.attribute_map = frame.attribute_map
 
@@ -717,7 +719,7 @@ cdef class SnapshotList:
         return result
 
     def __len__(self):
-        return self.latest_index + 1
+        return self.max_tick
 
     @property
     def dynamic_node_number(self) -> int:

@@ -32,10 +32,10 @@ weather_type = np.dtype(
 
 class WeatherTable:
     """Lookup table to query weather information for a day"""
-    def __init__(self, weather_file: str, start_date_str: str):
+    def __init__(self, weather_file: str, start_date):
         assert os.path.exists(weather_file)
 
-        self.start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
+        self.start_date = start_date
 
         self._weather_dict = {}
 
