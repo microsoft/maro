@@ -8,6 +8,7 @@ from importlib import import_module
 from inspect import getmembers, isclass
 from typing import Any, Dict, List, Tuple
 
+from .utils.common import tick_to_frame_index
 from .abs_core import AbsEnv, DecisionMode
 from .event_buffer import DECISION_EVENT, EventBuffer, EventState
 from .frame import Frame, SnapshotList
@@ -137,7 +138,7 @@ class Env(AbsEnv):
     @property
     def frame_index(self)->int:
         """int: frame index in snapshot list for current tick"""
-        return floor((self._tick - self._start_tick) / self._frame_resolution)
+        return tick_to_frame_index(self._tick, self._start_tick, self._frame_resolution)
 
     @property
     def snapshot_list(self) -> SnapshotList:

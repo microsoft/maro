@@ -3,7 +3,7 @@
 
 
 import os
-
+from math import floor
 
 def get_available_envs():
     """
@@ -30,3 +30,6 @@ def get_available_envs():
             envs.append({'scenario': scenario, 'topology': topology})
 
     return envs
+
+def tick_to_frame_index(start_tick: int, cur_tick: int, resolution: int):
+    return floor((cur_tick - start_tick)/resolution)

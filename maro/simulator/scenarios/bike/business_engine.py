@@ -4,7 +4,7 @@ import math
 import os
 import random
 from enum import IntEnum
-from math import floor, ceil
+from math import ceil, floor
 from typing import Dict, List
 
 import holidays
@@ -13,13 +13,14 @@ from yaml import safe_load
 from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
+from maro.simulator.utils.common import tick_to_frame_index
 from maro.simulator.utils.random import random
 
 from .adj_reader import read_adj_info
 from .cell import Cell
 from .cell_reward import CellReward
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
-                     DecisionEvent, Trip, ExtraCostMode)
+                     DecisionEvent, ExtraCostMode, Trip)
 from .decision_strategy import BikeDecisionStrategy
 from .frame_builder import build
 from .trip_reader import BikeTripReader
@@ -100,7 +101,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         # the env will take snapshot for use when we need an action, so we do not need to take action here
         for cell_idx in cells_need_decision:
             decision_payload = DecisionEvent(cell_idx, tick, 
-                     floor((tick - self._start_tick) / self._frame_resolution),
+                     tick_to_frame_index(tick, self._start_tick, self._frame_resolution),
                      self._decision_strategy.action_scope)
             decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_payload)
 
@@ -166,7 +167,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """
         if (tick + 1) % self._frame_resolution == 0:
             # take a snapshot at the end of tick
-            self._snapshots.insert_snapshot(self._frame, floor((tick - self._start_tick)/self._frame_resolution))
+            self._snapshots.insert_snapshot(self._frame, tick_to_frame_index(tick, self._start_tick, self._frame_resolution))
 
             # last unit tick of current tick
             # we will reset some field
