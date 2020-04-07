@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: exp
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      name: exp
+    spec:
+      containers:
+        name: exp
+        image: dist
+        resources:
+          requests:
+            cpu: "1000m"  # 1 cpu
+            memory: "56Mi"
+          limits:
+            cpu: "4000m"   
+            memory: "1Gi"
+        command: ["echo", "hello"]
+      restartPolicy: OnFailure
