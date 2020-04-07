@@ -31,7 +31,7 @@ class DiscreteActionShaping():
             action_index (int): Module output.
         '''
 
-        return max(int(self._action_space[action_idx] * station_scope), neighbor_scope)
+        return min(int(self._action_space[action_idx] * station_scope), neighbor_scope)
 
     @property
     def action_space(self):
@@ -79,7 +79,3 @@ class ListActionShaping():
 
         self.clear_scope_cache()
         return action_list
-
-    @property
-    def action_space(self):
-        return self._action_space

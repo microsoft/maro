@@ -74,12 +74,12 @@ class RewardShaping:
 
 
 class TruncateReward(RewardShaping):
-    def __init__(self, env, agent_idx_list: [int], offset: int = 100, fulfillment_factor: float = 1.0, cost_factor: float = 1.0,
+    def __init__(self, env, agent_idx_list: [int], offset: int = 100, reward_factor: float = 1.0, cost_factor: float = 1.0,
                  shortage_factor: float = 1.0, time_decay: float = 0.97, log_folder: str = './', log_enable: bool = False):
         super().__init__(env, log_folder=log_folder, log_enable=log_enable)
         self._agent_idx_list = agent_idx_list
         self._offset = offset
-        self._fulfillment_factor = fulfillment_factor
+        self._reward_factor = reward_factor
         self._shortage_factor = shortage_factor
         self._cost_factor = cost_factor
         self._time_decay_factor = time_decay
@@ -105,8 +105,8 @@ class TruncateReward(RewardShaping):
             costs = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:("extra_cost", 0)]
             tot_cost = np.dot(costs, decay_list)
 
-            cache['reward'].append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage
-                                              - self._cost_factor * tot_cost))
+            cache['reward'].append(np.float32(self._reward_factor * (tot_fulfillment - self._shortage_factor * tot_shortage
+                                              - self._cost_factor * tot_cost)))
 
         self._align_cache_by_next_state(agent_name)
 

@@ -146,7 +146,10 @@ class Agent(object):
             state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick)
 
         neighbor_idx = cur_neighbor_idx_list[model_action[0]]
-        neighbor_scope = action_scope[neighbor_idx] if neighbor_idx!= -1 else 0
+        while neighbor_idx == -1:
+            neighbor_idx = cur_neighbor_idx_list[random.randint(0,5)]
+        neighbor_scope = action_scope[neighbor_idx] #if neighbor_idx!= -1 else 0
+        # station_scope = snapshot_list.static_nodes[cur_tick: cur_station_idx: ('capacity', 0)] - action_scope[cur_station_idx]
         actual_action = self._action_shaping(action_idx= model_action[1], station_scope = action_scope[cur_station_idx],
                                             neighbor_scope = neighbor_scope)
 
@@ -164,7 +167,7 @@ class Agent(object):
                                             'station_states':station_states,
                                             'neighbor_states':neighbor_states})
 
-        neighbor_idx = neighbor_idx if neighbor_idx!= -1 else cur_station_idx                                 
+        #neighbor_idx = neighbor_idx if neighbor_idx!= -1 else cur_station_idx                                 
         env_action = Action(cur_station_idx, neighbor_idx, actual_action)
         if self._log_enable:
             self._logger.info(
