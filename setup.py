@@ -14,7 +14,17 @@ frame_ext = Extension("maro.simulator.frame",
           sources=["maro/simulator/frame/frame.pyx"],
           include_dirs=[numpy.get_include()])
 
+fin_ext = Extension("maro.simulator.scenarios.fin.reader",
+          sources=[
+              "maro/simulator/scenarios/fin/reader/reader.pyx",
+          ],
+          include_dirs=[
+              numpy.get_include(),
+              "fin_pipeline/convert/"
+          ])
+
 frame_ext.cython_directives = {"embedsignature": True}
+fin_ext.cython_directives = {"embedsignature": True}
 
 setup(
     name="maro",
@@ -73,6 +83,7 @@ setup(
     ],
     ext_modules=[
         frame_ext,
+        fin_ext,
     ],
     zip_safe=False
 )
