@@ -12,6 +12,7 @@ examples/ecr/q_learning/single_host_mode/log
 docs/_build
 maro/simulator/scenarios/ecr/topologies/topology_search
 examples/ecr/lp/replayer/log
+examples/citi_bike/*/*/log
 tools/replay_lp/log
 tools/schedule_meta
 visualization/
