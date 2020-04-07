@@ -196,12 +196,26 @@ cdef class FinanceReader:
         return self.reader.meta.version
 
     def next_item(self):
+        if self.reader.cur_index + 1 == self.reader.size:
+            return None
+            
         next_item(&self.reader)
 
         if self.dtype == FinanceDataType.STOCK:
             self.stock.fill(self.reader.data)
 
             return self.stock
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        item = self.next_item()
+
+        if item is None:
+            raise StopIteration
+        else:
+            return item
 
     def reset(self):
         init_reader(self.path, &self.reader, self.dtype)
