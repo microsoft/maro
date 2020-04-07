@@ -1345,12 +1345,6 @@ static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_ve
 static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
 #endif
 
-/* ArgTypeTest.proto */
-#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
-    ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
-        __Pyx__ArgTypeTest(obj, type, name, exact))
-static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
-
 /* PyCFunctionFastCall.proto */
 #if CYTHON_FAST_PYCCALL
 static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObject **args, Py_ssize_t nargs);
@@ -1358,11 +1352,17 @@ static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObje
 #define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
 #endif
 
-/* PyObjectCall2Args.proto */
-static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2);
-
 /* PyObjectCallOneArg.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+
+/* ArgTypeTest.proto */
+#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
+    ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
+        __Pyx__ArgTypeTest(obj, type, name, exact))
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
+
+/* PyObjectCall2Args.proto */
+static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2);
 
 /* BytesEquals.proto */
 static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals);
@@ -1816,6 +1816,7 @@ int __pyx_module_is_main_maro__simulator__scenarios__fin__reader = 0;
 /* Implementation of 'maro.simulator.scenarios.fin.reader' */
 static PyObject *__pyx_builtin_round;
 static PyObject *__pyx_builtin_TypeError;
+static PyObject *__pyx_builtin_StopIteration;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_enumerate;
@@ -1885,6 +1886,7 @@ static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_data_type[] = "data_type";
 static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_metaclass[] = "__metaclass__";
+static const char __pyx_k_next_item[] = "next_item";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
@@ -1902,6 +1904,7 @@ static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_start_time_2[] = "start_time";
 static const char __pyx_k_stringsource[] = "stringsource";
 static const char __pyx_k_FinanceReader[] = "FinanceReader";
+static const char __pyx_k_StopIteration[] = "StopIteration";
 static const char __pyx_k_closing_price[] = "closing_price";
 static const char __pyx_k_opening_price[] = "opening_price";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
@@ -1969,6 +1972,7 @@ static PyObject *__pyx_n_s_PickleError;
 static PyObject *__pyx_n_s_STOCK;
 static PyObject *__pyx_n_s_Stock;
 static PyObject *__pyx_kp_u_Stock_is_valid;
+static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
@@ -2020,6 +2024,7 @@ static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_n_s_ndim;
 static PyObject *__pyx_n_s_new;
+static PyObject *__pyx_n_s_next_item;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_kp_u_open_price;
@@ -2092,11 +2097,13 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
 static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8end_time___get__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7version___get__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_2next_item(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4reset(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
-static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6__dealloc__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8__repr__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4__iter__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6__next__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8reset(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
+static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__dealloc__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__repr__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_14__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_16__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -4275,8 +4282,8 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  *         return self.reader.meta.version
  * 
  *     def next_item(self):             # <<<<<<<<<<<<<<
- *         next_item(&self.reader)
- * 
+ *         if self.reader.cur_index + 1 == self.reader.size:
+ *             return None
  */
 
 /* Python wrapper */
@@ -4296,66 +4303,96 @@ static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
 static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_2next_item(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  int __pyx_t_4;
+  PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("next_item", 0);
 
   /* "maro/simulator/scenarios/fin/reader/reader.pyx":199
  * 
  *     def next_item(self):
+ *         if self.reader.cur_index + 1 == self.reader.size:             # <<<<<<<<<<<<<<
+ *             return None
+ * 
+ */
+  __pyx_t_1 = (((__pyx_v_self->reader.cur_index + 1) == __pyx_v_self->reader.size) != 0);
+  if (__pyx_t_1) {
+
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":200
+ *     def next_item(self):
+ *         if self.reader.cur_index + 1 == self.reader.size:
+ *             return None             # <<<<<<<<<<<<<<
+ * 
+ *         next_item(&self.reader)
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":199
+ * 
+ *     def next_item(self):
+ *         if self.reader.cur_index + 1 == self.reader.size:             # <<<<<<<<<<<<<<
+ *             return None
+ * 
+ */
+  }
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":202
+ *             return None
+ * 
  *         next_item(&self.reader)             # <<<<<<<<<<<<<<
  * 
  *         if self.dtype == FinanceDataType.STOCK:
  */
   next_item((&__pyx_v_self->reader));
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":201
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":204
  *         next_item(&self.reader)
  * 
  *         if self.dtype == FinanceDataType.STOCK:             # <<<<<<<<<<<<<<
  *             self.stock.fill(self.reader.data)
  * 
  */
-  __pyx_t_1 = __Pyx_PyInt_From_uint8_t(__pyx_v_self->dtype); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 201, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_FinanceDataType); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 201, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_uint8_t(__pyx_v_self->dtype); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_STOCK); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 201, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_FinanceDataType); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_3, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 201, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_STOCK); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 201, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_2, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__pyx_t_4) {
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_1) {
 
-    /* "maro/simulator/scenarios/fin/reader/reader.pyx":202
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":205
  * 
  *         if self.dtype == FinanceDataType.STOCK:
  *             self.stock.fill(self.reader.data)             # <<<<<<<<<<<<<<
  * 
  *             return self.stock
  */
-    __pyx_t_2 = ((struct __pyx_vtabstruct_4maro_9simulator_9scenarios_3fin_6reader_Stock *)__pyx_v_self->stock->__pyx_vtab)->fill(__pyx_v_self->stock, __pyx_v_self->reader.data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 202, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_3 = ((struct __pyx_vtabstruct_4maro_9simulator_9scenarios_3fin_6reader_Stock *)__pyx_v_self->stock->__pyx_vtab)->fill(__pyx_v_self->stock, __pyx_v_self->reader.data); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 205, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "maro/simulator/scenarios/fin/reader/reader.pyx":204
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":207
  *             self.stock.fill(self.reader.data)
  * 
  *             return self.stock             # <<<<<<<<<<<<<<
  * 
- *     def reset(self):
+ *     def __iter__(self):
  */
     __Pyx_XDECREF(__pyx_r);
     __Pyx_INCREF(((PyObject *)__pyx_v_self->stock));
     __pyx_r = ((PyObject *)__pyx_v_self->stock);
     goto __pyx_L0;
 
-    /* "maro/simulator/scenarios/fin/reader/reader.pyx":201
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":204
  *         next_item(&self.reader)
  * 
  *         if self.dtype == FinanceDataType.STOCK:             # <<<<<<<<<<<<<<
@@ -4368,17 +4405,17 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  *         return self.reader.meta.version
  * 
  *     def next_item(self):             # <<<<<<<<<<<<<<
- *         next_item(&self.reader)
- * 
+ *         if self.reader.cur_index + 1 == self.reader.size:
+ *             return None
  */
 
   /* function exit code */
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
   __Pyx_AddTraceback("maro.simulator.scenarios.fin.reader.FinanceReader.next_item", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -4387,8 +4424,186 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   return __pyx_r;
 }
 
-/* "maro/simulator/scenarios/fin/reader/reader.pyx":206
+/* "maro/simulator/scenarios/fin/reader/reader.pyx":209
  *             return self.stock
+ * 
+ *     def __iter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_5__iter__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_5__iter__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__iter__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4__iter__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4__iter__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__iter__", 0);
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":210
+ * 
+ *     def __iter__(self):
+ *         return self             # <<<<<<<<<<<<<<
+ * 
+ *     def __next__(self):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_self));
+  __pyx_r = ((PyObject *)__pyx_v_self);
+  goto __pyx_L0;
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":209
+ *             return self.stock
+ * 
+ *     def __iter__(self):             # <<<<<<<<<<<<<<
+ *         return self
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "maro/simulator/scenarios/fin/reader/reader.pyx":212
+ *         return self
+ * 
+ *     def __next__(self):             # <<<<<<<<<<<<<<
+ *         item = self.next_item()
+ * 
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__next__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__next__(PyObject *__pyx_v_self) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__next__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6__next__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6__next__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
+  PyObject *__pyx_v_item = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  __Pyx_RefNannySetupContext("__next__", 0);
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":213
+ * 
+ *     def __next__(self):
+ *         item = self.next_item()             # <<<<<<<<<<<<<<
+ * 
+ *         if item is None:
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_next_item); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_item = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":215
+ *         item = self.next_item()
+ * 
+ *         if item is None:             # <<<<<<<<<<<<<<
+ *             raise StopIteration
+ *         else:
+ */
+  __pyx_t_4 = (__pyx_v_item == Py_None);
+  __pyx_t_5 = (__pyx_t_4 != 0);
+  if (unlikely(__pyx_t_5)) {
+
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":216
+ * 
+ *         if item is None:
+ *             raise StopIteration             # <<<<<<<<<<<<<<
+ *         else:
+ *             return item
+ */
+    __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
+    __PYX_ERR(0, 216, __pyx_L1_error)
+
+    /* "maro/simulator/scenarios/fin/reader/reader.pyx":215
+ *         item = self.next_item()
+ * 
+ *         if item is None:             # <<<<<<<<<<<<<<
+ *             raise StopIteration
+ *         else:
+ */
+  }
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":218
+ *             raise StopIteration
+ *         else:
+ *             return item             # <<<<<<<<<<<<<<
+ * 
+ *     def reset(self):
+ */
+  /*else*/ {
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_v_item);
+    __pyx_r = __pyx_v_item;
+    goto __pyx_L0;
+  }
+
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":212
+ *         return self
+ * 
+ *     def __next__(self):             # <<<<<<<<<<<<<<
+ *         item = self.next_item()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("maro.simulator.scenarios.fin.reader.FinanceReader.__next__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_item);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "maro/simulator/scenarios/fin/reader/reader.pyx":220
+ *             return item
  * 
  *     def reset(self):             # <<<<<<<<<<<<<<
  *         init_reader(self.path, &self.reader, self.dtype)
@@ -4396,25 +4611,25 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_5reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4reset[] = "FinanceReader.reset(self)";
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_5reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_9reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8reset[] = "FinanceReader.reset(self)";
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_9reset(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("reset (wrapper)", 0);
-  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4reset(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8reset(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4reset(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8reset(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("reset", 0);
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":207
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":221
  * 
  *     def reset(self):
  *         init_reader(self.path, &self.reader, self.dtype)             # <<<<<<<<<<<<<<
@@ -4423,8 +4638,8 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  */
   (void)(init_reader(__pyx_v_self->path, (&__pyx_v_self->reader), __pyx_v_self->dtype));
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":206
- *             return self.stock
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":220
+ *             return item
  * 
  *     def reset(self):             # <<<<<<<<<<<<<<
  *         init_reader(self.path, &self.reader, self.dtype)
@@ -4438,7 +4653,7 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   return __pyx_r;
 }
 
-/* "maro/simulator/scenarios/fin/reader/reader.pyx":209
+/* "maro/simulator/scenarios/fin/reader/reader.pyx":223
  *         init_reader(self.path, &self.reader, self.dtype)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4447,21 +4662,21 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  */
 
 /* Python wrapper */
-static void __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__dealloc__(PyObject *__pyx_v_self); /*proto*/
-static void __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__dealloc__(PyObject *__pyx_v_self) {
+static void __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_11__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_11__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
-  __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6__dealloc__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
+  __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__dealloc__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
 }
 
-static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6__dealloc__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
+static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__dealloc__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":210
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":224
  * 
  *     def __dealloc__(self):
  *         release_reader(&self.reader)             # <<<<<<<<<<<<<<
@@ -4470,7 +4685,7 @@ static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6_
  */
   (void)(release_reader((&__pyx_v_self->reader)));
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":209
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":223
  *         init_reader(self.path, &self.reader, self.dtype)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -4482,7 +4697,7 @@ static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6_
   __Pyx_RefNannyFinishContext();
 }
 
-/* "maro/simulator/scenarios/fin/reader/reader.pyx":212
+/* "maro/simulator/scenarios/fin/reader/reader.pyx":226
  *         release_reader(&self.reader)
  * 
  *     def __repr__(self):             # <<<<<<<<<<<<<<
@@ -4490,19 +4705,19 @@ static void __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_6_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_9__repr__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_9__repr__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_13__repr__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_13__repr__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__repr__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8__repr__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__repr__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8__repr__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__repr__(struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4512,13 +4727,13 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("__repr__", 0);
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":213
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":227
  * 
  *     def __repr__(self):
  *         return f"FinanceReader (data type: {self.data_type}, code: {self.code}, count: {self.size}, start time: {self.start_time}, end time: {self.end_time})";             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyTuple_New(11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_2 = 0;
   __pyx_t_3 = 127;
@@ -4526,9 +4741,9 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   __pyx_t_2 += 26;
   __Pyx_GIVEREF(__pyx_kp_u_FinanceReader_data_type);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_kp_u_FinanceReader_data_type);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_data_type); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_data_type); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_3;
@@ -4540,9 +4755,9 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   __pyx_t_2 += 8;
   __Pyx_GIVEREF(__pyx_kp_u_code);
   PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_kp_u_code);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_code_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_code_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_4) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_4) : __pyx_t_3;
@@ -4554,9 +4769,9 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   __pyx_t_2 += 9;
   __Pyx_GIVEREF(__pyx_kp_u_count);
   PyTuple_SET_ITEM(__pyx_t_1, 4, __pyx_kp_u_count);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_3;
@@ -4568,9 +4783,9 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   __pyx_t_2 += 14;
   __Pyx_GIVEREF(__pyx_kp_u_start_time);
   PyTuple_SET_ITEM(__pyx_t_1, 6, __pyx_kp_u_start_time);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_start_time_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_start_time_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_empty_unicode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_4) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_4) : __pyx_t_3;
@@ -4582,9 +4797,9 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   __pyx_t_2 += 12;
   __Pyx_GIVEREF(__pyx_kp_u_end_time);
   PyTuple_SET_ITEM(__pyx_t_1, 8, __pyx_kp_u_end_time);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_end_time_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_end_time_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_3;
@@ -4596,14 +4811,14 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
   __pyx_t_2 += 1;
   __Pyx_GIVEREF(__pyx_kp_u_);
   PyTuple_SET_ITEM(__pyx_t_1, 10, __pyx_kp_u_);
-  __pyx_t_5 = __Pyx_PyUnicode_Join(__pyx_t_1, 11, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyUnicode_Join(__pyx_t_1, 11, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "maro/simulator/scenarios/fin/reader/reader.pyx":212
+  /* "maro/simulator/scenarios/fin/reader/reader.pyx":226
  *         release_reader(&self.reader)
  * 
  *     def __repr__(self):             # <<<<<<<<<<<<<<
@@ -4630,20 +4845,20 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_11__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__reduce_cython__[] = "FinanceReader.__reduce_cython__(self)";
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_11__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_15__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_14__reduce_cython__[] = "FinanceReader.__reduce_cython__(self)";
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_15__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__reduce_cython__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_14__reduce_cython__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_14__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4685,20 +4900,20 @@ static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceRead
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_13__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static char __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__setstate_cython__[] = "FinanceReader.__setstate_cython__(self, __pyx_state)";
-static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_13__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_17__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static char __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_16__setstate_cython__[] = "FinanceReader.__setstate_cython__(self, __pyx_state)";
+static PyObject *__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_17__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__setstate_cython__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_16__setstate_cython__(((struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_16__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -17777,7 +17992,7 @@ static void __pyx_tp_dealloc_4maro_9simulator_9scenarios_3fin_6reader_FinanceRea
     PyObject *etype, *eval, *etb;
     PyErr_Fetch(&etype, &eval, &etb);
     ++Py_REFCNT(o);
-    __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__dealloc__(o);
+    __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_11__dealloc__(o);
     --Py_REFCNT(o);
     PyErr_Restore(etype, eval, etb);
   }
@@ -17827,11 +18042,14 @@ static PyObject *__pyx_getprop_4maro_9simulator_9scenarios_3fin_6reader_13Financ
   return __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7version_1__get__(o);
 }
 
+static PyObject *__pyx_specialmethod___pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__next__(PyObject *self, CYTHON_UNUSED PyObject *arg) {return __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__next__(self);}
+
 static PyMethodDef __pyx_methods_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader[] = {
   {"next_item", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_3next_item, METH_NOARGS, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_2next_item},
-  {"reset", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_5reset, METH_NOARGS, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_4reset},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_11__reduce_cython__, METH_NOARGS, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_10__reduce_cython__},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_13__setstate_cython__, METH_O, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_12__setstate_cython__},
+  {"__next__", (PyCFunction)__pyx_specialmethod___pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__next__, METH_NOARGS|METH_COEXIST, 0},
+  {"reset", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_9reset, METH_NOARGS, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_8reset},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_15__reduce_cython__, METH_NOARGS, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_14__reduce_cython__},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_17__setstate_cython__, METH_O, __pyx_doc_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_16__setstate_cython__},
   {0, 0, 0, 0}
 };
 
@@ -17865,7 +18083,7 @@ static PyTypeObject __pyx_type_4maro_9simulator_9scenarios_3fin_6reader_FinanceR
   #if PY_MAJOR_VERSION >= 3
   0, /*tp_as_async*/
   #endif
-  __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_9__repr__, /*tp_repr*/
+  __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_13__repr__, /*tp_repr*/
   0, /*tp_as_number*/
   0, /*tp_as_sequence*/
   0, /*tp_as_mapping*/
@@ -17881,8 +18099,8 @@ static PyTypeObject __pyx_type_4maro_9simulator_9scenarios_3fin_6reader_FinanceR
   __pyx_tp_clear_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader, /*tp_clear*/
   0, /*tp_richcompare*/
   0, /*tp_weaklistoffset*/
-  0, /*tp_iter*/
-  0, /*tp_iternext*/
+  __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_5__iter__, /*tp_iter*/
+  __pyx_pw_4maro_9simulator_9scenarios_3fin_6reader_13FinanceReader_7__next__, /*tp_iternext*/
   __pyx_methods_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader, /*tp_methods*/
   0, /*tp_members*/
   __pyx_getsets_4maro_9simulator_9scenarios_3fin_6reader_FinanceReader, /*tp_getset*/
@@ -18702,6 +18920,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_STOCK, __pyx_k_STOCK, sizeof(__pyx_k_STOCK), 0, 0, 1, 1},
   {&__pyx_n_s_Stock, __pyx_k_Stock, sizeof(__pyx_k_Stock), 0, 0, 1, 1},
   {&__pyx_kp_u_Stock_is_valid, __pyx_k_Stock_is_valid, sizeof(__pyx_k_Stock_is_valid), 0, 1, 0, 0},
+  {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
@@ -18753,6 +18972,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
   {&__pyx_n_s_ndim, __pyx_k_ndim, sizeof(__pyx_k_ndim), 0, 0, 1, 1},
   {&__pyx_n_s_new, __pyx_k_new, sizeof(__pyx_k_new), 0, 0, 1, 1},
+  {&__pyx_n_s_next_item, __pyx_k_next_item, sizeof(__pyx_k_next_item), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_kp_u_open_price, __pyx_k_open_price, sizeof(__pyx_k_open_price), 0, 1, 0, 0},
@@ -18801,6 +19021,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_round = __Pyx_GetBuiltinName(__pyx_n_s_round); if (!__pyx_builtin_round) __PYX_ERR(0, 63, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 216, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 133, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 148, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 151, __pyx_L1_error)
@@ -20443,27 +20664,6 @@ static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
     return __Pyx_GetBuiltinName(name);
 }
 
-/* ArgTypeTest */
-static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
-{
-    if (unlikely(!type)) {
-        PyErr_SetString(PyExc_SystemError, "Missing type object");
-        return 0;
-    }
-    else if (exact) {
-        #if PY_MAJOR_VERSION == 2
-        if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
-        #endif
-    }
-    else {
-        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
-    }
-    PyErr_Format(PyExc_TypeError,
-        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
-        name, type->tp_name, Py_TYPE(obj)->tp_name);
-    return 0;
-}
-
 /* PyCFunctionFastCall */
 #if CYTHON_FAST_PYCCALL
 static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, PyObject **args, Py_ssize_t nargs) {
@@ -20486,35 +20686,6 @@ static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, P
     }
 }
 #endif
-
-/* PyObjectCall2Args */
-static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2) {
-    PyObject *args, *result = NULL;
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(function)) {
-        PyObject *args[2] = {arg1, arg2};
-        return __Pyx_PyFunction_FastCall(function, args, 2);
-    }
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(function)) {
-        PyObject *args[2] = {arg1, arg2};
-        return __Pyx_PyCFunction_FastCall(function, args, 2);
-    }
-    #endif
-    args = PyTuple_New(2);
-    if (unlikely(!args)) goto done;
-    Py_INCREF(arg1);
-    PyTuple_SET_ITEM(args, 0, arg1);
-    Py_INCREF(arg2);
-    PyTuple_SET_ITEM(args, 1, arg2);
-    Py_INCREF(function);
-    result = __Pyx_PyObject_Call(function, args, NULL);
-    Py_DECREF(args);
-    Py_DECREF(function);
-done:
-    return result;
-}
 
 /* PyObjectCallOneArg */
 #if CYTHON_COMPILING_IN_CPYTHON
@@ -20555,6 +20726,56 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
     return result;
 }
 #endif
+
+/* ArgTypeTest */
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
+{
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    else if (exact) {
+        #if PY_MAJOR_VERSION == 2
+        if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
+        #endif
+    }
+    else {
+        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
+    }
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
+        name, type->tp_name, Py_TYPE(obj)->tp_name);
+    return 0;
+}
+
+/* PyObjectCall2Args */
+static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2) {
+    PyObject *args, *result = NULL;
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(function)) {
+        PyObject *args[2] = {arg1, arg2};
+        return __Pyx_PyFunction_FastCall(function, args, 2);
+    }
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(function)) {
+        PyObject *args[2] = {arg1, arg2};
+        return __Pyx_PyCFunction_FastCall(function, args, 2);
+    }
+    #endif
+    args = PyTuple_New(2);
+    if (unlikely(!args)) goto done;
+    Py_INCREF(arg1);
+    PyTuple_SET_ITEM(args, 0, arg1);
+    Py_INCREF(arg2);
+    PyTuple_SET_ITEM(args, 1, arg2);
+    Py_INCREF(function);
+    result = __Pyx_PyObject_Call(function, args, NULL);
+    Py_DECREF(args);
+    Py_DECREF(function);
+done:
+    return result;
+}
 
 /* BytesEquals */
 static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {

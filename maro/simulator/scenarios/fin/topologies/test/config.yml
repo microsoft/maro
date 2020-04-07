@@ -1,0 +1,18 @@
+sub-engines:
+  -
+    type: stock # stock, futures
+    data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh/000001.bin"
+    stocks: # stocks to simulate 
+      - 000001
+      - 000002
+  # other sub-engine config here
+  #
+  # -
+  #   type: futures
+  #   data_path: "/path/to/data/file"
+  #   futures:
+  #     - 000001
+  #     - 000002
+
+
+    
