@@ -1,0 +1,81 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastasia"
+        },
+        "networkInterfaceName": {
+            "value": "god"
+        },
+        "networkSecurityGroupName": {
+            "value": "god-nsg"
+        },
+        "networkSecurityGroupRules": {
+            "value": [{
+                "name": "SSH",
+                "properties": {
+                    "priority": 300,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "22"
+                }
+            }]
+        },
+        "virtualNetworkName": {
+            "value": "MSRA-dist-vnet"
+        },
+        "addressPrefix": {
+            "value": "10.0.0.0/24"
+        },
+        "subnetName": {
+            "value": "default"
+        },
+        "subnetPrefix": {
+            "value": "10.0.0.0/24"
+        },
+        "publicIpAddressName": {
+            "value": "god-ip"
+        },
+        "publicIpAddressType": {
+            "value": "Static"
+        },
+        "publicIpAddressSku": {
+            "value": "Basic"
+        },
+        "virtualMachineName": {
+            "value": "god"
+        },
+        "virtualMachineRG": {
+            "value": "MSRA-dist"
+        },
+        "osDiskType": {
+            "value": "Premium_LRS"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_D4s_v3"
+        },
+        "adminUsername": {
+            "value": "chtang"
+        },
+        "adminPublicKey": {
+            "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4EsyC2gsv6PsLh7NZa69lNwlSv0M1hbUlwAp4FKkpT5UgfaGM76goSXy4UK+4tCtU9DqPMbGzcDLgEMWNO7FIQEqIyaYTCs0cic5y/X1nxPqx7aX/BDXQp6E9F/nxcrYWS9y6MY8ZZG/DY0R9cW0TtQFD3zKAfKVBCyZmYAXDxgt96o5qsDZKDeR4PaPBRwrKW4IykTdCRX3SmcttbSFV78MnHBa/n1EVOX6iY7mSPrkzBOY4PJdlWm+JZT41O9WbElUbKPupGUGMVbm4d2gHGqxHc9TFHloVJ9Ovbacojt9sx9V/NyqgtW4REUyTRADlZELz/LV+SSt3IJRRiKpL chaochao@chaodeMacBook-Pro.local"
+        },
+        "diagnosticsStorageAccountName": {
+            "value": "distdiag510"
+        },
+        "diagnosticsStorageAccountId": {
+            "value": "Microsoft.Storage/storageAccounts/distdiag510"
+        },
+        "diagnosticsStorageAccountType": {
+            "value": "Standard_LRS"
+        },
+        "diagnosticsStorageAccountKind": {
+            "value": "Storage"
+        }
+    }
+}
