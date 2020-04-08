@@ -3,12 +3,17 @@ from maro.simulator.frame import SnapshotList, Frame
 from maro.simulator.event_buffer import EventBuffer
 
 class AbsSubBusinessEngine(ABC):
-    def __init__(self, start_tick: int, max_tick: int, frame_resolution: int, config: str, event_buffer: EventBuffer):
+    def __init__(self, start_tick: int, max_tick: int, frame_resolution: int, config: dict, event_buffer: EventBuffer):
         self._start_tick = start_tick
         self._max_tick = max_tick
         self._frame_resolution = frame_resolution
         self._config = config
         self._event_buffer = event_buffer
+    
+    @property
+    @abstractmethod
+    def finance_type(self):
+        pass
 
     @property
     @abstractmethod
