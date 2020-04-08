@@ -34,19 +34,23 @@ class BikeReturnPayload:
     def __repr__(self):
         return f"(Bike return payload, target cell: {self.to_cell}, number: {self.number})"
 
+class DecisionType(Enum):
+    Supply = 'supply' # current cell has too more bikes, need transfer to others
+    Demand = 'demand' # current cell has no enough bikes, need neighobors transfer bikes to it
 
 class DecisionEvent:
-    def __init__(self, cell_idx: int, tick: int, frame_index: int, action_scope_func: callable):
+    def __init__(self, cell_idx: int, tick: int, frame_index: int, action_scope_func: callable, decision_type: DecisionType):
         self.cell_idx = cell_idx
         self.tick = tick
         self.frame_index = frame_index
+        self.type = decision_type
         self._action_scope = None
         self._action_scope_func = action_scope_func
 
     @property
     def action_scope(self):
         if self._action_scope is None:
-            self._action_scope = self._action_scope_func(self.cell_idx)
+            self._action_scope = self._action_scope_func(self.cell_idx, self.type)
 
         return self._action_scope
 

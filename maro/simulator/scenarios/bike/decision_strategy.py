@@ -1,5 +1,6 @@
 from .cell import Cell
 from math import floor
+from .common import DecisionType
 import numpy as np
 
 class BikeDecisionStrategy:
@@ -12,6 +13,14 @@ class BikeDecisionStrategy:
         self.low_water_mark_ratio = options["low_water_mark_ratio"]
         self.time_std = options["effective_time_std"]
 
+        
+        self.scope_low_ratio = 0 #Eoptions["action_scope"]["low"]
+        self.scope_high_ratio = 1 #options["action_scope"]["high"]
+
+        if "action_scope" in options:
+            self.scope_low_ratio = options["action_scope"]["low"]
+            self.scope_high_ratio = options["action_scope"]["high"]
+
     def get_cells_need_decision(self, tick: int) -> list:
         """Get cells that need to take an action from agent at current tick"""
 
@@ -19,28 +28,41 @@ class BikeDecisionStrategy:
 
         if (tick + 1) % self.resolution == 0:
             for cell in self._cells:
+                cur_ratio = cell.bikes / cell.capacity
                 # if cell has too many available bikes, then we ask an action
-                if cell.bikes/cell.capacity >= self.high_water_mark_ratio:
-                    cells.append(cell.index)
+                if cur_ratio >= self.high_water_mark_ratio:
+                    cells.append((cell.index, DecisionType.Supply))
+                elif cur_ratio <= self.low_water_mark_ratio:
+                    cells.append((cell.index, DecisionType.Demand))
 
         return cells
 
-    def action_scope(self, cell_idx: int):
+    def action_scope(self, cell_idx: int, decision_type: DecisionType):
         """Calculate action scope base on config"""
         cell: Cell = self._cells[cell_idx]
         neighbor_num = len(cell.neighbors)
         scope = {}
 
         # how many bikes we can supply to other cells from current cell
-        scope[cell_idx] = floor(cell.bikes * (1 - self.low_water_mark_ratio))
+        if decision_type == DecisionType.Supply:
+            scope[cell_idx] = floor(cell.bikes * (1 - self.scope_low_ratio))
+        else:
+            # how many bike we can accept
+            scope[cell_idx] = min(floor(cell.bikes * self.scope_high_ratio), cell.capacity - cell.bikes)
 
         for neighbor_idx in cell.neighbors:
             if neighbor_idx >=0:
-                neighbor_cell = self._cells[neighbor_idx]
+                neighbor_cell: Cell = self._cells[neighbor_idx]
 
                 # we should not transfer bikes to a cell which already meet the high water mark ratio
-                max_bikes = floor(neighbor_cell.capacity * self.high_water_mark_ratio)
-                scope[neighbor_idx] = max(max_bikes - neighbor_cell.bikes, 0)
+                if decision_type == DecisionType.Supply:
+                    # for supply decision, we provide max bikes that neighbor can accept
+                    max_bikes = neighbor_cell.capacity - neighbor_cell.bikes
+                else:
+                    # for demand decision, this will be max bikes that neighbor can provide
+                    max_bikes = neighbor_cell.bikes
+
+                scope[neighbor_idx] = max_bikes
         
         return scope
 

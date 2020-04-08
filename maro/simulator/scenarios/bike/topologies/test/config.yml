@@ -2,8 +2,15 @@ decision:
   resolution: 20 # frequence to check if a cell need an action
   effective_time_mean: 20
   effective_time_std: 10
-  high_water_mark_ratio: 0.9 # TODO: name
-  low_water_mark_ratio: 0.05
+
+  # these 2 water mark will affect the if decision should be generated
+  high_water_mark_ratio: 0.9
+  low_water_mark_ratio: 0.2
+
+  # ratio of action 
+  action_scope:
+    low: 0.1
+    high: 0.6
 trip_adjustment:
   bike_discount: 0.3
   adjust_rate: 1
