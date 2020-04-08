@@ -1,5 +1,5 @@
 # usage:
-# python bikedp.py ../../ny ../../ny/bin2019v2 ../../ny/full/h3_201306_202001.station.csv
+# python bikedp.py ../../ny ../../ny/bin2019v2 ../../ny/full/h3_201306_202001.station.csv ../../ny/bin2019v2/cell.csv
 
 import os
 import re
@@ -84,21 +84,21 @@ input_file_list = [
     # "201810-citibike-tripdata.csv",
     # "201811-citibike-tripdata.csv",
     # "201812-citibike-tripdata.csv",
-    "201901-citibike-tripdata.csv",
-    "201902-citibike-tripdata.csv",
-    "201903-citibike-tripdata.csv",
-    "201904-citibike-tripdata.csv",
-    "201905-citibike-tripdata.csv",
-    "201906-citibike-tripdata.csv",
-    "201907-citibike-tripdata.csv",
-    "201908-citibike-tripdata.csv",
-    "201909-citibike-tripdata.csv",
-    "201910-citibike-tripdata.csv",
-    "201911-citibike-tripdata.csv",
-    "201912-citibike-tripdata.csv",
+    # "201901-citibike-tripdata.csv",
+    # "201902-citibike-tripdata.csv",
+    # "201903-citibike-tripdata.csv",
+    # "201904-citibike-tripdata.csv",
+    # "201905-citibike-tripdata.csv",
+    # "201906-citibike-tripdata.csv",
+    # "201907-citibike-tripdata.csv",
+    # "201908-citibike-tripdata.csv",
+    # "201909-citibike-tripdata.csv",
+    # "201910-citibike-tripdata.csv",
+    # "201911-citibike-tripdata.csv",
+    # "201912-citibike-tripdata.csv",
     # "202001-citibike-tripdata.csv"
 
-    # "sample.csv"
+    "sample.csv"
 ]
 
 usertype_map = {
@@ -108,8 +108,8 @@ usertype_map = {
 
 data_file_name = "data.bin"
 neighbor_file_name = "map.csv"
-cell_file_name = "cell.csv"
-cell_name_file_name = "cell_name.csv"
+cell_init_file_name = "cell.csv"
+cell_to_hex_file_name = "cell_name.csv"
 
 
 output_data_dtype = np.dtype([
@@ -129,22 +129,21 @@ output_data_dtype = np.dtype([
 def read_src_file(file: str):
     """read and return processed rows"""
     ret = []
-    stations = {}
 
     if os.path.exists(file):
         with open(file) as fp:
 
             ret = pd.read_csv(fp)
-            ret = ret[['tripduration', 'starttime', 'start station id', 'end station id', 'gender', 'usertype']]
+            ret = ret[['tripduration', 'starttime', 'start station id', 'end station id', 'start station latitude', 'start station longitude', 'end station latitude', 'end station longitude', 'gender', 'usertype']]
             ret['tripduration'] = pd.to_numeric(pd.to_numeric(ret['tripduration'], downcast='integer') / 60, downcast='integer')
             ret['starttime'] = pd.to_datetime(ret['starttime'])
             ret['start station id'] = pd.to_numeric(ret['start station id'], errors='coerce', downcast='integer')
             # ret['stoptime'] = pd.to_datetime(ret['stoptime'])
             ret['end station id'] = pd.to_numeric(ret['end station id'], errors='coerce', downcast='integer')
-            # ret['start station latitude'] = pd.to_numeric(ret['start station latitude'],downcast='float')
-            # ret['start station longitude'] = pd.to_numeric(ret['start station longitude'],downcast='float')
-            # ret['end station latitude'] = pd.to_numeric(ret['end station latitude'],downcast='float')
-            # ret['end station longitude'] = pd.to_numeric(ret['end station longitude'],downcast='float')
+            ret['start station latitude'] = pd.to_numeric(ret['start station latitude'], downcast='float')
+            ret['start station longitude'] = pd.to_numeric(ret['start station longitude'], downcast='float')
+            ret['end station latitude'] = pd.to_numeric(ret['end station latitude'], downcast='float')
+            ret['end station longitude'] = pd.to_numeric(ret['end station longitude'], downcast='float')
             # ret['birth year'] = pd.to_numeric(ret['birth year'],errors='coerce',downcast='integer')
             ret['gender'] = pd.to_numeric(ret['gender'], errors='coerce', downcast='integer')
             ret['usertype'] = ret['usertype'].apply(str).apply(lambda x: 0 if x in ['Subscriber', 'subscriber'] else 1 if x in ['Customer', 'customer'] else 2)
@@ -152,24 +151,24 @@ def read_src_file(file: str):
             ret.drop(ret[ret['tripduration'] <= 1].index, axis=0, inplace=True)
             ret = ret.sort_values(by='starttime', ascending=True)
 
-    return ret, stations
+    return ret
 
 
-def read_station_file(station_file_path):
-    h3_data = None
-    if os.path.exists(station_file_path):
-        with open(station_file_path, mode="r", encoding="utf-8") as station_file:
-            h3_data = pd.read_csv(station_file)
-    return h3_data
+def _read_exist_cells(file: str):
+    # read exist cells from file
+    ret = pd.DataFrame(columns=['cell_id', 'hex_id'])
+
+    if os.path.exists(file):
+        with open(file) as fp:
+            exist_cells = pd.read_csv(fp)
+            exist_cells['cell_id'] = pd.to_numeric(exist_cells['cell_id'], downcast='integer')
+            ret = ret.append(exist_cells, ignore_index=True)
+    return ret
 
 
-def _station_to_cell(station_file_path: str):
+def _read_cell_init(station_file_path: str):
     # cell init data
     cell_init = None
-    # station to cell mapping
-    station_to_cell = None
-    # cell neighbors data
-    # mapping_map = None
 
     if os.path.exists(station_file_path):
         with open(station_file_path, mode="r", encoding="utf-8") as station_file:
@@ -178,39 +177,26 @@ def _station_to_cell(station_file_path: str):
             # group by cell to generate cell init info
             cell_init = raw_station_data[['hex_id', 'capacity', 'init']].groupby(['hex_id']).sum().sort_values(by='hex_id', ascending=True).reset_index()
             # generate cell id by index
-            cell_init['cell_id'] = pd.to_numeric(cell_init.index)
             cell_init['capacity'] = pd.to_numeric(cell_init['capacity'], downcast='integer')
             cell_init['init'] = pd.to_numeric(cell_init['init'], downcast='integer')
             # cell_data columns = ['cell_id','capacity','init','hex_id']
 
-            # fill cell id back to station-cell mapping
-            station_to_cell = raw_station_data.join(cell_init[['cell_id', 'hex_id']].set_index('hex_id'), on='hex_id')
+    return cell_init
 
-            print(station_to_cell, cell_init)
-
-            # generate cell neighbors data from column neighbors
-            # mapping_data = station_data.drop_duplicates(subset=['cell_id']).reset_index()
-            # mapping_data['neighbors_v2'] = mapping_data.apply(lambda x: _find_neighbors_by_row(x, mapping_data[['cell_id', 'hex_id']], 6), axis = 1)
-            # mapping_data['mapping'] = mapping_data['neighbors_v2'].apply(lambda x: _gen_neighbor_mapping_v2(x, mapping_data[['cell_id', 'hex_id']]))
-            # mapping_map = pd.DataFrame(-1, index=np.arange(len(mapping_data)), columns=np.arange(6), dtype=np.int64)
-            # mapping_data[['cell_id', 'mapping']].apply(lambda x:  _fill_mapping(x, mapping_map), axis=1)
-            # mapping_map['cell_id'] = mapping_data['cell_id']
-            # print(mapping_map)
-
-    return cell_init, station_to_cell
 
 def _find_neighbors_by_row(row, cell_to_hex, tar_num):
     neighbors = []
     cur_distance = 1
     # check if there are 6 neighbors in 100 cell distance
     while len(neighbors) < tar_num and cur_distance < 100:
-        new_neighbors = pd.Series(list(h3.k_ring_distances(row['hex_id'],cur_distance)[cur_distance]))
+        new_neighbors = pd.Series(list(h3.k_ring_distances(row['hex_id'], cur_distance)[cur_distance]))
         selected_neighbors = new_neighbors[new_neighbors.isin(cell_to_hex['hex_id'])].to_list()
         neighbors = (neighbors + selected_neighbors)[:tar_num]
         cur_distance += 1
         if cur_distance == 100:
             print(row)
     return neighbors
+
 
 def _gen_neighbor_mapping(neighbors: str, cell_to_hex: pd.DataFrame):
     # get neighbors list from neighbors string
@@ -222,15 +208,17 @@ def _gen_neighbor_mapping(neighbors: str, cell_to_hex: pd.DataFrame):
     ret = hex_df['cell_id'].tolist()
     return ret
 
+
 def _gen_neighbor_mapping_v2(neighbors: list, cell_to_hex: pd.DataFrame):
     # remove neighbors not in cell list
     hex_df = pd.DataFrame()
-    hex_df['hex_id']=pd.Series(neighbors)
+    hex_df['hex_id'] = pd.Series(neighbors)
     hex_df = hex_df.join(cell_to_hex[['cell_id', 'hex_id']].set_index('hex_id'), on='hex_id')
     hex_df.dropna(subset=['cell_id'], inplace=True)
     # pick cell id of neighbors
     ret = hex_df['cell_id'].tolist()
     return ret
+
 
 def _fill_mapping(row, mapping_map: pd.DataFrame):
     column = 0
@@ -240,33 +228,46 @@ def _fill_mapping(row, mapping_map: pd.DataFrame):
         # filter self in neighbors
         if row['mapping'][i] != x:
             # fill mapping_map
-            mapping_map.loc[mapping_map.index==x, column] = int(row['mapping'][i])
-            # skip self, use new column c in mapping_map 
+            mapping_map.loc[mapping_map.index == x, column] = int(row['mapping'][i])
+            # skip self, use new column c in mapping_map
             column += 1
 
 ######### output ############
 
-def concat(data: pd.DataFrame, file: str, station_to_cell: pd.DataFrame):
-    ret = data[['starttime', 'start station id', 'end station id', 'tripduration', 'usertype', 'gender']]
+
+def concat(data: pd.DataFrame, file: str, cells_existed: pd.DataFrame):
+    ret = data[['starttime', 'start station id', 'end station id', 'tripduration', 'usertype', 'gender', 'start station latitude', 'start station longitude', 'end station latitude', 'end station longitude']]
 
     # get the file size
     file_size = 0
-    ret = ret.join(station_to_cell[['station_id', 'cell_id']].set_index('station_id'), on='start station id').rename(columns={'cell_id': 'start_cell'})
-    ret = ret.join(station_to_cell[['station_id', 'cell_id']].set_index('station_id'), on='end station id').rename(columns={'cell_id': 'end_cell'})
-    ret = ret.rename(columns={'starttime': 'start_time', 'start station id': 'start_station', 'end station id': 'end_station', 'tripduration': 'duration'})
-    ret = ret[['start_time', 'start_station', 'end_station', 'duration', 'gender', 'usertype', 'start_cell', 'end_cell']]
+    resolution = 8
+    ret['start_cell_hex'] = ret.apply(lambda row: h3.geo_to_h3(row["start station latitude"], row["start station longitude"], resolution), axis=1)
+    ret['end_cell_hex'] = ret.apply(lambda row: h3.geo_to_h3(row["end station latitude"], row["end station longitude"], resolution), axis=1)
 
     # generate cell need to be dropped, because it has no neighbors
 
     #   get in data cells
     used_cells = []
-    used_cells.append(ret[['start_cell']].drop_duplicates(subset=['start_cell']).rename(columns={'start_cell': 'cell_id'}))
-    used_cells.append(ret[['end_cell']].drop_duplicates(subset=['end_cell']).rename(columns={'end_cell': 'cell_id'}))
-    in_data_cell = pd.concat(used_cells).drop_duplicates(subset=['cell_id']).sort_values(by=['cell_id']).reset_index()
+    used_cells.append(ret[['start_cell_hex']].drop_duplicates(subset=['start_cell_hex']).rename(columns={'start_cell_hex': 'hex_id'})[['hex_id']])
+    used_cells.append(ret[['end_cell_hex']].drop_duplicates(subset=['end_cell_hex']).rename(columns={'end_cell_hex': 'hex_id'})[['hex_id']])
+    in_data_cell = pd.concat(used_cells, ignore_index=True).drop_duplicates(subset=['hex_id']).sort_values(by=['hex_id']).reset_index()[['hex_id']]
+    new_cell = (in_data_cell[~in_data_cell['hex_id'].isin(cells_existed['hex_id'])].reset_index())[['hex_id']]
+    print(new_cell)
+    max_cell_id = cells_existed['cell_id'].max() if len(cells_existed)>0 else -1
+    new_cell['cell_id'] = pd.to_numeric(new_cell.index, downcast='integer') + max_cell_id + 1
+    print(new_cell)
+    print(cells_existed)
+    cells_existed = cells_existed[['cell_id', 'hex_id']].append(new_cell, ignore_index=True)
+    print(cells_existed)
+    ret = ret.join(cells_existed.set_index('hex_id'), on='start_cell_hex').rename(columns={'cell_id': 'start_cell'})
+    ret = ret.join(cells_existed.set_index('hex_id'), on='end_cell_hex').rename(columns={'cell_id': 'end_cell'})
+    ret = ret.rename(columns={'starttime': 'start_time', 'start station id': 'start_station', 'end station id': 'end_station', 'tripduration': 'duration'})
+    ret = ret[['start_time', 'start_station', 'end_station', 'duration', 'gender', 'usertype', 'start_cell', 'end_cell']]
+
     #   get in data cell hex_id
-    data_mapping_data = in_data_cell.join(station_to_cell[['cell_id', 'hex_id']].drop_duplicates(subset=['cell_id']).set_index('cell_id'), on='cell_id').drop(['index'], axis = 1)
+    data_mapping_data = cells_existed[['cell_id', 'hex_id']]
     #   get in data cell neighbors in hex_id
-    data_mapping_data['neighbors_v2'] = data_mapping_data.apply(lambda x: _find_neighbors_by_row(x, data_mapping_data, 6), axis = 1)
+    data_mapping_data['neighbors_v2'] = data_mapping_data.apply(lambda x: _find_neighbors_by_row(x, data_mapping_data, 6), axis=1)
     #   get in data cell neighbors in cell_id
     data_mapping_data['mapping'] = data_mapping_data['neighbors_v2'].apply(lambda x: _gen_neighbor_mapping_v2(x, data_mapping_data[['cell_id', 'hex_id']]))
     #   get neighbors in cell bool matrix
@@ -297,26 +298,26 @@ def concat(data: pd.DataFrame, file: str, station_to_cell: pd.DataFrame):
 
     arr[:] = np.array(mem_output, dtype=output_data_dtype)
 
-    
-    return in_data_cell
-
-
-
-    
+    return cells_existed
 
 
 if __name__ == "__main__":
     input_folder = sys.argv[1]
     output_folder = sys.argv[2]
     station_file_path = sys.argv[3]
+    cell_file_path = 'none'
+    if len(sys.argv) > 4:
+        cells_file_path = sys.argv[4]
 
     output_data_path = os.path.join(output_folder, data_file_name)
-    cell_file_path = os.path.join(output_folder, cell_file_name)
+    cell_init_file_path = os.path.join(output_folder, cell_init_file_name)
     neighbor_file_path = os.path.join(output_folder, neighbor_file_name)
-    cell_name_file_path = os.path.join(output_folder, cell_name_file_name)
+    cell_to_hex_file_path = os.path.join(output_folder, cell_to_hex_file_name)
 
     # generate full cell data
-    cell_init, station_to_cell = _station_to_cell(station_file_path)
+    # read existed cells : cell_id , hex_id
+    cells_existed = _read_exist_cells(cells_file_path)
+    full_cells_init = _read_cell_init(station_file_path)
 
     data_cell_dfs = []
     # generate bin file
@@ -326,39 +327,34 @@ if __name__ == "__main__":
         # show current process file
         print(f"processing {src_full_path}")
 
-        r, s = read_src_file(src_full_path)
+        r = read_src_file(src_full_path)
 
-        if r is not None and len(r)>0:
-            data_cell_dfs.append(concat(r, output_data_path, station_to_cell))
+        if r is not None and len(r) > 0:
+            cells_existed = concat(r, output_data_path, cells_existed)
 
     # filter cell by data
-    data_cell = pd.concat(data_cell_dfs).drop_duplicates(subset=['cell_id']).sort_values(by=['cell_id']).reset_index()
-    data_cell = data_cell[['cell_id']]
-    data_cell_init = data_cell.join(cell_init.set_index('cell_id'), on='cell_id')
+    data_cell_init = cells_existed.join(full_cells_init[['hex_id', 'capacity', 'init']].set_index('hex_id'), on='hex_id')
 
-    data_cell_name = data_cell_init[['cell_id','hex_id']]
-    
-    data_mapping_data = data_cell_init[['cell_id','hex_id']]
+    data_cell_name = cells_existed[['cell_id', 'hex_id']]
+
+    data_mapping_data = cells_existed[['cell_id', 'hex_id']]
 
     data_cell_init = data_cell_init[['cell_id', 'capacity', 'init']]
 
     # generate cell neighbors
-    data_mapping_data['neighbors'] = data_mapping_data.apply(lambda x: _find_neighbors_by_row(x, data_cell_name, 6), axis = 1)
+    data_mapping_data['neighbors'] = data_mapping_data.apply(lambda x: _find_neighbors_by_row(x, data_cell_name, 6), axis=1)
     data_mapping_data['mapping'] = data_mapping_data['neighbors'].apply(lambda x: _gen_neighbor_mapping_v2(x, data_cell_name))
     data_neighbor = pd.DataFrame(-1, index=data_mapping_data['cell_id'], columns=np.arange(6), dtype=np.int64)
     data_mapping_data[['cell_id', 'mapping']].apply(lambda x:  _fill_mapping(x, data_neighbor), axis=1)
-    data_neighbor['cell_id'] = pd.to_numeric(data_neighbor.index, downcast='integer')
-
-
 
     # write cell init file
-    with open(cell_file_path, mode="w", encoding="utf-8", newline='') as cell_file:
-        data_cell_init.to_csv(cell_file, index=False)
+    with open(cell_init_file_path, mode="w", encoding="utf-8", newline='') as cell_init_file:
+        data_cell_init.to_csv(cell_init_file, index=False)
 
     # write cell neighbors file
     with open(neighbor_file_path, mode="w", encoding="utf-8", newline='') as mapping_file:
-        data_neighbor.to_csv(mapping_file, index=False)
+        data_neighbor.to_csv(mapping_file, index=False, header=False)
 
     # write cell name file
-    with open(cell_name_file_path, mode="w", encoding="utf-8", newline='') as cell_name_file:
-        data_cell_name.to_csv(cell_name_file, index=False)
+    with open(cell_to_hex_file_path, mode="w", encoding="utf-8", newline='') as cell_to_hex_file:
+        data_cell_name.to_csv(cell_to_hex_file, index=False)
