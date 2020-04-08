@@ -55,7 +55,7 @@ class DecisionEvent:
         return self._action_scope
 
     def __repr__(self):
-        return f"DecisionEvent(cell: {self.cell_idx}, action scope: {self.action_scope})"
+        return f"DecisionEvent(cell: {self.cell_idx}, action scope: {self.action_scope}, type: {self.type})"
 
 
 class Action:

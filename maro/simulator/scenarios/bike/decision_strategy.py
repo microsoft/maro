@@ -48,7 +48,7 @@ class BikeDecisionStrategy:
             scope[cell_idx] = floor(cell.bikes * (1 - self.scope_low_ratio))
         else:
             # how many bike we can accept
-            scope[cell_idx] = min(floor(cell.bikes * self.scope_high_ratio), cell.capacity - cell.bikes)
+            scope[cell_idx] = cell.capacity - cell.bikes
 
         for neighbor_idx in cell.neighbors:
             if neighbor_idx >=0:
@@ -60,7 +60,7 @@ class BikeDecisionStrategy:
                     max_bikes = neighbor_cell.capacity - neighbor_cell.bikes
                 else:
                     # for demand decision, this will be max bikes that neighbor can provide
-                    max_bikes = neighbor_cell.bikes
+                    max_bikes = floor(neighbor_cell.bikes * self.scope_high_ratio)
 
                 scope[neighbor_idx] = max_bikes
         

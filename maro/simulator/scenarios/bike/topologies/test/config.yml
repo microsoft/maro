@@ -9,8 +9,8 @@ decision:
 
   # ratio of action 
   action_scope:
-    low: 0.1
-    high: 0.6
+    low: 0.1 # min ratio of available bikes to keep for current cell, to supply to neighbors
+    high: 0.6 # max ratio of available bikes neighbors can provide to current cell
 trip_adjustment:
   bike_discount: 0.3
   adjust_rate: 1
