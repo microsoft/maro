@@ -53,7 +53,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for sub_engine in self._sub_engines:
             sub_engine.step(tick)
 
-        print("tick", tick)
         return tick + 1 == self._max_tick
 
     def post_step(self, tick):

@@ -11,7 +11,9 @@ while not is_done:
 
 stock_snapshots : SnapshotList = env.snapshot_list.test_stocks
 
+print("len of snapshot:", len(stock_snapshots))
+
 stock_opening_price = stock_snapshots.static_nodes[::("opening_price", 0)]
 
-print("opening price for all the ticks")
+print("opening price for all the ticks:")
 print(stock_opening_price)
