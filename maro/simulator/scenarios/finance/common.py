@@ -1,6 +1,8 @@
-from typing import List, Dict
-from .abs_sub_business_engine import AbsSubBusinessEngine
 from enum import Enum
+from typing import Dict, List
+
+from .abs_sub_business_engine import AbsSubBusinessEngine
+
 
 class FinanceType(Enum):
     stock = "stock",
@@ -39,5 +41,3 @@ class SubEngineAccessWrapper:
         properties = {name: getattr(engine, property_name) for name, engine in self._engines.items()}
 
         return SubEngineAccessWrapper.PropertyAccessor(properties)
-
-    

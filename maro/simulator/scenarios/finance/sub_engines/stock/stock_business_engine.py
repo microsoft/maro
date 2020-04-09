@@ -7,7 +7,7 @@ from maro.simulator.scenarios.finance.abs_sub_business_engine import \
 from maro.simulator.scenarios.finance.common import FinanceType
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
-from maro.simulator.scenarios.finance.reader import Stock as RawStock                                             
+from maro.simulator.scenarios.finance.reader import Stock as RawStock
 from maro.simulator.utils.common import tick_to_frame_index
 
 from .frame_builder import build_frame

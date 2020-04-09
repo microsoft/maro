@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
-from maro.simulator.frame import SnapshotList, Frame
-from maro.simulator.event_buffer import EventBuffer
 from math import ceil
+
+from maro.simulator.event_buffer import EventBuffer
+from maro.simulator.frame import Frame, SnapshotList
+
 
 class AbsSubBusinessEngine(ABC):
     def __init__(self, start_tick: int, max_tick: int, frame_resolution: int, config: dict, event_buffer: EventBuffer):
@@ -51,4 +53,3 @@ class AbsSubBusinessEngine(ABC):
     @property
     def max_tick(self):
         return self._max_tick
-

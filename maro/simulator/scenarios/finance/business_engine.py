@@ -7,9 +7,8 @@ from maro.simulator.event_buffer import EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
-from .common import FinanceType
+from .common import FinanceType, SubEngineAccessWrapper
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
-from .common import SubEngineAccessWrapper
 
 # type 2 class 
 sub_engine_definitions = {

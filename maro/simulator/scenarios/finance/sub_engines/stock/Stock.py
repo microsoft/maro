@@ -1,5 +1,6 @@
-from maro.simulator.frame import Frame, FrameNodeType
 from functools import partial
+
+from maro.simulator.frame import Frame, FrameNodeType
 
 STOCK_NODE = FrameNodeType.STATIC
 
