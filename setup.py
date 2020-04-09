@@ -14,9 +14,9 @@ frame_ext = Extension("maro.simulator.frame",
           sources=["maro/simulator/frame/frame.pyx"],
           include_dirs=[numpy.get_include()])
 
-fin_ext = Extension("maro.simulator.scenarios.fin.reader",
+fin_ext = Extension("maro.simulator.scenarios.finance.reader",
           sources=[
-              "maro/simulator/scenarios/fin/reader/reader.pyx",
+              "maro/simulator/scenarios/finance/reader/reader.pyx",
           ],
           include_dirs=[
               numpy.get_include(),

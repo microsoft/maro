@@ -9,10 +9,11 @@ from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
 from .common import FinanceType
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
+from .common import SubEngineAccessWrapper
 
 # type 2 class 
 sub_engine_definitions = {
-    FinanceType.Stock: StockBusinessEngine
+    FinanceType.stock: StockBusinessEngine
 }
 
 
@@ -22,20 +23,23 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._conf = {}
         self._sub_engines = []
+        self._frame_accessor: SubEngineAccessWrapper.PropertyAccessor = None
+        self._snapshot_accessor: SubEngineAccessWrapper.PropertyAccessor = None
+        self._sub_engine_accessor: SubEngineAccessWrapper = None
 
         self._read_conf()
         self._init_sub_engines()
 
     @property
-    def frame(self) -> Frame:
+    def frame(self):
         """Frame: Frame of current business engine
         """
-        pass
+        return self._frame_accessor
 
     @property
-    def snapshots(self) -> SnapshotList:
+    def snapshots(self):
         """SnapshotList: Snapshot list of current frame"""
-        pass
+        return self._snapshot_accessor
 
     def step(self, tick: int) -> bool:
         """Used to process events at specified tick, usually this is called by Env at each tick
@@ -49,6 +53,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for sub_engine in self._sub_engines:
             sub_engine.step(tick)
 
+        print("tick", tick)
         return tick + 1 == self._max_tick
 
     def post_step(self, tick):
@@ -102,10 +107,15 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     def _init_sub_engines(self):
         for sub_conf in self._conf["sub-engines"]:
-            engine_type = sub_conf["type"]
+            engine_type = FinanceType[sub_conf["type"]]
 
             if engine_type in sub_engine_definitions:
                 engine = sub_engine_definitions[engine_type](self._start_tick, self._max_tick, 
                                             self._frame_resolution, sub_conf, self._event_buffer)
                 
                 self._sub_engines.append(engine)
+
+        
+        self._sub_engine_accessor = SubEngineAccessWrapper(self._sub_engines)
+        self._frame_accessor = self._sub_engine_accessor.get_property_access("frame")
+        self._snapshot_accessor = self._sub_engine_accessor.get_property_access("snapshot_list")
