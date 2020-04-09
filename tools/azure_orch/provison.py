@@ -1,18 +1,16 @@
 import getpass, os, subprocess
-from utils import output_level, output
+import logging
+from dirsync import sync
 import inquirer
 import json
 
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(levelname)s - %(asctime)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 def config_summary(nodes_config):
     pass
-
-# def create_cluster(nodes_config):
-#     config_summary(nodes_config)
-#     output(output_level.YELLOW, "this is a test!")
-#     # for node in nodes_config:
-#     #     if node.type == "redis_agent":
-
-#     #     else:
 
 def create_cluster():
     delta_cluster_info = inquirer_cluster()
@@ -31,10 +29,10 @@ def create_cluster():
     
     res = subprocess.run(config_bin, shell=True, capture_output=True)
     if res.returncode:
-        output(output_level.RED, f"run {config_bin} error.")
+        logging.error(f"run {config_bin} error.")
         raise("!!!")
     else:
-         output(output_level.WHITE, f"run {config_bin} sucess.")
+        logging.info(f"run {config_bin} sucess.")
 
     for worker in os.listdir(f"azure_template/config"):
         create_bin = f"./azure_template/deploy.sh -i {delta_cluster_info['subscription']} " + \
@@ -45,10 +43,10 @@ def create_cluster():
 
         res = subprocess.run(create_bin, shell=True, capture_output=True)
         if res.returncode:
-            output(output_level.RED, f"run {create_bin} error.")
+            logging.error(f"run {create_bin} error.")
             raise("!!!")
         else:
-            output(output_level.WHITE, f"run {create_bin} sucess.")
+            logging.info(f"run {create_bin} sucess.")
     
     start_cluster(delta_cluster_info)
     mount_AFS(delta_cluster_info)
@@ -75,50 +73,52 @@ def create_god():
     for bin in [config_bin, create_bin, get_IP_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
-            output(output_level.RED, f"run {bin} error.")
+            logging.error(f"run {bin} error.")
             raise("!!!")
         else:
             if bin[0] == 'a':
                 ip_info = json.loads(res.stdout)
                 god_ip = ip_info[0]["ipAddress"]
-                output(output_level.WHITE, "Now you can remote login your agent machine.", end="")
-                output(output_level.RED, "COPY AND RUN:", end="")
-                output(output_level.WHITE, f"ssh {god_info['adminUsername']}@{god_ip}")
+                logging.info("Now you can remote login your agent machine. ")
+                logging.info(f"COPY AND RUN: ssh {god_info['adminUsername']}@{god_ip}")
                 res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/CreationMemorandum.md {god_info['adminUsername']}@{god_ip}:~; " + \
                                 f"scp -o StrictHostKeyChecking=no azure_template/{god_info_name}.json {god_info['adminUsername']}@{god_ip}:~/clusterInfo.json", 
                                 shell=True, capture_output=True)
                 if res.returncode:
-                    output(output_level.RED, f"scp error.")
+                    logging.error("scp error.")
                     raise("!!!")
             else:
-                output(output_level.WHITE, f"run {bin} sucess.")
+                logging.info(f"run {bin} sucess.")
     
     create_file_share(god_info)
+
+    mount_AFS(god_info)
     
 def create_file_share(god_info):
-    with open(f"azure_template/config_{god_info['virtualMachineRG']}/{god_info['virtualMachines'][0]['name']}.json", 'w') as infile:  
+    with open(f"azure_template/config_{god_info['virtualMachineRG']}/{god_info['virtualMachines'][0]['name']}.json", 'r') as infile:  
         god_info = json.load(infile)
     
-    res = subprocess.run(f"storageAccountName={god_info['parameters']['diagnosticsStorageAccountName']} \
-        resourceGroupName={god_info['virtualMachineRG']} \
-            shareName={god_info['virtualMachineRG']} \
-                ./bin/create_file_share.sh")
+    res = subprocess.run(f"storageAccountName={god_info['parameters']['diagnosticsStorageAccountName']['value']} \
+        resourceGroupName={god_info['parameters']['virtualMachineRG']['value']} \
+            shareName=sharefile \
+                bash ./bin/create_file_share.sh",
+                shell=True, capture_output=True)
 
     if res.returncode:
-        output(output_level.RED, "share file create failed!")
+        logging.error("share file create failed!")
         raise("!!!")
     else:
-        output(output_level.WHITE, "share file create success!")
+        logging.info("share file create success!")
 
 def mount_AFS(delta_cluster_info):
-    with open(f"azure_template/config_{delta_cluster_info['virtualMachineRG']}/god.json", 'w') as infile:  
+    with open(f"azure_template/config_{delta_cluster_info['virtualMachineRG']}/god.json", 'r') as infile:  
         god_info = json.load(infile)
     storage_account_name = god_info["parameters"]["diagnosticsStorageAccountName"]
 
     for worker in delta_cluster_info["virtualMachines"]:
-        share_name = delta_cluster_info["virtualMachineRG"]
+        share_name = "sharefile"
         share_file_location = f"//{storage_account_name}.file.core.windows.net/{share_name} "
-        mount_dir = "/docker_images/ "
+        mount_dir = "/codepoint/ "
         password = subprocess.run(f'''az storage account keys list \
                                     --resource-group {delta_cluster_info["virtualMachineRG"]} \
                                     --account-name {storage_account_name} \
@@ -127,16 +127,16 @@ def mount_AFS(delta_cluster_info):
 
         auth = f"vers=3.0,username={share_name},password={password},dir_mode=0777,file_mode=0777,sec=ntlmssp"
         
-        mount_bin = "sudo mkdir -p /docker_images; " + "sudo mount -t cifs " + share_file_location + mount_dir + "-o " + auth
+        mount_bin = "sudo mkdir -p /codepoint; " + "sudo mount -t cifs " + share_file_location + mount_dir + "-o " + auth
         ssh_bin = f"ssh -o StrictHostKeyChecking=no {worker['name']} '{mount_bin}'"
 
         res = subprocess.run(ssh_bin, shell=True, capture_output=True)
         
         if res.returncode:
-            output(output_level.RED, f"{worker['name']} mount AFS failed!")
+            logging.error(f"{worker['name']} mount AFS failed!")
             raise("!!!")
         else:
-            output(output_level.WHITE, f"{worker['name']} mount AFS success!")
+            logging.info(f"{worker['name']} mount AFS success!")
 
 
 def inquirer_cluster():
@@ -197,7 +197,7 @@ def inquirer_god():
         inquirer.Text(
             'virtualMachineRG',
             message="What name is your group?",
-            default="UNDEFINED"
+            default="maro_dist"
         ),
         inquirer.Text(
             'godSize',
@@ -223,13 +223,11 @@ def inquirer_god():
     return god_info
 
 
-def start_cluster(group_name):
-    output(output_level.YELLOW, "Resource Group:", end="")
-    output(output_level.WHITE, delta_cluster_info["virtualMachineRG"])
+def start_cluster(cluster_info):
+    logging.info(f"Resource Group: {cluster_info['virtualMachineRG']}")
 
-    output(output_level.YELLOW, "Machines to start:")
-    for worker in delta_cluster_info["virtualMachines"]:
-        output(output_level.WHITE, worker["name"])
+    logging.info("Machines to start:")
+    logging.info(' '.join([worker["name"] for worker in cluster_info["virtualMachines"]]))
 
     questions = [
         inquirer.Text(
@@ -245,28 +243,26 @@ def start_cluster(group_name):
     answers = inquirer.prompt(questions)
 
     start_bin = ""
-    virtualMachineRG = delta_cluster_info["virtualMachineRG"]
+    virtualMachineRG = cluster_info["virtualMachineRG"]
     if answers["firstAffirm"] == "y" and answers["secondAffirm"] == "y":
-        for worker in delta_cluster_info["virtualMachines"]:
+        for worker in cluster_info["virtualMachines"]:
             start_bin = f"(az vm start -g {virtualMachineRG} -n {worker['name']} || echo 'start {worker['name']} error') &"
         res = subprocess.run(start_bin, shell=True, capture_output=True)
 
         if res.returncode:
-            output(output_level.RED, "start cluster failed!")
+            logging.error("start cluster failed!")
             raise("!!!")
         else:
-            output(output_level.WHITE, "start cluster success!")
+            logging.info("start cluster success!")
 
-def stop_cluster():
-    with open(f'~/clusterInfo.json', 'r') as infile:
-        exist_cluster_info = json.load(infile)
+def stop_cluster(cluster_info):
+    # with open(f'~/clusterInfo.json', 'r') as infile:
+    #     exist_cluster_info = json.load(infile)
     
-    output(output_level.YELLOW, "Resource Group:", end="")
-    output(output_level.WHITE, exist_cluster_info["virtualMachineRG"])
+    logging.info(f"Resource Group: {cluster_info['virtualMachineRG']}")
 
-    output(output_level.YELLOW, "Machines to start:")
-    for worker in exist_cluster_info["virtualMachines"]:
-        output(output_level.WHITE, worker["name"])
+    logging.info("Machines to start:")
+    logging.info(' '.join([worker["name"] for worker in cluster_info["virtualMachines"]]))
 
     questions = [
         inquirer.Text(
@@ -282,19 +278,55 @@ def stop_cluster():
     answers = inquirer.prompt(questions)
 
     start_bin = ""
-    virtualMachineRG = exist_cluster_info["virtualMachineRG"]
+    virtualMachineRG = cluster_info["virtualMachineRG"]
     if answers["firstAffirm"] == "y" and answers["secondAffirm"] == "y":
-        for worker in exist_cluster_info["virtualMachines"]:
+        for worker in cluster_info["virtualMachines"]:
             start_bin = f"(az vm deallocate -g {virtualMachineRG} -n {worker['name']} || echo 'stop {worker['name']} error') &"
         res = subprocess.run(start_bin, shell=True, capture_output=True)
 
         if res.returncode:
-            output(output_level.RED, "stop cluster failed!")
+            logging.error("stop cluster failed!")
             raise("!!!")
         else:
-            output(output_level.WHITE, "stop cluster success!")
+            logging.info("stop cluster success!")
 
-# def install_docker():
+def install_docker(delta_cluster_info):
+    for worker in delta_cluster_info["virtualMachines"]:
+        install_bin = f"ssh -o StrictHostKeyChecking=no {worker['name']} 'bash /codepoint/bin/install_docker.sh'"
+        res = subprocess.run(install_bin, shell=True, capture_output=True)
+        
+        if res.returncode:
+            logging.error(f"run {install_bin} failed!")
+            raise("!!!")
+        else:
+            logging.info(f"run {install_bin} success!")
+
+def init_god():
+    #sync code to codepoint
+    src = os.environ['PYTHONPATH']
+    sync(src, "/codepoint/", 'sync', purge=True)
+
+    #initialize docker
+    install_bin = "bash /codepoint/bin/install_docker.sh"
+    res = subprocess.run(install_bin, shell=True, capture_output=True)
+
+    if res.returncode:
+        logging.error(f"run {install_bin} failed!")
+        raise("!!!")
+    else:
+        logging.info(f"run {install_bin} success!")
+
+    #launch redis-server
+    launch_bin = "bash /codepoint/bin/launch_redis.sh"
+    res = subprocess.run(launch_bin, shell=True, capture_output=True)
+
+    if res.returncode:
+        logging.error(f"run {launch_bin} failed!")
+        raise("!!!")
+    else:
+        logging.info(f"run {launch_bin} success!")
+
+
 
 # unit test
 if __name__ == "__main__":
@@ -305,5 +337,6 @@ if __name__ == "__main__":
     # print(res.returncode)
     # print("123")
     # create_god()
-    password = subprocess.run(''' az storage account keys list --resource-group maro_dist --account-name dist4222797289618520747 --query "[0].value" | tr -d '"' ''', shell=True, capture_output=True)
-    print(password.stdout)
+    # password = subprocess.run(''' az storage account keys list --resource-group maro_dist --account-name dist4222797289618520747 --query "[0].value" | tr -d '"' ''', shell=True, capture_output=True)
+    # print(password.stdout)
+    create_file_share(inquirer_god())
