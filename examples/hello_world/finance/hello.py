@@ -2,7 +2,7 @@ from maro.simulator import Env
 from maro.simulator.frame import SnapshotList
 
 
-env = Env("finance", "test", max_tick=10)
+env = Env("finance", "test", max_tick=-1)
 
 reward, decision_event, is_done = env.step(None)
 

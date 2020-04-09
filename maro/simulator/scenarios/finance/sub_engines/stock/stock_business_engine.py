@@ -23,8 +23,6 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._readers: dict = None
 
         self._init_reader()
-        self._init_frame()
-        self._build_stocks()
 
     @property
     def finance_type(self):
@@ -39,14 +37,21 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         return self._snapshots
 
     def step(self, tick: int):
-        pass
+        for _, reader in self._readers.items():
+            pass
+
+        
 
     def post_step(self, tick: int):
         pass
 
+    def post_init(self, max_tick: int):
+        self._init_frame()
+        self._build_stocks()
+
     def _init_frame(self):
         self._frame = build_frame(len(self._stock_codes))
-        self._snapshots = SnapshotList(self._frame, self._total_frames)
+        self._snapshots = SnapshotList(self._frame, self._max_tick)
 
     def _build_stocks(self):
         self._stocks = []
@@ -65,4 +70,12 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         for code in self._stock_codes:
             data_path = os.path.join(data_folder, f"{code}.bin").encode()
 
-            self._readers[code] = FinanceReader(FinanceDataType.STOCK, data_path)
+            self._readers[code] = FinanceReader(FinanceDataType.STOCK, data_path, self._start_tick, self._max_tick)
+
+            # in case the data file contains different ticks
+            new_max_tick = self._readers[code].max_tick
+            self._max_tick = new_max_tick if self._max_tick <=0 else min(new_max_tick, self._max_tick)
+
+            print("reader size:", self._readers[code].size)
+        
+        print("ticks after align:", self._start_tick, self._max_tick)

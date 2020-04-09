@@ -2,7 +2,7 @@
 
 import time
 from enum import IntEnum
-
+from math import floor
 from cython cimport view
 
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
@@ -164,18 +164,37 @@ cdef class FinanceReader:
         # start index
         int query_start
         int num
+        int _max_tick
 
     def __cinit__(self, uint8_t dtype, char *path, start_tick: int, max_tick: int):
         self.dtype = dtype
         self.path = path
+        self._max_tick = max_tick
         self.stock = Stock()
 
         if FALSE == init_reader(self.path, &self.reader, dtype):
             raise "Fail to initialize Finance reader"
 
+        # calculate offset(start) and number to read
+        # NOTE: we assume we are using daily data
+        # day_seconds = 60 * 60 * 24
+        # start_time = floor(self.meta.start_time / day_seconds) + start_tick
+        # end_time = int((self.meta.end_time - self.meta.start_time) / day_seconds)
+
         # NOTE: we have to set start and num correctly to get item
-        self.reader.start = 0
-        self.reader.num = self.reader.size
+        self.reader.start = start_tick
+        if max_tick <= 0:
+            self._max_tick = self.reader.size
+            self.reader.num = self.reader.size - start_tick
+        else:
+            self._max_tick = min(max_tick, self.reader.size)
+            self.reader.num = self._max_tick - start_tick
+
+        # self.reader.num = self.reader.size
+
+    @property
+    def max_tick(self):
+        return self._max_tick
 
     @property
     def size(self):
@@ -203,9 +222,6 @@ cdef class FinanceReader:
         return self.reader.meta.version
 
     def next_item(self):
-        if self.reader.cur_index + 1 == self.reader.size:
-            return None
-            
         if FALSE == next_item(&self.reader):
             return None
 

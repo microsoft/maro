@@ -29,7 +29,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._read_conf()
         self._init_sub_engines()
-
+        
     @property
     def frame(self):
         """Frame: Frame of current business engine
@@ -114,7 +114,13 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 
                 self._sub_engines.append(engine)
 
+                self._max_tick = engine.max_tick if self._max_tick <= 0 else min(self._max_tick, engine.max_tick)
+
         
+        # after we aligned the max tick, then post_init to ask sub-engines to init frame and snapshot
+        for sub_engine in self._sub_engines:
+            sub_engine.post_init(self._max_tick)
+
         self._sub_engine_accessor = SubEngineAccessWrapper(self._sub_engines)
         self._frame_accessor = self._sub_engine_accessor.get_property_access("frame")
         self._snapshot_accessor = self._sub_engine_accessor.get_property_access("snapshot_list")

@@ -8,7 +8,6 @@ class AbsSubBusinessEngine(ABC):
         self._start_tick = start_tick
         self._max_tick = max_tick
         self._frame_resolution = frame_resolution
-        self._total_frames = ceil(max_tick/frame_resolution)
         self._config = config
         self._event_buffer = event_buffer
         self._name = config["name"]
@@ -39,4 +38,12 @@ class AbsSubBusinessEngine(ABC):
     @abstractmethod
     def post_step(self, tick: int):
         pass
+
+    @abstractmethod
+    def post_init(self, max_tick):
+        pass
+
+    @property
+    def max_tick(self):
+        return self._max_tick
 
