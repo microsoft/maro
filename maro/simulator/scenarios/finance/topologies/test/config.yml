@@ -1,5 +1,6 @@
 sub-engines:
   -
+    name: 'test_stocks' # used to access from out of env by name
     type: stock # stock, futures
     data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh/000001.bin"
     stocks: # stocks to simulate 

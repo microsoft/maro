@@ -9,6 +9,11 @@ class AbsSubBusinessEngine(ABC):
         self._frame_resolution = frame_resolution
         self._config = config
         self._event_buffer = event_buffer
+        self._name = config["name"]
+
+    @property
+    def name(self):
+        return self._name
     
     @property
     @abstractmethod

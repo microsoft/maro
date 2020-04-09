@@ -1,6 +1,12 @@
-from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
-from maro.simulator.event_buffer import EventBuffer
+import os
+from typing import Dict, List
+
 from yaml import safe_load
+
+from maro.simulator.event_buffer import EventBuffer
+from maro.simulator.frame import Frame, SnapshotList
+from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
+
 from .common import FinanceType
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
 
@@ -59,7 +65,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         """object: Configurations of this business engine"""
         pass
 
-    @abstractmethod
     def rewards(self, actions) -> float:
         """Calculate rewards based on actions
 
@@ -92,7 +97,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         pass
 
     def _read_conf(self):
-        with open(self._config_path) as fp:
+        with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._conf = safe_load(fp)
 
     def _init_sub_engines(self):
