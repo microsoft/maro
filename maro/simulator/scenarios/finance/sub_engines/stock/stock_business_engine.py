@@ -50,6 +50,8 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
                 stock.opening_price = raw_stock.opening_price
 
+                # TODO: more data 
+
     def post_step(self, tick: int):
         self.snapshot_list.insert_snapshot(self._frame, tick)
 

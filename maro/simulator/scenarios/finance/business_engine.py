@@ -68,7 +68,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     @property
     def configs(self) -> dict:
         """object: Configurations of this business engine"""
-        pass
+        return self._conf
 
     def rewards(self, actions) -> float:
         """Calculate rewards based on actions
@@ -83,6 +83,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset business engine"""
+
+        # TODO: since we will not change anything during simulating, so we can cache all the data here,
+        # or just one episode
         pass
 
     def get_node_name_mapping(self) -> Dict[str, Dict]:
@@ -116,7 +119,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 self._sub_engines.append(engine)
 
                 self._max_tick = engine.max_tick if self._max_tick <= 0 else min(self._max_tick, engine.max_tick)
-
         
         # after we aligned the max tick, then post_init to ask sub-engines to init frame and snapshot
         for sub_engine in self._sub_engines:
