@@ -391,7 +391,7 @@ time_t get_time(const char *date)
     time.tm_sec = 0;
 
     time_t t = mktime(&time);
-
+    
     return t;
 }
 
@@ -424,15 +424,15 @@ char *read_json(const char *path)
 }
 
 
-int init_reader(const char *path, finreader_t *reader, int8_t dtype)
+BOOL init_reader(const char *path, finreader_t *reader, int8_t dtype)
 {   
     // open the file to get the file descripter
     reader->fd = open(path, O_RDONLY, 0);
 
     if(reader->fd == -1){
-        perror("Fail to open file");
+        perror("Fail to open file.");
 
-        return -1;
+        return FALSE;
     }
 
     struct stat st;
@@ -445,7 +445,7 @@ int init_reader(const char *path, finreader_t *reader, int8_t dtype)
     {
         perror("Fail to map the file.");
 
-        return 1;
+        return FALSE;
     }
 
     // read the meta 
@@ -462,39 +462,47 @@ int init_reader(const char *path, finreader_t *reader, int8_t dtype)
 
     reader->cur_index = reader->start;
 
-    return 0;
+    return TRUE;
 }
 
+void reset_reader(finreader_t *reader){
+    if (reader == NULL) return;
 
-int release_reader(finreader_t *reader){
-    if(reader != NULL)
-    {
-        munmap(reader->addr, reader->size);
-
-        reader->addr = NULL;
-
-        close(reader->fd);
-
-        reader->data = NULL;
-    }
-
-    return 0;
+    reader->cur_index = reader->start;
 }
 
-void next_item(finreader_t *reader)
+void release_reader(finreader_t *reader){
+    if(reader == NULL) return;
+
+    munmap(reader->addr, reader->size);
+
+    reader->addr = NULL;
+
+    close(reader->fd);
+
+    reader->data = NULL;
+}
+
+BOOL next_item(finreader_t *reader)
 {
+    if(reader == NULL) return FALSE;
+
     if(reader->dtype == CONV_STOCK)
     {
-        next_stock_item(reader);
+        return next_stock_item(reader);
     }
+
+    return FALSE;
 }
 
-void next_stock_item(finreader_t *reader)
+BOOL next_stock_item(finreader_t *reader)
 {
+    if(reader == NULL) return FALSE;
+
     if(reader->cur_index >= (reader->start + reader->num))
     {   
         // if the query out of the boundary, then return last result
-        return;
+        return FALSE;
     }
 
     stock_t *data_ptr = (stock_t*)(reader->addr + sizeof(meta_t));
@@ -502,6 +510,8 @@ void next_stock_item(finreader_t *reader)
     reader->data = data_ptr + (reader->cur_index);
 
     reader->cur_index += 1;
+
+    return TRUE;
 }
 
 
@@ -509,6 +519,8 @@ void next_stock_item(finreader_t *reader)
 /**********************************************************/
 void cal_stock_daily_return(stock_t *stock)
 {
+    if(stock == NULL) return;
+
     if(stock != NULL && stock->is_valid == VALID_STOCK && stock->pre_closing_price != 0)
     {
         stock->daily_return = (stock->closing_price / stock->pre_closing_price) - 1;

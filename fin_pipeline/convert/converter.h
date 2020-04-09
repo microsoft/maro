@@ -40,6 +40,10 @@
 
 #include "jsmn.h"
 
+#define BOOL uint8_t
+#define FALSE 0
+#define TRUE 1
+
 const int64_t DAY_SEC = 24 * 60 * 60;
 
 typedef enum{
@@ -137,11 +141,14 @@ int write_stock_item(FILE *file, stock_t *stock, uint64_t last_time);//
  * interfaces to read binary file with mmap
  * **/
 
-int init_reader(const char *path, finreader_t *reader, int8_t dtype);
-int release_reader(finreader_t *reader);
-void next_item(finreader_t *reader);
+BOOL init_reader(const char *path, finreader_t *reader, int8_t dtype);
+void release_reader(finreader_t *reader);
+void reset_reader(finreader_t *reader);
 
-void next_stock_item(finreader_t *reader);
+// read and fill next item
+BOOL next_item(finreader_t *reader);
+
+BOOL next_stock_item(finreader_t *reader);
 // void next_futures_item(finreader_t *reader, futures_t *future);
 
 

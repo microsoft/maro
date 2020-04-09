@@ -7,6 +7,11 @@ from cython cimport view
 
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 
+
+FALSE = 0
+TRUE = 1
+
+
 # since we will specified include folder, so we do not need to use relative path
 cdef extern from "converter.c":
     ctypedef struct stock_t:
@@ -48,10 +53,11 @@ cdef extern from "converter.c":
         uint8_t dtype
         void *data
 
-    int init_reader(const char *path, finreader_t *reader, uint8_t dtype)
-    int release_reader(finreader_t *reader)
-    void next_item(finreader_t *reader)
-
+    uint8_t init_reader(const char *path, finreader_t *reader, uint8_t dtype)
+    void release_reader(finreader_t *reader)
+    uint8_t next_item(finreader_t *reader)
+    uint8_t jump_to(finreader_t *reader, int index)
+    void reset_reader(finreader_t *reader)
 
 class FinanceDataType:
     STOCK = 1
@@ -159,12 +165,13 @@ cdef class FinanceReader:
         int query_start
         int num
 
-    def __cinit__(self, uint8_t dtype, char *path):
+    def __cinit__(self, uint8_t dtype, char *path, start_tick: int, max_tick: int):
         self.dtype = dtype
         self.path = path
         self.stock = Stock()
 
-        init_reader(self.path, &self.reader, dtype)
+        if FALSE == init_reader(self.path, &self.reader, dtype):
+            raise "Fail to initialize Finance reader"
 
         # NOTE: we have to set start and num correctly to get item
         self.reader.start = 0
@@ -199,7 +206,8 @@ cdef class FinanceReader:
         if self.reader.cur_index + 1 == self.reader.size:
             return None
             
-        next_item(&self.reader)
+        if FALSE == next_item(&self.reader):
+            return None
 
         if self.dtype == FinanceDataType.STOCK:
             self.stock.fill(self.reader.data)
@@ -218,7 +226,8 @@ cdef class FinanceReader:
             return item
 
     def reset(self):
-        init_reader(self.path, &self.reader, self.dtype)
+        reset_reader(&self.reader)
+        # init_reader(self.path, &self.reader, self.dtype)
 
     def __dealloc__(self):
         release_reader(&self.reader)
