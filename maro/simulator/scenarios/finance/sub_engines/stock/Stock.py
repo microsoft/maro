@@ -21,4 +21,4 @@ class Stock:
 
     @opening_price.setter
     def opening_price(self, value):
-        self._setter_partial(attribute_name="opening_price")
+        self._setter_partial(attribute_name="opening_price", value=value)

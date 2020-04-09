@@ -19,7 +19,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         super().__init__(start_tick, max_tick, frame_resolution, config, event_buffer)
 
         self._stock_codes: list = None
-        self._stocks: list = None
+        self._stocks: dict = None
         self._readers: dict = None
 
         self._init_reader()
@@ -35,15 +35,23 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     @property
     def snapshot_list(self): 
         return self._snapshots
+    
+    @property
+    def name_mapping(self):
+        return {stock.index: code for code, stock in self._stocks.items()}
 
     def step(self, tick: int):
-        for _, reader in self._readers.items():
-            pass
+        for code, reader in self._readers.items():
+            raw_stock: RawStock = reader.next_item()
 
-        
+            if raw_stock is not None:
+                # update frame by code
+                stock: Stock = self._stocks[code]
+
+                stock.opening_price = raw_stock.opening_price
 
     def post_step(self, tick: int):
-        pass
+        self.snapshot_list.insert_snapshot(self._frame, tick)
 
     def post_init(self, max_tick: int):
         self._init_frame()
@@ -54,10 +62,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._snapshots = SnapshotList(self._frame, self._max_tick)
 
     def _build_stocks(self):
-        self._stocks = []
+        self._stocks = {}
 
         for index, code in enumerate(self._stock_codes):
-            self._stocks.append(Stock(self._frame, index, code))
+            self._stocks[code] = Stock(self._frame, index, code)
 
     def _init_reader(self):
         data_folder = self._config["data_path"]
@@ -75,7 +83,3 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             # in case the data file contains different ticks
             new_max_tick = self._readers[code].max_tick
             self._max_tick = new_max_tick if self._max_tick <=0 else min(new_max_tick, self._max_tick)
-
-            print("reader size:", self._readers[code].size)
-        
-        print("ticks after align:", self._start_tick, self._max_tick)

@@ -25,6 +25,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._sub_engines = []
         self._frame_accessor: SubEngineAccessWrapper.PropertyAccessor = None
         self._snapshot_accessor: SubEngineAccessWrapper.PropertyAccessor = None
+        self._node_mapping_accessor: SubEngineAccessWrapper.PropertyAccessor = None
         self._sub_engine_accessor: SubEngineAccessWrapper = None
 
         self._read_conf()
@@ -90,7 +91,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Returns:
             Dict[str, Dict]: Node name to index mapping dictionary
         """
-        pass
+        return self._node_mapping_accessor
 
     def get_agent_idx_list(self) -> List[int]:
         """Get port index list related with this environment
@@ -124,3 +125,4 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._sub_engine_accessor = SubEngineAccessWrapper(self._sub_engines)
         self._frame_accessor = self._sub_engine_accessor.get_property_access("frame")
         self._snapshot_accessor = self._sub_engine_accessor.get_property_access("snapshot_list")
+        self._node_mapping_accessor = self._sub_engine_accessor.get_property_access("name_mapping")

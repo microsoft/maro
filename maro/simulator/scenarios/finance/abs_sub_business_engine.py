@@ -31,6 +31,11 @@ class AbsSubBusinessEngine(ABC):
     def snapshot_list(self): 
         pass
 
+    @property
+    @abstractmethod
+    def name_mapping(self):
+        pass
+
     @abstractmethod
     def step(self, tick: int):
         pass
