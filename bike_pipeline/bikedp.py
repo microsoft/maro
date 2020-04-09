@@ -84,21 +84,21 @@ input_file_list = [
     # "201810-citibike-tripdata.csv",
     # "201811-citibike-tripdata.csv",
     # "201812-citibike-tripdata.csv",
-    # "201901-citibike-tripdata.csv",
-    # "201902-citibike-tripdata.csv",
-    # "201903-citibike-tripdata.csv",
-    # "201904-citibike-tripdata.csv",
-    # "201905-citibike-tripdata.csv",
-    # "201906-citibike-tripdata.csv",
-    # "201907-citibike-tripdata.csv",
-    # "201908-citibike-tripdata.csv",
-    # "201909-citibike-tripdata.csv",
-    # "201910-citibike-tripdata.csv",
-    # "201911-citibike-tripdata.csv",
-    # "201912-citibike-tripdata.csv",
+    "201901-citibike-tripdata.csv",
+    "201902-citibike-tripdata.csv",
+    "201903-citibike-tripdata.csv",
+    "201904-citibike-tripdata.csv",
+    "201905-citibike-tripdata.csv",
+    "201906-citibike-tripdata.csv",
+    "201907-citibike-tripdata.csv",
+    "201908-citibike-tripdata.csv",
+    "201909-citibike-tripdata.csv",
+    "201910-citibike-tripdata.csv",
+    "201911-citibike-tripdata.csv",
+    "201912-citibike-tripdata.csv",
     # "202001-citibike-tripdata.csv"
 
-    "sample.csv"
+    # "sample.csv"
 ]
 
 usertype_map = {
@@ -167,7 +167,7 @@ def _read_exist_cells(file: str):
 
 
 def _read_cell_init(station_file_path: str):
-    # cell init data
+    # read cell init data from file
     cell_init = None
 
     if os.path.exists(station_file_path):
@@ -241,24 +241,20 @@ def concat(data: pd.DataFrame, file: str, cells_existed: pd.DataFrame):
     # get the file size
     file_size = 0
     resolution = 8
-    ret['start_cell_hex'] = ret.apply(lambda row: h3.geo_to_h3(row["start station latitude"], row["start station longitude"], resolution), axis=1)
-    ret['end_cell_hex'] = ret.apply(lambda row: h3.geo_to_h3(row["end station latitude"], row["end station longitude"], resolution), axis=1)
+    ret['start_cell_hex'] = ret[["start station latitude", "start station longitude"]].apply(lambda row: h3.geo_to_h3(row["start station latitude"], row["start station longitude"], resolution), axis=1)
+    ret['end_cell_hex'] = ret[["end station latitude", "end station longitude"]].apply(lambda row: h3.geo_to_h3(row["end station latitude"], row["end station longitude"], resolution), axis=1)
 
-    # generate cell need to be dropped, because it has no neighbors
-
-    #   get in data cells
+    # get new cells
     used_cells = []
     used_cells.append(ret[['start_cell_hex']].drop_duplicates(subset=['start_cell_hex']).rename(columns={'start_cell_hex': 'hex_id'})[['hex_id']])
     used_cells.append(ret[['end_cell_hex']].drop_duplicates(subset=['end_cell_hex']).rename(columns={'end_cell_hex': 'hex_id'})[['hex_id']])
     in_data_cell = pd.concat(used_cells, ignore_index=True).drop_duplicates(subset=['hex_id']).sort_values(by=['hex_id']).reset_index()[['hex_id']]
     new_cell = (in_data_cell[~in_data_cell['hex_id'].isin(cells_existed['hex_id'])].reset_index())[['hex_id']]
-    print(new_cell)
-    max_cell_id = cells_existed['cell_id'].max() if len(cells_existed)>0 else -1
+    max_cell_id = cells_existed['cell_id'].max() if len(cells_existed) > 0 else -1
     new_cell['cell_id'] = pd.to_numeric(new_cell.index, downcast='integer') + max_cell_id + 1
-    print(new_cell)
-    print(cells_existed)
+    # append the new cells to existed cells and get new cell ids
     cells_existed = cells_existed[['cell_id', 'hex_id']].append(new_cell, ignore_index=True)
-    print(cells_existed)
+    # get start cell id and end cell id
     ret = ret.join(cells_existed.set_index('hex_id'), on='start_cell_hex').rename(columns={'cell_id': 'start_cell'})
     ret = ret.join(cells_existed.set_index('hex_id'), on='end_cell_hex').rename(columns={'cell_id': 'end_cell'})
     ret = ret.rename(columns={'starttime': 'start_time', 'start station id': 'start_station', 'end station id': 'end_station', 'tripduration': 'duration'})
@@ -278,7 +274,7 @@ def concat(data: pd.DataFrame, file: str, cells_existed: pd.DataFrame):
     drop_mapping_data["cell_id"] = pd.to_numeric(drop_mapping_data.index)
     print(drop_mapping_data)
     before = len(ret)
-    # drop cell have no neighbors
+    # drop cells have no neighbors
     ret.drop(ret[ret['start_cell'].isin(drop_mapping_data['cell_id']) | ret['end_cell'].isin(drop_mapping_data['cell_id'])].index, axis=0, inplace=True)
     after = len(ret)
     print(f"{before - after}/{before} rows droped {((before - after)/before * 100):.2f}%")
@@ -305,7 +301,7 @@ if __name__ == "__main__":
     input_folder = sys.argv[1]
     output_folder = sys.argv[2]
     station_file_path = sys.argv[3]
-    cell_file_path = 'none'
+    cells_file_path = 'none'
     if len(sys.argv) > 4:
         cells_file_path = sys.argv[4]
 
@@ -314,7 +310,6 @@ if __name__ == "__main__":
     neighbor_file_path = os.path.join(output_folder, neighbor_file_name)
     cell_to_hex_file_path = os.path.join(output_folder, cell_to_hex_file_name)
 
-    # generate full cell data
     # read existed cells : cell_id , hex_id
     cells_existed = _read_exist_cells(cells_file_path)
     full_cells_init = _read_cell_init(station_file_path)
