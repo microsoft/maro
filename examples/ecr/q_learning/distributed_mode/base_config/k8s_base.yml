@@ -5,9 +5,8 @@ metadata:
 spec:
   completions: 1
   parallelism: 1
+  ttlSecondsAfterFinished: 100
   template:
-    metadata:
-      name: exp
     spec:
       containers:
         name: exp

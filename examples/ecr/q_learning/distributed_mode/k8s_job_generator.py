@@ -23,7 +23,6 @@ def k8s_job_generator(job_config):
     resource_config = job_config['resources']
 
     k8s_config['metadata']['name'] = component_id
-    k8s_config['spec']['template']['metadata']['name'] = component_id
 
     k8s_config_containers = k8s_config['spec']['template']['spec']['containers']
     k8s_config_containers['name'] = component_id
