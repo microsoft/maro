@@ -65,7 +65,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._build_stocks()
 
     def _init_frame(self):
-        self._frame = build_frame(Stock, len(self._stock_codes), 0)
+        self._frame = build_frame(Stock, len(self._stock_codes))
         self._snapshots = SnapshotList(self._frame, self._max_tick)
 
     def _build_stocks(self):

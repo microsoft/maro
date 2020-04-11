@@ -208,23 +208,29 @@ class ModelBase:
           
         return super().__getattribute__(name)
 
-
-def build_frame(model_cls, static_node_num: int, dynamic_node_num: int):
+def build_frame(static_model_cls, static_node_num: int, dynamic_model_cls = None, dynamic_node_num: int = 0):
     """Build frame from definition of data model"""
-    assert model_cls is not None
 
-    assert issubclass(model_cls, ModelBase)
+    def reg_attr(frame: Frame, model_cls):
+        assert model_cls is not None
 
-    assert static_node_num >= 0
-    assert dynamic_node_num >= 0
+        assert issubclass(model_cls, ModelBase)
 
-    attributes = []
+        for name, attr in model_cls.__dict__.items():
+            if isinstance(attr, BaseAttribute):
+                frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)      
 
     frame = Frame(static_node_num, dynamic_node_num)
 
-    for name, attr in model_cls.__dict__.items():
-        if isinstance(attr, BaseAttribute):
-            frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)
+    if static_model_cls is not None:
+        assert static_node_num > 0
+
+        reg_attr(frame, static_model_cls)
+
+    if dynamic_model_cls is not None:
+        assert dynamic_node_num > 0
+
+        reg_attr(frame, dynamic_model_cls)
 
     frame.setup()
 

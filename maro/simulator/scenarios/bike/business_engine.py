@@ -193,7 +193,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             for l in reader:
                 rows.append(l)
 
-        self._frame = build_frame(Cell, len(rows), 0)
+        self._frame = build_frame(Cell, len(rows))
 
         bike_discount = 1
 
