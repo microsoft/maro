@@ -57,8 +57,6 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 stock.trade_num = raw_stock.trade_num
                 stock.trade_volume = raw_stock.trade_volume
 
-                # TODO: more data 
-
     def post_step(self, tick: int):
         self.snapshot_list.insert_snapshot(self._frame, tick)
 
