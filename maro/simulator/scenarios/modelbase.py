@@ -1,6 +1,6 @@
 """Wrappers to make frame accessing easily"""
 
-from maro.simulator.frame import Frame, FrameAttributeType
+from maro.simulator.frame import Frame, FrameAttributeType, FrameNodeType
 
 INT = FrameAttributeType.INT
 FLOAT = FrameAttributeType.FLOAT
@@ -33,9 +33,29 @@ class IntAttribute(BaseAttribute):
 
 class FloatAttribute(BaseAttribute):
     """Describe a float attribute in frame"""
-    def __init__(self, node_type: FrameNodeType, slot_num: int = 1):
+    def __init__(self, node_type: FrameNodeType, slot_num: int = 1, ndigits: int=None):
         super().__init__(node_type, FLOAT, slot_num)
+        
+        assert ndigits is None or ndigits >= 0
+        
+        self._ndigits = ndigits
 
+    # override following 2 methods to provide rounded float value
+    def get_value(self, frame: Frame, name: str, node_index: int, slot: int):
+        val = super().get_value(frame, name, node_index, slot)
+
+        if self._ndigits is None:
+            return val
+        else:
+            return round(val, self._ndigits)
+
+    def set_value(self, frame: Frame, name: str, node_index: int, slot: int, value):
+        tmp_val = value
+
+        if self._ndigits is not None:
+            tmp_val = round(value, self._ndigits)
+
+        return super().set_value(frame, name, node_index, slot, tmp_val)
 
 # TODO: remove after we merged further changes
 class IntMaxtrixAttribute(BaseAttribute):
@@ -64,6 +84,10 @@ class ModelBase:
         self._index = index
 
         self._bind_fields()
+
+    @property
+    def index(self)->int:
+        return self._index
 
     def _bind_fields(self):
         """Bind field with frame and id"""
