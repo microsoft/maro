@@ -48,14 +48,14 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 # update frame by code
                 stock: Stock = self._stocks[code]
 
-                stock.opening_price[0] = raw_stock.opening_price
-                stock.closing_price[0] = raw_stock.closing_price
-                stock.daily_return[0] = raw_stock.daily_return
-                stock.highest_price[0] = raw_stock.daily_return
-                stock.lowest_price[0] = raw_stock.lowest_price
-                stock.trade_amount[0] = raw_stock.trade_amount
-                stock.trade_num[0] = raw_stock.trade_num
-                stock.trade_volume[0] = raw_stock.trade_volume
+                stock.opening_price = raw_stock.opening_price
+                stock.closing_price = raw_stock.closing_price
+                stock.daily_return = raw_stock.daily_return
+                stock.highest_price = raw_stock.daily_return
+                stock.lowest_price = raw_stock.lowest_price
+                stock.trade_amount = raw_stock.trade_amount
+                stock.trade_num = raw_stock.trade_num
+                stock.trade_volume = raw_stock.trade_volume
 
                 # TODO: more data 
 

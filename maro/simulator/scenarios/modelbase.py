@@ -7,10 +7,13 @@ FLOAT = FrameAttributeType.FLOAT
 INT_MAT = FrameAttributeType.INT_MAT
 
 class BaseAttribute:
-    """Base wrapper for frame attribute"""
+    """Base wrapper for frame attribute.
+    For attributes that it can be read/set directly without slice interface if slot_num is 1"""
 
     # TODO: remove row and col parameters later after merged further changes, here is for compact issue
     def __init__(self, node_type: FrameNodeType, data_type: FrameAttributeType, slot_num: int, row: int = 0, col: int = 0):
+        assert slot_num > 0
+        
         self.node_type = node_type
         self.data_type: int = data_type
         self.slot_num: int = slot_num
@@ -29,6 +32,9 @@ class IntAttribute(BaseAttribute):
     # TODO: though we do not need node_type for now, it is used to merge further changes that split definition between static and dynamic nodes
     def __init__(self, node_type: FrameNodeType, slot_num: int = 1):
         super().__init__(node_type, INT, slot_num)
+
+    def __repr__(self):
+        return f"<IntAttribute: node type: {self.node_type}, slot num: {self.slot_num}>"
 
 
 class FloatAttribute(BaseAttribute):
@@ -57,24 +63,30 @@ class FloatAttribute(BaseAttribute):
 
         return super().set_value(frame, name, node_index, slot, tmp_val)
 
+    def __repr__(self):
+        return f"<FloatAttribute: node type: {self.node_type}, slot num: {self.slot_num}, ndigits: {self._ndigits}>"
+
 # TODO: remove after we merged further changes
 class IntMaxtrixAttribute(BaseAttribute):
     def __init__(self, node_type: FrameNodeType, row: int = 1, col: int = 1):
-        super().__init__(node_type, INT_MAT, 0, row, col)
+        super().__init__(node_type, INT_MAT, 0, row=row, col=col)
 
 class FrameAttributeSlideAccessor:
     """Used to provide a way to access frame field with slide interface"""
     def __init__(self, attr: BaseAttribute, frame: Frame, index: int, name: str):
-        self._attr = attr
+        self.attr = attr
         self._frame = frame
-        self._index = index
-        self._name = name
+        self.index = index
+        self.name = name
 
     def __getitem__(self, key):
-        return self._attr.get_value(self._frame, self._name, self._index, key)
+        return self.attr.get_value(self._frame, self.name, self.index, key)
 
     def __setitem__(self, key, value):
-        self._attr.set_value(self._frame, self._name, self._index, key, value)
+        self.attr.set_value(self._frame, self.name, self.index, key, value)
+
+    def __repr__(self):
+        return f"<FrameAttributeSlideAccessor {self.name}, {self.attr.__repr__()}>"
 
 
 class ModelBase:
@@ -91,23 +103,43 @@ class ModelBase:
 
     def _bind_fields(self):
         """Bind field with frame and id"""
+        __dict__ = object.__getattribute__(self, "__dict__")    
+
         for name, attr in type(self).__dict__.items():
             # append an attribute access wrapper to current instance
             if isinstance(attr, BaseAttribute):
                 # TODO: this will override exist attribute of sub-class instance, maybe a warning later
-                self.__dict__[name] = FrameAttributeSlideAccessor(attr, self._frame, self._index, name)
+                
+                # NOTE: here we have to use __dict__ to avoid infinite loop, as we overrided __getattribute__
+                __dict__[name] = FrameAttributeSlideAccessor(attr, __dict__["_frame"], __dict__["_index"], name)
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding"""
-        if name in self.__dict__:
-            attr = object.__getattribute__(self, name)
+        __dict__ = object.__getattribute__(self, "__dict__")    
+     
+        if name in __dict__:
+            attr_acc = __dict__[name]
 
-            if attr and isinstance(attr, BaseAttribute):
-                raise "cannot set value for frame fields directly, please use slice interface instead"
-                
-                return
-        
-        self.__dict__[name] = value
+            if isinstance(attr_acc, FrameAttributeSlideAccessor):
+                if attr_acc.attr.slot_num > 1:
+                    raise "cannot set value for frame fields directly, please use slice interface instead"
+                else:
+                    # short-hand for attributes with 1 slot
+                    attr_acc[0] = value
+        else:
+            __dict__[name] = value
+
+    def __getattribute__(self, name):
+        __dict__ = object.__getattribute__(self, "__dict__")        
+
+        if name in __dict__:
+            attr_acc = __dict__[name]
+
+            if isinstance(attr_acc, BaseAttribute):
+                if attr_acc.attr.slot_num == 1:
+                    return attr_acc[0]
+          
+        return super().__getattribute__(name)
 
 
 def build_frame(model_cls, static_node_num: int, dynamic_node_num: int):
