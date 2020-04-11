@@ -233,8 +233,8 @@ class DQN(object):
         if self._log_enable:
             sample = random.random()
             if sample > self._log_dropout_p:
-                self._policy_net.log_model_parameters(current_ep, self._learning_counter)
-                self._target_net.log_model_parameters(current_ep, self._learning_counter)
+                # self._policy_net.log_model_parameters(current_ep, self._learning_counter)
+                # self._target_net.log_model_parameters(current_ep, self._learning_counter)
                 self._loss_logger.debug(f'{current_ep},{self._learning_counter},{loss.item()}')
         return loss.item()
 

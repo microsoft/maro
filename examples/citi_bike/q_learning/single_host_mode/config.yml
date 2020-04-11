@@ -1,27 +1,29 @@
-experiment_name: "TRAIN_MAXTIC5000_TRIP1_0.3_LR0.00005_COST0.5_0.5"
+experiment_name: "TRAIN_MAXTIC300000_LR0.005_1e-4_BS_256_DR20_S_0.2"
 env:
   scenario: "bike"
   topology: "train"
   start_tick: 0 
-  max_tick: 480960 # stop until the data steam end
-  decision_mode: 1 # joint-->1,sequential-->0
+  max_tick: 300000 # stop until the data steam end
+  decision_mode: 0 # joint-->1,sequential-->0
 train:
-  max_ep: 100 # max episode
+  max_ep: 300 # max episode
   batch_num: 2
-  batch_size: 256
+  batch_size: 512
   min_train_experience_num: 256 # when experience number is less than it, will not trigger train
   reward_shaping: 'tc'
   dqn:
+    share_parameter: false
     target_update_frequency: 5 # target network update frequency
     dropout_p: 0.0 # dropout parameter
     gamma: 0.0 # reward decay
     tau: 0.1 # soft update
-    lr: 0.00005 # learning rate
+    lr: 0.005 # learning rate
   exploration:
-    max_eps: 0.4 # max epsilon
+    max_eps: 0.5 # max epsilon
     phase_split_point: 0.5 # exploration two phase split point
     first_phase_reduce_proportion: 0.8 # first phase reduce proportion of max_eps
   reward:
+    reward_factor: 0.0001
     shortage_factor: 1
     cost_factor: 0.5
   seed: 1024
@@ -37,7 +39,7 @@ log:
   runner:
     enable: true
   agent:
-    enable: false
+    enable: true
   dqn:
     enable: false
     dropout_p: 0.95
@@ -46,7 +48,7 @@ log:
   dashboard:
     enable: false
 dashboard:
-  enable: false
+  enable: true
   influxdb:
     host: localhost
     port: 50301

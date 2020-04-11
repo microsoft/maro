@@ -1,5 +1,5 @@
 # usage:
-# python bikedp.py ../../ny ../../ny/bin2019v2 ../../ny/full/h3_201306_202001.station.csv ../../ny/bin2019v2/cell.csv
+# python bikedp.py ../../ny ../../ny/bin2019vStation ../../ny/full/h3_201306_202001.station.csv ../../ny/bin2019vStation/cell.csv
 
 import os
 import re
@@ -175,7 +175,7 @@ def _read_cell_init(station_file_path: str):
             # read station to cell file
             raw_station_data = pd.read_csv(station_file)
             # group by cell to generate cell init info
-            cell_init = raw_station_data[['hex_id', 'capacity', 'init']].groupby(['hex_id']).sum().sort_values(by='hex_id', ascending=True).reset_index()
+            cell_init = raw_station_data[['station_id', 'capacity', 'init']].reset_index()
             # generate cell id by index
             cell_init['capacity'] = pd.to_numeric(cell_init['capacity'], downcast='integer')
             cell_init['init'] = pd.to_numeric(cell_init['init'], downcast='integer')
@@ -240,9 +240,8 @@ def concat(data: pd.DataFrame, file: str, cells_existed: pd.DataFrame):
 
     # get the file size
     file_size = 0
-    resolution = 8
-    ret['start_cell_hex'] = ret[["start station latitude", "start station longitude"]].apply(lambda row: h3.geo_to_h3(row["start station latitude"], row["start station longitude"], resolution), axis=1)
-    ret['end_cell_hex'] = ret[["end station latitude", "end station longitude"]].apply(lambda row: h3.geo_to_h3(row["end station latitude"], row["end station longitude"], resolution), axis=1)
+    ret['start_cell_hex'] = ret['start station id']
+    ret['end_cell_hex'] = ret['end station id']
 
     # get new cells
     used_cells = []
@@ -262,13 +261,8 @@ def concat(data: pd.DataFrame, file: str, cells_existed: pd.DataFrame):
 
     #   get in data cell hex_id
     data_mapping_data = cells_existed[['cell_id', 'hex_id']]
-    #   get in data cell neighbors in hex_id
-    data_mapping_data['neighbors_v2'] = data_mapping_data.apply(lambda x: _find_neighbors_by_row(x, data_mapping_data, 6), axis=1)
-    #   get in data cell neighbors in cell_id
-    data_mapping_data['mapping'] = data_mapping_data['neighbors_v2'].apply(lambda x: _gen_neighbor_mapping_v2(x, data_mapping_data[['cell_id', 'hex_id']]))
     #   get neighbors in cell bool matrix
-    data_neighbor = pd.DataFrame(-1, index=data_mapping_data['cell_id'], columns=np.arange(6), dtype=np.int64)
-    data_mapping_data[['cell_id', 'mapping']].apply(lambda x:  _fill_mapping(x, data_neighbor), axis=1)
+    data_neighbor = pd.DataFrame(0, index=data_mapping_data['cell_id'], columns=np.arange(6), dtype=np.int64)
     #   get cells without neighbors
     drop_mapping_data = data_neighbor[data_neighbor.sum(axis=1) == -6]
     drop_mapping_data["cell_id"] = pd.to_numeric(drop_mapping_data.index)
@@ -328,7 +322,7 @@ if __name__ == "__main__":
             cells_existed = concat(r, output_data_path, cells_existed)
 
     # filter cell by data
-    data_cell_init = cells_existed.join(full_cells_init[['hex_id', 'capacity', 'init']].set_index('hex_id'), on='hex_id')
+    data_cell_init = cells_existed.join(full_cells_init[['station_id', 'capacity', 'init']].set_index('station_id'), on='hex_id')
 
     data_cell_name = cells_existed[['cell_id', 'hex_id']]
 
@@ -337,10 +331,7 @@ if __name__ == "__main__":
     data_cell_init = data_cell_init[['cell_id', 'capacity', 'init']]
 
     # generate cell neighbors
-    data_mapping_data['neighbors'] = data_mapping_data.apply(lambda x: _find_neighbors_by_row(x, data_cell_name, 6), axis=1)
-    data_mapping_data['mapping'] = data_mapping_data['neighbors'].apply(lambda x: _gen_neighbor_mapping_v2(x, data_cell_name))
-    data_neighbor = pd.DataFrame(-1, index=data_mapping_data['cell_id'], columns=np.arange(6), dtype=np.int64)
-    data_mapping_data[['cell_id', 'mapping']].apply(lambda x:  _fill_mapping(x, data_neighbor), axis=1)
+    data_neighbor = pd.DataFrame(0, index=data_mapping_data['cell_id'], columns=np.arange(6), dtype=np.int64)
 
     # write cell init file
     with open(cell_init_file_path, mode="w", encoding="utf-8", newline='') as cell_init_file:

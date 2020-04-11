@@ -62,11 +62,13 @@ LEARNING_RATE = config.train.dqn.lr
 DROPOUT_P = config.train.dqn.dropout_p
 GAMMA = config.train.dqn.gamma  # Reward decay
 TAU = config.train.dqn.tau  # Soft update
+SHARE_PARA = config.train.dqn.share_parameter
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
 MIN_TRAIN_EXP_NUM = config.train.min_train_experience_num  # when experience num is less than this num, agent will not train model
 COST_FACTOR = config.train.reward.cost_factor
 SHORTAGE_FACTOR = config.train.reward.shortage_factor
+REWARD_FACTOR = config.train.reward.reward_factor
 TRAIN_SEED = config.train.seed
 TEST_SEED = config.test.seed
 QNET_SEED = config.qnet.seed
@@ -169,10 +171,10 @@ class Runner:
         action_shaping = DiscreteActionShaping(action_space=action_space)
         if REWARD_SHAPING == 'tc':
             reward_shaping = TruncateReward(env=self._env, agent_idx_list=agent_idx_list, log_folder=LOG_FOLDER, 
-                                        cost_factor= COST_FACTOR, shortage_factor = SHORTAGE_FACTOR)
+                                        reward_factor = REWARD_FACTOR, cost_factor= COST_FACTOR, shortage_factor = SHORTAGE_FACTOR)
         else:
             raise ValueError('Unsuported Reward Shaping')
-
+        
         for agent_idx in agent_idx_list:
             experience_pool = SimpleExperiencePool()
             policy_net = QNet(name=f'{self._station_idx2name[agent_idx]}.policy', input_dim=state_shaping.dim,
@@ -188,7 +190,22 @@ class Runner:
                       gamma=GAMMA, tau=TAU, target_update_frequency=TARGET_UPDATE_FREQ, lr=LEARNING_RATE,
                       log_folder=LOG_FOLDER if DQN_LOG_ENABLE else None, log_dropout_p=DQN_LOG_DROPOUT_P,
                       dashboard=self._dashboard)
-            agent_dict[agent_idx] = Agent(agent_name=self._station_idx2name[agent_idx],
+            if SHARE_PARA:
+                if agent_idx == 0:
+                    share_agent = Agent(agent_name=self._station_idx2name[agent_idx],
+                                            algorithm=dqn, experience_pool=experience_pool,
+                                            state_shaping=state_shaping,
+                                            action_shaping=action_shaping,
+                                            reward_shaping=reward_shaping,
+                                            batch_num=BATCH_NUM, batch_size=BATCH_SIZE,
+                                            min_train_experience_num=MIN_TRAIN_EXP_NUM,
+                                            log_folder=LOG_FOLDER if AGENT_LOG_ENABLE else None,
+                                            dashboard=self._dashboard)
+                    agent_dict[agent_idx] = share_agent
+                else:
+                    agent_dict[agent_idx] = share_agent
+            else:
+                agent_dict[agent_idx] = Agent(agent_name=self._station_idx2name[agent_idx],
                                           algorithm=dqn, experience_pool=experience_pool,
                                           state_shaping=state_shaping,
                                           action_shaping=action_shaping,
