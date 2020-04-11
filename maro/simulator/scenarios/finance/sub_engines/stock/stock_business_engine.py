@@ -1,5 +1,6 @@
 import os
-
+from typing import Dict, List
+from maro.simulator.scenarios.modelbase import build_frame
 from maro.simulator.event_buffer import Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.finance.abs_sub_business_engine import \
@@ -10,7 +11,6 @@ from maro.simulator.scenarios.finance.reader import (FinanceDataType,
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
 from maro.simulator.utils.common import tick_to_frame_index
 
-from .frame_builder import build_frame
 from .stock import Stock
 
 
@@ -19,7 +19,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         super().__init__(start_tick, max_tick, frame_resolution, config, event_buffer)
 
         self._stock_codes: list = None
-        self._stocks: dict = None
+        self._stocks: Dict[Stock] = None
         self._readers: dict = None
 
         self._init_reader()
@@ -48,7 +48,14 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 # update frame by code
                 stock: Stock = self._stocks[code]
 
-                stock.opening_price = raw_stock.opening_price
+                stock.opening_price[0] = raw_stock.opening_price
+                stock.closing_price[0] = raw_stock.closing_price
+                stock.daily_return[0] = raw_stock.daily_return
+                stock.highest_price[0] = raw_stock.daily_return
+                stock.lowest_price[0] = raw_stock.lowest_price
+                stock.trade_amount[0] = raw_stock.trade_amount
+                stock.trade_num[0] = raw_stock.trade_num
+                stock.trade_volume[0] = raw_stock.trade_volume
 
                 # TODO: more data 
 
@@ -60,7 +67,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._build_stocks()
 
     def _init_frame(self):
-        self._frame = build_frame(len(self._stock_codes))
+        self._frame = build_frame(Stock, len(self._stock_codes), 0)
         self._snapshots = SnapshotList(self._frame, self._max_tick)
 
     def _build_stocks(self):
