@@ -11,7 +11,7 @@ from maro.simulator.scenarios.finance.reader import Stock as RawStock
 from maro.simulator.utils.common import tick_to_frame_index
 
 from .frame_builder import build_frame
-from .Stock import Stock
+from .stock import Stock
 
 
 class StockBusinessEngine(AbsSubBusinessEngine):
