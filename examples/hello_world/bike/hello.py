@@ -25,7 +25,12 @@ for i in range(total_ep):
     print(f"total trips (ep {i}):", sum(trip_requirements))
 
     shortages = env.snapshot_list.static_nodes[::("shortage", 0)]
-    print(f"total shortage (ep {i}:", sum(shortages))
+    print(f"total shortage (ep {i}):", sum(shortages))
+
+    fulfillments = env.snapshot_list.static_nodes[::("fulfillment", 0)]
+    print(f"total fulfillment (ep {i}):", sum(fulfillments))
+
+    print(f"shortage + fulfillment = {sum(shortages) + sum(fulfillments)}")
 
 hours = len(env.snapshot_list)
 

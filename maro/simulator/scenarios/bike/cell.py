@@ -1,6 +1,7 @@
 from maro.simulator.frame import Frame, FrameNodeType
+from maro.simulator.scenarios.modelbase import ModelBase, IntAttribute, FloatAttribute
 
-static_node = FrameNodeType.STATIC
+STATIC_NODE = FrameNodeType.STATIC
 
 GENDOR_UNKNOWN = 0
 GENDOR_MALE = 1
@@ -14,150 +15,34 @@ WORKDAY = 1
 
 CELL_BEIGHBOR_NUM = 6
 
-class Cell:
-    def __init__(self, index: int, capacity:int, bikes: int, frame: Frame):
-        self._index = index
-        self._frame = frame
-        self._id = id
+class Cell(ModelBase):
+    bikes = IntAttribute(STATIC_NODE)
+    capacity = IntAttribute(STATIC_NODE)
+    fulfillment = IntAttribute(STATIC_NODE)
+    trip_requirement = IntAttribute(STATIC_NODE)
+    shortage = IntAttribute(STATIC_NODE)
+    unknown_gendors = IntAttribute(STATIC_NODE)
+    males = IntAttribute(STATIC_NODE)
+    females = IntAttribute(STATIC_NODE)
+    weekday = IntAttribute(STATIC_NODE)
+    subscriptor = IntAttribute(STATIC_NODE)
+    customer = IntAttribute(STATIC_NODE)
+    temperature = IntAttribute(STATIC_NODE)
+    weather = IntAttribute(STATIC_NODE)
+    holiday = IntAttribute(STATIC_NODE)
+    extra_cost = IntAttribute(STATIC_NODE)
+    neighbors = IntAttribute(STATIC_NODE, CELL_BEIGHBOR_NUM)
+
+    def __init__(self, index: int, capacity: int, bikes: int, frame: Frame):
+        super().__init__(frame, index)
+
         self._bikes = bikes
         self._capacity = capacity
-        self.capacity = capacity
-        self.bikes = bikes
 
         self._neighbors_cache = None # since the neighbors will not change, so we can keep it here
 
     @property
-    def id(self):
-        return self._id
-
-    @property
-    def index(self):
-        return self._index
-
-    @property
-    def bikes(self):
-        return self._frame.get_attribute(static_node, self._index, "bikes", 0)
-
-    @bikes.setter
-    def bikes(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "bikes", 0, value)
-
-    @property
-    def fulfillment(self):
-        return self._frame.get_attribute(static_node, self._index, "fulfillment", 0)
-
-    @property
-    def trip_requirement(self):
-        return self._frame.get_attribute(static_node, self._index, "trip_requirement", 0)
-
-    @trip_requirement.setter
-    def trip_requirement(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "trip_requirement", 0, value)
-
-        self._update_fulfillment("fulfillment", value, self.shortage)
-
-    @property
-    def shortage(self):
-        return self._frame.get_attribute(static_node, self._index, "shortage", 0)
-
-    @shortage.setter
-    def shortage(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "shortage", 0, value)
-
-        self._update_fulfillment("fulfillment", self.trip_requirement, value)
-
-    @property
-    def capacity(self):
-        return self._frame.get_attribute(static_node, self._index, "capacity", 0)
-
-    @capacity.setter
-    def capacity(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "capacity", 0, value)
-
-    @property
-    def unknown_gendors(self):
-        return self._frame.get_attribute(static_node, self._index, "unknown_gendors", 0)
-
-    @unknown_gendors.setter
-    def unknown_gendors(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "unknown_gendors", 0, value)
-
-    @property
-    def males(self):
-        return self._frame.get_attribute(static_node, self._index, "males", 0)
-
-    @males.setter
-    def males(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "males", 0, value)
-
-    @property
-    def females(self):
-        return self._frame.get_attribute(static_node, self._index, "females", 0)
-
-    @females.setter
-    def females(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "females", 0, value)
-
-    @property
-    def weekday(self):
-        return self._frame.get_attribute(static_node, self._index, "weekday", 0)
-
-    @weekday.setter
-    def weekday(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "weekday", 0, value)       
-
-    @property
-    def subscriptor(self):
-        return self._frame.get_attribute(static_node, self._index, "subscriptor", 0)
-
-    @subscriptor.setter
-    def subscriptor(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "subscriptor", 0, value)       
-
-    @property
-    def customer(self):
-        return self._frame.get_attribute(static_node, self._index, "customer", 0)
-
-    @customer.setter
-    def customer(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "customer", 0, value)   
-
-    @property
-    def temperature(self):
-        return self._frame.get_attribute(static_node, self._index, "temperature", 0)
-
-    @temperature.setter
-    def temperature(self, value: float):
-        self._frame.set_attribute(static_node, self._index, "temperature", 0, value)
-
-    @property
-    def weather(self):
-        return self._frame.get_attribute(static_node, self._index, "weather", 0)
-
-    @weather.setter
-    def weather(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "weather" ,0, value)
-
-    @property
-    def holiday(self):
-        val = self._frame.get_attribute(static_node, self._index, "holiday", 0)
-
-        return val == HOLIDAY
-
-    @holiday.setter
-    def holiday(self, value: bool):
-        self._frame.set_attribute(static_node, self._index, "holiday", 0, HOLIDAY if value else WORKDAY)  
-
-    @property
-    def extra_cost(self):
-        return self._frame.get_attribute(static_node, self._index, "extra_cost", 0)
-
-    @extra_cost.setter
-    def extra_cost(self, value):
-        self._frame.set_attribute(static_node, self._index, "extra_cost", 0, value)
-
-    @property
-    def neighbors(self):
+    def neighbor_list(self):
         # here we use cached neighbors to speedup
         return self._neighbors_cache
 
@@ -167,7 +52,7 @@ class Cell:
         for i, cell_idx in enumerate(neighbors):
       
             self._neighbors_cache.append(cell_idx)
-            self._frame.set_attribute(static_node, self._index, "neighbors", i, cell_idx)
+            self.neighbors[i] = cell_idx
 
     def update_gendor(self, gendor: int, num: int=1):
         if gendor == GENDOR_FEMALE:
@@ -187,8 +72,14 @@ class Cell:
         self.capacity = self._capacity
         self.bikes = self._bikes
 
-
         self.set_neighbors(self._neighbors_cache)
 
-    def _update_fulfillment(self, field, trip_requirement, shortage):
-        self._frame.set_attribute(static_node, self._index, field, 0, trip_requirement - shortage)
+    # auto bind as callback when related attribute value changed
+    def _on_trip_requirement_changed(self, slot_index: int, new_value):
+        self._update_fulfillment(new_value, self.shortage)
+
+    def _on_shortage_changed(self, slot_index: int, new_value):
+        self._update_fulfillment(self.trip_requirement, new_value)
+
+    def _update_fulfillment(self, trip_requirement: int, shortage: int):
+        self.fulfillment = trip_requirement - shortage

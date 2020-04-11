@@ -15,6 +15,7 @@ from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils.common import tick_to_frame_index
 from maro.simulator.utils.random import random
+from maro.simulator.scenarios.modelbase import build_frame
 
 from .adj_reader import read_adj_info
 from .cell import Cell
@@ -22,7 +23,6 @@ from .cell_reward import CellReward
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
                      DecisionEvent, ExtraCostMode, Trip)
 from .decision_strategy import BikeDecisionStrategy
-from .frame_builder import build
 from .trip_reader import BikeTripReader
 from .weather_table import WeatherTable
 
@@ -193,7 +193,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             for l in reader:
                 rows.append(l)
 
-        self._frame = build(len(rows))
+        self._frame = build_frame(Cell, len(rows), 0)
 
         bike_discount = 1
 
@@ -237,7 +237,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
         cost = 0
 
         # move to 1-step neighbors
-        for neighbor_idx in cell.neighbors:
+        for neighbor_idx in cell.neighbor_list:
 
             # ignore source cell and padding cell
             if neighbor_idx == src_cell.index or neighbor_idx < 0:
@@ -261,7 +261,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
         if step == 1 and bike_number > 0:
             # 2-step neighbors
-            for neighbor_idx in cell.neighbors:
+            for neighbor_idx in cell.neighbors_list:
                 if neighbor_idx < 0:
                     continue
 
@@ -396,7 +396,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             elif self._extra_cost_mode == ExtraCostMode.Target:
                 cell.extra_cost += extra_cost
             elif self._extra_cost_mode == ExtraCostMode.TargetNeighbors:
-                valid_neighbors = [idx for idx in cell.neighbors if idx > 0]
+                valid_neighbors = [idx for idx in cell.neighbors_list if idx > 0]
 
                 if len(valid_neighbors) > 0:
                     avg_cost = round(extra_cost/len(valid_neighbors))

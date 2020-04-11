@@ -1,5 +1,6 @@
 """Wrappers to make frame accessing easily"""
 
+from typing import Callable
 from maro.simulator.frame import Frame, FrameAttributeType, FrameNodeType
 
 INT = FrameAttributeType.INT
@@ -11,7 +12,7 @@ class BaseAttribute:
     For attributes that it can be read/set directly without slice interface if slot_num is 1"""
 
     # TODO: remove row and col parameters later after merged further changes, here is for compact issue
-    def __init__(self, node_type: FrameNodeType, data_type: FrameAttributeType, slot_num: int, row: int = 0, col: int = 0):
+    def __init__(self, node_type: FrameNodeType, data_type: FrameAttributeType, slot_num: int = 1, row: int = 0, col: int = 0):
         assert slot_num > 0
         
         self.node_type = node_type
@@ -39,7 +40,7 @@ class IntAttribute(BaseAttribute):
 
 class FloatAttribute(BaseAttribute):
     """Describe a float attribute in frame"""
-    def __init__(self, node_type: FrameNodeType, slot_num: int = 1, ndigits: int=None):
+    def __init__(self, node_type: FrameNodeType, slot_num: int = 1, ndigits: int = None):
         super().__init__(node_type, FLOAT, slot_num)
         
         assert ndigits is None or ndigits >= 0
@@ -75,15 +76,26 @@ class FrameAttributeSlideAccessor:
     """Used to provide a way to access frame field with slide interface"""
     def __init__(self, attr: BaseAttribute, frame: Frame, index: int, name: str):
         self.attr = attr
-        self._frame = frame
         self.index = index
         self.name = name
+        self._frame = frame
+        self._value_changed_cb: Callable = None
+
+    def on_value_changed(self, callback: Callable):
+        """Callback when the attribute changed.
+        Parameters of the callback:
+        1. slot index
+        2. new value"""
+        self._value_changed_cb = callback
 
     def __getitem__(self, key):
         return self.attr.get_value(self._frame, self.name, self.index, key)
 
     def __setitem__(self, key, value):
         self.attr.set_value(self._frame, self.name, self.index, key, value)
+
+        if self._value_changed_cb is not None:
+            self._value_changed_cb(key, value)
 
     def __repr__(self):
         return f"<FrameAttributeSlideAccessor {self.name}, {self.attr.__repr__()}>"
@@ -109,6 +121,10 @@ class ModelBase:
                 super().__init__(frame, index)
 
                 self.your_name = name
+            
+            # data model will bind a callback function that if there is any function name match _on_<attribute name>_changed automatically
+            def _on_b_changed(self, slot_index: int, new_value):
+                pass # do something
 
         # after the definition, we can build frame now
 
@@ -151,7 +167,16 @@ class ModelBase:
                 # TODO: this will override exist attribute of sub-class instance, maybe a warning later
                 
                 # NOTE: here we have to use __dict__ to avoid infinite loop, as we overrided __getattribute__
-                __dict__[name] = FrameAttributeSlideAccessor(attr, __dict__["_frame"], __dict__["_index"], name)
+                attr_acc = FrameAttributeSlideAccessor(attr, __dict__["_frame"], __dict__["_index"], name)
+
+                __dict__[name] = attr_acc
+
+                # bind a value changed callback if available, named as _on_<attr name>_changed
+                cb_name = f"_on_{name}_changed"
+                cb_func = getattr(self, cb_name, None)
+
+                if cb_func is not None:
+                    attr_acc.on_value_changed(cb_func)
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding"""
@@ -166,6 +191,8 @@ class ModelBase:
                 else:
                     # short-hand for attributes with 1 slot
                     attr_acc[0] = value
+            else:
+                __dict__[name] = value
         else:
             __dict__[name] = value
 
@@ -175,7 +202,7 @@ class ModelBase:
         if name in __dict__:
             attr_acc = __dict__[name]
 
-            if isinstance(attr_acc, BaseAttribute):
+            if isinstance(attr_acc, FrameAttributeSlideAccessor):
                 if attr_acc.attr.slot_num == 1:
                     return attr_acc[0]
           
