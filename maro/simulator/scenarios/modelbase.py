@@ -90,7 +90,47 @@ class FrameAttributeSlideAccessor:
 
 
 class ModelBase:
-    """Base wrapper to create a wrapper to access frame with some useful functions"""
+    """Base wrapper to create a wrapper to access frame with some useful functions.
+
+    Model not only contains accessor to Frame, also with Frame definitions, as we have specified the name and data type
+
+    Examples:
+        # define a data model
+        class DataModel1(ModelBase):
+            # define attributes
+
+            # int attribute a with 1 slot (default)
+            a = IntAttribute()
+
+            # float attribute b with 2 slots, and the value will be round with 2 digits
+            b = FloatAttribute(slot=2, ndigits=2)
+
+            def __init__(self, frame: Frame, index: int, name: str):
+                super().__init__(frame, index)
+
+                self.your_name = name
+
+        # after the definition, we can build frame now
+
+        # a frame with 10 static nodes, and 10 dynamic nodes
+        frame = build_frame(DataModel1, 10, 10)
+
+        node1 = DataModel1(frame, 0, "my name")
+
+        # get value of attribute a
+        print(node1.a[0])
+
+        # since attribute a only has 1 slot, we can get/set it without slice
+        node1.a = 101
+        
+        print(node1.a)
+
+        # for attribute b, we have to use slice interface
+        node1.b[0] = 12.12
+        node1.b[1] = 12.31
+
+        print(node1.b[0], node1.b[1])
+    """
     def __init__(self, frame: Frame, index: int):
         self._frame = frame
         self._index = index
