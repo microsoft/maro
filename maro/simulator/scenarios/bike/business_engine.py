@@ -167,7 +167,9 @@ class BikeBusinessEngine(AbsBusinessEngine):
         """
         if (tick + 1) % self._frame_resolution == 0:
             # take a snapshot at the end of tick
-            self._snapshots.insert_snapshot(self._frame, tick_to_frame_index(tick, self._start_tick, self._frame_resolution))
+            snapshot_index = tick_to_frame_index(self._start_tick, tick, self._frame_resolution)
+
+            self._snapshots.insert_snapshot(self._frame, snapshot_index)
 
             # last unit tick of current tick
             # we will reset some field

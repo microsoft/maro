@@ -138,7 +138,7 @@ class Env(AbsEnv):
     @property
     def frame_index(self)->int:
         """int: frame index in snapshot list for current tick"""
-        return tick_to_frame_index(self._tick, self._start_tick, self._frame_resolution)
+        return tick_to_frame_index(self._start_tick, self._tick, self._frame_resolution)
 
     @property
     def snapshot_list(self) -> SnapshotList:
