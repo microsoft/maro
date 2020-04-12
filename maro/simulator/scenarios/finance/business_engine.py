@@ -1,9 +1,9 @@
 import os
 from typing import Dict, List
-
+from enum import IntEnum
 from yaml import safe_load
 
-from maro.simulator.event_buffer import EventBuffer
+from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
@@ -15,13 +15,15 @@ sub_engine_definitions = {
     FinanceType.stock: StockBusinessEngine
 }
 
+# class FinanceEventType(IntEnum):
+
 
 class FinanceBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, start_tick: int, max_tick: int, frame_resolution: int):
         super().__init__(event_buffer, config_path, start_tick, max_tick, frame_resolution)
 
         self._conf = {}
-        self._sub_engines = []
+        self._sub_engines = {}
         self._frame_accessor: SubEngineAccessWrapper.PropertyAccessor = None
         self._snapshot_accessor: SubEngineAccessWrapper.PropertyAccessor = None
         self._node_mapping_accessor: SubEngineAccessWrapper.PropertyAccessor = None
@@ -50,7 +52,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Returns:
             bool: if scenario end at this tick
         """
-        for sub_engine in self._sub_engines:
+        for sub_engine in self._sub_engines.values():
             sub_engine.step(tick)
 
         return tick + 1 == self._max_tick
@@ -61,7 +63,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Args:
             tick (int): tick to process
         """
-        for sub_engine in self._sub_engines:
+        for sub_engine in self._sub_engines.values():
             sub_engine.post_step(tick)
 
     @property
@@ -103,6 +105,21 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         """
         pass
 
+    def _register_events(self):
+        self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
+
+    def _on_action_recieved(self, actions):
+        if actions is None:
+            return
+
+        for action in actions:
+            engine_name = action.sub_engine_name
+
+            if engine_name in self._sub_engines:
+                self._sub_engines[engine_name].take_action(action)
+            else:
+                raise "Specified engine not exist."
+
     def _read_conf(self):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._conf = safe_load(fp)
@@ -115,12 +132,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 engine = sub_engine_definitions[engine_type](self._start_tick, self._max_tick, 
                                             self._frame_resolution, sub_conf, self._event_buffer)
                 
-                self._sub_engines.append(engine)
+                self._sub_engines[engine.name] = engine
 
                 self._max_tick = engine.max_tick if self._max_tick <= 0 else min(self._max_tick, engine.max_tick)
         
         # after we aligned the max tick, then post_init to ask sub-engines to init frame and snapshot
-        for sub_engine in self._sub_engines:
+        for _, sub_engine in self._sub_engines.items():
             sub_engine.post_init(self._max_tick)
 
         self._sub_engine_accessor = SubEngineAccessWrapper(self._sub_engines)

@@ -10,7 +10,7 @@ from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
 from maro.simulator.utils.common import tick_to_frame_index
-
+from maro.simulator.scenarios.finance.common import Action
 from .stock import Stock
 
 
@@ -63,6 +63,12 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     def post_init(self, max_tick: int):
         self._init_frame()
         self._build_stocks()
+
+    def take_action(self, action: Action):
+        pass
+
+    def reset(self):
+        pass
 
     def _init_frame(self):
         self._frame = build_frame(Stock, len(self._stock_codes))

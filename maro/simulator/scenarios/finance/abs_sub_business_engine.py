@@ -50,6 +50,14 @@ class AbsSubBusinessEngine(ABC):
     def post_init(self, max_tick):
         pass
 
+    @abstractmethod
+    def take_action(self, action):
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
+
     @property
     def max_tick(self):
         return self._max_tick

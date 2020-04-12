@@ -151,14 +151,14 @@ class ModelBase:
         self._frame = frame
         self._index = index
 
-        self._bind_fields()
+        self._bind_attributes()
 
     @property
     def index(self)->int:
         return self._index
 
-    def _bind_fields(self):
-        """Bind field with frame and id"""
+    def _bind_attributes(self):
+        """Bind attributes with frame and id"""
         __dict__ = object.__getattribute__(self, "__dict__")    
 
         for name, attr in type(self).__dict__.items():
