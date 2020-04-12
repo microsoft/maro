@@ -10,7 +10,7 @@ from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
 from maro.simulator.utils.common import tick_to_frame_index
-from maro.simulator.scenarios.finance.common import Action
+from maro.simulator.scenarios.finance.common import Action, DecisionEvent
 from .stock import Stock
 
 
@@ -19,8 +19,12 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         super().__init__(start_tick, max_tick, frame_resolution, config, event_buffer)
 
         self._stock_codes: list = None
-        self._stocks: Dict[Stock] = None
+        self._stocks_dict: dict = None
+        self._stock_list: list = None
         self._readers: dict = None
+
+        self._action_scope_min = self._config["action_scope"]["min"]
+        self._action_scope_max = self._config["action_scope"]["max"]
 
         self._init_reader()
 
@@ -38,7 +42,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     
     @property
     def name_mapping(self):
-        return {stock.index: code for code, stock in self._stocks.items()}
+        return {stock.index: code for code, stock in self._stocks_dict.items()}
 
     def step(self, tick: int):
         for code, reader in self._readers.items():
@@ -46,7 +50,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
             if raw_stock is not None:
                 # update frame by code
-                stock: Stock = self._stocks[code]
+                stock: Stock = self._stocks_dict[code]
 
                 stock.opening_price = raw_stock.opening_price
                 stock.closing_price = raw_stock.closing_price
@@ -56,6 +60,16 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 stock.trade_amount = raw_stock.trade_amount
                 stock.trade_num = raw_stock.trade_num
                 stock.trade_volume = raw_stock.trade_volume
+
+
+        decision_event = DecisionEvent(tick, 
+                FinanceType.stock, 
+                [i for i in range(len(self._stock_codes))], 
+                self.name, 
+                self._action_scope)
+        evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
+
+        self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
         self.snapshot_list.insert_snapshot(self._frame, tick)
@@ -70,15 +84,22 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     def reset(self):
         pass
 
+    def _action_scope(self, stock_index_list: list):
+        for stock_index in stock_index_list:
+            stock: Stock = self._sto
+
     def _init_frame(self):
         self._frame = build_frame(Stock, len(self._stock_codes))
         self._snapshots = SnapshotList(self._frame, self._max_tick)
 
     def _build_stocks(self):
-        self._stocks = {}
+        self._stocks_dict = {}
+        self._stock_list = []
 
         for index, code in enumerate(self._stock_codes):
-            self._stocks[code] = Stock(self._frame, index, code)
+            stock = Stock(self._frame, index, code)
+            self._stocks_dict[code] = stock
+            self._stock_list.append(stock)
 
     def _init_reader(self):
         data_folder = self._config["data_path"]

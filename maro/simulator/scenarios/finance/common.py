@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Dict, List, Callable
-
+from inspect import isfunction
+from functools import partial
 from .abs_sub_business_engine import AbsSubBusinessEngine
 
 
@@ -66,12 +67,19 @@ class SubEngineAccessWrapper:
             return self._properties[name]
 
         def __getattribute__(self, name):
-            """Used to access frame/snapshotlist by name as a attribute"""
-            # if name in self._properties:
-                # return self._properties[name]
             properties = object.__getattribute__(self, "_properties")
 
-            return properties[name]
+            if name in properties:
+                # used to access frame/snapshotlist by name as an attribute, such as env.snapshotlist.sub_a.xxxx
+                return properties[name]
+            else:
+                # used to compact with current core to insert snapshot, or other implementation
+
+                # HOTFIX for special cases
+                if name == "insert_snapshot":
+                    return partial(SubEngineAccessWrapper.insert_snapshot, self)
+
+            return super().__getattribute__(name)
 
     """Wrapper to access frame/config/snapshotlist by name of sub-engine"""
     def __init__(self, sub_engines: dict):
@@ -81,3 +89,8 @@ class SubEngineAccessWrapper:
         properties = {name: getattr(engine, property_name) for name, engine in self._engines.items()}
 
         return SubEngineAccessWrapper.PropertyAccessor(properties)
+
+    @staticmethod
+    def insert_snapshot(snapshot_list_acc: PropertyAccessor, frame_acc: PropertyAccessor, index):
+        for name, snapshot_list in snapshot_list_acc._properties.items():
+            snapshot_list.insert_snapshot(frame_acc._properties[name], index)
