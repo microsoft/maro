@@ -1,16 +1,18 @@
 import os
 from typing import Dict, List
-from maro.simulator.scenarios.modelbase import build_frame
+
 from maro.simulator.event_buffer import Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.finance.abs_sub_business_engine import \
     AbsSubBusinessEngine
-from maro.simulator.scenarios.finance.common import FinanceType
+from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
+                                                     FinanceType)
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
+from maro.simulator.scenarios.modelbase import build_frame
 from maro.simulator.utils.common import tick_to_frame_index
-from maro.simulator.scenarios.finance.common import Action, DecisionEvent
+
 from .stock import Stock
 
 
@@ -85,8 +87,14 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         pass
 
     def _action_scope(self, stock_index_list: list):
+        result = {}
+
         for stock_index in stock_index_list:
-            stock: Stock = self._sto
+            stock: Stock = self._stock_list[stock_index_list]
+
+            result[stock_index] = (stock.trade_volume * self._action_scope_min, stock.trade_volume * self._action_scope_max)
+
+        return result
 
     def _init_frame(self):
         self._frame = build_frame(Stock, len(self._stock_codes))
