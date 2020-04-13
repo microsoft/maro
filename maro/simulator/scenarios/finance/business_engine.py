@@ -55,6 +55,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Returns:
             bool: if scenario end at this tick
         """
+        print("cur tick: ", tick)
         for sub_engine in self._sub_engines.values():
             sub_engine.step(tick)
 
@@ -139,7 +140,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 
                 self._sub_engines[engine.name] = engine
 
-                self._max_tick = engine.max_tick if self._max_tick <= 0 else min(self._max_tick, engine.max_tick)
+                self._max_tick = engine.max_tick if self._max_tick <= 0 else max(self._max_tick, engine.max_tick)
         
         # after we aligned the max tick, then post_init to ask sub-engines to init frame and snapshot
         for _, sub_engine in self._sub_engines.items():

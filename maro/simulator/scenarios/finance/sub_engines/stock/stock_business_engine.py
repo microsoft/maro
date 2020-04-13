@@ -56,29 +56,22 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 # update frame by code
                 stock: Stock = self._stocks_dict[code]
 
-                valid_stocks.append(stock.index)
+                if raw_stock.is_valid:
+                    valid_stocks.append(stock.index)
 
-                stock.opening_price = raw_stock.opening_price
-                stock.closing_price = raw_stock.closing_price
-                stock.daily_return = raw_stock.daily_return
-                stock.highest_price = raw_stock.daily_return
-                stock.lowest_price = raw_stock.lowest_price
-                stock.trade_amount = raw_stock.trade_amount
-                stock.trade_num = raw_stock.trade_num
-                stock.trade_volume = raw_stock.trade_volume
+                    stock.fill(raw_stock)
 
-
-        decision_event = DecisionEvent(tick, 
-                FinanceType.stock, 
-                valid_stocks, 
-                self.name, 
-                self._action_scope)
+        decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope)
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
         self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
+        # after take snapshot, we need to reset the stock
         self.snapshot_list.insert_snapshot(self._frame, tick)
+
+        for stock in self._stock_list:
+            stock.reset()
 
     def post_init(self, max_tick: int):
         self._init_frame()

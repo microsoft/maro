@@ -178,20 +178,25 @@ cdef class FinanceReader:
         if FALSE == init_reader(self.path, &self.reader, dtype):
             raise "Fail to initialize Finance reader"
 
+        # NOTE: we have to set start and num correctly to get item
+        self.reader.start = 0
+
         day_seconds = 24 * 60 * 60
 
-        if self.reader.meta.start_time < beginning_time_stamp:
+        if self.reader.meta.start_time > beginning_time_stamp:
             self._padding_days = ceil((self.reader.meta.start_time - beginning_time_stamp) / day_seconds)
             self._padding_days -= start_tick
             self._cur_padding = self._padding_days
 
-        # calculate offset(start) and number to read
-        # NOTE: we assume we are using daily data
+        elif self.reader.meta.start_time < beginning_time_stamp:
+            self.reader.start = floor((beginning_time_stamp - self.reader.meta.start_time) / day_seconds)
 
-        # NOTE: we have to set start and num correctly to get item
-        self.reader.start = 0 if self._padding_days > 0 else start_tick
         if max_tick <= 0:
-            self._max_tick = self.reader.size - self._padding_days
+            self._max_tick = self.reader.size + self._padding_days - self.reader.start
+
+        print(self.reader.start, self._max_tick, self._padding_days)
+
+        self.reader.start = 0
 
     @property
     def max_tick(self):
