@@ -63,13 +63,10 @@ distributed:
 
   resources:
     environment_runner:
-      CPU: 1
-      GPU: 1
-      memory: 128 # MB
+      CPU_cores: 1.5
+      GPU_mem: 100
+      mem: 1024 # MB
     learner:
-      CPU: 2
-      GPU: 2
-      memory: 256 # MB
-
-    
-
+      CPU_cores: 2
+      GPU_mem: 2000
+      mem: 1014 # MB

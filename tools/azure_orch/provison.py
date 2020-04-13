@@ -3,7 +3,12 @@ import logging
 from dirsync import sync
 import inquirer
 import json
+import socket
 
+from tqdm import tqdm
+
+from docker import install_docker, build_cpu_docker_images
+from gen_job_config import gen_job_config
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -11,48 +16,6 @@ logging.basicConfig(level=logging.INFO,
 
 def config_summary(nodes_config):
     pass
-
-def create_cluster():
-    delta_cluster_info = inquirer_cluster()
-    with open(f'~/clusterInfo.json', 'r') as infile:
-        exist_cluster_info = json.load(infile)
-    
-    # new cluster info json
-    exist_cluster_info["virtualMachines"].extend(delta_cluster_info["virtualMachines"])
-
-    cluster_info_name = "delta_cluster_info"
-    
-    with open(f'azure_template/{cluster_info_name}.json', 'w') as outfile:  
-        json.dump(delta_cluster_info, outfile, indent=4)
-
-    config_bin = f"python azure_template/vmconfig.py azure_template/{cluster_info_name}.json azure_template/config azure_template/parameters.json"
-    
-    res = subprocess.run(config_bin, shell=True, capture_output=True)
-    if res.returncode:
-        logging.error(f"run {config_bin} error.")
-        raise("!!!")
-    else:
-        logging.info(f"run {config_bin} sucess.")
-
-    for worker in os.listdir(f"azure_template/config"):
-        create_bin = f"./azure_template/deploy.sh -i {delta_cluster_info['subscription']} " + \
-                     f"-g {delta_cluster_info['virtualMachineRG']} -n DEFAULT " + \
-                     f"-l {delta_cluster_info['location']} " + \
-                     f"-t azure_template/template.json " + \
-                     f"-p azure_template/config/{worker}"
-
-        res = subprocess.run(create_bin, shell=True, capture_output=True)
-        if res.returncode:
-            logging.error(f"run {create_bin} error.")
-            raise("!!!")
-        else:
-            logging.info(f"run {create_bin} sucess.")
-    
-    start_cluster(delta_cluster_info)
-    mount_AFS(delta_cluster_info)
-
-    with open(f'~/clusterInfo.json', 'w') as outfile:
-        json.dump(exist_cluster_info, outfile, indent=4)
 
 def create_god():
     god_info = inquirer_god()
@@ -73,29 +36,39 @@ def create_god():
     for bin in [config_bin, create_bin, get_IP_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
-            logging.error(f"run {bin} error.")
+            logging.error(f"run {bin} error! err msg: {res.stderr}")
             raise("!!!")
         else:
             if bin[0] == 'a':
+                with open(f"azure_template/config_{god_info['virtualMachineRG']}/god.json", 'r') as infile:  
+                    god_deploy_config = json.load(infile)
+                storage_account_name = god_deploy_config["parameters"]["diagnosticsStorageAccountName"]['value']
+
+                with open(f'azure_template/{god_info_name}.json', 'r') as infile:
+                    god_info = json.load(infile)
+                god_info['storageAccountName'] = storage_account_name
+
+                with open(f'azure_template/{god_info_name}.json', 'w') as outfile: 
+                    json.dump(god_info, outfile, indent=4)
+
                 ip_info = json.loads(res.stdout)
                 god_ip = ip_info[0]["ipAddress"]
                 logging.info("Now you can remote login your agent machine. ")
                 logging.info(f"COPY AND RUN: ssh {god_info['adminUsername']}@{god_ip}")
-                res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/CreationMemorandum.md {god_info['adminUsername']}@{god_ip}:~; " + \
-                                f"scp -o StrictHostKeyChecking=no azure_template/{god_info_name}.json {god_info['adminUsername']}@{god_ip}:~/clusterInfo.json", 
-                                shell=True, capture_output=True)
+                god_info['virtualMachines'][0]['IP'] = god_ip
+                res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/{god_info_name}.json {god_info['adminUsername']}@{god_ip}:~/clusterInfo.json", 
+                                    shell=True, capture_output=True)
                 if res.returncode:
-                    logging.error("scp error.")
+                    logging.error(f"scp error! err msg: {res.stderr}")
                     raise("!!!")
             else:
                 logging.info(f"run {bin} sucess.")
-    
-    create_file_share(god_info)
 
-    mount_AFS(god_info)
+    create_file_share(god_info)
+    mount_AFS(god_info, god_deploy_config["parameters"]["diagnosticsStorageAccountName"]['value'])
     
 def create_file_share(god_info):
-    with open(f"azure_template/config_{god_info['virtualMachineRG']}/{god_info['virtualMachines'][0]['name']}.json", 'r') as infile:  
+    with open(f"azure_template/config_{god_info['virtualMachineRG']}/god.json", 'r') as infile:  
         god_info = json.load(infile)
     
     res = subprocess.run(f"storageAccountName={god_info['parameters']['diagnosticsStorageAccountName']['value']} \
@@ -105,15 +78,14 @@ def create_file_share(god_info):
                 shell=True, capture_output=True)
 
     if res.returncode:
-        logging.error("share file create failed!")
+        logging.error(f"share file create error! err msg: {res.stderr}")
         raise("!!!")
     else:
         logging.info("share file create success!")
 
-def mount_AFS(delta_cluster_info):
-    with open(f"azure_template/config_{delta_cluster_info['virtualMachineRG']}/god.json", 'r') as infile:  
-        god_info = json.load(infile)
-    storage_account_name = god_info["parameters"]["diagnosticsStorageAccountName"]
+
+def mount_AFS(delta_cluster_info, storage_account_name):
+    admin_username = delta_cluster_info['adminUsername']
 
     for worker in delta_cluster_info["virtualMachines"]:
         share_name = "sharefile"
@@ -123,21 +95,119 @@ def mount_AFS(delta_cluster_info):
                                     --resource-group {delta_cluster_info["virtualMachineRG"]} \
                                     --account-name {storage_account_name} \
                                     --query "[0].value" | tr -d '"' ''', 
-                                    shell=True, capture_output=True).stdout
+                                    shell=True, capture_output=True, encoding='ascii').stdout
+        password = password[:-1]
 
-        auth = f"vers=3.0,username={share_name},password={password},dir_mode=0777,file_mode=0777,sec=ntlmssp"
+        auth = f"vers=3.0,username={storage_account_name},password={password},dir_mode=0777,file_mode=0777,sec=ntlmssp"
         
         mount_bin = "sudo mkdir -p /codepoint; " + "sudo mount -t cifs " + share_file_location + mount_dir + "-o " + auth
-        ssh_bin = f"ssh -o StrictHostKeyChecking=no {worker['name']} '{mount_bin}'"
+        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} '{mount_bin}'"
 
         res = subprocess.run(ssh_bin, shell=True, capture_output=True)
         
         if res.returncode:
             logging.error(f"{worker['name']} mount AFS failed!")
+            print(res)
             raise("!!!")
         else:
             logging.info(f"{worker['name']} mount AFS success!")
 
+
+def create_cluster():
+    delta_cluster_info = inquirer_cluster()
+
+    with open(f'~/clusterInfo.json', 'r') as infile:
+        exist_cluster_info = json.load(infile)
+
+    cluster_info_name = "delta_cluster_info"
+    
+    with open(f'azure_template/{cluster_info_name}.json', 'w') as outfile:  
+        json.dump(delta_cluster_info, outfile, indent=4)
+
+    config_bin = f"python azure_template/vmconfig.py azure_template/{cluster_info_name}.json azure_template/config azure_template/parameters.json"
+    
+    res = subprocess.run(config_bin, shell=True, capture_output=True)
+    if res.returncode:
+        logging.error(f"run {config_bin} error. error msg: {res.stderr}")
+        raise("!!!")
+    else:
+        logging.info(f"run {config_bin} sucess.")
+
+    pbar = tqdm(total=len(delta_cluster_info['virtualMachines']))
+
+    for worker in os.listdir(f"azure_template/config"):
+        create_bin = f"./azure_template/deploy.sh -i {delta_cluster_info['subscription']} " + \
+                     f"-g {delta_cluster_info['virtualMachineRG']} -n DEFAULT " + \
+                     f"-l {delta_cluster_info['location']} " + \
+                     f"-t azure_template/template.json " + \
+                     f"-p azure_template/config/{worker}"
+
+        res = subprocess.run(create_bin, shell=True, capture_output=True)
+        if res.returncode:
+            logging.error(f"run {create_bin} error! err msg: {res.stderr}")
+            raise("!!!")
+        else:
+            logging.info(f"run {create_bin} sucess.")
+        pbar.update(1)
+    pbar.close()
+    
+    
+    for worker in delta_cluster_info['virtualMachines']:
+        get_IP_bin = f'''az network public-ip list -g {delta_cluster_info['virtualMachineRG']} --query "[?name=='{worker["name"]}-ip']"'''
+        res = subprocess.run(get_IP_bin, shell=True, capture_output=True)
+        if res.returncode:
+            logging.error(f"run {get_IP_bin} error! err msg: {res.stderr}")
+            raise(res.stdout)
+        else:
+            logging.info(f"get IP of {worker['name']} success!")
+            worker_ip = json.loads(res.stdout)[0]["ipAddress"]
+            worker['IP'] = worker_ip
+
+    questions = [
+        inquirer.Text(
+            'imageName', 
+            message="What is the docker image name?",
+            default="maro/ecr/cpu/latest"
+        )
+    ]
+    image_name = inquirer.prompt(questions)['imageName']
+    
+    mount_AFS(delta_cluster_info, exist_cluster_info['storageAccountName'])
+    install_docker(delta_cluster_info)
+    build_cpu_docker_images(delta_cluster_info, image_name)
+    prob_resources(delta_cluster_info, image_name)
+
+    # update cluster info json
+    exist_cluster_info["virtualMachines"].extend(delta_cluster_info["virtualMachines"])
+
+    with open(f'~/clusterInfo.json', 'w') as outfile:
+        json.dump(exist_cluster_info, outfile, indent=4)
+
+
+def init_god():
+    #sync code to codepoint
+    src = os.environ['PYTHONPATH']
+    sync(src, "/codepoint/", 'sync', purge=True)
+
+    #initialize docker
+    install_bin = "bash /codepoint/bin/install_docker.sh"
+    res = subprocess.run(install_bin, shell=True, capture_output=True)
+
+    if res.returncode:
+        logging.error(f"run {install_bin} failed! err msg: {res.stderr}")
+        raise("!!!")
+    else:
+        logging.info(f"run {install_bin} success!")
+
+    #launch redis-server
+    launch_bin = "bash /codepoint/bin/launch_redis.sh"
+    res = subprocess.run(launch_bin, shell=True, capture_output=True)
+
+    if res.returncode:
+        logging.error(f"run {launch_bin} failed! err msg: {res.stderr}")
+        raise("!!!")
+    else:
+        logging.info(f"run {launch_bin} success!")
 
 def inquirer_cluster():
     questions = [
@@ -223,6 +293,22 @@ def inquirer_god():
     return god_info
 
 
+def prob_resources(delta_cluster_info, image_name):
+    redis_address = socket.gethostbyname(socket.gethostname())
+    redis_port = 6379
+    admin_username = delta_cluster_info["adminUsername"]
+    for worker in delta_cluster_info["virtualMachines"]:
+        prob_bin = f"docker run --name prob -d -it -v /codepoint:/maro_dist {image_name} REDIS_ADDRESS={redis_address} REDIS_PORT={redis_port} python3 tools/azure_orch/prob.py"
+        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} '{prob_bin}'"
+
+        res = subprocess.run(ssh_bin, shell=True)
+        
+        if res.returncode:
+            logging.error(f"start prob on {worker['name']} failed! err msg: {res.stderr}")
+            raise("!!!")
+        else:
+            logging.info(f"start prob on {worker['name']} success!")
+
 def start_cluster(cluster_info):
     logging.info(f"Resource Group: {cluster_info['virtualMachineRG']}")
 
@@ -250,7 +336,7 @@ def start_cluster(cluster_info):
         res = subprocess.run(start_bin, shell=True, capture_output=True)
 
         if res.returncode:
-            logging.error("start cluster failed!")
+            logging.error("start cluster failed! err msg: {res.stderr}")
             raise("!!!")
         else:
             logging.info("start cluster success!")
@@ -285,58 +371,26 @@ def stop_cluster(cluster_info):
         res = subprocess.run(start_bin, shell=True, capture_output=True)
 
         if res.returncode:
-            logging.error("stop cluster failed!")
+            logging.error(f"stop cluster failed! err msg: {res.stderr}")
             raise("!!!")
         else:
-            logging.info("stop cluster success!")
+            logging.info(f"stop cluster success!")
 
-def install_docker(delta_cluster_info):
-    for worker in delta_cluster_info["virtualMachines"]:
-        install_bin = f"ssh -o StrictHostKeyChecking=no {worker['name']} 'bash /codepoint/bin/install_docker.sh'"
-        res = subprocess.run(install_bin, shell=True, capture_output=True)
-        
-        if res.returncode:
-            logging.error(f"run {install_bin} failed!")
-            raise("!!!")
-        else:
-            logging.info(f"run {install_bin} success!")
+def generate_job_config():
+    questions = [
+        inquirer.Text(
+            'configPath', 
+            message="Where is your config file?",
+            default="/codepoint/examples/ecr/q-learning/distributed_mode/config.yml"
+        ),
+    ]
 
-def init_god():
-    #sync code to codepoint
-    src = os.environ['PYTHONPATH']
-    sync(src, "/codepoint/", 'sync', purge=True)
+    config_path = inquirer.prompt(questions)['configPath']
 
-    #initialize docker
-    install_bin = "bash /codepoint/bin/install_docker.sh"
-    res = subprocess.run(install_bin, shell=True, capture_output=True)
-
-    if res.returncode:
-        logging.error(f"run {install_bin} failed!")
-        raise("!!!")
-    else:
-        logging.info(f"run {install_bin} success!")
-
-    #launch redis-server
-    launch_bin = "bash /codepoint/bin/launch_redis.sh"
-    res = subprocess.run(launch_bin, shell=True, capture_output=True)
-
-    if res.returncode:
-        logging.error(f"run {launch_bin} failed!")
-        raise("!!!")
-    else:
-        logging.info(f"run {launch_bin} success!")
-
+    gen_job_config(config_path)
 
 
 # unit test
 if __name__ == "__main__":
-    # with open(f'./azure_template/godconfig.json', 'r') as infile:
-    #     exist_cluster_info = json.loads(infile.read())
-    #     print(type(exist_cluster_info["virtualMachines"]))
-    # res = subprocess.run("python azure_template/vmconfig.py azure_template/god_info_maro-demo.json azure_template/config_maro-demo azure_template/parameters.json", shell=True, capture_output=True)
-    # print(res.returncode)
-    # print("123")
-    # create_god()
-    # password = subprocess.run(''' az storage account keys list --resource-group maro_dist --account-name dist4222797289618520747 --query "[0].value" | tr -d '"' ''', shell=True, capture_output=True)
-    # print(password.stdout)
-    create_file_share(inquirer_god())
+    create_god()
+    # generate_job_config()

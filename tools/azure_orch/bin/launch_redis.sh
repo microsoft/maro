@@ -1,1 +1,1 @@
-sudo docker run --name my-redis-container -p 6379:6379 -d redis
+sudo docker run --name god-redis-container -p 6379:6379 -d redis

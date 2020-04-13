@@ -7,18 +7,12 @@ from dirsync import sync
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlInit
-from psutil import cpu_percent, cpu_count, virtual_memory
-from socket import gethostname
-import redis
-
-import json
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-class FileEventHandler(FileSystemEventHandler):
+class CodeFileEventHandler(FileSystemEventHandler):
     def __init__(self, src, dest):
         FileSystemEventHandler.__init__(self)
         self._src = src
@@ -42,37 +36,40 @@ class FileEventHandler(FileSystemEventHandler):
         sync(self._src, self._dest, 'sync', purge=True)
         logging.info("[modify] {0} sync to: {1}".format(event.src_path, self._dest))
 
+class LogFileEventHandler(FileSystemEventHandler):
+    def __init__(self, src, dest):
+        FileSystemEventHandler.__init__(self)
+        self._src = src
+        self._dest = dest
+
+    def on_created(self, event):
+        sync(self._src, self._dest, 'sync')
+        logging.info("[create] {0} sync to: {1}".format(event.src_path, self._dest))
+    
+    def on_modified(self, event):
+        sync(self._src, self._dest, 'sync')
+        logging.info("[modify] {0} sync to: {1}".format(event.src_path, self._dest))
+
+
 def auto_sync(src, dest):
     sync(src, dest, 'sync', purge=True)
-    observer = Observer()
-    event_handler = FileEventHandler(src, dest)
-    observer.schedule(event_handler, src, True)
-    observer.start()
+    code_observer = Observer()
+    log_observer = Observer()
+    code_event_handler = CodeFileEventHandler(src, dest)
+    log_event_handler = LogFileEventHandler(dest, src)
+    code_observer.schedule(code_event_handler, src, True)
+    log_observer.schedule(log_event_handler, dest, True)
+    code_observer.start()
+    log_observer.start()
+    
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+        code_observer.stop()
+        log_observer.stop()
+
+    code_observer.join()
+    log_observer.join()
 
 
-class Prob():
-    def __init__(self):
-        self._redis_connection = redis.StrictRedis(host=os.environ['redis_address'], port=os.environ['redis_port'])
-    
-    def prob(self):
-        nvmlInit()
-        handle = nvmlDeviceGetHandleByIndex(0)
-        meminfo = nvmlDeviceGetMemoryInfo(handle)
-        free_GPU_mem = meminfo.free / (1024 * 1024)
-
-        mem = virtual_memory()
-        free_mem = (mem.total - mem.used) / (1024 * 1024)
-
-        free_CPU_cores = (100 - cpu_percent()) / 100 * cpu_count()
-
-        free_resources = {"free_GPU_mem" : free_GPU_mem,
-                          "free_mem": free_mem,
-                          "free_CPU_cores": free_CPU_cores}
-
-        self._redis_connection.hset("resources", gethostname(), json.dumps(free_resources))
