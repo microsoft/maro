@@ -17,8 +17,8 @@ from .stock import Stock
 
 
 class StockBusinessEngine(AbsSubBusinessEngine):
-    def __init__(self, start_tick: int, max_tick: int, frame_resolution: int, config: dict, event_buffer: EventBuffer):
-        super().__init__(start_tick, max_tick, frame_resolution, config, event_buffer)
+    def __init__(self, beginning_timestamp: int, start_tick: int, max_tick: int, frame_resolution: int, config: dict, event_buffer: EventBuffer):
+        super().__init__(beginning_timestamp, start_tick, max_tick, frame_resolution, config, event_buffer)
 
         self._stock_codes: list = None
         self._stocks_dict: dict = None
@@ -47,12 +47,16 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         return {stock.index: code for code, stock in self._stocks_dict.items()}
 
     def step(self, tick: int):
+        valid_stocks = []
+        
         for code, reader in self._readers.items():
             raw_stock: RawStock = reader.next_item()
 
             if raw_stock is not None:
                 # update frame by code
                 stock: Stock = self._stocks_dict[code]
+
+                valid_stocks.append(stock.index)
 
                 stock.opening_price = raw_stock.opening_price
                 stock.closing_price = raw_stock.closing_price
@@ -66,7 +70,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
         decision_event = DecisionEvent(tick, 
                 FinanceType.stock, 
-                [i for i in range(len(self._stock_codes))], 
+                valid_stocks, 
                 self.name, 
                 self._action_scope)
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
@@ -120,7 +124,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         for code in self._stock_codes:
             data_path = os.path.join(data_folder, f"{code}.bin").encode()
 
-            self._readers[code] = FinanceReader(FinanceDataType.STOCK, data_path, self._start_tick, self._max_tick)
+            self._readers[code] = FinanceReader(FinanceDataType.STOCK, data_path, self._start_tick, self._max_tick, self._beginning_timestamp)
 
             # in case the data file contains different ticks
             new_max_tick = self._readers[code].max_tick

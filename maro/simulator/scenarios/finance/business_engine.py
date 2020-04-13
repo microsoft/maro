@@ -1,4 +1,6 @@
 import os
+import time
+import datetime
 from typing import Dict, List
 from enum import IntEnum
 from yaml import safe_load
@@ -28,6 +30,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._snapshot_accessor: SubEngineAccessWrapper.PropertyAccessor = None
         self._node_mapping_accessor: SubEngineAccessWrapper.PropertyAccessor = None
         self._sub_engine_accessor: SubEngineAccessWrapper = None
+        self._beginning_timestamp = 0
 
         self._read_conf()
         self._init_sub_engines()
@@ -124,12 +127,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._conf = safe_load(fp)
 
+            self._beginning_timestamp = datetime.datetime.strptime(self._conf["beginning_date"], "%Y-%m-%d").timestamp()
+
     def _init_sub_engines(self):
         for sub_conf in self._conf["sub-engines"]:
             engine_type = FinanceType[sub_conf["type"]]
 
             if engine_type in sub_engine_definitions:
-                engine = sub_engine_definitions[engine_type](self._start_tick, self._max_tick, 
+                engine = sub_engine_definitions[engine_type](self._beginning_timestamp, self._start_tick, self._max_tick, 
                                             self._frame_resolution, sub_conf, self._event_buffer)
                 
                 self._sub_engines[engine.name] = engine
