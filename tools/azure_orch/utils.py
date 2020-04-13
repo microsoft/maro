@@ -52,24 +52,23 @@ class LogFileEventHandler(FileSystemEventHandler):
 
 
 def auto_sync(src, dest):
-    sync(src, dest, 'sync', purge=True)
     code_observer = Observer()
-    log_observer = Observer()
+    # log_observer = Observer()
     code_event_handler = CodeFileEventHandler(src, dest)
-    log_event_handler = LogFileEventHandler(dest, src)
+    # log_event_handler = LogFileEventHandler(dest, src)
     code_observer.schedule(code_event_handler, src, True)
-    log_observer.schedule(log_event_handler, dest, True)
+    # log_observer.schedule(log_event_handler, dest, True)
     code_observer.start()
-    log_observer.start()
+    # log_observer.start()
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         code_observer.stop()
-        log_observer.stop()
+        # log_observer.stop()
 
     code_observer.join()
-    log_observer.join()
+    # log_observer.join()
 
 
