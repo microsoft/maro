@@ -207,6 +207,8 @@ class ModelBase:
             if isinstance(attr_acc, FrameAttributeSliceAccessor):
                 if attr_acc.attr.slot_num == 1:
                     return attr_acc[0]
+
+            return attr_acc
           
         return super().__getattribute__(name)
 
