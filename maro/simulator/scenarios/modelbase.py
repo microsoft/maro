@@ -72,8 +72,8 @@ class IntMaxtrixAttribute(BaseAttribute):
     def __init__(self, node_type: FrameNodeType, row: int = 1, col: int = 1):
         super().__init__(node_type, INT_MAT, 0, row=row, col=col)
 
-class FrameAttributeSlideAccessor:
-    """Used to provide a way to access frame field with slide interface"""
+class FrameAttributeSliceAccessor:
+    """Used to provide a way to access frame field with slice interface"""
     def __init__(self, attr: BaseAttribute, frame: Frame, index: int, name: str):
         self.attr = attr
         self.index = index
@@ -98,7 +98,7 @@ class FrameAttributeSlideAccessor:
             self._value_changed_cb(key, value)
 
     def __repr__(self):
-        return f"<FrameAttributeSlideAccessor {self.name}, {self.attr.__repr__()}>"
+        return f"<FrameAttributeSliceAccessor {self.name}, {self.attr.__repr__()}>"
 
 
 class ModelBase:
@@ -167,7 +167,7 @@ class ModelBase:
                 # TODO: this will override exist attribute of sub-class instance, maybe a warning later
                 
                 # NOTE: here we have to use __dict__ to avoid infinite loop, as we overrided __getattribute__
-                attr_acc = FrameAttributeSlideAccessor(attr, __dict__["_frame"], __dict__["_index"], name)
+                attr_acc = FrameAttributeSliceAccessor(attr, __dict__["_frame"], __dict__["_index"], name)
 
                 __dict__[name] = attr_acc
 
@@ -185,7 +185,7 @@ class ModelBase:
         if name in __dict__:
             attr_acc = __dict__[name]
 
-            if isinstance(attr_acc, FrameAttributeSlideAccessor):
+            if isinstance(attr_acc, FrameAttributeSliceAccessor):
                 if attr_acc.attr.slot_num > 1:
                     raise "cannot set value for frame fields directly, please use slice interface instead"
                 else:
@@ -202,7 +202,7 @@ class ModelBase:
         if name in __dict__:
             attr_acc = __dict__[name]
 
-            if isinstance(attr_acc, FrameAttributeSlideAccessor):
+            if isinstance(attr_acc, FrameAttributeSliceAccessor):
                 if attr_acc.attr.slot_num == 1:
                     return attr_acc[0]
           
