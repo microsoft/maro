@@ -187,6 +187,7 @@ def create_cluster():
 def init_god():
     #sync code to codepoint
     src = os.environ['PYTHONPATH']
+    dest = "/codepoint/"
     sync(src, "/codepoint/", 'sync', purge=True)
 
     #initialize docker
