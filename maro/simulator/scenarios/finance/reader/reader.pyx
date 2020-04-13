@@ -2,7 +2,7 @@
 
 import time
 from enum import IntEnum
-from math import floor
+from math import floor, ceil
 from cython cimport view
 
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
@@ -48,7 +48,6 @@ cdef extern from "converter.c":
         void *addr
         meta_t meta
         int start
-        int num
         int cur_index
         uint8_t dtype
         void *data
@@ -162,35 +161,37 @@ cdef class FinanceReader:
         Stock stock
 
         # start index
-        int query_start
-        int num
         int _max_tick
 
-    def __cinit__(self, uint8_t dtype, char *path, start_tick: int, max_tick: int):
+        # used to hold padding number when the file start time greater than specified beginning time
+        int _padding_days
+        int _cur_padding
+
+    def __cinit__(self, uint8_t dtype, char *path, start_tick: int, max_tick: int, beginning_time_stamp: int):
         self.dtype = dtype
         self.path = path
         self._max_tick = max_tick
+        self._cur_padding = 0
+        self._padding_days = 0
         self.stock = Stock()
 
         if FALSE == init_reader(self.path, &self.reader, dtype):
             raise "Fail to initialize Finance reader"
 
+        day_seconds = 24 * 60 * 60
+
+        if self.reader.meta.start_time < beginning_time_stamp:
+            self._padding_days = ceil((self.reader.meta.start_time - beginning_time_stamp) / day_seconds)
+            self._padding_days -= start_tick
+            self._cur_padding = self._padding_days
+
         # calculate offset(start) and number to read
         # NOTE: we assume we are using daily data
-        # day_seconds = 60 * 60 * 24
-        # start_time = floor(self.meta.start_time / day_seconds) + start_tick
-        # end_time = int((self.meta.end_time - self.meta.start_time) / day_seconds)
 
         # NOTE: we have to set start and num correctly to get item
-        self.reader.start = start_tick
+        self.reader.start = 0 if self._padding_days > 0 else start_tick
         if max_tick <= 0:
-            self._max_tick = self.reader.size
-            self.reader.num = self.reader.size - start_tick
-        else:
-            self._max_tick = min(max_tick, self.reader.size)
-            self.reader.num = self._max_tick - start_tick
-
-        # self.reader.num = self.reader.size
+            self._max_tick = self.reader.size - self._padding_days
 
     @property
     def max_tick(self):
@@ -206,7 +207,7 @@ cdef class FinanceReader:
         return self.dtype
 
     @property
-    def code(self):
+    def id(self):
         return self.reader.meta.id
 
     @property
@@ -222,6 +223,11 @@ cdef class FinanceReader:
         return self.reader.meta.version
 
     def next_item(self):
+        if self._cur_padding > 0:
+            self._cur_padding -= 1
+
+            return None
+
         if FALSE == next_item(&self.reader):
             return None
 
@@ -243,10 +249,11 @@ cdef class FinanceReader:
 
     def reset(self):
         reset_reader(&self.reader)
+        self._cur_padding = self._padding_days
         # init_reader(self.path, &self.reader, self.dtype)
 
     def __dealloc__(self):
         release_reader(&self.reader)
 
     def __repr__(self):
-        return f"FinanceReader (data type: {self.data_type}, code: {self.code}, count: {self.size}, start time: {self.start_time}, end time: {self.end_time})";
+        return f"FinanceReader (data type: {self.data_type}, code: {self.id}, count: {self.size}, start time: {self.start_time}, end time: {self.end_time})";

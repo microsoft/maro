@@ -499,7 +499,7 @@ BOOL next_stock_item(finreader_t *reader)
 {
     if(reader == NULL) return FALSE;
 
-    if(reader->cur_index >= (reader->start + reader->num))
+    if(reader->cur_index >= reader->size)
     {   
         // if the query out of the boundary, then return last result
         return FALSE;

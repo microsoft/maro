@@ -98,7 +98,6 @@ typedef struct FinReader{
     void *addr; // address to the memory to read (from mmap)
     meta_t meta;
     int start; // start index for query
-    int num; // number of item to query
     int cur_index; // current index, used for continue quering
     uint8_t dtype; // which item type this reader for (like stock, futures)
     void *data; // current result of quering
