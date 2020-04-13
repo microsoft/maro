@@ -92,5 +92,6 @@ class SubEngineAccessWrapper:
 
     @staticmethod
     def insert_snapshot(snapshot_list_acc: PropertyAccessor, frame_acc: PropertyAccessor, index):
+        """Used to support insert snapshot for property accessor"""
         for name, snapshot_list in snapshot_list_acc._properties.items():
             snapshot_list.insert_snapshot(frame_acc._properties[name], index)

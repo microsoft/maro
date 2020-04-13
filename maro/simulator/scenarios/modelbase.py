@@ -22,9 +22,11 @@ class BaseAttribute:
         self.col: int = col
 
     def set_value(self, frame: Frame, name: str, node_index: int, slot: int, value):
+        """Set value of specified slot"""
         frame.set_attribute(self.node_type, node_index, name, slot, value)
 
     def get_value(self, frame: Frame, name: str, node_index: int, slot: int):
+        """Get value of specified slot"""
         return frame.get_attribute(self.node_type, node_index, name, slot)
 
 class IntAttribute(BaseAttribute):
@@ -73,7 +75,7 @@ class IntMaxtrixAttribute(BaseAttribute):
         super().__init__(node_type, INT_MAT, 0, row=row, col=col)
 
 class FrameAttributeSliceAccessor:
-    """Used to provide a way to access frame field with slice interface"""
+    """Used to provide a way to access frame field with slice interface, like model.attr[0]"""
     def __init__(self, attr: BaseAttribute, frame: Frame, index: int, name: str):
         self.attr = attr
         self.index = index
