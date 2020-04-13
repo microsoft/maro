@@ -5,7 +5,10 @@ import yaml
 import random, string
 import copy
 
-CONFIG_PATH = os.environ.get('CONFIG') or 'config.yml'
+from examples.ecr.q_learning.distributed_mode.k8s_job_generator import k8s_job_generator
+from examples.ecr.q_learning.distributed_mode.nomad_job_generator import nomad_job_generator
+
+CONFIG_PATH = os.environ.get('CONFIG') or 'base_config/config.yml'
 
 with io.open(CONFIG_PATH, 'r') as in_file:
     config = yaml.safe_load(in_file)
@@ -49,15 +52,15 @@ def convert():
             component_config['group_name'] = group_name
             component_config['resources'] = dist_config['resources'][component_type]
             component_config['redis'] = config['redis']
-        
+
             dump_config(component_config)
+
+            # k8s config
+            k8s_job_generator(component_config)
+
+            # nomad config
+            nomad_job_generator(component_config)            
 
 
 if __name__ == "__main__":
     convert()
-
-            
-        
-    
-
-
