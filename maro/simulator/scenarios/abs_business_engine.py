@@ -51,12 +51,10 @@ class AbsBusinessEngine(ABC):
         pass
 
     @property
-    @abstractmethod
     def configs(self) -> dict:
         """object: Configurations of this business engine"""
         pass
 
-    @abstractmethod
     def rewards(self, actions) -> float:
         """Calculate rewards based on actions
 
@@ -73,7 +71,6 @@ class AbsBusinessEngine(ABC):
         """Reset business engine"""
         pass
 
-    @abstractmethod
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
 
@@ -82,7 +79,6 @@ class AbsBusinessEngine(ABC):
         """
         pass
 
-    @abstractmethod
     def get_agent_idx_list(self) -> List[int]:
         """Get port index list related with this environment
 
@@ -91,7 +87,6 @@ class AbsBusinessEngine(ABC):
         """
         pass
 
-    @abstractmethod
     def post_step(self, tick):
         """Post-process at specified tick
 

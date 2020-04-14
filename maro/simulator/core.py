@@ -268,7 +268,7 @@ class Env(AbsEnv):
             self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
 
         # reset the tick to avoid add one more time at the end of loop
-        self._tick = self._max_tick - 1
+        self._tick = self._tick - 1
 
         # the end
         yield None, None, True
