@@ -31,6 +31,7 @@ def start():
         while not is_done:
             reward, decision_event, is_done = env.step(action)
 
+    # NOTE: use the snapshot_list before env.reset(), or you can only get the initial value
     # usage of snapshot_list
     
     # you can access snapshot_list with slice interface: snapshot_list.static_node/dynamic_node
