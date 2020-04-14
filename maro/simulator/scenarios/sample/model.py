@@ -6,7 +6,7 @@ DYNAMIC_NODE = FrameNodeType.DYNAMIC
 
 ## STEP 1: define your data model
 
-# ModelBase provide a simple way to acess Frame
+# ModelBase provide a simple way to access Frame (but it not require to use it, refer to ECR scenario to see a tough way)
 
 # NOTE: each data model should only have one node type 
 class SampleStaticModel(ModelBase):
