@@ -16,10 +16,6 @@ RUN apt-get install gcc
 RUN apt-get install -y libzmq3-dev
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
-# oh my zsh
-RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || echo hi
-RUN chsh -s `which zsh` && wget https://raw.githubusercontent.com/ArthurJiang/config/master/.zshrc -O ~/.zshrc
-
 # copy/install requirements
 COPY ./requirements.dev.txt /maro_dist/requirements.dev.txt
 

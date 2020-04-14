@@ -33,5 +33,6 @@ class Prob():
 
             time.sleep(5)
 
-prob = Prob()
-prob.update_resources()
+if __name__ == "__main__":
+    prob = Prob()
+    prob.update_resources()

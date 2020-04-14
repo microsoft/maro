@@ -46,14 +46,14 @@ dashboard:
 docker_image: 'maro_dist'
 
 redis:
-  host: localhost
+  host: 10.0.0.4 # inner ip of god
   port: 6379
 
 distributed:
   auto_signature: True
 
   environment_runner:
-    num: 2
+    num: 1
     peers:
       - 'learner'
   learner:

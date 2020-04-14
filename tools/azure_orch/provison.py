@@ -106,8 +106,7 @@ def mount_AFS(delta_cluster_info, storage_account_name):
         res = subprocess.run(ssh_bin, shell=True, capture_output=True)
         
         if res.returncode:
-            logging.error(f"{worker['name']} mount AFS failed!")
-            print(res)
+            logging.error(f"{worker['name']} mount AFS failed! msg err: {res.stderr}")
             raise("!!!")
         else:
             logging.info(f"{worker['name']} mount AFS success!")
@@ -116,7 +115,7 @@ def mount_AFS(delta_cluster_info, storage_account_name):
 def create_cluster():
     delta_cluster_info = inquirer_cluster()
 
-    with open(f'~/clusterInfo.json', 'r') as infile:
+    with open(f'/home/{getpass.getuser()}/clusterInfo.json', 'r') as infile:
         exist_cluster_info = json.load(infile)
 
     cluster_info_name = "delta_cluster_info"
@@ -163,6 +162,10 @@ def create_cluster():
             worker_ip = json.loads(res.stdout)[0]["ipAddress"]
             worker['IP'] = worker_ip
 
+    
+    mount_AFS(delta_cluster_info, exist_cluster_info['storageAccountName'])
+    install_docker(delta_cluster_info)
+
     questions = [
         inquirer.Text(
             'imageName', 
@@ -171,16 +174,14 @@ def create_cluster():
         )
     ]
     image_name = inquirer.prompt(questions)['imageName']
-    
-    mount_AFS(delta_cluster_info, exist_cluster_info['storageAccountName'])
-    install_docker(delta_cluster_info)
+
     build_cpu_docker_images(delta_cluster_info, image_name)
     prob_resources(delta_cluster_info, image_name)
 
     # update cluster info json
     exist_cluster_info["virtualMachines"].extend(delta_cluster_info["virtualMachines"])
 
-    with open(f'~/clusterInfo.json', 'w') as outfile:
+    with open(f'/home/{getpass.getuser()}/clusterInfo.json', 'w') as outfile:
         json.dump(exist_cluster_info, outfile, indent=4)
 
 
@@ -191,7 +192,7 @@ def init_god():
     sync(src, "/codepoint/", 'sync', purge=True)
 
     #initialize docker
-    install_bin = "bash /codepoint/bin/install_docker.sh"
+    install_bin = "bash /codepoint/tools/azure_orch/bin/install_docker.sh"
     res = subprocess.run(install_bin, shell=True, capture_output=True)
 
     if res.returncode:
@@ -201,7 +202,7 @@ def init_god():
         logging.info(f"run {install_bin} success!")
 
     #launch redis-server
-    launch_bin = "bash /codepoint/bin/launch_redis.sh"
+    launch_bin = "bash /codepoint/tools/azure_orch/bin/launch_redis.sh"
     res = subprocess.run(launch_bin, shell=True, capture_output=True)
 
     if res.returncode:
@@ -209,6 +210,27 @@ def init_god():
         raise("!!!")
     else:
         logging.info(f"run {launch_bin} success!")
+    
+    #install az
+    install_bin = "bash /codepoint/tools/azure_orch/bin/install_az.sh"
+    res = subprocess.run(install_bin, shell=True, capture_output=True)
+
+    if res.returncode:
+        logging.error(f"run {install_bin} failed! err msg: {res.stderr}")
+        raise("!!!")
+    else:
+        logging.info(f"run {install_bin} success!")
+    
+    #gen sshkey
+    sshkey_bin = "ssh-keygen"
+    res = subprocess.run(sshkey_bin, shell=True, capture_output=True)
+
+    if res.returncode:
+        logging.error(f"run {sshkey_bin} failed! err msg: {res.stderr}")
+        raise("!!!")
+    else:
+        logging.info(f"run {sshkey_bin} success!")
+    
 
 def inquirer_cluster():
     questions = [
@@ -218,27 +240,33 @@ def inquirer_cluster():
             default="Standard_D16s_v3"
         ),
         inquirer.Text(
-            'wokersNum',
+            'workersNum',
             message="How many workers are you going to create",
             default="5"
+        ),
+        inquirer.Text(
+            'adminPublicKey',
+            message="What is your public key? (default is ~/.ssh/id_rsa.pub)",
+            default=open(f'/home/{getpass.getuser()}/.ssh/id_rsa.pub').read()
         )
     ]
     cluster_info = inquirer.prompt(questions)
 
-    with open(f'~/clusterInfo.json', 'r') as infile:
+    with open(f'/home/{getpass.getuser()}/clusterInfo.json', 'r') as infile:
         exist_cluster_info = json.load(infile)
         exist_cluster_num = len(exist_cluster_info["virtualMachines"]) - 1
+    
 
     cluster_info = {
-        "adminPublicKey": exist_cluster_info["adminPublicKey"],
+        "adminPublicKey": cluster_info["adminPublicKey"],
         "adminUsername": exist_cluster_info["adminUsername"],
         "virtualMachineRG": exist_cluster_info["virtualMachineRG"],
         "subscription": exist_cluster_info["subscription"],
         "location": exist_cluster_info["location"],
         "virtualMachines": [{
-            "name": f"worker_{exist_cluster_num + i}",
+            "name": f"worker{exist_cluster_num + i}",
             "size": cluster_info["workerSize"]
-        } for i in range(cluster_info["workersNum"])]
+        } for i in range(int(cluster_info["workersNum"]))]
     }
 
     return cluster_info
@@ -382,7 +410,7 @@ def generate_job_config():
         inquirer.Text(
             'configPath', 
             message="Where is your config file?",
-            default="/codepoint/examples/ecr/q-learning/distributed_mode/config.yml"
+            default="/codepoint/examples/ecr/q_learning/distributed_mode/config.yml"
         ),
     ]
 
@@ -393,5 +421,5 @@ def generate_job_config():
 
 # unit test
 if __name__ == "__main__":
-    create_god()
-    # generate_job_config()
+    # create_god()
+    generate_job_config()
