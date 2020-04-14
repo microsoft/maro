@@ -3,7 +3,7 @@
 
 
 import os
-from math import floor
+from math import floor, ceil
 
 def get_available_envs():
     """
@@ -33,3 +33,6 @@ def get_available_envs():
 
 def tick_to_frame_index(start_tick: int, cur_tick: int, resolution: int):
     return floor((cur_tick - start_tick)/resolution)
+
+def total_frames(start_tick: int, max_tick: int, resolution: int):
+    return ceil((max_tick - start_tick)/resolution)
