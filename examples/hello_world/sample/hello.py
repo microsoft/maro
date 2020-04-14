@@ -2,6 +2,8 @@
 This is hello world for sample scenario, used to show how to customzie a scenario
 """
 
+## STEP 4: use the new scenario
+
 from maro.simulator.core import Env
 from maro.simulator.utils.random import random as sim_random
 from maro.simulator.scenarios.sample.common import DecisionEvent, Action
