@@ -34,19 +34,23 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
 
         self._event_buffer.insert_event(demand_evt)
 
-        # TODO: we need an action each tick?
-        # for this demo, we do not need any payload for decision event
-        decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, None)
-
-        self._event_buffer.insert_event(decision_evt)
-
         # if we reach the end
-        return self.stock < 0 or self.stock > self._max_capacity or (tick + 1) == self._max_tick
+        return (tick + 1) == self._max_tick
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> bool:
         # this function will be invoked after all the events process of current tick
         # do anything that need to process here at the end of current tick
-        pass
+        
+        # since we use even to process the demands, the new stock value cannot be checked in step,
+        # so we check it here
+
+        # shall we stop?
+        is_done = self.stock < 0 or self.stock > self._max_capacity
+
+        # let's take the snapshot, as env will not take snapshot at end (only before take action)
+        self._snapshot_list.insert_snapshot(self._frame, tick)
+
+        return is_done
 
     def rewards(self, actions):
         # ignore actions, just return current demand as rewards
@@ -99,6 +103,13 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
         demand_number: int = evt.payload
 
         self.stock -= demand_number
+
+        if self.stock >=0 and self.stock<= self._max_capacity:
+            # TODO: we need an action each tick?
+            # for this demo, we do not need any payload for decision event
+            decision_evt = self._event_buffer.gen_cascade_event(evt.tick, DECISION_EVENT, None)
+
+            self._event_buffer.insert_event(decision_evt)
 
     def _on_action_recieved(self, evt: Event):
         # here we recieved actions (Env will wrapper actions into a list, even only one action)
