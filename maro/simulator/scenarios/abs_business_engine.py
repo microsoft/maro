@@ -87,10 +87,10 @@ class AbsBusinessEngine(ABC):
         """
         pass
 
-    def post_step(self, tick):
+    def post_step(self, tick) -> bool:
         """Post-process at specified tick
 
         Args:
             tick (int): tick to process
         """
-        pass
+        return False

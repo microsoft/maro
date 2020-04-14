@@ -256,19 +256,16 @@ class Env(AbsEnv):
                     for i in range(1, pending_event_length):
                         pending_events[i].state = EventState.FINISHED
 
-            self._business_engine.post_step(self._tick)
+            is_end_tick = is_end_tick or (self._business_engine.post_step(self._tick) == True)
             
-            self._tick += 1
-
             if is_end_tick:
                 break
+
+            self._tick += 1
 
         # make sure we have no missing data
         if self._tick % self._frame_resolution != 0:
             self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
-
-        # reset the tick to avoid add one more time at the end of loop
-        self._tick = self._tick - 1
 
         # the end
         yield None, None, True
