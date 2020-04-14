@@ -15,6 +15,7 @@ def start():
     # create our env first
     # scenario: folder name of our new scenario
     # topology: folder name of config under scenario/topologies
+    # and we want to take snapshot each tick (decided by business engine, it can ignore this settings depend on requirement)
     env = Env(scenario="sample", topology="sample", start_tick=0, max_tick=MAX_TICK, frame_resolution=1)
 
     reward = None # reward from simulator

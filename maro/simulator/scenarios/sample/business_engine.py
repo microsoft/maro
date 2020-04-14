@@ -96,7 +96,6 @@ class SampleBusinessEngine(AbsBusinessEngine):
         
         # usually we should check if we should take a snapshot that match the frame_resolution, but it is not required
         if (tick + 1) % self._frame_resolution == 0:
-            # take a snapshot at the end of tick
             snapshot_index = tick_to_frame_index(self._start_tick, tick, self._frame_resolution)
 
             self._snapshot_list.insert_snapshot(self._frame, snapshot_index)
@@ -168,7 +167,7 @@ class SampleBusinessEngine(AbsBusinessEngine):
 
         print("event 1", payload)
 
-        # you can insert a new event inside a callback function
+        # you can insert a new event inside a callback function to chain your all logic pieces
         evt = self._event_buffer.gen_atom_event(evt.tick + 1, SampleEventType.Event2, (1, 2, 3))
 
         self._event_buffer.insert_event(evt)
