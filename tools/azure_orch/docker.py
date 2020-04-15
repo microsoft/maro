@@ -4,6 +4,8 @@ import subprocess
 import logging
 import yaml
 import redis
+import getpass
+import json
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -75,14 +77,33 @@ def allocate_job():
         job_name = job_config[:-4]
         require_resources[job_name] = config['resources']
 
-    allocate_plan = best_fit_allocate(require_resources)
+    # allocate_plan = best_fit_allocate(require_resources)
 
+    allocate_plan = {
+        "environment_runner.0" : "worker0",
+        "learner.0" : "worker1",
+        "learner.1" : "worker1",
+        "learner.2" : "worker1",
+        "learner.3" : "worker1",
+        "learner.4" : "worker1",
+    }
+    
+    with open(f'/home/{getpass.getuser()}/clusterInfo.json', 'r') as infile:
+        exist_cluster_info = json.load(infile)
+    
+    admin_username = exist_cluster_info['adminUsername']
+    worker_ip_dict = dict()
+    
+    for worker in exist_cluster_info['virtualMachines']:
+        if worker['name'] != "god":
+            worker_ip_dict[worker['name']] = worker['IP']
+    
     for job_name, worker_name in allocate_plan.items():
         envopt = f"-e CONFIG=/maro_dist/tools/azure_orch/job_config/{job_group_name}/{job_name}.yml"
         component_type = job_name.split(".")[0]
         cmd = f"python3 {component_path}/{component_type}.py"
-        job_launch_bin = f"docker run -it -d --name {job_group_name}_{job_name} --network host -v /codepoint:/maro_dist {envopt} {img_name} {cmd}"
-
+        job_launch_bin = f"sudo docker run -it -d --name {job_group_name}_{job_name} --network host -v /codepoint:/maro_dist {envopt} {img_name} {cmd}"
+        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} '{job_launch_bin}'"
 
 def best_fit_allocate(require_resources):
     redis_connection = redis.StrictRedis(host="localhost", port="6379")
