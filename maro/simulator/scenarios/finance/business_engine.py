@@ -5,7 +5,7 @@ from typing import Dict, List
 from enum import IntEnum
 from yaml import safe_load
 
-from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT
+from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
@@ -112,7 +112,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def _register_events(self):
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
 
-    def _on_action_recieved(self, actions):
+    def _on_action_recieved(self, evt: Event):
+        actions = evt.payload
+
         if actions is None:
             return
 

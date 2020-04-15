@@ -183,3 +183,6 @@ class SampleBusinessEngine(AbsBusinessEngine):
         # we hard code the proccessing, so we can see the changes of attribute 'b' from outside
         node: SampleStaticModel = self._static_nodes[0]
         node.b[1] = evt.tick
+
+        node2: SampleDynamicModel = self._dynamic_nodes[0]
+        node2.a = 2222

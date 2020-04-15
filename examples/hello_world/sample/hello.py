@@ -52,33 +52,39 @@ def start():
     # so we can reshape it as following, then each row is values of static nodes at that tick
     a_for_all_ticks = a_for_all_ticks.reshape((MAX_TICK, -1))
 
-    print("a at all the ticks")
+    print("attribute 'a' for all static node at all the ticks")
     print(a_for_all_ticks)
 
     # attributes b (2nd slot)for 1st static node at all the ticks
     b_at_all_ticks = env.snapshot_list.static_nodes[:0:("b", 1)]
 
-    print("b (2nd slot) at all the ticks")
+    print("b (2nd slot) for static nodes at all the ticks")
     print(b_at_all_ticks)
 
     # attribute c of 1st node at tick 1
     c_at_specified_tick = env.snapshot_list.dynamic_nodes[1:0:("c", 0)]
 
-    print("attribute c at tick 1")
+    print("attribute c for dynamic node at tick 1")
     print(c_at_specified_tick)
 
     # value at 1st slot for attribute "a" and "b" at all the ticks
     a_b = env.snapshot_list.static_nodes[::(["a", "b"], 0)]
     a_b = a_b.reshape((MAX_TICK, -1))
 
-    print("attribute 'a' and 'b' for all the nodes")
+    print("attribute 'a' and 'b' for all the static nodes")
     print(a_b)
 
     # this is value of attribute 'a'
-    print(a_b[:, [0, 2, 4, 6, 8]])
+    # print(a_b[:, [0, 2, 4, 6, 8]])
 
     # this is the value of attribute 'b'
-    print(a_b[:, [1, 3, 5, 7, 9]])
+    # print(a_b[:, [1, 3, 5, 7, 9]])
+
+    # attribute 'a' for 1st dynamic node
+    b_a = env.snapshot_list.dynamic_nodes[:0:("a", 0)]
+
+    print("attribute 'a' for 1st static node")
+    print(b_a)
 
 if __name__ == "__main__":
     start()
