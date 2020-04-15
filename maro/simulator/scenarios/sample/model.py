@@ -8,8 +8,9 @@ DYNAMIC_NODE = FrameNodeType.DYNAMIC
 
 # ModelBase provide a simple way to access Frame (but it not require to use it, refer to ECR scenario to see a tough way)
 
-# NOTE: each data model should only have one node type 
+# NOTE: due to implementation issue, attributes registered for both static and dynamic nodes (fixed at next version)
 class SampleStaticModel(ModelBase):
+    # the node type for attribute used to access value
     a = IntAttribute(STATIC_NODE) # add an int attribute "a" with 1 slot (default)
     b = FloatAttribute(STATIC_NODE, slot_num=2)
 
@@ -23,8 +24,7 @@ class SampleStaticModel(ModelBase):
         print(f"value of a changed to {new_val} at slot {slot_index}")
 
 class SampleDynamicModel(ModelBase):
-
-    # NOTE: for current version, attribute name of dynamic and static cannot be same (fixed at next version)
+    a = IntAttribute(DYNAMIC_NODE) # attribute 'a' is registered at static model, here it is a value accessor, and will be ignored when building frame
     c = IntAttribute(DYNAMIC_NODE)
     d = FloatAttribute(DYNAMIC_NODE)
 
