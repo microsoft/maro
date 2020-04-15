@@ -103,14 +103,14 @@ class FrameAttributeSliceAccessor:
         return f"<FrameAttributeSliceAccessor {self.name}, {self.attr.__repr__()}>"
 
 
-class ModelBase:
+class EntityBase:
     """Base wrapper to create a wrapper to access frame with some useful functions.
 
     Model not only contains accessor to Frame, also with Frame definitions, as we have specified the name and data type
 
     Examples:
         # define a data model
-        class DataModel1(ModelBase):
+        class DataModel1(EntityBase):
             # define attributes
 
             # int attribute a with 1 slot (default)
@@ -218,7 +218,7 @@ def build_frame(static_model_cls, static_node_num: int, dynamic_model_cls = None
     def reg_attr(frame: Frame, model_cls):
         assert model_cls is not None
 
-        assert issubclass(model_cls, ModelBase)
+        assert issubclass(model_cls, EntityBase)
 
         for name, attr in model_cls.__dict__.items():
             if isinstance(attr, BaseAttribute):

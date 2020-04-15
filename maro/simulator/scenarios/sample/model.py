@@ -1,4 +1,4 @@
-from maro.simulator.scenarios.modelbase import ModelBase, IntAttribute, FloatAttribute
+from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute
 from maro.simulator.frame import FrameNodeType, Frame
 
 STATIC_NODE = FrameNodeType.STATIC
@@ -9,7 +9,7 @@ DYNAMIC_NODE = FrameNodeType.DYNAMIC
 # ModelBase provide a simple way to access Frame (but it not require to use it, refer to ECR scenario to see a tough way)
 
 # NOTE: due to implementation issue, attributes registered for both static and dynamic nodes (fixed at next version)
-class SampleStaticModel(ModelBase):
+class SampleStaticModel(EntityBase):
     # the node type for attribute used to access value
     a = IntAttribute(STATIC_NODE) # add an int attribute "a" with 1 slot (default)
     b = FloatAttribute(STATIC_NODE, slot_num=2)
@@ -23,7 +23,7 @@ class SampleStaticModel(ModelBase):
     def _on_a_changed(self, slot_index: int, new_val):
         print(f"value of a changed to {new_val} at slot {slot_index}")
 
-class SampleDynamicModel(ModelBase):
+class SampleDynamicModel(EntityBase):
     a = IntAttribute(DYNAMIC_NODE) # attribute 'a' is registered at static model, here it is a value accessor, and will be ignored when building frame
     c = IntAttribute(DYNAMIC_NODE)
     d = FloatAttribute(DYNAMIC_NODE)

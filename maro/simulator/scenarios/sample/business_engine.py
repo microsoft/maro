@@ -4,7 +4,7 @@ from .common import DecisionEvent
 from .model import SampleStaticModel, SampleDynamicModel
 from maro.simulator.utils.random import random
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.modelbase import build_frame
+from maro.simulator.scenarios.entity_base import build_frame
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.utils.common import total_frames, tick_to_frame_index
 from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event

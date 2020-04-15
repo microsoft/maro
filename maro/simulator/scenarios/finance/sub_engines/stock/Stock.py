@@ -1,11 +1,11 @@
 from maro.simulator.frame import FrameNodeType, Frame
-from maro.simulator.scenarios.modelbase import build_frame, ModelBase, IntAttribute, FloatAttribute
+from maro.simulator.scenarios.entity_base import build_frame, EntityBase, IntAttribute, FloatAttribute
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
 
 STATIC_NODE = FrameNodeType.STATIC
 DYNAMIC_NODE = FrameNodeType.DYNAMIC
 
-class Stock(ModelBase):
+class Stock(EntityBase):
     opening_price = FloatAttribute(STATIC_NODE)
     closing_price = FloatAttribute(STATIC_NODE)
     highest_price = FloatAttribute(STATIC_NODE)
