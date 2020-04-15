@@ -184,7 +184,6 @@ def create_cluster():
     with open(f'/home/{getpass.getuser()}/clusterInfo.json', 'w') as outfile:
         json.dump(exist_cluster_info, outfile, indent=4)
 
-
 def init_god():
     #sync code to codepoint
     src = os.environ['PYTHONPATH']
@@ -192,46 +191,22 @@ def init_god():
     sync(src, "/codepoint/", 'sync', purge=True)
 
     #initialize docker
-    install_bin = "bash /codepoint/tools/azure_orch/bin/install_docker.sh"
-    res = subprocess.run(install_bin, shell=True, capture_output=True)
-
-    if res.returncode:
-        logging.error(f"run {install_bin} failed! err msg: {res.stderr}")
-        raise("!!!")
-    else:
-        logging.info(f"run {install_bin} success!")
+    install_docker_bin = "bash /codepoint/tools/azure_orch/bin/install_docker.sh"
 
     #launch redis-server
-    launch_bin = "bash /codepoint/tools/azure_orch/bin/launch_redis.sh"
-    res = subprocess.run(launch_bin, shell=True, capture_output=True)
+    launch_redis_bin = "bash /codepoint/tools/azure_orch/bin/launch_redis.sh"
 
-    if res.returncode:
-        logging.error(f"run {launch_bin} failed! err msg: {res.stderr}")
-        raise("!!!")
-    else:
-        logging.info(f"run {launch_bin} success!")
-    
     #install az
-    install_bin = "bash /codepoint/tools/azure_orch/bin/install_az.sh"
-    res = subprocess.run(install_bin, shell=True, capture_output=True)
+    install_az_bin = "bash /codepoint/tools/azure_orch/bin/install_az.sh"
 
-    if res.returncode:
-        logging.error(f"run {install_bin} failed! err msg: {res.stderr}")
-        raise("!!!")
-    else:
-        logging.info(f"run {install_bin} success!")
+    for bin in [install_docker_bin, launch_redis_bin, install_az_bin]:
+        res = subprocess.run(bin, shell=True, capture_output=True)
+        if res.returncode:
+            logging.error(f"run {bin} failed! err msg: {res.stderr}")
+            raise("!!!")
+        else:
+            logging.info(f"run {bin} success!")
     
-    #gen sshkey
-    sshkey_bin = "ssh-keygen"
-    res = subprocess.run(sshkey_bin, shell=True, capture_output=True)
-
-    if res.returncode:
-        logging.error(f"run {sshkey_bin} failed! err msg: {res.stderr}")
-        raise("!!!")
-    else:
-        logging.info(f"run {sshkey_bin} success!")
-    
-
 def inquirer_cluster():
     questions = [
         inquirer.Text(
