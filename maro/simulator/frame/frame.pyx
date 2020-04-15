@@ -277,7 +277,8 @@ cdef class Frame:
             return
 
         if name in self.attribute_map:
-            raise FrameAttributeExistError(f"Attribute name {name} already registered.")
+            return
+            # raise FrameAttributeExistError(f"Attribute name {name} already registered.")
 
         cdef UINT start_index = 0
 
