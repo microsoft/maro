@@ -17,6 +17,7 @@ def start():
         action = None
 
         while not is_done:
+            # NOTE: the env will take a snapshot (history) when it needs an action
             reward, decision_event, is_done = env.step(action)
 
             action = randint(1, 10)

@@ -6,8 +6,7 @@ from maro.simulator.scenarios import AbsBusinessEngine
 STATIC_NODE = FrameNodeType.STATIC
 
 class LogisticsType(IntEnum):
-    """Events we need to handled to process trip logic"""
-    DemandRequirement = 10  # 
+    DemandRequirement = 1  # 
 
 class LogisticsBusinessEngine(AbsBusinessEngine):
     def __init__(self, event_buffer: EventBuffer, config_path: str, start_tick: int, max_tick: int, frame_resolution: int):
@@ -22,7 +21,7 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
         self._register_events()
         self._init_frame()
 
-    ###### functions inherit from AbsBusinessEngine ########
+    ###### minimum functions inherit from AbsBusinessEngine, other functions can be override depend on requirements ########
 
     def step(self, tick: int) -> bool:
         demand_number = self.demand(tick)
@@ -34,20 +33,23 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
 
         self._event_buffer.insert_event(demand_evt)
 
-        # if we reach the end
+        # NOTE: we can stop the simulator at step and post_step
+        # if we reach the end?
+        # also we can return false, and move this line into post_step to simple the checking logic
         return (tick + 1) == self._max_tick
 
     def post_step(self, tick: int) -> bool:
-        # this function will be invoked after all the events process of current tick
-        # do anything that need to process here at the end of current tick
+        # this function will be invoked after all the events of current tick being procesed
+        # do anything that need to process here
         
-        # since we use even to process the demands, the new stock value cannot be checked in step,
+        # since we use event to process the demands, the new stock value cannot be checked in step,
         # so we check it here
 
-        # shall we stop?
+        # shall we stop after processed all the event?
         is_done = self.stock < 0 or self.stock > self._max_capacity
 
-        # let's take the snapshot, as env will not take snapshot at end (only before take action)
+        # let's take the snapshot, as env will not take snapshot at end (only before take action),
+        # then we can see the value changes
         self._snapshot_list.insert_snapshot(self._frame, tick)
 
         return is_done
@@ -65,6 +67,7 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
         return self._snapshot_list
 
     def reset(self):
+        # reset frame will clear the value of stock to 0, so we do not reset stock here
         self._frame.reset()
         self._snapshot_list.reset()
 
@@ -113,7 +116,7 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
 
     def _on_action_recieved(self, evt: Event):
         # here we recieved actions (Env will wrapper actions into a list, even only one action)
-        # we assume agent will only pass a number as action here
+        # we assuming that agent will only pass a number as action here
         action_number: int = evt.payload[0]
 
         self.stock += action_number
