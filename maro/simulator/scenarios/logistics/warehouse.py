@@ -1,47 +1,24 @@
 from maro.simulator.frame import Frame, FrameNodeType
+from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute
 
 static_node = FrameNodeType.STATIC
 
-class Warehouse:
+class Warehouse(EntityBase):
+    # this will register 2 int attributes in Frame, and same with previous property definition
+    stock = IntAttribute(static_node)
+    demand = IntAttribute(static_node)
+
     def __init__(self, index: int, stock:int, capacity:int, frame: Frame):
-        self._index = index
-        self._frame = frame
-        self._id = id
-
-        self._capacity = capacity # initial state
-        self.capacity = capacity
-
+        super().__init__(frame, index)
         self._stock = stock # initial state
+        self.capacity = capacity # this is not a frame attribute, so will not save into frame
 
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def index(self):
-        return self._index
-
-    @property
-    def stock(self):
-        return self._frame.get_attribute(static_node, self._index, "stock", 0)
-
-    @stock.setter
-    def stock(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "stock", 0, value)
 
     def fulfill_demand(self, value: int):
-        self.stock = self.stock - value
+        self.stock -= value
 
     def supply_stock(self, value: int):
-        self.stock = self.stock + value
-
-    @property
-    def demand(self):
-        return self._frame.get_attribute(static_node, self._index, "demand", 0)
-
-    @stock.setter
-    def demand(self, value: int):
-        self._frame.set_attribute(static_node, self._index, "demand", 0, value)
+        self.stock += value
 
     def reset(self):
         self.stock = self._stock
