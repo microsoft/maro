@@ -1,4 +1,5 @@
 from maro.simulator import Env
+from maro.simulator.scenarios.logistics.common import Action
 from random import randint
 
 MAX_EPISODE = 1
@@ -20,7 +21,7 @@ def start():
             # NOTE: the env will take a snapshot (history) when it needs an action
             reward, decision_event, is_done = env.step(action)
 
-            action = randint(1, 10)
+            action = Action(randint(1, 10))
             # action = 0
 
         # following code show how to retrieve states from snapshotlist
@@ -33,7 +34,10 @@ def start():
 
         stock_to_the_end = env.snapshot_list.static_nodes[ticks::("stock", 0)]
 
+        print("stock till the stop tick")
         print(stock_to_the_end)
+
+        
 
 if __name__ == "__main__":
     start()
