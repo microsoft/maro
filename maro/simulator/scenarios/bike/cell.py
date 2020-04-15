@@ -1,5 +1,5 @@
 from maro.simulator.frame import Frame, FrameNodeType
-from maro.simulator.scenarios.modelbase import ModelBase, IntAttribute, FloatAttribute
+from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute
 
 STATIC_NODE = FrameNodeType.STATIC
 
@@ -15,7 +15,7 @@ WORKDAY = 1
 
 CELL_BEIGHBOR_NUM = 6
 
-class Cell(ModelBase):
+class Cell(EntityBase):
     bikes = IntAttribute(STATIC_NODE)
     capacity = IntAttribute(STATIC_NODE)
     fulfillment = IntAttribute(STATIC_NODE)

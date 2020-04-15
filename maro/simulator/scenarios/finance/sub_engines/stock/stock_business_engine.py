@@ -10,7 +10,7 @@ from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
-from maro.simulator.scenarios.modelbase import build_frame
+from maro.simulator.scenarios.entity_base import build_frame
 from maro.simulator.utils.common import tick_to_frame_index
 
 from .stock import Stock
