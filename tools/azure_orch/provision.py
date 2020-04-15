@@ -185,11 +185,6 @@ def create_cluster():
         json.dump(exist_cluster_info, outfile, indent=4)
 
 def init_god():
-    #sync code to codepoint
-    src = os.environ['PYTHONPATH']
-    dest = "/codepoint/"
-    sync(src, "/codepoint/", 'sync', purge=True)
-
     #initialize docker
     install_docker_bin = "bash /codepoint/tools/azure_orch/bin/install_docker.sh"
 
