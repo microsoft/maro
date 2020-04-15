@@ -195,6 +195,7 @@ def init_god():
     install_az_bin = "bash /codepoint/tools/azure_orch/bin/install_az.sh"
 
     for bin in [install_docker_bin, launch_redis_bin, install_az_bin]:
+        logging.info(f"run {bin}.")
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
             logging.error(f"run {bin} failed! err msg: {res.stderr}")

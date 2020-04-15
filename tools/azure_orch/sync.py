@@ -20,4 +20,4 @@ if __name__ == "__main__":
     src = '/home/tianyi/maro/'
     dest = '/codepoint/'
     sync(src, dest, 'sync', purge=True, logger=log, exclude=(r".*log.*", ))
-    sync(src, dest, 'sync', purge=True, logger=log, only=r".*log.*")
+    sync(src, dest, 'sync', logger=log, only=r".*log.*")
