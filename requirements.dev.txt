@@ -22,6 +22,7 @@ numpy==1.17.4
 tabulate==0.8.5
 networkx==2.4
 palettable==3.3.0
+urllib3==1.25.8
 redis
 influxdb
 sphinx
