@@ -1,5 +1,6 @@
 """Wrappers to make frame accessing easily"""
 
+from functools import wraps
 from typing import Callable
 from maro.simulator.frame import Frame, FrameAttributeType, FrameNodeType
 
@@ -12,75 +13,75 @@ class BaseAttribute:
     For attributes that it can be read/set directly without slice interface if slot_num is 1"""
 
     # TODO: remove row and col parameters later after merged further changes, here is for compact issue
-    def __init__(self, node_type: FrameNodeType, data_type: FrameAttributeType, slot_num: int = 1, row: int = 0, col: int = 0):
+    def __init__(self, data_type: FrameAttributeType, slot_num: int = 1, row: int = 0, col: int = 0):
         assert slot_num > 0
         
-        self.node_type = node_type
         self.data_type: int = data_type
         self.slot_num: int = slot_num
         self.row: int = row
         self.col: int = col
 
-    def set_value(self, frame: Frame, name: str, node_index: int, slot: int, value):
+    def set_value(self, frame: Frame, node_type: FrameNodeType, name: str, node_index: int, slot: int, value):
         """Set value of specified slot"""
-        frame.set_attribute(self.node_type, node_index, name, slot, value)
+        frame.set_attribute(node_type, node_index, name, slot, value)
 
-    def get_value(self, frame: Frame, name: str, node_index: int, slot: int):
+    def get_value(self, frame: Frame, node_type: FrameNodeType, name: str, node_index: int, slot: int):
         """Get value of specified slot"""
-        return frame.get_attribute(self.node_type, node_index, name, slot)
+        return frame.get_attribute(node_type, node_index, name, slot)
 
 class IntAttribute(BaseAttribute):
     """Describe an int attribute in frame"""
 
     # TODO: though we do not need node_type for now, it is used to merge further changes that split definition between static and dynamic nodes
-    def __init__(self, node_type: FrameNodeType, slot_num: int = 1):
-        super().__init__(node_type, INT, slot_num)
+    def __init__(self, slot_num: int = 1):
+        super().__init__(INT, slot_num)
 
     def __repr__(self):
-        return f"<IntAttribute: node type: {self.node_type}, slot num: {self.slot_num}>"
+        return f"<IntAttribute: slot num: {self.slot_num}>"
 
 
 class FloatAttribute(BaseAttribute):
     """Describe a float attribute in frame"""
-    def __init__(self, node_type: FrameNodeType, slot_num: int = 1, ndigits: int = None):
-        super().__init__(node_type, FLOAT, slot_num)
+    def __init__(self, slot_num: int = 1, ndigits: int = None):
+        super().__init__(FLOAT, slot_num)
         
         assert ndigits is None or ndigits >= 0
         
         self._ndigits = ndigits
 
     # override following 2 methods to provide rounded float value
-    def get_value(self, frame: Frame, name: str, node_index: int, slot: int):
-        val = super().get_value(frame, name, node_index, slot)
+    def get_value(self, frame: Frame, node_type: FrameNodeType, name: str, node_index: int, slot: int):
+        val = super().get_value(frame, node_type, name, node_index, slot)
 
         if self._ndigits is None:
             return val
         else:
             return round(val, self._ndigits)
 
-    def set_value(self, frame: Frame, name: str, node_index: int, slot: int, value):
+    def set_value(self, frame: Frame, node_type: FrameNodeType, name: str, node_index: int, slot: int, value):
         tmp_val = value
 
         if self._ndigits is not None:
             tmp_val = round(value, self._ndigits)
 
-        return super().set_value(frame, name, node_index, slot, tmp_val)
+        return super().set_value(frame, node_type, name, node_index, slot, tmp_val)
 
     def __repr__(self):
-        return f"<FloatAttribute: node type: {self.node_type}, slot num: {self.slot_num}, ndigits: {self._ndigits}>"
+        return f"<FloatAttribute: slot num: {self.slot_num}, ndigits: {self._ndigits}>"
 
 # TODO: remove after we merged further changes
 class IntMaxtrixAttribute(BaseAttribute):
-    def __init__(self, node_type: FrameNodeType, row: int = 1, col: int = 1):
-        super().__init__(node_type, INT_MAT, 0, row=row, col=col)
+    def __init__(self, row: int = 1, col: int = 1):
+        super().__init__(INT_MAT, 0, row=row, col=col)
 
 class FrameAttributeSliceAccessor:
     """Used to provide a way to access frame field with slice interface, like model.attr[0]"""
-    def __init__(self, attr: BaseAttribute, frame: Frame, index: int, name: str):
+    def __init__(self, attr: BaseAttribute, frame: Frame, node_type: FrameNodeType, index: int, name: str):
         self.attr = attr
         self.index = index
         self.name = name
         self._frame = frame
+        self._node_type = node_type
         self._value_changed_cb: Callable = None
 
     def on_value_changed(self, callback: Callable):
@@ -91,16 +92,25 @@ class FrameAttributeSliceAccessor:
         self._value_changed_cb = callback
 
     def __getitem__(self, key):
-        return self.attr.get_value(self._frame, self.name, self.index, key)
+        return self.attr.get_value(self._frame, self._node_type, self.name, self.index, key)
 
     def __setitem__(self, key, value):
-        self.attr.set_value(self._frame, self.name, self.index, key, value)
+        self.attr.set_value(self._frame, self._node_type, self.name, self.index, key, value)
 
         if self._value_changed_cb is not None:
             self._value_changed_cb(key, value)
 
     def __repr__(self):
         return f"<FrameAttributeSliceAccessor {self.name}, {self.attr.__repr__()}>"
+
+
+# used to decorate the DataModel with frame node type, this will affact the Frame buiding
+def frame_node(node_type: FrameNodeType):
+    def decorator(cls):
+        cls.__node_type__ = node_type
+        return cls
+
+    return decorator
 
 
 class EntityBase:
@@ -110,6 +120,7 @@ class EntityBase:
 
     Examples:
         # define a data model
+        @frame_node(FrameNodeType.STATIC)
         class DataModel1(EntityBase):
             # define attributes
 
@@ -160,16 +171,17 @@ class EntityBase:
         return self._index
 
     def _bind_attributes(self):
-        """Bind attributes with frame and id"""
+        """Bind attributes with frame and id into instance"""
         __dict__ = object.__getattribute__(self, "__dict__")    
 
         for name, attr in type(self).__dict__.items():
             # append an attribute access wrapper to current instance
             if isinstance(attr, BaseAttribute):
                 # TODO: this will override exist attribute of sub-class instance, maybe a warning later
-                
+                node_type = getattr(type(self), "__node_type__", None)
+
                 # NOTE: here we have to use __dict__ to avoid infinite loop, as we overrided __getattribute__
-                attr_acc = FrameAttributeSliceAccessor(attr, __dict__["_frame"], __dict__["_index"], name)
+                attr_acc = FrameAttributeSliceAccessor(attr, __dict__["_frame"], node_type, __dict__["_index"], name)
 
                 __dict__[name] = attr_acc
 
@@ -212,30 +224,81 @@ class EntityBase:
           
         return super().__getattribute__(name)
 
-def build_frame(static_model_cls, static_node_num: int, dynamic_model_cls = None, dynamic_node_num: int = 0):
-    """Build frame from definition of data model"""
+class FrameBuilder:
+    def __init__(self):
+        self._static_node_cls = None
+        self._static_node_number = 0
+        self._dynamic_node_cls = None
+        self._dynamic_node_number = 0
 
-    def reg_attr(frame: Frame, model_cls):
-        assert model_cls is not None
+    def add_model(self, model_cls, number: int):
+        # check the type, new node type will override old one, with warning
 
-        assert issubclass(model_cls, EntityBase)
+        node_type = getattr(model_cls, "__node_type__", None)
 
-        for name, attr in model_cls.__dict__.items():
-            if isinstance(attr, BaseAttribute):
-                frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)      
+        if node_type is None:
+            raise "Invalid Model definition, please use frame_node decorator for the model class"
+        
+        if node_type == FrameNodeType.STATIC:
+            self._static_node_cls = model_cls
+            self._static_node_number = number
+        else:
+            self._dynamic_node_cls = model_cls
+            self._dynamic_node_number = number
 
-    frame = Frame(static_node_num, dynamic_node_num)
+        return self
 
-    if static_model_cls is not None:
-        assert static_node_num > 0
+    def build(self):
+        frame = Frame(self._static_node_number, self._dynamic_node_number)
 
-        reg_attr(frame, static_model_cls)
+        # internal function to register
+        def reg_attr(frame: Frame, model_cls):
+            assert model_cls is not None
 
-    if dynamic_model_cls is not None:
-        assert dynamic_node_num > 0
+            assert issubclass(model_cls, EntityBase)
 
-        reg_attr(frame, dynamic_model_cls)
+            for name, attr in model_cls.__dict__.items():
+                if isinstance(attr, BaseAttribute):
+                    frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)      
 
-    frame.setup()
+        if self._static_node_cls is not None:
+            reg_attr(frame, self._static_node_cls)
 
-    return frame
+        if self._dynamic_node_cls is not None:
+            reg_attr(frame, self._dynamic_node_cls)
+
+        frame.setup()
+
+        return frame
+
+    @staticmethod
+    def new():
+        return FrameBuilder()
+
+# def build_frame(models_def: list):
+#     """Build frame from definition of data model"""
+
+#     def reg_attr(frame: Frame, model_cls):
+#         assert model_cls is not None
+
+#         assert issubclass(model_cls, EntityBase)
+
+#         for name, attr in model_cls.__dict__.items():
+#             if isinstance(attr, BaseAttribute):
+#                 frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)      
+
+#     frame = Frame(static_node_num, dynamic_node_num)
+
+#     if static_model_cls is not None:
+#         assert static_node_num > 0
+
+#         reg_attr(frame, static_model_cls)
+
+#     if dynamic_model_cls is not None:
+#         assert dynamic_node_num > 0
+
+#         reg_attr(frame, dynamic_model_cls)
+
+#     frame.setup()
+
+#     return frame

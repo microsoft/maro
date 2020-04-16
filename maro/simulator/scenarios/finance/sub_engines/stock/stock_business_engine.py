@@ -10,7 +10,7 @@ from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
-from maro.simulator.scenarios.entity_base import build_frame
+from maro.simulator.scenarios.entity_base import FrameBuilder
 from maro.simulator.utils.common import tick_to_frame_index
 
 from .stock import Stock
@@ -94,7 +94,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         return result
 
     def _init_frame(self):
-        self._frame = build_frame(Stock, len(self._stock_codes))
+        self._frame = FrameBuilder.new().add_model(Stock, len(self._stock_codes)).build()
         self._snapshots = SnapshotList(self._frame, self._max_tick)
 
     def _build_stocks(self):

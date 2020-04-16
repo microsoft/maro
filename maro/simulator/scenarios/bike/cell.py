@@ -1,5 +1,5 @@
 from maro.simulator.frame import Frame, FrameNodeType
-from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute
+from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute, frame_node
 
 STATIC_NODE = FrameNodeType.STATIC
 
@@ -15,23 +15,24 @@ WORKDAY = 1
 
 CELL_BEIGHBOR_NUM = 6
 
+@frame_node(STATIC_NODE)
 class Cell(EntityBase):
-    bikes = IntAttribute(STATIC_NODE)
-    capacity = IntAttribute(STATIC_NODE)
-    fulfillment = IntAttribute(STATIC_NODE)
-    trip_requirement = IntAttribute(STATIC_NODE)
-    shortage = IntAttribute(STATIC_NODE)
-    unknown_gendors = IntAttribute(STATIC_NODE)
-    males = IntAttribute(STATIC_NODE)
-    females = IntAttribute(STATIC_NODE)
-    weekday = IntAttribute(STATIC_NODE)
-    subscriptor = IntAttribute(STATIC_NODE)
-    customer = IntAttribute(STATIC_NODE)
-    temperature = IntAttribute(STATIC_NODE)
-    weather = IntAttribute(STATIC_NODE)
-    holiday = IntAttribute(STATIC_NODE)
-    extra_cost = IntAttribute(STATIC_NODE)
-    neighbors = IntAttribute(STATIC_NODE, CELL_BEIGHBOR_NUM)
+    bikes = IntAttribute()
+    capacity = IntAttribute()
+    fulfillment = IntAttribute()
+    trip_requirement = IntAttribute()
+    shortage = IntAttribute()
+    unknown_gendors = IntAttribute()
+    males = IntAttribute()
+    females = IntAttribute()
+    weekday = IntAttribute()
+    subscriptor = IntAttribute()
+    customer = IntAttribute()
+    temperature = IntAttribute()
+    weather = IntAttribute()
+    holiday = IntAttribute()
+    extra_cost = IntAttribute()
+    neighbors = IntAttribute(CELL_BEIGHBOR_NUM)
 
     def __init__(self, index: int, capacity: int, bikes: int, frame: Frame):
         super().__init__(frame, index)

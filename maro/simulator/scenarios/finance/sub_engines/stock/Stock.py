@@ -1,20 +1,20 @@
 from maro.simulator.frame import FrameNodeType, Frame
-from maro.simulator.scenarios.entity_base import build_frame, EntityBase, IntAttribute, FloatAttribute
+from maro.simulator.scenarios.entity_base import frame_node, EntityBase, IntAttribute, FloatAttribute
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
 
 STATIC_NODE = FrameNodeType.STATIC
-DYNAMIC_NODE = FrameNodeType.DYNAMIC
 
+@frame_node(STATIC_NODE)
 class Stock(EntityBase):
-    opening_price = FloatAttribute(STATIC_NODE)
-    closing_price = FloatAttribute(STATIC_NODE)
-    highest_price = FloatAttribute(STATIC_NODE)
-    lowest_price = FloatAttribute(STATIC_NODE)
-    trade_amount = FloatAttribute(STATIC_NODE)
-    daily_return = FloatAttribute(STATIC_NODE, ndigits=4)
+    opening_price = FloatAttribute()
+    closing_price = FloatAttribute()
+    highest_price = FloatAttribute()
+    lowest_price = FloatAttribute()
+    trade_amount = FloatAttribute()
+    daily_return = FloatAttribute(ndigits=4)
 
-    trade_volume = IntAttribute(STATIC_NODE)
-    trade_num = IntAttribute(STATIC_NODE)
+    trade_volume = IntAttribute()
+    trade_num = IntAttribute()
 
 
     def __init__(self, frame: Frame, index: int, code: str):

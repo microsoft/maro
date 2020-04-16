@@ -4,7 +4,7 @@ from .common import DecisionEvent
 from .model import SampleStaticModel, SampleDynamicModel
 from maro.simulator.utils.random import random
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.entity_base import build_frame
+from maro.simulator.scenarios.entity_base import FrameBuilder
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.utils.common import total_frames, tick_to_frame_index
 from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event
@@ -136,7 +136,12 @@ class SampleBusinessEngine(AbsBusinessEngine):
         # say we have 5 static node, 6 dynamic nodes, usually this may come from config file
 
         # use helper to build the frame (optional)
-        self._frame = build_frame(SampleStaticModel, STATIC_NODE_NUM, SampleDynamicModel, DYNAMIC_NODE_NUM)
+        self._frame = FrameBuilder.new() \
+            .add_model(SampleStaticModel, STATIC_NODE_NUM) \
+            .add_model(SampleDynamicModel, DYNAMIC_NODE_NUM) \
+            .build()
+            
+        #build_frame(SampleStaticModel, STATIC_NODE_NUM, SampleDynamicModel, DYNAMIC_NODE_NUM)
 
         # then we can build the snapshot list
         # NOTE: the frame_resolution used to control the frequency to take snapshot

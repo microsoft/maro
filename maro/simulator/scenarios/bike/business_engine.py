@@ -15,7 +15,7 @@ from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.utils.common import tick_to_frame_index
 from maro.simulator.utils.random import random
-from maro.simulator.scenarios.entity_base import build_frame
+from maro.simulator.scenarios.entity_base import FrameBuilder
 
 from .adj_reader import read_adj_info
 from .cell import Cell
@@ -193,7 +193,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             for l in reader:
                 rows.append(l)
 
-        self._frame = build_frame(Cell, len(rows))
+        self._frame = FrameBuilder.new().add_model(Cell, len(rows)).build()
 
         bike_discount = 1
 

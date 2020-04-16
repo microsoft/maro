@@ -4,7 +4,7 @@ from typing import List, Dict
 from maro.simulator.frame import Frame, SnapshotList, FrameAttributeType, FrameNodeType
 from maro.simulator.event_buffer import Event, EventBuffer, DECISION_EVENT
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.entity_base import build_frame
+from maro.simulator.scenarios.entity_base import FrameBuilder
 from .warehouse import Warehouse
 from .common import Action, Demand
 from yaml import safe_load
@@ -109,7 +109,9 @@ class LogisticsBusinessEngine(AbsBusinessEngine):
 
     def _init_frame(self):
         # only build the frame with static node (Warehouse)
-        self._frame = build_frame(Warehouse, WAREHOUSE_NUMBER) # # how many agents = 1
+        self._frame = FrameBuilder.new() \
+            .add_model(Warehouse, WAREHOUSE_NUMBER) \
+            .build() # how many agents = 1
 
         # create our snapshot_list, and specified how many snapshots we can take
         self._snapshot_list = SnapshotList(self._frame, self._max_tick)

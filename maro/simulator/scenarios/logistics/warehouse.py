@@ -1,12 +1,13 @@
 from maro.simulator.frame import Frame, FrameNodeType
-from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute
+from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute, frame_node
 
 static_node = FrameNodeType.STATIC
 
+@frame_node(static_node)
 class Warehouse(EntityBase):
     # this will register 2 int attributes in Frame, and same with previous property definition
-    stock = IntAttribute(static_node)
-    demand = IntAttribute(static_node)
+    stock = IntAttribute()
+    demand = IntAttribute()
 
     def __init__(self, index: int, stock:int, capacity:int, frame: Frame):
         super().__init__(frame, index)
