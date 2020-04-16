@@ -274,31 +274,3 @@ class FrameBuilder:
     @staticmethod
     def new():
         return FrameBuilder()
-
-# def build_frame(models_def: list):
-#     """Build frame from definition of data model"""
-
-#     def reg_attr(frame: Frame, model_cls):
-#         assert model_cls is not None
-
-#         assert issubclass(model_cls, EntityBase)
-
-#         for name, attr in model_cls.__dict__.items():
-#             if isinstance(attr, BaseAttribute):
-#                 frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)      
-
-#     frame = Frame(static_node_num, dynamic_node_num)
-
-#     if static_model_cls is not None:
-#         assert static_node_num > 0
-
-#         reg_attr(frame, static_model_cls)
-
-#     if dynamic_model_cls is not None:
-#         assert dynamic_node_num > 0
-
-#         reg_attr(frame, dynamic_model_cls)
-
-#     frame.setup()
-
-#     return frame
