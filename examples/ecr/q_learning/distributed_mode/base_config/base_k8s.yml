@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: exp
+spec:
+  completions: 1
+  parallelism: 1
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: exp
+        image: tempacrtest.azurecr.io/env_runner:v3
+        resources:
+          requests:
+            cpu: "1000m"  # 1 cpu
+            memory: "56Mi"
+          limits:
+            cpu: "4000m"
+            memory: "1Gi"
+        command: 
+          - echo 
+          - hello
+        env:
+          - name: LOG_LEVEL
+            value: PROGRESS
+          - name: GROUP
+            value: group_name
+          - name: COMPTYPE
+            value: comp_name
+          - name: COMPID
+            value: comp_id
+          - name: CONFIG
+            value: /maro/examples/ecr/q_learning/distributed_mode/config.yml
+      restartPolicy: OnFailure

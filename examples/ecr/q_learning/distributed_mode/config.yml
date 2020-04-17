@@ -38,7 +38,7 @@ log:
   dashboard:
     enable: true
 dashboard:
-  enable: true
+  enable: false
   influxdb:
     host: localhost
     port: 50301
@@ -52,7 +52,7 @@ dashboard:
 docker_image: 'maro_dist'
 
 redis:
-  host: localhost
+  host: redis-server
   port: 6379
 
 distributed:
@@ -64,4 +64,14 @@ distributed:
     num: 5
     peers:
       - 'environment_runner'
+
+  resources:
+    environment_runner:
+      CPU: 500m
+      GPU: 1
+      memory: 128Mi # MB
+    learner:
+      CPU: 500m
+      GPU: 2
+      memory: 256Mi # MB
 
