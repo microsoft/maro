@@ -9,6 +9,23 @@ class FinanceType(Enum):
     stock = "stock",
     futures = "futures"
 
+class OrderMode(Enum):
+    # TODO: zhanyu complete the definition
+    pass
+
+class TradeResult:
+    """Result or a trade order"""
+    def __init__(self, trade_number: int, tick: int, price_per_item: float, tax: float, is_trade_accept: bool = False):
+        self.trade_number = trade_number
+        self.tick = tick
+        self.price_per_item = price_per_item
+        self.tax = tax
+        self.is_trade_accept = is_trade_accept
+
+    @property
+    def total_cost(self):
+        return self.trade_number * self.price_per_item + tax
+
 class DecisionEvent:
     def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable):
         """
@@ -39,7 +56,7 @@ class DecisionEvent:
 
 
 class Action:
-    def __init__(self, sub_engine_name: str, item_index: int, number: int):
+    def __init__(self, sub_engine_name: str, item_index: int, number: int, order_mode: OrderMode = None):
         """
         Parameters:
             sub_engine_name (str): name of engine the decision event from
@@ -49,6 +66,7 @@ class Action:
         self.sub_engine_name = sub_engine_name
         self.item_index = item_index
         self.number = number
+        self.order_mode = order_mode
 
     def __repr__(self):
         return f"<Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number}>"

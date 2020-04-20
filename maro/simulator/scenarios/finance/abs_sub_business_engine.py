@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from math import ceil
 
+from maro.simulator.scenarios.finance.common import Action
 from maro.simulator.event_buffer import EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 
@@ -53,7 +54,7 @@ class AbsSubBusinessEngine(ABC):
         pass
 
     @abstractmethod
-    def take_action(self, action):
+    def take_action(self, action: Action, remaining_money: float):
         pass
 
     @abstractmethod

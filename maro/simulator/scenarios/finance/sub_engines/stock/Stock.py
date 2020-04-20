@@ -16,6 +16,7 @@ class Stock(EntityBase):
     trade_volume = IntAttribute()
     trade_num = IntAttribute()
 
+    account_hold_num = IntAttribute()     # stock number that account hold
 
     def __init__(self, frame: Frame, index: int, code: str):
         super().__init__(frame, index)

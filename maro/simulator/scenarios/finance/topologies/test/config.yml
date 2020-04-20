@@ -2,6 +2,9 @@
 # stock/futures whoes beginning date later than this, will be filled with 0
 beginning_date: "2020-01-10"
 
+account:
+  money: 10000 # 1 unit
+
 sub-engines:
   -
     name: 'test_stocks' # used to access from out of env by name
@@ -13,6 +16,10 @@ sub-engines:
     action_scope: # max and min value for stocks 
       min: 0.1
       max: 0.6
+
+    order_mode: xxx # TODO: zhanyu
+
+    # TODO: currency 
   # other sub-engine config here
   #
   # -

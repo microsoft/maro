@@ -1,30 +1,31 @@
 """Used to maintain stock/futures, one account per episode"""
 
-from maro.simulator.frame import SnapshotList
+from .common import TradeResult
+from maro.simulator.frame import SnapshotList, Frame, FrameNodeType
 from maro.simulator.scenarios.finance.common import Action, FinanceType
+from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, FloatAttribute, FrameBuilder, frame_node
 
-class Account:
-    def __init__(self, money: float, snapshot_list: SnapshotList):
-        self._stock_number = 0
-        self._futures_number = 0
-        self._monty = money
-        self._snapshot_list = snapshot_list
 
-    def take_action(self, action: Action):
+@frame_node(FrameNodeType.STATIC)
+class Account(EntityBase):
+    remaining_money = FloatAttribute()
 
-        # NOTE: we ignore the money cost for now
 
-        if action.type == FinanceType.stock:
-            self._stock_number += action.number
+    # all stock
+    # all future
+
+    def __init__(self, snapshots, money: float):
+        # NOTE: the snapshots is wrapper of snapshots of sub-engines,
+        # you can access them by sub-engine name like: snapshots.china to calculate reward
+        self._money = money
+        self._trade_history = [] # TODO: later
+
+    def take_trade(self, trade_result: TradeResult):
+        self._remaining_money -= trade_result.total_cost
 
     def calc_reward(self):
+        # TODO: zhanyu to fill the logic
         pass
 
-class AcountList:
-    def __init__(self, init_money: float, snapshot_list: SnapshotList):
-        self._accounts=[]
-        self._init_money = init_money
-        self._snapshot_list = snapshot_list
-
-    def new_account(self):
-        return Account(self._snapshot_list)
+    def reset(self):
+        self._remaining_money = self._money

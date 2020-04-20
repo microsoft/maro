@@ -6,7 +6,7 @@ from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.finance.abs_sub_business_engine import \
     AbsSubBusinessEngine
 from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
-                                                     FinanceType)
+                                                     FinanceType, TradeResult)
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
@@ -24,6 +24,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._stocks_dict: dict = None
         self._stock_list: list = None
         self._readers: dict = None
+        self._order_mode = None
 
         self._action_scope_min = self._config["action_scope"]["min"]
         self._action_scope_max = self._config["action_scope"]["max"]
@@ -77,8 +78,13 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._init_frame()
         self._build_stocks()
 
-    def take_action(self, action: Action):
+    def take_action(self, action: Action) -> TradeResult:
         pass
+
+        # 1. can trade -> bool
+        # 2. return (stock, sell/busy, stock_price, number, tax)
+        # 3. update stock.account_hold_num
+
 
     def reset(self):
         pass
@@ -91,7 +97,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
             result[stock_index] = (stock.trade_volume * self._action_scope_min, stock.trade_volume * self._action_scope_max)
 
-        return result
+        return (self._order_mode, result) #TODO: zhanyu add order mode list, current order mode, scope of stocks
 
     def _init_frame(self):
         self._frame = FrameBuilder.new().add_model(Stock, len(self._stock_codes)).build()
