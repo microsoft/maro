@@ -10,6 +10,7 @@ sub-engines:
     name: 'test_stocks' # used to access from out of env by name
     type: stock # stock, futures
     data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh"
+    # data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/zh"
     stocks: # stocks to simulate 
       - "000001"
       - "000002"
@@ -17,7 +18,11 @@ sub-engines:
       min: 0.1
       max: 0.6
 
-    order_mode: xxx # TODO: zhanyu
+    order_mode:  
+      - "market_order"
+      - "limit_order"
+      - "stop_order"
+      - "stop_limit_order"
 
     # TODO: currency 
   # other sub-engine config here

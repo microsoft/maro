@@ -176,7 +176,7 @@ cdef class FinanceReader:
         self.stock = Stock()
 
         if FALSE == init_reader(self.path, &self.reader, dtype):
-            raise "Fail to initialize Finance reader"
+            raise BaseException("Fail to initialize Finance reader")
 
         # NOTE: we have to set start and num correctly to get item
         self.reader.start = 0

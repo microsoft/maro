@@ -6,7 +6,7 @@ from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.finance.abs_sub_business_engine import \
     AbsSubBusinessEngine
 from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
-                                                     FinanceType, TradeResult)
+                                                     FinanceType, TradeResult, OrderMode)
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
                                                      FinanceReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
@@ -14,6 +14,7 @@ from maro.simulator.scenarios.entity_base import FrameBuilder
 from maro.simulator.utils.common import tick_to_frame_index
 
 from .stock import Stock
+from .stock_trader import StockTrader
 
 
 class StockBusinessEngine(AbsSubBusinessEngine):
@@ -24,12 +25,14 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._stocks_dict: dict = None
         self._stock_list: list = None
         self._readers: dict = None
-        self._order_mode = None
+        self._order_mode = OrderMode.market_order
+        self._trader = None
 
         self._action_scope_min = self._config["action_scope"]["min"]
         self._action_scope_max = self._config["action_scope"]["max"]
 
         self._init_reader()
+        self._init_trader()
 
     @property
     def finance_type(self):
@@ -78,12 +81,12 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._init_frame()
         self._build_stocks()
 
-    def take_action(self, action: Action) -> TradeResult:
-        pass
-
+    def take_action(self, action: Action, tick: int) -> TradeResult:
         # 1. can trade -> bool
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
+        asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stocks_dict)
+        return TradeResult(actual_volume, tick, actual_price, commission_charge, is_success)
 
 
     def reset(self):
@@ -97,7 +100,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
             result[stock_index] = (stock.trade_volume * self._action_scope_min, stock.trade_volume * self._action_scope_max)
 
-        return (self._order_mode, result) #TODO: zhanyu add order mode list, current order mode, scope of stocks
+        return (self._order_mode, result, self._trader.supported_orders) #TODO: zhanyu add order mode list, current order mode, scope of stocks
 
     def _init_frame(self):
         self._frame = FrameBuilder.new().add_model(Stock, len(self._stock_codes)).build()
@@ -128,3 +131,6 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             # in case the data file contains different ticks
             new_max_tick = self._readers[code].max_tick
             self._max_tick = new_max_tick if self._max_tick <=0 else min(new_max_tick, self._max_tick)
+
+    def _init_trader(self):
+        self._trader = StockTrader()

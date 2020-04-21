@@ -10,7 +10,7 @@ from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
 from .account import Account
-from .common import FinanceType, SubEngineAccessWrapper, OrderResult
+from .common import FinanceType, SubEngineAccessWrapper, TradeResult
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
 
 # type 2 class 
@@ -125,7 +125,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             engine_name = action.sub_engine_name
 
             if engine_name in self._sub_engines:
-                result: OrderResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money)
+                result: TradeResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money)
+                self._acount.take_trade(result)
             else:
                 raise "Specified engine not exist."
 

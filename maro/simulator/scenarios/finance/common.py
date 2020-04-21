@@ -2,7 +2,6 @@ from enum import Enum
 from typing import Dict, List, Callable
 from inspect import isfunction
 from functools import partial
-from .abs_sub_business_engine import AbsSubBusinessEngine
 
 
 class FinanceType(Enum):
@@ -11,7 +10,10 @@ class FinanceType(Enum):
 
 class OrderMode(Enum):
     # TODO: zhanyu complete the definition
-    pass
+    market_order = "market_order"
+    limit_order = "limit_order"
+    stop_order = "stop_order"
+    stop_limit_order = "stop_limit_order"
 
 class TradeResult:
     """Result or a trade order"""
@@ -24,7 +26,7 @@ class TradeResult:
 
     @property
     def total_cost(self):
-        return self.trade_number * self.price_per_item + tax
+        return self.trade_number * self.price_per_item + self.tax
 
 class DecisionEvent:
     def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable):
@@ -56,7 +58,7 @@ class DecisionEvent:
 
 
 class Action:
-    def __init__(self, sub_engine_name: str, item_index: int, number: int, order_mode: OrderMode = None):
+    def __init__(self, sub_engine_name: str, item_index: int, number: int, order_mode: OrderMode = None, stop: int = 0, limit: int = 0):
         """
         Parameters:
             sub_engine_name (str): name of engine the decision event from
@@ -67,6 +69,8 @@ class Action:
         self.item_index = item_index
         self.number = number
         self.order_mode = order_mode
+        self.stop = stop
+        self.limit = limit
 
     def __repr__(self):
         return f"<Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number}>"
