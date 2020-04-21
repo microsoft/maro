@@ -127,7 +127,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
             if engine_name in self._sub_engines:
                 result: TradeResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money, evt.tick)
-                self._acount.take_trade(result, cur_data = self._sub_engines[engine_name]._stock_list)
+                self._acount.take_trade(result, cur_data = self._sub_engines[engine_name]._stock_list, cur_engine = engine_name)
             else:
                 raise "Specified engine not exist."
 
