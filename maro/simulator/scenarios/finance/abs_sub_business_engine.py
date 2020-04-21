@@ -7,8 +7,8 @@ from maro.simulator.frame import Frame, SnapshotList
 
 
 class AbsSubBusinessEngine(ABC):
-    def __init__(self, beginning_timestamp: int, start_tick: int, max_tick: int, 
-            frame_resolution: int, config: dict, event_buffer: EventBuffer):
+    def __init__(self, beginning_timestamp: int, start_tick: int, max_tick: int,
+                 frame_resolution: int, config: dict, event_buffer: EventBuffer):
         self._beginning_timestamp = beginning_timestamp
         self._start_tick = start_tick
         self._max_tick = max_tick
@@ -20,7 +20,7 @@ class AbsSubBusinessEngine(ABC):
     @property
     def name(self):
         return self._name
-    
+
     @property
     @abstractmethod
     def finance_type(self):
@@ -33,7 +33,7 @@ class AbsSubBusinessEngine(ABC):
 
     @property
     @abstractmethod
-    def snapshot_list(self): 
+    def snapshot_list(self):
         pass
 
     @property

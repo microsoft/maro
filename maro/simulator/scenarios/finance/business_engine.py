@@ -13,7 +13,7 @@ from .account import Account
 from .common import FinanceType, SubEngineAccessWrapper, TradeResult
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
 
-# type 2 class 
+# type 2 class
 sub_engine_definitions = {
     FinanceType.stock: StockBusinessEngine
 }
@@ -36,8 +36,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._read_conf()
         self._init_sub_engines()
 
-        self._acount = Account(self.snapshots, self._conf["account"]["money"]) # contain trade result
-        
+        self._acount = Account(self.snapshots, self._conf["account"]["money"])  # contain trade result
+
+        self._register_events()
+
     @property
     def frame(self):
         """Frame: Frame of current business engine
@@ -117,7 +119,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     def _on_action_recieved(self, evt: Event):
         actions = evt.payload
-
         if actions is None:
             return
 
@@ -125,7 +126,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             engine_name = action.sub_engine_name
 
             if engine_name in self._sub_engines:
-                result: TradeResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money)
+                result: TradeResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money, evt.tick)
                 self._acount.take_trade(result)
             else:
                 raise "Specified engine not exist."
@@ -141,13 +142,13 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             engine_type = FinanceType[sub_conf["type"]]
 
             if engine_type in sub_engine_definitions:
-                engine = sub_engine_definitions[engine_type](self._beginning_timestamp, self._start_tick, self._max_tick, 
-                                            self._frame_resolution, sub_conf, self._event_buffer)
-                
+                engine = sub_engine_definitions[engine_type](self._beginning_timestamp, self._start_tick, self._max_tick,
+                                                             self._frame_resolution, sub_conf, self._event_buffer)
+
                 self._sub_engines[engine.name] = engine
 
                 self._max_tick = engine.max_tick if self._max_tick <= 0 else max(self._max_tick, engine.max_tick)
-        
+
         # after we aligned the max tick, then post_init to ask sub-engines to init frame and snapshot
         for _, sub_engine in self._sub_engines.items():
             sub_engine.post_init(self._max_tick)

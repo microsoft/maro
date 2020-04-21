@@ -10,7 +10,6 @@ from maro.simulator.scenarios.entity_base import EntityBase, IntAttribute, Float
 class Account(EntityBase):
     remaining_money = FloatAttribute()
 
-
     # all stock
     # all future
 
@@ -18,14 +17,18 @@ class Account(EntityBase):
         # NOTE: the snapshots is wrapper of snapshots of sub-engines,
         # you can access them by sub-engine name like: snapshots.china to calculate reward
         self._money = money
-        self._trade_history = [] # TODO: later
+        self._trade_history = []  # TODO: later
+        self._remaining_money = money
+        self._last_total_money = money
 
     def take_trade(self, trade_result: TradeResult):
         self._remaining_money -= trade_result.total_cost
 
     def calc_reward(self):
         # TODO: zhanyu to fill the logic
+        # - last tick
         pass
 
     def reset(self):
         self._remaining_money = self._money
+        self._last_total_money = self._money

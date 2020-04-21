@@ -43,16 +43,16 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         return self._frame
 
     @property
-    def snapshot_list(self): 
+    def snapshot_list(self):
         return self._snapshots
-    
+
     @property
     def name_mapping(self):
         return {stock.index: code for code, stock in self._stocks_dict.items()}
 
     def step(self, tick: int):
         valid_stocks = []
-        
+
         for code, reader in self._readers.items():
             raw_stock: RawStock = reader.next_item()
 
@@ -81,13 +81,14 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._init_frame()
         self._build_stocks()
 
-    def take_action(self, action: Action, tick: int) -> TradeResult:
+    def take_action(self, action: Action, remaining_money: float, tick: int) -> TradeResult:
         # 1. can trade -> bool
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
-        asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stocks_dict)
-        return TradeResult(actual_volume, tick, actual_price, commission_charge, is_success)
+        asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
+        ret = TradeResult(actual_volume, tick, actual_price, commission_charge, is_success)
 
+        return ret
 
     def reset(self):
         pass
@@ -100,7 +101,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
             result[stock_index] = (stock.trade_volume * self._action_scope_min, stock.trade_volume * self._action_scope_max)
 
-        return (self._order_mode, result, self._trader.supported_orders) #TODO: zhanyu add order mode list, current order mode, scope of stocks
+        return (self._order_mode, result, self._trader.supported_orders)
 
     def _init_frame(self):
         self._frame = FrameBuilder.new().add_model(Stock, len(self._stock_codes)).build()
@@ -130,7 +131,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
             # in case the data file contains different ticks
             new_max_tick = self._readers[code].max_tick
-            self._max_tick = new_max_tick if self._max_tick <=0 else min(new_max_tick, self._max_tick)
+            self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
 
     def _init_trader(self):
         self._trader = StockTrader()

@@ -7,6 +7,7 @@ from maro.simulator.scenarios.finance.sub_engines.common.commission import ByMon
 
 # decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope)
 
+
 class StockTrader(Trader):
 
     def __init__(self, ):
@@ -18,18 +19,5 @@ class StockTrader(Trader):
         self.order_handler_register(OrderMode.stop_limit_order, StopLimitOrder())
 
         self.slippage_handler_register(ByMoneySlippage(0.005))
-        self.commission_handler_register(ByMoneyCommission(0.0003,5))
+        self.commission_handler_register(ByMoneyCommission(0.0003, 5))
         self.commission_handler_register(StampTaxCommission(0.001))
-
-
-
-    
-
-            
-
-
-
-
-
-
-    

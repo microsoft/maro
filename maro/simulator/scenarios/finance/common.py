@@ -8,15 +8,17 @@ class FinanceType(Enum):
     stock = "stock",
     futures = "futures"
 
+
 class OrderMode(Enum):
-    # TODO: zhanyu complete the definition
     market_order = "market_order"
     limit_order = "limit_order"
     stop_order = "stop_order"
     stop_limit_order = "stop_limit_order"
 
+
 class TradeResult:
     """Result or a trade order"""
+
     def __init__(self, trade_number: int, tick: int, price_per_item: float, tax: float, is_trade_accept: bool = False):
         self.trade_number = trade_number
         self.tick = tick
@@ -27,6 +29,7 @@ class TradeResult:
     @property
     def total_cost(self):
         return self.trade_number * self.price_per_item + self.tax
+
 
 class DecisionEvent:
     def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable):
@@ -50,7 +53,7 @@ class DecisionEvent:
         """Action scope for items"""
         if self._action_scope is None:
             self._action_scope = self._action_scope_func(self.items)
-        
+
         return self._action_scope
 
     def __repr__(self):
@@ -85,7 +88,7 @@ class SubEngineAccessWrapper:
             """Used to access frame/snapshotlist by name as a dictionary."""
             if name not in self._properties:
                 return None
-            
+
             return self._properties[name]
 
         def __getattribute__(self, name):
@@ -104,6 +107,7 @@ class SubEngineAccessWrapper:
             return super().__getattribute__(name)
 
     """Wrapper to access frame/config/snapshotlist by name of sub-engine"""
+
     def __init__(self, sub_engines: dict):
         self._engines = sub_engines
 
