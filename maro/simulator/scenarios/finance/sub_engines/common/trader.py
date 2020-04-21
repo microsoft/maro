@@ -24,7 +24,6 @@ class Trader():
 
     def trade(self, order_action: Action, cur_data: dict, remaining_money: float) -> TradeResult:
         # return stock, success, stock_price, number, tax
-        print("order_action", order_action)
         asset = order_action.item_index
         is_success = False
         actual_volume = order_action.number

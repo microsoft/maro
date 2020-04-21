@@ -87,7 +87,8 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         # 3. update stock.account_hold_num
         asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
         ret = TradeResult(actual_volume, tick, actual_price, commission_charge, is_success)
-
+        if is_success:
+            self._stock_list[asset].account_hold_num += actual_volume
         return ret
 
     def reset(self):

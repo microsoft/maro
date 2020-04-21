@@ -20,14 +20,21 @@ class Account(EntityBase):
         self._trade_history = []  # TODO: later
         self._remaining_money = money
         self._last_total_money = money
+        self._total_money = money
 
-    def take_trade(self, trade_result: TradeResult):
+    def take_trade(self, trade_result: TradeResult, cur_data: list):
+        self._last_total_money = self._total_money
         self._remaining_money -= trade_result.total_cost
+        self._total_money = self._remaining_money
+        for stock in cur_data:
+            self._total_money += stock.closing_price * stock.account_hold_num
+
 
     def calc_reward(self):
-        # TODO: zhanyu to fill the logic
+        # TODO: zhanyu to update the logic
         # - last tick
-        pass
+        reward = self._total_money - self._last_total_money
+        return reward
 
     def reset(self):
         self._remaining_money = self._money

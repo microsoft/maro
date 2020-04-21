@@ -21,3 +21,8 @@ stock_opening_price = stock_snapshots.static_nodes[:0:("opening_price", 0)]
 
 print("opening price for all the ticks:")
 print(stock_opening_price)
+
+stock_account_hold_num = stock_snapshots.static_nodes[:0:("account_hold_num", 0)]
+
+print("account hold num for all the ticks:")
+print(stock_account_hold_num)
