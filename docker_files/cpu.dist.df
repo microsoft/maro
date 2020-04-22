@@ -26,5 +26,4 @@ ENV LANG en_US.utf8
 
 ENV PYTHONPATH "/maro_dist:${PYTHONPATH}"
 
-CMD ["zsh"]
 

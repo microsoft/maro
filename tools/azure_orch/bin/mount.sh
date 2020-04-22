@@ -10,3 +10,18 @@ password=az storage account keys list --resource-group maro_dist --account-name 
 auth="vers=3.0,username=${shareName},password=${password},dir_mode=0777,file_mode=0777,sec=ntlmssp"
 
 sudo mount -t cifs $shareFileLocation $mountDir -o $auth
+
+
+sudo apt install -y samba
+sudo mkdir /code_point
+
+sudo vim /etc/samba/smb.conf
+[sambashare]
+    comment = Samba on Ubuntu
+    path = /home/username/sambashare
+    read only = no
+    browsable = yes
+
+sudo service smbd restart
+sudo ufw allow sambal
+sudo chmod 777 /code_point/

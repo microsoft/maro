@@ -14,6 +14,8 @@ import yaml
 import subprocess
 from requests import get
 from maro.simulator.utils.common import get_available_envs
+from tools.azure_orch.scripts.provision_new import create_resource_group, create_workers
+from tools.azure_orch.scripts.docker_new import launch_job
 
 
 def print_envs():
@@ -58,17 +60,25 @@ def main():
     Returns:
         None
     '''
-
     parser = argparse.ArgumentParser("maro cli interface")
     parser.add_argument("--envs", action="store_true",
                         help="Show available environment settings")
     parser.add_argument("--dashboard", nargs='?', choices=['unzip', 'start', 'stop', 'no_action', 'build'], default='no_action', const='unzip', metavar='ACTION',
                         help="default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service. 'build' to build docker for dashboard service.")
+    parser.add_argument("--dist", choices=["create_god", "create_workers", "launch_job"], help="create_god to create god")
 
     args = parser.parse_args()
 
     if args.envs:
         print_envs()
+        
+    if args.dist == "create_resource_group":
+        create_resource_group()
+    elif args.dist == "create_workers":
+        create_workers()
+    elif args.dist == "launch_job":
+        pass
+
     if args.dashboard == 'unzip':
         print('unzip')
         ext_dashboard()
@@ -83,8 +93,8 @@ def main():
     elif args.dashboard == 'build':
         print('build')
         build_dashboard()
-    else:
-        print("default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service. 'build' to build docker for dashboard service.")
+    # else:
+    #     print("default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service. 'build' to build docker for dashboard service.")
 
 
 def ext_dashboard():
