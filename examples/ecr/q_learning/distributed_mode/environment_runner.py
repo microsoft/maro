@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime
 from tqdm import tqdm
 import yaml
+from examples.ecr.q_learning.common.ecr_dashboard import DashboardECR
 
 # private lib
 from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
@@ -66,9 +67,11 @@ QNET_LOG_ENABLE = config.log.qnet.enable
 
 class EnvRunner(Runner):
     def __init__(self, scenario: str, topology: str, max_tick: int, max_train_ep: int, max_test_ep: int,
-                 eps_list: [float], log_enable: bool = True, dashboard_enable: bool = True):
+                 eps_list: [float], log_enable: bool = True):
         super().__init__(scenario, topology, max_tick, max_train_ep, max_test_ep, eps_list,
-                         log_enable=log_enable, dashboard_enable=dashboard_enable)
+                         log_enable=log_enable)
+        if self._dashboard is not None:
+            self._dashboard.update_static_info(info={'COMPONENT_NAME':COMPONENT_NAME})
         self._agent_idx_list = self._env.agent_idx_list
         self._agent2learner = {self._agent_idx_list[i]: 'learner.' + str(i) for i in range(len(self._agent_idx_list))}
         self._proxy = Proxy(group_name=config.group_name,
@@ -88,6 +91,9 @@ class EnvRunner(Runner):
         """
         setup the communication and trigger the training process.
         """
+        if self._dashboard is not None:
+            self._dashboard.upload_exp_data(fields=DashboardECR.static_info, ep=None, tick=None, measurement='static_info')
+
         self._proxy.join()
         self.send_net_parameters_to_learner()
         pbar = tqdm(range(MAX_TRAIN_EP))

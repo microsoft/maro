@@ -22,7 +22,7 @@ class QNet(nn.Module):
     '''
 
     def __init__(self, name: str, input_dim: int, hidden_dims: [int], output_dim: int, dropout_p: float,
-                 log_enable: bool = True, log_folder: str = './'):
+                 log_folder: str = None):
         '''
         Init deep Q network.
 
@@ -44,7 +44,7 @@ class QNet(nn.Module):
         self._layers = self._build_layers([input_dim] + hidden_dims)
         self._head = nn.Linear(hidden_dims[-1], output_dim)
         self._net = nn.Sequential(*self._layers, self._head)
-        self._log_enable = log_enable
+        self._log_enable = False if log_folder is None else True
         if self._log_enable:
             self._model_summary_logger = Logger(tag=f'{self._name}.model_summary', format_=LogFormat.none,
                                                 dump_folder=log_folder, dump_mode='w', auto_timestamp=False)
@@ -111,8 +111,8 @@ class DQN(object):
                  lr: float,
                  target_update_frequency: int,
                  device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-                 log_enable: bool = True, log_folder: str = './', log_dropout_p: float = 0.0,
-                 dashboard_enable: bool = True, dashboard: object = None):
+                 log_folder: str = None, log_dropout_p: float = 0.0,
+                 dashboard: object = None):
         '''
         Args:
             policy_net (nn.Module): Policy Q net, which is used for choosing action.
@@ -137,10 +137,9 @@ class DQN(object):
             self._policy_net.parameters(), lr=self._lr)
         self._learning_counter = 0
         self._target_update_frequency = target_update_frequency
-        self._log_enable = log_enable
+        self._log_enable = False if log_folder is None else True
         self._log_dropout_p = log_dropout_p
         self._log_folder = log_folder
-        self._dashboard_enable = dashboard_enable
         self._dashboard = dashboard
         if self._log_enable:
             self._logger = Logger(tag='dqn', format_=LogFormat.simple,
@@ -155,12 +154,13 @@ class DQN(object):
             self._q_curve_logger.debug(
                 'episode,learning_index,' + ','.join([str(i) for i in range(self._policy_net.output_dim)]))
 
-    def choose_action(self, state: torch.Tensor, eps: float, current_ep: int) -> (bool, int):
+    def choose_action(self, state: torch.Tensor, eps: float, current_ep: int, current_tick: int) -> (bool, int):
         '''
         Args:
             state (tensor): Environment state, which is a tensor.
             eps (float): Epsilon, which is used for exploration.
             current_ep (int): Current episode, which is used for logging.
+            current_tick (int): Current tick, which is used for dashboard.
 
         Returns:
             (bool, int): is_random, action_index
@@ -176,13 +176,16 @@ class DQN(object):
                         for q_values in q_values_batch:
                             self._q_curve_logger.debug(f'{current_ep},{self._learning_counter},' + ','.join(
                                 [str(q_value.item()) for q_value in q_values]))
-                if self._dashboard_enable:
+                if self._dashboard is not None:
+                    dashboard_ep = current_ep
+                    if not self._dashboard.dynamic_info['is_train']:
+                        dashboard_ep += self._dashboard.static_info['max_train_ep']
                     for q_values in q_values_batch:
                         for i in range(len(q_values)):
-                            scalars = {self._policy_net.name: q_values[i].item()}
-                            self._dashboard.upload_q_value(scalars, current_ep, i)
-
-                return False, q_values_batch.max(1)[1][0].item()
+                            scalars = {self._policy_net.name: q_values[i].item(), 'action': i}
+                            self._dashboard.upload_exp_data(fields=scalars, ep=dashboard_ep, tick=current_tick, measurement='q_value')
+                action = q_values_batch.max(1)[1][0].item()
+                return False, action
         else:
             return True, random.choice(range(self._policy_net.output_dim))
 

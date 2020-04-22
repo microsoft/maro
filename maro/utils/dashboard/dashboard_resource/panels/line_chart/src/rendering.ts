@@ -126,6 +126,8 @@ export default function link(scope: any, elem: any, attrs: any, ctrl: any) {
       const formatted = ctrl.formatValue(item.datapoint[1]);
 
       body = '<div class="linechart-tooltip-small"><div class="linechart-tooltip-time">';
+      body += '<div class="dotchart-tooltip-value">' + _.escape(ctrl.panel.x_axis) + ': ' + _.escape(item.datapoint[0]);
+      body += '</div>';
       body += '<div class="linechart-tooltip-value">' + _.escape(item.series.label) + ': ' + formatted;
       body += '</div>';
       body += '</div></div>';

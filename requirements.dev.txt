@@ -20,6 +20,8 @@ wrapt==1.11.2
 zmq==0.0.0
 numpy==1.17.4
 tabulate==0.8.5
+networkx==2.4
+palettable==3.3.0
 redis
 influxdb
 sphinx

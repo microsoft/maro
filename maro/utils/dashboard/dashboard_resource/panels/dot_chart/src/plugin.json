@@ -1,0 +1,31 @@
+{
+  "type": "panel",
+  "name": "Dot Chart",
+  "id": "grafana-dotchart-panel",
+
+  "info": {
+    "description": "Dot chart panel for grafana",
+    "author": {
+      "name": "Microsoft ARD Incubation Team",
+      "url": "http://www.microsoft.com"
+    },
+    "keywords": ["dotchart", "panel"],
+    "logos": {
+      "small": "img/dotchart_logo_small.png",
+      "large": "img/dotchart_logo_large.png"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/"}
+    ],
+    "screenshots": [
+      {"name": "Donut!", "path": "img/dot.png"}
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "4.6",
+    "plugins": [ ]
+  }
+}

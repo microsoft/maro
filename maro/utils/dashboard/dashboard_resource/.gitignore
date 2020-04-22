@@ -4,3 +4,5 @@
 /panels/line_chart/node_modules
 /panels/heatmap_chart/dist
 /panels/heatmap_chart/node_modules
+/panels/stack_chart/dist
+/panels/stack_chart/node_modules

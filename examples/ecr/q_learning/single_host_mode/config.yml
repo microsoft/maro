@@ -35,6 +35,8 @@ log:
     dropout_p: 0.95
   qnet:
     enable: false
+  dashboard:
+    enable: false
 dashboard:
   enable: false
   influxdb:
@@ -42,3 +44,7 @@ dashboard:
     port: 50301
     use_udp: true
     udp_port: 50304
+  ranklist:
+    enable: false
+    author: your_name
+    commit: your_commit
