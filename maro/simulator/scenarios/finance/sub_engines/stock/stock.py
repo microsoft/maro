@@ -16,6 +16,8 @@ class Stock(EntityBase):
     trade_volume = IntAttribute()
     trade_num = IntAttribute()
 
+    is_valid = IntAttribute()
+
     account_hold_num = IntAttribute()     # stock number that account hold
 
     def __init__(self, frame: Frame, index: int, code: str):
@@ -35,6 +37,7 @@ class Stock(EntityBase):
         self.trade_amount = 0
         self.trade_num = 0
         self.trade_volume = 0
+        self.is_valid = 0
 
     def fill(self, raw_stock: RawStock):
         self.opening_price = raw_stock.opening_price
@@ -45,3 +48,4 @@ class Stock(EntityBase):
         self.trade_amount = raw_stock.trade_amount
         self.trade_num = raw_stock.trade_num
         self.trade_volume = raw_stock.trade_volume
+        self.is_valid = 1 if raw_stock.is_valid else 0

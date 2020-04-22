@@ -26,3 +26,10 @@ stock_account_hold_num = stock_snapshots.static_nodes[:0:("account_hold_num", 0)
 
 print("account hold num for all the ticks:")
 print(stock_account_hold_num)
+
+account_snapshots: SnapshotList = env.snapshot_list.account
+
+account_total_money = account_snapshots.static_nodes[:0:("total_money", 0)]
+
+print("account total money for all the ticks:")
+print(account_total_money)

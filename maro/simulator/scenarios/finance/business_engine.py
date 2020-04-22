@@ -5,9 +5,11 @@ from typing import Dict, List
 from enum import IntEnum
 from yaml import safe_load
 
+from maro.simulator.scenarios.entity_base import FrameBuilder
 from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
+from maro.simulator.utils.common import total_frames
 
 from .account import Account
 from .common import FinanceType, SubEngineAccessWrapper, TradeResult
@@ -36,7 +38,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._read_conf()
         self._init_sub_engines()
 
-        self._acount = Account(self.snapshots, self._conf["account"]["money"])  # contain trade result
+        self._acount = Account(self.snapshots, self._account_frame, self._conf["account"]["money"])  # contain trade result
 
         self._register_events()
 
@@ -74,6 +76,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         """
         for sub_engine in self._sub_engines.values():
             sub_engine.post_step(tick)
+
+        self._account_snapshots.insert_snapshot(self._account_frame, tick)
+
 
     @property
     def configs(self) -> dict:
@@ -149,6 +154,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
                 self._max_tick = engine.max_tick if self._max_tick <= 0 else max(self._max_tick, engine.max_tick)
 
+        self._account_frame = FrameBuilder.new().add_model(Account, 1).build()
+        self._account_snapshots = SnapshotList(self._account_frame, total_frames(self._start_tick, self._max_tick, self._frame_resolution))
+
         # after we aligned the max tick, then post_init to ask sub-engines to init frame and snapshot
         for _, sub_engine in self._sub_engines.items():
             sub_engine.post_init(self._max_tick)
@@ -157,3 +165,5 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._frame_accessor = self._sub_engine_accessor.get_property_access("frame")
         self._snapshot_accessor = self._sub_engine_accessor.get_property_access("snapshot_list")
         self._node_mapping_accessor = self._sub_engine_accessor.get_property_access("name_mapping")
+
+        self._snapshot_accessor.add_item("account", self._account_snapshots)

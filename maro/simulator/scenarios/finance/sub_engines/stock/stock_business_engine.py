@@ -59,11 +59,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             if raw_stock is not None:
                 # update frame by code
                 stock: Stock = self._stocks_dict[code]
+                stock.fill(raw_stock)
 
                 if raw_stock.is_valid:
                     valid_stocks.append(stock.index)
-
-                    stock.fill(raw_stock)
 
         decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope)
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)

@@ -83,20 +83,27 @@ class SubEngineAccessWrapper:
     class PropertyAccessor:
         def __init__(self, properties: dict):
             self._properties = properties
+            self._customized = {}
+
+        def add_item(self, key, val):
+            self._customized[key] = val
 
         def __getitem__(self, name: str):
             """Used to access frame/snapshotlist by name as a dictionary."""
-            if name not in self._properties:
-                return None
+            if name in self._properties:
+                return self._properties[name]
+            elif name in self._customized:
+                return self._customized[name]
 
-            return self._properties[name]
+            return None
 
         def __getattribute__(self, name):
             properties = object.__getattribute__(self, "_properties")
+            customized = object.__getattribute__(self, "_customized")
 
-            if name in properties:
+            if name in properties or name in customized:
                 # used to access frame/snapshotlist by name as an attribute, such as env.snapshotlist.sub_a.xxxx
-                return properties[name]
+                return properties[name] if name in properties else customized[name]
             else:
                 # used to compact with current core to insert snapshot, or other implementation
 
