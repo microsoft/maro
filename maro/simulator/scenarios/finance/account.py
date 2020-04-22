@@ -14,7 +14,8 @@ class Account(EntityBase):
     # all stock
     # all future
 
-    def __init__(self, snapshots, money: float):
+    def __init__(self, snapshots, frame: Frame, money: float):
+        self.__init__(frame, 0)
         # NOTE: the snapshots is wrapper of snapshots of sub-engines,
         # you can access them by sub-engine name like: snapshots.china to calculate reward
         self._money = money
