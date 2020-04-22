@@ -14,7 +14,7 @@ import yaml
 import subprocess
 from requests import get
 from maro.simulator.utils.common import get_available_envs
-from tools.azure_orch.scripts.provision_new import create_resource_group, create_workers
+from tools.azure_orch.scripts.provision_new import create_resource_group, create_workers, generate_job_config
 from tools.azure_orch.scripts.docker_new import launch_job
 
 
@@ -65,7 +65,7 @@ def main():
                         help="Show available environment settings")
     parser.add_argument("--dashboard", nargs='?', choices=['unzip', 'start', 'stop', 'no_action', 'build'], default='no_action', const='unzip', metavar='ACTION',
                         help="default or 'unzip' to extract dashboard resources to current folder. 'start' to start dashboard service. 'stop' to stop dashboard service. 'build' to build docker for dashboard service.")
-    parser.add_argument("--dist", choices=["create_god", "create_workers", "launch_job"], help="create_god to create god")
+    parser.add_argument("--dist", choices=["create_resource_group", "create_workers", "generate_job_config", "launch_job"])
 
     args = parser.parse_args()
 
@@ -76,8 +76,10 @@ def main():
         create_resource_group()
     elif args.dist == "create_workers":
         create_workers()
+    elif args.dist == "generate_job_config":
+        generate_job_config()
     elif args.dist == "launch_job":
-        pass
+        launch_job()
 
     if args.dashboard == 'unzip':
         print('unzip')

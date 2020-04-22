@@ -7,6 +7,8 @@ import socket
 import chalk
 from tqdm import tqdm
 
+from gen_job_config import gen_job_config
+
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -279,5 +281,21 @@ def create_resource_group():
 
 def generate_job_config():
     pass
+
+def generate_job_config():
+    PYTHONPATH = os.environ['PYTHONPATH']
+    default_config_path = os.path.join(PYTHONPATH, "examples/ecr/q_learning/distributed_mode/config.yml")
+
+    questions = [
+        inquirer.Text(
+            'configPath', 
+            message="Where is your meta config file?",
+            default=default_config_path
+        ),
+    ]
+
+    config_path = inquirer.prompt(questions)['configPath']
+
+    gen_job_config(config_path)
 
 
