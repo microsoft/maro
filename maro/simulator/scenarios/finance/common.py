@@ -103,7 +103,7 @@ class SubEngineAccessWrapper:
 
             if name in properties or name in customized:
                 # used to access frame/snapshotlist by name as an attribute, such as env.snapshotlist.sub_a.xxxx
-                return properties[name] if name in properties or customized[name]
+                return properties[name] if name in properties else customized[name]
             else:
                 # used to compact with current core to insert snapshot, or other implementation
 
@@ -124,7 +124,7 @@ class SubEngineAccessWrapper:
         return SubEngineAccessWrapper.PropertyAccessor(properties)
 
     @staticmethod
-    def insert_snapshot(snapshot_list_acc: PropertyAccessor, frame_acc: PropertyAccessor, index):
+    def insert_snapshot(snapshot_list_acc: PropertyAccessor, index):
         """Used to support insert snapshot for property accessor"""
         for name, snapshot_list in snapshot_list_acc._properties.items():
-            snapshot_list.insert_snapshot(frame_acc._properties[name], index)
+            snapshot_list.insert_snapshot(index)

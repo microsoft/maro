@@ -72,7 +72,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
     def post_step(self, tick: int):
         # after take snapshot, we need to reset the stock
-        self.snapshot_list.insert_snapshot(self._frame, tick)
+        self.snapshot_list.insert_snapshot(tick)
 
         for stock in self._stock_list:
             stock.reset()
