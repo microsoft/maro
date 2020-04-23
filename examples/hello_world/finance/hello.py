@@ -11,7 +11,17 @@ print(env.node_name_mapping.test_stocks)
 reward, decision_event, is_done = env.step(None)
 
 while not is_done:
-    reward, decision_event, is_done = env.step(Action("test_stocks", 0, 10000, OrderMode.market_order))
+    holding = env.snapshot_list.test_stocks.static_nodes[env.tick:0:("account_hold_num", 0)][-1]
+    available = env.snapshot_list.test_stocks.static_nodes[env.tick:0:("is_valid", 0)][-1]
+    print("holding:",holding,"available",available)
+    if available == 1:
+        if holding > 0:
+            action = Action("test_stocks", 0, -holding, OrderMode.market_order)
+        else:
+            action = Action("test_stocks",0, 100, OrderMode.market_order)
+    else:
+        action = None
+    reward, decision_event, is_done = env.step(action)
 
 stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
 
