@@ -167,7 +167,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             port.acc_fulfillment = port.acc_booking - port.acc_shortage
 
         # before go to next tick, we will take a snapshot first
-        self._snapshots.insert_snapshot(self._frame, tick)
+        self._snapshots.insert_snapshot(tick)
 
         # reset port statistics (by tick) fields
         for port in self._ports:
@@ -315,19 +315,22 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         Initialize the frame basing on data generator
         """
-        self._frame = gen_ecr_frame(self._data_generator.port_num,
-                                    self._data_generator.vessel_num,
-                                    self._data_generator.stop_number)
+        port_num = self._data_generator.port_num
+        vessel_num = self._data_generator.vessel_num
+        stop_num = self._data_generator.stop_number
+        cntr_volume = self._data_generator.container_volume
+
+        self._frame = gen_ecr_frame(port_num, vessel_num, stop_num)
 
         for port_idx, port_name in self._data_generator.node_mapping["static"].items():
             self._ports.append(Port(self._frame, port_idx, port_name))
 
         for vessel_idx, vessel_name in self._data_generator.node_mapping["dynamic"].items():
-            self._vessels.append(Vessel(self._frame, vessel_idx, vessel_name))
+            self._vessels.append(Vessel(self._frame, vessel_idx, vessel_name, cntr_volume))
 
-        self._full_on_ports = FrameMatrixAccessor(self._frame, "full_on_ports")
-        self._full_on_vessels = FrameMatrixAccessor(self._frame, "full_on_vessels")
-        self._vessel_plans = FrameMatrixAccessor(self._frame, "vessel_plans")
+        self._full_on_ports = FrameMatrixAccessor(self._frame, "full_on_ports", port_num, port_num)
+        self._full_on_vessels = FrameMatrixAccessor(self._frame, "full_on_vessels", vessel_num, port_num)
+        self._vessel_plans = FrameMatrixAccessor(self._frame, "vessel_plans", vessel_num, port_num)
 
         self._reset_nodes()
 
@@ -454,7 +457,6 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         # how many containers we can load
         acceptable_number = floor(remaining_space / container_volume)
-
         total_load_qty = 0
 
         for next_port_idx, arrive_tick in self._get_reachable_ports(vessel_idx):

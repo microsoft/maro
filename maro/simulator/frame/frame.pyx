@@ -211,8 +211,9 @@ cdef class Frame:
         cdef int32_t slot_index = 0 if len(key) < 4 else key[3]
 
         cdef np.ndarray attr_array = self._data_dict[ntype][attr_name]
+        cdef FrameAttribute attr = self._attr_dict[(ntype, attr_name)]
 
-        if slot_index > 0:
+        if attr.slot_num > 1:
             return attr_array[node_id, slot_index]
         else:
             return attr_array[node_id]
@@ -236,8 +237,9 @@ cdef class Frame:
         cdef int32_t node_num = self._node_num_map[atype]
 
         cdef np.ndarray attr_array = self._data_dict[atype][attr_name]
+        cdef FrameAttribute attr = self._attr_dict[(atype, attr_name)]
 
-        if slot_index > 0:
+        if attr.slot_num > 1:
             attr_array[node_id, slot_index] = val
         else:
             attr_array[node_id] = val
