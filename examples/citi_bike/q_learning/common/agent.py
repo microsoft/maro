@@ -154,9 +154,9 @@ class Agent(object):
                                             neighbor_scope = neighbor_scope)
 
         station_states = snapshot_list.static_nodes[
-                      cur_tick: cur_station_idx: ['bikes', 'capacity', 'orders']]
+                      cur_tick: cur_station_idx: ['bikes', 'capacity', 'trip_requirement']]
         neighbor_states = snapshot_list.static_nodes[
-                      cur_tick: neighbor_idx: ['bikes', 'capacity', 'orders']]
+                      cur_tick: neighbor_idx: ['bikes', 'capacity', 'trip_requirement']]
         self._reward_shaping.push_matrices(self._agent_name,
                                             {'state': numpy_state,
                                             'action': model_action,

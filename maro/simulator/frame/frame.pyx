@@ -490,8 +490,8 @@ cdef class SnapshotNodeAccessor:
                 if aname not in self._attr_dict:
                     raise FrameAttributeNotFoundError(aname)
 
-                if tick < self._max_ticks:
-                    retq.append(self._data_arr[aname][tick, node_list].flatten())
+                if 0 <= tick < self._max_ticks:
+                    retq.append(self._data_arr[aname][tick, node_list].astype("f").flatten())
                 else:
                     attr = self._attr_dict[aname]
                     retq.append(np.zeros(len(node_list) * attr.slot_num, dtype='f'))

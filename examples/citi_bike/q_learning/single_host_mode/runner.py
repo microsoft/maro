@@ -165,8 +165,8 @@ class Runner:
         state_shaping = StateShaping(env=self._env,
                                      relative_tick_list=[-1, -2, -3, -4, -5, -6, -7],
                                      neighbor_number = 6,
-                                     station_attribute_list=["bikes","fullfillment","trip_requirement","shortage","capacity",
-                                     "unknow_gendors","males","females","weekday","weather","holiday","temperature","subscriptor","customer","extra_cost"])
+                                     station_attribute_list=["bikes","fulfillment","trip_requirement","shortage","capacity",
+                                     "unknown_gendors","males","females","weekday","weather","holiday","temperature","subscriptor","customer","extra_cost"])
         action_space = [round((1/6)*i,2) for i in range(0, 6)]
         action_shaping = DiscreteActionShaping(action_space=action_space)
         if REWARD_SHAPING == 'tc':
@@ -388,10 +388,10 @@ class Runner:
             # self._performance_logger.debug(
             #     f"{ep},{self._eps_list[ep]},{','.join([str(value) for value in pretty_booking_dict.values()])},{','.join([str(value) for value in pretty_shortage_dict.values()])}")
             self._logger.critical(
-                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
+                f'{self._env.name} | train | [{ep + 1}/{self._max_train_ep}] total tick: {self._max_tick}, fulfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
         else:
             self._logger.critical(
-                f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fullfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
+                f'{self._env.name} | {mode} | [{ep + 1}/{self._max_test_ep}] total tick: {self._max_tick}, fulfillment ratio: {round((trip_requirement-tot_shortage)/trip_requirement,2)}, exta cost: {tot_cost}, trip requirement: {trip_requirement}, total shortage: {tot_shortage}')
 
         if self._dashboard is not None and mode != 'no_action':
             self._send_to_dashboard(ep, pretty_shortage_dict, pretty_requirement_dict, mode)
