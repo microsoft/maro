@@ -13,7 +13,7 @@ from yaml import safe_load
 from maro.simulator.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.utils.common import tick_to_frame_index
+from maro.simulator.utils.common import tick_to_frame_index, total_frames
 from maro.simulator.utils.random import random
 from maro.simulator.scenarios.entity_base import FrameBuilder
 
@@ -54,10 +54,8 @@ class BikeBusinessEngine(AbsBusinessEngine):
             self._extra_cost_mode = ExtraCostMode(self._conf["extra_cost_mode"])
         else:
             self._extra_cost_mode = ExtraCostMode.Source
-
-        frame_num = ceil(self._max_tick / frame_resolution)
         
-        self._snapshots = SnapshotList(self._frame, frame_num)
+        self._snapshots = SnapshotList(self._frame, total_frames(self._start_tick, self._max_tick, self._frame_resolution))
 
         self._adj = read_adj_info(self._conf["adj_file"])
         self._decision_strategy = BikeDecisionStrategy(self._cells, self._conf["decision"])
@@ -170,7 +168,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
             # take a snapshot at the end of tick
             snapshot_index = tick_to_frame_index(self._start_tick, tick, self._frame_resolution)
 
-            self._snapshots.insert_snapshot(self._frame, snapshot_index)
+            self._snapshots.insert_snapshot(snapshot_index)
 
             # last unit tick of current tick
             # we will reset some field

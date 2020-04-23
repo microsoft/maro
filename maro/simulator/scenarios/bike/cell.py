@@ -32,7 +32,7 @@ class Cell(EntityBase):
     weather = IntAttribute()
     holiday = IntAttribute()
     extra_cost = IntAttribute()
-    neighbors = IntAttribute(CELL_BEIGHBOR_NUM)
+    neighbors = IntAttribute(slot_num = CELL_BEIGHBOR_NUM)
 
     def __init__(self, index: int, capacity: int, bikes: int, frame: Frame):
         super().__init__(frame, index)

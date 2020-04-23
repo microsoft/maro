@@ -113,7 +113,7 @@ cdef class Frame:
     cdef:
         int32_t _static_node_num
         int32_t _dynamic_node_num
-        int8_t _node_num_map[3]
+        int32_t _node_num_map[3]
 
         dict _attr_dict
         dict _data_dict
@@ -274,7 +274,7 @@ cdef class SnapshotList:
     cdef:
         Frame _frame
         int32_t _max_ticks
-        int8_t _node_num_map[3]
+        int32_t _node_num_map[3]
 
         dict _data_dict
         dict _attr_dict
@@ -411,6 +411,9 @@ cdef class SnapshotList:
             for attr in self._grouped_attr_dict[atype]:
                 arr[attr.name] = 0
 
+    def __len__(self):
+        return self._max_ticks
+
 cdef class SnapshotNodeAccessor:
     """
     Wrapper to access node attributes with slice interface
@@ -457,24 +460,24 @@ cdef class SnapshotNodeAccessor:
         # ticks
         if key.start is None:
             ticks = self._all_ticks
-        elif isinstance(key.start, Iterable):
+        elif type(key.start) is tuple or type(key.start) is list:
             ticks = list(key.start)
         else:
-            ticks = [key.start]
+            ticks.append(key.start)
 
         # node id list
         if key.stop is None:
             node_list = self._all_nodes
-        elif isinstance(key.stop, Iterable):
+        elif type(key.stop) is tuple or type(key.start) is list:
             node_list = list(key.stop)
         else:
-            node_list = [key.stop]
+            node_list.append(key.stop)
 
         if key.step is None:
             return None
         
         # attribute names
-        if isinstance(key.step, Iterable):
+        if type(key.step) is tuple or type(key.step) is list:
             attr_list = list(key.step)
         else:
             attr_list = [key.step]
@@ -483,7 +486,7 @@ cdef class SnapshotNodeAccessor:
         for tick in ticks:
             for aname in attr_list:
                 if aname not in self._attr_dict:
-                    raise f"Invalid attribute {aname} to query"
+                    raise FrameAttributeNotFoundError(aname)
 
                 if tick < self._max_ticks:
                     retq.append(self._data_arr[aname][tick, node_list].flatten())
@@ -492,6 +495,7 @@ cdef class SnapshotNodeAccessor:
                     retq.append(np.zeros(len(node_list) * attr.slot_num, dtype='f'))
 
         return np.concatenate(retq)
+
 
 cdef class SnapshotGeneralAccessor:
     """
