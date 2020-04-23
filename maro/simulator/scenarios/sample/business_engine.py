@@ -98,7 +98,7 @@ class SampleBusinessEngine(AbsBusinessEngine):
         if (tick + 1) % self._frame_resolution == 0:
             snapshot_index = tick_to_frame_index(self._start_tick, tick, self._frame_resolution)
 
-            self._snapshot_list.insert_snapshot(self._frame, snapshot_index)
+            self._snapshot_list.insert_snapshot(snapshot_index)
 
     def reset(self):
         # any reset logic here after each episode
