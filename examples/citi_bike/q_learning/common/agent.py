@@ -131,7 +131,7 @@ class Agent(object):
 
         # cache the neighbors, as they will not be changed
         if self._neighbors is None:
-            self._neighbors = snapshot_list.static_nodes[0::("neighbors",[x for x in range(6)])].reshape(-1, 6).astype(int)
+            self._neighbors = snapshot_list.static_nodes[0::"neighbors")].reshape(-1, 6).astype(int)
 
         action_scope = decision_event.action_scope
         cur_tick = decision_event.frame_index
@@ -154,9 +154,9 @@ class Agent(object):
                                             neighbor_scope = neighbor_scope)
 
         station_states = snapshot_list.static_nodes[
-                      cur_tick: cur_station_idx: (['bikes', 'capacity', 'orders'], 0)]
+                      cur_tick: cur_station_idx: ['bikes', 'capacity', 'orders']]
         neighbor_states = snapshot_list.static_nodes[
-                      cur_tick: neighbor_idx: (['bikes', 'capacity', 'orders'], 0)]
+                      cur_tick: neighbor_idx: ['bikes', 'capacity', 'orders']]
         self._reward_shaping.push_matrices(self._agent_name,
                                             {'state': numpy_state,
                                             'action': model_action,

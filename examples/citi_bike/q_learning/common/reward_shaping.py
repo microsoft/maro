@@ -96,13 +96,13 @@ class TruncateReward(RewardShaping):
                       for _ in range(len(self._agent_idx_list))]
 
             
-            fulfillments = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:('fulfillment', 0)]
+            fulfillments = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list: 'fulfillment']
             tot_fulfillment = np.dot(fulfillments, decay_list)
 
-            shortages = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:("shortage", 0)]
+            shortages = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list: "shortage"]
             tot_shortage = np.dot(shortages, decay_list)
 
-            costs = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list:("extra_cost", 0)]
+            costs = snapshot_list.static_nodes[list(range(start_tick, end_tick)):self._agent_idx_list: "extra_cost"]
             tot_cost = np.dot(costs, decay_list)
 
             cache['reward'].append(np.float32(self._reward_factor * (tot_fulfillment - self._shortage_factor * tot_shortage

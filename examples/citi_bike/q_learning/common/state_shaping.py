@@ -31,7 +31,7 @@ class StateShaping():
         ticks = [cur_tick] + [cur_tick + rt for rt in self._relative_tick_list]
 
         # cur_neighbor_idx_list = [0]*6
-        station_features = self._env.snapshot_list.static_nodes[ticks: [cur_station_idx] + list(cur_neighbor_idx_list): (self._station_attribute_list, 0)]
+        station_features = self._env.snapshot_list.static_nodes[ticks: [cur_station_idx] + list(cur_neighbor_idx_list): self._station_attribute_list]
 
         return station_features
 
