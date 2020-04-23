@@ -131,7 +131,7 @@ class Agent(object):
 
         # cache the neighbors, as they will not be changed
         if self._neighbors is None:
-            self._neighbors = snapshot_list.static_nodes[0::"neighbors")].reshape(-1, 6).astype(int)
+            self._neighbors = snapshot_list.static_nodes[0::"neighbors"].reshape(-1, 6).astype(int)
 
         action_scope = decision_event.action_scope
         cur_tick = decision_event.frame_index
