@@ -16,13 +16,16 @@ logger = logging.getLogger('logger')
 def install_docker(delta_workers_info):
     admin_username = delta_workers_info['adminUsername']
     for worker in delta_workers_info["virtualMachines"]:
-        install_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'bash /codepoint/bin/install_docker.sh'"
+        install_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'bash /code_point/bin/install_docker.sh'"
         res = subprocess.run(install_bin, shell=True, capture_output=True)
         
         if res.returncode:
             raise Exception(res.stderr)
         else:
             logging.info(f"run {install_bin} success!")
+
+def unpack_docker_images(delta_workers_info, image_name):
+    pass
 
 def launch_job():
     if not os.path.exists('job_config'):

@@ -18,10 +18,13 @@ sudo mkdir /code_point
 sudo vim /etc/samba/smb.conf
 [sambashare]
     comment = Samba on Ubuntu
-    path = /home/username/sambashare
+    path = /code_point
     read only = no
     browsable = yes
 
 sudo service smbd restart
-sudo ufw allow sambal
+sudo ufw allow samba
 sudo chmod 777 /code_point/
+
+
+sudo mount -t cifs -o username=tianyi,password=123456 //10.0.0.4/sambashare /code_point
