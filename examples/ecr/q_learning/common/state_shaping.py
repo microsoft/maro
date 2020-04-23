@@ -34,7 +34,7 @@ class StateShaping():
         ticks = [cur_tick] + [cur_tick + rt for rt in self._relative_tick_list]
         future_port_slot_idx_list = [i for i in range(
             self._port_downstream_max_number)]
-        future_port_idx_list = self._env.snapshot_list.dynamic_nodes[cur_tick: cur_vessel_idx: 'future_stop_list']
+        future_port_idx_list = self._env.snapshot_list.dynamic_nodes[cur_tick: cur_vessel_idx: 'future_stop_list'][future_port_slot_idx_list].astype("i")
 
         port_features = self._env.snapshot_list.static_nodes[ticks: [cur_port_idx] + list(future_port_idx_list): self._port_attribute_list]
 
