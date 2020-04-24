@@ -271,7 +271,7 @@ class Runner:
 
     def _print_summary(self, ep, is_train: bool = True):
         shortage_list = self._env.snapshot_list.static_nodes[
-                        self._env.tick: self._env.agent_idx_list: ('acc_shortage', 0)]
+                        self._env.tick: self._env.agent_idx_list: 'acc_shortage']
         pretty_shortage_dict = OrderedDict()
         tot_shortage = 0
         for i, shortage in enumerate(shortage_list):
@@ -280,7 +280,7 @@ class Runner:
         pretty_shortage_dict['total_shortage'] = tot_shortage
 
         booking_list = self._env.snapshot_list.static_nodes[
-                       self._env.tick: self._env.agent_idx_list: ('acc_booking', 0)]
+                       self._env.tick: self._env.agent_idx_list: 'acc_booking']
         pretty_booking_dict = OrderedDict()
         tot_booking = 0
         for i, booking in enumerate(booking_list):
@@ -356,7 +356,7 @@ class Runner:
             self._dashboard.upload_exp_data(fields=pretty_epsilon_dict, ep=dashboard_ep, tick=None, measurement='epsilon')
 
         # Prepare usage and delayed laden data cache
-        usage_list = self._env.snapshot_list.dynamic_nodes[::(['remaining_space', 'empty', 'full'], 0)]
+        usage_list = self._env.snapshot_list.dynamic_nodes[::['remaining_space', 'empty', 'full']]
         pretty_usage_list = usage_list.reshape(self._max_tick, len(self._vessel_idx2name) * 3)
 
         delayed_laden_list = self._env.snapshot_list.matrix[[x for x in range(0, self._max_tick)]:"full_on_ports"]
@@ -468,7 +468,7 @@ class Runner:
         self._dashboard.upload_exp_data(fields=pretty_tml_cost_dict, ep=dashboard_ep, tick=None, measurement='tml_cost')
 
         # Pick and upload data for event shortage
-        ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.agent_idx_list:('shortage',0)]
+        ep_shortage_list = self._env.snapshot_list.static_nodes[:self._env.agent_idx_list:'shortage']
         pretty_ep_shortage_list = ep_shortage_list.reshape(self._max_tick, len(self._port_idx2name))
         for i in range(self._max_tick):
             need_upload = False

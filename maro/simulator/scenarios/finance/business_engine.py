@@ -77,7 +77,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for sub_engine in self._sub_engines.values():
             sub_engine.post_step(tick)
 
-        self._account_snapshots.insert_snapshot(self._account_frame, tick)
+        self._account_snapshots.insert_snapshot(tick)
 
 
     @property

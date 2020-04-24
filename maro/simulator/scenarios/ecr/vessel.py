@@ -1,27 +1,30 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+import numpy as np
+from math import floor
 from maro.simulator.frame import Frame, FrameNodeType
 
+AT_DYNAMIC = FrameNodeType.DYNAMIC
 
 class Vessel:
     """
-    Vessel entity, helper class for accessing the underlying frame
+    Wrapper that present a vessel in ECR problem and hide the detail of frame accessing
     """
 
-    def __init__(self, frame: Frame, idx: int, name: str):
+    def __init__(self, frame: Frame, idx: int, name: str, container_volume: float):
         """
         Create a new instance of vessel
-
         Args:
-            frame (Frame): frame that the vessel belongs to
+            frame (Frame): graph that the vessel belongs to
             idx (int): index of this vessel
             name (str): name of this vessel
         """
         self._frame = frame
         self._idx = idx
         self._name = name
+        self._total_space = 0
+        self._container_volume = container_volume
 
     def reset(self):
         """
@@ -46,103 +49,105 @@ class Vessel:
     @property
     def capacity(self) -> float:
         """
-        Capacity of vessel, when the onboard container number reach the capacity, the vessel cannot load any container
+        Capacity of vessel, when the contains on board reach the capacity, the vessel cannot load any container
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "capacity", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "capacity", 0]
 
     @capacity.setter
     def capacity(self, value: float):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "capacity", 0, value)
-
+        self._frame[AT_DYNAMIC, self._idx, "capacity", 0] = value
+        self._total_space = floor(value/self._container_volume)
+        
     @property
     def empty(self) -> int:
         """
         Number of empty containers on board
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "empty", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "empty", 0]
 
     @empty.setter
     def empty(self, value: int):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "empty", 0, value)
+ 
+        self._frame[AT_DYNAMIC, self._idx, "empty", 0] = value
+
+        self._update_remaining_space()
 
     @property
     def full(self) -> int:
         """
         Number of full on board
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "full", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "full", 0]
 
     @full.setter
     def full(self, value: int):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "full", 0, value)
+       
+        self._frame[AT_DYNAMIC, self._idx, "full", 0] = value
+
+        self._update_remaining_space()
 
     @property
     def early_discharge(self) -> int:
         """
         Number of full on board
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "early_discharge", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "early_discharge", 0]
 
     @early_discharge.setter
     def early_discharge(self, value: int):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "early_discharge", 0, value)
+        self._frame[AT_DYNAMIC, self._idx, "early_discharge", 0] = value
 
     @property
     def last_loc_idx(self) -> int:
         """
         Last location index in loop
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "last_loc_idx", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "last_loc_idx", 0]
 
     @last_loc_idx.setter
     def last_loc_idx(self, value: int):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "last_loc_idx", 0, value)
+        self._frame[AT_DYNAMIC, self._idx, "last_loc_idx", 0] = value
 
     @property
     def next_loc_idx(self) -> int:
         """
         Next location index in loop
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "next_loc_idx", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "next_loc_idx", 0]
 
     @next_loc_idx.setter
     def next_loc_idx(self, value: int):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "next_loc_idx", 0, value)
+        self._frame[AT_DYNAMIC, self._idx, "next_loc_idx", 0] = value
 
     @property
     def route_idx(self) -> int:
         """
         Index of route this vessel belongs to
         """
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "route_idx", 0)
+        return  self._frame[AT_DYNAMIC, self._idx, "route_idx", 0]
 
     @route_idx.setter
     def route_idx(self, value: int):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "route_idx", 0, value)
+        self._frame[AT_DYNAMIC, self._idx, "route_idx", 0] = value
 
     @property
     def remaining_space(self):
-        return self._frame.get_attribute(FrameNodeType.DYNAMIC, self._idx, "remaining_space", 0)
+        return self._frame[AT_DYNAMIC, self._idx, "remaining_space", 0]
 
     @remaining_space.setter
-    def remaining_space(self, value: float):
-        self._frame.set_attribute(
-            FrameNodeType.DYNAMIC, self._idx, "remaining_space", 0, value)
+    def remaining_space(self, value: int):
+        self._frame[AT_DYNAMIC, self._idx, "remaining_space", 0] = value
+
+    def _update_remaining_space(self):
+        self.remaining_space = self._total_space - self.full - self.empty
 
     def set_stop_list(self, stop_list: tuple):
         """
         Set the future stops (configured in config) when the vessel arrive at a port
-
         Args:
             stop_list (tuple): list of past and future stop list tuple
         """
+        
         features = [(stop_list[0], "past_stop_list", "past_stop_tick_list"),
                     (stop_list[1], "future_stop_list", "future_stop_tick_list")]
 
@@ -151,7 +156,5 @@ class Vessel:
                 tick = stop.arrive_tick if stop is not None else -1
                 port_idx = stop.port_idx if stop is not None else -1
 
-                self._frame.set_attribute(
-                    FrameNodeType.DYNAMIC, self._idx, feature[1], i, port_idx)
-                self._frame.set_attribute(
-                    FrameNodeType.DYNAMIC, self._idx, feature[2], i, tick)
+                self._frame[AT_DYNAMIC, self._idx, feature[1], i] = port_idx
+                self._frame[AT_DYNAMIC, self._idx, feature[2], i] = tick

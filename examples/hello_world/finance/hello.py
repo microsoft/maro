@@ -27,7 +27,7 @@ stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
 
 print("len of snapshot:", len(stock_snapshots))
 
-stock_opening_price = stock_snapshots.static_nodes[:0:("opening_price", 0)]
+stock_opening_price = stock_snapshots.static_nodes[:0:"opening_price"]
 
 print("opening price for all the ticks:")
 print(stock_opening_price)
@@ -44,7 +44,7 @@ print(stock_account_hold_num)
 
 account_snapshots: SnapshotList = env.snapshot_list.account
 
-account_total_money = account_snapshots.static_nodes[:0:("total_money", 0)]
+account_total_money = account_snapshots.static_nodes[:0:"total_money"]
 
 print("account total money for all the ticks:")
 print(account_total_money)
