@@ -11,8 +11,8 @@ print(env.node_name_mapping.test_stocks)
 reward, decision_event, is_done = env.step(None)
 
 while not is_done:
-    holding = env.snapshot_list.test_stocks.static_nodes[env.tick:0:("account_hold_num", 0)][-1]
-    available = env.snapshot_list.test_stocks.static_nodes[env.tick:0:("is_valid", 0)][-1]
+    holding = env.snapshot_list.test_stocks.static_nodes[env.tick:0:"account_hold_num"][-1]
+    available = env.snapshot_list.test_stocks.static_nodes[env.tick:0:"is_valid"][-1]
     print("holding:",holding,"available",available)
     if available == 1:
         if holding > 0:
@@ -39,7 +39,7 @@ print(stock_account_hold_num)
 
 account_snapshots: SnapshotList = env.snapshot_list.account
 
-account_total_money = account_snapshots.static_nodes[:0:("total_money", 0)]
+account_total_money = account_snapshots.static_nodes[:0:"total_money"]
 
 print("account total money for all the ticks:")
 print(account_total_money)
