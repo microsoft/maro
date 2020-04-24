@@ -17,8 +17,8 @@ import webbrowser
 from requests import get
 from maro.simulator.utils.common import get_available_envs
 
-from tools.azure_orch.scripts.provision_new import create_resource_group, create_workers, sync_resource_group_info, generate_job_config
-from tools.azure_orch.scripts.docker_new import launch_job
+from tools.azure_orch.scripts.provision import create_resource_group, create_workers, sync_resource_group_info, generate_job_config
+from tools.azure_orch.scripts.docker import launch_job
 from tools.azure_orch.scripts.utils import sync_code, sync_log
 
 
