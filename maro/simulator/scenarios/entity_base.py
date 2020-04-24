@@ -96,7 +96,7 @@ class FrameAttributeSliceAccessor:
             self._value_changed_cb(key, value)
 
     def __len__(self):
-        return self._attr.slot_num
+        return self.attr.slot_num
 
     def __repr__(self):
         return f"<FrameAttributeSliceAccessor {self.name}, {self.attr.__repr__()}>"
