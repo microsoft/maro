@@ -32,7 +32,10 @@ class ByMoneySlippage(Slippage):
         self.__slippage_rate = slippage_rate
 
     def execute(self, order_action, curr_data, remaining_money):
-        return curr_data[order_action.item_index].closing_price*(1+self.__slippage_rate), order_action.number
+        order_direction = 1
+        if order_action.number < 0:
+            order_direction = -1
+        return round(curr_data[order_action.item_index].opening_price*(1+self.__slippage_rate*order_direction/2), 2), order_action.number
 
 
 class ByVolumeSlippage(Slippage):
@@ -44,7 +47,7 @@ class ByVolumeSlippage(Slippage):
         self.__pre_volume_fee = pre_volume_fee
 
     def execute(self, order_action, curr_data, remaining_money):
-        return abs(order_action.volume)*self.__pre_volume_fee, order_action.number
+        return round(abs(order_action.volume)*self.__pre_volume_fee, 2), order_action.number
 
 
 class ByTradeSlippage(Slippage):
@@ -56,4 +59,4 @@ class ByTradeSlippage(Slippage):
         self.__pre_trade_fee = pre_trade_fee
 
     def execute(self, order_action, curr_data, remaining_money):
-        return self.__pre_trade_fee, order_action.number
+        return round(self.__pre_trade_fee, 2), order_action.number
