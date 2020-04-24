@@ -51,10 +51,10 @@ def create_god():
                 if res.returncode:
                     raise Exception(res.stderr)
                 else:
-                    god_vnet_ip = str(res.stdout, 'utf-8')
+                    god_vnet_IP = str(res.stdout, 'utf-8')
 
                 resource_group_info['virtualMachines'][0]['IP'] = god_ip
-                resource_group_info['virtualMachines'][0]['vnetIP'] = god_vnet_ip[:-1]
+                resource_group_info['virtualMachines'][0]['vnetIP'] = god_vnet_IP[:-1]
                 logger.info("Now you can remote login your god machine. ")
                 logger.info(chalk.green(f"COPY AND RUN: ssh {resource_group_info['adminUsername']}@{god_ip}"))
 
@@ -184,7 +184,7 @@ def init_god(resource_group_info, image_name="maro/ecr/cpu/latest"):
 
     # save docker images to code point
     #TODO: support more docker files, change docker_image
-    save_image_bin = ssh_bin + f"docker save {image_name} > /code_point/docker_image"
+    save_image_bin = ssh_bin + f"sudo docker save {image_name} > /code_point/docker_image"
 
     for bin in [install_docker_bin, build_docker_images_bin, save_image_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
@@ -194,7 +194,7 @@ def init_god(resource_group_info, image_name="maro/ecr/cpu/latest"):
             logger.info(f"run {bin} success!")
     
     # launch redis
-    launch_redis_bin = ssh_bin + "bash /code_point/bin/launch_redis.sh"
+    launch_redis_bin = ssh_bin + "sudo bash /code_point/bin/launch_redis.sh"
     res = subprocess.run(launch_redis_bin, shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
@@ -249,23 +249,24 @@ def create_workers(resource_group_name=None):
             worker_ip = json.loads(res.stdout)[0]["ipAddress"]
             worker['IP'] = worker_ip
 
-    
-    mount_samba_server(delta_workers_info)
-    # install_docker(delta_workers_info)
-
-    questions = [
-        inquirer.Text(
-            'imageName', 
-            message="What is the docker image name?",
-            default="maro/ecr/cpu/latest"
-        )
-    ]
-    image_name = inquirer.prompt(questions)['imageName']
-
-    # unpack_docker_images(delta_workers_info, image_name)
-
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
         exist_resource_group_info = json.load(infile)
+
+    god_vnet_IP = exist_resource_group_info['virtualMachines'][0]['vnetIP']
+    mount_samba_server(delta_workers_info, god_vnet_IP)
+    install_docker(delta_workers_info)
+
+    # questions = [
+    #     inquirer.Text(
+    #         'imageName', 
+    #         message="What is the docker image name?",
+    #         default="maro/ecr/cpu/latest"
+    #     )
+    # ]
+    # image_name = inquirer.prompt(questions)['imageName']
+    image_name = "docker_image"
+
+    unpack_docker_images(delta_workers_info, image_name)
 
     # update resource group info json
     exist_resource_group_info["virtualMachines"].extend(delta_workers_info["virtualMachines"])
@@ -331,15 +332,23 @@ def inquirer_workers(resource_group_name):
 
     return worker_info
 
-def mount_samba_server(delta_workers_info):
-    pass
+def mount_samba_server(delta_workers_info, god_vnet_IP):
+    admin_username = delta_workers_info['adminUsername']
+    for worker in delta_workers_info["virtualMachines"]:
+        mount_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'bash ADMIN_USERNAME={admin_username} SAMBA_IP={god_vnet_IP} /code_point/bin/mount_samba.sh'"
+        res = subprocess.run(mount_bin, shell=True, capture_output=True)
+        
+        if res.returncode:
+            raise Exception(res.stderr)
+        else:
+            logging.info(f"run {mount_bin} success!")
 
 def setup_samba_server():
     pass
 
 def create_resource_group():
     resource_group_name, resource_group_info = create_god()
-    # init_god(resource_group_info)
+    init_god(resource_group_info)
     # create_workers(resource_group_name)
 
 def generate_job_config():

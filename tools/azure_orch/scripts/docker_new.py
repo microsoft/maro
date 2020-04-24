@@ -25,7 +25,15 @@ def install_docker(delta_workers_info):
             logging.info(f"run {install_bin} success!")
 
 def unpack_docker_images(delta_workers_info, image_name):
-    pass
+    admin_username = delta_workers_info['adminUsername']
+    for worker in delta_workers_info["virtualMachines"]:
+        load_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'sudo docker load < /code_point/{image_name}'"
+        res = subprocess.run(load_bin, shell=True, capture_output=True)
+        
+        if res.returncode:
+            raise Exception(res.stderr)
+        else:
+            logging.info(f"run {load_bin} success!")
 
 def launch_job():
     if not os.path.exists('job_config'):
