@@ -2,18 +2,15 @@
 
 from functools import wraps
 from typing import Callable
-from maro.simulator.frame import Frame, FrameAttributeType, FrameNodeType
-
-INT = FrameAttributeType.INT
-FLOAT = FrameAttributeType.FLOAT
-INT_MAT = FrameAttributeType.INT_MAT
+from maro.simulator.frame import Frame, FrameNodeType
+import numpy as np
 
 class BaseAttribute:
     """Base wrapper for frame attribute.
     For attributes that it can be read/set directly without slice interface if slot_num is 1"""
-
+    
     # TODO: remove row and col parameters later after merged further changes, here is for compact issue
-    def __init__(self, data_type: FrameAttributeType, slot_num: int = 1, row: int = 0, col: int = 0):
+    def __init__(self, data_type: np.dtype, slot_num: int = 1, row: int = 0, col: int = 0):
         assert slot_num > 0
         
         self.data_type: int = data_type
@@ -23,27 +20,29 @@ class BaseAttribute:
 
     def set_value(self, frame: Frame, node_type: FrameNodeType, name: str, node_index: int, slot: int, value):
         """Set value of specified slot"""
-        frame.set_attribute(node_type, node_index, name, slot, value)
+        # frame.set_attribute(node_type, node_index, name, slot, value)
+        frame[node_type, node_index, name, slot] = value
 
     def get_value(self, frame: Frame, node_type: FrameNodeType, name: str, node_index: int, slot: int):
         """Get value of specified slot"""
-        return frame.get_attribute(node_type, node_index, name, slot)
+        # return frame.get_attribute(node_type, node_index, name, slot)
+        return frame[node_type, node_index, name, slot]
 
 class IntAttribute(BaseAttribute):
     """Describe an int attribute in frame"""
 
-    # TODO: though we do not need node_type for now, it is used to merge further changes that split definition between static and dynamic nodes
-    def __init__(self, slot_num: int = 1):
-        super().__init__(INT, slot_num)
+    def __init__(self, length: int = 4, slot_num: int = 1):        
+        super().__init__(f"i{length}", slot_num)
+        self.length = length
 
     def __repr__(self):
-        return f"<IntAttribute: slot num: {self.slot_num}>"
+        return f"<IntAttribute: length: {self.length}, slot num: {self.slot_num}>"
 
 
 class FloatAttribute(BaseAttribute):
     """Describe a float attribute in frame"""
     def __init__(self, slot_num: int = 1, ndigits: int = None):
-        super().__init__(FLOAT, slot_num)
+        super().__init__("f", slot_num)
         
         assert ndigits is None or ndigits >= 0
         
@@ -69,10 +68,6 @@ class FloatAttribute(BaseAttribute):
     def __repr__(self):
         return f"<FloatAttribute: slot num: {self.slot_num}, ndigits: {self._ndigits}>"
 
-# TODO: remove after we merged further changes
-class IntMaxtrixAttribute(BaseAttribute):
-    def __init__(self, row: int = 1, col: int = 1):
-        super().__init__(INT_MAT, 0, row=row, col=col)
 
 class FrameAttributeSliceAccessor:
     """Used to provide a way to access frame field with slice interface, like model.attr[0]"""
@@ -99,6 +94,9 @@ class FrameAttributeSliceAccessor:
 
         if self._value_changed_cb is not None:
             self._value_changed_cb(key, value)
+
+    def __len__(self):
+        return self._attr.slot_num
 
     def __repr__(self):
         return f"<FrameAttributeSliceAccessor {self.name}, {self.attr.__repr__()}>"
@@ -252,20 +250,20 @@ class FrameBuilder:
         frame = Frame(self._static_node_number, self._dynamic_node_number)
 
         # internal function to register
-        def reg_attr(frame: Frame, model_cls):
+        def reg_attr(node_type: FrameNodeType, frame: Frame, model_cls):
             assert model_cls is not None
 
             assert issubclass(model_cls, EntityBase)
 
             for name, attr in model_cls.__dict__.items():
                 if isinstance(attr, BaseAttribute):
-                    frame.register_attribute(name, attr.data_type, attr.slot_num, attr.row, attr.col)      
+                    frame.register_attribute(node_type, name, attr.data_type, attr.slot_num)      
 
         if self._static_node_cls is not None:
-            reg_attr(frame, self._static_node_cls)
+            reg_attr(FrameNodeType.STATIC, frame, self._static_node_cls)
 
         if self._dynamic_node_cls is not None:
-            reg_attr(frame, self._dynamic_node_cls)
+            reg_attr(FrameNodeType.DYNAMIC, frame, self._dynamic_node_cls)
 
         frame.setup()
 

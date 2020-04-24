@@ -94,10 +94,14 @@ class TruncateReward(RewardShaping):
             #calculate tc reward
             decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
                       for _ in range(len(self._agent_idx_list))]
-            tot_fulfillment = np.dot(snapshot_list.get_attributes(FrameNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                            self._agent_idx_list, ['fulfillment'], [0]), decay_list)
-            tot_shortage = np.dot(snapshot_list.get_attributes(FrameNodeType.STATIC, list(range(start_tick, end_tick)),
-                                                            self._agent_idx_list, ['shortage'], [0]), decay_list)
+            
+            ticks = list(range(start_tick, end_tick))
+            
+            tot_fulfillment = snapshot_list.static_nodes[ticks: self._agent_idx_list: "fulfillment"]
+            tot_fulfillment = np.dot(tot_fulfillment, decay_list)
+
+            tot_shortage = snapshot_list.static_nodes[ticks: self._agent_idx_list: "shortage"]
+            tot_shortage = np.dot(tot_shortage, decay_list)
 
             cache['reward'].append(np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage))
 

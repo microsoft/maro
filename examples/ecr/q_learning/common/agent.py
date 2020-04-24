@@ -142,11 +142,11 @@ class Agent(object):
             state=state, eps=eps, current_ep=current_ep, current_tick=cur_tick)
 
         port_states = snapshot_list.static_nodes[
-                      cur_tick: cur_port_idx: (['empty', 'full', 'on_shipper', 'on_consignee'], 0)]
+                      cur_tick: cur_port_idx: ['empty', 'full', 'on_shipper', 'on_consignee']]
         vessel_states = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: (['empty', 'full', 'remaining_space'], 0)]
+                        cur_tick: cur_vessel_idx: ['empty', 'full', 'remaining_space']]
         early_discharge = snapshot_list.dynamic_nodes[
-                        cur_tick: cur_vessel_idx: ('early_discharge', 0)][0]
+                        cur_tick: cur_vessel_idx: 'early_discharge'][0]
         actual_action = self._action_shaping(scope=action_scope, action_index=action_index,
                                              port_empty=port_states[0], vessel_remaining_space=vessel_states[2],
                                              early_discharge=early_discharge)

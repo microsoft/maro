@@ -225,7 +225,7 @@ class Env(AbsEnv):
                     break
 
                 # insert snapshot before each action
-                self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
+                self._business_engine.snapshots.insert_snapshot(self.frame_index)
 
                 decision_events = [evt.payload for evt in pending_events]
                 
@@ -265,7 +265,7 @@ class Env(AbsEnv):
 
         # make sure we have no missing data
         if self._tick % self._frame_resolution != 0:
-            self._business_engine.snapshots.insert_snapshot(self.current_frame, self.frame_index)
+            self._business_engine.snapshots.insert_snapshot(self.frame_index)
 
         # the end
         yield None, None, True

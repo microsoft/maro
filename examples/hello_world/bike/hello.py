@@ -21,13 +21,13 @@ for i in range(total_ep):
         reward, decision_event, is_done = env.step(Action(0, 1, 0))
 
     #
-    trip_requirements = env.snapshot_list.static_nodes[::("trip_requirement", 0)]
+    trip_requirements = env.snapshot_list.static_nodes[::"trip_requirement"]
     print(f"total trips (ep {i}):", sum(trip_requirements))
 
-    shortages = env.snapshot_list.static_nodes[::("shortage", 0)]
+    shortages = env.snapshot_list.static_nodes[::"shortage"]
     print(f"total shortage (ep {i}):", sum(shortages))
 
-    fulfillments = env.snapshot_list.static_nodes[::("fulfillment", 0)]
+    fulfillments = env.snapshot_list.static_nodes[::"fulfillment"]
     print(f"total fulfillment (ep {i}):", sum(fulfillments))
 
     print(f"shortage + fulfillment = {sum(shortages) + sum(fulfillments)}")
@@ -35,7 +35,7 @@ for i in range(total_ep):
 hours = len(env.snapshot_list)
 
 print("snapshot list length", hours)
-inv = env.snapshot_list.static_nodes[::("bikes", 0)]
+inv = env.snapshot_list.static_nodes[::"bikes"]
 
 inv = inv.reshape(hours, len(env.agent_idx_list)) # hours, cells
 
@@ -44,7 +44,7 @@ print(inv[:, 0]) # 1st column means bikes station of station 0 at all the ticks
 
 # features for cell index: 0
 feature_names = ["bikes", "shortage", "trip_requirement", "temperature", "weather", "holiday"]
-features = env.snapshot_list.static_nodes[:0:(feature_names, 0)]
+features = env.snapshot_list.static_nodes[:0:feature_names]
 features = features.reshape(hours, len(feature_names)) # one tick one row, features in each row
 print(feature_names)
 print(features)
@@ -54,13 +54,13 @@ print(features)
 #neighbors
 #NOTE: since the neighbors will not change, so we can just query 1st tick
 # -1 means invalid cell id
-neighbors = env.snapshot_list.static_nodes[0::("neighbors", [0, 1, 2, 3, 4, 5])]
+neighbors = env.snapshot_list.static_nodes[0::"neighbors"]
 neighbors = neighbors.reshape(len(env.agent_idx_list), 6)
 print("neighbors")
 print(neighbors)
 
 # extra cost
-extra_cost = env.snapshot_list.static_nodes[::("extra_cost", 0)]
+extra_cost = env.snapshot_list.static_nodes[::"extra_cost"]
 extra_cost = extra_cost.reshape(hours, len(env.agent_idx_list))
 print("extra cost for cells in all ticks")
 print(extra_cost)
