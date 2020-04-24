@@ -16,14 +16,16 @@ import socket
 import webbrowser
 from requests import get
 from maro.simulator.utils.common import get_available_envs
-from tools.azure_orch.scripts.provision_new import create_resource_group, create_workers, generate_job_config
+
+from tools.azure_orch.scripts.provision_new import create_resource_group, create_workers, sync_resource_group_info, generate_job_config
 from tools.azure_orch.scripts.docker_new import launch_job
+from tools.azure_orch.scripts.utils import sync_code, sync_log
 
 
 # static variables for calling from subfunctions
 parser = None
 parser_dashboard = None
-
+parser_dist = None
 
 def print_envs():
     '''
@@ -98,9 +100,15 @@ def main():
     parser_dist = subparsers.add_parser(
         'dist', help="create vm and launch jobs for MARO")
     parser_dist.add_argument('-crg', '--create_resource_group', action='store_true',
-                                help='create a new resource groups')
+                                help='create a new resource group')
     parser_dist.add_argument('-cw', '--create_workers', action='store_true',
                                 help='create extra workers for a resource group')
+    parser_dist.add_argument('-sc', '--sync_code', action='store_true',
+                                help='create a codebase and deploy the your current code')
+    parser_dist.add_argument('-sl', '--sync_log', action='store_true',
+                                help='pull the log data from the codebase')  
+    parser_dist.add_argument('-srg', '--sync_resource_group_info', action='store_true',
+                                help='get the resource group info from the god machine to use that resource group if you are not lucy')
     parser_dist.add_argument('-g', '--generate_job_config', action='store_true',
                                 help='generate job configs to launch jobs')
     parser_dist.add_argument('-l', '--launch_job', action='store_true',
@@ -157,6 +165,15 @@ def _dist_func(args):
         option_exists = True
     elif args.launch_job:
         launch_job()
+        option_exists = True
+    elif args.sync_code:
+        sync_code()
+        option_exists = True
+    elif args.sync_log:
+        sync_log()
+        option_exists = True
+    elif args.sync_resource_group_info:
+        sync_resource_group_info()
         option_exists = True
 
     if not option_exists:

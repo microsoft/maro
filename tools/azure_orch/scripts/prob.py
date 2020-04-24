@@ -6,6 +6,7 @@ import redis
 import time
 import subprocess
 import json
+import getpass
 
 class Prob():
     def __init__(self):
@@ -13,17 +14,8 @@ class Prob():
 
     def update_resources(self):
         while True:
-            # nvmlInit()
-            # handle = nvmlDeviceGetHandleByIndex(0)
-            # meminfo = nvmlDeviceGetMemoryInfo(handle)
-            # free_GPU_mem = meminfo.free / (1024 * 1024)
 
-            # mem = virtual_memory()
-            # free_mem = (mem.total - mem.used) / (1024 * 1024)
-
-            # free_CPU_cores = (100 - cpu_percent()) / 100 * cpu_count()
-
-            with open("/resource_group_info.json", "r") as infile:
+            with open(f"/home/{getpass.getuser()}/resource_group_info.json", "r") as infile:
                 resource_group_info = json.load(infile)
 
             admin_username = resource_group_info['adminUsername']
@@ -39,11 +31,11 @@ class Prob():
 
                     free_resources = {"free_GPU_mem" : 999999,
                                     "free_mem": int(resources_info[0]) / 1024,
-                                    "free_CPU_cores": int(resources_info[1]) * int(resources_info[2]) / 100}
+                                    "free_CPU_cores": float(resources_info[1]) * int(resources_info[2]) / 100}
                     
                     # print(free_resources)
 
-                    self._redis_connection.hset("resources", gethostname(), json.dumps(free_resources))
+                    self._redis_connection.hset("resources", worker['name'], json.dumps(free_resources))
 
             time.sleep(5)
 

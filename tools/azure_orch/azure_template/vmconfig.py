@@ -11,14 +11,14 @@ def rename(array):
 def configCreate(configfile,outfolder,standardfile):
     if not os.path.exists(outfolder):
         os.mkdir(outfolder)
-    else:
-        for root, dirs, files in os.walk(outfolder, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-        os.rmdir(outfolder)
-        os.mkdir(outfolder)
+    # else:
+    #     for root, dirs, files in os.walk(outfolder, topdown=False):
+    #         for name in files:
+    #             os.remove(os.path.join(root, name))
+    #         for name in dirs:
+    #             os.rmdir(os.path.join(root, name))
+    #     os.rmdir(outfolder)
+    #     os.mkdir(outfolder)
 
     with open(standardfile, 'r') as f:
         standard_data = json.load(f)

@@ -8,7 +8,7 @@ import chalk
 from tqdm import tqdm
 
 from tools.azure_orch.scripts.gen_job_config import gen_job_config
-from tools.azure_orch.scripts.docker_new import install_docker
+from tools.azure_orch.scripts.docker_new import install_docker, unpack_docker_images
 
 
 logging.basicConfig(level=logging.INFO,
@@ -61,9 +61,9 @@ def create_god():
             else:
                 logger.info(f"run {bin} sucess.")
 
+    # save resource group info
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(resource_group_info, outfile, indent=4)
-    
     res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/resource_group_info/{resource_group_name}.json {resource_group_info['adminUsername']}@{god_ip}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
@@ -138,7 +138,7 @@ def init_god(resource_group_info, image_name="maro/ecr/cpu/latest"):
     god_ip = resource_group_info["virtualMachines"][0]["IP"]
     ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_ip} "
 
-    # gen pub key
+    # gen public key
     gen_pubkey_bin = ssh_bin + '''"ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y"'''
     get_pubkey_bin = ssh_bin + "cat ~/.ssh/id_rsa.pub"
     for bin in [gen_pubkey_bin, get_pubkey_bin]:
@@ -149,32 +149,27 @@ def init_god(resource_group_info, image_name="maro/ecr/cpu/latest"):
         else:
             if "cat" in bin:
                 god_public_key = str(res.stdout, 'utf-8') 
+    
+    # save god public key
+    resource_group_info['virtualMachines'][0]['godPublicKey'] = god_public_key
+    resource_group_info = resource_group_info['virtualMachineRG']
+    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
+        json.dump(resource_group_info, outfile, indent=4)
 
     # scp necessary files
     mkdir_bin = ssh_bin + "sudo mkdir /code_point"
     chmod_bin = ssh_bin + "sudo chmod 777 /code_point"
     scp_bash_bin = f"scp -o StrictHostKeyChecking=no -r bin {admin_username}@{god_ip}:/code_point/"
+    scp_redis_conf_bin = f"scp -o StrictHostKeyChecking=no -r redis_conf {admin_username}@{god_ip}:/code_point/"
     scp_df_bin = f"scp -o StrictHostKeyChecking=no -r ../../docker_files {admin_username}@{god_ip}:/code_point/"
     scp_requirements_bin = f"scp -o StrictHostKeyChecking=no ../../requirements.dev.txt {admin_username}@{god_ip}:/code_point/"
     scp_prob_bin = f"scp -o StrictHostKeyChecking=no scripts/prob.py {admin_username}@{god_ip}:/code_point/"
-    for bin in [mkdir_bin, chmod_bin, scp_bash_bin, scp_df_bin, scp_requirements_bin, scp_prob_bin]:
+    for bin in [mkdir_bin, chmod_bin, scp_bash_bin, scp_redis_conf_bin, scp_df_bin, scp_requirements_bin, scp_prob_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
             raise Exception(res.stderr)
         else:
             logger.info(f"run {bin} success!")
-
-    # setup samba file server
-    setup_samba_bin = ssh_bin + "sudo bash /code_point/bin/launch_samba.sh"
-    res = subprocess.run(setup_samba_bin, shell=True, capture_output=True)
-    if res.returncode:
-        raise Exception(res.stderr)
-    else:
-        logger.info(f"setup samba file server on god success!")
-    
-    set_password_bin = ssh_bin + f"sudo smbpasswd -a {admin_username}"
-    proc = subprocess.Popen(set_password_bin, shell=True, stdin=subprocess.PIPE)
-    proc.communicate(input=b'maro_dist\nmaro_dist')
 
     # install docker
     install_docker_bin = ssh_bin + f"bash /code_point/bin/install_docker.sh"
@@ -200,6 +195,19 @@ def init_god(resource_group_info, image_name="maro/ecr/cpu/latest"):
         raise Exception(res.stderr)
     else:
         logger.info(f"run {launch_redis_bin} success!")
+
+    # setup samba file server
+    setup_samba_bin = ssh_bin + "sudo bash /code_point/bin/launch_samba.sh"
+    res = subprocess.run(setup_samba_bin, shell=True, capture_output=True)
+    if res.returncode:
+        raise Exception(res.stderr)
+    else:
+        logger.info(f"setup samba file server on god success!")
+    
+    # set_password_bin = ssh_bin + f"sudo smbpasswd -a {admin_username}"
+    # proc = subprocess.Popen(set_password_bin, shell=True, stdin=subprocess.PIPE)
+    # proc.communicate(input=b'maro_dist\nmaro_dist')
+
 
     # prob resources
     # prob_resources(delta_workers_info, image_name)
@@ -255,6 +263,7 @@ def create_workers(resource_group_name=None):
     god_vnet_IP = exist_resource_group_info['virtualMachines'][0]['vnetIP']
     mount_samba_server(delta_workers_info, god_vnet_IP)
     install_docker(delta_workers_info)
+    deploy_god_pubkey(delta_workers_info)
 
     # questions = [
     #     inquirer.Text(
@@ -265,15 +274,12 @@ def create_workers(resource_group_name=None):
     # ]
     # image_name = inquirer.prompt(questions)['imageName']
     image_name = "docker_image"
-
     unpack_docker_images(delta_workers_info, image_name)
 
-    # update resource group info json
+    # update resource group info json and save
     exist_resource_group_info["virtualMachines"].extend(delta_workers_info["virtualMachines"])
-
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(exist_resource_group_info, outfile, indent=4)
-    
     god_ip = exist_resource_group_info['virtualMachines'][0]['IP']
     res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/resource_group_info/{resource_group_name}.json {exist_resource_group_info['adminUsername']}@{god_ip}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
@@ -309,75 +315,157 @@ def inquirer_workers(resource_group_name):
             ),
         ]
 
-    worker_info = inquirer.prompt(questions)
+    workers_info = inquirer.prompt(questions)
 
     if resource_group_name:
-        worker_info['virtualMachineRG'] = resource_group_name
+        workers_info['virtualMachineRG'] = resource_group_name
 
-    with open(f"azure_template/resource_group_info/{worker_info['virtualMachineRG']}.json", 'r') as infile:
+    with open(f"azure_template/resource_group_info/{workers_info['virtualMachineRG']}.json", 'r') as infile:
         exist_resource_group_info = json.load(infile)
         exist_worker_num = len(exist_resource_group_info["virtualMachines"]) - 1
 
-    worker_info = {
-        "adminPublicKey": worker_info["adminPublicKey"],
+    workers_info = {
+        "adminPublicKey": workers_info["adminPublicKey"],
+        "godPublicKey": exist_resource_group_info["godPublicKey"],
         "adminUsername": exist_resource_group_info["adminUsername"],
-        "virtualMachineRG": worker_info["virtualMachineRG"],
+        "virtualMachineRG": exist_resource_group_info["virtualMachineRG"],
         "subscription": exist_resource_group_info["subscription"],
         "location": exist_resource_group_info["location"],
         "virtualMachines": [{
             "name": f"worker{exist_worker_num + i}",
-            "size": worker_info["workerSize"]
-        } for i in range(int(worker_info["workersNum"]))]
+            "size": workers_info["workerSize"]
+        } for i in range(int(workers_info["workersNum"]))]
     }
 
-    return worker_info
+    return workers_info
 
 def mount_samba_server(delta_workers_info, god_vnet_IP):
     admin_username = delta_workers_info['adminUsername']
+    mkdir_bin = "sudo mkdir /code_point"
+    chmod_bin = "sudo chmod 777 /code_point"
+    mount_bin = f"sudo mount -t cifs -o username={admin_username},password=maro_dist //{god_vnet_IP}/sambashare /code_point"
+    append_bin = f"echo '//{god_vnet_IP}/sambashare  cifs  username={admin_username},password=maro_dist  0  0' | sudo tee -a /etc/fstab"
+    
     for worker in delta_workers_info["virtualMachines"]:
-        mount_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'bash ADMIN_USERNAME={admin_username} SAMBA_IP={god_vnet_IP} /code_point/bin/mount_samba.sh'"
-        res = subprocess.run(mount_bin, shell=True, capture_output=True)
+        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} "
+        ssh_mkdir_bin = ssh_bin + mkdir_bin
+        ssh_mount_bin = ssh_bin + mount_bin
+        ssh_chmod_bin = ssh_bin + chmod_bin
+        ssh_append_bin = ssh_bin + append_bin
+
+        for bin in [ssh_mkdir_bin, ssh_mount_bin, ssh_chmod_bin, ssh_append_bin]:
+            res = subprocess.run(bin, shell=True, capture_output=True)
+        
+            if res.returncode:
+                raise Exception(res.stderr)
+            else:
+                logging.info(f"run {bin} success!")
+
+def generate_job_config():
+    PYTHONPATH = os.environ['PYTHONPATH']
+    default_config_path = os.path.join(PYTHONPATH, "examples/ecr/q_learning/distributed_mode/config.yml")
+
+    questions = [
+        inquirer.Text(
+            'configPath', 
+            message="Where is your meta config file?",
+            default=default_config_path
+        ),
+    ]
+
+    config_path = inquirer.prompt(questions)['configPath']
+
+    job_group_name = gen_job_config(config_path)
+
+    ####################
+    # if socket.gethostname() != 'god':
+    #     scp_bin = f"scp -o StrictHostKeyChecking=no job_config/{job_group_name} {admin_username}@{god_ip}:/code_point/{codebase}"
+
+# def generate_job_config():
+#     with open('azure_template/resource_group_info/maro_dist.json', 'r') as infile:
+#         resource_group_info = json.load(infile)
+#     unpack_docker_images(resource_group_info, "docker_image")
+
+
+def deploy_code():
+    logger.critical(chalk.red("if you are not lucy, please make sure that you have sync with the resource group you want to deploy code on!"))
+
+    project_dir = os.environ['PYTHONPATH']
+    questions = [
+        inquirer.List(
+            'resourceGroupName',
+            message="Which is the job group name you want to deloy code?",
+            choices=[resource_group_name[:-5] for resource_group_name in os.listdir("azure_template/resource_group_info")],
+            carousel=True,
+        ),
+        inquirer.Text(
+            'codebaseName',
+            message="What is the name of your codebase?",
+        )
+    ]
+
+    deploy_info = inquirer.prompt(questions)
+
+    resource_group_name = deploy_info['resourceGroupName']
+    codebase_name = deploy_info['codebaseName']
+
+    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
+        resource_group_info = json.load(infile)
+    
+    admin_username = resource_group_info['adminUsername']
+    god_ip = resource_group_info['virtualMachines'][0]['IP']
+    
+    mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_ip} 'sudo mkdir /code_point/{codebase_name}; sudo chmod -R 777 /code_point/{codebase_name}'"
+    scp_bin = f"scp -o StrictHostKeyChecking=no -r {project_dir} {admin_username}@{god_ip}:/code_point/{codebase_name}"
+
+    for bin in [mkdir_bin, scp_bin]:
+        res = subprocess.run(bin, shell=True)
+        if res.returncode:
+            raise Exception(res.stderr)
+        else:
+            logger.info(f"run {bin} success!")
+
+def sync_resource_group_info():
+    if not os.path.exists('azure_template/resource_group_info'):
+        os.mkdir('azure_template/resource_group_info')
+
+    questions = [
+        inquirer.Text(
+            'adminUsername', 
+            message="What is the admin username on god?",
+        ),
+        inquirer.Text(
+            'godIP', 
+            message="What is the IP address of god?",
+        ),      
+    ]
+
+    god_info = inquirer.prompt(questions)
+    admin_username = god_info['adminUsername']
+    god_ip = god_info['godIP']
+
+    logger.critical(chalk.red("please make sure that you have added your public key on the god machine!"))
+    logger.info(f"you are syncing the resource group to you local machine with the god: {admin_username}@{god_ip}")
+    scp_bin = f"scp -o StrictHostKeyChecking=no {admin_username}@{god_ip}:~/resource_group_info.json azure_template/resource_group_info/ "
+    res = subprocess.run(scp_bin, shell=True, capture_output=True)
+    if res.returncode:
+        raise Exception(res.stderr)
+    else:
+        logger.info(f"sync resource group info with {admin_username}@{god_ip} success!")
+
+def deploy_god_pubkey(delta_workers_info):
+    admin_username = delta_workers_info['adminUsername']
+    god_public_key = delta_workers_info['godPublicKey']
+    for worker in delta_workers_info["virtualMachines"]:
+        deploy_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'echo {god_public_key} >> ~/.ssh/authorized_keys'"
+        res = subprocess.run(deploy_bin, shell=True, capture_output=True)
         
         if res.returncode:
             raise Exception(res.stderr)
         else:
-            logging.info(f"run {mount_bin} success!")
-
-def setup_samba_server():
-    pass
+            logging.info(f"run {deploy_bin} success!")
 
 def create_resource_group():
     resource_group_name, resource_group_info = create_god()
     init_god(resource_group_info)
-    # create_workers(resource_group_name)
-
-def generate_job_config():
-    pass
-
-# def generate_job_config():
-#     PYTHONPATH = os.environ['PYTHONPATH']
-#     default_config_path = os.path.join(PYTHONPATH, "examples/ecr/q_learning/distributed_mode/config.yml")
-
-#     questions = [
-#         inquirer.Text(
-#             'configPath', 
-#             message="Where is your meta config file?",
-#             default=default_config_path
-#         ),
-#     ]
-
-#     config_path = inquirer.prompt(questions)['configPath']
-
-#     gen_job_config(config_path)
-
-def generate_job_config():
-    with open('azure_template/resource_group_info/maro_dist.json', 'r') as infile:
-        resource_group_info = json.load(infile)
-    init_god(resource_group_info)
-
-
-def deploy_code():
-    pass
-
-if __name__=="__main__":
-    create_god()
+    create_workers(resource_group_name)

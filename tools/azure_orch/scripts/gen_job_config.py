@@ -54,9 +54,5 @@ def gen_job_config(config_path):
     except BaseException as e:
         os.removedirs(f"job_config/{group_name}")
         raise(e)
-
-            
-        
     
-
-
+    return group_name

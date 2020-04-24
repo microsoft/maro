@@ -38,7 +38,7 @@ log:
   dashboard:
     enable: true
 dashboard:
-  enable: true
+  enable: false
   influxdb:
     host: localhost
     port: 50301

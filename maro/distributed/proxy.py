@@ -67,7 +67,7 @@ class Proxy:
         the Redis server for their addresses
         """
         self._zmq_context = zmq.Context()
-        self._redis_connection = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1], password="password")
+        self._redis_connection = redis.StrictRedis(host=self._redis_address[0], port=self._redis_address[1])
         self._set_up_receiving()
         if self._peer_name_list is not None:
             self._connect_to_peers()
