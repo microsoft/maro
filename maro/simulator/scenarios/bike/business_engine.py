@@ -34,6 +34,7 @@ class BikeEventType(IntEnum):
     TripRequirement = 1    # a user need a bike
     BikeReturn = 2         # user return the bike at target cell
     BikeReceived = 3  # transfer bikes from a cell to another
+    DecisionCheck = 4 # used to check if we need a decition event, since we need this after all trip requirements being processed
 
 
 class BikeBusinessEngine(AbsBusinessEngine):
@@ -94,17 +95,11 @@ class BikeBusinessEngine(AbsBusinessEngine):
 
             self._event_buffer.insert_event(trip_evt)
 
-        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick)
+        # NOTE: we cannot check decision here, as the trip requirements not completed at this point,
+        # so we add a signal here, make sure decision event checking has correct states
+        decision_making_evt = self._event_buffer.gen_atom_event(tick, BikeEventType.DecisionCheck, None)
 
-        # the env will take snapshot for use when we need an action, so we do not need to take action here
-        for cell_idx, decision_type in cells_need_decision:
-            decision_payload = DecisionEvent(cell_idx, tick, 
-                     tick_to_frame_index(self._start_tick, tick, self._frame_resolution),
-                     self._decision_strategy.action_scope, 
-                     decision_type)
-            decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_payload)
-
-            self._event_buffer.insert_event(decision_evt)
+        self._event_buffer.insert_event(decision_making_evt)
 
         return self._max_tick == tick + 1 # last tick
 
@@ -226,7 +221,7 @@ class BikeBusinessEngine(AbsBusinessEngine):
     def _reg_event(self):
         self._event_buffer.register_event_handler(BikeEventType.TripRequirement, self._on_trip_requirement)
         self._event_buffer.register_event_handler(BikeEventType.BikeReturn, self._on_bike_return)
-
+        self._event_buffer.register_event_handler(BikeEventType.DecisionCheck, self._on_check_decison)
         # decision event, predefined in event buffer
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_received)
         self._event_buffer.register_event_handler(BikeEventType.BikeReceived, self._on_bike_received)
@@ -410,3 +405,17 @@ class BikeBusinessEngine(AbsBusinessEngine):
                     from_cell.extra_cost += extra_cost
 
         cell.bikes += accept_number
+
+    def _on_check_decison(self, evt: Event):
+        tick: int = evt.tick
+
+        cells_need_decision = self._decision_strategy.get_cells_need_decision(tick)
+
+        # the env will take snapshot for use when we need an action, so we do not need to take action here
+        for cell_idx, decision_type in cells_need_decision:
+            decision_payload = DecisionEvent(cell_idx, tick, 
+                     floor((tick - self._start_tick) / self._frame_resolution),
+                     self._decision_strategy.action_scope, decision_type)
+            decision_evt = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_payload)
+
+            self._event_buffer.insert_event(decision_evt)
