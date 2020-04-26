@@ -11,7 +11,7 @@ from maro.simulator.frame import Frame, SnapshotList
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.utils.common import total_frames
 
-from .account import Account
+from .account import Account, AccountSnapshotWrapper
 from .common import FinanceType, SubEngineAccessWrapper, TradeResult
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
 
@@ -39,6 +39,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._init_sub_engines()
 
         self._acount = Account(self.snapshots, self._account_frame, self._conf["account"]["money"])  # contain trade result
+
 
         self._register_events()
 
@@ -166,4 +167,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._snapshot_accessor = self._sub_engine_accessor.get_property_access("snapshot_list")
         self._node_mapping_accessor = self._sub_engine_accessor.get_property_access("name_mapping")
 
-        self._snapshot_accessor.add_item("account", self._account_snapshots)
+        self._account_snapshot_wrapper = AccountSnapshotWrapper(self._account_snapshots, 
+            {name: engine.snapshot_list for name, engine in self._sub_engines.items()})
+
+        self._snapshot_accessor.add_item("account", self._account_snapshot_wrapper)

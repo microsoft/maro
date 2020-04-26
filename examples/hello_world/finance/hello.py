@@ -48,3 +48,15 @@ account_total_money = account_snapshots.static_nodes[:0:"total_money"]
 
 print("account total money for all the ticks:")
 print(account_total_money)
+
+# NOTE: assets interface must provide ticks
+assets_query_ticks = [0, 1, 2]
+account_hold_assets = env.snapshot_list.account.assets[assets_query_ticks: "test_stocks"]
+
+print(f"assets of account at tick {assets_query_ticks}")
+print(account_hold_assets)
+
+for sub_engine_name, asset_number in account_hold_assets.items():
+    print(f"engine name: {sub_engine_name}")
+    print(f"000001, 000002")
+    print(asset_number.reshape(len(assets_query_ticks), -1))
