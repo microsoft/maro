@@ -45,4 +45,6 @@ class Trader():
                 for commission_handler in self._commission_handlers:
                     commission_charge += commission_handler.execute(actual_price, actual_volume)
 
+                print("actual_price: ", actual_price, "actual_volume: ", actual_volume, "commission_charge: ", commission_charge)
+
         return asset, is_success, actual_price, actual_volume, commission_charge

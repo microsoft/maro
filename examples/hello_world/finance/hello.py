@@ -13,12 +13,12 @@ reward, decision_event, is_done = env.step(None)
 while not is_done:
     holding = env.snapshot_list.test_stocks.static_nodes[env.tick:0:"account_hold_num"][-1]
     available = env.snapshot_list.test_stocks.static_nodes[env.tick:0:"is_valid"][-1]
-    print("holding:",holding,"available",available)
+    print("env.tick: ",env.tick," holding: ",holding," available: ",available)
     if available == 1:
         if holding > 0:
             action = Action("test_stocks", 0, -holding, OrderMode.market_order)
         else:
-            action = Action("test_stocks",0, 100, OrderMode.market_order)
+            action = Action("test_stocks",0, 5000, OrderMode.market_order)
     else:
         action = None
     reward, decision_event, is_done = env.step(action)
@@ -31,6 +31,11 @@ stock_opening_price = stock_snapshots.static_nodes[:0:"opening_price"]
 
 print("opening price for all the ticks:")
 print(stock_opening_price)
+
+stock_closing_price = stock_snapshots.static_nodes[:0:"closing_price"]
+
+print("closeing price for all the ticks:")
+print(stock_closing_price)
 
 stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
 

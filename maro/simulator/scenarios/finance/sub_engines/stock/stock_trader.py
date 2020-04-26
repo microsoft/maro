@@ -18,6 +18,6 @@ class StockTrader(Trader):
         self.order_handler_register(OrderMode.stop_order, StopOrder())
         self.order_handler_register(OrderMode.stop_limit_order, StopLimitOrder())
 
-        self.slippage_handler_register(ByMoneySlippage(0.005))
+        self.slippage_handler_register(ByMoneySlippage(0.00246))
         self.commission_handler_register(ByMoneyCommission(0.0003, 5))
         self.commission_handler_register(StampTaxCommission(0.001))
