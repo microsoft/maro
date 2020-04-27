@@ -45,6 +45,7 @@ GAMMA = config.train.dqn.gamma  # Reward decay
 TAU = config.train.dqn.tau  # Soft update
 TARGET_UPDATE_FREQ = config.train.dqn.target_update_frequency
 TRAIN_SEED = config.train.seed
+TRAIN_MODE=config.distributed.mode
 DASHBOARD_ENABLE = config.dashboard.enable
 DASHBOARD_LOG_ENABLE = config.log.dashboard.enable
 DASHBOARD_HOST = config.dashboard.influxdb.host
@@ -81,7 +82,7 @@ def on_new_experience(local_instance, proxy, message):
 
     if message.source in pending_envs:
         pending_envs.remove(message.source)
-        if len(pending_envs) == 0:
+        if len(pending_envs) == 0 or TRAIN_MODE == 'async':
             if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
                 local_instance.train(message.payload[PayloadKey.EPISODE], message.payload[PayloadKey.AGENT_NAME])
                 policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
@@ -119,7 +120,7 @@ def on_env_checkout(local_instance, proxy, message):
         pending_envs.remove(message.source)
         if len(pending_envs) == 0:
             logger.critical(f"{COMPONENT_NAME} exited")
-            sys.exit(1)
+            sys.exit(0)
 
 
 handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,

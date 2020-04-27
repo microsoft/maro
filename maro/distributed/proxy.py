@@ -6,6 +6,7 @@ import socket
 import json
 import time
 import logging
+from copy import deepcopy
 
 # third party lib
 import redis
@@ -41,6 +42,7 @@ class Proxy:
         self._retry_interval = retry_interval
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._logger = logger if logger else logging
+        self._msg_holder = []
 
     @property
     def group_name(self) -> str:
@@ -113,6 +115,33 @@ class Proxy:
         while True:
             yield self._receiver.recv_pyobj()
 
+    def _msg_decompose(self, message):
+        """return [payload, source, type, destination, required] """
+        return message.payload, message.source, message.type, message.destination, message.operation
+
+    def scatter(self, message):
+        """separate data, and send to peer"""
+        payload, msg_source, msg_type, msg_dest, msg_operation = self._msg_decompose(message)
+        
+        for idx, pld in enumerate(payload):
+            destination = msg_dest[idx]
+            scatter_message = Message(type=msg_type, source=msg_source,
+                                    destination=destination,
+                                    payload=pld,
+                                    operation=msg_operation)
+            self.send(scatter_message)
+
+    def boardcast(self, message):
+        """send data to all peers"""
+        payload, msg_source, msg_type, msg_dest, msg_operation = self._msg_decompose(message)
+
+        for destination in msg_dest:
+            boardcast_message = Message(type=msg_type, source=msg_source,
+                                    destination=destination,
+                                    payload=payload, 
+                                    operation=msg_operation)
+            self.send(boardcast_message)
+
     def send(self, message: Message):
         """Send a message to a remote peer
 
@@ -128,3 +157,65 @@ class Proxy:
                             f"Are you using the right configuration?")
         self._send_channel[destination].send_pyobj(message)
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
+
+    def _msg_operation(self, msg_list):
+        complete_msg = msg_list[0]
+        operation = complete_msg.operation
+        if operation == 'APPEND':
+            new_payload = [msg.payload for msg in msg_list]
+            new_payload = new_payload.flatten()
+
+        if operation == 'SUM':
+            new_payload = sum([msg.payload for msg in msg_list])
+
+        complete_msg.payload = new_payload
+
+        return complete_msg
+
+    def msg_handler(self, message: Message):
+        if message.operation is not None:
+            self._msg_holder.append(message)
+
+            if len(self._msg_holder)==len(self._peer_name_list):
+                return self._msg_operation(self._msg_holder)
+        
+            return None
+        else:
+            return message
+
+        
+    # def msg_handler(self, message: Message):
+        # self._msg_request_list = []
+        # [{'request': {():#num},
+        #  'msg_list': [message],
+        #  'operation': SUM/APPEND/..}]
+
+        # for idx, req in enumerate(self._msg_request_list):
+        #     for key, value in req['request'].items():
+        #         if key == (message.source, message.type):
+        #             if value > 1:
+        #                 req.update({key: value - 1})
+        #             else:
+        #                 del req[key]
+        #             req.update({'msg_list': req['msg_list'].append(message)})
+
+        #             if not req['request']:
+        #                 complete_msg = self._msg_operation(req['msg_list'], req['operation'])
+
+        #                 del self._msg_request_list[idx]
+                        
+        #                 return complete_msg
+                    
+        #             return None
+
+        # if message.required is not None:
+        #     new_required = deepcopy(message.required)
+        #     new_required.update({'msg_list':[message]})
+        #     self._msg_request_list.append(new_required)
+            
+        #     return None
+        # else: 
+        #     return message
+
+
+            

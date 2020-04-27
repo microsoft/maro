@@ -39,7 +39,9 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 """
                 self.proxy.join()
                 for msg in self.proxy.receive():
-                    self.handler_dict[msg.type](msg)
+                    n_msg = self.proxy.msg_handler(msg)
+                    if n_msg is not None:
+                        self.handler_dict[n_msg.type](n_msg)
 
         return Wrapper
 

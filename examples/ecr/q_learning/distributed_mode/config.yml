@@ -52,10 +52,11 @@ dashboard:
 docker_image: 'maro_dist'
 
 redis:
-  host: redis-server
+  host: localhost
   port: 6379
 
 distributed:
+  mode: async
   environment_runner:
     num: 2
     peers:
