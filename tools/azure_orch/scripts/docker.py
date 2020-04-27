@@ -123,10 +123,19 @@ def launch_job():
         component_type = job_name.split(".")[0]
         cmd = f"python3 {component_path}/{component_type}.py"
 
-        job_launch_bin = f"sudo docker run -it -d --rm --name {job_group_name}_{job_name} --network host -v /code_point/{codebase_name}/maro/:/maro_dist {envopt} {img_name} {cmd}"
-        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} '{job_launch_bin}'"
+        cpu_cores = require_resources[job_name]['CPU_cores']
+        GPU_mem = require_resources[job_name]['GPU_mem']
+        mem = require_resources[job_name]['mem']
 
-        res = subprocess.run(ssh_bin, shell=True, capture_output=True)
+        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} "
+
+        rm_container_bin = ssh_bin + f"'sudo docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs sudo docker rm'"
+        job_launch_bin = ssh_bin + f"'sudo docker run -it -d --cpus {cpu_cores} -m {mem}m --name {job_group_name}_{job_name} --network host -v /code_point/{codebase_name}/maro/:/maro_dist {envopt} {img_name} {cmd}'"
+        # ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} '{job_launch_bin}'"
+
+        subprocess.run(rm_container_bin, shell=True, capture_output=True)
+
+        res = subprocess.run(job_launch_bin, shell=True, capture_output=True)
         if res.returncode:
             raise Exception(res.stderr)
         else:
@@ -140,7 +149,9 @@ def allocate(require_resources, available_resources):
         best_fit_score = 0
         score = 0
         for worker_name, free in free_resources.itmes():
-            if requirement['CPU_cores'] / free['CPU_cores'] <= 1 and requirement['GPU_mem'] / free['GPU_mem'] <= 1 and requirement['mem'] / free['mem'] <= 1:
+            if requirement['CPU_cores'] <= free['CPU_cores'] and \
+                requirement['GPU_mem'] <= free['GPU_mem'] and \
+                    requirement['mem'] <= free['mem']:
                 score = requirement['CPU_cores'] / free['CPU_cores'] + \
                             requirement['GPU_mem'] / free['GPU_mem'] + \
                                 requirement['mem'] / free['mem']
@@ -148,8 +159,7 @@ def allocate(require_resources, available_resources):
                     best_fit_score = score
                     best_fit_worker = worker_name
         if best_fit_worker == "":
-            logging.error(f"can not allocate job [{job_name}] due to resouce limitation")
-            raise("!!!")
+            raise Exception(f"can not allocate job [{job_name}] due to resouce limitation")
         else:
             allocate_plan[job_name] = best_fit_worker
     

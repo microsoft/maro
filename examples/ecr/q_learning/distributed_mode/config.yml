@@ -75,4 +75,4 @@ distributed:
     learner:
       CPU_cores: 2
       GPU_mem: 2000
-      mem: 1014 # MB
+      mem: 1024 # MB

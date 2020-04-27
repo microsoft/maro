@@ -134,6 +134,35 @@ def generate_job_config():
         else:
             logger.info(f"run {rsync_bin} success!")
 
+def sync_resource_group_info():
+    if not os.path.exists('azure_template/resource_group_info'):
+        os.mkdir('azure_template/resource_group_info')
+
+    questions = [
+        inquirer.Text(
+            'adminUsername', 
+            message="What is the admin username on god?",
+        ),
+        inquirer.Text(
+            'godIP', 
+            message="What is the IP address of god?",
+        ),      
+    ]
+
+    god_info = inquirer.prompt(questions)
+    admin_username = god_info['adminUsername']
+    god_IP = god_info['godIP']
+
+    logger.critical(chalk.red("please make sure that you have added your public key on the god machine!"))
+    logger.info(f"you are syncing the resource group to you local machine with the god: {admin_username}@{god_IP}")
+    scp_bin = f"scp -o StrictHostKeyChecking=no {admin_username}@{god_IP}:~/resource_group_info.json azure_template/resource_group_info/ "
+    res = subprocess.run(scp_bin, shell=True, capture_output=True)
+    if res.returncode:
+        raise Exception(res.stderr)
+    else:
+        logger.info(f"sync resource group info with {admin_username}@{god_IP} success!")
+
+
 def deploy_code():
     logger.critical(chalk.red("if you are not lucy, please make sure that you have sync with the resource group you want to deploy code on!"))
 
@@ -171,35 +200,6 @@ def deploy_code():
             raise Exception(res.stderr)
         else:
             logger.info(f"run {bin} success!")
-
-def sync_resource_group_info():
-    if not os.path.exists('azure_template/resource_group_info'):
-        os.mkdir('azure_template/resource_group_info')
-
-    questions = [
-        inquirer.Text(
-            'adminUsername', 
-            message="What is the admin username on god?",
-        ),
-        inquirer.Text(
-            'godIP', 
-            message="What is the IP address of god?",
-        ),      
-    ]
-
-    god_info = inquirer.prompt(questions)
-    admin_username = god_info['adminUsername']
-    god_IP = god_info['godIP']
-
-    logger.critical(chalk.red("please make sure that you have added your public key on the god machine!"))
-    logger.info(f"you are syncing the resource group to you local machine with the god: {admin_username}@{god_IP}")
-    scp_bin = f"scp -o StrictHostKeyChecking=no {admin_username}@{god_IP}:~/resource_group_info.json azure_template/resource_group_info/ "
-    res = subprocess.run(scp_bin, shell=True, capture_output=True)
-    if res.returncode:
-        raise Exception(res.stderr)
-    else:
-        logger.info(f"sync resource group info with {admin_username}@{god_IP} success!")
-
 
 
 # rsync -arvz  --exclude="log/*" src/ dest/ --delete

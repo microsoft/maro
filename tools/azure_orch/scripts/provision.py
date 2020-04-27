@@ -37,44 +37,51 @@ def create_god(god_info):
                  f"-t azure_template/template.json " + \
                  f"-p azure_template/{resource_group_name}/god.json"
 
-    get_IP_bin = f"az network public-ip list -g {god_info['virtualMachineRG']}"
-
-    for bin in [config_bin, create_bin, get_IP_bin]:
+    # create god vm
+    for bin in [config_bin, create_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
             raise Exception(res.stderr)
         else:
-            if bin[0] == 'a':
-                ip_info = json.loads(res.stdout)
-                god_IP = ip_info[0]["ipAddress"]
-                
-                get_vnetIP = "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d '/'"
-                res = subprocess.run(f"ssh -o StrictHostKeyChecking=no {god_info['adminUsername']}@{god_IP} {get_vnetIP}", shell=True, capture_output=True)
-                if res.returncode:
-                    raise Exception(res.stderr)
-                else:
-                    god_vnet_IP = str(res.stdout, 'utf-8')
+            logger.info(f"run {bin} sucess.")
+    
+    # get god IP
+    get_IP_bin = f"az network public-ip list -g {god_info['virtualMachineRG']}"
+    res = subprocess.run(get_IP_bin, shell=True, capture_output=True)
+    if res.returncode:
+        raise Exception(res.stderr)
+    else:
+        ip_info = json.loads(res.stdout)
+        god_IP = ip_info[0]["ipAddress"]
+    
+    # get god vnet IP
+    get_vnetIP_bin = "ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d '/'"
+    res = subprocess.run(f"ssh -o StrictHostKeyChecking=no {god_info['adminUsername']}@{god_IP} {get_vnetIP_bin}", shell=True, capture_output=True)
+    if res.returncode:
+        raise Exception(res.stderr)
+    else:
+        god_vnet_IP = str(res.stdout, 'utf-8')
 
-                god_info['virtualMachines'][0]['IP'] = god_IP
-                god_info['virtualMachines'][0]['vnetIP'] = god_vnet_IP[:-1]
-                logger.info("Now you can remote login your god machine. ")
-                logger.info(chalk.green(f"COPY AND RUN: ssh {god_info['adminUsername']}@{god_IP}"))
+    logger.info("Now you can remote login your god machine. ")
+    logger.info(chalk.green(f"COPY AND RUN: ssh {god_info['adminUsername']}@{god_IP}"))
 
-            else:
-                logger.info(f"run {bin} sucess.")
+    # update god IP and vnet IP    
+    god_info['virtualMachines'][0]['IP'] = god_IP
+    god_info['virtualMachines'][0]['vnetIP'] = god_vnet_IP[:-1]
 
-    # save resource group info
+    # save god info
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(god_info, outfile, indent=4)
+    
+    # upload god info to god vm
     res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/resource_group_info/{resource_group_name}.json {god_info['adminUsername']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
 
 def init_god(god_info, image_name="maro/ecr/cpu/latest"):
-    resource_group_info = god_info
+    admin_username = god_info["adminUsername"]
+    god_IP = god_info["virtualMachines"][0]["IP"]
 
-    admin_username = resource_group_info["adminUsername"]
-    god_IP = resource_group_info["virtualMachines"][0]["IP"]
     ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} "
 
     # gen public key
@@ -83,17 +90,16 @@ def init_god(god_info, image_name="maro/ecr/cpu/latest"):
     for bin in [gen_pubkey_bin, get_pubkey_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
-            print(bin)
             raise Exception(res.stderr)
         else:
             if "cat" in bin:
                 god_public_key = str(res.stdout, 'utf-8') 
     
     # save god public key
-    resource_group_info['godPublicKey'] = god_public_key
-    resource_group_name = resource_group_info['virtualMachineRG']
+    god_info['godPublicKey'] = god_public_key
+    resource_group_name = god_info['virtualMachineRG']
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
-        json.dump(resource_group_info, outfile, indent=4)
+        json.dump(god_info, outfile, indent=4)
 
     # scp necessary files
     mkdir_bin = ssh_bin + "sudo mkdir /code_point"
@@ -159,12 +165,12 @@ def create_workers(delta_workers_info=None):
     delta_workers_info_name = f"{delta_workers_info['virtualMachineRG']}.delta_info"
     resource_group_name = delta_workers_info['virtualMachineRG']
     
-    if not os.path.exists('azure_template/delta_info'):
-        os.mkdir('azure_template/delta_info')
-    with open(f'azure_template/delta_info/{delta_workers_info_name}.json', 'w') as outfile:  
+    if not os.path.exists('azure_template/delta_workers_info'):
+        os.mkdir('azure_template/delta_workers_info')
+    with open(f'azure_template/delta_workers_info/{delta_workers_info_name}.json', 'w') as outfile:  
         json.dump(delta_workers_info, outfile, indent=4)
 
-    config_bin = f"python azure_template/vmconfig.py azure_template/delta_info/{delta_workers_info_name}.json azure_template/{resource_group_name} azure_template/parameters.json"
+    config_bin = f"python azure_template/vmconfig.py azure_template/delta_workers_info/{delta_workers_info_name}.json azure_template/{resource_group_name} azure_template/parameters.json"
     
     res = subprocess.run(config_bin, shell=True, capture_output=True)
     if res.returncode:
@@ -174,6 +180,7 @@ def create_workers(delta_workers_info=None):
 
     pbar = tqdm(total=len(delta_workers_info['virtualMachines']))
 
+    # create workers vm
     for worker in delta_workers_info['virtualMachines']:
         create_bin = f"./azure_template/deploy.sh -i {delta_workers_info['subscription']} " + \
                      f"-g {delta_workers_info['virtualMachineRG']} -n DEFAULT " + \
@@ -189,12 +196,12 @@ def create_workers(delta_workers_info=None):
         pbar.update(1)
     pbar.close()
     
+    # get workers IP
     for worker in delta_workers_info['virtualMachines']:
         get_IP_bin = f'''az network public-ip list -g {delta_workers_info['virtualMachineRG']} --query "[?name=='{worker["name"]}-ip']"'''
         res = subprocess.run(get_IP_bin, shell=True, capture_output=True)
         if res.returncode:
-            logging.error(f"run {get_IP_bin} error! err msg: {res.stderr}")
-            raise(res.stdout)
+            raise Exception(res.stdout)
         else:
             logging.info(f"get IP of {worker['name']} success!")
             worker_ip = json.loads(res.stdout)[0]["ipAddress"]
@@ -203,19 +210,20 @@ def create_workers(delta_workers_info=None):
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
         exist_resource_group_info = json.load(infile)
 
+    # provision infrastructures
     god_vnet_IP = exist_resource_group_info['virtualMachines'][0]['vnetIP']
+    image_name = "docker_image"     # docker image name simply set to docker_image
     mount_samba_server(delta_workers_info, god_vnet_IP)
     install_docker(delta_workers_info)
     deploy_god_pubkey(delta_workers_info)
-
-    # docker image name simply set to docker_image
-    image_name = "docker_image"
     unpack_docker_images(delta_workers_info, image_name)
 
     # update resource group info json and save
     exist_resource_group_info["virtualMachines"].extend(delta_workers_info["virtualMachines"])
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(exist_resource_group_info, outfile, indent=4)
+    
+    # upload resource group info to god vm
     god_IP = exist_resource_group_info['virtualMachines'][0]['IP']
     res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/resource_group_info/{resource_group_name}.json {exist_resource_group_info['adminUsername']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
@@ -350,7 +358,7 @@ def mount_samba_server(delta_workers_info, god_vnet_IP):
     mkdir_bin = "sudo mkdir /code_point"
     chmod_bin = "sudo chmod 777 /code_point"
     mount_bin = f"sudo mount -t cifs -o username={admin_username},password=maro_dist //{god_vnet_IP}/sambashare /code_point"
-    append_bin = f"echo '//{god_vnet_IP}/sambashare  cifs  username={admin_username},password=maro_dist  0  0' | sudo tee -a /etc/fstab"
+    append_bin = f'''"echo '//{god_vnet_IP}/sambashare  /code_point cifs  username={admin_username},password=maro_dist  0  0' | sudo tee -a /etc/fstab"'''
     
     for worker in delta_workers_info["virtualMachines"]:
         ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} "
@@ -383,7 +391,6 @@ def create_resource_group():
     god_info, workers_info = inquirer_resource_group()
     create_god(god_info)
     god_public_key = init_god(god_info)
-
     workers_info['godPublicKey'] = god_public_key
     create_workers(workers_info)
 
