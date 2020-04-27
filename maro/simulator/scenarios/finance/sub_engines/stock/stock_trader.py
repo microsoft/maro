@@ -10,8 +10,8 @@ from maro.simulator.scenarios.finance.sub_engines.common.commission import ByMon
 
 class StockTrader(Trader):
 
-    def __init__(self, ):
-        Trader.__init__(self)
+    def __init__(self, trade_constrain: OrderedDict):
+        Trader.__init__(self, trade_constrain)
 
         self.order_handler_register(OrderMode.market_order, MarketOrder())
         self.order_handler_register(OrderMode.limit_order, LimitOrder())

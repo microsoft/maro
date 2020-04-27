@@ -1,5 +1,6 @@
 import os
 from typing import Dict, List
+from collections import OrderedDict
 
 from maro.simulator.event_buffer import Event, EventBuffer
 from maro.simulator.frame import Frame, SnapshotList
@@ -15,6 +16,7 @@ from maro.simulator.utils.common import tick_to_frame_index
 
 from .stock import Stock
 from .stock_trader import StockTrader
+from ..common.trader import TradeConstrain
 
 
 class StockBusinessEngine(AbsSubBusinessEngine):
@@ -32,7 +34,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._action_scope_max = self._config["action_scope"]["max"]
 
         self._init_reader()
-        self._init_trader()
+        self._init_trader(self._config)
 
     @property
     def finance_type(self):
@@ -133,5 +135,8 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             new_max_tick = self._readers[code].max_tick
             self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
 
-    def _init_trader(self):
-        self._trader = StockTrader()
+    def _init_trader(self, config):
+        trade_constrain = OrderedDict()
+        trade_constrain[TradeConstrain.min_buy_unit] = config['trade_constrain']['min_buy_unit']
+        trade_constrain[TradeConstrain.min_sell_unit] = config['trade_constrain']['min_sell_unit']
+        self._trader = StockTrader(trade_constrain)
