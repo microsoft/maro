@@ -136,7 +136,8 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
 
     def _init_trader(self, config):
-        trade_constrain = OrderedDict()
-        trade_constrain[TradeConstrain.min_buy_unit] = config['trade_constrain']['min_buy_unit']
-        trade_constrain[TradeConstrain.min_sell_unit] = config['trade_constrain']['min_sell_unit']
+        trade_constrain = config['trade_constrain'] #OrderedDict()
+        
+        # trade_constrain[TradeConstrain.min_buy_unit] = config['trade_constrain']['min_buy_unit']
+        # trade_constrain[TradeConstrain.min_sell_unit] = config['trade_constrain']['min_sell_unit']
         self._trader = StockTrader(trade_constrain)

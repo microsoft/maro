@@ -30,6 +30,12 @@ sub-engines:
     trade_constrain:
       min_buy_unit: 100
       min_sell_unit: 100
+      # slippage: 0.00246
+      # close_tax: 0.001
+      # commission: 0.0003
+      slippage: 0
+      close_tax: 0.001
+      commission: 0.0008
 
     # TODO: currency 
   # other sub-engine config here
