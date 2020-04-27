@@ -19,7 +19,9 @@ class OrderMode(Enum):
 class TradeResult:
     """Result or a trade order"""
 
-    def __init__(self, trade_number: int, tick: int, price_per_item: float, tax: float, is_trade_accept: bool = False):
+    def __init__(self, sub_engine_name: str, item_index: int, trade_number: int, tick: int, price_per_item: float, tax: float, is_trade_accept: bool = False):
+        self.sub_engine_name = sub_engine_name
+        self.item_index = item_index
         self.trade_number = trade_number
         self.tick = tick
         self.price_per_item = price_per_item
@@ -29,6 +31,9 @@ class TradeResult:
     @property
     def total_cost(self):
         return self.trade_number * self.price_per_item + self.tax
+
+    def __repr__(self):
+        return f"< trade sub-engine: {self.sub_engine_name} item: {self.item_index} tick: {self.tick} number: {self.trade_number} price: {self.price_per_item} tax: {self.tax} tradable: {self.is_trade_accept} >"
 
 
 class DecisionEvent:

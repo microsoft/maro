@@ -87,7 +87,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
         asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
-        ret = TradeResult(actual_volume, tick, actual_price, commission_charge, is_success)
+        ret = TradeResult(self.name, action.item_index, actual_volume, tick, actual_price, commission_charge, is_success)
         if is_success:
             self._stock_list[asset].account_hold_num += actual_volume
         return ret
