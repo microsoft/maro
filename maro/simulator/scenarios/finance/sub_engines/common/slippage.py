@@ -1,5 +1,7 @@
 from enum import Enum
+import math
 
+from maro.simulator.scenarios.finance.sub_engines.common.trader import TradeConstrain
 
 class SlippageType(Enum):
     # TODO: zhanyu add correct slippage
@@ -31,11 +33,12 @@ class ByMoneySlippage(Slippage):
         self.__slippage_type = SlippageType.by_money_slippage
         self.__slippage_rate = slippage_rate
 
-    def execute(self, order_action, curr_data, remaining_money):
+    def execute(self, order_action, curr_data):
         order_direction = 1
         if order_action.number < 0:
             order_direction = -1
-        return round(curr_data[order_action.item_index].opening_price*(1+self.__slippage_rate*order_direction/2), 2), order_action.number
+        actual_price = round(curr_data[order_action.item_index].opening_price*(1+self.__slippage_rate*order_direction/2), 2)
+        return actual_price
 
 
 class ByVolumeSlippage(Slippage):
@@ -46,8 +49,8 @@ class ByVolumeSlippage(Slippage):
         self.__slippage_type = SlippageType.by_volume_slippage
         self.__pre_volume_fee = pre_volume_fee
 
-    def execute(self, order_action, curr_data, remaining_money):
-        return round(abs(order_action.volume)*self.__pre_volume_fee, 2), order_action.number
+    def execute(self, order_action, curr_data):
+        return round(abs(order_action.volume)*self.__pre_volume_fee, 2)
 
 
 class ByTradeSlippage(Slippage):
@@ -58,5 +61,5 @@ class ByTradeSlippage(Slippage):
         self.__slippage_type = SlippageType.by_volume_slippage
         self.__pre_trade_fee = pre_trade_fee
 
-    def execute(self, order_action, curr_data, remaining_money):
-        return round(self.__pre_trade_fee, 2), order_action.number
+    def execute(self, order_action, curr_data):
+        return round(self.__pre_trade_fee, 2)
