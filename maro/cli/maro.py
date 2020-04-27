@@ -17,9 +17,9 @@ import webbrowser
 from requests import get
 from maro.simulator.utils.common import get_available_envs
 
-from tools.azure_orch.scripts.provision import create_resource_group, create_workers, sync_resource_group_info, generate_job_config
+from tools.azure_orch.scripts.provision import create_resource_group, increase_resource_group, decrease_resource_group, stop_workers, start_workers
 from tools.azure_orch.scripts.docker import launch_job
-from tools.azure_orch.scripts.utils import sync_code, sync_log
+from tools.azure_orch.scripts.utils import sync_code, pull_log, generate_job_config, sync_resource_group_info
 
 
 # static variables for calling from subfunctions
@@ -101,18 +101,24 @@ def main():
         'dist', help="create vm and launch jobs for MARO")
     parser_dist.add_argument('-crg', '--create_resource_group', action='store_true',
                                 help='create a new resource group')
-    parser_dist.add_argument('-cw', '--create_workers', action='store_true',
+    parser_dist.add_argument('-irg', '--increase_resource_group', action='store_true',
                                 help='create extra workers for a resource group')
+    parser_dist.add_argument('-drg', '--decrease_resource_group', action='store_true',
+                                help='eliminate extra workers for a resource group')
+    parser_dist.add_argument('-startw', '--start_workers', action='store_true',
+                                help='start all workers in a resource group')
+    parser_dist.add_argument('-stopw', '--stop_workers', action='store_true',
+                                help='stop all workers in a resource group')
     parser_dist.add_argument('-sc', '--sync_code', action='store_true',
-                                help='create a codebase and deploy the your current code')
-    parser_dist.add_argument('-sl', '--sync_log', action='store_true',
-                                help='pull the log data from the codebase')  
-    parser_dist.add_argument('-srg', '--sync_resource_group_info', action='store_true',
-                                help='get the resource group info from the god machine to use that resource group if you are not lucy')
+                                help='sync your current code to god if you are in dev machine, create a codebase if not exist')
+    parser_dist.add_argument('-pl', '--pull_log', action='store_true',
+                                help='pull log data from the god if you are in dev machine')  
     parser_dist.add_argument('-g', '--generate_job_config', action='store_true',
                                 help='generate job configs to launch jobs')
     parser_dist.add_argument('-l', '--launch_job', action='store_true',
                                 help='launch jobs')
+    parser_dist.add_argument('-srg', '--sync_resource_group_info', action='store_true',
+                                help='get the resource group info from the god machine to use that resource group if you are not lucy')
     parser_dist.set_defaults(func=_dist_func)
 
     args = parser.parse_args()
@@ -157,8 +163,17 @@ def _dist_func(args):
     if args.create_resource_group:
         create_resource_group()
         option_exists = True
-    elif args.create_workers:
-        create_workers()
+    elif args.increase_resource_group:
+        increase_resource_group()
+        option_exists = True
+    elif args.decrease_resource_group:
+        decrease_resource_group()
+        option_exists = True
+    elif args.start_workers:
+        start_workers()
+        option_exists = True
+    elif args.stop_workers:
+        stop_workers()
         option_exists = True
     elif args.generate_job_config:
         generate_job_config()
@@ -169,8 +184,8 @@ def _dist_func(args):
     elif args.sync_code:
         sync_code()
         option_exists = True
-    elif args.sync_log:
-        sync_log()
+    elif args.pull_log:
+        pull_log()
         option_exists = True
     elif args.sync_resource_group_info:
         sync_resource_group_info()

@@ -84,12 +84,12 @@ def launch_job():
         resource_group_name = answers['resourceGroupName']
         codebase_name = answers['codebaseName']
         with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
-            exist_workers_info = json.load(infile)
+            resource_group_info = json.load(infile)
     else:
         resource_group_name = None
         codebase_name = os.getcwd().split("/")[2]
         with open(f'/home/{getpass.getuser()}/resource_group_info.json', 'r') as infile:
-            exist_workers_info = json.load(infile)
+            resource_group_info = json.load(infile)
 
     require_resources = dict()
     for job_config in os.listdir(f"job_config/{job_group_name}"):
@@ -100,7 +100,7 @@ def launch_job():
     
     # available_resources = get_available_resources(resource_group_name)
 
-    # allocate_plan = best_fit_allocate(require_resources, available_resources)
+    # allocate_plan = allocate(require_resources, available_resources)
 
     allocate_plan = {
         "environment_runner.0" : "worker0",
@@ -111,10 +111,10 @@ def launch_job():
         "learner.4" : "worker1",
     }
     
-    admin_username = exist_workers_info['adminUsername']
+    admin_username = resource_group_info['adminUsername']
     worker_ip_dict = dict()
     
-    for worker in exist_workers_info['virtualMachines']:
+    for worker in resource_group_info['virtualMachines']:
         if worker['name'] != "god":
             worker_ip_dict[worker['name']] = worker['IP']
     
@@ -123,7 +123,7 @@ def launch_job():
         component_type = job_name.split(".")[0]
         cmd = f"python3 {component_path}/{component_type}.py"
 
-        job_launch_bin = f"sudo docker run -it -d --name {job_group_name}_{job_name} --network host -v /code_point/{codebase_name}/maro/:/maro_dist {envopt} {img_name} {cmd}"
+        job_launch_bin = f"sudo docker run -it -d --rm --name {job_group_name}_{job_name} --network host -v /code_point/{codebase_name}/maro/:/maro_dist {envopt} {img_name} {cmd}"
         ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} '{job_launch_bin}'"
 
         res = subprocess.run(ssh_bin, shell=True, capture_output=True)
@@ -132,7 +132,7 @@ def launch_job():
         else:
             logger.info(f"run {ssh_bin} success!")
 
-def best_fit_allocate(require_resources, available_resources):
+def allocate(require_resources, available_resources):
     allocate_plan = dict()
 
     for job_name, requirement in require_resources.items():
@@ -159,7 +159,13 @@ def best_fit_allocate(require_resources, available_resources):
 
 def get_available_resources(resource_group_name=None):
     if resource_group_name:
-        pass
+        with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
+            resource_group_info = json.load(infile)
+
+        god_IP = resource_group_info['virtualMachines'][0]['IP']
+
+        redis_connection = redis.StrictRedis(host=god_IP, port="6379")
+        free_resources = redis_connection.hgetall('resources')
     else:
         redis_connection = redis.StrictRedis(host="localhost", port="6379")
         free_resources = redis_connection.hgetall('resources')
