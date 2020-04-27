@@ -139,7 +139,7 @@ def launch_job():
         if res.returncode:
             raise Exception(res.stderr)
         else:
-            logger.info(f"run {ssh_bin} success!")
+            logger.info(f"run {job_launch_bin} success!")
 
 def allocate(require_resources, available_resources):
     allocate_plan = dict()

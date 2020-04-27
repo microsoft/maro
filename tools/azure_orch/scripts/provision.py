@@ -7,7 +7,6 @@ import socket
 import chalk
 from tqdm import tqdm
 
-from tools.azure_orch.scripts.gen_job_config import gen_job_config
 from tools.azure_orch.scripts.docker import install_docker, unpack_docker_images
 
 

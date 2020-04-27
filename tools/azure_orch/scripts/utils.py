@@ -4,9 +4,12 @@ import os
 import subprocess
 import inquirer
 import json
+import socket
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+from tools.azure_orch.scripts.gen_job_config import gen_job_config
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
