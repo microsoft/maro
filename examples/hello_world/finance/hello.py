@@ -60,3 +60,7 @@ for sub_engine_name, asset_number in account_hold_assets.items():
     print(f"engine name: {sub_engine_name}")
     print(f"000001, 000002")
     print(asset_number.reshape(len(assets_query_ticks), -1))
+
+print("trade history")
+
+print(env.snapshot_list.trade_history)

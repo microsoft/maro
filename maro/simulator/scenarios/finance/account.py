@@ -14,6 +14,7 @@ from .common import TradeResult
 
 # snapshots.account.assets[tick: "sub-engine"]
 class AssetsAccessor:
+    """This wrapper used to provide interfaces to access asset related quering inside one object"""
     def __init__(self, sub_engines_snapshots: dict):
         self._sub_engine_snapshots = sub_engines_snapshots
 
@@ -67,7 +68,7 @@ class Account(EntityBase):
         # NOTE: the snapshots is wrapper of snapshots of sub-engines,
         # you can access them by sub-engine name like: snapshots.china to calculate reward
         self._money = money
-        self._trade_history = []  # TODO: later
+        self.trade_history = []  # TODO: later
         self.remaining_money = money
         self._last_total_money = money
         self.total_money = money
@@ -83,6 +84,8 @@ class Account(EntityBase):
         for engine in self._sub_account.keys():
             self.total_money += self._sub_account[engine]
 
+        self.trade_history.append(trade_result)
+
 
     def calc_reward(self):
         # TODO: zhanyu to update the logic
@@ -96,3 +99,4 @@ class Account(EntityBase):
         self._last_total_money = self._money
         self.total_money = self._money
         self._sub_account = OrderedDict()
+        self.trade_history.clear()

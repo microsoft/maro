@@ -39,7 +39,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._init_sub_engines()
 
         self._acount = Account(self.snapshots, self._account_frame, self._conf["account"]["money"])  # contain trade result
-
+        
+        # out-side accessor as snapshost_list.trade_history
+        self._snapshot_accessor.add_item("trade_history", self._acount.trade_history)
 
         self._register_events()
 
@@ -170,4 +172,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._account_snapshot_wrapper = AccountSnapshotWrapper(self._account_snapshots, 
             {name: engine.snapshot_list for name, engine in self._sub_engines.items()})
 
+        # make sure out-side can access account wrapper, as it is not a sub-engine
         self._snapshot_accessor.add_item("account", self._account_snapshot_wrapper)
+        
