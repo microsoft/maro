@@ -19,6 +19,8 @@ class Trader():
         for constrain in trade_constrain:
             self._trade_constrain[constrain] = trade_constrain[constrain]
 
+        self._trade_number = 0
+
     @property
     def supported_orders(self) -> list:
         return self._order_handlers.keys()
@@ -93,8 +95,18 @@ class Trader():
                             odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
                             if odd_volume != 0:
                                 actual_volume -= odd_volume
+                        
+                        if actual_volume < 0:
+                            actual_volume = 0
+                            is_success = False
 
-                # print("actual_price: ", actual_price, "actual_volume: ", actual_volume, "commission_charge: ", commission_charge)
-                print(actual_price, commission_charge, actual_volume, remaining_money)
+                        # recalculate commission charge
+                        commission_charge = 0
+                        for commission_handler in self._commission_handlers:
+                            commission_charge += commission_handler.execute(actual_price, actual_volume)
+
+                self._trade_number += 1
+                print("no.:", self._trade_number, "actual_price: ", actual_price, "actual_volume: ", actual_volume, "commission_charge: ", commission_charge, "remaining_money: ", remaining_money)
+                # print( commission_charge)
 
         return asset, is_success, actual_price, actual_volume, commission_charge
