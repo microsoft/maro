@@ -55,10 +55,12 @@ class Trader():
                 actual_volume = order_action.number
 
                 if actual_volume >= 0:
+                    # if remaining_money is not enough
                     actual_money = actual_price * actual_volume
                     if actual_money > remaining_money:
                         actual_volume -= math.ceil((actual_money - remaining_money)/actual_price)
 
+                    # if min buy unit is configed
                     if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
                         odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
                         if odd_volume != 0:
@@ -69,15 +71,28 @@ class Trader():
                     if remaining_volume < actual_volume:
                         actual_volume = remaining_volume
 
+                    # if min sell unit is configed
                     if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
                         odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
                         if odd_volume != 0:
                             if odd_volume != remaining_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
                                 actual_volume -= odd_volume
+
                 for commission_handler in self._commission_handlers:
                     commission_charge += commission_handler.execute(actual_price, actual_volume)
 
                 commission_charge = int(commission_charge*100) / 100
+
+                # if remaining_money is not enough for commission
+                if actual_volume > 0:
+                    expected_remaining = remaining_money - actual_volume * actual_price - commission_charge
+                    if expected_remaining < 0:
+                        actual_volume -= math.ceil((-expected_remaining)/actual_price)
+
+                        if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
+                            odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                            if odd_volume != 0:
+                                actual_volume -= odd_volume
 
                 # print("actual_price: ", actual_price, "actual_volume: ", actual_volume, "commission_charge: ", commission_charge)
                 print(actual_price, commission_charge, actual_volume, remaining_money)
