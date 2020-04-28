@@ -58,11 +58,16 @@ COMPONENT_ID = os.environ['COMPID']
 COMPONENT_NAME = '.'.join([COMPONENT_TYPE, COMPONENT_ID])
 logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
+
+# msg_request = [{(env, MsgType): num, 
+#                 (env, MsgType): num}, 
+#                {(env, MsgType): num,
+#                 (env, MsgType): num}]
 proxy = Proxy(group_name=os.environ['GROUP'],
               component_name=COMPONENT_NAME,
               peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
               redis_address=(config.redis.host, config.redis.port),
-              logger=logger)
+              logger=logger, msg_request=msg_request)
 
 pending_envs = set(proxy.peers)  # environments the learner expects experiences from, required for forced sync
 
@@ -77,29 +82,25 @@ def on_new_experience(local_instance, proxy, message):
     Handles incoming experience from environment runner. The message must contain agent_id and experience.
     """
     # put experience into experience pool
-    exp = message.payload[PayloadKey.EXPERIENCE]
-    local_instance.experience_pool.put(category_data_batches=[(name, cache) for name, cache in exp.items()])
+    peer_list = []
+    for msg in message:
+        episode = msg.payload[PayloadKey.EPISODE]
+        agent_name = msg.payload[PayloadKey.AGENT_NAME]
+        peer_list.append(msg.source)
+        exp = msg.payload[PayloadKey.EXPERIENCE]
+        local_instance.experience_pool.put(category_data_batches=[(name, cache) for name, cache in exp.items()])
 
-    if message.source in pending_envs:
-        pending_envs.remove(message.source)
-        if len(pending_envs) == 0 or TRAIN_MODE == 'async':
-            if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
-                local_instance.train(message.payload[PayloadKey.EPISODE], message.payload[PayloadKey.AGENT_NAME])
-                policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
-                # send updated policy net parameters to the target environment runner
-                for env in proxy.peers:
-                    proxy.send(Message(type=MsgType.UPDATED_PARAMETERS, source=proxy.name, destination=env,
-                                       payload={PayloadKey.AGENT_ID: message.payload[PayloadKey.AGENT_ID],
-                                                PayloadKey.POLICY_NET_PARAMETERS: policy_net_parameters}))
-            else:
-                for env in proxy.peers:
-                    proxy.send(Message(type=MsgType.NO_UPDATED_PARAMETERS, source=proxy.name, destination=env))
-
-            pending_envs.update(proxy.peers)  # reset pending environments to the full list
-        else:
-            logger.info(f'Pending experiences from {pending_envs}')
+    if local_instance.experience_pool.size['info'] > MIN_TRAIN_EXP_NUM:
+        local_instance.train(episode, agent_name)
+        policy_net_parameters = local_instance.algorithm.policy_net.state_dict()
+        # send updated policy net parameters to the target environment runner
+        for env in peer_list:
+            proxy.send(Message(type=MsgType.UPDATED_PARAMETERS, source=proxy.name, destination=env,
+                                payload={PayloadKey.AGENT_ID: message.payload[PayloadKey.AGENT_ID],
+                                        PayloadKey.POLICY_NET_PARAMETERS: policy_net_parameters}))
     else:
-        logger.warn(f'{message.source} has already been removed from the pending list. Message ignored')
+        for env in peer_list:
+            proxy.send(Message(type=MsgType.NO_UPDATED_PARAMETERS, source=proxy.name, destination=env))
 
 
 @log(logger=logger)
@@ -121,7 +122,6 @@ def on_env_checkout(local_instance, proxy, message):
         if len(pending_envs) == 0:
             logger.critical(f"{COMPONENT_NAME} exited")
             sys.exit(0)
-
 
 handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
                 MsgType.INITIAL_PARAMETERS: on_initial_net_parameters,

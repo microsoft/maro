@@ -32,7 +32,7 @@ class Proxy:
     """
     def __init__(self, group_name, component_name, peer_name_list: list = None,
                  protocol='tcp', redis_address=('localhost', 6379), max_retries: int = 5,
-                 retry_interval: int = 5, logger=None):
+                 retry_interval: int = 5, logger=None, msg_request=None):
         self._group_name = group_name
         self._name = component_name
         self._peer_name_list = peer_name_list
@@ -42,7 +42,9 @@ class Proxy:
         self._retry_interval = retry_interval
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._logger = logger if logger else logging
-        self._msg_holder = []
+        self._msg_request = [{'request': request,
+                              'remain': request, 
+                              'msg_list': []} for request in msg_request]
 
     @property
     def group_name(self) -> str:
@@ -158,64 +160,26 @@ class Proxy:
         self._send_channel[destination].send_pyobj(message)
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
 
-    def _msg_operation(self, msg_list):
-        complete_msg = msg_list[0]
-        operation = complete_msg.operation
-        if operation == 'APPEND':
-            new_payload = [msg.payload for msg in msg_list]
-            new_payload = new_payload.flatten()
-
-        if operation == 'SUM':
-            new_payload = sum([msg.payload for msg in msg_list])
-
-        complete_msg.payload = new_payload
-
-        return complete_msg
-
     def msg_handler(self, message: Message):
-        if message.operation is not None:
-            self._msg_holder.append(message)
+        for req_dict in self._msg_request:
+            for key, value in req_dict['remain'].items():
+                if key == (message.source, message.type):
+                    if value > 1:
+                        req_dict['remain'].update({key: value - 1})
+                    else:
+                        del req_dict['remain'][key]
+                    req_dict['msg_list'].append(message)})
 
-            if len(self._msg_holder)==len(self._peer_name_list):
-                return self._msg_operation(self._msg_holder)
-        
-            return None
-        else:
-            return message
-
-        
-    # def msg_handler(self, message: Message):
-        # self._msg_request_list = []
-        # [{'request': {():#num},
-        #  'msg_list': [message],
-        #  'operation': SUM/APPEND/..}]
-
-        # for idx, req in enumerate(self._msg_request_list):
-        #     for key, value in req['request'].items():
-        #         if key == (message.source, message.type):
-        #             if value > 1:
-        #                 req.update({key: value - 1})
-        #             else:
-        #                 del req[key]
-        #             req.update({'msg_list': req['msg_list'].append(message)})
-
-        #             if not req['request']:
-        #                 complete_msg = self._msg_operation(req['msg_list'], req['operation'])
-
-        #                 del self._msg_request_list[idx]
-                        
-        #                 return complete_msg
+                    if not req_dict['remain']:
+                        request_msg_list = req_dict['msg_lst'][:]
+                        req_dict['msg_lst'] = []
+                        req_dict['remain'] = req_dict['request']
+ 
+                        return request_msg_list
                     
-        #             return None
+                    return None
 
-        # if message.required is not None:
-        #     new_required = deepcopy(message.required)
-        #     new_required.update({'msg_list':[message]})
-        #     self._msg_request_list.append(new_required)
-            
-        #     return None
-        # else: 
-        #     return message
+        return list(message)
 
 
             
