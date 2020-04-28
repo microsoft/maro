@@ -2,7 +2,8 @@ import math
 from enum import Enum
 from collections import OrderedDict
 from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
-                                                     FinanceType, TradeResult)
+                                                     FinanceType, TradeResult, OrderMode)
+
 
 class TradeConstrain(Enum):
     min_buy_unit = "min_buy_unit"
@@ -10,7 +11,7 @@ class TradeConstrain(Enum):
 
 
 class Trader():
-    def __init__(self, trade_constrain):
+    def __init__(self, trade_constrain: dict):
         self._order_handlers = OrderedDict()
         self._slippage_handler = None
         self._commission_handlers = []
@@ -19,16 +20,16 @@ class Trader():
             self._trade_constrain[constrain] = trade_constrain[constrain]
 
     @property
-    def supported_orders(self):
+    def supported_orders(self) -> list:
         return self._order_handlers.keys()
 
-    def order_handler_register(self, order_type, order_handler):
+    def order_handler_register(self, order_type: OrderMode, order_handler: callable):
         self._order_handlers[order_type] = order_handler
 
-    def slippage_handler_register(self, slippage_handler):
+    def slippage_handler_register(self, slippage_handler: callable):
         self._slippage_handler = slippage_handler
 
-    def commission_handler_register(self, commission_handler):
+    def commission_handler_register(self, commission_handler: callable):
         self._commission_handlers.append(commission_handler)
 
     def trade(self, order_action: Action, cur_data: dict, remaining_money: float) -> TradeResult:
@@ -60,26 +61,25 @@ class Trader():
 
                     if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
                         odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
-                        if odd_volume !=0:
+                        if odd_volume != 0:
                             actual_volume -= odd_volume
 
                 else:
                     remaining_volume = cur_data[order_action.item_index].account_hold_num
                     if remaining_volume < actual_volume:
                         actual_volume = remaining_volume
-                    
+
                     if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
                         odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
-                        if odd_volume != 0: 
+                        if odd_volume != 0:
                             if odd_volume != remaining_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
                                 actual_volume -= odd_volume
                 for commission_handler in self._commission_handlers:
                     commission_charge += commission_handler.execute(actual_price, actual_volume)
 
-                commission_charge = math.floor(commission_charge*100) /100
+                commission_charge = int(commission_charge*100) / 100
 
                 # print("actual_price: ", actual_price, "actual_volume: ", actual_volume, "commission_charge: ", commission_charge)
-                print( commission_charge)
-                
+                print(actual_price, commission_charge, actual_volume, remaining_money)
 
         return asset, is_success, actual_price, actual_volume, commission_charge
