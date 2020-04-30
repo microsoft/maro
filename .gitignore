@@ -17,3 +17,4 @@ tools/replay_lp/log
 tools/schedule_meta
 visualization/
 maro/simulator/scenarios/ecr/
+maro/utils/dashboard/resource.tar.gz

@@ -22,6 +22,7 @@ MARO(Multi-Agent Resource Optimization) is a multi-agent resource optimization p
 ```sh
 pip install -r requirements.dev.txt
 export PYTHONPATH=$PWD:$PYTHONPATH
+python maro/utils/dashboard/package_data.py
 bash build_maro.sh
 ```
 

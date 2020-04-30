@@ -1,5 +1,0 @@
-init_stock: 1
-max_order: 5
-max_capacity: 15
-
-demand_step: 3

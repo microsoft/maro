@@ -1,0 +1,10 @@
+init_stock: 0
+max_order: 10
+max_capacity: 100
+min_demand: 0
+max_demand: 10
+min_demand_noise: -1
+max_demand_noise: 1
+unit_cost: 1
+unit_price: 2
+storage_cost: 0.5
