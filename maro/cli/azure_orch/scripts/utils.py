@@ -9,7 +9,7 @@ import socket
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from tools.azure_orch.scripts.gen_job_config import gen_job_config
+from maro.cli.azure_orch.scripts.gen_job_config import gen_job_config
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -20,32 +20,32 @@ logger = logging.getLogger('logger')
 def sync_code():
     questions = [
         inquirer.List(
-            'resourceGroupName', 
+            'resource_group_name', 
             message="Which resource group do you want to sync?",
             choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"azure_template/resource_group_info")],
             carousel=True,
         ),
         inquirer.Text(
-            'codebaseName',
-            message="What is the name of the codebase you want to sync?"
+            'branch_name',
+            message="What is the name of the branch you want to sync?"
         ),
     ]
 
     answers = inquirer.prompt(questions)
 
-    resource_group_name = answers['resourceGroupName']
-    codebase_name = answers['codebaseName']
+    resource_group_name = answers['resource_group_name']
+    branch_name = answers['branch_name']
 
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
         resource_group_info = json.load(infile)
     
     project_dir = os.environ['PYTHONPATH']
 
-    admin_username = resource_group_info['adminUsername']
-    god_IP = resource_group_info['virtualMachines'][0]['IP']
+    admin_username = resource_group_info['admin_user_name']
+    god_IP = resource_group_info['virtual_machines'][0]['IP']
     
-    mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} 'sudo mkdir /code_point/{codebase_name}; sudo chmod -R 777 /code_point/{codebase_name}'"
-    sync_bin = f"rsync -arvz --exclude='log/*' --exclude='.git/*' {project_dir} {admin_username}@{god_IP}:/code_point/{codebase_name} --delete"
+    mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} 'sudo mkdir /code_repo/{branch_name}; sudo chmod -R 777 /code_repo/{branch_name}'"
+    sync_bin = f"rsync -arvz --exclude='log/*' --exclude='.git/*' {project_dir} {admin_username}@{god_IP}:/code_repo/{branch_name} --delete"
 
     for bin in [mkdir_bin, sync_bin]:
         res = subprocess.run(bin, shell=True)
@@ -57,31 +57,31 @@ def sync_code():
 def pull_log():
     questions = [
         inquirer.List(
-            'resourceGroupName', 
+            'resource_group_name', 
             message="Which resource group do you want to sync?",
             choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"azure_template/resource_group_info")],
             carousel=True,
         ),
         inquirer.Text(
-            'codebaseName',
-            message="what is the name of the codebase you want to sync?"
+            'branch_name',
+            message="what is the name of the branch you want to sync?"
         ),
     ]
 
     answers = inquirer.prompt(questions)
 
-    resource_group_name = answers['resourceGroupName']
-    codebase_name = answers['codebaseName']
+    resource_group_name = answers['resource_group_name']
+    branch_name = answers['branch_name']
 
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
         resource_group_info = json.load(infile)
     
     project_dir = os.environ['PYTHONPATH']
 
-    admin_username = resource_group_info['adminUsername']
-    god_IP = resource_group_info['virtualMachines'][0]['IP']
+    admin_username = resource_group_info['admin_user_name']
+    god_IP = resource_group_info['virtual_machines'][0]['IP']
     
-    sync_bin = f"rsync -arvz --include='log' --include='log/*' --include='log/*/*' --include='log/*/*/*' --exclude='*' {admin_username}@{god_IP}:/code_point/{codebase_name}/maro/ {project_dir}"
+    sync_bin = f"rsync -arvz --include='log' --include='log/*' --include='log/*/*' --include='log/*/*/*' --exclude='*' {admin_username}@{god_IP}:/code_repo/{branch_name}/maro/ {project_dir}"
 
     res = subprocess.run(sync_bin, shell=True)
     if res.returncode:
@@ -95,41 +95,41 @@ def generate_job_config():
 
     questions = [
         inquirer.Text(
-            'configPath', 
+            'config_path', 
             message="Where is your meta config file?",
             default=default_config_path
         ),
     ]
 
-    config_path = inquirer.prompt(questions)['configPath']
+    config_path = inquirer.prompt(questions)['config_path']
 
     job_group_name = gen_job_config(config_path)
 
     if socket.gethostname() != 'god':
         questions = [
             inquirer.List(
-                'resourceGroupName',
+                'resource_group_name',
                 message="Which resource group would you like to launch job?",
                 choices=[resource_group_name[:-5] for resource_group_name in os.listdir("azure_template/resource_group_info")],
                 carousel=True,
             ),
             inquirer.Text(
-                'codebaseName',
-                message="What is the name of your codebase?",
+                'branch_name',
+                message="What is the name of your branch?",
             )
         ]
 
         answers = inquirer.prompt(questions)
-        resource_group_name = answers['resourceGroupName']
-        codebase_name = answers['codebaseName']
+        resource_group_name = answers['resource_group_name']
+        branch_name = answers['branch_name']
 
         with open(f'azure_template/resource_group_info/{resource_group_name}.json') as infile:
             resource_group_info = json.load(infile)
         
-        admin_username = resource_group_info['adminUsername']
-        god_IP = resource_group_info['virtualMachines'][0]['IP']
+        admin_username = resource_group_info['admin_user_name']
+        god_IP = resource_group_info['virtual_machines'][0]['IP']
 
-        rsync_bin = f"rsync -arvz -r job_config/{job_group_name} {admin_username}@{god_IP}:/code_point/{codebase_name}/maro/tools/azure_orch/job_config"
+        rsync_bin = f"rsync -arvz -r job_config/{job_group_name} {admin_username}@{god_IP}:/code_repo/{branch_name}/maro/tools/azure_orch/job_config"
 
         res = subprocess.run(rsync_bin, shell=True, capture_output=True)
         if res.returncode:
@@ -138,23 +138,32 @@ def generate_job_config():
             logger.info(f"run {rsync_bin} success!")
 
 def sync_resource_group_info():
+    # if not os.path.exists('/maro'):
+    #     os.mkdir('/maro')
+    #     if not os.path.exists('/maro/dist')
+    #         os.mkdir('/maro/dist')
+    #         if not os.path.exists('/maro/dist/azure_template')
+    #             os.mkdir('/maro/dist/azure_template')
+    #             if not os.path.exists('/maro/dist/azure_template/resource_group_info')
+    #                 os.mkdir('/maro/dist/azure_template/resource_group_info')
+
     if not os.path.exists('azure_template/resource_group_info'):
         os.mkdir('azure_template/resource_group_info')
 
     questions = [
         inquirer.Text(
-            'adminUsername', 
+            'admin_user_name', 
             message="What is the admin username on god?",
         ),
         inquirer.Text(
-            'godIP', 
+            'god_IP', 
             message="What is the IP address of god?",
         ),      
     ]
 
     god_info = inquirer.prompt(questions)
-    admin_username = god_info['adminUsername']
-    god_IP = god_info['godIP']
+    admin_username = god_info['admin_user_name']
+    god_IP = god_info['god_IP']
 
     logger.critical(chalk.red("please make sure that you have added your public key on the god machine!"))
     logger.info(f"you are syncing the resource group to you local machine with the god: {admin_username}@{god_IP}")
@@ -172,30 +181,30 @@ def deploy_code():
     project_dir = os.environ['PYTHONPATH']
     questions = [
         inquirer.List(
-            'resourceGroupName',
+            'resource_group_name',
             message="Which resource group would you like to deloy code?",
             choices=[resource_group_name[:-5] for resource_group_name in os.listdir("azure_template/resource_group_info")],
             carousel=True,
         ),
         inquirer.Text(
-            'codebaseName',
-            message="What is the name of your codebase?",
+            'branch_name',
+            message="What is the name of your branch?",
         )
     ]
 
     deploy_info = inquirer.prompt(questions)
 
-    resource_group_name = deploy_info['resourceGroupName']
-    codebase_name = deploy_info['codebaseName']
+    resource_group_name = deploy_info['resource_group_name']
+    branch_name = deploy_info['branch_name']
 
     with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
         resource_group_info = json.load(infile)
     
-    admin_username = resource_group_info['adminUsername']
-    god_IP = resource_group_info['virtualMachines'][0]['IP']
+    admin_username = resource_group_info['admin_user_name']
+    god_IP = resource_group_info['virtual_machines'][0]['IP']
     
-    mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} 'sudo mkdir /code_point/{codebase_name}; sudo chmod -R 777 /code_point/{codebase_name}'"
-    deploy_bin = f"rsync -arvz --exclude='log/*' -r {project_dir} {admin_username}@{god_IP}:/code_point/{codebase_name}"
+    mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} 'sudo mkdir /code_repo/{branch_name}; sudo chmod -R 777 /code_repo/{branch_name}'"
+    deploy_bin = f"rsync -arvz --exclude='log/*' -r {project_dir} {admin_username}@{god_IP}:/code_repo/{branch_name}"
 
     for bin in [mkdir_bin, deploy_bin]:
         res = subprocess.run(bin, shell=True)

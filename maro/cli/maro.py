@@ -17,9 +17,9 @@ import webbrowser
 from requests import get
 from maro.simulator.utils.common import get_available_envs
 
-from tools.azure_orch.scripts.provision import create_resource_group, increase_resource_group, decrease_resource_group, stop_workers, start_workers
-from tools.azure_orch.scripts.docker import launch_job
-from tools.azure_orch.scripts.utils import sync_code, pull_log, generate_job_config, sync_resource_group_info
+from maro.cli.azure_orch.scripts.provision import create_resource_group, increase_resource_group, decrease_resource_group, stop_nodes, start_nodes
+from maro.cli.azure_orch.scripts.docker import launch_job
+from maro.cli.azure_orch.scripts.utils import sync_code, pull_log, generate_job_config, sync_resource_group_info
 
 
 # static variables for calling from subfunctions

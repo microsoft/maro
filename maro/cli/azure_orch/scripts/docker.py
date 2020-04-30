@@ -14,10 +14,10 @@ logging.basicConfig(level=logging.INFO,
 
 logger = logging.getLogger('logger')
 
-def install_docker(delta_workers_info):
-    admin_username = delta_workers_info['adminUsername']
-    for worker in delta_workers_info["virtualMachines"]:
-        install_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'bash /code_point/bin/install_docker.sh'"
+def install_docker(delta_nodes_info):
+    admin_username = delta_nodes_info['admin_username']
+    for node in delta_nodes_info["virtual_machines"]:
+        install_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node['IP']} 'bash /code_repo/bin/install_docker.sh'"
         res = subprocess.run(install_bin, shell=True, capture_output=True)
         
         if res.returncode:
@@ -25,10 +25,10 @@ def install_docker(delta_workers_info):
         else:
             logging.info(f"run {install_bin} success!")
 
-def unpack_docker_images(delta_workers_info, image_name):
-    admin_username = delta_workers_info['adminUsername']
-    for worker in delta_workers_info["virtualMachines"]:
-        load_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker['IP']} 'sudo docker load < /code_point/{image_name}'"
+def unpack_docker_images(delta_nodes_info, image_name):
+    admin_username = delta_nodes_info['admin_username']
+    for node in delta_nodes_info["virtual_machines"]:
+        load_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node['IP']} 'sudo docker load < /code_repo/{image_name}'"
         res = subprocess.run(load_bin, shell=True, capture_output=True)
         
         if res.returncode:
@@ -44,18 +44,18 @@ def launch_job():
 
     questions = [
         inquirer.List(
-            'jobGroupName', 
+            'job_group_name', 
             message="Which is the job group name you want to launch?",
             choices=os.listdir("job_config/"),
             carousel=True,
         ),
         inquirer.Text(
-            'imgName',
+            'img_name',
             message="What is the name of the image you want to use?",
             default="maro/ecr/cpu/latest",
         ),
         inquirer.Text(
-            'componentPath',
+            'component_path',
             message="where is the component python file directory in docker?",
             default="/maro_dist/examples/ecr/q_learning/distributed_mode",
         )
@@ -64,30 +64,30 @@ def launch_job():
     if host_name != "god":
         questions += [
             inquirer.List(
-                'resourceGroupName',
+                'resource_group_name',
                 message="Which is the job group name you want to launch?",
                 choices=[resource_group_name[:-5] for resource_group_name in os.listdir("azure_template/resource_group_info")],
                 carousel=True,
             ),
             inquirer.Text(
-                'codebaseName',
-                message="What is the name of your codebase?",
+                'branch_name',
+                message="What is the name of your branch?",
             ),
         ]
 
     answers = inquirer.prompt(questions)
-    job_group_name = answers['jobGroupName']
-    img_name = answers['imgName']
-    component_path = answers['componentPath']
+    job_group_name = answers['job_group_name']
+    img_name = answers['img_name']
+    component_path = answers['component_path']
 
     if host_name != "god":
-        resource_group_name = answers['resourceGroupName']
-        codebase_name = answers['codebaseName']
+        resource_group_name = answers['resource_group_name']
+        branch_name = answers['branch_name']
         with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
             resource_group_info = json.load(infile)
     else:
         resource_group_name = None
-        codebase_name = os.getcwd().split("/")[2]
+        branch_name = os.getcwd().split("/")[2]
         with open(f'/home/{getpass.getuser()}/resource_group_info.json', 'r') as infile:
             resource_group_info = json.load(infile)
 
@@ -103,22 +103,22 @@ def launch_job():
     # allocate_plan = allocate(require_resources, available_resources)
 
     allocate_plan = {
-        "environment_runner.0" : "worker0",
-        "learner.0" : "worker1",
-        "learner.1" : "worker1",
-        "learner.2" : "worker1",
-        "learner.3" : "worker1",
-        "learner.4" : "worker1",
+        "environment_runner.0" : "node0",
+        "learner.0" : "node1",
+        "learner.1" : "node1",
+        "learner.2" : "node1",
+        "learner.3" : "node1",
+        "learner.4" : "node1",
     }
     
-    admin_username = resource_group_info['adminUsername']
-    worker_ip_dict = dict()
+    admin_username = resource_group_info['admin_username']
+    node_ip_dict = dict()
     
-    for worker in resource_group_info['virtualMachines']:
-        if worker['name'] != "god":
-            worker_ip_dict[worker['name']] = worker['IP']
+    for node in resource_group_info['virtual_machines']:
+        if node['name'] != "god":
+            node_ip_dict[node['name']] = node['IP']
     
-    for job_name, worker_name in allocate_plan.items():
+    for job_name, node_name in allocate_plan.items():
         envopt = f"-e CONFIG=/maro_dist/tools/azure_orch/job_config/{job_group_name}/{job_name}.yml"
         component_type = job_name.split(".")[0]
         cmd = f"python3 {component_path}/{component_type}.py"
@@ -127,11 +127,11 @@ def launch_job():
         GPU_mem = require_resources[job_name]['GPU_mem']
         mem = require_resources[job_name]['mem']
 
-        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} "
+        ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_dict[node_name]} "
 
         rm_container_bin = ssh_bin + f"'sudo docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs sudo docker rm'"
-        job_launch_bin = ssh_bin + f"'sudo docker run -it -d --cpus {cpu_cores} -m {mem}m --name {job_group_name}_{job_name} --network host -v /code_point/{codebase_name}/maro/:/maro_dist {envopt} {img_name} {cmd}'"
-        # ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{worker_ip_dict[worker_name]} '{job_launch_bin}'"
+        job_launch_bin = ssh_bin + f"'sudo docker run -it -d --cpus {cpu_cores} -m {mem}m --name {job_group_name}_{job_name} --network host -v /code_repo/{branch_name}/maro/:/maro_dist {envopt} {img_name} {cmd}'"
+        # ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_dict[node_name]} '{job_launch_bin}'"
 
         subprocess.run(rm_container_bin, shell=True, capture_output=True)
 
@@ -145,10 +145,10 @@ def allocate(require_resources, available_resources):
     allocate_plan = dict()
 
     for job_name, requirement in require_resources.items():
-        best_fit_worker = ""
+        best_fit_node = ""
         best_fit_score = 0
         score = 0
-        for worker_name, free in free_resources.itmes():
+        for node_name, free in free_resources.itmes():
             if requirement['CPU_cores'] <= free['CPU_cores'] and \
                 requirement['GPU_mem'] <= free['GPU_mem'] and \
                     requirement['mem'] <= free['mem']:
@@ -157,11 +157,11 @@ def allocate(require_resources, available_resources):
                                 requirement['mem'] / free['mem']
                 if score > best_fit_score:
                     best_fit_score = score
-                    best_fit_worker = worker_name
-        if best_fit_worker == "":
+                    best_fit_node = node_name
+        if best_fit_node == "":
             raise Exception(f"can not allocate job [{job_name}] due to resouce limitation")
         else:
-            allocate_plan[job_name] = best_fit_worker
+            allocate_plan[job_name] = best_fit_node
     
     logging.info(f"allocate plan: {allocate_plan}")
 
@@ -172,7 +172,7 @@ def get_available_resources(resource_group_name=None):
         with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
             resource_group_info = json.load(infile)
 
-        god_IP = resource_group_info['virtualMachines'][0]['IP']
+        god_IP = resource_group_info['virtual_machines'][0]['vnet_IP']
 
         redis_connection = redis.StrictRedis(host=god_IP, port="6379")
         free_resources = redis_connection.hgetall('resources')

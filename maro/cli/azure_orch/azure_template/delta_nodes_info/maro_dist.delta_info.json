@@ -1,0 +1,14 @@
+{
+    "admin_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDH55eC8HCUzI1Uwkuv+WWU3OHvu+ssvvC8fyeGIJC8o8pSJNq/hSBxuDVIDMJ6XIujXgznTJjzRQcbU7L2floWgyvAqCUROxWDoTMpXJVjFC/qFPaio9FsmIAEyWEJA4OmEXWEmLqve4g2PkojbKBnN6IoeTcZP+EUir2VNOFTgxdooAEsXIch/0ItTJ83P+lQCp1OoOCTLUDu3JId6wwe2S803ySYYTdXwRJfePwwOMoxm55yd2w+TzLuOtMyRltQ1bI2REqUBfFswD+02foIRLBXKJ4Ygr3wwiRfYqKRbteaD3/zCG5IBx7fe6jxuo3ZTr7LC54PadPHGKY04bgN tianyi@dist\n",
+    "admin_username": "tianyi",
+    "virtual_machine_resource_group": "maro_dist",
+    "subscription": "e225d10c-2fce-4a2c-8ab8-fbf0cf28b99e",
+    "location": "southeastasia",
+    "virtual_machines": [
+        {
+            "name": "node0",
+            "size": "Standard_D16s_v3"
+        }
+    ],
+    "god_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYsYHN7HmV96d3WESCGeG75hkcvTvehGBnIzSvENWx8QFPeFLbrmBkjFxReLc5/4AkkyvGuQf5TMJlak32+k7Q01+kJzuAcqei0gCQXQSMcaJr+ZqBW9hmXnkyqxhJK8Yav8Q9Q5A7FbTI+SDDtcu4CdbmEljo4KRuEY9f0oYqncj1ycX5PGL5YG+a1SLKlE37C4kr2E76m67wAO4qywHpo9Q7NLzd96ohDsg/oXi6ZJ+5Zr8WkK+tIrtonb0sqGLLiOObZE/n4MuAwwT5EbnWMRvG8Il1lsGrvVcD6RpkHL5J09WOh2koSRYsZ1fqwGXccZYzv4YedhVC0XFaWpoF tianyi@god\n"
+}

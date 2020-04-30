@@ -18,10 +18,10 @@ class Prob():
             with open(f"/home/{getpass.getuser()}/resource_group_info.json", "r") as infile:
                 resource_group_info = json.load(infile)
 
-            admin_username = resource_group_info['adminUsername']
-            for worker in resource_group_info['virtualMachines']:
-                if worker['name'] != "god":
-                    ip_addr = worker['IP']
+            admin_username = resource_group_info['admin_user_name']
+            for node in resource_group_info['virtual_machines']:
+                if node['name'] != "god":
+                    ip_addr = node['IP']
                     
                     res = subprocess.run(f"ssh -o StrictHostKeyChecking=no {admin_username}@{ip_addr} bash /code_point/bin/prob_resource.sh", shell=True, capture_output=True)
                     if res.returncode:
@@ -35,7 +35,7 @@ class Prob():
                     
                     # print(free_resources)
 
-                    self._redis_connection.hset("resources", worker['name'], json.dumps(free_resources))
+                    self._redis_connection.hset("resources", node['name'], json.dumps(free_resources))
 
             time.sleep(5)
 
