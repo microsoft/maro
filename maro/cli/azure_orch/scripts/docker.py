@@ -7,6 +7,7 @@ import redis
 import getpass
 import json
 import socket
+import chalk
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s - %(asctime)s - %(message)s',
@@ -102,18 +103,11 @@ def launch_job():
         job_name = job_config[:-4]
         require_resources[job_name] = config['resources']
     
-    # available_resources = get_available_resources(resource_group_name)
+    free_resources = get_free_resources(resource_group_name)
 
-    # allocate_plan = allocate(require_resources, available_resources)
+    logger.info(chalk.green(free_resources))
 
-    allocate_plan = {
-        "environment_runner.0" : "node0",
-        "learner.0" : "node0",
-        "learner.1" : "node0",
-        "learner.2" : "node0",
-        "learner.3" : "node0",
-        "learner.4" : "node0",
-    }
+    allocate_plan = allocate(require_resources, free_resources)
     
     admin_username = resource_group_info['admin_username']
     node_ip_dict = dict()
@@ -133,9 +127,8 @@ def launch_job():
 
         ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_dict[node_name]} "
 
-        rm_container_bin = ssh_bin + f"'sudo docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs sudo docker rm'"
-        job_launch_bin = ssh_bin + f"'sudo docker run -it -d --cpus {cpu_cores} -m {mem}m --name {job_group_name}_{job_name} --network host -v /code_repo/{branch_name}/maro/:/maro_dist {envopt} {img_name} {cmd}'"
-        # ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_dict[node_name]} '{job_launch_bin}'"
+        rm_container_bin = ssh_bin + f'''"sudo docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs sudo docker rm"'''
+        job_launch_bin = ssh_bin + f"'sudo docker run -it -d --cpus {cpu_cores} -m {mem}m --name {job_group_name}_{job_name} --network host -v /code_repo/{branch_name}/maro:/maro_dist {envopt} {img_name} {cmd}'"
 
         subprocess.run(rm_container_bin, shell=True, capture_output=True)
 
@@ -145,20 +138,22 @@ def launch_job():
         else:
             logger.info(f"run {job_launch_bin} success!")
 
-def allocate(require_resources, available_resources):
+# naive allocate algorithm, need to be optimized
+def allocate(require_resources, free_resources):
     allocate_plan = dict()
 
     for job_name, requirement in require_resources.items():
         best_fit_node = ""
         best_fit_score = 0
         score = 0
-        for node_name, free in free_resources.itmes():
-            if requirement['CPU_cores'] <= free['CPU_cores'] and \
-                requirement['GPU_mem'] <= free['GPU_mem'] and \
-                    requirement['mem'] <= free['mem']:
-                score = requirement['CPU_cores'] / free['CPU_cores'] + \
-                            requirement['GPU_mem'] / free['GPU_mem'] + \
-                                requirement['mem'] / free['mem']
+        for node_name, free in free_resources.items():
+            free = json.loads(free)
+            if float(requirement['CPU_cores']) <= float(free['free_CPU_cores']) and \
+                float(requirement['GPU_mem']) <= float(free['free_GPU_mem']) and \
+                    float(requirement['mem']) <= float(free['free_mem']):
+                score = float(requirement['CPU_cores']) / float(free['free_CPU_cores']) + \
+                            float(requirement['GPU_mem']) / float(free['free_GPU_mem']) + \
+                                float(requirement['mem']) / float(free['free_mem'])
                 if score > best_fit_score:
                     best_fit_score = score
                     best_fit_node = node_name
@@ -171,7 +166,7 @@ def allocate(require_resources, available_resources):
 
     return allocate_plan
 
-def get_available_resources(resource_group_name=None):
+def get_free_resources(resource_group_name=None):
     if resource_group_name:
         with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
             resource_group_info = json.load(infile)
@@ -183,6 +178,24 @@ def get_available_resources(resource_group_name=None):
     else:
         redis_connection = redis.StrictRedis(host="localhost", port="6379")
         free_resources = redis_connection.hgetall('resources')
+    
+    free_resources = decode_redis(free_resources)
 
     return free_resources
+
+def decode_redis(src):
+    if isinstance(src, list):
+        rv = list()
+        for key in src:
+            rv.append(decode_redis(key))
+        return rv
+    elif isinstance(src, dict):
+        rv = dict()
+        for key in src:
+            rv[key.decode()] = decode_redis(src[key])
+        return rv
+    elif isinstance(src, bytes):
+        return src.decode()
+    else:
+        raise Exception("type not handled: " +type(src))
 

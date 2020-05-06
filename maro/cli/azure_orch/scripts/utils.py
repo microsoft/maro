@@ -52,7 +52,7 @@ def sync_code():
     god_IP = resource_group_info['virtual_machines'][0]['IP']
     
     mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} 'sudo mkdir /code_repo/{branch_name}; sudo chmod -R 777 /code_repo/{branch_name}'"
-    sync_bin = f"rsync -arvz --exclude='log/*' --exclude='.git/*' {project_path} {admin_username}@{god_IP}:/code_repo/{branch_name} --delete"
+    sync_bin = f"rsync -arvz --exclude='log/*' --exclude='job_config/*' {project_path} {admin_username}@{god_IP}:/code_repo/{branch_name} --delete"
 
     for bin in [mkdir_bin, sync_bin]:
         res = subprocess.run(bin, shell=True)
@@ -119,19 +119,17 @@ def generate_job_config():
             )
         ]
 
-        out_folder = f"/code_repo/{inquirer.prompt(questions)[branch_name]}/maro/"
+        out_folder = f"/code_repo/{inquirer.prompt(questions)['branch_name']}/maro"
     else:
         out_folder = "/maro/dist/"
 
     job_group_name = gen_job_config(config_path, out_folder)
 
-    logger.info(chalk.green(f"your job group name is {job_group_name}, please remember it!"))
-
     if socket.gethostname() != 'god':
         questions = [
             inquirer.List(
                 'resource_group_name',
-                message="Which resource group would you like to launch job?",
+                message="Which resource group would you like to launch this job?",
                 choices=[resource_group_name[:-5] for resource_group_name in os.listdir("/maro/dist/azure_template/resource_group_info")],
                 carousel=True,
             ),
@@ -158,6 +156,8 @@ def generate_job_config():
             raise Exception(res.stderr)
         else:
             logger.info(f"run {rsync_bin} success!")
+    
+    logger.info(chalk.green(f"your job group name is {job_group_name}, please remember it!"))
 
 def sync_resource_group_info():
     if not os.path.exists('/maro/dist/azure_template/resource_group_info'):
@@ -239,7 +239,7 @@ def dev_mode():
     god_IP = resource_group_info['virtual_machines'][0]['IP']
 
     code_observer = Observer()
-    code_event_handler = CodeFileEventHandler(f"rsync -arvz --exclude='log/*' --exclude='.git/*' {project_path} {admin_username}@{god_IP}:/code_repo/{branch_name} --delete")
+    code_event_handler = CodeFileEventHandler(f"rsync -arvz --exclude='log/*' --exclude='job_config/*' {project_path} {admin_username}@{god_IP}:/code_repo/{branch_name} --delete", resource_group_name, branch_name)
     code_observer.schedule(code_event_handler, project_path, True)
     code_observer.start()
     
@@ -252,24 +252,26 @@ def dev_mode():
     code_observer.join()
 
 class CodeFileEventHandler(FileSystemEventHandler):
-    def __init__(self, auto_sync_bin):
+    def __init__(self, auto_sync_bin, resource_group_name, branch_name):
         FileSystemEventHandler.__init__(self)
         self._auto_sync_bin = auto_sync_bin
+        self._resource_group_name = resource_group_name
+        self._branch_name = branch_name
         
     def on_moved(self, event):
         subprocess.run(self._auto_sync_bin, shell=True, capture_output=True)
-        logging.info("[move] from {0} to {1} sync to: {3}".format(event.src_path, event.dest_path, self._dest))
+        logging.info(f"[move] from {event.src_path} to {event.dest_path} sync to: {self._resource_group_name}:{self._branch_name}")
 
     def on_created(self, event):
         subprocess.run(self._auto_sync_bin, shell=True, capture_output=True)
-        logging.info("[create] {0} sync to: {1}".format(event.src_path, self._dest))
+        logging.info(f"[create] {event.src_path} sync to: {self._resource_group_name}:{self._branch_name}")
 
 
     def on_deleted(self, event):
         subprocess.run(self._auto_sync_bin, shell=True, capture_output=True)
-        logging.info("[delete] {0} sync to: {1}".format(event.src_path, self._dest))
+        logging.info(f"[delete] {event.src_path} sync to: {self._resource_group_name}:{self._branch_name}")
 
 
     def on_modified(self, event):
         subprocess.run(self._auto_sync_bin, shell=True, capture_output=True)
-        logging.info("[modify] {0} sync to: {1}".format(event.src_path, self._dest))
+        logging.info(f"[modify] {event.src_path} sync to: {self._resource_group_name}:{self._branch_name}")

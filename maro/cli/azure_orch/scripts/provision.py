@@ -133,7 +133,7 @@ def init_god(god_info, docker_file_path, requirements_path, image_name="maro/ecr
             logger.info(f"run {bin} success!")
     
     # launch redis
-    launch_redis_bin = ssh_bin + f"sudo REDIS_PORT={god_info['redis_port']} bash /code_repo/bin/launch_redis.sh"
+    launch_redis_bin = ssh_bin + f"sudo bash /code_repo/bin/launch_redis.sh"
     res = subprocess.run(launch_redis_bin, shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
@@ -279,11 +279,6 @@ def inquirer_resource_group(config_path=None):
                 default="5"
             ),
             inquirer.Text(
-                'redis_port',
-                message="Which port would you want to use for redis on god?",
-                default="6379"
-            ),
-            inquirer.Text(
                 'samba_server_password',
                 message="What is your samba file server password?",
                 default="maro_dist"
@@ -308,7 +303,6 @@ def inquirer_resource_group(config_path=None):
         "virtual_machine_resource_group": resource_group_info["virtual_machine_resource_group"],
         "subscription": resource_group_info["subscription"] if config_path else resource_group_info["subscription"].split(": ")[1],
         "location": resource_group_info["location"],
-        "redis_port": resource_group_info["redis_port"],
         "samba_server_password": resource_group_info["samba_server_password"],
         "virtual_machines": [{
             "name": "god",
@@ -322,7 +316,6 @@ def inquirer_resource_group(config_path=None):
         "virtual_machine_resource_group": resource_group_info["virtual_machine_resource_group"],
         "subscription": resource_group_info["subscription"] if config_path else resource_group_info["subscription"].split(": ")[1],
         "location": resource_group_info["location"],
-        "redis_port": resource_group_info["redis_port"],
         "samba_server_password": resource_group_info["samba_server_password"],
         "virtual_machines": [{
             "name": f"node{i}",
@@ -365,7 +358,6 @@ def inquirer_delta_nodes():
         "virtual_machine_resource_group": exist_resource_group_info["virtual_machine_resource_group"],
         "subscription": exist_resource_group_info["subscription"],
         "location": exist_resource_group_info["location"],
-        "redis_port": exist_resource_group_info["redis_port"],
         "samba_server_password": exist_resource_group_info["samba_server_password"],
         "virtual_machines": [{
             "name": f"node{exist_node_num + i}",
@@ -402,7 +394,7 @@ def deploy_god_pubkey(delta_nodes_info):
     admin_username = delta_nodes_info['admin_username']
     god_public_key = delta_nodes_info['god_public_key']
     for node in delta_nodes_info["virtual_machines"]:
-        deploy_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node['IP']} 'echo {god_public_key} >> ~/.ssh/authorized_keys'"
+        deploy_bin = f'''ssh -o StrictHostKeyChecking=no {admin_username}@{node['IP']} "echo '{god_public_key}' >> ~/.ssh/authorized_keys"'''
         res = subprocess.run(deploy_bin, shell=True, capture_output=True)
         
         if res.returncode:
@@ -417,13 +409,16 @@ def create_resource_group(config_path):
     nodes_info['god_public_key'] = god_public_key
     create_nodes(nodes_info)
 
+    logger.info(chalk.green("create resource group success!"))
+
 def scale_up_resource_group():
-    logger.error(chalk.red("make sure that you are the creater of the resource group you want to scale up!"))
+    logger.critical(chalk.red("make sure that you are the creater of the resource group you want to scale up!"))
     create_nodes()
+    logger.info(chalk.green("scale up resource group success!"))
 
 def scale_down_resource_group():
-    logger.error(chalk.red("make sure that you are the creater of the resource group you want to scale down!"))
-    logger.error(chalk.red("this function is under developing!"))
+    logger.critical(chalk.red("make sure that you are the creater of the resource group you want to scale down!"))
+    logger.critical(chalk.red("this function is under developing!"))
 
 def stop_nodes():
     questions = [
@@ -536,3 +531,7 @@ def delete_resource_group():
             os.remove(os.path.join(root, name))
         for name in dirs:
             os.rmdir(os.path.join(root, name))
+    
+    os.removedir(f"/maro/dist/azure_template/{delete_resource_group_name}")
+
+    logger.info(chalk.green(f"remove reousource group {delete_resource_group_name} success!"))

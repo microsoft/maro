@@ -7,7 +7,6 @@ god_size: Standard_D16s_v3
 node_size: Standard_D16s_v3
 nodes_num: 1
 
-redis_port: 6200
 samba_server_password: happy
 
 docker_file_path: /home/tianyi/maro/docker_files/cpu.dist.df
