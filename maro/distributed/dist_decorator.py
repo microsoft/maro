@@ -22,11 +22,14 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
             def __init__(self, *args, **kwargs):
                 self.local_instance = cls(*args, **kwargs)
                 self.proxy = proxy
+                self._msg_request_handle_list = []
                 # use functools.partial to freeze handling function's local_instance and proxy
                 # arguments to self.local_instance and self.proxy
                 for idx, info in enumerate(handler_dict):
-                    self.handler_dict = {idx: partial(info['handler_fn'], self.local_instance, self.proxy)}
-                    self.msg_request = {idx: info['request']}
+                    self._msg_request_handle_list.append({'request': info['request'],
+                                                          'remain': info['request'], 
+                                                          'msg_list': [],
+                                                          'handler_fn': partial(info['handler_fn'], self.local_instance, self.proxy)})
 
             def __getattr__(self, name):
                 if name in self.__dict__:
@@ -39,11 +42,23 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 Universal entry point for running a cls instance in distributed mode
                 """
                 self.proxy.join()
-                self.proxy.add_msg_request(self.msg_request)
                 for msg in self.proxy.receive():
-                    request_idx, n_msg = self.proxy.msg_handler(msg)
-                    if n_msg is not None:
-                        self.handler_dict[request_idx](n_msg)
+                    for req_dict in self._msg_request_handle_list:
+                        for key, value in req_dict['remain'].items():
+                            if key == (msg.source, msg.type) or key == (True, msg.type) or key == (msg.source, True):
+                                if value > 1:
+                                    req_dict['remain'].update({key: value - 1})
+                                else:
+                                    del req_dict['remain'][key]
+                                req_dict['msg_list'].append(msg)
+
+                                if not req_dict['remain']:
+                                    request_msg_list = req_dict['msg_lst'][:]
+                                    req_dict['msg_lst'] = []
+                                    req_dict['remain'] = req_dict['request']
+                                    req_dict['handler_fn'](request_msg_list)
+                                
+                    raise Exception(f"Unexpected Msg, which msg_type is {msg.type} and source is {msg.source}")
 
         return Wrapper
 

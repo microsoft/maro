@@ -44,12 +44,6 @@ class Proxy:
         self._logger = logger if logger else logging
         self._mid = 0
 
-    def add_msg_request(self, request_dict):
-        self._msg_request = [{'request': request,
-                              'remain': request, 
-                              'msg_list': [],
-                              'handler_fn_idx': req_idx} for req_idx, request in request_dict.items()] if request_dict is not None else []
-
     @property
     def group_name(self) -> str:
         """str: group name"""
@@ -123,11 +117,11 @@ class Proxy:
 
     def _msg_decompose(self, message):
         """return [payload, source, type, destination, required] """
-        return message.payload, message.source, message.type, message.destination, message.operation
+        return message.payload, message.source, message.type, message.destination
 
     def scatter(self, message):
         """separate data, and send to peer"""
-        payload, msg_source, msg_type, msg_dest, msg_operation = self._msg_decompose(message)
+        payload, msg_source, msg_type, msg_dest = self._msg_decompose(message)
         mid_list = []
         
         for idx, pld in enumerate(payload):
@@ -145,7 +139,7 @@ class Proxy:
 
     def boardcast(self, message):
         """send data to all peers"""
-        payload, msg_source, msg_type, msg_dest, msg_operation = self._msg_decompose(message)
+        payload, msg_source, msg_type, msg_dest = self._msg_decompose(message)
         mid_list = []
 
         for destination in msg_dest:
@@ -192,27 +186,3 @@ class Proxy:
                 break
 
         return msg_holder
-
-    def msg_handler(self, message: Message):
-        for req_dict in enumerate(self._msg_request):
-            for key, value in req_dict['remain'].items():
-                if key == (message.source, message.type):
-                    if value > 1:
-                        req_dict['remain'].update({key: value - 1})
-                    else:
-                        del req_dict['remain'][key]
-                    req_dict['msg_list'].append(message)
-
-                    if not req_dict['remain']:
-                        request_msg_list = req_dict['msg_lst'][:]
-                        req_dict['msg_lst'] = []
-                        req_dict['remain'] = req_dict['request']
- 
-                        return req_dict['handler_fn_idx'], request_msg_list
-                    
-                    return None, None  # handler_function_idx, msg_list
-
-        raise Exception(f"Unknown Msg, which msg_type is {message.type} and source is {message.source}")
-
-
-            

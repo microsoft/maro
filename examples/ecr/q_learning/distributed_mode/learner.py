@@ -33,6 +33,8 @@ if not os.path.exists(LOG_FOLDER):
 with io.open(os.path.join(LOG_FOLDER, 'config.yml'), 'w', encoding='utf8') as out_file:
     yaml.safe_dump(raw_config, out_file)
 
+ANY_SOURCE = True
+ANY_TYPE = True
 
 BATCH_NUM = config.train.batch_num
 BATCH_SIZE = config.train.batch_size
@@ -59,11 +61,6 @@ COMPONENT_NAME = '.'.join([COMPONENT_TYPE, COMPONENT_ID])
 logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
                 dump_folder=LOG_FOLDER, dump_mode='w', auto_timestamp=False)
 
-# msg_request = [{(env, MsgType): num, 
-#                 (env, MsgType): num}, 
-#                {(env, MsgType): num,
-#                 (env, MsgType): num},
-#                MsgType]
 proxy = Proxy(group_name=os.environ['GROUP'],
               component_name=COMPONENT_NAME,
               peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
@@ -124,14 +121,14 @@ def on_env_checkout(local_instance, proxy, message):
             logger.critical(f"{COMPONENT_NAME} exited")
             sys.exit(0)
 
-handler_dict = [{MsgType.STORE_EXPERIENCE: on_new_experience,
+handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
                 MsgType.INITIAL_PARAMETERS: on_initial_net_parameters,
-                MsgType.ENV_CHECKOUT: on_env_checkout}]
+                MsgType.ENV_CHECKOUT: on_env_checkout}
 
-handler_dict = [{'request': {(env, MsgType): num, 
-                            (env, MsgType): num},
+handler_dict = [{'request': {(ANY_SOURCE, MsgType): num, 
+                            (env, ANY_TYPE): num}
                  'handler_fn': on_new_experience},
-                 {'request': {(env, MsgType): num, 
+                {'request': {(env, MsgType): num, 
                             (env, MsgType): num},
                  'handler_fn': on_new_experience}]
 
