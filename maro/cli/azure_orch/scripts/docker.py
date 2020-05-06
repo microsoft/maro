@@ -37,16 +37,26 @@ def unpack_docker_images(delta_nodes_info, image_name):
             logging.info(f"run {load_bin} success!")
 
 def launch_job():
-    if not os.path.exists('job_config'):
-        raise Exception("please generate job config before allocate jobs!")
-    
     host_name = socket.gethostname()
+
+    questions = [
+        inquirer.Text(
+            'branch_name',
+            message="What is the name of your branch?",
+        ),
+    ]
+
+    branch_name = inquirer.prompt(questions)['branch_name']
+
+    job_config_path = "/maro/dist/job_config" if host_name != 'god' else f"/code_repo/{branch_name}/maro/job_config"
+    if not os.path.exists(job_config_path):
+        raise Exception("please generate job config before allocate jobs!")
 
     questions = [
         inquirer.List(
             'job_group_name', 
             message="Which is the job group name you want to launch?",
-            choices=os.listdir("job_config/"),
+            choices=os.listdir(job_config_path),
             carousel=True,
         ),
         inquirer.Text(
@@ -65,13 +75,9 @@ def launch_job():
         questions += [
             inquirer.List(
                 'resource_group_name',
-                message="Which is the job group name you want to launch?",
-                choices=[resource_group_name[:-5] for resource_group_name in os.listdir("azure_template/resource_group_info")],
+                message="Which is the resource group name you want to launch?",
+                choices=[resource_group_name[:-5] for resource_group_name in os.listdir("/maro/dist/azure_template/resource_group_info")],
                 carousel=True,
-            ),
-            inquirer.Text(
-                'branch_name',
-                message="What is the name of your branch?",
             ),
         ]
 
@@ -82,18 +88,16 @@ def launch_job():
 
     if host_name != "god":
         resource_group_name = answers['resource_group_name']
-        branch_name = answers['branch_name']
-        with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
+        with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
             resource_group_info = json.load(infile)
     else:
         resource_group_name = None
-        branch_name = os.getcwd().split("/")[2]
         with open(f'/home/{getpass.getuser()}/resource_group_info.json', 'r') as infile:
             resource_group_info = json.load(infile)
 
     require_resources = dict()
-    for job_config in os.listdir(f"job_config/{job_group_name}"):
-        with open(f"job_config/{job_group_name}/{job_config}", 'r') as infile:
+    for job_config in os.listdir(f"{job_config_path}/{job_group_name}"):
+        with open(f"{job_config_path}/{job_group_name}/{job_config}", 'r') as infile:
             config = yaml.safe_load(infile)
         job_name = job_config[:-4]
         require_resources[job_name] = config['resources']
@@ -104,11 +108,11 @@ def launch_job():
 
     allocate_plan = {
         "environment_runner.0" : "node0",
-        "learner.0" : "node1",
-        "learner.1" : "node1",
-        "learner.2" : "node1",
-        "learner.3" : "node1",
-        "learner.4" : "node1",
+        "learner.0" : "node0",
+        "learner.1" : "node0",
+        "learner.2" : "node0",
+        "learner.3" : "node0",
+        "learner.4" : "node0",
     }
     
     admin_username = resource_group_info['admin_username']
@@ -119,7 +123,7 @@ def launch_job():
             node_ip_dict[node['name']] = node['IP']
     
     for job_name, node_name in allocate_plan.items():
-        envopt = f"-e CONFIG=/maro_dist/tools/azure_orch/job_config/{job_group_name}/{job_name}.yml"
+        envopt = f"-e CONFIG=/maro_dist/job_config/{job_group_name}/{job_name}.yml"
         component_type = job_name.split(".")[0]
         cmd = f"python3 {component_path}/{component_type}.py"
 
@@ -169,7 +173,7 @@ def allocate(require_resources, available_resources):
 
 def get_available_resources(resource_group_name=None):
     if resource_group_name:
-        with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
+        with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
             resource_group_info = json.load(infile)
 
         god_IP = resource_group_info['virtual_machines'][0]['vnet_IP']

@@ -17,9 +17,9 @@ import webbrowser
 from requests import get
 from maro.simulator.utils.common import get_available_envs
 
-from maro.cli.azure_orch.scripts.provision import create_resource_group, increase_resource_group, decrease_resource_group, stop_nodes, start_nodes
+from maro.cli.azure_orch.scripts.provision import create_resource_group, scale_up_resource_group, scale_down_resource_group, stop_nodes, start_nodes, delete_resource_group
 from maro.cli.azure_orch.scripts.docker import launch_job
-from maro.cli.azure_orch.scripts.utils import sync_code, pull_log, generate_job_config, sync_resource_group_info
+from maro.cli.azure_orch.scripts.utils import sync_code, pull_log, generate_job_config, sync_resource_group_info, dev_mode
 
 
 # static variables for calling from subfunctions
@@ -101,14 +101,18 @@ def main():
         'dist', help="create vm and launch jobs for MARO")
     parser_dist.add_argument('-crg', '--create_resource_group', action='store_true',
                                 help='create a new resource group')
-    parser_dist.add_argument('-irg', '--increase_resource_group', action='store_true',
+    parser_dist.add_argument('-c', '--config',
+                                help='specify the path of the config when create a new resource group')
+    parser_dist.add_argument('-surg', '--scale_up_resource_group', action='store_true',
                                 help='create extra workers for a resource group')
-    parser_dist.add_argument('-drg', '--decrease_resource_group', action='store_true',
+    parser_dist.add_argument('-sdrg', '--scale_down_resource_group', action='store_true',
                                 help='eliminate extra workers for a resource group')
-    parser_dist.add_argument('-startw', '--start_workers', action='store_true',
+    parser_dist.add_argument('-startn', '--start_nodes', action='store_true',
                                 help='start all workers in a resource group')
-    parser_dist.add_argument('-stopw', '--stop_workers', action='store_true',
+    parser_dist.add_argument('-stopn', '--stop_nodes', action='store_true',
                                 help='stop all workers in a resource group')
+    parser_dist.add_argument('-drg', '--delete_resource_group', action='store_true',
+                                help='delete a resource group')
     parser_dist.add_argument('-sc', '--sync_code', action='store_true',
                                 help='sync your current code to god if you are in dev machine, create a codebase if not exist')
     parser_dist.add_argument('-pl', '--pull_log', action='store_true',
@@ -120,6 +124,12 @@ def main():
     parser_dist.add_argument('-srg', '--sync_resource_group_info', action='store_true',
                                 help='get the resource group info from the god machine to use that resource group if you are not lucy')
     parser_dist.set_defaults(func=_dist_func)
+
+    dist_subparsers = parser_dist.add_subparsers(metavar='CLI_MODULE')
+    parser_dist_dev_mode = dist_subparsers.add_parser(
+        'dev_mode', help='auto sync the code with your remote branch'
+    )
+    parser_dist_dev_mode.set_defaults(func=_dist_dev_mode)
 
     args = parser.parse_args()
     args.func(args)
@@ -161,19 +171,22 @@ def _dashboard_func(args):
 def _dist_func(args):
     option_exists = False
     if args.create_resource_group:
-        create_resource_group()
+        create_resource_group(args.config)
         option_exists = True
-    elif args.increase_resource_group:
-        increase_resource_group()
+    elif args.scale_up_resource_group:
+        scale_up_resource_group()
         option_exists = True
-    elif args.decrease_resource_group:
-        decrease_resource_group()
+    elif args.scale_down_resource_group:
+        scale_down_resource_group()
         option_exists = True
-    elif args.start_workers:
-        start_workers()
+    elif args.start_nodes:
+        start_nodes()
         option_exists = True
-    elif args.stop_workers:
-        stop_workers()
+    elif args.stop_nodes:
+        stop_nodes()
+        option_exists = True
+    elif args.delete_resource_group:
+        delete_resource_group()
         option_exists = True
     elif args.generate_job_config:
         generate_job_config()
@@ -193,6 +206,9 @@ def _dist_func(args):
 
     if not option_exists:
         parser_dist.print_help()
+
+def _dist_dev_mode(args):
+    dev_mode()
 
 def ext_dashboard():
     '''

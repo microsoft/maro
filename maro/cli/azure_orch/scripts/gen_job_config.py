@@ -5,12 +5,12 @@ import yaml
 import random, string
 import copy
 
-def dump_config(component_config, group_name):
+def dump_config(component_config, group_name, out_folder):
     file_name = f"{component_config['self_id']}.yml"
-    with io.open(os.path.join(f"job_config/{group_name}", file_name), 'w', encoding='utf8') as out_file:
+    with io.open(os.path.join(f"{out_folder}/job_config/{group_name}", file_name), 'w', encoding='utf8') as out_file:
         yaml.safe_dump(component_config, out_file)
 
-def gen_job_config(config_path):
+def gen_job_config(config_path, out_folder):
     with open(config_path, 'r') as infile:
         config = yaml.safe_load(infile)
 
@@ -21,10 +21,10 @@ def gen_job_config(config_path):
     if dist_config['auto_signature']:
         group_name += '_' + ''.join(random.sample(string.ascii_letters + string.digits, 6))
 
-    if not os.path.exists('job_config'):
-        os.mkdir('job_config')
-    if not os.path.exists(f"job_config/{group_name}"):
-        os.mkdir(f"job_config/{group_name}")
+    if not os.path.exists(os.path.join(out_folder, 'job_config')):
+        os.mkdir(os.path.join(out_folder, 'job_config'))
+    if not os.path.exists(os.path.join(out_folder, 'job_config', f"{group_name}")):
+        os.mkdir(os.path.join(out_folder, 'job_config', f"{group_name}"))
 
     component_list = ['environment_runner', 'learner']
 
@@ -50,9 +50,9 @@ def gen_job_config(config_path):
                 component_config['resources'] = dist_config['resources'][component_type]
                 component_config['redis'] = config['redis']
             
-                dump_config(component_config, group_name)
+                dump_config(component_config, group_name, out_folder)
     except BaseException as e:
-        os.removedirs(f"job_config/{group_name}")
+        os.removedirs(f"/maro/dist/job_config/{group_name}")
         raise(e)
     
     return group_name

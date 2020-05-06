@@ -1,0 +1,14 @@
+admin_username: tianyi
+admin_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDH55eC8HCUzI1Uwkuv+WWU3OHvu+ssvvC8fyeGIJC8o8pSJNq/hSBxuDVIDMJ6XIujXgznTJjzRQcbU7L2floWgyvAqCUROxWDoTMpXJVjFC/qFPaio9FsmIAEyWEJA4OmEXWEmLqve4g2PkojbKBnN6IoeTcZP+EUir2VNOFTgxdooAEsXIch/0ItTJ83P+lQCp1OoOCTLUDu3JId6wwe2S803ySYYTdXwRJfePwwOMoxm55yd2w+TzLuOtMyRltQ1bI2REqUBfFswD+02foIRLBXKJ4Ygr3wwiRfYqKRbteaD3/zCG5IBx7fe6jxuo3ZTr7LC54PadPHGKY04bgN tianyi@dist
+subscription: e225d10c-2fce-4a2c-8ab8-fbf0cf28b99e
+location: southeastasia
+virtual_machine_resource_group: maro_dist
+god_size: Standard_D16s_v3
+node_size: Standard_D16s_v3
+nodes_num: 1
+
+redis_port: 6200
+samba_server_password: happy
+
+docker_file_path: /home/tianyi/maro/docker_files/cpu.dist.df
+requirements_path: /home/tianyi/maro/requirements.dev.txt

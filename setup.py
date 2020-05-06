@@ -69,7 +69,11 @@ setup(
         # TODO: more data from other modules
     },
     data_files=[
-        ('maro_dashboard', ['maro/utils/dashboard/resource.tar.gz'])
+        ('maro_dashboard', ['maro/utils/dashboard/resource.tar.gz']),
+        ('/maro/dist/azure_template', ['maro/cli/azure_orch/azure_template/deploy.sh', 'maro/cli/azure_orch/azure_template/parameters.json', 'maro/cli/azure_orch/azure_template/template.json']),
+        ('/maro/dist/bin', ['maro/cli/azure_orch/bin/build_image.sh', 'maro/cli/azure_orch/bin/install_az.sh', 'maro/cli/azure_orch/bin/install_docker.sh', 'maro/cli/azure_orch/bin/launch_redis.sh', 'maro/cli/azure_orch/bin/launch_samba.sh', 'maro/cli/azure_orch/bin/prob_resource.sh',]),
+        ('/maro/dist/redis_conf', ['maro/cli/azure_orch/redis_conf/redis.conf',]),
+        ('/maro/dist/scripts', ['maro/cli/azure_orch/scripts/prob.py',]),
     ],
     ext_modules=[
         graph_ext,

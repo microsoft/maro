@@ -1,8 +1,4 @@
-# from pynvml import nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlInit
-# from psutil import cpu_percent, cpu_count, virtual_memory
-# from socket import gethostname
 import redis
-# import os
 import time
 import subprocess
 import json
@@ -23,7 +19,7 @@ class Prob():
                 if node['name'] != "god":
                     ip_addr = node['IP']
                     
-                    res = subprocess.run(f"ssh -o StrictHostKeyChecking=no {admin_username}@{ip_addr} bash /code_point/bin/prob_resource.sh", shell=True, capture_output=True)
+                    res = subprocess.run(f"ssh -o StrictHostKeyChecking=no {admin_username}@{ip_addr} bash /code_repo/bin/prob_resource.sh", shell=True, capture_output=True)
                     if res.returncode:
                         raise Exception(res.stderr)
                     else:
@@ -32,8 +28,6 @@ class Prob():
                     free_resources = {"free_GPU_mem" : 999999,
                                     "free_mem": int(resources_info[0]) / 1024,
                                     "free_CPU_cores": float(resources_info[1]) * int(resources_info[2]) / 100}
-                    
-                    # print(free_resources)
 
                     self._redis_connection.hset("resources", node['name'], json.dumps(free_resources))
 

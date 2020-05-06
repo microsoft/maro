@@ -3,11 +3,13 @@ import logging
 import inquirer
 import json
 import socket
+import yaml
 
 import chalk
 from tqdm import tqdm
 
 from maro.cli.azure_orch.scripts.docker import install_docker, unpack_docker_images
+from maro.cli.azure_orch.scripts.vmconfig import config_create
 
 
 logging.basicConfig(level=logging.INFO,
@@ -19,39 +21,28 @@ logger = logging.getLogger('logger')
 def create_god(god_info):
     logger.info(chalk.green("create god machine start!"))
     
-    god_info = god_info
     resource_group_name = god_info['virtual_machine_resource_group']
 
-    # if not os.path.exists('/maro'):
-    #     os.mkdir('/maro')
-    #     if not os.path.exists('/maro/dist')
-    #         os.mkdir('/maro/dist')
-    #         if not os.path.exists('/maro/dist/azure_template')
-    #             os.mkdir('/maro/dist/azure_template')
-    #             if not os.path.exists('/maro/dist/azure_template/resource_group_info')
-    #                 os.mkdir('/maro/dist/azure_template/resource_group_info')
+    if not os.path.exists('/maro/dist/azure_template/resource_group_info'):
+        os.mkdir('/maro/dist/azure_template/resource_group_info')
 
-    if not os.path.exists('azure_template/resource_group_info'):
-        os.mkdir('azure_template/resource_group_info')
-
-    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:  
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:  
         json.dump(god_info, outfile, indent=4)
     
-    config_bin = f"python azure_template/vmconfig.py azure_template/resource_group_info/{resource_group_name}.json azure_template/{resource_group_name} azure_template/parameters.json"
+    config_create(f"/maro/dist/azure_template/resource_group_info/{resource_group_name}.json", f"/maro/dist/azure_template/{resource_group_name}", f"/maro/dist/azure_template/parameters.json")
     
-    create_bin = f"./azure_template/deploy.sh -i {god_info['subscription']} " + \
+    create_bin = f"/maro/dist/azure_template/deploy.sh -i {god_info['subscription']} " + \
                  f"-g {god_info['virtual_machine_resource_group']} -n DEFAULT " + \
                  f"-l {god_info['location']} " + \
-                 f"-t azure_template/template.json " + \
-                 f"-p azure_template/{resource_group_name}/god.json"
+                 f"-t /maro/dist/azure_template/template.json " + \
+                 f"-p /maro/dist/azure_template/{resource_group_name}/god.json"
 
     # create god vm
-    for bin in [config_bin, create_bin]:
-        res = subprocess.run(bin, shell=True, capture_output=True)
-        if res.returncode:
-            raise Exception(res.stderr)
-        else:
-            logger.info(f"run {bin} sucess.")
+    res = subprocess.run(create_bin, shell=True, capture_output=True)
+    if res.returncode:
+        raise Exception(res.stderr)
+    else:
+        logger.info(f"run {create_bin} success!")
     
     # get god IP
     get_IP_bin = f"az network public-ip list -g {god_info['virtual_machine_resource_group']}"
@@ -70,23 +61,22 @@ def create_god(god_info):
     else:
         god_vnet_IP = str(res.stdout, 'utf-8')
 
-    logger.info("Now you can remote login your god machine. ")
-    logger.info(chalk.green(f"COPY AND RUN: ssh {god_info['admin_username']}@{god_IP}"))
+    logger.info(chalk.green(f"Now you can remote login your god machine. COPY AND RUN: ssh {god_info['admin_username']}@{god_IP}"))
 
     # update god IP and vnet IP    
     god_info['virtual_machines'][0]['IP'] = god_IP
     god_info['virtual_machines'][0]['vnet_IP'] = god_vnet_IP[:-1]
 
     # save god info
-    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(god_info, outfile, indent=4)
     
     # upload god info to god vm
-    res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/resource_group_info/{resource_group_name}.json {god_info['admin_username']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
+    res = subprocess.run(f"scp -o StrictHostKeyChecking=no /maro/dist/azure_template/resource_group_info/{resource_group_name}.json {god_info['admin_username']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
 
-def init_god(god_info, image_name="maro/ecr/cpu/latest"):
+def init_god(god_info, docker_file_path, requirements_path, image_name="maro/ecr/cpu/latest"):
     admin_username = god_info["admin_username"]
     god_IP = god_info["virtual_machines"][0]["IP"]
 
@@ -106,20 +96,21 @@ def init_god(god_info, image_name="maro/ecr/cpu/latest"):
     # save god public key
     god_info['god_public_key'] = god_public_key
     resource_group_name = god_info['virtual_machine_resource_group']
-    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(god_info, outfile, indent=4)
 
     # scp necessary files
     mkdir_bin = ssh_bin + "sudo mkdir /code_repo"
     chmod_bin = ssh_bin + "sudo chmod 777 /code_repo"
-    scp_bash_bin = f"scp -o StrictHostKeyChecking=no -r bin {admin_username}@{god_IP}:/code_repo/"
-    scp_redis_conf_bin = f"scp -o StrictHostKeyChecking=no -r redis_conf {admin_username}@{god_IP}:/code_repo/"
-    scp_df_bin = f"scp -o StrictHostKeyChecking=no -r ../../../docker_files {admin_username}@{god_IP}:/code_repo/"
-    scp_requirements_bin = f"scp -o StrictHostKeyChecking=no ../../../requirements.dev.txt {admin_username}@{god_IP}:/code_repo/"
-    scp_prob_bin = f"scp -o StrictHostKeyChecking=no scripts/prob.py {admin_username}@{god_IP}:/code_repo/"
+    scp_bash_bin = f"scp -o StrictHostKeyChecking=no -r /maro/dist/bin {admin_username}@{god_IP}:/code_repo/"
+    scp_redis_conf_bin = f"scp -o StrictHostKeyChecking=no -r /maro/dist/redis_conf {admin_username}@{god_IP}:/code_repo/"
+    scp_df_bin = f"scp -o StrictHostKeyChecking=no {docker_file_path} {admin_username}@{god_IP}:/code_repo/"
+    scp_requirements_bin = f"scp -o StrictHostKeyChecking=no {requirements_path} {admin_username}@{god_IP}:/code_repo/"
+    scp_prob_bin = f"scp -o StrictHostKeyChecking=no /maro/dist/scripts/prob.py {admin_username}@{god_IP}:/code_repo/"
     for bin in [mkdir_bin, chmod_bin, scp_bash_bin, scp_redis_conf_bin, scp_df_bin, scp_requirements_bin, scp_prob_bin]:
         res = subprocess.run(bin, shell=True, capture_output=True)
         if res.returncode:
+            print(bin)
             raise Exception(res.stderr)
         else:
             logger.info(f"run {bin} success!")
@@ -128,7 +119,7 @@ def init_god(god_info, image_name="maro/ecr/cpu/latest"):
     install_docker_bin = ssh_bin + f"bash /code_repo/bin/install_docker.sh"
 
     # build docker images
-    build_docker_images_bin = ssh_bin + f"sudo DOCKER_FILE=/code_repo/docker_files/cpu.dist.df DOCKER_FILE_DIR=/code_repo DOCKER_IMAGE_NAME={image_name} bash /code_repo/bin/build_image.sh"
+    build_docker_images_bin = ssh_bin + f"sudo DOCKER_FILE=/code_repo/cpu.dist.df DOCKER_FILE_DIR=/code_repo DOCKER_IMAGE_NAME={image_name} bash /code_repo/bin/build_image.sh"
 
     # save docker images to code point
     #TODO: support more docker files, change docker_image
@@ -142,7 +133,7 @@ def init_god(god_info, image_name="maro/ecr/cpu/latest"):
             logger.info(f"run {bin} success!")
     
     # launch redis
-    launch_redis_bin = ssh_bin + "sudo bash /code_repo/bin/launch_redis.sh"
+    launch_redis_bin = ssh_bin + f"sudo REDIS_PORT={god_info['redis_port']} bash /code_repo/bin/launch_redis.sh"
     res = subprocess.run(launch_redis_bin, shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
@@ -160,7 +151,7 @@ def init_god(god_info, image_name="maro/ecr/cpu/latest"):
     # set samba server password
     set_password_bin = ssh_bin + f"sudo smbpasswd -a {admin_username}"
     proc = subprocess.Popen(set_password_bin, shell=True, stdin=subprocess.PIPE)
-    proc.communicate(input=b'''maro_dist\nmaro_dist''')
+    proc.communicate(input=bytes(f"{god_info['samba_server_password']}" + "\n" + f"{god_info['samba_server_password']}", "utf-8"))
 
     return god_public_key
 
@@ -173,34 +164,27 @@ def create_nodes(delta_nodes_info=None):
     delta_nodes_info_name = f"{delta_nodes_info['virtual_machine_resource_group']}.delta_info"
     resource_group_name = delta_nodes_info['virtual_machine_resource_group']
     
-    if not os.path.exists('azure_template/delta_nodes_info'):
-        os.mkdir('azure_template/delta_nodes_info')
-    with open(f'azure_template/delta_nodes_info/{delta_nodes_info_name}.json', 'w') as outfile:  
+    if not os.path.exists('/maro/dist/azure_template/delta_nodes_info'):
+        os.mkdir('/maro/dist/azure_template/delta_nodes_info')
+    with open(f'/maro/dist/azure_template/delta_nodes_info/{delta_nodes_info_name}.json', 'w') as outfile:  
         json.dump(delta_nodes_info, outfile, indent=4)
 
-    config_bin = f"python azure_template/vmconfig.py azure_template/delta_nodes_info/{delta_nodes_info_name}.json azure_template/{resource_group_name} azure_template/parameters.json"
-    
-    res = subprocess.run(config_bin, shell=True, capture_output=True)
-    if res.returncode:
-        raise Exception(res.stderr)
-    else:
-        logging.info(f"run {config_bin} sucess.")
-
-    pbar = tqdm(total=len(delta_nodes_info['virtual_machines']))
+    config_create(f"/maro/dist/azure_template/delta_nodes_info/{delta_nodes_info_name}.json", f"/maro/dist/azure_template/{resource_group_name}", f"/maro/dist/azure_template/parameters.json")
 
     # create nodes vm
+    pbar = tqdm(total=len(delta_nodes_info['virtual_machines']))
     for node in delta_nodes_info['virtual_machines']:
-        create_bin = f"./azure_template/deploy.sh -i {delta_nodes_info['subscription']} " + \
+        create_bin = f"/maro/dist/azure_template/deploy.sh -i {delta_nodes_info['subscription']} " + \
                      f"-g {delta_nodes_info['virtual_machine_resource_group']} -n DEFAULT " + \
                      f"-l {delta_nodes_info['location']} " + \
-                     f"-t azure_template/template.json " + \
-                     f"-p azure_template/{resource_group_name}/{node['name']}.json"
+                     f"-t /maro/dist/azure_template/template.json " + \
+                     f"-p /maro/dist/azure_template/{resource_group_name}/{node['name']}.json"
 
         res = subprocess.run(create_bin, shell=True, capture_output=True)
         if res.returncode:
             raise Exception(res.stderr)
         else:
-            logging.info(f"run {create_bin} sucess.")
+            logging.info(f"run {create_bin} success!")
         pbar.update(1)
     pbar.close()
     
@@ -215,12 +199,12 @@ def create_nodes(delta_nodes_info=None):
             node_ip = json.loads(res.stdout)[0]["ipAddress"]
             node['IP'] = node_ip
 
-    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'r') as infile:
         exist_resource_group_info = json.load(infile)
 
     # provision infrastructures
     god_vnet_IP = exist_resource_group_info['virtual_machines'][0]['vnet_IP']
-    image_name = "docker_image"     # docker image name simply set to docker_image
+    image_name = "docker_image"     # docker image file name simply set to "docker_image"
     mount_samba_server(delta_nodes_info, god_vnet_IP)
     install_docker(delta_nodes_info)
     deploy_god_pubkey(delta_nodes_info)
@@ -228,78 +212,104 @@ def create_nodes(delta_nodes_info=None):
 
     # update resource group info json and save
     exist_resource_group_info["virtual_machines"].extend(delta_nodes_info["virtual_machines"])
-    with open(f'azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json', 'w') as outfile:
         json.dump(exist_resource_group_info, outfile, indent=4)
     
     # upload resource group info to god vm
     god_IP = exist_resource_group_info['virtual_machines'][0]['IP']
-    res = subprocess.run(f"scp -o StrictHostKeyChecking=no azure_template/resource_group_info/{resource_group_name}.json {exist_resource_group_info['admin_username']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
+    res = subprocess.run(f"scp -o StrictHostKeyChecking=no /maro/dist/azure_template/resource_group_info/{resource_group_name}.json {exist_resource_group_info['admin_username']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
 
-def inquirer_resource_group():
-    res = subprocess.run("az account list", shell=True, capture_output=True)
-    if res.stderr:
-        res = subprocess.run("az login", shell=True, stdout=subprocess.PIPE)
-    
-    if res.returncode:
-        raise Exception(res.stderr)
-    
-    subscription_id_list = []
-    for subscription in json.loads(res.stdout):
-        subscription_id_list += [f"{subscription['name']}: {subscription['id']}"]
+def inquirer_resource_group(config_path=None):
+    if config_path:
+        with open(config_path, 'r') as infile:
+            resource_group_info = yaml.safe_load(infile)
+    else:
+        res = subprocess.run("az account list", shell=True, capture_output=True)
+        if res.stderr:
+            res = subprocess.run("az login", shell=True, stdout=subprocess.PIPE)
+        
+        if res.returncode:
+            raise Exception(res.stderr)
+        
+        subscription_id_list = []
+        for subscription in json.loads(res.stdout):
+            subscription_id_list += [f"{subscription['name']}: {subscription['id']}"]
 
-    questions = [
-        inquirer.Text(
-            'admin_username', 
-            message="Who is the admin user on resource group?",
-        ),
-        inquirer.Text(
-            'admin_public_key',
-            message="What is your public key? (default is ~/.ssh/id_rsa.pub)",
-            default=open(f'/home/{getpass.getuser()}/.ssh/id_rsa.pub').read()
-        ),
-        inquirer.List(
-            'subscription', 
-            message="Which is your subscription?",
-            choices=subscription_id_list,
-            carousel=True,
-        ),
-        inquirer.Text(
-            'location',
-            message="In which location you will set up the resource group?",
-            default="southeastasia"
-        ),
-        inquirer.Text(
-            'virtual_machine_resource_group',
-            message="What name is your group?",
-            default="maro_dist"
-        ),
-        inquirer.Text(
-            'god_size',
-            message="Which size is your god machine?",
-            default="Standard_D16s_v3"
-        ),
-        inquirer.Text(
-            'node_size',
-            message="Which size is your node machine?",
-            default="Standard_D16s_v3"
-        ),
-        inquirer.Text(
-            'nodes_num',
-            message="How many nodes are you going to create?",
-            default="5"
-        ),
-    ]
+        questions = [
+            inquirer.Text(
+                'admin_username', 
+                message="Who is the admin user on resource group?",
+            ),
+            inquirer.Text(
+                'admin_public_key',
+                message="What is your public key? (default is ~/.ssh/id_rsa.pub)",
+                default=open(f'/home/{getpass.getuser()}/.ssh/id_rsa.pub').read()
+            ),
+            inquirer.List(
+                'subscription', 
+                message="Which is your subscription?",
+                choices=subscription_id_list,
+                carousel=True,
+            ),
+            inquirer.Text(
+                'location',
+                message="In which location you will set up the resource group?",
+                default="southeastasia"
+            ),
+            inquirer.Text(
+                'virtual_machine_resource_group',
+                message="What name is your group?",
+                default="maro_dist"
+            ),
+            inquirer.Text(
+                'god_size',
+                message="Which size is your god machine?",
+                default="Standard_D16s_v3"
+            ),
+            inquirer.Text(
+                'node_size',
+                message="Which size is your node machine?",
+                default="Standard_D16s_v3"
+            ),
+            inquirer.Text(
+                'nodes_num',
+                message="How many nodes are you going to create?",
+                default="5"
+            ),
+            inquirer.Text(
+                'redis_port',
+                message="Which port would you want to use for redis on god?",
+                default="6379"
+            ),
+            inquirer.Text(
+                'samba_server_password',
+                message="What is your samba file server password?",
+                default="maro_dist"
+            ),
+            inquirer.Text(
+                'docker_file_path',
+                message="Where is your docker file?",
+                default=os.path.join(os.environ['PYTHONPATH'], "docker_files/cpu.dist.df"),
+            ),
+            inquirer.Text(
+                'requirements_path',
+                message="Where is your requirements file?",
+                default=os.path.join(os.environ['PYTHONPATH'], "requirements.dev.txt"),
+            )
+        ]
 
-    resource_group_info = inquirer.prompt(questions)
+        resource_group_info = inquirer.prompt(questions)
 
     god_info = {
         "admin_public_key": resource_group_info["admin_public_key"],
         "admin_username": resource_group_info["admin_username"],
         "virtual_machine_resource_group": resource_group_info["virtual_machine_resource_group"],
-        "subscription": resource_group_info["subscription"].split(": ")[1],
+        "subscription": resource_group_info["subscription"] if config_path else resource_group_info["subscription"].split(": ")[1],
         "location": resource_group_info["location"],
+        "redis_port": resource_group_info["redis_port"],
+        "samba_server_password": resource_group_info["samba_server_password"],
         "virtual_machines": [{
             "name": "god",
             "size": resource_group_info["god_size"]
@@ -310,15 +320,17 @@ def inquirer_resource_group():
         "admin_public_key": resource_group_info["admin_public_key"],
         "admin_username": resource_group_info["admin_username"],
         "virtual_machine_resource_group": resource_group_info["virtual_machine_resource_group"],
-        "subscription": resource_group_info["subscription"].split(": ")[1],
+        "subscription": resource_group_info["subscription"] if config_path else resource_group_info["subscription"].split(": ")[1],
         "location": resource_group_info["location"],
+        "redis_port": resource_group_info["redis_port"],
+        "samba_server_password": resource_group_info["samba_server_password"],
         "virtual_machines": [{
             "name": f"node{i}",
             "size": resource_group_info["node_size"]
         } for i in range(int(resource_group_info["nodes_num"]))]
     }
 
-    return god_info, nodes_info
+    return god_info, nodes_info, resource_group_info['docker_file_path'], resource_group_info['requirements_path']
 
 def inquirer_delta_nodes():
     questions = [
@@ -335,14 +347,14 @@ def inquirer_delta_nodes():
         inquirer.List(
             'virtual_machine_resource_group', 
             message="Which resource group would you like to create nodes?",
-            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"azure_template/resource_group_info")],
+            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"/maro/dist/azure_template/resource_group_info")],
             carousel=True,
         ),
     ]
 
     delta_nodes_info = inquirer.prompt(questions)
 
-    with open(f"azure_template/resource_group_info/{delta_nodes_info['virtual_machine_resource_group']}.json", 'r') as infile:
+    with open(f"/maro/dist/azure_template/resource_group_info/{delta_nodes_info['virtual_machine_resource_group']}.json", 'r') as infile:
         exist_resource_group_info = json.load(infile)
         exist_node_num = len(exist_resource_group_info["virtual_machines"]) - 1
 
@@ -353,6 +365,8 @@ def inquirer_delta_nodes():
         "virtual_machine_resource_group": exist_resource_group_info["virtual_machine_resource_group"],
         "subscription": exist_resource_group_info["subscription"],
         "location": exist_resource_group_info["location"],
+        "redis_port": exist_resource_group_info["redis_port"],
+        "samba_server_password": exist_resource_group_info["samba_server_password"],
         "virtual_machines": [{
             "name": f"node{exist_node_num + i}",
             "size": delta_nodes_info["node_size"]
@@ -363,9 +377,10 @@ def inquirer_delta_nodes():
 
 def mount_samba_server(delta_nodes_info, god_vnet_IP):
     admin_username = delta_nodes_info['admin_username']
+    samba_server_password = delta_nodes_info['samba_server_password']
     mkdir_bin = "sudo mkdir /code_repo"
     chmod_bin = "sudo chmod 777 /code_repo"
-    mount_bin = f"sudo mount -t cifs -o username={admin_username},password=maro_dist //{god_vnet_IP}/sambashare /code_repo"
+    mount_bin = f"sudo mount -t cifs -o username={admin_username},password={samba_server_password} //{god_vnet_IP}/sambashare /code_repo"
     append_bin = f'''"echo '//{god_vnet_IP}/sambashare  /code_repo cifs  username={admin_username},password=maro_dist  0  0' | sudo tee -a /etc/fstab"'''
     
     for node in delta_nodes_info["virtual_machines"]:
@@ -395,95 +410,129 @@ def deploy_god_pubkey(delta_nodes_info):
         else:
             logging.info(f"run {deploy_bin} success!")
 
-def create_resource_group():
-    god_info, nodes_info = inquirer_resource_group()
+def create_resource_group(config_path):
+    god_info, nodes_info, docker_file_path, requirements_path = inquirer_resource_group(config_path)
     create_god(god_info)
-    god_public_key = init_god(god_info)
+    god_public_key = init_god(god_info, docker_file_path, requirements_path)
     nodes_info['god_public_key'] = god_public_key
     create_nodes(nodes_info)
 
-def increase_resource_group():
+def scale_up_resource_group():
+    logger.error(chalk.red("make sure that you are the creater of the resource group you want to scale up!"))
     create_nodes()
 
-def decrease_resource_group():
-    pass
+def scale_down_resource_group():
+    logger.error(chalk.red("make sure that you are the creater of the resource group you want to scale down!"))
+    logger.error(chalk.red("this function is under developing!"))
 
 def stop_nodes():
     questions = [
         inquirer.List(
             'virtual_machine_resource_group', 
             message="Which resource group would you like to stop all nodes?",
-            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"azure_template/resource_group_info")],
+            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"/maro/dist/azure_template/resource_group_info")],
             carousel=True,
         ),
     ]
     resource_group_name = inquirer.prompt(questions)['virtual_machine_resource_group']
 
-    with open(f'azure_template/resource_group_info/{resource_group_name}') as infile:
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json') as infile:
         resource_group_info = json.load(infile)
 
     logger.info(f"Resource Group: {resource_group_info['virtual_machine_resource_group']}")
-
-    logger.info("Machines to stop:")
-    logger.info(' '.join([node["name"] for node in resource_group_info["virtual_machines"]]))
+    logger.info("Machines to stop: " + ' '.join([node["name"] for node in resource_group_info["virtual_machines"][1:]]))
 
     questions = [
         inquirer.Text(
-            'firstAffirm', 
+            'first_affirm', 
             message="Are you sure to stop up all of them? (y/n)",
                     ),
         inquirer.Text(
-            'secondAffirm',
+            'second_affirm',
             message="Really? (y/n)",        
             )
     ]
     answers = inquirer.prompt(questions)
 
-    if answers["firstAffirm"] == "y" and answers["secondAffirm"] == "y":
+    if answers["first_affirm"] == "y" and answers["second_affirm"] == "y":
         for node in resource_group_info["virtual_machines"]:
-            stop_bin = f"(az vm deallocate -g {resource_group_name} -n {node['name']} || echo 'stop {node['name']} error') &"
-        res = subprocess.run(stop_bin, shell=True, capture_output=True)
-        if res.returncode:
-            raise Exception(res.stderr)
-        else:
-            logger.info("stop cluster success!")
+            if node['name'] != 'god':
+                stop_bin = f"(az vm deallocate -g {resource_group_name} -n {node['name']} || echo 'stop {node['name']} error') &"
+                res = subprocess.run(stop_bin, shell=True, capture_output=True)
+                if res.returncode:
+                    raise Exception(res.stderr)
+                else:
+                    logger.info(f"stop {node['name']} success!")
 
 def start_nodes():
     questions = [
         inquirer.List(
             'virtual_machine_resource_group', 
             message="Which resource group would you like to start all nodes?",
-            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"azure_template/resource_group_info")],
+            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"/maro/dist/azure_template/resource_group_info")],
             carousel=True,
         ),
     ]
     resource_group_name = inquirer.prompt(questions)['virtual_machine_resource_group']
 
-    with open(f'azure_template/resource_group_info/{resource_group_name}') as infile:
+    with open(f'/maro/dist/azure_template/resource_group_info/{resource_group_name}.json') as infile:
         resource_group_info = json.load(infile)
 
     logger.info(f"Resource Group: {resource_group_info['virtual_machine_resource_group']}")
-
-    logger.info("Machines to start:")
-    logger.info(' '.join([node["name"] for node in resource_group_info["virtual_machines"]]))
+    logger.info("Machines to start: " + ' '.join([node["name"] for node in resource_group_info["virtual_machines"][1:]]))
 
     questions = [
         inquirer.Text(
-            'firstAffirm', 
+            'first_affirm', 
             message="Are you sure to start up all of them? (y/n)",
-                    ),
+            ),
         inquirer.Text(
-            'secondAffirm',
+            'second_affirm',
             message="Really? (y/n)",        
             )
     ]
     answers = inquirer.prompt(questions)
 
-    if answers["firstAffirm"] == "y" and answers["secondAffirm"] == "y":
+    if answers["first_affirm"] == "y" and answers["second_affirm"] == "y":
         for node in resource_group_info["virtual_machines"]:
-            start_bin = f"(az vm start -g {resource_group_name} -n {node['name']} || echo 'start {node['name']} error') &"
-        res = subprocess.run(start_bin, shell=True, capture_output=True)
+            if node['name'] != 'god':
+                start_bin = f"(az vm start -g {resource_group_name} -n {node['name']} || echo 'start {node['name']} error') &"
+                res = subprocess.run(start_bin, shell=True, capture_output=True)
+                if res.returncode:
+                    raise Exception(res.stderr)
+                else:
+                    logger.info(f"start {node['name']} success!")
+
+def delete_resource_group():
+    questions = [
+        inquirer.List(
+            'delete_resource_group', 
+            message="Which resource group would you like to delete?",
+            choices=[resource_group_info[:-5] for resource_group_info in os.listdir(f"/maro/dist/azure_template/resource_group_info")],
+            carousel=True,
+        ),
+        inquirer.Text(
+            'affirm', 
+            message=f"Are you sure to delete? (y/n)",
+        ),
+    ]
+
+    answers = inquirer.prompt(questions)
+
+    delete_resource_group_name = answers['delete_resource_group']
+
+    if answers['affirm'] == "y":
+        delete_bin = f"az group delete --name {delete_resource_group_name}"
+        res = subprocess.run(delete_bin, shell=True)
         if res.returncode:
             raise Exception(res.stderr)
         else:
-            logger.info("start cluster success!")
+            logger.info(f"run {delete_bin} success!")
+    
+    os.remove(f"/maro/dist/azure_template/resource_group_info/{delete_resource_group_name}.json")
+
+    for root, dirs, files in os.walk(f"/maro/dist/azure_template/{delete_resource_group_name}", topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))

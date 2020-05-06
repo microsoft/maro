@@ -7,8 +7,7 @@ import re
 def rename(array):
     return str(abs(hash(array)))
 
-
-def configCreate(configfile,outfolder,standardfile):
+def config_create(configfile,outfolder,standardfile):
     if not os.path.exists(outfolder):
         os.mkdir(outfolder)
 
@@ -21,7 +20,7 @@ def configCreate(configfile,outfolder,standardfile):
         for vm in config_data['virtual_machines']:
             tmp_data = standard_data
             current_vm = vm['name']            
-            with open('./'+outfolder+'/'+current_vm+'.json', 'w') as outfile:  
+            with open(outfolder+'/'+current_vm+'.json', 'w') as outfile:  
                 tmp_data['parameters']['networkInterfaceName']['value']=current_vm
                 
                 tmp_data['parameters']['location']['value']=config_data['location']
@@ -36,22 +35,3 @@ def configCreate(configfile,outfolder,standardfile):
                 tmp_data['parameters']['diagnosticsStorageAccountName']['value']='dist'+rename(current_vm+config_data['virtual_machine_resource_group'])
                 tmp_data['parameters']['diagnosticsStorageAccountId']['value']='Microsoft.Storage/storageAccounts/dist'+rename(current_vm) + rename(current_vm+config_data['virtual_machine_resource_group'])
                 json.dump(tmp_data, outfile, indent=4)
-
-
-if __name__ == '__main__':
-    params = sys.argv
-
-
-    if len(params) == 1:
-        config_file = raw_input("please input config file: ")
-        folder_name = raw_input("please input output folder name: ")
-        standard = raw_input("please input your base configuration file: ")
-    elif len(params) != 4:
-        print("{} {} {}".format('Usage: python', params[0], '<config-file> <output-folder> [base-config-file]'))
-        sys.exit(0)
-    else:
-        config_file = params[1]
-        folder_name = params[2]
-        standard = params[3]
-        configCreate(config_file, folder_name, standard)
-        print('Generate virtual machine configuration successfully.')
