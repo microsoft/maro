@@ -42,9 +42,13 @@ class Proxy:
         self._retry_interval = retry_interval
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._logger = logger if logger else logging
+        self._mid = 0
+
+    def add_msg_request(self, request_dict):
         self._msg_request = [{'request': request,
                               'remain': request, 
-                              'msg_list': []} for request in msg_request]
+                              'msg_list': [],
+                              'handler_fn_idx': req_idx} for req_idx, request in request_dict.items()] if request_dict is not None else []
 
     @property
     def group_name(self) -> str:
@@ -124,25 +128,37 @@ class Proxy:
     def scatter(self, message):
         """separate data, and send to peer"""
         payload, msg_source, msg_type, msg_dest, msg_operation = self._msg_decompose(message)
+        mid_list = []
         
         for idx, pld in enumerate(payload):
             destination = msg_dest[idx]
             scatter_message = Message(type=msg_type, source=msg_source,
                                     destination=destination,
-                                    payload=pld,
-                                    operation=msg_operation)
-            self.send(scatter_message)
+                                    payload=pld)
+            if scatter_message.destination not in self._send_channel:
+                raise Exception(f"Recipient {destination} is not found in {msg_source}'s peers. "
+                                f"Are you using the right configuration?")
+            mid_list.append(self.send(scatter_message))
+            self._logger.debug(f'sent a {scatter_message.type} message to {scatter_message.destination}')
+        
+        return mid_list
 
     def boardcast(self, message):
         """send data to all peers"""
         payload, msg_source, msg_type, msg_dest, msg_operation = self._msg_decompose(message)
+        mid_list = []
 
         for destination in msg_dest:
             boardcast_message = Message(type=msg_type, source=msg_source,
-                                    destination=destination,
-                                    payload=payload, 
-                                    operation=msg_operation)
-            self.send(boardcast_message)
+                                        destination=destination,
+                                        payload=payload)
+            if boardcast_message.destination not in self._send_channel:
+                raise Exception(f"Recipient {destination} is not found in {msg_source}'s peers. "
+                                f"Are you using the right configuration?")
+            mid_list.append(self.send(boardcast_message))
+            self._logger.debug(f'sent a {boardcast_message.type} message to {boardcast_message.destination}')
+        
+        return mid_list
 
     def send(self, message: Message):
         """Send a message to a remote peer
@@ -154,32 +170,49 @@ class Proxy:
             raise Exception('No message recipient found. Are you using the right configuration?')
 
         source, destination = message.source, message.destination
+        message.set_mid(self._mid)
+        self._mid += 1
         if message.destination not in self._send_channel:
             raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
                             f"Are you using the right configuration?")
         self._send_channel[destination].send_pyobj(message)
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
 
+        return message.mid
+
+    def sync(self, receive_list):
+        pending_receive_list = receive_list[:]
+        msg_holder = []
+        for msg in self.receive():
+            msg_holder.append(msg)
+            if msg.mid in pending_receive_list:
+                pending_receive_list.remove(msg.mid)
+
+            if not pending_receive_list:
+                break
+
+        return msg_holder
+
     def msg_handler(self, message: Message):
-        for req_dict in self._msg_request:
+        for req_dict in enumerate(self._msg_request):
             for key, value in req_dict['remain'].items():
                 if key == (message.source, message.type):
                     if value > 1:
                         req_dict['remain'].update({key: value - 1})
                     else:
                         del req_dict['remain'][key]
-                    req_dict['msg_list'].append(message)})
+                    req_dict['msg_list'].append(message)
 
                     if not req_dict['remain']:
                         request_msg_list = req_dict['msg_lst'][:]
                         req_dict['msg_lst'] = []
                         req_dict['remain'] = req_dict['request']
  
-                        return request_msg_list
+                        return req_dict['handler_fn_idx'], request_msg_list
                     
-                    return None
+                    return None, None  # handler_function_idx, msg_list
 
-        return list(message)
+        raise Exception(f"Unknown Msg, which msg_type is {message.type} and source is {message.source}")
 
 
             

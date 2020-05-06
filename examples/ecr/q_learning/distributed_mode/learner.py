@@ -62,7 +62,8 @@ logger = Logger(tag=COMPONENT_NAME, format_=LogFormat.simple,
 # msg_request = [{(env, MsgType): num, 
 #                 (env, MsgType): num}, 
 #                {(env, MsgType): num,
-#                 (env, MsgType): num}]
+#                 (env, MsgType): num},
+#                MsgType]
 proxy = Proxy(group_name=os.environ['GROUP'],
               component_name=COMPONENT_NAME,
               peer_name_list=get_peers(COMPONENT_TYPE, config.distributed),
@@ -123,9 +124,16 @@ def on_env_checkout(local_instance, proxy, message):
             logger.critical(f"{COMPONENT_NAME} exited")
             sys.exit(0)
 
-handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
+handler_dict = [{MsgType.STORE_EXPERIENCE: on_new_experience,
                 MsgType.INITIAL_PARAMETERS: on_initial_net_parameters,
-                MsgType.ENV_CHECKOUT: on_env_checkout}
+                MsgType.ENV_CHECKOUT: on_env_checkout}]
+
+handler_dict = [{'request': {(env, MsgType): num, 
+                            (env, MsgType): num},
+                 'handler_fn': on_new_experience},
+                 {'request': {(env, MsgType): num, 
+                            (env, MsgType): num},
+                 'handler_fn': on_new_experience}]
 
 
 @dist(proxy=proxy, handler_dict=handler_dict)
