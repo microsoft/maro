@@ -373,7 +373,7 @@ def mount_samba_server(delta_nodes_info, god_vnet_IP):
     mkdir_bin = "sudo mkdir /code_repo"
     chmod_bin = "sudo chmod 777 /code_repo"
     mount_bin = f"sudo mount -t cifs -o username={admin_username},password={samba_server_password} //{god_vnet_IP}/sambashare /code_repo"
-    append_bin = f'''"echo '//{god_vnet_IP}/sambashare  /code_repo cifs  username={admin_username},password=maro_dist  0  0' | sudo tee -a /etc/fstab"'''
+    append_bin = f'''"echo '//{god_vnet_IP}/sambashare  /code_repo cifs  username={admin_username},password={samba_server_password}  0  0' | sudo tee -a /etc/fstab"'''
     
     for node in delta_nodes_info["virtual_machines"]:
         ssh_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node['IP']} "
