@@ -102,9 +102,11 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset business engine"""
 
-        # TODO: since we will not change anything during simulating, so we can cache all the data here,
-        # or just one episode
-        pass
+        for _, engine in self._sub_engines.items():
+            engine.reset()
+
+        self._acount.reset()
+        self._account_snapshots.reset()
 
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment

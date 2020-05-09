@@ -98,6 +98,8 @@ class Account(EntityBase):
         return reward
 
     def reset(self):
+        self._frame.reset()
+        
         self.remaining_money = self._money * self._leverage
         self._last_total_money = self._money * self._leverage
         self.total_money = self._money * self._leverage

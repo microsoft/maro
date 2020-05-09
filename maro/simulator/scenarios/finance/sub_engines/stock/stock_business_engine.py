@@ -93,7 +93,11 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         return ret
 
     def reset(self):
-        pass
+        for _, reader in self._readers.items():
+            reader.reset()
+
+        self._frame.reset()
+        self._snapshots.reset()
 
     def _action_scope(self, stock_index_list: list):
         result = {}
