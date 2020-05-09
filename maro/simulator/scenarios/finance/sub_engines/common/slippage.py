@@ -19,7 +19,7 @@ class Slippage():
     def __init__(self):
         pass
 
-    def execute(self, order_action: Action, cur_data: dict):
+    def execute(self, order_action: Action, cur_data: dict, deal_price: float):
         pass
 
     @property
@@ -35,11 +35,11 @@ class ByMoneySlippage(Slippage):
         self.__slippage_type = SlippageType.by_money_slippage
         self.__slippage_rate = slippage_rate
 
-    def execute(self, order_action: Action, cur_data: dict) -> float:
+    def execute(self, order_action: Action, cur_data: dict, deal_price: float) -> float:
         order_direction = 1
         if order_action.number < 0:
             order_direction = -1
-        actual_price = round(cur_data[order_action.item_index].opening_price*(1+self.__slippage_rate*order_direction/2), 2)
+        actual_price = round(deal_price*(1+self.__slippage_rate*order_direction/2), 2)
         return actual_price
 
 
@@ -51,7 +51,7 @@ class ByVolumeSlippage(Slippage):
         self.__slippage_type = SlippageType.by_volume_slippage
         self.__pre_volume_fee = pre_volume_fee
 
-    def execute(self, order_action: Action, cur_data: dict) -> float:
+    def execute(self, order_action: Action, cur_data: dict, deal_price: float) -> float:
         return round(abs(order_action.volume)*self.__pre_volume_fee, 2)
 
 
@@ -63,5 +63,5 @@ class ByTradeSlippage(Slippage):
         self.__slippage_type = SlippageType.by_volume_slippage
         self.__pre_trade_fee = pre_trade_fee
 
-    def execute(self, order_action: Action, cur_data: dict) -> float:
+    def execute(self, order_action: Action, cur_data: dict, deal_price: float) -> float:
         return round(self.__pre_trade_fee, 2)

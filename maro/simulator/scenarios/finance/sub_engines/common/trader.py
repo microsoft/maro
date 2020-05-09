@@ -38,8 +38,11 @@ class Trader():
         # return stock, success, stock_price, number, tax
         asset = order_action.item_index
         is_success = False
-        actual_volume = order_action.number
-        actual_price = cur_data[order_action.item_index].closing_price
+        deal_volume = order_action.number
+        deal_price = cur_data[order_action.item_index].opening_price
+        if 'deal_price' in self._trade_constrain:
+            if self._trade_constrain['deal_price'] == 'closing':
+                deal_price = cur_data[order_action.item_index].closing_price
         commission_charge = 0
 
         if order_action.order_mode not in self._order_handlers:
@@ -52,61 +55,61 @@ class Trader():
             else:
                 is_success = True
                 if self._slippage_handler is not None:
-                    actual_price = self._slippage_handler.execute(order_action, cur_data)
+                    deal_price = self._slippage_handler.execute(order_action, cur_data, deal_price)
 
-                actual_volume = order_action.number
+                deal_volume = order_action.number
 
-                if actual_volume >= 0:
+                if deal_volume >= 0:
                     # if remaining_money is not enough
-                    actual_money = actual_price * actual_volume
-                    if actual_money > remaining_money:
-                        actual_volume -= math.ceil((actual_money - remaining_money)/actual_price)
+                    deal_money = deal_price * deal_volume
+                    if deal_money > remaining_money:
+                        deal_volume -= math.ceil((deal_money - remaining_money)/deal_price)
 
                     # if min buy unit is configed
                     if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
-                        odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                        odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
                         if odd_volume != 0:
-                            actual_volume -= odd_volume
+                            deal_volume -= odd_volume
 
                 else:
                     remaining_volume = cur_data[order_action.item_index].account_hold_num
-                    if remaining_volume < actual_volume:
-                        actual_volume = remaining_volume
+                    if remaining_volume < deal_volume:
+                        deal_volume = remaining_volume
 
                     # if min sell unit is configed
                     if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
-                        odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
+                        odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
                         if odd_volume != 0:
                             if odd_volume != remaining_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
-                                actual_volume -= odd_volume
+                                deal_volume -= odd_volume
 
                 for commission_handler in self._commission_handlers:
-                    commission_charge += commission_handler.execute(actual_price, actual_volume)
+                    commission_charge += commission_handler.execute(deal_price, deal_volume)
 
                 commission_charge = int(commission_charge*100) / 100
 
                 # if remaining_money is not enough for commission
-                if actual_volume > 0:
-                    expected_remaining = remaining_money - actual_volume * actual_price - commission_charge
+                if deal_volume > 0:
+                    expected_remaining = remaining_money - deal_volume * deal_price - commission_charge
                     if expected_remaining < 0:
-                        actual_volume -= math.ceil((-expected_remaining)/actual_price)
+                        deal_volume -= math.ceil((-expected_remaining)/deal_price)
 
                         if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
-                            odd_volume = actual_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                            odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
                             if odd_volume != 0:
-                                actual_volume -= odd_volume
+                                deal_volume -= odd_volume
                         
-                        if actual_volume < 0:
-                            actual_volume = 0
+                        if deal_volume < 0:
+                            deal_volume = 0
                             is_success = False
 
                         # recalculate commission charge
                         commission_charge = 0
                         for commission_handler in self._commission_handlers:
-                            commission_charge += commission_handler.execute(actual_price, actual_volume)
+                            commission_charge += commission_handler.execute(deal_price, deal_volume)
 
                 self._trade_number += 1
-                print("no.:", self._trade_number, "actual_price: ", actual_price, "actual_volume: ", actual_volume, "commission_charge: ", commission_charge, "remaining_money: ", remaining_money)
+                # print("no.:", self._trade_number, "deal_price: ", deal_price, "deal_volume: ", deal_volume, "commission_charge: ", commission_charge, "remaining_money: ", remaining_money)
                 # print( commission_charge)
 
-        return asset, is_success, actual_price, actual_volume, commission_charge
+        return asset, is_success, deal_price, deal_volume, commission_charge
