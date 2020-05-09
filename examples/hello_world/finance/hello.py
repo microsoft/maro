@@ -17,12 +17,13 @@ while not is_done:
     for item in decision_event.items:
         holding = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"account_hold_num"][-1]
         available = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"is_valid"][-1]
-        #print("env.tick: ",env.tick," holding: ",holding," available: ",available)
+        total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
+        print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
         if available == 1:
             if holding > 0:
                 action = Action("test_stocks", item, -holding, OrderMode.market_order)
             else:
-                action = Action("test_stocks",item, 500, OrderMode.market_order)
+                action = Action("test_stocks",item, 50000, OrderMode.market_order)
         else:
             action = None
         actions.append(action)
@@ -49,12 +50,12 @@ ep_time = time.time() - ep_start
 # print("account hold num for all the ticks:")
 # print(stock_account_hold_num)
 
-# account_snapshots: SnapshotList = env.snapshot_list.account
+account_snapshots: SnapshotList = env.snapshot_list.account
 
-# account_total_money = account_snapshots.static_nodes[:0:"total_money"]
+account_total_money = account_snapshots.static_nodes[:0:"total_money"]
 
-# print("account total money for all the ticks:")
-# print(account_total_money)
+print("account total money for all the ticks:")
+print(account_total_money)
 
 # NOTE: assets interface must provide ticks
 # assets_query_ticks = [0, 1, 2]

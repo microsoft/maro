@@ -38,7 +38,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._read_conf()
         self._init_sub_engines()
 
-        self._acount = Account(self.snapshots, self._account_frame, self._conf["account"]["money"])  # contain trade result
+        self._acount = Account(self.snapshots, self._account_frame, self._conf["account"]["money"], self._conf["account"]["leverage"], self._conf["account"]["min_leverage_rate"])  # contain trade result
         
         # out-side accessor as snapshost_list.trade_history
         self._snapshot_accessor.add_item("trade_history", self._acount.trade_history)
@@ -65,7 +65,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Returns:
             bool: if scenario end at this tick
         """
-        print("cur tick: ", tick)
+        #print("cur tick: ", tick)
         for sub_engine in self._sub_engines.values():
             sub_engine.step(tick)
 

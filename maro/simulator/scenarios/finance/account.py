@@ -63,16 +63,18 @@ class Account(EntityBase):
 
     # all stock
     # all future
-    def __init__(self, snapshots, frame: Frame, money: float):
+    def __init__(self, snapshots, frame: Frame, money: float, leverage: float=1, min_leverage_rate: float=0):
         super().__init__(frame, 0)
         # NOTE: the snapshots is wrapper of snapshots of sub-engines,
         # you can access them by sub-engine name like: snapshots.china to calculate reward
         self._money = money
         self.trade_history = []  # TODO: later
-        self.remaining_money = money
-        self._last_total_money = money
-        self.total_money = money
+        self.remaining_money = money * leverage
+        self._last_total_money = money * leverage
+        self.total_money = money * leverage
         self._sub_account = OrderedDict()
+        self._leverage = leverage 
+        self._min_leverage_rate = min_leverage_rate
 
     def take_trade(self, trade_result: TradeResult, cur_data: list, cur_engine: str):
         self._last_total_money = self.total_money
@@ -83,7 +85,8 @@ class Account(EntityBase):
             self._sub_account[cur_engine] += stock.closing_price * stock.account_hold_num
         for engine in self._sub_account.keys():
             self.total_money += self._sub_account[engine]
-
+        if self.leverage_alert():
+            print("leverage alert:", self.total_money ,"/", self._money * (self._leverage - 1), "<", self._min_leverage_rate)
         self.trade_history.append(trade_result)
 
 
@@ -91,12 +94,18 @@ class Account(EntityBase):
         # TODO: zhanyu to update the logic
         # - last tick
         reward = self.total_money - self._last_total_money
-        print("reward:", reward)
+        #print("reward:", reward)
         return reward
 
     def reset(self):
-        self.remaining_money = self._money
-        self._last_total_money = self._money
-        self.total_money = self._money
+        self.remaining_money = self._money * self._leverage
+        self._last_total_money = self._money * self._leverage
+        self.total_money = self._money * self._leverage
         self._sub_account = OrderedDict()
         self.trade_history.clear()
+
+    def leverage_alert(self):
+        ret = False
+        if self.total_money/(self._money * (self._leverage - 1)) < self._min_leverage_rate:
+            ret = True
+        return ret
