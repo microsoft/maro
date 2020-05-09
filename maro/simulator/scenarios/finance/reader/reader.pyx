@@ -194,7 +194,7 @@ cdef class FinanceReader:
         if max_tick <= 0:
             self._max_tick = self.reader.size + self._padding_days - self.reader.start
 
-        print(self.reader.start, self._max_tick, self._padding_days)
+        # print(self.reader.start, self._max_tick, self._padding_days)
 
         self.reader.start = 0
 

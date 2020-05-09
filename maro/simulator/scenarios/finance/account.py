@@ -95,8 +95,11 @@ class Account(EntityBase):
         return reward
 
     def reset(self):
+        self._frame.reset()
+        
         self.remaining_money = self._money
         self._last_total_money = self._money
         self.total_money = self._money
         self._sub_account = OrderedDict()
         self.trade_history.clear()
+

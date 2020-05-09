@@ -105,6 +105,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for _, engine in self._sub_engines.items():
             engine.reset()
 
+        self._acount.reset()
+        self._account_snapshots.reset()
+
     def get_node_name_mapping(self) -> Dict[str, Dict]:
         """Get node name mappings related with this environment
 

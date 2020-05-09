@@ -3,32 +3,37 @@ from maro.simulator import Env
 from maro.simulator.frame import SnapshotList
 from maro.simulator.scenarios.finance.common import Action, OrderMode
 
+MAX_EP = 2
 
 env = Env("finance", "test", max_tick=-1)
 
-print("current stocks")
-print(env.node_name_mapping.test_stocks)
-ep_start = time.time()
-reward, decision_event, is_done = env.step(None)
+# print("current stocks")
+# print(env.node_name_mapping.test_stocks)
 
-while not is_done:
-    print("env.tick: ",env.tick)
-    actions = []
-    for item in decision_event.items:
-        holding = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"account_hold_num"][-1]
-        available = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"is_valid"][-1]
-        #print("env.tick: ",env.tick," holding: ",holding," available: ",available)
-        if available == 1:
-            if holding > 0:
-                action = Action("test_stocks", item, -holding, OrderMode.market_order)
+for ep in range(MAX_EP):
+    env.reset()
+    ep_start = time.time()
+    reward, decision_event, is_done = env.step(None)
+
+    while not is_done:
+        actions = []
+
+        for item in decision_event.items:
+            holding = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"account_hold_num"][-1]
+            available = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"is_valid"][-1]
+            #print("env.tick: ",env.tick," holding: ",holding," available: ",available)
+
+            if available == 1:
+                if holding > 0:
+                    action = Action("test_stocks", item, -holding, OrderMode.market_order)
+                else:
+                    action = Action("test_stocks",item, 500, OrderMode.market_order)
             else:
-                action = Action("test_stocks",item, 500, OrderMode.market_order)
-        else:
-            action = None
-        actions.append(action)
-    reward, decision_event, is_done = env.step(actions)
+                action = None
+            actions.append(action)
+        reward, decision_event, is_done = env.step(actions)
 
-ep_time = time.time() - ep_start
+    ep_time = time.time() - ep_start
 
 # stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
 
