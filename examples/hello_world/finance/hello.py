@@ -26,9 +26,9 @@ for ep in range(MAX_EP):
 
             if available == 1:
                 if holding > 0:
-                    action = Action("test_stocks", item, -holding, OrderMode.market_order)
+                    action = Action("test_stocks", item, -holding, decision_event.idx, OrderMode.market_order)
                 else:
-                    action = Action("test_stocks",item, 500, OrderMode.market_order)
+                    action = Action("test_stocks",item, 500000, decision_event.idx, OrderMode.market_order)
             else:
                 action = None
             actions.append(action)

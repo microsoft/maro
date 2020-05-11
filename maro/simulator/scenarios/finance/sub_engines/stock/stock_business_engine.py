@@ -36,6 +36,9 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._init_reader()
         self._init_trader(self._config)
 
+        self._action_scopes: dict = OrderedDict()
+        self._action_scope_id = 0
+
     @property
     def finance_type(self):
         return FinanceType.stock
@@ -66,7 +69,9 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 if raw_stock.is_valid:
                     valid_stocks.append(stock.index)
 
-        decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope)
+        decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope, self._action_scope_id)
+        self._action_scopes[self._action_scope_id] = decision_event
+        self._action_scope_id += 1
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
         self._event_buffer.insert_event(evt)
@@ -86,10 +91,14 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         # 1. can trade -> bool
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
-        asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
-        ret = TradeResult(self.name, action.item_index, actual_volume, tick, actual_price, commission_charge, is_success)
-        if is_success:
-            self._stock_list[asset].account_hold_num += actual_volume
+        ret = TradeResult(self.name, action.item_index, 0, tick, 0, 0, False)
+        if self._verify_action(action):
+            asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
+            ret = TradeResult(self.name, action.item_index, actual_volume, tick, actual_price, commission_charge, is_success)
+            if is_success:
+                self._stock_list[asset].account_hold_num += actual_volume
+        else:
+            print("out of action scope")
         return ret
 
     def reset(self):
@@ -103,9 +112,9 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         result = {}
 
         for stock_index in stock_index_list:
-            stock: Stock = self._stock_list[stock_index_list]
+            stock: Stock = self._stock_list[stock_index]
 
-            result[stock_index] = (stock.trade_volume * self._action_scope_min, stock.trade_volume * self._action_scope_max)
+            result[stock_index] = (-stock.account_hold_num, stock.trade_volume * self._action_scope_max)
 
         return (self._order_mode, result, self._trader.supported_orders)
 
@@ -145,3 +154,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         # trade_constrain[TradeConstrain.min_buy_unit] = config['trade_constrain']['min_buy_unit']
         # trade_constrain[TradeConstrain.min_sell_unit] = config['trade_constrain']['min_sell_unit']
         self._trader = StockTrader(trade_constrain)
+
+    def _verify_action(self, action: Action)->bool: 
+        ret = False
+        if action.idx in self._action_scopes: 
+            if self._action_scopes[action.idx].action_scope[1][action.item_index][0] <= action.number and self._action_scopes[action.idx].action_scope[1][action.item_index][1] >= action.number:
+                ret = True
+        return ret

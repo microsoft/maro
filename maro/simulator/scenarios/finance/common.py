@@ -37,7 +37,7 @@ class TradeResult:
 
 
 class DecisionEvent:
-    def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable):
+    def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable, idx: int):
         """
         Parameters:
             tick (int): current tick of decision
@@ -52,6 +52,7 @@ class DecisionEvent:
         self.sub_engine_name = sub_engine_name
         self._action_scope = None
         self._action_scope_func = action_scope_func
+        self.idx = idx
 
     @property
     def action_scope(self) -> list:
@@ -66,7 +67,7 @@ class DecisionEvent:
 
 
 class Action:
-    def __init__(self, sub_engine_name: str, item_index: int, number: int, order_mode: OrderMode = None, stop: int = 0, limit: int = 0):
+    def __init__(self, sub_engine_name: str, item_index: int, number: int, idx: int, order_mode: OrderMode = None, stop: int = 0, limit: int = 0):
         """
         Parameters:
             sub_engine_name (str): name of engine the decision event from
@@ -79,6 +80,7 @@ class Action:
         self.order_mode = order_mode
         self.stop = stop
         self.limit = limit
+        self.idx = idx
 
     def __repr__(self):
         return f"<Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number}>"
