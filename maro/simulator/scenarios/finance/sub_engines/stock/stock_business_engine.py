@@ -36,8 +36,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._init_reader()
         self._init_trader(self._config)
 
-        self._action_scopes: dict = OrderedDict()
-        self._action_scope_id = 0
+        self._cur_action_scope: list = []
 
     @property
     def finance_type(self):
@@ -69,9 +68,8 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 if raw_stock.is_valid:
                     valid_stocks.append(stock.index)
 
-        decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope, self._action_scope_id)
-        self._action_scopes[self._action_scope_id] = decision_event
-        self._action_scope_id += 1
+        decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope)
+        self._cur_action_scope = decision_event.action_scope[1]
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
         self._event_buffer.insert_event(evt)
@@ -157,7 +155,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
     def _verify_action(self, action: Action)->bool: 
         ret = False
-        if action.idx in self._action_scopes: 
-            if self._action_scopes[action.idx].action_scope[1][action.item_index][0] <= action.number and self._action_scopes[action.idx].action_scope[1][action.item_index][1] >= action.number:
+        if action.item_index in self._cur_action_scope: 
+            if self._cur_action_scope[action.item_index][0] <= action.number and self._cur_action_scope[action.item_index][1] >= action.number:
                 ret = True
         return ret
