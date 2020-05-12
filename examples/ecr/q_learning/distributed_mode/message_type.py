@@ -13,6 +13,11 @@ class MsgType(Enum):
     ENV_CHECKOUT = 4  # message notify the environment is finish and checkout
 
 
+class MsgStatus(Enum):
+    SEND_MESSAGE = 0
+    RECEIVE_MESSAGE = 1
+    
+
 class PayloadKey(Enum):
     EXPERIENCE = 'experience'
     EPISODE = 'episode'

@@ -129,7 +129,6 @@ class EnvRunner(Runner):
             self.send_experience(id_, episode)
 
         self._env.reset()
-        self._proxy.sync()
 
     def send_net_parameters_to_learner(self):
         """

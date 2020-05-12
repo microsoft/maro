@@ -5,6 +5,7 @@
 from maro.distributed.proxy import Proxy
 from typing import Callable
 from functools import partial
+from copy import deepcopy
 
 
 def dist(proxy: Proxy, handler_dict: {object: Callable}):
@@ -25,9 +26,9 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 self._msg_request_handle_list = []
                 # use functools.partial to freeze handling function's local_instance and proxy
                 # arguments to self.local_instance and self.proxy
-                for idx, info in enumerate(handler_dict):
+                for info in handler_dict:
                     self._msg_request_handle_list.append({'request': info['request'],
-                                                          'remain': info['request'], 
+                                                          'remain': deepcopy(info['request']), 
                                                           'msg_list': [],
                                                           'handler_fn': partial(info['handler_fn'], self.local_instance, self.proxy)})
 
@@ -44,7 +45,7 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 self.proxy.join()
                 for msg in self.proxy.receive():
                     for req_dict in self._msg_request_handle_list:
-                        for key, value in req_dict['remain'].items():
+                        for key, value in list(req_dict['remain'].items()):
                             if key == (msg.source, msg.type) or key == (True, msg.type) or key == (msg.source, True):
                                 if value > 1:
                                     req_dict['remain'].update({key: value - 1})
@@ -53,13 +54,12 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                                 req_dict['msg_list'].append(msg)
 
                                 if not req_dict['remain']:
-                                    request_msg_list = req_dict['msg_lst'][:]
-                                    req_dict['msg_lst'] = []
-                                    req_dict['remain'] = req_dict['request']
+                                    request_msg_list = req_dict['msg_list'][:]
+                                    req_dict['msg_list'] = []
+                                    req_dict['remain'] = deepcopy(req_dict['request'])
                                     req_dict['handler_fn'](request_msg_list)
                                 
-                    raise Exception(f"Unexpected Msg, which msg_type is {msg.type} and source is {msg.source}")
-
+                                
         return Wrapper
 
     return dist_decorator

@@ -6,6 +6,7 @@ import socket
 import json
 import time
 import logging
+from concurrent.futures import ProcessPoolExecutor,ThreadPoolExecutor
 from copy import deepcopy
 
 # third party lib
@@ -14,6 +15,7 @@ import zmq
 
 # private lib
 from maro.distributed.message import Message
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey, MsgStatus
 from typing import List
 
 
@@ -42,7 +44,8 @@ class Proxy:
         self._retry_interval = retry_interval
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._logger = logger if logger else logging
-        self._mid = 0
+        shared_memory_manager = multiprocessing.Manager()
+        self._message_cache = shared_memory_manager.dict()
 
     @property
     def group_name(self) -> str:
@@ -115,44 +118,27 @@ class Proxy:
         while True:
             yield self._receiver.recv_pyobj()
 
-    def _msg_decompose(self, message):
-        """return [payload, source, type, destination, required] """
-        return message.payload, message.source, message.type, message.destination
-
-    def scatter(self, message):
+    def scatter(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
         """separate data, and send to peer"""
-        payload, msg_source, msg_type, msg_dest = self._msg_decompose(message)
-        mid_list = []
-        
-        for idx, pld in enumerate(payload):
-            destination = msg_dest[idx]
-            scatter_message = Message(type=msg_type, source=msg_source,
-                                    destination=destination,
-                                    payload=pld)
-            if scatter_message.destination not in self._send_channel:
-                raise Exception(f"Recipient {destination} is not found in {msg_source}'s peers. "
-                                f"Are you using the right configuration?")
-            mid_list.append(self.send(scatter_message))
-            self._logger.debug(f'sent a {scatter_message.type} message to {scatter_message.destination}')
-        
-        return mid_list
+        receive_list = self._group_send(message_type, destination_payload_list)
 
-    def boardcast(self, message):
+        return self.get(receive_list)
+
+    def iscatter(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
+        return self._group_send(message_type, destination_payload_list)
+
+    def broadcast(self, message_type: MsgType, destination: list, payload, multithread = False, multiprocess = False):
         """send data to all peers"""
-        payload, msg_source, msg_type, msg_dest = self._msg_decompose(message)
-        mid_list = []
+        destination_payload_list = [(dest, payload) for dest in destination]
 
-        for destination in msg_dest:
-            boardcast_message = Message(type=msg_type, source=msg_source,
-                                        destination=destination,
-                                        payload=payload)
-            if boardcast_message.destination not in self._send_channel:
-                raise Exception(f"Recipient {destination} is not found in {msg_source}'s peers. "
-                                f"Are you using the right configuration?")
-            mid_list.append(self.send(boardcast_message))
-            self._logger.debug(f'sent a {boardcast_message.type} message to {boardcast_message.destination}')
-        
-        return mid_list
+        receive_list = self._group_send(message_type, destination_payload_list)
+
+        return self.get(receive_list)
+
+    def ibroadcast(self, message_type: MsgType, destination: list, payload, multithread = False, multiprocess = False):
+        destination_payload_list = [(dest, payload) for dest in destination]
+
+        return self._group_send(message_type, destination_payload_list)
 
     def send(self, message: Message):
         """Send a message to a remote peer
@@ -160,27 +146,65 @@ class Proxy:
         Args:
             message: message to be sent
         """
+        self._message_cache[message.message_id] = MsgStatus.SEND_MESSAGE
+
         if not hasattr(self, '_send_channel'):
             raise Exception('No message recipient found. Are you using the right configuration?')
 
         source, destination = message.source, message.destination
-        message.set_mid(self._mid)
-        self._mid += 1
         if message.destination not in self._send_channel:
             raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
                             f"Are you using the right configuration?")
         self._send_channel[destination].send_pyobj(message)
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
+        self._message_cache[message.message_id] = MsgStatus.RECEIVE_MESSAGE
 
-        return message.mid
+    def _group_send(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
+        """ """
+        message_id_list = []
 
-    def sync(self, receive_list):
+        if multithread:
+            executor = ThreadPoolExecutor(max_workers=len(destination_payload_list))
+        if multiprocess:
+            executor = ProcessPoolExecutor(max_workers=len(destination_payload_list))
+
+        for destination, payload in destination_payload_list:
+            single_message = Message(type=message_type, source=self._name,
+                                    destination=destination,
+                                    payload=payload)
+            if single_message.destination not in self._send_channel:
+                raise Exception(f"Recipient {destination} is not found in {self._name}'s peers. "
+                                f"Are you using the right configuration?")
+            if multithread or multiprocess:
+                executor.submit(self.send, single_message)
+            else:
+                self.send(single_message)
+            message_id_list.append(single_message.message_id)
+            self._logger.debug(f'sent a {single_message.type} message to {single_message.destination}')
+
+        if multithread or multiprocess:
+            executor.shutdown()
+        return message_id_list
+
+    def get(self, receive_list):
         pending_receive_list = receive_list[:]
         msg_holder = []
+
+        for msg_id in receive_list:
+            if msg_id in list(self._message_cache.keys()):
+                pending_receive_list.remove(msg_id)
+                msg_holder.append(self._message_cache[msg_id])
+                del self._message_cache[msg_id]
+            
+            if not pending_receive_list:
+                return msg_holder
+        
         for msg in self.receive():
-            msg_holder.append(msg)
-            if msg.mid in pending_receive_list:
-                pending_receive_list.remove(msg.mid)
+            if msg.message_id in pending_receive_list:
+                pending_receive_list.remove(msg.message_id)
+                msg_holder.append(msg)
+            else:
+                self._message_cache[msg.message_id] = msg
 
             if not pending_receive_list:
                 break
