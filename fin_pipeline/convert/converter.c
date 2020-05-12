@@ -4,7 +4,7 @@
 /**
  * usage:
  * converter datatype mode options_for_each_mode
- * 
+ *
  * datatype:
  * 1. stock
  * 
@@ -274,8 +274,19 @@ int write_stock_item(FILE *file, stock_t *stock, uint64_t last_time)
     // invalid item, we just skip it
     if(last_time != 0 && delta < DAY_SEC)
     {
+        struct tm * cur;
+        char buffer[26];
+        cur = localtime(&(stock->time));
+        strftime(buffer, 26, "%Y:%m:%d %H:%M:%S", cur);
+
+        struct tm * last;
+        char last_buffer[26];
+        last = localtime(&(last_time));
+        strftime(last_buffer, 26, "%Y:%m:%d %H:%M:%S", last);
         // do nothing, just a warning.
-        printf("warning: skip invliad item to insert, delta: %lld.\n", delta);
+        printf("last time: %lld, stock time: %lld, day sec: %lld.\n", last_time, stock->time, DAY_SEC);
+
+        printf("warning: skip invliad item to insert, delta: %lld. time: %s. last_time: %s\n", delta, buffer, last_buffer);
 
         return 1;
     }
@@ -381,16 +392,17 @@ void read_stock_from_json(const char *json, jsmntok_t *tokens, int start_index, 
 
 time_t get_time(const char *date)
 {
-    struct tm time;
+    struct tm c_time;
 
-    strptime(date, "%Y-%m-%d", &time);
+    strptime(date, "%Y-%m-%d", &c_time);
 
     // reset hour, min, sec as we should only have y, m and d
-    time.tm_hour = 0;
-    time.tm_min =0;
-    time.tm_sec = 0;
+    c_time.tm_hour = 0;
+    c_time.tm_min = 0;
+    c_time.tm_sec = 0;
+    c_time.tm_isdst = 0;
 
-    time_t t = mktime(&time);
+    time_t t = mktime(&c_time);
     
     return t;
 }
