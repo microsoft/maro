@@ -18,25 +18,40 @@ for ep in range(MAX_EP):
     while not is_done:
         actions = []
 
-        for decision_event in list(decision_events):
-            holding = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
-            available = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
-            total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
-            print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
+        for decision_event in decision_events:
+            if decision_event.sub_engine_name == "test_stocks":
+                holding = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
+                available = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
+                total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
+                #print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
 
-            if available == 1:
-                if holding > 0:
-                    action = Action("test_stocks", decision_event.item, -holding, OrderMode.market_order)
+                if available == 1:
+                    if holding > 0:
+                        action = Action("test_stocks", decision_event.item, -holding, OrderMode.market_order)
+                    else:
+                        action = Action("test_stocks", decision_event.item, 500, OrderMode.market_order)
                 else:
-                    action = Action("test_stocks", decision_event.item, 500000, OrderMode.market_order)
-            else:
-                action = None
-            actions.append(action)
-        reward, decision_event, is_done = env.step(actions)
+                    action = None
+                actions.append(action)
+            elif decision_event.sub_engine_name == "us_stocks":
+                holding = env.snapshot_list.us_stocks.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
+                available = env.snapshot_list.us_stocks.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
+                total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
+                #print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
+
+                if available == 1:
+                    if holding > 0:
+                        action = Action("us_stocks", decision_event.item, -holding, OrderMode.market_order)
+                    else:
+                        action = Action("us_stocks", decision_event.item, 500, OrderMode.market_order)
+                else:
+                    action = None
+                actions.append(action)
+        reward, decision_events, is_done = env.step(actions)
 
     ep_time = time.time() - ep_start
 
-# stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
+stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
 
 # print("len of snapshot:", len(stock_snapshots))
 
@@ -50,10 +65,17 @@ for ep in range(MAX_EP):
 # print("closeing price for all the ticks:")
 # print(stock_closing_price)
 
-# stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
+stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
 
-# print("account hold num for all the ticks:")
-# print(stock_account_hold_num)
+print("account test_stocks hold num for all the ticks:")
+print(stock_account_hold_num)
+
+stock_snapshots: SnapshotList = env.snapshot_list.us_stocks
+
+stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
+
+print("account us_stocks hold num for all the ticks:")
+print(stock_account_hold_num)
 
 account_snapshots: SnapshotList = env.snapshot_list.account
 

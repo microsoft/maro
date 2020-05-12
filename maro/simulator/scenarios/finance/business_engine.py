@@ -133,13 +133,16 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             return
 
         for action in actions:
-            engine_name = action.sub_engine_name
-
-            if engine_name in self._sub_engines:
-                result: TradeResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money, evt.tick)
-                self._acount.take_trade(result, cur_data = self._sub_engines[engine_name]._stock_list, cur_engine = engine_name)
+            if action is None:
+                pass
             else:
-                raise "Specified engine not exist."
+                engine_name = action.sub_engine_name
+
+                if engine_name in self._sub_engines:
+                    result: TradeResult = self._sub_engines[engine_name].take_action(action, self._acount.remaining_money, evt.tick)
+                    self._acount.take_trade(result, cur_data = self._sub_engines[engine_name]._stock_list, cur_engine = engine_name)
+                else:
+                    raise "Specified engine not exist."
 
     def _read_conf(self):
         with open(os.path.join(self._config_path, "config.yml")) as fp:

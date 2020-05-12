@@ -13,9 +13,61 @@ sub-engines:
     name: 'test_stocks' # used to access from out of env by name
     type: stock # stock, futures
     #data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh"
-    data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/us"
-    #data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/benchmark"
+    #data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/us"
+    data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/benchmark"
     #data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/us"
+    stocks: # stocks to simulate 
+      - "000001"
+      # - "AAPL"
+      # - "000002"
+      # - "000003"
+      # - "000004"
+      # - "000005"
+      # - "000006"
+      # - "000007"
+      # - "000008"
+      # - "000009"
+      # - "000010"
+      #- "000501"
+      #- "600000"
+      #- "600099"
+    action_scope: # max and min value for stocks 
+      min: 0.1
+      max: 0.6
+
+    order_mode:  
+      - "market_order"
+      - "limit_order"
+      - "stop_order"
+      - "stop_limit_order"
+
+    trade_constrain:
+      min_buy_unit: 100
+      min_sell_unit: 100
+      deal_price: "opening" # options: opening closing, use opening or closing price as deal_price
+      # slippage: 0.00246 # slippage config, buy price shall be (1+slippage/2)*deal_price, sell price shall be (1-slippage/2)*deal_price
+      # close_tax: 0.001  # close tax, shell charge close_tax*sell_price when selling out 
+      # commission: 0.0003  # commission], shell charge commission*sell_price or commission*buy_price when trading
+      slippage: 0
+      close_tax: 0.001
+      commission: 0.0008
+
+      # TODO: currency 
+    # other sub-engine config here
+    #
+    # -
+    #   type: futures
+    #   data_path: "/path/to/data/file"
+    #   futures:
+    #     - 000001
+    #     - 000002
+  -
+    name: 'us_stocks' # used to access from out of env by name
+    type: stock # stock, futures
+    #data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh"
+    #data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/us"
+    #data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/benchmark"
+    data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/us"
     stocks: # stocks to simulate 
       - "AAPL"
       # - "000001"
@@ -52,15 +104,15 @@ sub-engines:
       close_tax: 0.001
       commission: 0.0008
 
-    # TODO: currency 
-  # other sub-engine config here
-  #
-  # -
-  #   type: futures
-  #   data_path: "/path/to/data/file"
-  #   futures:
-  #     - 000001
-  #     - 000002
+      # TODO: currency 
+    # other sub-engine config here
+    #
+    # -
+    #   type: futures
+    #   data_path: "/path/to/data/file"
+    #   futures:
+    #     - 000001
+    #     - 000002
 
 
     
