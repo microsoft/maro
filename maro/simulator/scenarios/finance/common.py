@@ -38,7 +38,7 @@ class TradeResult:
 
 
 class DecisionEvent:
-    def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable):
+    def __init__(self, tick: int, type: FinanceType, item: int, sub_engine_name: str, action_scope_func: Callable):
         """
         Parameters:
             tick (int): current tick of decision
@@ -49,16 +49,16 @@ class DecisionEvent:
         """
         self.tick = tick
         self.type = type
-        self.items = items
+        self.item = item
         self.sub_engine_name = sub_engine_name
         self._action_scope = None
         self._action_scope_func = action_scope_func
 
     @property
-    def action_scope(self) -> list:
+    def action_scope(self) -> tuple:
         """Action scope for items"""
         if self._action_scope is None:
-            self._action_scope = self._action_scope_func(self.items)
+            self._action_scope = self._action_scope_func(self.item)
 
         return self._action_scope
 
