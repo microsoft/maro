@@ -15,7 +15,7 @@ class MsgType(Enum):
 
 class MsgStatus(Enum):
     SEND_MESSAGE = 0
-    RECEIVE_MESSAGE = 1
+    WAIT_MESSAGE = 1
     
 
 class PayloadKey(Enum):

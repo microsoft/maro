@@ -6,6 +6,7 @@ import socket
 import json
 import time
 import logging
+import multiprocessing
 from concurrent.futures import ProcessPoolExecutor,ThreadPoolExecutor
 from copy import deepcopy
 
@@ -157,7 +158,7 @@ class Proxy:
                             f"Are you using the right configuration?")
         self._send_channel[destination].send_pyobj(message)
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
-        self._message_cache[message.message_id] = MsgStatus.RECEIVE_MESSAGE
+        self._message_cache[message.message_id] = MsgStatus.WAIT_MESSAGE
 
     def _group_send(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
         """ """
