@@ -33,6 +33,6 @@
 
 14. change the WORKDIR in docker file: "cpu.dist.df", as the WORKDIR is longer used when the above modifications has been finished
 
-14. change all the names that is not propable, for example the admin_username on god, the paramenters.json file etc.. currently thses files has extra personal information
+15. change all the names that is not propable, for example the admin_username on god, the paramenters.json file etc.. currently thses files has extra personal information
 
-
+16. merge folder bin and scripts
