@@ -36,7 +36,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._init_reader()
         self._init_trader(self._config)
 
-        self._cur_action_scope: list = []
+        self._cur_action_scope: dict = {}
 
     @property
     def finance_type(self):
@@ -68,11 +68,12 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                 if raw_stock.is_valid:
                     valid_stocks.append(stock.index)
 
-        decision_event = DecisionEvent(tick, FinanceType.stock, valid_stocks, self.name, self._action_scope)
-        self._cur_action_scope = decision_event.action_scope[1]
-        evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
+        for valid_stock in valid_stocks:
+            decision_event = DecisionEvent(tick, FinanceType.stock, valid_stock, self.name, self._action_scope)
+            self._cur_action_scope[valid_stock] = decision_event.action_scope[1]
+            evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
-        self._event_buffer.insert_event(evt)
+            self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
         # after take snapshot, we need to reset the stock
@@ -106,13 +107,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._frame.reset()
         self._snapshots.reset()
 
-    def _action_scope(self, stock_index_list: list):
-        result = {}
+    def _action_scope(self, stock_index: int):
+        stock: Stock = self._stock_list[stock_index]
 
-        for stock_index in stock_index_list:
-            stock: Stock = self._stock_list[stock_index]
-
-            result[stock_index] = (-stock.account_hold_num, stock.trade_volume * self._action_scope_max)
+        result = (-stock.account_hold_num, stock.trade_volume * self._action_scope_max)
 
         return (self._order_mode, result, self._trader.supported_orders)
 

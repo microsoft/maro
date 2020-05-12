@@ -37,18 +37,18 @@ class TradeResult:
 
 
 class DecisionEvent:
-    def __init__(self, tick: int, type: FinanceType, items: list, sub_engine_name: str, action_scope_func: Callable):
+    def __init__(self, tick: int, type: FinanceType, item: int, sub_engine_name: str, action_scope_func: Callable):
         """
         Parameters:
             tick (int): current tick of decision
             type (FinanceType): type of this decision
-            items (list): list of available items for actions, such as stock for StockSubEngine
+            item (int): available item index for action, such as a stock for StockSubEngine
             sub_engine_name (str): name of sub-engine, used to identify which this decision come from, as we support multi-sub-engine with same type, we need this field from action
             action_scope_func (Callable): function to provide action scope
         """
         self.tick = tick
         self.type = type
-        self.items = items
+        self.item = item
         self.sub_engine_name = sub_engine_name
         self._action_scope = None
         self._action_scope_func = action_scope_func
@@ -57,7 +57,7 @@ class DecisionEvent:
     def action_scope(self) -> list:
         """Action scope for items"""
         if self._action_scope is None:
-            self._action_scope = self._action_scope_func(self.items)
+            self._action_scope = self._action_scope_func(self.item)
 
         return self._action_scope
 

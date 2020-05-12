@@ -1,11 +1,11 @@
 import time
-from maro.simulator import Env
+from maro.simulator import Env, DecisionMode
 from maro.simulator.frame import SnapshotList
 from maro.simulator.scenarios.finance.common import Action, OrderMode
 
 MAX_EP = 2
 
-env = Env("finance", "test", max_tick=-1)
+env = Env("finance", "test", max_tick=-1, decision_mode=DecisionMode.Joint)
 
 # print("current stocks")
 # print(env.node_name_mapping.test_stocks)
@@ -13,22 +13,22 @@ env = Env("finance", "test", max_tick=-1)
 for ep in range(MAX_EP):
     env.reset()
     ep_start = time.time()
-    reward, decision_event, is_done = env.step(None)
+    reward, decision_events, is_done = env.step(None)
 
     while not is_done:
         actions = []
 
-        for item in decision_event.items:
-            holding = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"account_hold_num"][-1]
-            available = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"is_valid"][-1]
+        for decision_event in list(decision_events):
+            holding = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
+            available = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
             total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
             print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
 
             if available == 1:
                 if holding > 0:
-                    action = Action("test_stocks", item, -holding, OrderMode.market_order)
+                    action = Action("test_stocks", decision_event.item, -holding, OrderMode.market_order)
                 else:
-                    action = Action("test_stocks",item, 50000000, OrderMode.market_order)
+                    action = Action("test_stocks", decision_event.item, 500000, OrderMode.market_order)
             else:
                 action = None
             actions.append(action)
