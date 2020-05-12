@@ -253,8 +253,19 @@ class Env(AbsEnv):
 
                 if self._decision_mode == DecisionMode.Joint:
                     # for joint event, we will disable following cascade event
-                    for i in range(1, pending_event_length):
-                        pending_events[i].state = EventState.FINISHED
+                    
+                    action_related_decision = None if actions[0] is None else getattr(actions[0], "decision_event", None)
+
+                    # if first action have decision event attached, then means support sequential action
+                    is_support_seq_action = action_related_decision is not None
+
+                    if is_support_seq_action:
+                        for i in range(1, pending_event_length):
+                            if pending_events[i] == actions[0].decision_event:
+                                pending_events[i].state = EventState.FINISHED
+                    else:
+                        for i in range(1, pending_event_length):
+                            pending_events[i].state = EventState.FINISHED
 
             is_end_tick = is_end_tick or (self._business_engine.post_step(self._tick) == True)
             

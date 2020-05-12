@@ -1,5 +1,5 @@
 import time
-from maro.simulator import Env
+from maro.simulator import Env, DecisionMode
 from maro.simulator.frame import SnapshotList
 from maro.simulator.scenarios.finance.common import Action, OrderMode
 
@@ -25,9 +25,11 @@ for ep in range(MAX_EP):
 
             if available == 1:
                 if holding > 0:
-                    action = Action("test_stocks", item, -holding, OrderMode.market_order)
+                    action = Action("test_stocks", item, -
+                                    holding, OrderMode.market_order)
                 else:
-                    action = Action("test_stocks",item, 500, OrderMode.market_order)
+                    action = Action("test_stocks", item, 500,
+                                    OrderMode.market_order)
             else:
                 action = None
             actions.append(action)

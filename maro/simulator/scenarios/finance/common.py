@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Dict, List, Callable
 from inspect import isfunction
 from functools import partial
+from maro.simulator.utils.common import BaseAction
 
 
 class FinanceType(Enum):
@@ -65,7 +66,7 @@ class DecisionEvent:
         return f"<DecisionEvent type: {self.type}, tick: {self.tick}, engine: {self.sub_engine_name} >"
 
 
-class Action:
+class Action(BaseAction):
     def __init__(self, sub_engine_name: str, item_index: int, number: int, order_mode: OrderMode = None, stop: int = 0, limit: int = 0):
         """
         Parameters:
@@ -73,6 +74,7 @@ class Action:
             item_index (int): index of the item (such as stock index), usually from DecisionEvent.items
             number (int): number to perform, positive means buy, negitive means sell
         """
+        super().__init__()
         self.sub_engine_name = sub_engine_name
         self.item_index = item_index
         self.number = number

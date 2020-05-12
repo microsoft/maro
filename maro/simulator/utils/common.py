@@ -5,6 +5,12 @@
 import os
 from math import floor, ceil
 
+class BaseAction:
+    """Basic class of action, user can inherit from this if they need to support joint decision with sequential action"""
+    def __init__(self):
+        # used to identify which current action related to
+        self.decision_event: object = None
+
 def get_available_envs():
     """
     get available environment settings under scenarios folder
