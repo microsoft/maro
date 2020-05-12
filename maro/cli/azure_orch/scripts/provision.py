@@ -72,6 +72,7 @@ def create_god(god_info):
         json.dump(god_info, outfile, indent=4)
     
     # upload god info to god vm
+    # TODO: upload god info to /maro/dist/ of god
     res = subprocess.run(f"scp -o StrictHostKeyChecking=no /maro/dist/azure_template/resource_group_info/{resource_group_name}.json {god_info['admin_username']}@{god_IP}:~/resource_group_info.json", shell=True, capture_output=True)
     if res.returncode:
         raise Exception(res.stderr)
@@ -100,6 +101,7 @@ def init_god(god_info, docker_file_path, requirements_path, image_name="maro/ecr
         json.dump(god_info, outfile, indent=4)
 
     # scp necessary files
+    # TODO: files should be copy to /maro/dist/bin, /maro/dist/redis_conf... on god instead of code_repo
     mkdir_bin = ssh_bin + "sudo mkdir /code_repo"
     chmod_bin = ssh_bin + "sudo chmod 777 /code_repo"
     scp_bash_bin = f"scp -o StrictHostKeyChecking=no -r /maro/dist/bin {admin_username}@{god_IP}:/code_repo/"

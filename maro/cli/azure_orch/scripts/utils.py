@@ -24,7 +24,7 @@ def sync_code():
         inquirer.Text(
             'project_path',
             message="Where is your project located on dev machine?",
-            default=os.environ['PYTHONPATH'],
+            default=os.environ['PYTHONPATH'], # TODO: change to os.pwd
         ),
         inquirer.List(
             'resource_group_name', 
@@ -53,6 +53,7 @@ def sync_code():
     
     mkdir_bin = f"ssh -o StrictHostKeyChecking=no {admin_username}@{god_IP} 'sudo mkdir /code_repo/{branch_name}; sudo chmod -R 777 /code_repo/{branch_name}'"
     sync_bin = f"rsync -arvz --exclude='log/*' --exclude='job_config/*' {project_path} {admin_username}@{god_IP}:/code_repo/{branch_name} --delete"
+    # TODO: change the rsync commnd to copy the file in the project_path instead of copy both the outside directory and the files
 
     for bin in [mkdir_bin, sync_bin]:
         res = subprocess.run(bin, shell=True)
@@ -66,7 +67,7 @@ def pull_log():
         inquirer.Text(
             'project_path',
             message="Where is your project located on dev machine?",
-            default=os.environ['PYTHONPATH'],
+            default=os.environ['PYTHONPATH'], # TODO: change to os.pwd
         ),
         inquirer.List(
             'resource_group_name', 
@@ -91,7 +92,8 @@ def pull_log():
     
     admin_username = resource_group_info['admin_username']
     god_IP = resource_group_info['virtual_machines'][0]['IP']
-    
+
+    # TODO: include pattern should be specified
     sync_bin = f"rsync -arvz --include='log' --include='log/*' --include='log/*/*' --include='log/*/*/*' --exclude='*' {admin_username}@{god_IP}:/code_repo/{branch_name}/maro/ {project_path}"
 
     res = subprocess.run(sync_bin, shell=True)
@@ -111,6 +113,7 @@ def generate_job_config():
 
     config_path = inquirer.prompt(questions)['config_path']
 
+    # TODO: out_folder on god should be modified identical to dev machine, 
     if socket.gethostname() == 'god':
         questions = [
             inquirer.Text(

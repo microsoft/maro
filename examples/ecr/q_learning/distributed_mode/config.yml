@@ -58,6 +58,8 @@ redis:
 distributed:
   auto_signature: True
 
+# add entry point of thses components use the relative patb
+# add image name
   environment_runner:
     num: 1
     peers:

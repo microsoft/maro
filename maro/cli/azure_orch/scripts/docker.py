@@ -49,6 +49,7 @@ def launch_job():
 
     branch_name = inquirer.prompt(questions)['branch_name']
 
+    # TODO: change the job config path on god
     job_config_path = "/maro/dist/job_config" if host_name != 'god' else f"/code_repo/{branch_name}/maro/job_config"
     if not os.path.exists(job_config_path):
         raise Exception("please generate job config before allocate jobs!")
@@ -70,6 +71,7 @@ def launch_job():
             message="where is the component python file directory in docker?",
             default="/maro_dist/examples/ecr/q_learning/distributed_mode",
         )
+        # TODO: component_path and img_name is specified by the meta config and should be read from meta config
     ]
 
     if host_name != "god":
@@ -118,8 +120,11 @@ def launch_job():
     
     for job_name, node_name in allocate_plan.items():
         envopt = f"-e CONFIG=/maro_dist/job_config/{job_group_name}/{job_name}.yml"
+        # env should be /maro/dist/job_config/{job_group_name}/{job_name}.yml
         component_type = job_name.split(".")[0]
         cmd = f"python3 {component_path}/{component_type}.py"
+        # TODO: cd /code_repo/branch_name;
+        # TODO: cmd should be get from meta config
 
         cpu_cores = require_resources[job_name]['CPU_cores']
         GPU_mem = require_resources[job_name]['GPU_mem']
@@ -129,6 +134,8 @@ def launch_job():
 
         rm_container_bin = ssh_bin + f'''"sudo docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs sudo docker rm"'''
         job_launch_bin = ssh_bin + f"'sudo docker run -it -d --cpus {cpu_cores} -m {mem}m --name {job_group_name}_{job_name} --network host -v /code_repo/{branch_name}/maro:/maro_dist {envopt} {img_name} {cmd}'"
+        # TODO: mount two directories here: 1. code 2. job config, mount path should be same with the path on god
+        # code should be mount to /code_repo/branch_name, job config should be mount to /maro/dist/job_config/
 
         subprocess.run(rm_container_bin, shell=True, capture_output=True)
 
@@ -137,6 +144,8 @@ def launch_job():
             raise Exception(res.stderr)
         else:
             logger.info(f"run {job_launch_bin} success!")
+    
+    # TODO: launch a new prob job to watch the running status of thses jobs
 
 # naive allocate algorithm, need to be optimized
 def allocate(require_resources, free_resources):

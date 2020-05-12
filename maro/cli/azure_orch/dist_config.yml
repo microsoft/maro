@@ -8,6 +8,7 @@ node_size: Standard_D16s_v3
 nodes_num: 1
 
 samba_server_password: happy
+# TODO: add redis port to make it configurable
 
 docker_file_path: /home/tianyi/maro/docker_files/cpu.dist.df
 requirements_path: /home/tianyi/maro/requirements.dev.txt

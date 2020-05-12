@@ -29,7 +29,8 @@ class Prob():
                     else:
                         resources_info = str(res.stdout, 'utf-8').split(",")
                         free_resources = {
-                            "free_GPU_mem" : 999999,    # currently GPU mem not supported, so it is set to 99999
+                            # TODO: change the name and meanning of GPU free resources
+                            "free_GPU_mem" : 999999,
                             "free_mem": int(resources_info[0]) / 1024,
                             "free_CPU_cores": float(resources_info[1]) * int(resources_info[2]) / 100
                         }
@@ -37,6 +38,8 @@ class Prob():
                     print(f"{node['name']}: {free_resources}")
 
                     self._redis_connection.hset("resources", node['name'], json.dumps(free_resources))
+
+                    # TODO: need to delete redis info when delete resource group node
 
             time.sleep(5)
 
