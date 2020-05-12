@@ -254,7 +254,7 @@ class Env(AbsEnv):
                 if self._decision_mode == DecisionMode.Joint:
                     # for joint event, we will disable following cascade event
                     
-                    action_related_decision = None if actions[0] is None else getattr(actions[0], "decision_event", None)
+                    action_related_decision = None if (actions is None or actions[0] is None) else getattr(actions[0], "decision_event", None)
 
                     # if first action have decision event attached, then means support sequential action
                     is_support_seq_action = action_related_decision is not None
