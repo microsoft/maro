@@ -5,7 +5,7 @@ from maro.simulator.scenarios.finance.common import Action, OrderMode
 
 MAX_EP = 2
 
-env = Env("finance", "test", max_tick=-1)
+env = Env("finance", "test", max_tick=-1, decision_mode=DecisionMode.Joint)
 
 # print("current stocks")
 # print(env.node_name_mapping.test_stocks)
@@ -17,23 +17,23 @@ for ep in range(MAX_EP):
 
     while not is_done:
         actions = []
+        print(decision_event)
+        # for item in decision_event.items:
+        #     holding = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"account_hold_num"][-1]
+        #     available = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"is_valid"][-1]
+        #     #print("env.tick: ",env.tick," holding: ",holding," available: ",available)
 
-        for item in decision_event.items:
-            holding = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"account_hold_num"][-1]
-            available = env.snapshot_list.test_stocks.static_nodes[env.tick:item:"is_valid"][-1]
-            #print("env.tick: ",env.tick," holding: ",holding," available: ",available)
-
-            if available == 1:
-                if holding > 0:
-                    action = Action("test_stocks", item, -
-                                    holding, OrderMode.market_order)
-                else:
-                    action = Action("test_stocks", item, 500,
-                                    OrderMode.market_order)
-            else:
-                action = None
-            actions.append(action)
-        reward, decision_event, is_done = env.step(actions)
+        #     if available == 1:
+        #         if holding > 0:
+        #             action = Action("test_stocks", item, -
+        #                             holding, OrderMode.market_order)
+        #         else:
+        #             action = Action("test_stocks", item, 500,
+        #                             OrderMode.market_order)
+        #     else:
+        #         action = None
+        #     actions.append(action)
+        reward, decision_event, is_done = env.step(None)
 
     ep_time = time.time() - ep_start
 
