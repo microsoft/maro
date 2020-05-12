@@ -1,7 +1,7 @@
 # this is the tick=0 for all the sub-engines
 # stock/futures whoes beginning date later than this, will be filled with 0
-beginning_date: "2020-01-10"
-#beginning_date: "2019-01-01"
+#beginning_date: "2020-01-10"
+beginning_date: "2019-01-01"
 
 account:
   money: 100000 # 1 unit
@@ -12,10 +12,13 @@ sub-engines:
   -
     name: 'test_stocks' # used to access from out of env by name
     type: stock # stock, futures
-    data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh"
+    #data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/zh"
+    data_path: "/Users/maple/projects/maro/fin_pipeline/data/sample/stocks/us"
     #data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/benchmark"
+    #data_path: "/mnt/d/work/maro_git/maro/fin_pipeline/data/sample/stocks/us"
     stocks: # stocks to simulate 
-      - "000001"
+      - "AAPL"
+      # - "000001"
       # - "000002"
       # - "000003"
       # - "000004"
