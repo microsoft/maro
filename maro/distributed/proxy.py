@@ -165,17 +165,14 @@ class Proxy:
         message_id_list = []
 
         if multithread:
-            executor = ThreadPoolExecutor(max_workers=len(destination_payload_list))
+            executor = ThreadPoolExecutor(max_workers=10)
         if multiprocess:
-            executor = ProcessPoolExecutor(max_workers=len(destination_payload_list))
+            executor = ProcessPoolExecutor(max_workers=10)
 
         for destination, payload in destination_payload_list:
             single_message = Message(type=message_type, source=self._name,
                                     destination=destination,
                                     payload=payload)
-            if single_message.destination not in self._send_channel:
-                raise Exception(f"Recipient {destination} is not found in {self._name}'s peers. "
-                                f"Are you using the right configuration?")
             if multithread or multiprocess:
                 executor.submit(self.send, single_message)
             else:
@@ -192,7 +189,7 @@ class Proxy:
         msg_holder = []
 
         for msg_id in receive_list:
-            if msg_id in list(self._message_cache.keys()):
+            if self._message_cache[msg_id] != MsgStatus.WAIT_MESSAGE and self._message_cache[msg_id] != MsgStatus.SEND_MESSAGE:
                 pending_receive_list.remove(msg_id)
                 msg_holder.append(self._message_cache[msg_id])
                 del self._message_cache[msg_id]
