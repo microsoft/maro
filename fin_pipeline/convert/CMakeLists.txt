@@ -1,5 +1,7 @@
 PROJECT (converter)
 
-SET (SRC converter.c)
+SET (CONVERTER_SRC converter.c)
+SET (COMBINE_SRC combine.c)
 
-ADD_EXECUTABLE(converter ${SRC})
+ADD_EXECUTABLE(converter ${CONVERTER_SRC})
+ADD_EXECUTABLE(combine ${COMBINE_SRC})
