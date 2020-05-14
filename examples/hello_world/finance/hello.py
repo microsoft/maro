@@ -29,7 +29,7 @@ for ep in range(MAX_EP):
                     if holding > 0:
                         action = Action("test_stocks", decision_event.item, -holding, OrderMode.market_order)
                     else:
-                        action = Action("test_stocks", decision_event.item, 500, OrderMode.market_order)
+                        action = Action("test_stocks", decision_event.item, 5000, OrderMode.market_order)
                 else:
                     action = None
                 actions.append(action)
@@ -43,7 +43,7 @@ for ep in range(MAX_EP):
                     if holding > 0:
                         action = Action("us_stocks", decision_event.item, -holding, OrderMode.market_order)
                     else:
-                        action = Action("us_stocks", decision_event.item, 500, OrderMode.market_order)
+                        action = Action("us_stocks", decision_event.item, 5000000, OrderMode.market_order)
                 else:
                     action = None
                 actions.append(action)

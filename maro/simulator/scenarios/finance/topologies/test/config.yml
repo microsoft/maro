@@ -4,7 +4,7 @@
 beginning_date: "2019-01-01"
 
 account:
-  money: 100000 # 1 unit
+  money: 10000000000 # 1 unit
   leverage: 4.0
   min_leverage_rate: 1.2
 
@@ -51,6 +51,7 @@ sub-engines:
       slippage: 0
       close_tax: 0.001
       commission: 0.0008
+      allow_split: false
 
       # TODO: currency 
     # other sub-engine config here
@@ -96,13 +97,14 @@ sub-engines:
     trade_constrain:
       min_buy_unit: 100
       min_sell_unit: 100
-      deal_price: "opening" # options: opening closing, use opening or closing price as deal_price
-      # slippage: 0.00246 # slippage config, buy price shall be (1+slippage/2)*deal_price, sell price shall be (1-slippage/2)*deal_price
-      # close_tax: 0.001  # close tax, shell charge close_tax*sell_price when selling out 
-      # commission: 0.0003  # commission], shell charge commission*sell_price or commission*buy_price when trading
-      slippage: 0
-      close_tax: 0.001
-      commission: 0.0008
+      deal_price: "closing" # options: opening closing, use opening or closing price as deal_price
+      slippage: 0.00246 # slippage config, buy price shall be (1+slippage/2)*deal_price, sell price shall be (1-slippage/2)*deal_price
+      close_tax: 0.001  # close tax, shell charge close_tax*sell_price when selling out 
+      commission: 0.0003  # commission], shell charge commission*sell_price or commission*buy_price when trading
+      # slippage: 0
+      # close_tax: 0.001
+      # commission: 0.0008
+      allow_split: true
 
       # TODO: currency 
     # other sub-engine config here

@@ -91,13 +91,20 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
         ret = TradeResult(self.name, action.item_index, 0, tick, 0, 0, False)
-        if self._verify_action(action):
+        out_of_scope, allow_split = self._verify_action(action)
+        if (not out_of_scope) and (not allow_split):
             asset, is_success, actual_price, actual_volume, commission_charge = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
             ret = TradeResult(self.name, action.item_index, actual_volume, tick, actual_price, commission_charge, is_success)
             if is_success:
                 self._stock_list[asset].account_hold_num += actual_volume
+        elif (not out_of_scope) and allow_split:
+            asset, is_success, actual_price, actual_volume, commission_charge = self._trader.split_trade(action, self._stock_list, remaining_money, self._stock_list[action.item_index].trade_volume * self._action_scope_max)  # list  index is in action # self.snapshot
+            ret = TradeResult(self.name, action.item_index, actual_volume, tick, actual_price, commission_charge, is_success)
+            if is_success:
+                self._stock_list[asset].account_hold_num += actual_volume
+
         else:
-            print("out of action scope")
+            print("Warning: out of action scope and not allow split!", self.name, self._action_scope(action.item_index)[1], action.number)
         return ret
 
     def reset(self):
@@ -109,8 +116,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
     def _action_scope(self, stock_index: int):
         stock: Stock = self._stock_list[stock_index]
-
-        result = (-stock.account_hold_num, stock.trade_volume * self._action_scope_max)
+        if self._allow_split:
+            result = (-stock.account_hold_num, stock.trade_volume)
+        else:
+            result = (max([-stock.account_hold_num, -stock.trade_volume * self._action_scope_max]), stock.trade_volume * self._action_scope_max)
 
         return (self._order_mode, result, self._trader.supported_orders)
 
@@ -145,15 +154,19 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
 
     def _init_trader(self, config):
-        trade_constrain = config['trade_constrain'] #OrderedDict()
+        trade_constrain = config['trade_constrain']
         
-        # trade_constrain[TradeConstrain.min_buy_unit] = config['trade_constrain']['min_buy_unit']
-        # trade_constrain[TradeConstrain.min_sell_unit] = config['trade_constrain']['min_sell_unit']
         self._trader = StockTrader(trade_constrain)
 
-    def _verify_action(self, action: Action)->bool: 
-        ret = False
-        if action.item_index in self._cur_action_scope: 
-            if self._cur_action_scope[action.item_index][0] <= action.number and self._cur_action_scope[action.item_index][1] >= action.number:
-                ret = True
-        return ret
+    def _verify_action(self, action: Action): 
+        ret = True
+        allow_split = self._allow_split
+        if self._action_scope(action.item_index)[1][0] <= action.number and self._action_scope(action.item_index)[1][1] >= action.number:
+            ret = False
+        return ret, allow_split
+    @property
+    def _allow_split(self):
+        allow_split = False
+        if "allow_split" in self._config["trade_constrain"]:
+            allow_split = self._config["trade_constrain"]["allow_split"]
+        return allow_split

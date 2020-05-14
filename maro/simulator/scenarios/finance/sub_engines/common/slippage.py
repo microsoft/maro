@@ -39,7 +39,7 @@ class ByMoneySlippage(Slippage):
         order_direction = 1
         if order_action.number < 0:
             order_direction = -1
-        actual_price = round(deal_price*(1+self.__slippage_rate*order_direction/2), 2)
+        actual_price = deal_price*(1+self.__slippage_rate*order_direction/2)
         return actual_price
 
 
