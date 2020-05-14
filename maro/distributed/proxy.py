@@ -82,22 +82,36 @@ class Proxy:
         # create a receiving socket, bind it to a random port and upload the address info to the Redis server
         self._receiver = self._zmq_context.socket(zmq.PULL)
         recv_port = self._receiver.bind_to_random_port(f'{self._protocol}://*')
-        recv_address = [self._ip_address, recv_port]
+        # recv_address = [self._ip_address, recv_port]
+
+        self._receiver_pub = self._zmq_context.socket(zmq.PUB)
+        recv_port_pub = self._receiver_pub.bind_to_random_port(f'{self._protocol}://*')
+        recv_address = [(self._ip_address, recv_port, 'zmq_PULL'), (self._ip_address, recv_port_pub, 'zmq_PUB')]
         self._redis_connection.hset(self._group_name, self._name, json.dumps(recv_address))
+
+        self._receiver_sub = self._zmq_context.socket(zmq.SUB)
+        self._receiver_sub.setsockopt_string(zmq.SUBSCRIBE, "")
+
         self._logger.info(f'{self._name} set to receive messages at {self._ip_address}:{recv_port}')
 
     def _connect_to_peers(self):
         # create send_channel attribute and initialize it to an empty dict
-        peer_address_dict, self._send_channel = {}, {}
+        peer_address_dict, self._send_channel, self._sub_channel = {}, {}, {}
         for peer_name in self._peer_name_list:
             retried, connected = 0, False
             while retried < self._max_retries:
                 try:
-                    ip, port = json.loads(self._redis_connection.hget(self._group_name, peer_name))
-                    remote_address = f'{self._protocol}://{ip}:{port}'
-                    self._send_channel[peer_name] = self._zmq_context.socket(zmq.PUSH)
-                    self._send_channel[peer_name].connect(remote_address)
-                    peer_address_dict[peer_name] = remote_address
+                    # ip, port = json.loads(self._redis_connection.hget(self._group_name, peer_name))
+                    ip_port_list = json.loads(self._redis_connection.hget(self._group_name, peer_name))
+                    for ip, port, zmq_type in ip_port_list:
+                        remote_address = f'{self._protocol}://{ip}:{port}'
+                        if zmq_type == 'zmq_PULL':
+                            self._send_channel[peer_name] = self._zmq_context.socket(zmq.PUSH)
+                            self._send_channel[peer_name].connect(remote_address)
+                            peer_address_dict[peer_name] = remote_address
+                        else:
+                            self._receiver_sub.connect(remote_address)
+                        
                     connected = True
                     break
                 except:
@@ -117,31 +131,58 @@ class Proxy:
     def receive(self):
         """Receive messages from ZMQ"""
         while True:
-            yield self._receiver.recv_pyobj()
+            while True:
+                try:
+                    yield self._receiver.recv_pyobj(zmq.DONTWAIT)
+                except zmq.Again:
+                    break
+            while True:
+                try:
+                    yield self._receiver_sub.recv_pyobj(zmq.DONTWAIT)
+                except zmq.Again:
+                    break
 
-    def scatter(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
+            time.sleep(0.001)
+    
+    def scatter(self, message_type: MsgType, destination_payload_list: list, sendby='PUSH', multithread = False, multiprocess = False):
         """separate data, and send to peer"""
-        receive_list = self._group_send(message_type, destination_payload_list)
+        receive_list = self._group_send(message_type, 
+                                        destination_payload_list, 
+                                        sendby=sendby, 
+                                        multithread=multithread, 
+                                        multiprocess=multiprocess)
 
         return self.get(receive_list)
 
-    def iscatter(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
-        return self._group_send(message_type, destination_payload_list)
+    def iscatter(self, message_type: MsgType, destination_payload_list: list, sendby='PUSH', multithread = False, multiprocess = False):
+        return self._group_send(message_type, 
+                                destination_payload_list, 
+                                sendby=sendby, 
+                                multithread=multithread, 
+                                multiprocess=multiprocess)
 
-    def broadcast(self, message_type: MsgType, destination: list, payload, multithread = False, multiprocess = False):
+    def broadcast(self, message_type: MsgType, destination: list, payload, sendby='PUSH', multithread = False, multiprocess = False):
         """send data to all peers"""
         destination_payload_list = [(dest, payload) for dest in destination]
 
-        receive_list = self._group_send(message_type, destination_payload_list)
+        receive_list = self._group_send(message_type, 
+                                        destination_payload_list, 
+                                        sendby=sendby, 
+                                        multithread=multithread, 
+                                        multiprocess=multiprocess)
 
         return self.get(receive_list)
 
-    def ibroadcast(self, message_type: MsgType, destination: list, payload, multithread = False, multiprocess = False):
+    def ibroadcast(self, message_type: MsgType, destination: list, payload, sendby='PUSH', multithread = False, multiprocess = False):
         destination_payload_list = [(dest, payload) for dest in destination]
 
-        return self._group_send(message_type, destination_payload_list)
+        return self._group_send(message_type, 
+                                destination_payload_list, 
+                                sendby=sendby, 
+                                multithread=multithread, 
+                                multiprocess=multiprocess)
 
-    def send(self, message: Message):
+    def send(self, message: Message, sendby: str):
         """Send a message to a remote peer
 
         Args:
@@ -153,14 +194,18 @@ class Proxy:
             raise Exception('No message recipient found. Are you using the right configuration?')
 
         source, destination = message.source, message.destination
-        if message.destination not in self._send_channel:
-            raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
-                            f"Are you using the right configuration?")
-        self._send_channel[destination].send_pyobj(message)
+        if sendby == 'PUSH':
+            if message.destination not in self._send_channel:
+                raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
+                                f"Are you using the right configuration?")
+            self._send_channel[destination].send_pyobj(message)
+        else:
+            self._receiver_pub.send_pyobj(message)
+
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
         self._message_cache[message.message_id] = MsgStatus.WAIT_MESSAGE
 
-    def _group_send(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False):
+    def _group_send(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False, sendby = 'push'):
         """ """
         message_id_list = []
 
@@ -174,12 +219,14 @@ class Proxy:
                                     destination=destination,
                                     payload=payload)
             if multithread or multiprocess:
-                executor.submit(self.send, single_message)
+                executor.submit(self.send, single_message, sendby)
             else:
-                self.send(single_message)
+                self.send(single_message, sendby)
             message_id_list.append(single_message.message_id)
             self._logger.debug(f'sent a {single_message.type} message to {single_message.destination}')
-
+            if sendby == 'PUB':
+                break
+        
         if multithread or multiprocess:
             executor.shutdown()
         return message_id_list
