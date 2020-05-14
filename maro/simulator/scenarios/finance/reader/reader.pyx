@@ -191,12 +191,10 @@ cdef class FinanceReader:
         elif self.reader.meta.start_time < beginning_time_stamp:
             self.reader.start = floor((beginning_time_stamp - self.reader.meta.start_time) / day_seconds)
 
+        reset_reader(&self.reader)
+
         if max_tick <= 0:
             self._max_tick = self.reader.size + self._padding_days - self.reader.start
-
-        # print(self.reader.start, self._max_tick, self._padding_days)
-
-        self.reader.start = 0
 
     @property
     def max_tick(self):
