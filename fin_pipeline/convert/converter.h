@@ -146,13 +146,60 @@ void reset_reader(finreader_t *reader);
 
 // read and fill next item
 BOOL next_item(finreader_t *reader);
+BOOL peek_item(finreader_t *reader);
+BOOL step_to_next(finreader_t *reader);
 
+// reader next stock item, and move the pointer to next
 BOOL next_stock_item(finreader_t *reader);
 // void next_futures_item(finreader_t *reader, futures_t *future);
 
+// peek data at current pointer, will not change the poitner
+BOOL peek_stock_item(finreader_t *reader);
 
 
 void cal_stock_daily_return(stock_t *stock);
 
+
+
+/***** for data combination ******/
+
+#define MIN_COMBINE_ARGUMENT_NUM 8
+
+typedef struct CombineHeader{
+    int32_t item_number; // number of all items
+    int16_t item_length; // length of each item
+    int16_t steps; 
+    int64_t start_time;
+    int64_t end_time;
+
+} combine_header_t;
+
+typedef struct CombineRowMeta{
+    int16_t item_number;
+    int64_t time;
+} combine_row_meta_t;
+
+
+typedef struct CombineWriter
+{
+    FILE *file;
+    combine_header_t header;
+} combine_writer_t;
+
+typedef struct CombineReader
+{
+    int fd;
+    void *addr;
+} combine_reader_t;
+
+
+void init_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number);
+void release_writer(combine_writer_t *writer);
+
+void process_combination(char *ouput_path, int64_t start_time, int64_t end_time, int32_t steps, int items, char *item_path[]);
+
+void new_row(combine_writer_t *writer, int64_t time);
+void update_item_number(combine_writer_t *writer, int16_t item_number);
+void add_stock(combine_writer_t *writer, stock_t *stock);
 
 #endif

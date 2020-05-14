@@ -61,14 +61,34 @@ int main(int argc, char *argv[])
             char *output_path = argv[6];
 
             new_stock_bin(ver, id, src_path, output_path);
-        }else{
+        }
+        else if(strcmp(mode, "update") == 0){
             char *src_path = argv[3];
             char *output_path = argv[4];
 
             append_stock_bin(src_path, output_path);
         }
-    }
+        else if(strcmp(mode, "combine") == 0)
+        {
+            char *output_path = argv[3];
+            int64_t start_timestamp = atoi(argv[4]);
+            int64_t end_timestamp = atoi(argv[5]);
+            int32_t steps = atoi(argv[6]);
+            int items = argc - MIN_COMBINE_ARGUMENT_NUM + 1;
 
+            char** items_path = malloc(sizeof(char*) * items);
+
+            for(int i=0;i<items;i++)
+            {
+                items_path[i] = argv[i + MIN_COMBINE_ARGUMENT_NUM - 1];
+            }
+
+            // printf("%s.\n", items_path[0]);
+            process_combination(output_path, start_timestamp, end_timestamp, steps, items, items_path);
+
+            free(items_path);
+        }
+    }
 
     return 0;
 }
@@ -398,8 +418,9 @@ BOOL init_reader(const char *path, finreader_t *reader, int8_t dtype)
 {   
     // open the file to get the file descripter
     reader->fd = open(path, O_RDONLY, 0);
-
+    
     if(reader->fd == -1){
+        printf("%s\n", path);
         perror("Fail to open file.");
 
         return FALSE;
@@ -465,7 +486,39 @@ BOOL next_item(finreader_t *reader)
     return FALSE;
 }
 
+BOOL peek_item(finreader_t *reader)
+{
+    if(reader == NULL) return FALSE;
+
+    if(reader->dtype == CONV_STOCK)
+    {
+        return peek_stock_item(reader);
+    }
+
+    return FALSE;
+}
+
+BOOL step_to_next(finreader_t *reader)
+{
+    if(reader==NULL || reader->cur_index >= reader->size) return FALSE;
+
+    reader->cur_index += 1;
+
+    return TRUE;
+}
+
 BOOL next_stock_item(finreader_t *reader)
+{
+    if(TRUE == peek_stock_item(reader))
+    {
+        return step_to_next(reader);
+    }
+
+    return FALSE;
+}
+
+// peek data at current pointer, will not change the poitner
+BOOL peek_stock_item(finreader_t *reader)
 {
     if(reader == NULL) return FALSE;
 
@@ -478,8 +531,6 @@ BOOL next_stock_item(finreader_t *reader)
     stock_t *data_ptr = (stock_t*)(reader->addr + sizeof(meta_t));
 
     reader->data = data_ptr + (reader->cur_index);
-
-    reader->cur_index += 1;
 
     return TRUE;
 }
@@ -497,4 +548,174 @@ void cal_stock_daily_return(stock_t *stock)
 
         printf("c: %f, pc: %f, d: %f.\n", stock->closing_price, stock->pre_closing_price, stock->daily_return);
     }
+}
+
+
+
+/*** data combination ***/
+
+void process_combination(char *ouput_path, int64_t start_time, int64_t end_time, int32_t steps, int items, char *item_path[])
+{
+    // init writer
+    combine_writer_t writer;
+
+    init_writer(ouput_path, &writer, start_time, end_time, items);
+
+    // init readers
+    finreader_t *readers = (finreader_t*)calloc(items, sizeof(finreader_t));
+
+    if(readers == NULL)
+    {
+        perror("Fail to init readers");
+
+        return;
+    }
+
+    BOOL is_init_success = TRUE;
+
+    for (int i=0;i<items;i++)
+    {
+        if (FALSE == init_reader(item_path[i], &readers[i], CONV_STOCK))
+        {
+            perror("fail to open file");
+
+            is_init_success = FALSE;
+
+            break;
+        }
+
+        printf("reader start time: %llu, end time: %llu.\n", readers[i].meta.start_time, readers[i].meta.end_time);
+    }
+
+    // read and combine into new file
+    if(TRUE == is_init_success)
+    {
+        finreader_t *reader;
+        stock_t *stock=NULL;
+        int64_t cur_time = start_time;
+        int16_t row_items_number = 0;
+        
+        printf("start time: %llu, end time: %llu, steps: %d.\n", start_time, end_time, steps);
+        
+        while (cur_time < end_time)
+        {
+            row_items_number = 0;
+
+            // add row meta
+            new_row(&writer, cur_time);
+
+            for(int i=0;i<items;i++)
+            {
+                reader = &readers[i];
+                
+                if(TRUE == peek_stock_item(reader))
+                {
+                    do
+                    {
+                        stock = (stock_t*)reader->data;
+
+                        if(stock->time >= cur_time)
+                        {
+                            break;
+                        }
+                        
+                        step_to_next(reader);
+                    } while (peek_stock_item(reader) == TRUE);
+
+                    if( stock->time >= cur_time && (stock->time - cur_time) < steps)
+                    {
+                        // move the reader pointer
+                        step_to_next(reader);
+
+                        // add stock item to export file
+                        add_stock(&writer, stock);
+
+                        row_items_number++;
+                        
+                        printf("find stock, time: %llu <==> %llu, %llu.\n", stock->time, cur_time, (stock->time - cur_time));
+
+                        step_to_next(reader);
+                    }
+                }
+            }   
+
+            if(row_items_number > 0)
+            {
+                update_item_number(&writer, row_items_number);
+            }
+
+            cur_time += steps;
+        }
+    }
+
+    if(readers != NULL)
+    {
+        for(int i=0;i<items;i++)
+        {
+            release_reader(&readers[i]);
+        }
+
+        free(readers);
+    }
+}
+
+
+void init_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number)
+{
+    writer->file = fopen(path, "wb+");
+
+    combine_header_t t = {item_number, sizeof(stock_t), start_time, end_time};
+
+    writer->header = t;
+
+    fwrite(&t, sizeof(t), 1, writer->file);
+}
+
+void release_writer(combine_writer_t *writer)
+{
+    if(writer != NULL)
+    {
+        if(writer->file != NULL)
+        {
+            fclose(writer->file);
+
+            writer->file = NULL;
+        }
+    }
+}
+
+void new_row(combine_writer_t *writer, int64_t time)
+{
+    if(writer == NULL)
+    {
+        return;
+    }
+
+    combine_row_meta_t row_meta = {0, time};
+
+    fwrite(&row_meta, sizeof(combine_row_meta_t), 1, writer->file);
+}
+
+void update_item_number(combine_writer_t *writer, int16_t item_number)
+{
+    if(writer == NULL)
+    {
+        return;
+    }
+
+    fseek(writer->file, writer->header.item_length * item_number, SEEK_END);
+
+    fwrite(&item_number, sizeof(int16_t), 1, writer->file);
+}
+
+void add_stock(combine_writer_t *writer, stock_t *stock)
+{
+    if(writer == NULL)
+    {
+        return;
+    }
+
+    printf("new item: time: %llu\n", stock->time);
+
+    fwrite(stock, sizeof(stock_t), 1, writer->file);
 }
