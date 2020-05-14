@@ -17,6 +17,8 @@
  *    converter stock new id ver data.json data_1.bin
  * 2. update (append): convert and append json file into specified binary file, and update the item count 
  *    converter stock append data.json data_1.bin
+ * 3. combine : combine specified bin files into one, with specified start and end time
+ *    converter stock combine start_time end_time src_folder 00001.bin 00002.bin 00003.bin
  * **/
 
 int main(int argc, char *argv[])
@@ -257,53 +259,9 @@ int write_stock_item(FILE *file, stock_t *stock, uint64_t last_time)
 {
     fseek(file, 0, SEEK_END);
 
-    // first item always be valid
-    if(last_time == 0)
-    {
-        cal_stock_daily_return(stock);
+    cal_stock_daily_return(stock);
 
-        fwrite(stock, sizeof(stock_t), 1, file);
-
-        return 0;
-    }
-
-    int64_t delta = stock->time - last_time;
-    
-    // printf("last time: %lld, stock time: %lld, day sec: %lld.\n", last_time, stock->time, DAY_SEC);
-
-    // invalid item, we just skip it
-    if(last_time != 0 && delta < DAY_SEC)
-    {
-        struct tm * cur;
-        char buffer[26];
-        cur = localtime(&(stock->time));
-        strftime(buffer, 26, "%Y:%m:%d %H:%M:%S", cur);
-
-        struct tm * last;
-        char last_buffer[26];
-        last = localtime(&(last_time));
-        strftime(last_buffer, 26, "%Y:%m:%d %H:%M:%S", last);
-        // do nothing, just a warning.
-        printf("last time: %lld, stock time: %lld, day sec: %lld.\n", last_time, stock->time, DAY_SEC);
-
-        printf("warning: skip invliad item to insert, delta: %lld. time: %s. last_time: %s\n", delta, buffer, last_buffer);
-
-        return 1;
-    }
-
-    // try to padding
-    while(delta > 0)
-    {
-        delta -= DAY_SEC;
-        last_time += DAY_SEC;
-        stock->time = last_time;
-        stock->is_valid = (delta == 0 ? VALID_STOCK : INVALID_STOCK);
-
-        // printf("write time: %lld.\n", stock->time);
-
-        cal_stock_daily_return(stock);
-        fwrite(stock, sizeof(stock_t), 1, file);
-    }
+    fwrite(stock, sizeof(stock_t), 1, file);
 
     return 0;
 }
