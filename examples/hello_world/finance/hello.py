@@ -1,4 +1,5 @@
 import time
+from collections import OrderedDict
 from maro.simulator import Env, DecisionMode
 from maro.simulator.frame import SnapshotList
 from maro.simulator.scenarios.finance.common import Action, OrderMode
@@ -17,36 +18,28 @@ for ep in range(MAX_EP):
 
     while not is_done:
         actions = []
+        available_ticks = OrderedDict()
 
         for decision_event in decision_events:
-            if decision_event.sub_engine_name == "test_stocks":
-                holding = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
-                available = env.snapshot_list.test_stocks.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
-                total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
-                #print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
+            cur_env_snap = getattr(env.snapshot_list, decision_event.sub_engine_name)
+            holding = cur_env_snap.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
+            available = cur_env_snap.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
+            total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
+            #print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
 
-                if available == 1:
-                    if holding > 0:
-                        action = Action("test_stocks", decision_event.item, -holding, OrderMode.market_order)
-                    else:
-                        action = Action("test_stocks", decision_event.item, 5000, OrderMode.market_order)
+            if available == 1:
+                if holding > 0:
+                    action = Action(decision_event.sub_engine_name, decision_event.item, -holding, OrderMode.market_order)
                 else:
-                    action = None
-                actions.append(action)
-            elif decision_event.sub_engine_name == "us_stocks":
-                holding = env.snapshot_list.us_stocks.static_nodes[env.tick:decision_event.item:"account_hold_num"][-1]
-                available = env.snapshot_list.us_stocks.static_nodes[env.tick:decision_event.item:"is_valid"][-1]
-                total_money = env.snapshot_list.account.static_nodes[env.tick-1:0:"total_money"][-1]
-                #print("env.tick: ",env.tick," holding: ",holding," available: ",available, "total_money:", total_money)
-
-                if available == 1:
-                    if holding > 0:
-                        action = Action("us_stocks", decision_event.item, -holding, OrderMode.market_order)
-                    else:
-                        action = Action("us_stocks", decision_event.item, 5000000, OrderMode.market_order)
-                else:
-                    action = None
-                actions.append(action)
+                    action = Action(decision_event.sub_engine_name, decision_event.item, 4999990, OrderMode.market_order)
+                if decision_event.sub_engine_name not in available_ticks:
+                    available_ticks[decision_event.sub_engine_name] = OrderedDict()
+                if decision_event.item not in available_ticks[decision_event.sub_engine_name]:
+                    available_ticks[decision_event.sub_engine_name][decision_event.item] = []
+                available_ticks[decision_event.sub_engine_name][decision_event.item].append(env.tick)
+            else:
+                action = None
+            actions.append(action)
         reward, decision_events, is_done = env.step(actions)
 
     ep_time = time.time() - ep_start
