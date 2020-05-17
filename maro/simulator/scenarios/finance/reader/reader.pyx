@@ -97,22 +97,23 @@ cdef class Stock:
     NOTE: this object only used to hold result from binary for query, do not keep the reference"""
     cdef:
 
-        uint8_t is_valid
-        float opening_price
-        float closing_price
-        float pre_closing_price
-        float highest_price
-        float lowest_price
-        float up_down_amount
-        float up_down_rate
-        float turnover_rate
-        float trade_amount
-        float total_market_capitalization
-        float circulation_market_capitalization
-        uint32_t trade_volume
-        uint32_t trade_num
-        uint32_t code
-        uint64_t time
+        uint8_t _is_valid
+        float _opening_price
+        float _closing_price
+        float _pre_closing_price
+        float _highest_price
+        float _lowest_price
+        float _up_down_amount
+        float _up_down_rate
+        float _turnover_rate
+        float _trade_amount
+        float _total_market_capitalization
+        float _circulation_market_capitalization
+        float _daily_return
+        uint32_t _trade_volume
+        uint32_t _trade_num
+        uint32_t _code
+        uint64_t _time
 
     def __cinit__(self):
         pass
@@ -121,91 +122,91 @@ cdef class Stock:
         self.copy_from(<stock_t*>data)
 
     cdef copy_from(self, stock_t *stock):
-        pass
-        # self.is_valid = stock.is_valid
-        # self.opening_price = fix_price(stock.opening_price)
-        # self.closing_price = fix_price(stock.closing_price)
-        # self.pre_closing_price = fix_price(stock.pre_closing_price)
-        # self.highest_price = fix_price(stock.highest_price)
-        # self.lowest_price = fix_price(stock.lowest_price)
-        # self.up_down_amount = stock.up_down_amount
-        # self.up_down_rate = stock.up_down_rate
-        # self.turnover_rate = stock.turnover_rate
-        # self.trade_amount = stock.trade_amount
-        # self.total_market_capitalization = stock.total_market_capitalization
-        # self.circulation_market_capitalization = stock.circulation_market_capitalization
-        # self.trade_volume = stock.trade_volume
-        # self.trade_num = stock.trade_num
-        # self.code = stock.code
-        # self.time = stock.time
+        self._is_valid = stock.is_valid
+        self._opening_price = fix_price(stock.opening_price)
+        self._closing_price = fix_price(stock.closing_price)
+        self._pre_closing_price = fix_price(stock.pre_closing_price)
+        self._highest_price = fix_price(stock.highest_price)
+        self._lowest_price = fix_price(stock.lowest_price)
+        self._up_down_amount = stock.up_down_amount
+        self._up_down_rate = stock.up_down_rate
+        self._turnover_rate = stock.turnover_rate
+        self._trade_amount = stock.trade_amount
+        self._total_market_capitalization = stock.total_market_capitalization
+        self._circulation_market_capitalization = stock.circulation_market_capitalization
+        self._trade_volume = stock.trade_volume
+        self._trade_num = stock.trade_num
+        self._code = stock.code
+        self._time = stock.time
+        self._daily_return = stock.daily_return
  
     @property
     def is_valid(self):
-        return self.is_valid == 0
+        return self._is_valid == 0
 
     @property
     def code(self):
-        return self.code
+        return self._code
 
     @property
     def time(self):
-        return self.time
+        return self._time
 
     @property
     def opening_price(self):
-        return self.opening_price
+        return self._opening_price
 
     @property
     def pre_closing_price(self):
-        return self.pre_closing_price
+        return self._pre_closing_price
 
     @property
     def closing_price(self):
-        return self.closing_price
+        return self._closing_price
 
     @property
     def highest_price(self):
-        return self.highest_price
+        return self._highest_price
 
     @property
     def lowest_price(self):
-        return self.lowest_price
+        return self._lowest_price
 
     @property
     def up_down_amount(self):
-        return self.up_down_amount
+        return self._up_down_amount
 
     @property
     def up_down_rate(self):
-        return self.up_down_rate
+        return self._up_down_rate
 
     @property
     def turnover_rate(self):
-        return self.turnover_rate
+        return self._turnover_rate
 
     @property
     def trade_amount(self):
-        return self.trade_amount
+        return self._trade_amount
 
     @property
     def total_market_capitalization(self):
-        return self.total_market_capitalization
+        return self._total_market_capitalization
 
     @property
     def circulation_market_capitalization(self):
-        return self.circulation_market_capitalization
+        return self._circulation_market_capitalization
 
     @property
     def trade_volume(self):
-        return self.trade_volume
+        return self._trade_volume
 
     @property
     def trade_num(self):
-        return self.trade_num
+        return self._trade_num
  
     @property
     def daily_return(self):
-        return self.daily_return
+        return self._daily_return
  
     def __repr__(self):
         return f"Stock (is_valid: {self.is_valid}, code: {self.code}, time: {self.time}, open price: {self.opening_price}, close price: {self.closing_price}, daily_return: {self.daily_return})"
@@ -330,6 +331,7 @@ cdef class CombinationReader:
         Stock stock
 
     def __cinit__(self, char *path):
+        self.stock = Stock()
         init_combination_reader(path, &self.reader)
 
     def next_row(self) -> int:
@@ -345,12 +347,10 @@ cdef class CombinationReader:
 
         for i in range(self.reader.current_row_length):
             stock = read_combination_item(&self.reader, i)
-            # print(stock)
+            
             if stock is not NULL:
-                # print(stock.opening_price)
-                # self.stock.ref(stock)
                 self.stock.copy_from(stock)
-                # print("Eneeee")
+
                 yield self.stock
 
     def __dealloc__(self):
