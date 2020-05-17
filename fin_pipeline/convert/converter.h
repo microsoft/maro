@@ -166,17 +166,17 @@ void cal_stock_daily_return(stock_t *stock);
 #define MIN_COMBINE_ARGUMENT_NUM 8
 
 typedef struct CombineHeader{
-    int16_t item_length; // length of each item
-    int32_t item_number; // number of all items
-    int32_t steps; 
-    int64_t start_time;
-    int64_t end_time;
+    uint16_t item_length; // length of each item
+    uint32_t item_number; // number of all items
+    uint32_t steps; 
+    uint64_t start_time;
+    uint64_t end_time;
 
 } combine_header_t;
 
 typedef struct CombineRowMeta{
-    int16_t item_number;
-    int64_t time;
+    uint16_t item_number;
+    uint64_t time;
 } combine_row_meta_t;
 
 
@@ -192,7 +192,7 @@ typedef struct CombineReader
     stock_t *buffer; // size same as item number in meta
     int fd;
     int current_row_length; // stocks in current row
-    int64_t current_timestamp;
+    uint64_t current_timestamp;
     size_t size;
     size_t offset; // current offset
     combine_header_t *meta;
@@ -202,7 +202,7 @@ typedef struct CombineReader
 void init_combination_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number, int16_t steps);
 void release_combination__writer(combine_writer_t *writer);
 
-void process_combination(char *ouput_path, int64_t start_time, int64_t end_time, int32_t steps, int items, char *item_path[]);
+void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_time, uint32_t steps, int items, char *item_path[]);
 
 void new_combination_row(combine_writer_t *writer, int64_t time);
 void update_combination_item_number(combine_writer_t *writer, int16_t item_number);
@@ -212,6 +212,8 @@ void add_combination_stock(combine_writer_t *writer, stock_t *stock);
 void init_combination_reader(char *path, combine_reader_t *reader);
 void release_combination_reader(combine_reader_t *reader);
 int read_combination_row(combine_reader_t *reader); // reader stocks same with stock number in current row, return stock number
-void read_combination_item(combine_reader_t *reader, int index, stock_t *stock); // reader item by index (less than number from read_combination_row)
+stock_t* read_combination_item(combine_reader_t *reader, int index); // reader item by index (less than number from read_combination_row)
+void reset_combination_reader(combine_reader_t *reader);
+
 
 #endif

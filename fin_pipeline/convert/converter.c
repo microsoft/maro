@@ -575,7 +575,7 @@ void cal_stock_daily_return(stock_t *stock)
 
 /*** data combination ***/
 
-void process_combination(char *ouput_path, int64_t start_time, int64_t end_time, int32_t steps, int items, char *item_path[])
+void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_time, uint32_t steps, int items, char *item_path[])
 {
     // init writer
     combine_writer_t writer;
@@ -613,8 +613,8 @@ void process_combination(char *ouput_path, int64_t start_time, int64_t end_time,
     {
         finreader_t *reader;
         stock_t *stock=NULL;
-        int64_t cur_time = start_time;
-        int16_t row_items_number = 0;
+        uint64_t cur_time = start_time;
+        uint16_t row_items_number = 0;
 
         // printf("start time: %llu, end time: %llu, steps: %d.\n", start_time, end_time, steps);
         
@@ -825,12 +825,22 @@ int read_combination_row(combine_reader_t *reader)
     return r_meta->item_number;
 }
 
-void read_combination_item(combine_reader_t *reader, int index, stock_t *stock)
+stock_t* read_combination_item(combine_reader_t *reader, int index)
 {
     if(reader == NULL || index >= reader->current_row_length)
     {
-        return;
+        return NULL;
     }
 
-    stock = reader->buffer + index;
+    return reader->buffer + index;
+}
+
+void reset_combination_reader(combine_reader_t *reader)
+{
+    if(reader == NULL) return;
+
+    reader->offset = sizeof(combine_header_t);
+    reader->current_row_length = 0;
+    reader->current_timestamp = 0;
+    
 }

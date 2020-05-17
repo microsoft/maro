@@ -58,6 +58,30 @@ cdef extern from "converter.c":
     uint8_t jump_to(finreader_t *reader, int index)
     void reset_reader(finreader_t *reader)
 
+
+    ctypedef struct combine_header_t:
+        uint16_t item_length
+        uint32_t item_number
+        uint32_t steps
+        uint64_t start_time
+        uint64_t end_time
+
+    ctypedef struct combine_reader_t:
+        void *addr
+        stock_t *buffer
+        int fd
+        int current_row_length
+        uint64_t current_timestamp
+        size_t size
+        size_t offset
+        combine_header_t *meta     
+
+    void init_combination_reader(char *path, combine_reader_t *reader)
+    void release_combination_reader(combine_reader_t *reader)
+    int read_combination_row(combine_reader_t *reader)
+    stock_t* read_combination_item(combine_reader_t *reader, int index)
+    void reset_combination_reader(combine_reader_t *reader)
+
 class FinanceDataType:
     STOCK = 1
     # FUTURES = 2
@@ -72,81 +96,116 @@ cdef class Stock:
     """Stock item info.
     NOTE: this object only used to hold result from binary for query, do not keep the reference"""
     cdef:
-        stock_t *stock
+
+        uint8_t is_valid
+        float opening_price
+        float closing_price
+        float pre_closing_price
+        float highest_price
+        float lowest_price
+        float up_down_amount
+        float up_down_rate
+        float turnover_rate
+        float trade_amount
+        float total_market_capitalization
+        float circulation_market_capitalization
+        uint32_t trade_volume
+        uint32_t trade_num
+        uint32_t code
+        uint64_t time
 
     def __cinit__(self):
         pass
 
     cdef fill(self, void *data):
-        self.stock = <stock_t*>data
+        self.copy_from(<stock_t*>data)
+
+    cdef copy_from(self, stock_t *stock):
+        pass
+        # self.is_valid = stock.is_valid
+        # self.opening_price = fix_price(stock.opening_price)
+        # self.closing_price = fix_price(stock.closing_price)
+        # self.pre_closing_price = fix_price(stock.pre_closing_price)
+        # self.highest_price = fix_price(stock.highest_price)
+        # self.lowest_price = fix_price(stock.lowest_price)
+        # self.up_down_amount = stock.up_down_amount
+        # self.up_down_rate = stock.up_down_rate
+        # self.turnover_rate = stock.turnover_rate
+        # self.trade_amount = stock.trade_amount
+        # self.total_market_capitalization = stock.total_market_capitalization
+        # self.circulation_market_capitalization = stock.circulation_market_capitalization
+        # self.trade_volume = stock.trade_volume
+        # self.trade_num = stock.trade_num
+        # self.code = stock.code
+        # self.time = stock.time
  
     @property
     def is_valid(self):
-        return False if not self.stock else self.stock.is_valid == 0
+        return self.is_valid == 0
 
     @property
     def code(self):
-        return None if not self.stock else self.stock.code
+        return self.code
 
     @property
     def time(self):
-        return None if not self.stock else self.stock.time
+        return self.time
 
     @property
     def opening_price(self):
-        return None if not self.stock else fix_price(self.stock.opening_price)
+        return self.opening_price
 
     @property
     def pre_closing_price(self):
-        return  None if not self.stock else fix_price(self.stock.pre_closing_price)
+        return self.pre_closing_price
 
     @property
     def closing_price(self):
-        return  None if not self.stock else fix_price(self.stock.closing_price)
+        return self.closing_price
 
     @property
     def highest_price(self):
-        return  None if not self.stock else fix_price(self.stock.highest_price)
+        return self.highest_price
 
     @property
     def lowest_price(self):
-        return  None if not self.stock else fix_price(self.stock.lowest_price)
+        return self.lowest_price
 
     @property
     def up_down_amount(self):
-        return  None if not self.stock else self.stock.up_down_amount
+        return self.up_down_amount
 
     @property
     def up_down_rate(self):
-        return  None if not self.stock else self.stock.up_down_rate
+        return self.up_down_rate
 
     @property
     def turnover_rate(self):
-        return  None if not self.stock else self.stock.turnover_rate
+        return self.turnover_rate
 
     @property
     def trade_amount(self):
-        return  None if not self.stock else self.stock.trade_amount
+        return self.trade_amount
 
     @property
     def total_market_capitalization(self):
-        return  None if not self.stock else self.stock.total_market_capitalization
+        return self.total_market_capitalization
 
     @property
     def circulation_market_capitalization(self):
-        return  None if not self.stock else self.stock.circulation_market_capitalization
+        return self.circulation_market_capitalization
 
     @property
     def trade_volume(self):
-        return  None if not self.stock else fix_price(self.stock.trade_volume)
+        return self.trade_volume
 
     @property
     def trade_num(self):
-        return  None if not self.stock else self.stock.trade_num
+        return self.trade_num
  
     @property
     def daily_return(self):
-        return None if not self.stock else self.stock.daily_return
+        return self.daily_return
  
     def __repr__(self):
         return f"Stock (is_valid: {self.is_valid}, code: {self.code}, time: {self.time}, open price: {self.opening_price}, close price: {self.closing_price}, daily_return: {self.daily_return})"
@@ -262,3 +321,56 @@ cdef class FinanceReader:
 
     def __repr__(self):
         return f"FinanceReader (data type: {self.data_type}, code: {self.id}, count: {self.size}, start time: {self.start_time}, end time: {self.end_time})";
+
+
+cdef class CombinationReader:
+    """Read the combined data format, only support stock now"""
+    cdef:
+        combine_reader_t reader
+        Stock stock
+
+    def __cinit__(self, char *path):
+        init_combination_reader(path, &self.reader)
+
+    def next_row(self) -> int:
+        """read next row
+        Returns:
+            int: stocks in this row"""
+        
+        return read_combination_row(&self.reader)
+
+    def items(self):
+        cdef int i=0
+        cdef stock_t *stock
+
+        for i in range(self.reader.current_row_length):
+            stock = read_combination_item(&self.reader, i)
+            # print(stock)
+            if stock is not NULL:
+                # print(stock.opening_price)
+                # self.stock.ref(stock)
+                self.stock.copy_from(stock)
+                # print("Eneeee")
+                yield self.stock
+
+    def __dealloc__(self):
+        release_combination_reader(&self.reader)
+
+    cdef reset(self):
+        reset_combination_reader(&self.reader)
+
+    @property
+    def start_timestamp(self):
+        return self.reader.meta.start_time
+
+    @property
+    def end_timestamp(self):
+        return self.reader.meta.end_time
+
+    @property
+    def stock_number(self):
+        return self.reader.meta.item_number
+
+    @property
+    def steps(self):
+        return self.reader.meta.steps
