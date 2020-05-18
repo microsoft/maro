@@ -16,7 +16,7 @@ import zmq
 
 # private lib
 from maro.distributed.message import Message
-from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey, MsgStatus
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey, MsgStatus, SocketType
 from typing import List
 
 
@@ -82,11 +82,10 @@ class Proxy:
         # create a receiving socket, bind it to a random port and upload the address info to the Redis server
         self._receiver = self._zmq_context.socket(zmq.PULL)
         recv_port = self._receiver.bind_to_random_port(f'{self._protocol}://*')
-        # recv_address = [self._ip_address, recv_port]
 
-        self._receiver_pub = self._zmq_context.socket(zmq.PUB)
-        recv_port_pub = self._receiver_pub.bind_to_random_port(f'{self._protocol}://*')
-        recv_address = [(self._ip_address, recv_port, 'zmq_PULL'), (self._ip_address, recv_port_pub, 'zmq_PUB')]
+        self._sender_pub = self._zmq_context.socket(zmq.PUB)
+        send_port = self._sender_pub.bind_to_random_port(f'{self._protocol}://*')
+        recv_address = [(self._ip_address, recv_port, 'zmq_PULL'), (self._ip_address, send_port, 'zmq_PUB')]
         self._redis_connection.hset(self._group_name, self._name, json.dumps(recv_address))
 
         self._receiver_sub = self._zmq_context.socket(zmq.SUB)
@@ -144,45 +143,39 @@ class Proxy:
 
             time.sleep(0.001)
     
-    def scatter(self, message_type: MsgType, destination_payload_list: list, sendby='PUSH', multithread = False, multiprocess = False):
+    def scatter(self, message_type: MsgType, destination_payload_list: list, multithread = False):
         """separate data, and send to peer"""
         receive_list = self._group_send(message_type, 
                                         destination_payload_list, 
-                                        sendby=sendby, 
-                                        multithread=multithread, 
-                                        multiprocess=multiprocess)
+                                        multithread=multithread)
 
         return self.get(receive_list)
 
-    def iscatter(self, message_type: MsgType, destination_payload_list: list, sendby='PUSH', multithread = False, multiprocess = False):
+    def iscatter(self, message_type: MsgType, destination_payload_list: list, multithread = False):
         return self._group_send(message_type, 
                                 destination_payload_list, 
-                                sendby=sendby, 
-                                multithread=multithread, 
-                                multiprocess=multiprocess)
+                                multithread=multithread)
 
-    def broadcast(self, message_type: MsgType, destination: list, payload, sendby='PUSH', multithread = False, multiprocess = False):
+    def broadcast(self, message_type: MsgType, destination: list, payload, multithread = False):
         """send data to all peers"""
         destination_payload_list = [(dest, payload) for dest in destination]
 
         receive_list = self._group_send(message_type, 
                                         destination_payload_list, 
-                                        sendby=sendby, 
-                                        multithread=multithread, 
-                                        multiprocess=multiprocess)
+                                        sendby=SocketType.ZMQ_PUB, 
+                                        multithread=multithread)
 
         return self.get(receive_list)
 
-    def ibroadcast(self, message_type: MsgType, destination: list, payload, sendby='PUSH', multithread = False, multiprocess = False):
+    def ibroadcast(self, message_type: MsgType, destination: list, payload, multithread = False):
         destination_payload_list = [(dest, payload) for dest in destination]
 
         return self._group_send(message_type, 
                                 destination_payload_list, 
-                                sendby=sendby, 
-                                multithread=multithread, 
-                                multiprocess=multiprocess)
+                                sendby=SocketType.ZMQ_PUB, 
+                                multithread=multithread)
 
-    def send(self, message: Message, sendby: str):
+    def send(self, message: Message, sendby = SocketType.ZMQ_PUSH):
         """Send a message to a remote peer
 
         Args:
@@ -194,40 +187,45 @@ class Proxy:
             raise Exception('No message recipient found. Are you using the right configuration?')
 
         source, destination = message.source, message.destination
-        if sendby == 'PUSH':
+        if sendby == SocketType.ZMQ_PUSH:
             if message.destination not in self._send_channel:
                 raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
                                 f"Are you using the right configuration?")
             self._send_channel[destination].send_pyobj(message)
         else:
-            self._receiver_pub.send_pyobj(message)
+            self._sender_pub.send_pyobj(message)
 
         self._logger.debug(f'sent a {message.type} message to {message.destination}')
         self._message_cache[message.message_id] = MsgStatus.WAIT_MESSAGE
 
-    def _group_send(self, message_type: MsgType, destination_payload_list: list, multithread = False, multiprocess = False, sendby = 'push'):
+    def _group_send(self, 
+                    message_type: MsgType, 
+                    destination_payload_list: list, 
+                    sendby=SocketType.ZMQ_PUSH, 
+                    multithread = False):
         """ """
         message_id_list = []
 
         if multithread:
             executor = ThreadPoolExecutor(max_workers=10)
-        if multiprocess:
-            executor = ProcessPoolExecutor(max_workers=10)
 
         for destination, payload in destination_payload_list:
             single_message = Message(type=message_type, source=self._name,
                                     destination=destination,
                                     payload=payload)
-            if multithread or multiprocess:
+            
+            if multithread:
                 executor.submit(self.send, single_message, sendby)
             else:
                 self.send(single_message, sendby)
+            
             message_id_list.append(single_message.message_id)
-            self._logger.debug(f'sent a {single_message.type} message to {single_message.destination}')
-            if sendby == 'PUB':
+            if sendby == SocketType.ZMQ_PUB:
+                self._logger.debug(f'broadcast a {single_message.type} message to all subscribe')
                 break
+            self._logger.debug(f'sent a {single_message.type} message to {single_message.destination}')
         
-        if multithread or multiprocess:
+        if multithread:
             executor.shutdown()
         return message_id_list
 

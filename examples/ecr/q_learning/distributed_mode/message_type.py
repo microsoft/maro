@@ -18,6 +18,11 @@ class MsgStatus(Enum):
     WAIT_MESSAGE = 1
     
 
+class SocketType(Enum):
+    ZMQ_PUB = 0
+    ZMQ_PUSH = 1
+
+
 class PayloadKey(Enum):
     EXPERIENCE = 'experience'
     EPISODE = 'episode'
