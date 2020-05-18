@@ -23,26 +23,26 @@
 
 int main(int argc, char *argv[])
 {
-    // combine_reader_t reader;
+    combine_reader_t reader;
 
-    // init_combination_reader(argv[1], &reader);
+    init_combination_reader(argv[1], &reader);
 
-    // int l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
+    int l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
     
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
-    // l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
+    l = read_combination_row(&reader);
 
-    // release_combination_reader(&reader);
+    release_combination_reader(&reader);
 
-    // return 1;
+    return 1;
 
     if(argc < 3){
         char *help = "converter command line to convert finance json data into binary format, basic usage:\n\
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
     if(strcmp(dtype, "stock") == 0)
     {
-        uint32_t id = atoi(argv[3]);
+        char *id = argv[3];
 
         printf("dtype: %s, mode: %s.\n", dtype, mode);
 
@@ -80,8 +80,12 @@ int main(int argc, char *argv[])
             int8_t ver = atoi(argv[4]);
             char *src_path = argv[5];
             char *output_path = argv[6];
+            char code[7];
+            
+            memset(code, 0, 7);
+            memcpy(code, id, 6); // TODO: we should padding if less than 6
 
-            new_stock_bin(ver, id, src_path, output_path);
+            new_stock_bin(ver, code, src_path, output_path);
         }
         else if(strcmp(mode, "update") == 0){
             char *src_path = argv[3];
@@ -191,9 +195,11 @@ void append_stock_bin(const char *src_path, const char *output_path)
     fclose(file);
 }
 
-void new_stock_bin(int8_t version, int32_t code, const char *src_path, const char *output_path)
+void new_stock_bin(int8_t version, char code[7], const char *src_path, const char *output_path)
 {
-    meta_t meta = {"MARO", CONV_STOCK, version, sizeof(stock_t), code, 0, 0};
+    meta_t meta = {"MARO", "\0", CONV_STOCK, version, sizeof(stock_t), 0, 0};
+    memset(meta.id, 0, 7);
+    memcpy(meta.id, code, 6);
     
     FILE *file = fopen(output_path, "wb+");
 
@@ -321,7 +327,11 @@ void read_stock_from_json(const char *json, jsmntok_t *tokens, int start_index, 
     // code
     read_property(json, tokens + start_index + 4, buffer);
 
-    stock->code = atoi(buffer);
+    // stock->code = atoi(buffer);
+    memset(stock->code, 0, 7);
+    memcpy(stock->code, buffer, 6); // TODO: refine the hard code later
+
+    printf("code name: %s\n", stock->code);
 
     // close price    
     read_property(json, tokens + start_index + 8, buffer);
@@ -462,6 +472,9 @@ BOOL init_reader(const char *path, finreader_t *reader, int8_t dtype)
 
     // read the meta 
     reader->meta = *((meta_t *)reader->addr);
+    printf("size: %lld, meta size: %lu, item_size: %d.\n", st.st_size, sizeof(meta_t), reader->meta.item_size);
+
+    printf("meta, code: %s, header: %s.\n", reader->meta.id, reader->meta.header);
 
     reader->size = (st.st_size - sizeof(meta_t)) / reader->meta.item_size;
 
@@ -812,14 +825,15 @@ int read_combination_row(combine_reader_t *reader)
         memcpy((char*)(reader->buffer), (reader->addr + reader->offset), sizeof(stock_t));
 
 
-        // stock_t *stock = NULL;
+        stock_t *stock = NULL;
 
-        // printf("current tick: %d\n", r_meta->tick);
-        // for(int i=0;i<r_meta->item_number;i++)
-        // {
-        //     stock = reader->buffer + i;
-        //     printf("time: %llu, opening price: %f\n", stock->time, stock->opening_price);
-        // }
+        printf("current tick: %d\n", r_meta->tick);
+        for(int i=0;i<r_meta->item_number;i++)
+        {
+            stock = reader->buffer + i;
+            printf("code: %s.\n", stock->code);
+            printf("time: %llu, opening price: %f\n", stock->time, stock->opening_price);
+        }
     }
 
     reader->offset += r_meta->item_number * (reader->meta->item_length);
@@ -847,4 +861,16 @@ void reset_combination_reader(combine_reader_t *reader)
     reader->current_row_length = 0;
     reader->current_tick = 0;
     
+}
+
+BOOL peek_current_row_info(combine_reader_t *reader, uint16_t *number, uint32_t *tick)
+{
+    if(reader == NULL || reader->offset >= reader->size) return FALSE;
+
+    combine_row_meta_t *r_meta = reader->addr + (reader->offset);
+
+    *number = r_meta->item_number;
+    *tick = r_meta->tick;
+
+    return TRUE;
 }

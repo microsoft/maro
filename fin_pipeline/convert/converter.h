@@ -60,11 +60,12 @@ typedef enum{
 } dtype_e;
 
 typedef struct Meta{
-    char header[4];
+    char header[5];
+    char id[7];
     uint8_t dtype;
     uint8_t version;
     uint16_t item_size;
-    uint32_t id;
+    
     uint64_t start_time;
     uint64_t end_time;
     // we can get item count byte (file size - size of meta)/item size
@@ -85,11 +86,11 @@ typedef struct Stock{
     float circulation_market_capitalization;
     uint32_t trade_volume;
     uint32_t trade_num;
-    uint32_t code; // code name (id)
     uint64_t time; // seconds since 1970
 
     //idr
     float daily_return;
+    char code[7]; // code name
 
 } stock_t;
 
@@ -108,7 +109,7 @@ typedef struct FinReader{
 create a new output file, and fill the meta part 
 */
 
-void new_stock_bin(int8_t version, int32_t id, const char *src_path, const char *output_path);
+void new_stock_bin(int8_t version, char code[6], const char *src_path, const char *output_path);
 void append_stock_bin(const char *src_path, const char *output_path);
 
 // convert input datetime into seconds since 1970
@@ -212,9 +213,11 @@ void add_combination_stock(combine_writer_t *writer, stock_t *stock);
 
 void init_combination_reader(char *path, combine_reader_t *reader);
 void release_combination_reader(combine_reader_t *reader);
+BOOL peek_current_row_info(combine_reader_t *reader, uint16_t *number, uint32_t *tick);
 int read_combination_row(combine_reader_t *reader); // reader stocks same with stock number in current row, return stock number
 stock_t* read_combination_item(combine_reader_t *reader, int index); // reader item by index (less than number from read_combination_row)
 void reset_combination_reader(combine_reader_t *reader);
+
 
 
 #endif
