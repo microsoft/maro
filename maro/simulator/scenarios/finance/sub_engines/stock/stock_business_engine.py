@@ -9,7 +9,7 @@ from maro.simulator.scenarios.finance.abs_sub_business_engine import \
 from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
                                                      FinanceType, TradeResult, OrderMode)
 from maro.simulator.scenarios.finance.reader import (FinanceDataType,
-                                                     FinanceReader)
+                                                     CombinationReader)
 from maro.simulator.scenarios.finance.reader import Stock as RawStock
 from maro.simulator.scenarios.entity_base import FrameBuilder
 from maro.simulator.utils.common import tick_to_frame_index
@@ -26,7 +26,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         self._stock_codes: list = None
         self._stocks_dict: dict = None
         self._stock_list: list = None
-        self._readers: dict = None
+        self._reader: CombinationReader = None
         self._order_mode = OrderMode.market_order
         self._trader = None
 
@@ -57,23 +57,34 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     def step(self, tick: int):
         valid_stocks = []
 
-        for code, reader in self._readers.items():
-            raw_stock: RawStock = reader.next_item()
+        # for code, reader in self._readers.items():
+        #     raw_stock: RawStock = reader.next_item()
 
-            if raw_stock is not None:
-                # update frame by code
-                stock: Stock = self._stocks_dict[code]
-                stock.fill(raw_stock)
+        #     if raw_stock is not None:
+        #         # update frame by code
+        #         stock: Stock = self._stocks_dict[code]
+        #         stock.fill(raw_stock)
 
-                if raw_stock.is_valid:
+        #         if raw_stock.is_valid:
+        #             valid_stocks.append(stock.index)
+
+        # TODO: specified tick later
+        item_number = self._reader.next_row(tick)
+
+        if item_number > 0:
+            for raw_stock in self._reader.items():
+                if raw_stock is not None and raw_stock.is_valid:
+                    stock: Stock = self._stocks_dict[raw_stock.code]
+                    stock.fill(raw_stock)
+
                     valid_stocks.append(stock.index)
 
-        for valid_stock in valid_stocks:
-            decision_event = DecisionEvent(tick, FinanceType.stock, valid_stock, self.name, self._action_scope)
-            self._cur_action_scope[valid_stock] = decision_event.action_scope[1]
-            evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
+            for valid_stock in valid_stocks:
+                decision_event = DecisionEvent(tick, FinanceType.stock, valid_stock, self.name, self._action_scope)
+                self._cur_action_scope[valid_stock] = decision_event.action_scope[1]
+                evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
-            self._event_buffer.insert_event(evt)
+                self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
         # after take snapshot, we need to reset the stock
@@ -101,9 +112,9 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         return ret
 
     def reset(self):
-        for _, reader in self._readers.items():
-            reader.reset()
-
+        # for _, reader in self._readers.items():
+        #     reader.reset()
+        self._reader.reset()
         self._frame.reset()
         self._snapshots.reset()
 
@@ -128,21 +139,23 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             self._stock_list.append(stock)
 
     def _init_reader(self):
-        data_folder = self._config["data_path"]
+        data_file = self._config["data_path"]
+
+        self._reader = CombinationReader(data_file.encode())
 
         self._stock_codes = self._config["stocks"]
 
         # TODO: is it a good idea to open lot of file at same time?
-        self._readers = {}
+        # self._readers = {}
 
-        for code in self._stock_codes:
-            data_path = os.path.join(data_folder, f"{code}.bin").encode()
+        # for code in self._stock_codes:
+        #     data_path = os.path.join(data_folder, f"{code}.bin").encode()
 
-            self._readers[code] = FinanceReader(FinanceDataType.STOCK, data_path, self._start_tick, self._max_tick, self._beginning_timestamp)
+        #     self._readers[code] = FinanceReader(FinanceDataType.STOCK, data_path, self._start_tick, self._max_tick, self._beginning_timestamp)
 
-            # in case the data file contains different ticks
-            new_max_tick = self._readers[code].max_tick
-            self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
+        #     # in case the data file contains different ticks
+        #     new_max_tick = self._readers[code].max_tick
+        #     self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
 
     def _init_trader(self, config):
         trade_constrain = config['trade_constrain'] #OrderedDict()

@@ -5,7 +5,7 @@ from maro.simulator.scenarios.finance.common import Action, OrderMode
 
 MAX_EP = 2
 
-env = Env("finance", "test", max_tick=-1, decision_mode=DecisionMode.Joint)
+env = Env("finance", "test", max_tick=10, decision_mode=DecisionMode.Joint)
 
 # print("current stocks")
 # print(env.node_name_mapping.test_stocks)
@@ -51,7 +51,7 @@ for ep in range(MAX_EP):
 
     ep_time = time.time() - ep_start
 
-stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
+# stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
 
 # print("len of snapshot:", len(stock_snapshots))
 
@@ -65,24 +65,24 @@ stock_snapshots: SnapshotList = env.snapshot_list.test_stocks
 # print("closeing price for all the ticks:")
 # print(stock_closing_price)
 
-stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
+# stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
 
-print("account test_stocks hold num for all the ticks:")
-print(stock_account_hold_num)
+# print("account test_stocks hold num for all the ticks:")
+# print(stock_account_hold_num)
 
-stock_snapshots: SnapshotList = env.snapshot_list.us_stocks
+# stock_snapshots: SnapshotList = env.snapshot_list.us_stocks
 
-stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
+# stock_account_hold_num = stock_snapshots.static_nodes[:0:"account_hold_num"]
 
-print("account us_stocks hold num for all the ticks:")
-print(stock_account_hold_num)
+# print("account us_stocks hold num for all the ticks:")
+# print(stock_account_hold_num)
 
-account_snapshots: SnapshotList = env.snapshot_list.account
+# account_snapshots: SnapshotList = env.snapshot_list.account
 
-account_total_money = account_snapshots.static_nodes[:0:"total_money"]
+# account_total_money = account_snapshots.static_nodes[:0:"total_money"]
 
-print("account total money for all the ticks:")
-print(account_total_money)
+# print("account total money for all the ticks:")
+# print(account_total_money)
 
 # NOTE: assets interface must provide ticks
 # assets_query_ticks = [0, 1, 2]
