@@ -201,7 +201,7 @@ typedef struct CombineReader
 } combine_reader_t;
 
 
-void init_combination_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number, int16_t steps);
+void init_combination_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number, uint32_t steps);
 void release_combination__writer(combine_writer_t *writer);
 
 void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_time, uint32_t steps, int items, char *item_path[]);

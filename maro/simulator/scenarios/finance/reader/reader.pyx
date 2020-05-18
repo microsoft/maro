@@ -29,19 +29,19 @@ cdef extern from "converter.c":
         float circulation_market_capitalization
         uint32_t trade_volume
         uint32_t trade_num
-        uint32_t code
         uint64_t time
         float daily_return
- 
+        char code[7]
+
     ctypedef struct meta_t:
         char header[4]
+        char id[7]
         uint8_t dtype
         uint8_t version
         uint16_t item_size
-        uint32_t id
         uint64_t start_time
         uint64_t end_time
-
+ 
     ctypedef struct finreader_t:
         int fd
         int size
@@ -81,6 +81,7 @@ cdef extern from "converter.c":
     int read_combination_row(combine_reader_t *reader)
     stock_t* read_combination_item(combine_reader_t *reader, int index)
     void reset_combination_reader(combine_reader_t *reader)
+    uint8_t peek_current_row_info(combine_reader_t *reader, uint16_t *number, uint32_t *tick)
 
 class FinanceDataType:
     STOCK = 1
@@ -112,7 +113,7 @@ cdef class Stock:
         float _daily_return
         uint32_t _trade_volume
         uint32_t _trade_num
-        uint32_t _code
+        str _code
         uint64_t _time
 
     def __cinit__(self):
@@ -136,7 +137,7 @@ cdef class Stock:
         self._circulation_market_capitalization = stock.circulation_market_capitalization
         self._trade_volume = stock.trade_volume
         self._trade_num = stock.trade_num
-        self._code = stock.code
+        self._code = stock.code.decode()
         self._time = stock.time
         self._daily_return = stock.daily_return
  
@@ -323,7 +324,7 @@ cdef class FinanceReader:
     def __repr__(self):
         return f"FinanceReader (data type: {self.data_type}, code: {self.id}, count: {self.size}, start time: {self.start_time}, end time: {self.end_time})";
 
-
+ 
 cdef class CombinationReader:
     """Read the combined data format, only support stock now"""
     cdef:
@@ -334,12 +335,24 @@ cdef class CombinationReader:
         self.stock = Stock()
         init_combination_reader(path, &self.reader)
 
-    def next_row(self) -> int:
+    def next_row(self, uint32_t tick) -> int:
         """read next row
         Returns:
             int: stocks in this row"""
+
+        # check if next row is same with specified tick
+        cdef uint16_t stock_number
+        cdef uint32_t cur_tick
+
+        while TRUE == peek_current_row_info(&self.reader, &stock_number, &cur_tick):
+            if cur_tick == tick:
+                return read_combination_row(&self.reader)
+            elif cur_tick > tick:
+                break
+            else:
+                read_combination_row(&self.reader)
         
-        return read_combination_row(&self.reader)
+        return 0
 
     def items(self):
         cdef int i=0
@@ -356,7 +369,7 @@ cdef class CombinationReader:
     def __dealloc__(self):
         release_combination_reader(&self.reader)
 
-    cdef reset(self):
+    def reset(self):
         reset_combination_reader(&self.reader)
 
     @property

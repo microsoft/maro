@@ -23,26 +23,26 @@
 
 int main(int argc, char *argv[])
 {
-    combine_reader_t reader;
+    // combine_reader_t reader;
 
-    init_combination_reader(argv[1], &reader);
+    // init_combination_reader(argv[1], &reader);
 
-    int l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
+    // int l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
     
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
-    l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
+    // l = read_combination_row(&reader);
 
-    release_combination_reader(&reader);
+    // release_combination_reader(&reader);
 
-    return 1;
+    // return 1;
 
     if(argc < 3){
         char *help = "converter command line to convert finance json data into binary format, basic usage:\n\
@@ -107,6 +107,8 @@ int main(int argc, char *argv[])
             {
                 items_path[i] = argv[i + MIN_COMBINE_ARGUMENT_NUM - 1];
             }
+
+            // printf("steps: %d.\n", steps);
 
             // printf("%s.\n", items_path[0]);
             process_combination(output_path, start_timestamp, end_timestamp, steps, items, items_path);
@@ -331,7 +333,7 @@ void read_stock_from_json(const char *json, jsmntok_t *tokens, int start_index, 
     memset(stock->code, 0, 7);
     memcpy(stock->code, buffer, 6); // TODO: refine the hard code later
 
-    printf("code name: %s\n", stock->code);
+    // printf("code name: %s\n", stock->code);
 
     // close price    
     read_property(json, tokens + start_index + 8, buffer);
@@ -472,9 +474,9 @@ BOOL init_reader(const char *path, finreader_t *reader, int8_t dtype)
 
     // read the meta 
     reader->meta = *((meta_t *)reader->addr);
-    printf("size: %lld, meta size: %lu, item_size: %d.\n", st.st_size, sizeof(meta_t), reader->meta.item_size);
+    // printf("size: %lld, meta size: %lu, item_size: %d.\n", st.st_size, sizeof(meta_t), reader->meta.item_size);
 
-    printf("meta, code: %s, header: %s.\n", reader->meta.id, reader->meta.header);
+    // printf("meta, code: %s, header: %s.\n", reader->meta.id, reader->meta.header);
 
     reader->size = (st.st_size - sizeof(meta_t)) / reader->meta.item_size;
 
@@ -696,7 +698,7 @@ void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_tim
 }
 
 
-void init_combination_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number, int16_t steps)
+void init_combination_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number, uint32_t steps)
 {
     writer->file = fopen(path, "wb+");
 
@@ -825,15 +827,15 @@ int read_combination_row(combine_reader_t *reader)
         memcpy((char*)(reader->buffer), (reader->addr + reader->offset), sizeof(stock_t));
 
 
-        stock_t *stock = NULL;
+        // stock_t *stock = NULL;
 
-        printf("current tick: %d\n", r_meta->tick);
-        for(int i=0;i<r_meta->item_number;i++)
-        {
-            stock = reader->buffer + i;
-            printf("code: %s.\n", stock->code);
-            printf("time: %llu, opening price: %f\n", stock->time, stock->opening_price);
-        }
+        // printf("current tick: %d\n", r_meta->tick);
+        // for(int i=0;i<r_meta->item_number;i++)
+        // {
+        //     stock = reader->buffer + i;
+        //     printf("code: %s.\n", stock->code);
+        //     printf("time: %llu, opening price: %f\n", stock->time, stock->opening_price);
+        // }
     }
 
     reader->offset += r_meta->item_number * (reader->meta->item_length);
