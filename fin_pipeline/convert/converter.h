@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
 
 
 // TODO: may not compact with Windows now.
@@ -176,7 +177,7 @@ typedef struct CombineHeader{
 
 typedef struct CombineRowMeta{
     uint16_t item_number;
-    uint64_t time;
+    uint32_t tick;
 } combine_row_meta_t;
 
 
@@ -192,7 +193,7 @@ typedef struct CombineReader
     stock_t *buffer; // size same as item number in meta
     int fd;
     int current_row_length; // stocks in current row
-    uint64_t current_timestamp;
+    uint32_t current_tick;
     size_t size;
     size_t offset; // current offset
     combine_header_t *meta;
@@ -204,7 +205,7 @@ void release_combination__writer(combine_writer_t *writer);
 
 void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_time, uint32_t steps, int items, char *item_path[]);
 
-void new_combination_row(combine_writer_t *writer, int64_t time);
+void new_combination_row(combine_writer_t *writer, uint32_t time);
 void update_combination_item_number(combine_writer_t *writer, int16_t item_number);
 void add_combination_stock(combine_writer_t *writer, stock_t *stock);
 

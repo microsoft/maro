@@ -615,6 +615,7 @@ void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_tim
         stock_t *stock=NULL;
         uint64_t cur_time = start_time;
         uint16_t row_items_number = 0;
+        uint32_t tick = 0;
 
         // printf("start time: %llu, end time: %llu, steps: %d.\n", start_time, end_time, steps);
         
@@ -623,7 +624,7 @@ void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_tim
             row_items_number = 0;
 
             // add row meta
-            new_combination_row(&writer, cur_time);
+            new_combination_row(&writer, tick);
 
             for(int i=0;i<items;i++)
             {
@@ -666,6 +667,7 @@ void process_combination(char *ouput_path, uint64_t start_time, uint64_t end_tim
             }
 
             cur_time += steps;
+            tick += 1;
         }
     }
 
@@ -705,14 +707,14 @@ void release_combination__writer(combine_writer_t *writer)
     }
 }
 
-void new_combination_row(combine_writer_t *writer, int64_t time)
+void new_combination_row(combine_writer_t *writer, uint32_t tick)
 {
     if(writer == NULL)
     {
         return;
     }
 
-    combine_row_meta_t row_meta = {0, time};
+    combine_row_meta_t row_meta = {0, tick};
 
     fwrite(&row_meta, sizeof(combine_row_meta_t), 1, writer->file);
 }
@@ -802,7 +804,7 @@ int read_combination_row(combine_reader_t *reader)
 
     reader->offset += sizeof(combine_row_meta_t);
     reader->current_row_length = r_meta->item_number;
-    reader->current_timestamp = r_meta->time;
+    reader->current_tick = r_meta->tick;
 
     if(r_meta->item_number > 0)
     {
@@ -811,6 +813,8 @@ int read_combination_row(combine_reader_t *reader)
 
 
         // stock_t *stock = NULL;
+
+        // printf("current tick: %d\n", r_meta->tick);
         // for(int i=0;i<r_meta->item_number;i++)
         // {
         //     stock = reader->buffer + i;
@@ -841,6 +845,6 @@ void reset_combination_reader(combine_reader_t *reader)
 
     reader->offset = sizeof(combine_header_t);
     reader->current_row_length = 0;
-    reader->current_timestamp = 0;
+    reader->current_tick = 0;
     
 }
