@@ -34,7 +34,7 @@ class Trader():
     def commission_handler_register(self, commission_handler: callable):
         self._commission_handlers.append(commission_handler)
 
-    def trade(self, order_action: Action, cur_data: dict, remaining_money: float) -> TradeResult:
+    def trade(self, order_action: Action, cur_data: dict, remaining_money: float):
         # return stock, success, stock_price, number, tax
         asset = order_action.item_index
         is_success = False
@@ -55,7 +55,7 @@ class Trader():
             else:
                 is_success = True
                 if self._slippage_handler is not None:
-                    deal_price = self._slippage_handler.execute(order_action, cur_data, deal_price)
+                    deal_price = round(self._slippage_handler.execute(order_action, cur_data, deal_price),2)
 
                 deal_volume = order_action.number
 
@@ -72,16 +72,16 @@ class Trader():
                             deal_volume -= odd_volume
 
                 else:
-                    remaining_volume = cur_data[order_action.item_index].account_hold_num
-                    if remaining_volume < deal_volume:
-                        deal_volume = remaining_volume
+                    avalib_volume = cur_data[order_action.item_index].account_hold_num
+                    if avalib_volume < abs(deal_volume):
+                        deal_volume = -avalib_volume
 
                     # if min sell unit is configed
                     if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
-                        odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
+                        odd_volume = abs(deal_volume) % self._trade_constrain[TradeConstrain.min_sell_unit.value]
                         if odd_volume != 0:
-                            if odd_volume != remaining_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
-                                deal_volume -= odd_volume
+                            if odd_volume != avalib_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
+                                deal_volume += (-odd_volume)
 
                 for commission_handler in self._commission_handlers:
                     commission_charge += commission_handler.execute(deal_price, deal_volume)
@@ -89,6 +89,7 @@ class Trader():
                 commission_charge = int(commission_charge*100) / 100
 
                 # if remaining_money is not enough for commission
+                # TODO: sell out money not cover commission not implimented
                 if deal_volume > 0:
                     expected_remaining = remaining_money - deal_volume * deal_price - commission_charge
                     if expected_remaining < 0:
@@ -113,3 +114,118 @@ class Trader():
                 # print( commission_charge)
 
         return asset, is_success, deal_price, deal_volume, commission_charge
+
+    def split_trade(self, order_action: Action, cur_data: dict, remaining_money: float, split_volume: int):
+        # return stock, success, stock_price, number, tax
+        print("warning: split trading!", "total_volume: ", order_action.number)
+        
+        asset = order_action.item_index
+        is_success = True
+        remaining_volume = abs(order_action.number)
+        is_buy = True if order_action.number >= 0 else False
+        split_trades = []
+        deal_price = cur_data[order_action.item_index].opening_price
+        if 'deal_price' in self._trade_constrain:
+            if self._trade_constrain['deal_price'] == 'closing':
+                deal_price = cur_data[order_action.item_index].closing_price
+        continue_splippage_price = deal_price
+
+        print(deal_price)
+
+        while remaining_volume > 0 and is_success:
+            deal_volume = remaining_volume if remaining_volume < split_volume else split_volume 
+            commission_charge = 0
+
+
+            if order_action.order_mode not in self._order_handlers:
+                is_success = False
+            else:
+                order_handler = self._order_handlers[order_action.order_mode]
+
+                if not order_handler.is_trigger(order_action, cur_data):
+                    is_success = False
+                else:
+                    if self._slippage_handler is not None:
+                        continue_splippage_price = self._slippage_handler.execute(order_action, cur_data, continue_splippage_price)
+                        deal_price = round(continue_splippage_price,2)
+
+                    if is_buy:
+                        # if remaining_money is not enough
+                        deal_money = deal_price * deal_volume
+                        if deal_money > remaining_money:
+                            is_success = False
+                            deal_volume -= math.ceil((deal_money - remaining_money)/deal_price)
+
+                        # if min buy unit is configed
+                        if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
+                            odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                            if odd_volume != 0:
+                                deal_volume -= odd_volume
+
+
+                    else:
+                        avalib_volume = cur_data[order_action.item_index].account_hold_num
+                        if avalib_volume < deal_volume:
+                            is_success = False
+                            deal_volume = avalib_volume
+
+                        # if min sell unit is configed
+                        if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
+                            odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
+                            if odd_volume != 0:
+                                if odd_volume != avalib_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
+                                    deal_volume -= odd_volume
+                    
+                    if deal_volume <= 0:
+                        deal_volume = 0
+                        is_success = False
+
+                    for commission_handler in self._commission_handlers:
+                        if is_buy:
+                            commission_charge += commission_handler.execute(deal_price, deal_volume)
+                        else:
+                            commission_charge += commission_handler.execute(deal_price, -deal_volume)
+
+                    commission_charge = int(commission_charge*100) / 100
+
+                    # if remaining_money is not enough for commission
+                    # TODO: sell out money not enough for commission not covered
+                    if is_buy:
+                        expected_remaining = remaining_money - deal_volume * deal_price - commission_charge
+                        if expected_remaining < 0:
+                            is_success = False
+                            deal_volume -= math.ceil((-expected_remaining)/deal_price)
+
+                            if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
+                                odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                                if odd_volume != 0:
+                                    deal_volume -= odd_volume
+                            
+                            if deal_volume < 0:
+                                deal_volume = 0
+                                is_success = False
+
+                            # recalculate commission charge
+                            commission_charge = 0
+                            for commission_handler in self._commission_handlers:
+                                commission_charge += commission_handler.execute(deal_price, deal_volume)
+
+                    self._trade_number += 1
+                    if is_success:
+                        remaining_volume -= deal_volume
+                        if is_buy:
+                            split_trades.append((deal_price, deal_volume, commission_charge))
+                        else:
+                            split_trades.append((deal_price, -deal_volume, commission_charge))
+                            print("split trade:", "deal_price:", deal_price, "deal_volume:", deal_volume, "commission_charge:", commission_charge)
+                        # print("no.:", self._trade_number, "deal_price: ", deal_price, "deal_volume: ", deal_volume, "commission_charge: ", commission_charge, "remaining_money: ", remaining_money)
+                        # print( commission_charge)
+        total_amount = 0
+        total_volume = 0
+        total_commission = 0
+        for trade in split_trades:
+            total_amount += trade[0]*trade[1]
+            total_volume += trade[1]
+            total_commission += trade[2]
+
+        return asset, True if total_volume != 0 else False, round(total_amount / total_volume, 2), total_volume, commission_charge
