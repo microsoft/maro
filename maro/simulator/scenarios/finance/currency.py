@@ -7,6 +7,7 @@ import json
 
 
 class CurrencyType(Enum):
+    # currency types from https://www.ofx.com/en-us/forex-news/historical-exchange-rates/
     ARS = "Argentine Peso"
     AUD = "Australian Dollar"
     AZN = "Azerbaijani New Manat"
@@ -67,19 +68,17 @@ class CurrencyType(Enum):
 
 
 class CurrencyExchange():
-    data_path = ""
-    USD_transfer = False
-    from_USD = False
-    inited = False
-    fallback_exchange = 1
-    exchange_data_path = ""
-    exchange_data = None
-    exchange_func = None
-    exchange_to_USD = None
-    exchange_from_USD = None
-    from_currency = None
-    to_currency = None
-    init_time = None
+    data_path = "" # root path of exchange data
+    USD_transfer = False # use USD to exchnge two other currency
+    from_USD = False # exchange from USD or to USD
+    fallback_exchange = 1 # fix exchange rate if no exchange found
+    exchange_data_path = "" # exchange data file path
+    exchange_data = None # pd frame of exchange data
+    exchange_to_USD = None # exchange data of USD to Target currency
+    exchange_from_USD = None # exchange data of Source currency to USD
+    from_currency = None # source currency
+    to_currency = None # target currency
+    init_time = None # timestamp of tick 0
 
     def __init__(self, account_config: dict, from_currency: CurrencyType, to_currency: CurrencyType, fallback_exchange: float = 1, init_time: pd._libs.tslibs.timestamps.Timestamp = pd.Timestamp(year=1970, month=1, day=1)):
         self.from_currency = from_currency
@@ -113,13 +112,10 @@ class CurrencyExchange():
     def get_inter_bank_rate(self, date: pd._libs.tslibs.timestamps.Timestamp):
         if not self.USD_transfer:
             if self.exchange_data is not None:
-                print(type(self.exchange_data["PointInTime"][0]))
                 for i in range(14):
                     date_t = date + pd.to_timedelta(-i, unit='D')
-                    print("date_t", date_t)
                     exist_date = self.exchange_data[self.exchange_data["PointInTime"] == date_t]
                     if len(exist_date) > 0:
-                        print("exist_date", exist_date)
                         if self.from_USD:
                             return exist_date["InterbankRate"].values[0]
                         else:
