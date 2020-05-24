@@ -172,11 +172,15 @@ class EntityBase:
         """Bind attributes with frame and id into instance"""
         __dict__ = object.__getattribute__(self, "__dict__")    
 
+        node_type = getattr(type(self), "__node_type__", None)
+
+        if type(node_type) is not FrameNodeType:
+            self._frame.add_node_type(node_type)
+
         for name, attr in type(self).__dict__.items():
             # append an attribute access wrapper to current instance
             if isinstance(attr, BaseAttribute):
                 # TODO: this will override exist attribute of sub-class instance, maybe a warning later
-                node_type = getattr(type(self), "__node_type__", None)
 
                 # NOTE: here we have to use __dict__ to avoid infinite loop, as we overrided __getattribute__
                 attr_acc = FrameAttributeSliceAccessor(attr, __dict__["_frame"], node_type, __dict__["_index"], name)
@@ -224,10 +228,11 @@ class EntityBase:
 
 class FrameBuilder:
     def __init__(self):
-        self._static_node_cls = None
-        self._static_node_number = 0
-        self._dynamic_node_cls = None
-        self._dynamic_node_number = 0
+        self._node_info_dict = {} # key if the node type, value if class and number tuple
+        # self._static_node_cls = None
+        # self._static_node_number = 0
+        # self._dynamic_node_cls = None
+        # self._dynamic_node_number = 0
 
     def add_model(self, model_cls, number: int):
         # check the type, new node type will override old one, with warning
@@ -237,33 +242,37 @@ class FrameBuilder:
         if node_type is None:
             raise "Invalid Model definition, please use frame_node decorator for the model class"
         
-        if node_type == FrameNodeType.STATIC:
-            self._static_node_cls = model_cls
-            self._static_node_number = number
-        else:
-            self._dynamic_node_cls = model_cls
-            self._dynamic_node_number = number
+        if type(node_type) is FrameNodeType:
+            node_type = node_type.value
+
+        self._node_info_dict[node_type] = (model_cls, number)
+
+        # if node_type == FrameNodeType.STATIC:
+        #     self._static_node_cls = model_cls
+        #     self._static_node_number = number
+        # else:
+        #     self._dynamic_node_cls = model_cls
+        #     self._dynamic_node_number = number
 
         return self
 
     def build(self):
-        frame = Frame(self._static_node_number, self._dynamic_node_number)
+        frame = Frame()
 
         # internal function to register
-        def reg_attr(node_type: FrameNodeType, frame: Frame, model_cls):
+        def reg_attr(node_type, frame: Frame, model_cls):
             assert model_cls is not None
 
             assert issubclass(model_cls, EntityBase)
 
             for name, attr in model_cls.__dict__.items():
                 if isinstance(attr, BaseAttribute):
-                    frame.register_attribute(node_type, name, attr.data_type, attr.slot_num)      
+                    frame.register_attribute(node_type, name, attr.data_type, attr.slot_num)   
 
-        if self._static_node_cls is not None:
-            reg_attr(FrameNodeType.STATIC, frame, self._static_node_cls)
+        for ntype, info in self._node_info_dict.items():
+            frame.set_node_number(ntype, info[1])
 
-        if self._dynamic_node_cls is not None:
-            reg_attr(FrameNodeType.DYNAMIC, frame, self._dynamic_node_cls)
+            reg_attr(ntype, frame, info[0])   
 
         frame.setup()
 

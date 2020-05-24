@@ -85,5 +85,12 @@ def start():
     print("attribute 'a' for 1st static node")
     print(b_a)
 
+
+    
+    c_a = env.snapshot_list["additional_node"][::"a"]
+
+    print("attribute 'a' for addition node type")
+    print(c_a)
+
 if __name__ == "__main__":
     start()

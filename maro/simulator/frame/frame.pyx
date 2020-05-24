@@ -111,8 +111,6 @@ cdef class Frame:
         dynamic_node_num (int): number of dynamic nodes in frame
     """
     cdef:
-        int32_t _static_node_num
-        int32_t _dynamic_node_num
         dict _node_num_map
 
         dict _attr_dict
@@ -123,33 +121,39 @@ cdef class Frame:
 
         bool _is_initialized
 
-    def __cinit__(self, static_node_num, dynamic_node_num):
+    def __cinit__(self):
         self._node_num_map = {}
         self._attr_dict = {}
         self._data_dict = {}
         self._grouped_attr_dict = {}
 
         self._node_num_map[AT_GENERAL.value] = 1
-        self._node_num_map[AT_DYNAMIC.value] = dynamic_node_num
-        self._node_num_map[AT_STATIC.value] = static_node_num
-
-        self._static_node_num = static_node_num
-        self._dynamic_node_num = dynamic_node_num
+        self._node_num_map[AT_DYNAMIC.value] = 0
+        self._node_num_map[AT_STATIC.value] = 0
 
         self._is_initialized = False
 
     @property
     def static_node_number(self):
         '''int: Number of static nodes in current frame'''
-        return self._static_node_num
+        return self._node_num_map[AT_STATIC.value]
 
     @property
     def dynamic_node_number(self):
         '''int: Number of dynamic nodes in current frame'''
-        return self._dynamic_node_num
+        return self._node_num_map[AT_DYNAMIC.value]
 
     def add_node_type(self, name: str):
         self._node_num_map[str(name)] = 0
+
+    def set_node_number(self, ntype: str, number: int):
+        # TODO: avoid number < 0
+        if type(ntype) is FrameNodeType:
+            ntype = ntype.value
+        else:
+            ntype = str(ntype)
+
+        self._node_num_map[ntype] = number
 
     def register_attribute(self, ntype: FrameNodeType, name: str, dtype, slot_num=1):
         '''Register an attribute for nodes in frame, then can access the new attribute with get/set_attribute methods.
@@ -444,6 +448,7 @@ cdef class SnapshotNodeAccessor:
     cdef:
         int32_t _node_num
         int32_t _max_ticks
+        str _ntype
 
         np.ndarray _data_arr
 
@@ -452,6 +457,7 @@ cdef class SnapshotNodeAccessor:
         dict _attr_dict
 
     def __cinit__(self, SnapshotList snapshots, ntype: str):
+        self._ntype = ntype
         self._node_num = snapshots._node_num_map[ntype] # snapshots._frame.static_node_num if ntype == AT_STATIC else snapshots._frame.dynamic_node_num
         self._max_ticks = snapshots._max_ticks
         self._data_arr = snapshots._data_dict[ntype]

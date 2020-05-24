@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 from .common import DecisionEvent
-from .model import SampleStaticModel, SampleDynamicModel
+from .model import SampleStaticModel, SampleDynamicModel, AdditionalModel
 from maro.simulator.utils.random import random
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.entity_base import FrameBuilder
@@ -17,6 +17,7 @@ sample_random = random["sample"]
 
 STATIC_NODE_NUM = 5
 DYNAMIC_NODE_NUM = 6
+ADDITIONAL_NODE_NUM = 1
 
 ## STEP 2: define your event type
 # NOTE: we already have a pre-defined event DECISION_EVENT which value is 0, make sure not override this
@@ -34,6 +35,7 @@ class SampleBusinessEngine(AbsBusinessEngine):
         self._snapshot_list: SnapshotList = None
         self._static_nodes: list = []
         self._dynamic_nodes: list = []
+        self._addition_nodes: list = []
         
         # read and parse your config from config_path (under topologies/xxx/config.yml)
         # we ignore it here
@@ -131,6 +133,11 @@ class SampleBusinessEngine(AbsBusinessEngine):
         node.a = 123
         node.b[1] = 1
 
+        node2: AdditionalModel = self._addition_nodes[0]
+
+        node2.a = 222222
+
+
     def _init_frame(self):
         # initialize your frame with data model
         # say we have 5 static node, 6 dynamic nodes, usually this may come from config file
@@ -139,6 +146,7 @@ class SampleBusinessEngine(AbsBusinessEngine):
         self._frame = FrameBuilder.new() \
             .add_model(SampleStaticModel, STATIC_NODE_NUM) \
             .add_model(SampleDynamicModel, DYNAMIC_NODE_NUM) \
+            .add_model(AdditionalModel, ADDITIONAL_NODE_NUM) \
             .build()
             
         #build_frame(SampleStaticModel, STATIC_NODE_NUM, SampleDynamicModel, DYNAMIC_NODE_NUM)
@@ -154,6 +162,9 @@ class SampleBusinessEngine(AbsBusinessEngine):
 
         for i in range(DYNAMIC_NODE_NUM):
             self._dynamic_nodes.append(SampleDynamicModel(self._frame, i))
+
+        for i in range(ADDITIONAL_NODE_NUM):
+            self._addition_nodes.append(AdditionalModel(self._frame, i))
         
         self._init_nodes()
 

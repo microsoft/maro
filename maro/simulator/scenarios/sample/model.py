@@ -34,3 +34,11 @@ class SampleDynamicModel(EntityBase):
 
     def __init__(self, frame: Frame, index: int):
         super().__init__(frame, index)
+
+@frame_node("additional_node")
+class AdditionalModel(EntityBase):
+    a = IntAttribute()
+    b = IntAttribute()
+
+    def __init__(self, frame, index):
+        super().__init__(frame, index)
