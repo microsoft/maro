@@ -129,9 +129,9 @@ cdef class Frame:
         self._data_dict = {}
         self._grouped_attr_dict = {}
 
-        self._node_num_map[AT_GENERAL] = 1
-        self._node_num_map[AT_DYNAMIC] = dynamic_node_num
-        self._node_num_map[AT_STATIC] = static_node_num
+        self._node_num_map[AT_GENERAL.value] = 1
+        self._node_num_map[AT_DYNAMIC.value] = dynamic_node_num
+        self._node_num_map[AT_STATIC.value] = static_node_num
 
         self._static_node_num = static_node_num
         self._dynamic_node_num = dynamic_node_num
@@ -149,7 +149,7 @@ cdef class Frame:
         return self._dynamic_node_num
 
     def add_node_type(self, name: str):
-        self._node_num_map[name] = 0
+        self._node_num_map[str(name)] = 0
 
     def register_attribute(self, ntype: FrameNodeType, name: str, dtype, slot_num=1):
         '''Register an attribute for nodes in frame, then can access the new attribute with get/set_attribute methods.
@@ -162,14 +162,15 @@ cdef class Frame:
         Raises:
             FrameAttributeExistError: if the name already being registered
         '''
-        attr_key = (ntype, name)
+        str_ntype = ntype.value if type(ntype) is FrameNodeType else ntype
+        attr_key = (str_ntype, name)
 
         if attr_key in self._attr_dict:
             raise FrameAttributeExistError(name)
 
         #NOTE: data layout
         # we can query like arr["attr name"][node_id,slot_index]
-        self._attr_dict[attr_key] = FrameAttribute(ntype.value, name, dtype, slot_num)
+        self._attr_dict[attr_key] = FrameAttribute(str_ntype, name, dtype, slot_num)
 
     def setup(self):
         '''Setup the frame with registered attributes
@@ -177,6 +178,7 @@ cdef class Frame:
         if self._is_initialized:
             return
 
+        cdef str ntype
         cdef list attr_list
         cdef np.dtype t
         
@@ -193,6 +195,9 @@ cdef class Frame:
 
     cpdef reset(self):
         '''Reset all the attributes to default value'''
+        cdef str ntype
+        cdef np.ndarray arr
+
         for ntype, arr in self._data_dict.items():
             # we have to reset by each attribute
             for attr in self._grouped_attr_dict[ntype]:
@@ -210,7 +215,7 @@ cdef class Frame:
             value of specified attribute slot
         '''
         
-        ntype = key[0]
+        cdef str ntype = key[0].value if type(key[0]) is FrameNodeType else key[0]
         cdef int32_t node_id = key[1]
         cdef str attr_name = key[2]
         cdef int32_t slot_index = 0 if len(key) < 4 else key[3]
@@ -235,7 +240,7 @@ cdef class Frame:
         Raises:
             GraphAttributeNotFoundError: specified attribute is not registered
         '''
-        atype = key[0]
+        cdef str atype = key[0].value if type(key[0]) is FrameNodeType else key[0]
         cdef int32_t node_id = key[1]
         cdef str attr_name = key[2]
         cdef int32_t slot_index = 0 if len(key) < 4 else key[3]
@@ -288,6 +293,8 @@ cdef class SnapshotList:
         dict _grouped_attr_dict
         bool _enable_memmap
         
+        dict _acc_dict
+
         SnapshotNodeAccessor _static_node_acc
         SnapshotNodeAccessor _dynamic_node_acc
         SnapshotGeneralAccessor _general_acc
@@ -296,6 +303,7 @@ cdef class SnapshotList:
         self._frame = frame
         self._max_ticks = max_ticks
         self._enable_memmap = enable_memmap
+        self._acc_dict = {}
         self._data_dict = {}
         self._attr_dict = frame._attr_dict
         self._grouped_attr_dict = frame._grouped_attr_dict
@@ -313,6 +321,7 @@ cdef class SnapshotList:
 
         cdef int offset = 0
         cdef int node_num = 0
+        cdef str ntype
         cdef np.ndarray tmp_arr
 
         for ntype, attr_list in self._grouped_attr_dict.items():
@@ -327,14 +336,16 @@ cdef class SnapshotList:
                 offset += tmp_arr.itemsize * tmp_arr.size
             else:
                 self._data_dict[ntype] = np.zeros((max_ticks, node_num), dtype=t)
-            
-        if AT_STATIC in self._data_dict:
-            self._static_node_acc = SnapshotNodeAccessor(self, AT_STATIC)
 
-        if AT_DYNAMIC in self._data_dict:
-            self._dynamic_node_acc = SnapshotNodeAccessor(self, AT_DYNAMIC)
+            self._acc_dict[ntype] = SnapshotNodeAccessor(self, ntype)
+        
+        if AT_STATIC.value in self._data_dict:
+            self._static_node_acc = self._acc_dict[AT_STATIC.value]
 
-        if AT_GENERAL in self._data_dict:
+        if AT_DYNAMIC.value in self._data_dict:
+            self._dynamic_node_acc = self._acc_dict[AT_DYNAMIC.value]
+
+        if AT_GENERAL.value in self._data_dict:
             self._general_acc = SnapshotGeneralAccessor(self)
 
     @property
@@ -417,6 +428,12 @@ cdef class SnapshotList:
             for attr in self._grouped_attr_dict[atype]:
                 arr[attr.name] = 0
 
+    def __getitem__(self, key):
+        if key in self._acc_dict:
+            return self._acc_dict[key]
+
+        return None
+
     def __len__(self):
         return self._max_ticks
 
@@ -434,7 +451,7 @@ cdef class SnapshotNodeAccessor:
         list _all_nodes
         dict _attr_dict
 
-    def __cinit__(self, SnapshotList snapshots, ntype: FrameNodeType):
+    def __cinit__(self, SnapshotList snapshots, ntype: str):
         self._node_num = snapshots._node_num_map[ntype] # snapshots._frame.static_node_num if ntype == AT_STATIC else snapshots._frame.dynamic_node_num
         self._max_ticks = snapshots._max_ticks
         self._data_arr = snapshots._data_dict[ntype]
@@ -514,7 +531,7 @@ cdef class SnapshotGeneralAccessor:
         dict attr_dict
 
     def __cinit__(self, SnapshotList ss):
-        self.arr = ss._data_dict[AT_GENERAL]
+        self.arr = ss._data_dict[AT_GENERAL.value]
         self.attr_dict = ss._attr_dict
         self.max_ticks = ss._max_ticks
         self.all_ticks = [i for i in range(self.max_ticks)]
@@ -528,7 +545,7 @@ cdef class SnapshotGeneralAccessor:
         cdef list rows
         cdef FrameAttribute attr
 
-        key = (AT_GENERAL, attr_name)
+        key = (AT_GENERAL.value, attr_name)
 
         if key not in self.attr_dict:
             return []
