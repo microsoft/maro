@@ -148,6 +148,9 @@ cdef class Frame:
         '''int: Number of dynamic nodes in current frame'''
         return self._dynamic_node_num
 
+    def add_node_type(self, name: str):
+        self._node_num_map[name] = 0
+
     def register_attribute(self, ntype: FrameNodeType, name: str, dtype, slot_num=1):
         '''Register an attribute for nodes in frame, then can access the new attribute with get/set_attribute methods.
         NOTE: this method should be called before setup method
@@ -177,7 +180,7 @@ cdef class Frame:
         cdef list attr_list
         cdef np.dtype t
         
-        for ntype in (AT_STATIC, AT_DYNAMIC, AT_GENERAL):
+        for ntype in self._node_num_map.keys():
             attr_list = [attr for key, attr in self._attr_dict.items() if key[0] == ntype]
 
             if len(attr_list) > 0:
@@ -207,7 +210,7 @@ cdef class Frame:
             value of specified attribute slot
         '''
         
-        cdef int8_t ntype = key[0]
+        ntype = key[0]
         cdef int32_t node_id = key[1]
         cdef str attr_name = key[2]
         cdef int32_t slot_index = 0 if len(key) < 4 else key[3]
