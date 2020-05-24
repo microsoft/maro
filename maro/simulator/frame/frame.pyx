@@ -6,7 +6,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-from enum import IntEnum
+from enum import IntEnum, Enum
 from cython cimport view
 from cpython cimport bool
 from math import ceil
@@ -37,10 +37,10 @@ class SnapshotNoAttributeProvide(FrameError):
     def __init__(self):
         super().__init__("Must provide an attribute name to query")
 
-class FrameNodeType(IntEnum):
-    STATIC=0
-    DYNAMIC=1
-    GENERAL=2
+class FrameNodeType(Enum):
+    STATIC="static"
+    DYNAMIC="dynamic"
+    GENERAL="general"
 
 AT_STATIC = FrameNodeType.STATIC
 AT_DYNAMIC = FrameNodeType.DYNAMIC
@@ -51,11 +51,11 @@ cdef class FrameAttribute:
     '''Used to wrapper attribute accessing information internally'''
     cdef:
         public int32_t slot_num
-        public int8_t ntype
+        public str ntype
         public np.dtype dtype
         public str name
 
-    def __cinit__(self, int8_t ntype, str name, dtype, int32_t slot_num):
+    def __cinit__(self, str ntype, str name, dtype, int32_t slot_num):
         self.ntype = ntype
         self.name = name
         self.slot_num = slot_num
@@ -113,7 +113,7 @@ cdef class Frame:
     cdef:
         int32_t _static_node_num
         int32_t _dynamic_node_num
-        int32_t _node_num_map[3]
+        dict _node_num_map
 
         dict _attr_dict
         dict _data_dict
@@ -124,12 +124,14 @@ cdef class Frame:
         bool _is_initialized
 
     def __cinit__(self, static_node_num, dynamic_node_num):
-        self._node_num_map[AT_GENERAL] = 1
-        self._node_num_map[AT_DYNAMIC] = dynamic_node_num
-        self._node_num_map[AT_STATIC] = static_node_num
+        self._node_num_map = {}
         self._attr_dict = {}
         self._data_dict = {}
         self._grouped_attr_dict = {}
+
+        self._node_num_map[AT_GENERAL] = 1
+        self._node_num_map[AT_DYNAMIC] = dynamic_node_num
+        self._node_num_map[AT_STATIC] = static_node_num
 
         self._static_node_num = static_node_num
         self._dynamic_node_num = dynamic_node_num
@@ -164,7 +166,7 @@ cdef class Frame:
 
         #NOTE: data layout
         # we can query like arr["attr name"][node_id,slot_index]
-        self._attr_dict[attr_key] = FrameAttribute(ntype, name, dtype, slot_num)
+        self._attr_dict[attr_key] = FrameAttribute(ntype.value, name, dtype, slot_num)
 
     def setup(self):
         '''Setup the frame with registered attributes
@@ -230,7 +232,7 @@ cdef class Frame:
         Raises:
             GraphAttributeNotFoundError: specified attribute is not registered
         '''
-        cdef int8_t atype = key[0]
+        atype = key[0]
         cdef int32_t node_id = key[1]
         cdef str attr_name = key[2]
         cdef int32_t slot_index = 0 if len(key) < 4 else key[3]
@@ -276,7 +278,7 @@ cdef class SnapshotList:
     cdef:
         Frame _frame
         int32_t _max_ticks
-        int32_t _node_num_map[3]
+        dict _node_num_map
 
         dict _data_dict
         dict _attr_dict
@@ -296,7 +298,6 @@ cdef class SnapshotList:
         self._grouped_attr_dict = frame._grouped_attr_dict
         self._node_num_map = frame._node_num_map
 
-        cdef int8_t ntype
         cdef np.dtype t
         cdef attr_list
 
@@ -430,7 +431,7 @@ cdef class SnapshotNodeAccessor:
         list _all_nodes
         dict _attr_dict
 
-    def __cinit__(self, SnapshotList snapshots, int8_t ntype):
+    def __cinit__(self, SnapshotList snapshots, ntype: FrameNodeType):
         self._node_num = snapshots._node_num_map[ntype] # snapshots._frame.static_node_num if ntype == AT_STATIC else snapshots._frame.dynamic_node_num
         self._max_ticks = snapshots._max_ticks
         self._data_arr = snapshots._data_dict[ntype]
