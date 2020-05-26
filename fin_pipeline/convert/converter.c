@@ -762,6 +762,7 @@ void add_combination_stock(combine_writer_t *writer, stock_t *stock)
 
 void init_combination_reader(char *path, combine_reader_t *reader)
 {
+    printf("path: %s.\n", path);
     reader->fd = open(path, O_RDONLY, 0);
     
     if(reader->fd == -1){
@@ -775,19 +776,26 @@ void init_combination_reader(char *path, combine_reader_t *reader)
     
     reader->size = st.st_size;
     reader->addr = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, reader->fd, 0);
-
+    reader->offset = 0;
     reader->meta = (combine_header_t*)reader->addr; // reader meta
     reader->offset += sizeof(combine_header_t); // update offset to row data
     reader->buffer = (stock_t*)calloc(reader->meta->item_number, sizeof(stock_t));
 
-    // printf("size of file: %lld\n", st.st_size);
+    reader->bg_buffer_size = 10; // hard coded 10 rows per buffer
 
-    // printf("item length: %d, item number: %d, steps: %d, start: %llu, end: %llu.\n", 
-    //     reader->meta->item_length,
+    int max_row_size = reader->meta->item_number * sizeof(stock_t) + sizeof(combine_row_meta_t);
+    reader->bg_buffer1 = (char *)calloc(reader->bg_buffer_size, sizeof(char));
+    reader->bg_buffer2 = (char *)calloc(reader->bg_buffer_size, sizeof(char));
+
+    reader->cur_bg_buffer = reader->bg_buffer1;
+
+
+    // printf("meta -> item number: %d, steps: %d, start: %llu, end: %llu, offset: %zu.\n", 
     //     reader->meta->item_number,
     //     reader->meta->steps,
     //     reader->meta->start_time,
-    //     reader->meta->end_time);
+    //     reader->meta->end_time,
+    //     reader->offset);
 }
 
 void release_combination_reader(combine_reader_t *reader)
@@ -805,15 +813,43 @@ void release_combination_reader(combine_reader_t *reader)
 
         reader->addr = NULL;
         reader->meta = NULL;
+
+        if(reader->bg_buffer1 != NULL)
+        {
+            free(reader->bg_buffer1);
+        }
+
+        if(reader->bg_buffer2 != NULL)
+        {
+            free(reader->bg_buffer2);
+        }
+
+        reader->cur_bg_buffer = NULL;
+    }
+}
+
+void fill_bg_buffer(combine_reader_t *reader)
+{
+    if(reader == NULL) return;
+
+    char *bg_buffer = reader->bg_buffer1;
+
+    if(bg_buffer != reader->cur_bg_buffer)
+    {
+        bg_buffer = reader->bg_buffer2;
+    }
+
+    // read rows and fill in the bg buffer
+    for(int i=0; i<reader->bg_buffer_size;i++)
+    {
+        reader->offset += sizeof(combine_row_meta_t);
+
     }
 }
 
 int read_combination_row(combine_reader_t *reader)
 {
     if(reader == NULL || reader->offset >= reader->size) return 0;
-
-    // printf("offset: %zu\n", reader->offset);
-    // printf("row meta size: %zu.\n", sizeof(combine_row_meta_t));
     
     combine_row_meta_t *r_meta = reader->addr + (reader->offset);
 
@@ -824,23 +860,19 @@ int read_combination_row(combine_reader_t *reader)
     if(r_meta->item_number > 0)
     {
         // copy the data into our buffer
-        memcpy((char*)(reader->buffer), (reader->addr + reader->offset), sizeof(stock_t));
-
+        memcpy((char*)(reader->buffer), (reader->addr + reader->offset), sizeof(stock_t) * r_meta->item_number);
 
         // stock_t *stock = NULL;
-
-        // printf("current tick: %d\n", r_meta->tick);
         // for(int i=0;i<r_meta->item_number;i++)
         // {
         //     stock = reader->buffer + i;
-        //     printf("code: %s.\n", stock->code);
-        //     printf("time: %llu, opening price: %f\n", stock->time, stock->opening_price);
+
+        //     printf("code: %s, openning price: %f.\n", stock->code, stock->opening_price);
+
         // }
     }
 
     reader->offset += r_meta->item_number * (reader->meta->item_length);
-
-    // printf("row, item number: %d, time: %llu.\n", r_meta->item_number, r_meta->time);
     
     return r_meta->item_number;
 }

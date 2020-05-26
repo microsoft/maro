@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <math.h>
-
+#include <pthread.h>
 
 // TODO: may not compact with Windows now.
 #include <sys/mman.h>
@@ -198,6 +198,10 @@ typedef struct CombineReader
     size_t size;
     size_t offset; // current offset
     combine_header_t *meta;
+    char *bg_buffer1;
+    char *bg_buffer2;
+    char *cur_bg_buffer;
+    int bg_buffer_size;    
 } combine_reader_t;
 
 
