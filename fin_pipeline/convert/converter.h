@@ -188,6 +188,15 @@ typedef struct CombineWriter
     combine_header_t header;
 } combine_writer_t;
 
+typedef struct StockBuffer
+{
+    char * buffer;
+    int size;
+    int offset;
+    int index;
+    int rows;
+} stock_buffer_t;
+
 typedef struct CombineReader
 {
     void *addr;
@@ -197,12 +206,13 @@ typedef struct CombineReader
     uint32_t current_tick;
     size_t size;
     size_t offset; // current offset
-    combine_header_t *meta;
-    char *bg_buffer1;
-    char *bg_buffer2;
-    char *cur_bg_buffer;
-    int bg_buffer_size;    
+    combine_header_t meta;
+    stock_buffer_t bg_buffer1;
+    stock_buffer_t bg_buffer2;
+    stock_buffer_t *cur_bg_buffer;
+    pthread_t loading_buffer_id;
 } combine_reader_t;
+
 
 
 void init_combination_writer(char *path, combine_writer_t *writer, int64_t start_time, int64_t end_time, int16_t item_number, uint32_t steps);
@@ -217,7 +227,6 @@ void add_combination_stock(combine_writer_t *writer, stock_t *stock);
 
 void init_combination_reader(char *path, combine_reader_t *reader);
 void release_combination_reader(combine_reader_t *reader);
-BOOL peek_current_row_info(combine_reader_t *reader, uint16_t *number, uint32_t *tick);
 int read_combination_row(combine_reader_t *reader); // reader stocks same with stock number in current row, return stock number
 stock_t* read_combination_item(combine_reader_t *reader, int index); // reader item by index (less than number from read_combination_row)
 void reset_combination_reader(combine_reader_t *reader);

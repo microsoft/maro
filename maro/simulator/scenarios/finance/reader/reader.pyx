@@ -6,7 +6,7 @@ from math import floor, ceil
 from cython cimport view
 
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
-
+# from lic.pthread cimport pthread_t
 
 FALSE = 0
 TRUE = 1
@@ -66,22 +66,28 @@ cdef extern from "converter.c":
         uint64_t start_time
         uint64_t end_time
 
+    ctypedef struct stock_buffer_t:
+        pass
+
     ctypedef struct combine_reader_t:
         void *addr
         stock_t *buffer
         int fd
         int current_row_length
-        uint64_t current_timestamp
+        uint32_t current_tick
         size_t size
         size_t offset
-        combine_header_t *meta     
-
+        combine_header_t meta
+        stock_buffer_t bg_buffer1
+        stock_buffer_t bg_buffer2
+        stock_buffer_t *cur_bg_buffer
+        # pthread_t loading_buffer_id 
+ 
     void init_combination_reader(char *path, combine_reader_t *reader)
     void release_combination_reader(combine_reader_t *reader)
     int read_combination_row(combine_reader_t *reader)
     stock_t* read_combination_item(combine_reader_t *reader, int index)
     void reset_combination_reader(combine_reader_t *reader)
-    uint8_t peek_current_row_info(combine_reader_t *reader, uint16_t *number, uint32_t *tick)
 
 class FinanceDataType:
     STOCK = 1
@@ -335,24 +341,20 @@ cdef class CombinationReader:
         self.stock = Stock()
         init_combination_reader(path, &self.reader)
 
+        # read a row first to retrieve the first tick
+        read_combination_row(&self.reader)
+
     def next_row(self, uint32_t tick) -> int:
         """read next row
         Returns:
             int: stocks in this row"""
 
-        # check if next row is same with specified tick
-        cdef uint16_t stock_number
-        cdef uint32_t cur_tick
-
-        while TRUE == peek_current_row_info(&self.reader, &stock_number, &cur_tick):
-            if cur_tick == tick:
-                return read_combination_row(&self.reader)
-            elif cur_tick > tick:
-                break
-            else:
-                read_combination_row(&self.reader)
-        
-        return 0
+        if self.reader.current_tick == tick:
+            return self.reader.current_row_length
+        elif self.reader.current_tick > tick:
+            return 0
+        else:
+            return read_combination_row(&self.reader)
 
     def items(self):
         cdef int i=0
