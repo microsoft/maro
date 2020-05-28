@@ -283,11 +283,20 @@ cdef class SnapshotList:
         dict _grouped_attr_dict
         bool _enable_memmap
         
+        # node type -> data array
+        dict _buffer
+
+        # tick -> index 
+        dict _buffer_tick_map
+
+        int _cur_buffer_index
+        int _buffer_size
+        
         SnapshotNodeAccessor _static_node_acc
         SnapshotNodeAccessor _dynamic_node_acc
         SnapshotGeneralAccessor _general_acc
 
-    def __cinit__(self, Frame frame, int32_t max_ticks, enable_memmap=False):
+    def __cinit__(self, Frame frame, int32_t max_ticks, enable_memmap=False, memmap_name="", buffer_size=0):
         self._frame = frame
         self._max_ticks = max_ticks
         self._enable_memmap = enable_memmap
@@ -301,11 +310,20 @@ cdef class SnapshotList:
         cdef attr_list
 
         if self._enable_memmap:
-            file_path = "data.bin"
+            assert memmap_name is not ""
+            assert buffer_size > 0
+
+            file_path = memmap_name
 
             if not os.path.exists(file_path):
                 fp = open(file_path, "w")
                 fp.close()
+
+            # only enable buffer if enabled memmap
+            self._buffer = {}
+            self._buffer_tick_map = {}
+            self._cur_buffer_index = -1
+            self._buffer_size = buffer_size
 
         cdef int offset = 0
         cdef int node_num = 0
@@ -321,6 +339,8 @@ cdef class SnapshotList:
                 self._data_dict[ntype] = tmp_arr
 
                 offset += tmp_arr.itemsize * tmp_arr.size
+
+                self._buffer[ntype] = np.zeros((buffer_size, node_num), dtype=t)
             else:
                 self._data_dict[ntype] = np.zeros((max_ticks, node_num), dtype=t)
             
@@ -403,15 +423,37 @@ cdef class SnapshotList:
     cpdef insert_snapshot(self, int32_t tick):
         '''Insert a snapshot from graph'''
         
+        if self._enable_memmap:
+            # point to current index
+            self._cur_buffer_index += 1
+
+            if self._cur_buffer_index >= self._buffer_size:
+                self._cur_buffer_index = 0
+
+            # update mapping
+            self._buffer_tick_map[tick] = self._cur_buffer_index
+
+            # write to buffer
+            for ntype, arr in self._buffer.items():
+                arr[self._cur_buffer_index] = self._frame._data_dict[ntype]
+
+        # write to memmap file or memory
         for ntype, arr in self._data_dict.items():
             arr[tick] = self._frame._data_dict[ntype]
-
+            
     def reset(self):
         """Reset snapshot list
         """
         for atype, arr in self._data_dict.items():
             for attr in self._grouped_attr_dict[atype]:
                 arr[attr.name] = 0
+
+        if self._enable_memmap:
+            self._cur_buffer_index = -1
+
+            for atype, arr in self._buffer.items():
+                for attr in self._grouped_attr_dict[atype]:
+                    arr[attr.name] = 0
 
     def __len__(self):
         return self._max_ticks
@@ -424,7 +466,10 @@ cdef class SnapshotNodeAccessor:
         int32_t _node_num
         int32_t _max_ticks
 
+        bool _enable_memmap
         np.ndarray _data_arr
+        dict _tick_map
+        int _size
 
         list _all_ticks
         list _all_nodes
@@ -433,7 +478,18 @@ cdef class SnapshotNodeAccessor:
     def __cinit__(self, SnapshotList snapshots, int8_t ntype):
         self._node_num = snapshots._node_num_map[ntype] # snapshots._frame.static_node_num if ntype == AT_STATIC else snapshots._frame.dynamic_node_num
         self._max_ticks = snapshots._max_ticks
-        self._data_arr = snapshots._data_dict[ntype]
+
+        self._enable_memmap = snapshots._enable_memmap
+
+        if self._enable_memmap:
+            self._data_arr = snapshots._buffer[ntype]
+            self._tick_map = snapshots._buffer_tick_map
+            self._size = snapshots._buffer_size
+        else:
+            self._data_arr = snapshots._data_dict[ntype]
+            self._size = self._max_ticks
+            self._tick_map = {t:t for t in range(self._max_ticks)}
+
         self._attr_dict = {}
         
         cdef FrameAttribute attr
@@ -441,7 +497,6 @@ cdef class SnapshotNodeAccessor:
         for attr in snapshots._grouped_attr_dict[ntype]:
             self._attr_dict[attr.name] = attr
 
-        self._all_ticks = [i for i in range(self._max_ticks)]
         self._all_nodes = [i for i in range(self._node_num)]
 
     def __len__(self):
@@ -461,7 +516,8 @@ cdef class SnapshotNodeAccessor:
 
         # ticks
         if key.start is None:
-            ticks = self._all_ticks
+            for t in self._tick_map.keys():
+                ticks.append(t)
         elif type(key.start) is tuple or type(key.start) is list:
             ticks = list(key.start)
         else:
@@ -491,7 +547,7 @@ cdef class SnapshotNodeAccessor:
                     raise FrameAttributeNotFoundError(aname)
 
                 if 0 <= tick < self._max_ticks:
-                    retq.append(self._data_arr[aname][tick, node_list].astype("f").flatten())
+                    retq.append(self._data_arr[aname][self._tick_map[tick], node_list].astype("f").flatten())
                 else:
                     attr = self._attr_dict[aname]
                     retq.append(np.zeros(len(node_list) * attr.slot_num, dtype='f'))
