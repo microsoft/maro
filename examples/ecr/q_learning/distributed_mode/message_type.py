@@ -13,16 +13,6 @@ class MsgType(Enum):
     ENV_CHECKOUT = 4  # message notify the environment is finish and checkout
 
 
-class MsgStatus(Enum):
-    SEND_MESSAGE = 0
-    WAIT_MESSAGE = 1
-    
-
-class SocketType(Enum):
-    ZMQ_PUB = 0
-    ZMQ_PUSH = 1
-
-
 class PayloadKey(Enum):
     EXPERIENCE = 'experience'
     EPISODE = 'episode'

@@ -125,7 +125,8 @@ handler_dict = {MsgType.STORE_EXPERIENCE: on_new_experience,
                 MsgType.INITIAL_PARAMETERS: on_initial_net_parameters,
                 MsgType.ENV_CHECKOUT: on_env_checkout}
 
-handler_dict = [{'request': {(ANY_SOURCE, MsgType): num, 
+# TODO: add component support; support float
+handler_dict = [{'constraint': {(ANY_SOURCE, MsgType): num, 
                             (env, ANY_TYPE): num}
                  'handler_fn': on_new_experience},
                 {'request': {(env, MsgType): num, 

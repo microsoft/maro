@@ -15,8 +15,8 @@ import redis
 import zmq
 
 # private lib
-from maro.distributed.message import Message
-from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey, MsgStatus, SocketType
+from maro.distributed.message import Message, MsgStatus, SocketType
+from examples.ecr.q_learning.distributed_mode.message_type import MsgType, PayloadKey
 from typing import List
 
 
@@ -147,72 +147,9 @@ class Proxy:
             
             if self._broadcast_sub_receiver in socks:
                 yield self._broadcast_sub_receiver.recv_pyobj()
-    
-    def scatter(self, message_type: MsgType, destination_payload_list: list, multithread=None):
-        """separate data, and send to peer"""
+
+    def _scatter(self, message_type: MsgType, destination_payload_list: list, multithread=False):
         multithread = self._multithread if not multithread else multithread
-        receive_list = self._group_send(message_type, 
-                                        destination_payload_list, 
-                                        multithread=multithread)
-
-        return self.message_reduce(receive_list)
-
-    def iscatter(self, message_type: MsgType, destination_payload_list: list, multithread=None):
-        multithread = self._multithread if not multithread else multithread
-        return self._group_send(message_type, 
-                                destination_payload_list, 
-                                multithread=multithread)
-
-    def broadcast(self, message_type: MsgType, destination: list, payload, multithread=None):
-        """send data to all peers"""
-        multithread = self._multithread if not multithread else multithread
-        destination_payload_list = [(dest, payload) for dest in destination]
-
-        receive_list = self._group_send(message_type, 
-                                        destination_payload_list, 
-                                        paradigm=SocketType.ZMQ_PUB, 
-                                        multithread=multithread)
-
-        return self.message_reduce(receive_list)
-
-    def ibroadcast(self, message_type: MsgType, destination: list, payload, multithread=None):
-        multithread = self._multithread if not multithread else multithread
-        destination_payload_list = [(dest, payload) for dest in destination]
-
-        return self._group_send(message_type, 
-                                destination_payload_list, 
-                                paradigm=SocketType.ZMQ_PUB, 
-                                multithread=multithread)
-
-    def send(self, message: Message, paradigm = SocketType.ZMQ_PUSH):
-        """Send a message to a remote peer
-
-        Args:
-            message: message to be sent
-        """
-        self._message_cache[message.message_id] = MsgStatus.SEND_MESSAGE
-
-        if not hasattr(self, '_send_channel'):
-            raise Exception('No message recipient found. Are you using the right configuration?')
-
-        source, destination = message.source, message.destination
-        if paradigm == SocketType.ZMQ_PUSH:
-            if message.destination not in self._send_channel:
-                raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
-                                f"Are you using the right configuration?")
-            self._send_channel[destination].send_pyobj(message)
-        else:
-            self._broadcast_pub_sender.send_pyobj(message)
-
-        self._logger.debug(f'sent a {message.type} message to {message.destination}')
-        self._message_cache[message.message_id] = MsgStatus.WAIT_MESSAGE
-
-    def _group_send(self, 
-                    message_type: MsgType, 
-                    destination_payload_list: list, 
-                    paradigm=SocketType.ZMQ_PUSH, 
-                    multithread = False):
-        """ """
         message_id_list = []
 
         if multithread:
@@ -224,42 +161,112 @@ class Proxy:
                                     payload=payload)
             
             if multithread:
-                executor.submit(self.send, single_message, paradigm)
+                executor.submit(self._send, single_message)
             else:
-                self.send(single_message, paradigm)
+                self._send(single_message)
             
             message_id_list.append(single_message.message_id)
-            if paradigm == SocketType.ZMQ_PUB:
-                self._logger.debug(f'broadcast a {single_message.type} message to all subscribe')
-                break
             self._logger.debug(f'sent a {single_message.type} message to {single_message.destination}')
         
         if multithread:
             executor.shutdown()
+        
+        return message_id_list
+    
+    def scatter(self, message_type: MsgType, destination_payload_list: list, multithread=False):
+        """separate data, and send to peer"""
+        receive_list = self._scatter(message_type, 
+                                     destination_payload_list, 
+                                     multithread=multithread)
+
+        return self.message_gather(receive_list)
+
+    def iscatter(self, message_type: MsgType, destination_payload_list: list, multithread=False):
+        return self._scatter(message_type, 
+                             destination_payload_list, 
+                             multithread=multithread)
+
+    def _broadcast(self, message_type: MsgType, destination: list, payload):
+        message_id_list = []
+        
+        single_message = Message(type=message_type, source=self._name,
+                                 destination=destination,
+                                 payload=payload)
+        self._message_cache[single_message.message_id] = MsgStatus.SEND_MESSAGE
+
+        if not hasattr(self, '_broadcast_pub_sender'):
+            raise Exception('No pub channel found.')
+    
+        self._broadcast_pub_sender.send_pyobj(single_message)
+            
+        message_id_list.append(single_message.message_id)
+        self._logger.debug(f'broadcast a {single_message.type} message to all subscripe')
+        self._message_cache[single_message.message_id] = MsgStatus.WAIT_MESSAGE
+    
         return message_id_list
 
-    def message_reduce(self, message_id_list):
-        # message_id_list
+    def broadcast(self, message_type: MsgType, destination: list, payload):
+        """send data to all peers"""
+        receive_list = self._broadcast(message_type, 
+                                        destination,
+                                        payload)
+
+        return self.message_gather(receive_list)
+
+    def ibroadcast(self, message_type: MsgType, destination: list, payload):
+        return self._broadcast(message_type, 
+                               destination,
+                               payload)
+
+    def _send(self, message: Message):
+        self._message_cache[message.message_id] = MsgStatus.SEND_MESSAGE
+
+        if not hasattr(self, '_send_channel'):
+            raise Exception('No message recipient found. Are you using the right configuration?')
+
+        source, destination = message.source, message.destination
+        if message.destination not in self._send_channel:
+            raise Exception(f"Recipient {destination} is not found in {source}'s peers. "
+                            f"Are you using the right configuration?")
+        self._send_channel[destination].send_pyobj(message)
+
+        self._logger.debug(f'sent a {message.type} message to {message.destination}')
+        self._message_cache[message.message_id] = MsgStatus.WAIT_MESSAGE
+
+    def isend(self, message: Message):
+        self._send(message)
+        return message.message_id
+
+    def send(self, message: Message):
+        """Send a message to a remote peer
+
+        Args:
+            message: message to be sent
+        """
+        self._send(message)
+        return self.message_gather(message.message_id)
+
+    def message_gather(self, message_id_list):
         pending_message_id_list = message_id_list[:]
-        msg_holder = []
+        received_msg = []
 
         for msg_id in message_id_list:
             if self._message_cache[msg_id] != MsgStatus.WAIT_MESSAGE and self._message_cache[msg_id] != MsgStatus.SEND_MESSAGE:
                 pending_message_id_list.remove(msg_id)
-                msg_holder.append(self._message_cache[msg_id])
+                received_msg.append(self._message_cache[msg_id])
                 del self._message_cache[msg_id]
             
             if not pending_message_id_list:
-                return msg_holder
+                return received_msg
         
         for msg in self.receive():
             if msg.message_id in pending_message_id_list:
                 pending_message_id_list.remove(msg.message_id)
-                msg_holder.append(msg)
+                received_msg.append(msg)
             else:
                 self._message_cache[msg.message_id] = msg
 
             if not pending_message_id_list:
                 break
 
-        return msg_holder
+        return received_msg
