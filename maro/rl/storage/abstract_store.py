@@ -72,10 +72,10 @@ class AbstractStore(ABC):
             The next layer sampler input is the last layer sampler output.
 
         Args:
-            samplers ([Tuple[Callable[[int, object], Tuple[int, object]], int]]): Sampler list, each sampler is a tuple. \n
-                The 1st item of the tuple is a lambda function. \n
-                    The 1st lambda input is index, the 2nd lambda input is a object. \n
-                The 2nd item of the tuple is the sample size. \n
+            samplers ([Tuple[Callable[[int, object], Tuple[int, object]], int]]): Sampler list, each sampler is a tuple.
+                The 1st item of the tuple is a lambda function.
+                    The 1st lambda input is index, the 2nd lambda input is a object.
+                The 2nd item of the tuple is the sample size.
                 i.e. [(lambda i, o: (i, o['a']), 3)]
 
         Returns:
