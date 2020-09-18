@@ -317,7 +317,7 @@ class WeatherPipeline(DataPipeline):
             return WeatherPipeline.WeatherEnum.SUNNY.value
 
     def _parse_date(self, row: dict):
-        dstr = row["Date"] if row["Date"] != "" else None
+        dstr = row.get("Date", None)
 
         return dstr
 
