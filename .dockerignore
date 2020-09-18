@@ -1,5 +1,4 @@
 .ignore
-*.sh
 Dockerfile
 README.md
 maro_cli/
@@ -10,4 +9,3 @@ examples/**/log
 docker_files/
 .idea/
 .vscode/
-docs/

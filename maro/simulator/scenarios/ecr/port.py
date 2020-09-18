@@ -1,40 +1,60 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from maro.backends.frame import node, NodeBase, NodeAttribute
 
-from maro.simulator.graph import Graph, ResourceNodeType
+@node("ports")
+class Port(NodeBase):
+    # The capacity of port for stocking containers.
+    capacity = NodeAttribute("i")
 
+    # Empty container volume on the port.
+    empty = NodeAttribute("i")
 
-class Port:
-    """
-    Present a port in ECR problem, and hide detail of graph accessing
-    """
+    # Laden container volume on the port.
+    full = NodeAttribute("i")
 
-    def __init__(self, graph: Graph, idx: int, name: str):
-        """
-        Create a new instance of port
+    # Empty containers, which are released to the shipper.
+    # After loading cargo, laden containers will return to the port for onboarding.
+    on_shipper = NodeAttribute("i")
 
-        Args:
-            graph (Graph): graph this port belongs to
-            idx (int): index of this port
-            name (str): name of this port
-        """
-        self._graph = graph
-        self._idx = idx
-        self._name = name
+    # Laden containers, which are delivered to the consignee.
+    # After discharging cargo, empty containers will return to the port for reuse.
+    on_consignee = NodeAttribute("i")
 
-    def reset(self):
-        """
-        reset current port
-        """
-        pass
+    # Shortage of empty container at current tick.
+    # It happens, when the current empty container inventory of port cannot fulfill order requirements.
+    shortage = NodeAttribute("i")
+
+    # Accumulated shortage number to the current tick.
+    acc_shortage = NodeAttribute("i")
+
+    # Order booking number of a port at the current tick.
+    booking = NodeAttribute("i")
+
+    # Accumulated order booking number of a port to the current tick.
+    acc_booking = NodeAttribute("i")
+
+    # Fulfilled order number of a port at the current tick.
+    fulfillment = NodeAttribute("i")
+
+    # Accumulated fulfilled order number of a port to the current tick.
+    acc_fulfillment = NodeAttribute("i")
+
+    # Cost of transferring container, which also covers loading and discharging cost.
+    transfer_cost = NodeAttribute("f")
+
+    def __init__(self):
+        self._name = None
+        self._capacity = None
+        self._empty = None
 
     @property
     def idx(self) -> int:
         """
-        Index of this prot
+        Index of this port
         """
-        return self._idx
+        return self.index
 
     @property
     def name(self) -> str:
@@ -43,130 +63,27 @@ class Port:
         """
         return self._name
 
-    @property
-    def empty(self) -> int:
-        """
-        Number of empty containers on board
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "empty", 0)
+    def set_init_state(self, name: str, capacity: int, empty: int):
+        self._name = name
+        self._capacity = capacity
+        self._empty = empty
 
-    @empty.setter
-    def empty(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "empty", 0, value)
+        self.reset()
 
-    @property
-    def full(self) -> int:
-        """
-        Number of full containers on board
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "full", 0)
+    def reset(self):
+        self.capacity = self._capacity
+        self.empty = self._empty
 
-    @full.setter
-    def full(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "full", 0, value)
-
-    @property
-    def on_shipper(self) -> int:
-        """
-        Number of empty containers that will become full, and need time to return the port
-
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "on_shipper", 0)
-
-    @on_shipper.setter
-    def on_shipper(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "on_shipper", 0, value)
-
-    @property
-    def on_consignee(self) -> int:
-        """
-        Number of full containers that discharged at this port, and need time to become empty container
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "on_consignee", 0)
-
-    @on_consignee.setter
-    def on_consignee(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "on_consignee", 0, value)
-
-    @property
-    def shortage(self) -> int:
-        """
-        Shortage of containers on this port at current tick
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "shortage", 0)
-
-    @shortage.setter
-    def shortage(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "shortage", 0, value)
-
+    def _on_shortage_changed(self, value):
         self._update_fulfilment(value, self.booking)
 
-    @property
-    def acc_shortage(self) -> int:
-        """
-        accumulative shortage to current tick
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "acc_shortage", 0)
-
-    @acc_shortage.setter
-    def acc_shortage(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "acc_shortage", 0, value)
-
-    @property
-    def capacity(self) -> float:
-        """
-        Capacity of this port
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "capacity", 0)
-
-    @capacity.setter
-    def capacity(self, value: float):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "capacity", 0, value)
-
-    @property
-    def booking(self) -> int:
-        """
-        Booking number of this port at current tick
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "booking", 0)
-
-    @booking.setter
-    def booking(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "booking", 0, value)
-
+    def _on_booking_changed(self, value):
         self._update_fulfilment(self.shortage, value)
 
-    @property
-    def acc_booking(self) -> int:
-        """
-        Accumulative booking number of this port
-        """
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "acc_booking", 0)
-
-    @acc_booking.setter
-    def acc_booking(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "acc_booking", 0, value)
-
-    @property
-    def fulfillment(self) -> int:
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "fulfillment", 0)
-
-    @fulfillment.setter
-    def fulfillment(self, value: int):
-        """
-        Fulfillment of current tick
-        """
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "fulfillment", 0, value)
-
-    @property
-    def acc_fulfillment(self) -> int:
-        return self._graph.get_attribute(ResourceNodeType.STATIC, self._idx, "acc_fulfillment", 0)
-
-    @acc_fulfillment.setter
-    def acc_fulfillment(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.STATIC, self._idx, "acc_fulfillment", 0, value)
-
     def _update_fulfilment(self, shortage: int, booking: int):
-        # update fulfillment
+        # Update fulfillment.
 
         self.fulfillment = booking - shortage
+
+    def __str__(self):
+        return f"<Port index={self.index}, name={self._name}, capacity={self.capacity}, empty={self.empty}>"

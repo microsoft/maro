@@ -1,0 +1,16 @@
+[run]
+command_line = -m pytest tests
+omit =
+    # ignore tests folder
+    tests/*
+    # ignore __init__.py
+    */__init__.py
+    # ignore meta files like __misc__.py
+    */__*__.py
+    # ignore cli
+    maro/cli/*
+    # ignore other packages
+    */site-packages/*
+
+[report]
+sort = Cover

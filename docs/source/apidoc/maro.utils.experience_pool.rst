@@ -9,30 +9,25 @@ maro.utils.experience\_pool.abs\_experience\_pool module
 
 .. automodule:: maro.utils.experience_pool.abs_experience_pool
    :members:
-   :undoc-members:
    :show-inheritance:
 
-maro.utils.experience\_pool.simple\_experience\_pool module
------------------------------------------------------------
+maro.utils.experience\_pool.experience\_pool module
+---------------------------------------------------
 
-.. automodule:: maro.utils.experience_pool.simple_experience_pool
+.. automodule:: maro.utils.experience_pool.experience_pool
    :members:
-   :undoc-members:
    :show-inheritance:
 
-maro.utils.experience\_pool.simple\_store module
-------------------------------------------------
+maro.utils.experience\_pool.fixed\_size\_store module
+-----------------------------------------------------
 
-.. automodule:: maro.utils.experience_pool.simple_store
+.. automodule:: maro.utils.experience_pool.fixed_size_store
    :members:
-   :undoc-members:
    :show-inheritance:
 
+maro.utils.experience\_pool.unbounded\_store module
+---------------------------------------------------
 
-Module contents
----------------
-
-.. automodule:: maro.utils.experience_pool
+.. automodule:: maro.utils.experience_pool.unbounded_store
    :members:
-   :undoc-members:
    :show-inheritance:

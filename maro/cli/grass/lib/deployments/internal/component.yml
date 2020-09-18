@@ -1,0 +1,9 @@
+image: ""
+resources:
+  cpu: ""
+  memory: ""
+  gpu: ""
+num: ""
+mount:
+  target: ""
+command: ""

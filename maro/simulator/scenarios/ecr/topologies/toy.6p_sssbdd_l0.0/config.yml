@@ -1,0 +1,226 @@
+seed: 4096
+transfer_cost_factors:
+  load: 0.05
+  dsch: 0.05
+container_usage_proportion:
+  period: 112
+  sample_nodes:
+  - - 0
+    - 0.02
+  - - 111
+    - 0.02
+  sample_noise: 0
+container_volumes:
+- 1
+order_generate_mode: fixed
+ports:
+  demand_port_001:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 0
+    full_return:
+      buffer_ticks: 1
+      noise: 0
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0
+        proportion: 0.17
+      targets:
+        transfer_port_001:
+          noise: 0
+          proportion: 1
+  demand_port_002:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 0
+    full_return:
+      buffer_ticks: 1
+      noise: 0
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0
+        proportion: 0.17
+      targets:
+        transfer_port_001:
+          noise: 0
+          proportion: 1
+  supply_port_001:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 0
+    full_return:
+      buffer_ticks: 1
+      noise: 0
+    initial_container_proportion: 0.16
+    order_distribution:
+      source:
+        noise: 0
+        proportion: 0
+  supply_port_002:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 0
+    full_return:
+      buffer_ticks: 1
+      noise: 0
+    initial_container_proportion: 0.16
+    order_distribution:
+      source:
+        noise: 0
+        proportion: 0
+  transfer_port_001:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 0
+    full_return:
+      buffer_ticks: 1
+      noise: 0
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0
+        proportion: 0.34
+      targets:
+        transfer_port_002:
+          noise: 0
+          proportion: 1
+  transfer_port_002:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 0
+    full_return:
+      buffer_ticks: 1
+      noise: 0
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0
+        proportion: 0.32
+      targets:
+        supply_port_001:
+          noise: 0
+          proportion: 0.5
+        supply_port_002:
+          noise: 0
+          proportion: 0.5
+routes:
+  route_001:
+  - distance: 60
+    port_name: transfer_port_002
+  - distance: 60
+    port_name: supply_port_001
+  - distance: 60
+    port_name: supply_port_002
+  route_002:
+  - distance: 60
+    port_name: transfer_port_001
+  - distance: 60
+    port_name: demand_port_001
+  - distance: 60
+    port_name: demand_port_002
+  route_003:
+  - distance: 60
+    port_name: transfer_port_001
+  - distance: 60
+    port_name: transfer_port_002
+stop_number:
+- 4
+- 3
+total_containers: 100000
+vessels:
+  rt1_vessel_001:
+    capacity: 89600
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: transfer_port_002
+      route_name: route_001
+    sailing:
+      noise: 0
+      speed: 10
+  rt1_vessel_002:
+    capacity: 89600
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: supply_port_001
+      route_name: route_001
+    sailing:
+      noise: 0
+      speed: 10
+  rt1_vessel_003:
+    capacity: 89600
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: supply_port_002
+      route_name: route_001
+    sailing:
+      noise: 0
+      speed: 10
+  rt2_vessel_001:
+    capacity: 95200
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: transfer_port_001
+      route_name: route_002
+    sailing:
+      noise: 0
+      speed: 10
+  rt2_vessel_002:
+    capacity: 95200
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: demand_port_001
+      route_name: route_002
+    sailing:
+      noise: 0
+      speed: 10
+  rt2_vessel_003:
+    capacity: 95200
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: demand_port_002
+      route_name: route_002
+    sailing:
+      noise: 0
+      speed: 10
+  rt3_vessel_001:
+    capacity: 95200
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: transfer_port_001
+      route_name: route_003
+    sailing:
+      noise: 0
+      speed: 10
+  rt3_vessel_002:
+    capacity: 95200
+    parking:
+      duration: 1
+      noise: 0
+    route:
+      initial_port_name: transfer_port_002
+      route_name: route_003
+    sailing:
+      noise: 0
+      speed: 10

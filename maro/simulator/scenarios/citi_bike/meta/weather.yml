@@ -1,0 +1,12 @@
+
+entity:
+  timestamp:
+    column: 'date'
+    dtype: 'i8'
+    tzone: "America/New_York"
+  weather: 
+    column: 'weather'
+    dtype: 'i'
+  temp: 
+    column: 'temp'
+    dtype: 'f'

@@ -5,8 +5,8 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-   maro.simulator.event_buffer
    maro.simulator.scenarios
    maro.simulator.utils
 
@@ -18,7 +18,6 @@ maro.simulator.abs\_core module
 
 .. automodule:: maro.simulator.abs_core
    :members:
-   :undoc-members:
    :show-inheritance:
 
 maro.simulator.core module
@@ -26,5 +25,4 @@ maro.simulator.core module
 
 .. automodule:: maro.simulator.core
    :members:
-   :undoc-members:
    :show-inheritance:

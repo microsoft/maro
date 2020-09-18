@@ -3,11 +3,12 @@
 
 
 from abc import ABC, abstractmethod
-from .graph import SnapshotList, Graph
 from enum import IntEnum
-from typing import Dict, Tuple, List, Any
-from maro.simulator.event_buffer import Event, EventBuffer
+from typing import Any, Dict, List, Tuple
+
+from maro.event_buffer import Event, EventBuffer
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
+from maro.backends.frame import FrameBase, SnapshotList
 
 
 class DecisionMode(IntEnum):
@@ -20,20 +21,34 @@ class AbsEnv(ABC):
     """The main MARO simulator abstract class, which provides interfaces to agents.
     """
 
-    def __init__(self, scenario: str, topology: str, max_tick: int = 100, decision_mode=DecisionMode.Sequential):
+    def __init__(self, scenario: str, topology: str,
+                 start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
+                 decision_mode: DecisionMode,
+                 business_engine_cls: type,
+                 options: dict):
         """Create a new instance of environment
 
         Args:
             scenario (str): scenario name under maro/sim/scenarios folder
-            topology (topology): topology name under specified scenario folder
-            max_tick (int): max tick of this environment
-
+            topology (str): topology name under specified scenario folder
+            start_tick (int): start tick of the scenario, usually used for pre-processed data streaming
+            durations (int): duration ticks of this environment from start_tick
+            snapshot_resolution (int): how many ticks will take a snapshot
+            max_snapshots (int): max in-memory snapshot number, less snapshots lower memory cost
+            business_engine_cls : class of business engine, if specified, then use it to construct be instance, or will search internal by scenario
+            options (dict): additional parameters passed to business engine
         """
-        self._tick = 0
+        self._tick = start_tick
         self._scenario = scenario
         self._topology = topology
-        self._max_tick = max_tick
+        self._start_tick = start_tick
+        self._durations = durations
+        self._snapshot_resolution = snapshot_resolution
+        self._max_snapshots = max_snapshots
         self._decision_mode = decision_mode
+        self._business_engine_cls = business_engine_cls
+        self._additional_options = options
+
         self._business_engine: AbsBusinessEngine = None
         self._event_buffer: EventBuffer = None
 
@@ -93,17 +108,43 @@ class AbsEnv(ABC):
         pass
 
     @property
+    def frame_index(self) -> int:
+        """int: frame index in snapshot list for current tick, USE this for snapshot querying"""
+        pass
+
+    @property
     @abstractmethod
-    def node_name_mapping(self) -> Dict[str, List]:
-        """Dict[str, List]: Resource node name mapping that configured for current environment"""
+    def summary(self) -> dict:
+        """Summary about current simulator, may include node details, and mappings"""
         pass
 
     @property
     @abstractmethod
     def snapshot_list(self) -> SnapshotList:
-        """Current snapshot list, a snapshot list contains all the snapshots of graph at each tick
+        """Current snapshot list, a snapshot list contains all the snapshots of frame at each tick
         """
         pass
+
+    def set_seed(self, seed: int):
+        """Set random seed used by simulator.
+        
+        NOTE: this will not set seed for python random or other packages' seed, such as numpy.
+        
+        Args:
+            seed (int): 
+        """
+
+        pass
+    
+    @property
+    def metrics(self) -> dict:
+        """Some statistics information provided by business engine
+        
+        Returns:
+            dict: dictionary of metrics, content and format is determined by business engine
+        """
+
+        return {}
 
     def get_finished_events(self) -> List[Event]:
         """List[Event]: All events finished so far
