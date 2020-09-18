@@ -28,6 +28,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: install libs
+      if: runner.os == 'Linux'
+      run: |
+        apt install libcurl4-openssl-dev libssl-dev
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
