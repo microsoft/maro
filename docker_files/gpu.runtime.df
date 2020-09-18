@@ -1,0 +1,46 @@
+# Step 1: build maro
+FROM quay.io/pypa/manylinux2010_x86_64 as ext_build
+
+WORKDIR /maro_build
+
+# Build wheels
+ADD ./maro ./maro
+ADD setup.py ./setup.py
+RUN PYBIN="/opt/python/cp36-cp36m/bin"; "${PYBIN}/pip" install -r maro/requirements.build.txt; "${PYBIN}/python" setup.py bdist_wheel --plat-name manylinux2010_x86_64
+
+
+# Step 2: Install components
+FROM nvidia/cuda:11.0-runtime-ubuntu18.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install Apt packages
+RUN apt-get update --fix-missing
+RUN apt-get install -y apt-utils
+RUN apt-get install -y sudo
+RUN apt-get install -y gcc
+RUN apt-get install -y libcurl4 libcurl4-openssl-dev libssl-dev curl
+RUN apt-get install -y libzmq3-dev
+RUN rm -rf /var/lib/apt/lists/*
+
+# Install Python 3.6
+RUN apt-get update
+RUN apt-get install -y python3-pip
+RUN cd /usr/bin; ln -s python3.6 python; ln -s pip3 pip
+
+# Install Python packages
+RUN pip install --upgrade pip
+RUN pip install Cython==0.29.14
+RUN pip install pyaml==20.4.0
+RUN pip install pyzmq==19.0.2
+RUN pip install numpy==1.19.1
+RUN pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install tabulate==0.8.5
+RUN pip install redis
+RUN pip install psutil==5.7.2
+RUN pip install deepdiff==5.0.2
+
+# Install maro
+COPY --from=ext_build /maro_build/dist/maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl ./maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl
+RUN pip install maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl
+RUN rm maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl

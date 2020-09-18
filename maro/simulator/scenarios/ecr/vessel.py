@@ -1,150 +1,107 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+from math import floor
+from maro.backends.frame import node, NodeBase, NodeAttribute
 
+def gen_vessel_definition(stop_nums: tuple):
+    @node("vessels")
+    class Vessel(NodeBase):
+        # The capacity of vessel for transfering containers.
+        capacity = NodeAttribute("i")
 
-from maro.simulator.graph import Graph, ResourceNodeType
+        # Empty container volume on the vessel.
+        empty = NodeAttribute("i")
 
+        # Laden container volume on the vessel.
+        full = NodeAttribute("i")
 
-class Vessel:
-    """
-    Wrapper that present a vessel in ECR problem and hide the detail of graph accessing
-    """
+        # Remaining space of the vessel.
+        remaining_space = NodeAttribute("i")
 
-    def __init__(self, graph: Graph, idx: int, name: str):
-        """
-        Create a new instance of vessel
+        # Discharged empty container number for loading laden containers.
+        early_discharge = NodeAttribute("i")
 
-        Args:
-            graph (Graph): graph that the vessel belongs to
-            idx (int): index of this vessel
-            name (str): name of this vessel
-        """
-        self._graph = graph
-        self._idx = idx
-        self._name = name
+        # Which route current vessel belongs to.
+        route_idx = NodeAttribute("i")
 
-    def reset(self):
-        """
-        Reset current vessel state
-        """
-        pass
+        # Stop port index in route, it is used to identify where is current vessel.
+        # last_loc_idx == next_loc_idx means vessel parking at a port.
+        last_loc_idx = NodeAttribute("i")
+        next_loc_idx = NodeAttribute("i")
 
-    @property
-    def idx(self) -> int:
-        """
-        Index of vessel
-        """
-        return self._idx
+        past_stop_list = NodeAttribute("i", stop_nums[0])
+        past_stop_tick_list = NodeAttribute("i", stop_nums[0])
+        future_stop_list = NodeAttribute("i", stop_nums[1])
+        future_stop_tick_list = NodeAttribute("i", stop_nums[1])
 
-    @property
-    def name(self) -> str:
-        """
-        Name of vessel (from config)
-        """
-        return self._name
+        def __init__(self):
+            self._name = None
+            self._capacity = None
+            self._total_space = None
+            self._container_volume = None
+            self._route_idx = None
+            self._empty = None
 
-    @property
-    def capacity(self) -> float:
-        """
-        Capacity of vessel, when the contains on board reach the capacity, the vessel cannot load any container
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "capacity", 0)
+        @property
+        def name(self) -> str:
+            """
+            Name of vessel (from config)
+            """
+            return self._name
 
-    @capacity.setter
-    def capacity(self, value: float):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "capacity", 0, value)
+        @property
+        def idx(self) -> int:
+            """
+            Index of vessel
+            """
+            return self.index
 
-    @property
-    def empty(self) -> int:
-        """
-        Number of empty containers on board
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "empty", 0)
+        def set_init_state(self, name: str, container_volume: float, capacity: int, route_idx: int, empty: int):
+            """Initialize vessel info"""
+            self._name = name
+            self._container_volume = container_volume
+            self._total_space = floor(capacity/container_volume)
 
-    @empty.setter
-    def empty(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "empty", 0, value)
+            self._capacity = capacity
+            self._route_idx = route_idx
+            self._empty = empty
 
-    @property
-    def full(self) -> int:
-        """
-        Number of full on board
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "full", 0)
+            self.reset()
 
-    @full.setter
-    def full(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "full", 0, value)
+        def reset(self):
+            """Reset states of vessel"""
+            self.capacity = self._capacity
+            self.route_idx = self._route_idx
+            self.empty = self._empty
+        
+        def set_stop_list(self, past_stop_list:list, future_stop_list:list):
+            """
+            Set the future stops (configured in config) when the vessel arrive at a port
+            Args:
+                stop_list (tuple): list of past and future stop list tuple
+            """
+            # update past and future stop info
+            features = [(past_stop_list, self.past_stop_list, self.past_stop_tick_list),
+                        (future_stop_list, self.future_stop_list, self.future_stop_tick_list)]
 
-    @property
-    def early_discharge(self) -> int:
-        """
-        Number of full on board
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "early_discharge", 0)
+            for feature in features:
+                for i, stop in enumerate(feature[0]):
+                    tick = stop.arrive_tick if stop is not None else -1
+                    port_idx = stop.port_idx if stop is not None else -1
 
-    @early_discharge.setter
-    def early_discharge(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "early_discharge", 0, value)
+                    feature[1][i] = port_idx
+                    feature[2][i] = tick
 
-    @property
-    def last_loc_idx(self) -> int:
-        """
-        Last location index in loop
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "last_loc_idx", 0)
+        def _on_empty_changed(self, value):
+            self._update_remaining_space()
 
-    @last_loc_idx.setter
-    def last_loc_idx(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "last_loc_idx", 0, value)
+        def _on_full_changed(self, value):
+            self._update_remaining_space()
 
-    @property
-    def next_loc_idx(self) -> int:
-        """
-        Next location index in loop
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "next_loc_idx", 0)
+        def _update_remaining_space(self):
+            self.remaining_space = self._total_space - self.full - self.empty
 
-    @next_loc_idx.setter
-    def next_loc_idx(self, value: int):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "next_loc_idx", 0, value)
+        def __str__(self):
+            return f"<Vessel Index={self.index}, capacity={self.capacity}, empty={self.empty}, full={self.full}>"
 
-    @property
-    def route_idx(self) -> int:
-        """
-        Index of route this vessel belongs to
-        """
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "route_idx", 0)
-
-    @route_idx.setter
-    def route_idx(self, value: int):
-        self._graph.set_attribute(
-            ResourceNodeType.DYNAMIC, self._idx, "route_idx", 0, value)
-
-    @property
-    def remaining_space(self):
-        return self._graph.get_attribute(ResourceNodeType.DYNAMIC, self._idx, "remaining_space", 0)
-
-    @remaining_space.setter
-    def remaining_space(self, value: float):
-        self._graph.set_attribute(ResourceNodeType.DYNAMIC, self._idx, "remaining_space", 0, value)
-
-    def set_stop_list(self, stop_list: tuple):
-        """
-        Set the future stops (configured in config) when the vessel arrive at a port
-
-        Args:
-            stop_list (tuple): list of past and future stop list tuple
-        """
-        features = [(stop_list[0], "past_stop_list", "past_stop_tick_list"),
-                    (stop_list[1], "future_stop_list", "future_stop_tick_list")]
-
-        for feature in features:
-            for i, stop in enumerate(feature[0]):
-                tick = stop.arrive_tick if stop is not None else -1
-                port_idx = stop.port_idx if stop is not None else -1
-
-                self._graph.set_attribute(
-                    ResourceNodeType.DYNAMIC, self._idx, feature[1], i, port_idx)
-                self._graph.set_attribute(
-                    ResourceNodeType.DYNAMIC, self._idx, feature[2], i, tick)
+    return Vessel

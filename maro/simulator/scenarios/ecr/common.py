@@ -3,7 +3,7 @@
 
 
 from enum import IntEnum
-from maro.simulator.graph import SnapshotList
+from maro.backends.frame import SnapshotList
 
 
 class VesselState(IntEnum):
@@ -30,54 +30,7 @@ class EcrEventType(IntEnum):
     PENDING_DECISION = 19
     LOAD_EMPTY = 20
     DISCHARGE_EMPTY = 21
-
-
-class Stop:
-    """
-    Present a stop in the vessel proforma, for internal using only
-    """
-
-    def __init__(self, arrive_tick: int, leave_tick: int, port_idx: int):
-        """
-        Create a new instance of Stop
-
-        Args:
-            arrive_tick (int): Tick that the vessel will arrive at port
-            leave_tick (int): Tick that the vessel will leave the port
-            port_idx (int): Port id that the vessel will arrive/leave
-        """
-        self.arrive_tick = arrive_tick
-        self.leave_tick = leave_tick
-        self.port_idx = port_idx
-
-    def __repr__(self):
-        return f"Stop {{arrive_tick:{self.arrive_tick}, leave_tick: {self.leave_tick}, port_id: {self.port_idx}}}"
-
-
-# order object used to generate full
-class Order:
-    """
-    Used to hold order information, this is for order generation
-    """
-
-    def __init__(self, tick: int, src_port_idx: int, dest_port_idx: int, quantity: int):
-        """
-        Create a new instants of order
-
-        Args:
-            tick (int): Generated tick of current order
-            src_port_idx (int): Source port of this order
-            dest_port_idx (int): Destination port id of this order
-            quantity (int): Container quantity of this order
-        """
-        self.tick = tick
-        self.src_port_idx = src_port_idx
-        self.quantity = quantity
-        self.dest_port_idx = dest_port_idx
-
-    def __repr__(self):
-        return f"Order {{tick:{self.tick}, source port: {self.src_port_idx}, dest port: {self.dest_port_idx} quantity: {self.quantity}}}"
-
+    
 
 # used for arrival and departure cascade event
 class VesselStatePayload:
@@ -182,7 +135,7 @@ class DecisionEvent:
             snapshot_list (int): Snapshots of the environment to input into the decision model
             action_scope_func (Function): Function to calculate action scope, we use function here to make it
                                             to get the value as late as possible
-            early_discharge_func (Function): Function to fetch early discharge number of spedified vessel, we
+            early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
                                             use function here to make it to get the value as late as possible
         """
         self.tick = tick
@@ -213,6 +166,18 @@ class DecisionEvent:
             self._early_discharge = self._early_discharge_func(self.vessel_idx)
 
         return self._early_discharge
+
+    def __getstate__(self):
+        """Return pickleable dictionary.
+        
+        NOTE: this class do not support unpickle"""
+        return {
+            "tick": self.tick,
+            "port_idx": self.port_idx,
+            "vessel_idx": self.vessel_idx,
+            "action_scope": self.action_scope,
+            "early_discharge": self.early_discharge
+        }
 
     def __repr__(self):
         return self.__str__()

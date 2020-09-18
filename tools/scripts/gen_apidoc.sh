@@ -1,1 +1,0 @@
-sphinx-apidoc -f -o ../../source/apidoc ../../maro/"$1"

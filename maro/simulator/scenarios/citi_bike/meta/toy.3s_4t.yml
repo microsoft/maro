@@ -1,0 +1,33 @@
+stations:
+  - id: 0
+    capacity: 30
+    init: 14
+    lat: 40.76727294921875
+    lon: -73.99392700195312 
+  - id: 1
+    capacity: 30
+    init: 14
+    lat: 40.7191162109375
+    lon: -74.00666809082031 
+  - id: 2
+    capacity: 30
+    init: 14
+    lat: 40.71117401123047
+    lon: -74.00016784667969 
+    
+trips: 
+  - start_id: 0
+    end_id: 1
+    probability: 0.2
+  - start_id: 0
+    end_id: 2
+    probability: 0.8
+  - start_id: 1
+    end_id: 2
+    probability: 1.0
+  - start_id: 2
+    end_id: 1
+    probability: 1.0
+
+start_time: '2019-01-01'
+end_time: '2019-02-01'

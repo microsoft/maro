@@ -1,0 +1,15 @@
+mode: k8s
+name: MyClusterName # str: name of the Maro Cluster
+
+cloud: # cloud infra config
+  infra: azure
+  subscription: MySubscriptionName # str: azure subscription name / id
+  resource_group: MyResourceGroup # str: azure resource group
+  location: southeastasia # str: location of resources, see https://azure.microsoft.com/en-us/global-infrastructure/geographies/#geographies for reference
+
+user: # user config
+  admin_username: MyUsername # str: admin username for the k8s nodes
+  admin_public_key: ssh-rsa AAAAB...snip...UcyupgH # str: ssh-rsa public key string
+
+master: # MARO Master config
+  node_size: Standard_D2s_v3 # str: size of the master node, see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-general for reference

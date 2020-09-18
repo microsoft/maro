@@ -2,7 +2,22 @@
 # Licensed under the MIT license.
 
 
+from glob import glob
+import io
+import numpy as np
+import os
 from pickle import loads, dumps
+import random
+import shutil
+import time
+import warnings
+import yaml
+
+from maro import __data_version__
+from maro.utils.exception.cli_exception import CommandError
+from maro.utils.logger import CliLogger
+
+logger = CliLogger(name=__name__)
 
 
 def clone(obj):
@@ -29,3 +44,82 @@ def convert_dottable(natural_dict: dict):
             v = convert_dottable(v)
             dottable_dict[k] = v
     return dottable_dict
+
+
+def set_seeds(seed):
+    try:
+        import torch
+
+        torch.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+    except Exception as e:
+        warnings.warn("Torch not installed.")
+
+    np.random.seed(seed)
+    random.seed(seed)
+
+
+version_file_path = os.path.join(os.path.expanduser("~/.maro"), "version.yml")
+
+project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+
+target_source_pairs = [
+    (os.path.expanduser("~/.maro/data/citi_bike/meta"),
+     os.path.join(project_root, "simulator/scenarios/citi_bike/meta")),
+    (os.path.expanduser("~/.maro/data/ecr/meta"),
+     os.path.join(project_root, "simulator/scenarios/ecr/meta")),
+    (os.path.expanduser("~/.maro/lib/k8s"),
+     os.path.join(project_root, "cli/k8s/lib")),
+    (os.path.expanduser("~/.maro/lib/grass"),
+     os.path.join(project_root, "cli/grass/lib")),
+]
+
+
+def deploy(hide_info=True):
+    info_list = []
+    error_list = []
+    try:
+        clean_deployment_folder()
+        for target_dir, source_dir in target_source_pairs:
+            shutil.copytree(source_dir, target_dir)
+        # deploy success
+        version_info = {
+            "data_version": __data_version__,
+            "deploy_time": time.time()
+        }
+        with io.open(version_file_path, "w") as version_file:
+            yaml.dump(version_info, version_file)
+        info_list.append("Data files for MARO deployed.")
+    except Exception as e:
+        error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
+
+        for target_dir, _ in target_source_pairs:
+            if os.path.exists(target_dir):
+                shutil.rmtree(target_dir)
+    finally:
+        if len(error_list) > 0:
+            for error in error_list:
+                logger.error_red(error)
+        elif not hide_info:
+            for info in info_list:
+                logger.info_green(info)
+
+
+def check_deployment_status():
+    ret = False
+    if os.path.exists(version_file_path):
+        with io.open(version_file_path, "r") as version_file:
+            version_info = yaml.safe_load(version_file)
+            if "deploy_time" in version_info \
+                and "data_version" in version_info \
+                and version_info["data_version"] == __data_version__:
+                ret = True
+    return ret
+
+
+def clean_deployment_folder():
+    for target_dir, _ in target_source_pairs:
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)

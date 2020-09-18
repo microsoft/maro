@@ -1,0 +1,12 @@
+[Unit]
+Description=Maro Master Agent
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/usr/bin/python3 {home_path}/.maro/lib/grass/agents/master_agent.py
+
+[Install]
+WantedBy=default.target

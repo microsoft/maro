@@ -1,0 +1,446 @@
+seed: 4096
+transfer_cost_factors:
+  load: 0.05
+  dsch: 0.05
+container_usage_proportion:
+  period: 112
+  sample_nodes:
+  - - 0
+    - 0.015
+  - - 1
+    - 0.015007865924910917
+  - - 2
+    - 0.015031438950533788
+  - - 3
+    - 0.015070644907408821
+  - - 4
+    - 0.015125360439090883
+  - - 5
+    - 0.015195413390274502
+  - - 6
+    - 0.015280583348458162
+  - - 7
+    - 0.015380602337443566
+  - - 8
+    - 0.015495155660487904
+  - - 9
+    - 0.015623882890456232
+  - - 10
+    - 0.01576637900385858
+  - - 11
+    - 0.0159221956552037
+  - - 12
+    - 0.016090842587659852
+  - - 13
+    - 0.016271789175584174
+  - - 14
+    - 0.01646446609406726
+  - - 15
+    - 0.01666826711023998
+  - - 16
+    - 0.016882550990706333
+  - - 17
+    - 0.017106643519100972
+  - - 18
+    - 0.017339839617423317
+  - - 19
+    - 0.017581405564473802
+  - - 20
+    - 0.01783058130441221
+  - - 21
+    - 0.01808658283817455
+  - - 22
+    - 0.018348604690224164
+  - - 23
+    - 0.018615822442875754
+  - - 24
+    - 0.018887395330218427
+  - - 25
+    - 0.01916246888347632
+  - - 26
+    - 0.01944017761948346
+  - - 27
+    - 0.01971964776381404
+  - - 28
+    - 0.02
+  - - 29
+    - 0.02028035223618596
+  - - 30
+    - 0.02055982238051654
+  - - 31
+    - 0.020837531116523682
+  - - 32
+    - 0.02111260466978157
+  - - 33
+    - 0.021384177557124247
+  - - 34
+    - 0.021651395309775834
+  - - 35
+    - 0.02191341716182545
+  - - 36
+    - 0.022169418695587792
+  - - 37
+    - 0.0224185944355262
+  - - 38
+    - 0.022660160382576684
+  - - 39
+    - 0.02289335648089903
+  - - 40
+    - 0.023117449009293668
+  - - 41
+    - 0.02333173288976002
+  - - 42
+    - 0.023535533905932736
+  - - 43
+    - 0.023728210824415827
+  - - 44
+    - 0.02390915741234015
+  - - 45
+    - 0.0240778043447963
+  - - 46
+    - 0.02423362099614142
+  - - 47
+    - 0.02437611710954377
+  - - 48
+    - 0.024504844339512097
+  - - 49
+    - 0.024619397662556435
+  - - 50
+    - 0.02471941665154184
+  - - 51
+    - 0.0248045866097255
+  - - 52
+    - 0.024874639560909118
+  - - 53
+    - 0.024929355092591178
+  - - 54
+    - 0.024968561049466213
+  - - 55
+    - 0.024992134075089083
+  - - 56
+    - 0.025
+  - - 57
+    - 0.024992134075089083
+  - - 58
+    - 0.024968561049466213
+  - - 59
+    - 0.024929355092591178
+  - - 60
+    - 0.024874639560909118
+  - - 61
+    - 0.0248045866097255
+  - - 62
+    - 0.02471941665154184
+  - - 63
+    - 0.024619397662556435
+  - - 64
+    - 0.024504844339512097
+  - - 65
+    - 0.02437611710954377
+  - - 66
+    - 0.024233620996141424
+  - - 67
+    - 0.024077804344796304
+  - - 68
+    - 0.023909157412340152
+  - - 69
+    - 0.02372821082441583
+  - - 70
+    - 0.02353553390593274
+  - - 71
+    - 0.02333173288976002
+  - - 72
+    - 0.023117449009293668
+  - - 73
+    - 0.02289335648089903
+  - - 74
+    - 0.022660160382576684
+  - - 75
+    - 0.022418594435526202
+  - - 76
+    - 0.022169418695587792
+  - - 77
+    - 0.021913417161825453
+  - - 78
+    - 0.021651395309775837
+  - - 79
+    - 0.021384177557124247
+  - - 80
+    - 0.021112604669781574
+  - - 81
+    - 0.020837531116523686
+  - - 82
+    - 0.02055982238051654
+  - - 83
+    - 0.020280352236185958
+  - - 84
+    - 0.02
+  - - 85
+    - 0.019719647763814043
+  - - 86
+    - 0.01944017761948346
+  - - 87
+    - 0.01916246888347632
+  - - 88
+    - 0.01888739533021843
+  - - 89
+    - 0.018615822442875758
+  - - 90
+    - 0.018348604690224167
+  - - 91
+    - 0.01808658283817455
+  - - 92
+    - 0.01783058130441221
+  - - 93
+    - 0.0175814055644738
+  - - 94
+    - 0.01733983961742332
+  - - 95
+    - 0.017106643519100975
+  - - 96
+    - 0.016882550990706333
+  - - 97
+    - 0.01666826711023998
+  - - 98
+    - 0.016464466094067265
+  - - 99
+    - 0.016271789175584174
+  - - 100
+    - 0.016090842587659852
+  - - 101
+    - 0.015922195655203697
+  - - 102
+    - 0.01576637900385858
+  - - 103
+    - 0.015623882890456233
+  - - 104
+    - 0.015495155660487904
+  - - 105
+    - 0.015380602337443568
+  - - 106
+    - 0.015280583348458162
+  - - 107
+    - 0.015195413390274502
+  - - 108
+    - 0.015125360439090883
+  - - 109
+    - 0.015070644907408821
+  - - 110
+    - 0.015031438950533788
+  - - 111
+    - 0.015007865924910917
+  sample_noise: 0.002
+container_volumes:
+- 1
+order_generate_mode: fixed
+ports:
+  demand_port_001:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 1
+    full_return:
+      buffer_ticks: 1
+      noise: 1
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0.024450801608666643
+        proportion: 0.17
+      targets:
+        transfer_port_001:
+          noise: 0.10125840127903958
+          proportion: 1
+  demand_port_002:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 1
+    full_return:
+      buffer_ticks: 1
+      noise: 1
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0.00783905906415308
+        proportion: 0.17
+      targets:
+        transfer_port_001:
+          noise: 0.13219209713435248
+          proportion: 1
+  supply_port_001:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 1
+    full_return:
+      buffer_ticks: 1
+      noise: 1
+    initial_container_proportion: 0.16
+    order_distribution:
+      source:
+        noise: 0.0
+        proportion: 0
+  supply_port_002:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 1
+    full_return:
+      buffer_ticks: 1
+      noise: 1
+    initial_container_proportion: 0.16
+    order_distribution:
+      source:
+        noise: 0.0
+        proportion: 0
+  transfer_port_001:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 1
+    full_return:
+      buffer_ticks: 1
+      noise: 1
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0.018693217891239025
+        proportion: 0.34
+      targets:
+        transfer_port_002:
+          noise: 0.048700268289270654
+          proportion: 1
+  transfer_port_002:
+    capacity: 100000
+    empty_return:
+      buffer_ticks: 1
+      noise: 1
+    full_return:
+      buffer_ticks: 1
+      noise: 1
+    initial_container_proportion: 0.17
+    order_distribution:
+      source:
+        noise: 0.05465323045830018
+        proportion: 0.32
+      targets:
+        supply_port_001:
+          noise: 0.05062625613586428
+          proportion: 0.5
+        supply_port_002:
+          noise: 0.071324056997726
+          proportion: 0.5
+routes:
+  route_001:
+  - distance: 60
+    port_name: transfer_port_002
+  - distance: 60
+    port_name: supply_port_001
+  - distance: 60
+    port_name: supply_port_002
+  route_002:
+  - distance: 60
+    port_name: transfer_port_001
+  - distance: 60
+    port_name: demand_port_001
+  - distance: 60
+    port_name: demand_port_002
+  route_003:
+  - distance: 60
+    port_name: transfer_port_001
+  - distance: 60
+    port_name: transfer_port_002
+stop_number:
+- 4
+- 3
+total_containers: 100000
+vessels:
+  rt1_vessel_001:
+    capacity: 8064
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: transfer_port_002
+      route_name: route_001
+    sailing:
+      noise: 2
+      speed: 10
+  rt1_vessel_002:
+    capacity: 8960
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: supply_port_001
+      route_name: route_001
+    sailing:
+      noise: 2
+      speed: 10
+  rt1_vessel_003:
+    capacity: 9856
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: supply_port_002
+      route_name: route_001
+    sailing:
+      noise: 2
+      speed: 10
+  rt2_vessel_001:
+    capacity: 8568
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: transfer_port_001
+      route_name: route_002
+    sailing:
+      noise: 2
+      speed: 10
+  rt2_vessel_002:
+    capacity: 9520
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: demand_port_001
+      route_name: route_002
+    sailing:
+      noise: 2
+      speed: 10
+  rt2_vessel_003:
+    capacity: 10472
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: demand_port_002
+      route_name: route_002
+    sailing:
+      noise: 2
+      speed: 10
+  rt3_vessel_001:
+    capacity: 8568
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: transfer_port_001
+      route_name: route_003
+    sailing:
+      noise: 2
+      speed: 10
+  rt3_vessel_002:
+    capacity: 9520
+    parking:
+      duration: 1
+      noise: 1
+    route:
+      initial_port_name: transfer_port_002
+      route_name: route_003
+    sailing:
+      noise: 1
+      speed: 10

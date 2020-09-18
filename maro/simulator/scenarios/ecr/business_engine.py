@@ -3,36 +3,43 @@
 
 
 import os
-from math import floor, ceil
+from math import ceil, floor
 
-from maro.simulator.graph import Graph, SnapshotList
 from yaml import safe_load
 
-from maro.simulator.event_buffer import EventBuffer, DECISION_EVENT, Event
+from maro.backends.frame import FrameBase, SnapshotList
+from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from .common import Stop, Order, VesselDischargePayload, VesselStatePayload, EcrEventType, DecisionEvent, \
-    ActionScope
-from .ecr_data_generator import EcrDataGenerator
-from .graph_builder import gen_ecr_graph
-from .matrix_accessor import GraphMatrixAccessor
-from .port import Port
-from .vessel import Vessel
+from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
+
+from .common import (ActionScope, DecisionEvent, EcrEventType, VesselDischargePayload, VesselStatePayload)
+from .frame_builder import gen_ecr_frame
+from maro.data_lib.ecr import data_from_generator, data_from_dumps, EcrDataContainer, Stop, Order, EcrDataContainerWrapper
+
+
+metrics_desc = """
+ECR metrics used provide statistics information until now (may be in the middle of current tick), it contains following keys:
+
+perf (float): performance (accumulative fulfillment / accumulative orders) until now
+total_shortage (int): accumulative shortage until now
+total_cost (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
+"""
+
 
 class EcrBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology_path: str, max_tick: int):
-        """
-        Create a new instance of ECR Business Engine
+    """Ecr business engine, used simulate ECR related problem"""
 
-        Args:
-            event_buffer (EventBuffer): used to register and hold events
-            topology_path (str): full path to the topology folder
-            max_tick (int): max tick that we will simulate
-        """
-        super().__init__(event_buffer, topology_path)
+    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
+        super().__init__("ecr", event_buffer, topology, start_tick, max_tick,
+                         snapshot_resolution, max_snapshots, additional_options)
 
-        config_path = os.path.join(topology_path, "config.yml")
+        # update self._config_path with current file path
+        self.update_config_root_path(__file__)
 
-        self._data_generator = EcrDataGenerator(max_tick, config_path)
+        config_path = os.path.join(self._config_path, "config.yml")
+
+        # load data from wrapper
+        self._data_cntr: EcrDataContainerWrapper = EcrDataContainerWrapper(config_path, max_tick, self._topology)
 
         # create a copy of config object to expose to others, and not affect generator
         with open(config_path) as fp:
@@ -40,15 +47,24 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         self._vessels = []
         self._ports = []
-        self._graph = None
-        self._full_on_ports: GraphMatrixAccessor = None
-        self._full_on_vessels: GraphMatrixAccessor = None
-        self._vessel_plans: GraphMatrixAccessor = None
+        self._frame = None
+        self._full_on_ports: MatrixAttributeAccessor = None
+        self._full_on_vessels: MatrixAttributeAccessor = None
+        self._vessel_plans: MatrixAttributeAccessor = None
 
-        self._init_graph()
+        # read transfer cost factors
+        transfer_cost_factors = self._config["transfer_cost_factors"]
 
-        # snapshot list should be initialized after graph
-        self._snapshots = SnapshotList(self._graph, max_tick)
+        self._load_cost_factor: float = transfer_cost_factors["load"]
+        self._dsch_cost_factor: float = transfer_cost_factors["dsch"]
+
+        # used to collect total cost to avoid to much snapshot querying
+        self._total_transfer_cost: float = 0
+
+        self._init_frame()
+
+        # snapshot list should be initialized after frame
+        self._snapshots = self._frame.snapshots
 
         self._register_events()
 
@@ -60,19 +76,19 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         Configurations of ECR business engine
         """
-        return self._data_generator.get_pure_config()
+        return self._config
 
     @property
-    def graph(self) -> Graph:
+    def frame(self) -> FrameBase:
         """
-        Graph of current business engine
+        Frame of current business engine
         """
-        return self._graph
+        return self._frame
 
     @property
     def snapshots(self) -> SnapshotList:
         """
-        Snapshot list of current graph
+        Snapshot list of current frame
         """
         return self._snapshots
 
@@ -91,7 +107,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         total_empty_number = sum([node.empty for node in self._ports + self._vessels])
 
-        for order in self._data_generator.generate_orders(tick, total_empty_number):
+        for order in self._data_cntr.get_orders(tick, total_empty_number):
             order_evt = self._event_buffer.gen_atom_event(tick, EcrEventType.ORDER, order)
 
             self._event_buffer.insert_event(order_evt)
@@ -102,23 +118,25 @@ class EcrBusinessEngine(AbsBusinessEngine):
         cascade_evt_list = []
 
         for vessel in self._vessels:
-            vessel_idx = vessel.idx
-            loc_idx = vessel.next_loc_idx
-            stop: Stop = self._data_generator.get_stop_from_idx(vessel_idx, loc_idx)
-            port_idx = stop.port_idx
+            vessel_idx: int = vessel.idx
+            loc_idx: int = vessel.next_loc_idx
+
+            stop: Stop = self._data_cntr.vessel_stops[vessel_idx, loc_idx]
+            port_idx: int = stop.port_idx
 
             # at the beginning the vessel is parking at port, will not invoke arrive event
             if loc_idx > 0:
-
                 # check if there is any arrive event
                 if stop.arrive_tick == tick:
                     arrival_payload = VesselStatePayload(port_idx, vessel_idx)
 
                     # this vessel will arrive at current tick
-                    arrival_event = self._event_buffer.gen_atom_event(tick, EcrEventType.VESSEL_ARRIVAL,arrival_payload)
+                    arrival_event = self._event_buffer.gen_atom_event(
+                        tick, EcrEventType.VESSEL_ARRIVAL, arrival_payload)
 
                     # then it will load full
-                    load_event = self._event_buffer.gen_atom_event(tick, EcrEventType.LOAD_FULL, arrival_payload)
+                    load_event = self._event_buffer.gen_atom_event(
+                        tick, EcrEventType.LOAD_FULL, arrival_payload)
 
                     self._event_buffer.insert_event(arrival_event)
                     self._event_buffer.insert_event(load_event)
@@ -137,39 +155,46 @@ class EcrBusinessEngine(AbsBusinessEngine):
                     vessel.last_loc_idx = vessel.next_loc_idx
 
             # we should update the future stop list at each tick
-            vessel.set_stop_list(self._data_generator.get_stop_list(vessel.idx, vessel.last_loc_idx, loc_idx))
+            past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, loc_idx]
+            future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, loc_idx]
+
+            vessel.set_stop_list(past_stops, future_stops)
 
             # update vessel plans
-            for plan_port_idx, plan_tick in self._data_generator.get_planed_stops(vessel_idx, vessel.route_idx,
-                                                                                  loc_idx):
-                self._vessel_plans[vessel_idx: plan_port_idx] = plan_tick
+            for plan_port_idx, plan_tick in self._data_cntr.vessel_planned_stops[vessel_idx, vessel.route_idx, loc_idx]:
+                self._vessel_plans[vessel_idx, plan_port_idx] = plan_tick
 
             if loc_idx > 0 and stop.arrive_tick == tick:
-                self._vessel_plans[vessel_idx: port_idx] = stop.arrive_tick
+                self._vessel_plans[vessel_idx, port_idx] = stop.arrive_tick
 
         # insert the cascade events at the end
         for evt in cascade_evt_list:
             self._event_buffer.insert_event(evt)
 
-    def post_step(self, tick):
+    def post_step(self, tick: int):
         """
         Post-process after each step
 
         Args:
             tick (int): tick to process
         """
-        # update acc_fulfillment before take snapshot
-        for port in self._ports:
-            port.acc_fulfillment = port.acc_booking - port.acc_shortage
+        if (tick + 1) % self._snapshot_resolution == 0:
+            # update acc_fulfillment before take snapshot
 
-        # before go to next tick, we will take a snapshot first
-        self._snapshots.insert_snapshot(self._graph, tick)
+            for port in self._ports:
+                port.acc_fulfillment = port.acc_booking - port.acc_shortage
 
-        # reset port statistics (by tick) fields
-        for port in self._ports:
-            port.shortage = 0
-            port.booking = 0
-            port.fulfillment = 0
+            # before go to next tick, we will take a snapshot first
+            self._frame.take_snapshot(self.frame_index(tick))
+
+            # reset port statistics (by tick) fields
+            for port in self._ports:
+                port.shortage = 0
+                port.booking = 0
+                port.fulfillment = 0
+                port.transfer_cost = 0
+
+        return tick + 1 == self._max_tick
 
     def rewards(self, actions: list):
         """
@@ -185,24 +210,28 @@ class EcrBusinessEngine(AbsBusinessEngine):
             return []
 
         self_rewards = [(port.booking - port.shortage) * 0.05 for port in self._ports]
-        average_reward = sum(self_rewards) / self._data_generator.port_num
+        average_reward = sum(self_rewards) / self._data_cntr.port_number
         rewards = [self_reward * 0.5 + average_reward * 0.5 for self_reward in self_rewards]
 
         return [rewards[action.port_idx] for action in actions]
 
     def reset(self):
         """
-        Reset the business engine, it will reset graph value
+        Reset the business engine, it will reset frame value
         """
 
         self._snapshots.reset()
 
-        self._graph.reset()
+        self._frame.reset()
 
         self._reset_nodes()
 
+        self._data_cntr.reset()
+        
         # insert departure event again
         self._load_departure_events()
+
+        self._total_transfer_cost = 0
 
     def action_scope(self, port_idx: int, vessel_idx: int) -> ActionScope:
         """
@@ -213,19 +242,12 @@ class EcrBusinessEngine(AbsBusinessEngine):
             vessel_idx (int): Index of specified vessel to take the action
 
         Returns:
-            Scope dictionary {
-                "port2vessel": Max number of empty containers that can be moved from port to vessel,
-                "vessel2port": Max number of empty containers that can be moved from vessel to port
-            }
+            ActionScope: contains load and discharge scope
         """
-        port: Port = self._ports[port_idx]
-        vessel: Vessel = self._vessels[vessel_idx]
-        vessel_empty = vessel.empty
-        vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
-        vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
-        vessel.remaining_space = vessel_remaining_space
+        port = self._ports[port_idx]
+        vessel = self._vessels[vessel_idx]
 
-        return ActionScope(load=min(port.empty, vessel_remaining_space), discharge=vessel_empty)
+        return ActionScope(load=min(port.empty, vessel.remaining_space), discharge=vessel.empty)
 
     def early_discharge(self, vessel_idx: int) -> int:
         """
@@ -236,7 +258,22 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         return self._vessels[vessel_idx].early_discharge
 
-    def get_node_name_mapping(self) -> dict:
+    def get_metrics(self) -> DocableDict:
+        """Get metrics information for ecr scenario.
+        
+        Args:
+            dict: a dict that contains "perf", "total_shortage" and "total_cost", and can use help method to show help docs
+        """
+        total_shortage = sum([p.acc_shortage for p in self._ports])
+        total_booking = sum([p.acc_booking for p in self._ports])
+
+        return DocableDict(metrics_desc,
+            perf = (total_booking - total_shortage)/total_booking if total_booking != 0 else 1,
+            total_shortage = total_shortage,
+            total_cost = self._total_transfer_cost
+        )
+
+    def get_node_mapping(self) -> dict:
         """
         Get node name mappings related with this environment
 
@@ -247,7 +284,10 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 "dynamic": {name: index}
             }
         """
-        return self._data_generator.node_mapping
+        return {
+            "ports": self._data_cntr.port_mapping,
+            "vessels": self._data_cntr.vessel_mapping
+        }
 
     def get_agent_idx_list(self) -> list:
         """
@@ -256,34 +296,42 @@ class EcrBusinessEngine(AbsBusinessEngine):
         Returns: 
             A list of port index
         """
-        return [i for i in range(self._data_generator.port_num)]
+        return [i for i in range(self._data_cntr.port_number)]
+
+    def _init_nodes(self):
+        # initial ports 
+        for port_settings in self._data_cntr.ports:
+            port = self._ports[port_settings.index]
+            port.set_init_state(port_settings.name, port_settings.capacity, port_settings.empty)
+
+        # initial vessels
+        for vessel_setting in self._data_cntr.vessels:
+            vessel = self._vessels[vessel_setting.index]
+
+            vessel.set_init_state(vessel_setting.name, 
+                    self._data_cntr.container_volume, 
+                    vessel_setting.capacity, 
+                    self._data_cntr.route_mapping[vessel_setting.route_name],
+                    vessel_setting.empty)
+
+        # init vessel plans 
+        self._vessel_plans[:] = -1
 
     def _reset_nodes(self):
+        # reset both vessels and ports
+        # NOTE: this should be called after frame.reset
         for port in self._ports:
             port.reset()
-            port.capacity = self._data_generator.port_initial_info["capacity"][port.idx]
-            port.empty = self._data_generator.port_initial_info["empty"][port.idx]
 
         for vessel in self._vessels:
             vessel.reset()
-            vessel.capacity = self._data_generator.vessel_initial_info["capacity"][vessel.idx]
-            vessel.route_idx = self._data_generator.vessel_initial_info["route"][vessel.idx]
-            vessel.early_discharge = 0
-
-            if "empty" in self._data_generator.vessel_initial_info:
-                vessel.empty = self._data_generator.vessel_initial_info["empty"][vessel.idx]
-
-            vessel.next_loc_idx = 0
-            vessel.last_loc_idx = 0
 
         # reset vessel plans
-        for vessel_idx in range(self._data_generator.vessel_num):
-            for port_idx in range(self._data_generator.port_num):
-                self._vessel_plans[vessel_idx: port_idx] = -1
+        self._vessel_plans[:] = -1
 
     def _register_events(self):
         """
-        Register events that we need
+        Register events
         """
         register_handler = self._event_buffer.register_event_handler
 
@@ -300,31 +348,31 @@ class EcrBusinessEngine(AbsBusinessEngine):
         Insert leaving event at the beginning as we already unpack the root to a loop at the beginning
         """
 
-        for vessel_idx, stops in enumerate(self._data_generator.vessel_stops):
+        for vessel_idx, stops in enumerate(self._data_cntr.vessel_stops[:]):
             for stop in stops:
                 payload = VesselStatePayload(stop.port_idx, vessel_idx)
                 dep_evt = self._event_buffer.gen_atom_event(stop.leave_tick, EcrEventType.VESSEL_DEPARTURE, payload)
+
                 self._event_buffer.insert_event(dep_evt)
 
-    def _init_graph(self):
+    def _init_frame(self):
         """
-        Initialize the graph basing on data generator
+        Initialize the frame basing on data generator
         """
-        self._graph = gen_ecr_graph(self._data_generator.port_num,
-                                    self._data_generator.vessel_num,
-                                    self._data_generator.stop_number)
+        port_num = self._data_cntr.port_number
+        vessel_num = self._data_cntr.vessel_number
+        stop_num = (self._data_cntr.past_stop_number, self._data_cntr.future_stop_number)
 
-        for port_idx, port_name in self._data_generator.node_mapping["static"].items():
-            self._ports.append(Port(self._graph, port_idx, port_name))
+        self._frame = gen_ecr_frame(port_num, vessel_num, stop_num, self.calc_max_snapshots())
 
-        for vessel_idx, vessel_name in self._data_generator.node_mapping["dynamic"].items():
-            self._vessels.append(Vessel(self._graph, vessel_idx, vessel_name))
+        self._ports = self._frame.ports
+        self._vessels = self._frame.vessels
 
-        self._full_on_ports = GraphMatrixAccessor(self._graph, "full_on_ports")
-        self._full_on_vessels = GraphMatrixAccessor(self._graph, "full_on_vessels")
-        self._vessel_plans = GraphMatrixAccessor(self._graph, "vessel_plans")
+        self._full_on_ports = self._frame.matrix[0]["full_on_ports"]
+        self._full_on_vessels = self._frame.matrix[0]["full_on_vessels"]
+        self._vessel_plans = self._frame.matrix[0]["vessel_plans"]
 
-        self._reset_nodes()
+        self._init_nodes()
 
     def _get_reachable_ports(self, vessel_idx: int):
         """
@@ -338,13 +386,13 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         vessel = self._vessels[vessel_idx]
 
-        return self._data_generator.get_reachable_stops(vessel_idx, vessel.route_idx, vessel.next_loc_idx)
+        return self._data_cntr.reachable_stops[vessel_idx, vessel.route_idx, vessel.next_loc_idx]
 
     def _get_pending_full(self, src_port_idx: int, dest_port_idx: int):
         """
         Get pending full number from src_port_idx to dest_port_idx
         """
-        return self._full_on_ports[src_port_idx: dest_port_idx]
+        return self._full_on_ports[src_port_idx, dest_port_idx]
 
     def _set_pending_full(self, src_port_idx: int, dest_port_idx: int, value):
         """
@@ -352,7 +400,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         """
         assert value >= 0
 
-        self._full_on_ports[src_port_idx: dest_port_idx] = value
+        self._full_on_ports[src_port_idx, dest_port_idx] = value
 
     def _on_order_generated(self, evt: Event):
         """
@@ -367,7 +415,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             evt (Event Object): Order event object
         """
         order: Order = evt.payload
-        src_port: Port = self._ports[order.src_port_idx]
+        src_port = self._ports[order.src_port_idx]
 
         execute_qty = order.quantity
         src_empty = src_port.empty
@@ -386,10 +434,12 @@ class EcrBusinessEngine(AbsBusinessEngine):
         src_port.empty -= execute_qty
         src_port.on_shipper += execute_qty  # full that pending return
 
-        buffer_ticks = self._data_generator.get_full_buffer_tick(src_port.idx)
+        buffer_ticks = self._data_cntr.full_return_buffers[src_port.idx]
 
         payload = (order.src_port_idx, order.dest_port_idx, execute_qty)
-        laden_return_evt = self._event_buffer.gen_atom_event(evt.tick + buffer_ticks, EcrEventType.RETURN_FULL, payload)
+
+        laden_return_evt = self._event_buffer.gen_atom_event(
+            evt.tick + buffer_ticks, EcrEventType.RETURN_FULL, payload)
 
         # if buffer_tick is 0, we should execute it as this tick
         if buffer_ticks == 0:
@@ -410,7 +460,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
         dest_port_idx = full_rtn_payload[1]
         qty = full_rtn_payload[2]
 
-        src_port: Port = self._ports[src_port_idx]
+        src_port = self._ports[src_port_idx]
         src_port.on_shipper -= qty
         src_port.full += qty
 
@@ -437,19 +487,19 @@ class EcrBusinessEngine(AbsBusinessEngine):
         arrival_obj: VesselStatePayload = evt.payload
         vessel_idx: int = arrival_obj.vessel_idx
         port_idx: int = arrival_obj.port_idx
-        vessel: Vessel = self._vessels[vessel_idx]
-        port: Port = self._ports[port_idx]
-        container_volume = self._data_generator.container_volume
+        vessel = self._vessels[vessel_idx]
+        port = self._ports[port_idx]
+        container_volume = self._data_cntr.container_volume
         vessel_capacity = vessel.capacity
 
         # update vessel state
         vessel.last_loc_idx = vessel.next_loc_idx
 
+        # NOTE: this remaining space do not contains empty, as we can early discharge them if no enough space
         remaining_space = vessel_capacity - vessel.full * container_volume
 
         # how many containers we can load
         acceptable_number = floor(remaining_space / container_volume)
-
         total_load_qty = 0
 
         for next_port_idx, arrive_tick in self._get_reachable_ports(vessel_idx):
@@ -467,7 +517,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 vessel.full += loaded_qty
 
                 # update state
-                self._full_on_vessels[vessel_idx: next_port_idx] += loaded_qty
+                self._full_on_vessels[vessel_idx, next_port_idx] += loaded_qty
 
                 acceptable_number -= loaded_qty
 
@@ -479,17 +529,14 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         # early discharge
         total_container = vessel.full + vessel.empty
-        container_volume = self._data_generator.container_volume
 
         vessel.early_discharge = 0
+
         if total_container * container_volume > vessel.capacity:
             early_discharge_number = total_container - ceil(vessel.capacity / container_volume)
             vessel.empty -= early_discharge_number
             port.empty += early_discharge_number
             vessel.early_discharge = early_discharge_number
-
-        # update remaining space
-        vessel.remaining_space = vessel.capacity - (vessel.empty + vessel.full) * container_volume
 
     def _on_departure(self, evt: Event):
         """
@@ -504,7 +551,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
         departure_payload: VesselStatePayload = evt.payload
         vessel_idx = departure_payload.vessel_idx
-        vessel: Vessel = self._vessels[vessel_idx]
+        vessel = self._vessels[vessel_idx]
 
         # as we have unfold all the route stop, we can just location ++
         vessel.next_loc_idx += 1
@@ -515,7 +562,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
 
 
         1. Discharge specified qty of full from vessel into port.on_consignee
-        2. Generate a mt_return event by configured buffer time
+        2. Generate a empty_return event by configured buffer time
             a. If buffer time is 0, then insert into immediate_event_list to process it ASAP
             b. Or insert into event buffer
 
@@ -525,18 +572,19 @@ class EcrBusinessEngine(AbsBusinessEngine):
         discharge_payload: VesselDischargePayload = evt.payload
         vessel_idx = discharge_payload.vessel_idx
         port_idx = discharge_payload.port_idx
-        vessel: Vessel = self._vessels[vessel_idx]
-        port: Port = self._ports[port_idx]
+        vessel = self._vessels[vessel_idx]
+        port = self._ports[port_idx]
         discharge_qty: int = discharge_payload.quantity
 
         vessel.full -= discharge_qty
         port.on_consignee += discharge_qty
 
-        self._full_on_vessels[vessel_idx: port_idx] -= discharge_qty
+        self._full_on_vessels[vessel_idx, port_idx] -= discharge_qty
 
-        buffer_ticks = self._data_generator.get_empty_buffer_tick(port.idx)
+        buffer_ticks = self._data_cntr.empty_return_buffers[port.idx]
         payload = (discharge_qty, port.idx)
-        mt_return_evt = self._event_buffer.gen_atom_event(evt.tick + buffer_ticks, EcrEventType.RETURN_EMPTY, payload)
+        mt_return_evt = self._event_buffer.gen_atom_event(
+            evt.tick + buffer_ticks, EcrEventType.RETURN_EMPTY, payload)
 
         if buffer_ticks == 0:
             evt.immediate_event_list.append(mt_return_evt)
@@ -551,7 +599,7 @@ class EcrBusinessEngine(AbsBusinessEngine):
             evt (Event Object): Empty-return event object
         """
         qty, port_idx = evt.payload
-        port: Port = self._ports[port_idx]
+        port = self._ports[port_idx]
 
         port.on_consignee -= qty
         port.empty += qty
@@ -578,15 +626,19 @@ class EcrBusinessEngine(AbsBusinessEngine):
                 port_empty = port.empty
                 vessel_empty = vessel.empty
 
-                vessel_total_space = int(floor(vessel.capacity / self._data_generator.container_volume))
-                vessel_remaining_space = vessel_total_space - vessel.full - vessel_empty
-                vessel.remaining_space = vessel_remaining_space
-
-                assert -min(port.empty, vessel_remaining_space) <= move_num <= vessel_empty
+                assert -min(port.empty, vessel.remaining_space) <= move_num <= vessel_empty
 
                 port.empty = port_empty + move_num
                 vessel.empty = vessel_empty - move_num
 
                 evt.event_type = EcrEventType.DISCHARGE_EMPTY if move_num > 0 else EcrEventType.LOAD_EMPTY
 
-                self._vessel_plans[vessel_idx: port_idx] += self._data_generator.get_vessel_period(vessel_idx)
+                # update cost
+                cost_factor = self._dsch_cost_factor if evt.event_type == EcrEventType.DISCHARGE_EMPTY else self._load_cost_factor
+                cost = cost_factor * abs(move_num)
+
+                # update transfer cost for port and metrics
+                self._total_transfer_cost += cost
+                port.transfer_cost += cost
+
+                self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]

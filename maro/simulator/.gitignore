@@ -1,7 +1,0 @@
-*.pyc
-*.pyo
-*.pyd
-*.so
-build
-*/_pycache__
-graph/graph.c

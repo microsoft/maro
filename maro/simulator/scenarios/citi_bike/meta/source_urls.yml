@@ -1,0 +1,73 @@
+trips:
+  ny.201801: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201801-citibike-tripdata.csv.zip"
+  ny.201802: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201802-citibike-tripdata.csv.zip"
+  ny.201803: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201803-citibike-tripdata.csv.zip"
+  ny.201804: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201804-citibike-tripdata.csv.zip"
+  ny.201805: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201805-citibike-tripdata.csv.zip"
+  ny.201806: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201806-citibike-tripdata.csv.zip"
+  ny.201807: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201807-citibike-tripdata.csv.zip"
+  ny.201808: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201808-citibike-tripdata.csv.zip"
+  ny.201809: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201809-citibike-tripdata.csv.zip"
+  ny.201810: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201810-citibike-tripdata.csv.zip"
+  ny.201811: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201811-citibike-tripdata.csv.zip"
+  ny.201812: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201812-citibike-tripdata.csv.zip"
+  ny.201901: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201901-citibike-tripdata.csv.zip"
+  ny.201902: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201902-citibike-tripdata.csv.zip"
+  ny.201903: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201903-citibike-tripdata.csv.zip"
+  ny.201904: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201904-citibike-tripdata.csv.zip"
+  ny.201905: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201905-citibike-tripdata.csv.zip"
+  ny.201906: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201906-citibike-tripdata.csv.zip"
+  ny.201907: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201907-citibike-tripdata.csv.zip"
+  ny.201908: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201908-citibike-tripdata.csv.zip"
+  ny.201909: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201909-citibike-tripdata.csv.zip"
+  ny.201910: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201910-citibike-tripdata.csv.zip"
+  ny.201911: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201911-citibike-tripdata.csv.zip"
+  ny.201912: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/201912-citibike-tripdata.csv.zip"
+  ny.202001: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/202001-citibike-tripdata.csv.zip"
+  ny.202002: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/202002-citibike-tripdata.csv.zip"
+  ny.202003: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/202003-citibike-tripdata.csv.zip"
+  ny.202004: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/202004-citibike-tripdata.csv.zip"
+  ny.202005: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/202005-citibike-tripdata.csv.zip"
+  ny.202006: 
+    trip_remote_url: "https://s3.amazonaws.com/tripdata/202006-citibike-tripdata.csv.zip"
+  toy.3s_4t:
+    toy_meta_path: "~/.maro/data/citi_bike/meta/toy.3s_4t.yml"
+  toy.4s_4t:
+    toy_meta_path: "~/.maro/data/citi_bike/meta/toy.4s_4t.yml"
+  toy.5s_6t:
+    toy_meta_path: "~/.maro/data/citi_bike/meta/toy.5s_6t.yml"
+
+weather:
+  ny_weather_url: "http://www.frontierweather.com/historicaldataonly/KNYC_daily.txt"
+
+station_info:
+  ny_station_info_url: "https://gbfs.citibikenyc.com/gbfs/en/station_information.json"

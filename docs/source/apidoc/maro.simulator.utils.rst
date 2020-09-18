@@ -9,10 +9,18 @@ maro.simulator.utils.common module
 
 .. automodule:: maro.simulator.utils.common
    :members:
-   :undoc-members:
    :show-inheritance:
 
-.. automodule:: maro.simulator.utils.random
+maro.simulator.utils.event\_bind\_binreader module
+--------------------------------------------------
+
+.. automodule:: maro.simulator.utils.event_bind_binreader
    :members:
-   :undoc-members:
+   :show-inheritance:
+
+maro.simulator.utils.sim\_random module
+---------------------------------------
+
+.. automodule:: maro.simulator.utils.sim_random
+   :members:
    :show-inheritance:

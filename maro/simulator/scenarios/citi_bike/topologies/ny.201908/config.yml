@@ -1,0 +1,48 @@
+decision:
+  extra_cost_mode: source # how to assign extra cost, avaiable value: source, target, target_neighbors
+
+  resolution: 20 # frequency to check if a cell need an action
+
+  # random factor to set bikes transfer time
+  effective_time_mean: 20
+  effective_time_std: 5
+
+  # these 2 water mark will affect the if decision should be generated
+  supply_water_mark_ratio: 0.8
+  demand_water_mark_ratio: 0.2
+
+  # ratio of action 
+  action_scope:
+    # num: 20 # max avalible number of nerighbor station in each decision
+    low: 0 # min ratio of available bikes to keep for current cell, to supply to neighbors
+    high: 1 # max ratio of available bikes neighbors can provide to current cell
+    filters: # filters used to pick destinations
+      - type: "distance" # sort by distance, from neareast to farest
+        num: 80 # number of output
+      - type: "requirements" # sort by supply and demand requirements
+        num: 40
+      - type: "trip_window" # sort by trips in window
+        windows: 10 # frame index number for the window
+        num: 20
+
+reward: # reward options
+  fulfillment_factor: 1
+  shortage_factor: 1
+  transfer_cost_factor: 0.05
+
+# timezone of the data
+# NOTE: we need this if we want to fit local time, as binary data will convert timestamp into UTC
+# name : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+time_zone: "America/New_York"
+
+# path of trip data binary file
+trip_data: "~/.maro/data/citi_bike/.build/ny.201908/trips.bin"
+
+# path of weather data
+weather_data: "~/.maro/data/citi_bike/.build/ny.201908/KNYC_daily.bin"
+
+# path of csv file that used to init stations, also with station id -> index mapping
+stations_init_data: "~/.maro/data/citi_bike/.build/ny.201908/station_meta.csv"
+
+# path of distance adj matrix
+distance_adj_data: "~/.maro/data/citi_bike/.build/ny.201908/distance_adj.csv"

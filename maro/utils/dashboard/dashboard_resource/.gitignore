@@ -1,6 +1,0 @@
-/data/influxdb
-/data/grafana
-/panels/line_chart/dist
-/panels/line_chart/node_modules
-/panels/heatmap_chart/dist
-/panels/heatmap_chart/node_modules

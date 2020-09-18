@@ -1,0 +1,35 @@
+stations:
+  - id: 0
+    capacity: 30
+    init: 14
+    lat: 40.7
+    lon: -74.0 
+  - id: 1
+    capacity: 30
+    init: 14
+    lat: 40.8
+    lon: -74.1 
+  - id: 2
+    capacity: 30
+    init: 14
+    lat: 40.6
+    lon: -73.9 
+  - id: 3
+    capacity: 30
+    init: 14
+    lat: 40.6
+    lon: -74.1
+    
+trips: 
+  - start_id: 0
+    end_id: 1
+    probability: 0.1
+  - start_id: 3
+    end_id: 0
+    probability: 0.1
+  - start_id: 1
+    end_id: 2
+    probability: 1.0
+  - start_id: 3
+    end_id: 1
+    probability: 1.0
