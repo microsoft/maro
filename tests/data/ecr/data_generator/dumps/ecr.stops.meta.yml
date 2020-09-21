@@ -1,0 +1,13 @@
+entity:
+    timestamp:
+        column: 'arrive_tick'
+        dtype: 'i8'
+    vessel_index: 
+        column: 'vessel_index'
+        dtype: 'i'
+    port_index: 
+        column: 'port_index'
+        dtype: 'i'
+    leave_tick: 
+        column: 'departure_tick'
+        dtype: 'i'

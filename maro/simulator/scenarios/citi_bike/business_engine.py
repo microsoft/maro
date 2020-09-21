@@ -154,6 +154,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             station.reset()
 
         self._matrices_node.reset()
+        
+        self._decision_strategy.reset()
 
     def get_agent_idx_list(self) -> List[int]:
         return [station.index for station in self._stations]

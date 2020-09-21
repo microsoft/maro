@@ -15,59 +15,78 @@ MARO has complete support on data processing, simulator building, RL algorithms 
 | `examples`  | Showcase of MARO.           |
 | `notebooks` | MARO quick-start notebooks. |
 
-### Prerequisites
+## Prerequisites
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
-- C++ Compiler
-    - Linux or Mac OS X: `gcc`
-    - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
 
-### Install MARO from PyPI
+## Install MARO from PyPI
 
 ```sh
 pip install maro
 ```
 
-### Install MARO from Source
+## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
-```sh
-# If your environment is not clean, create a virtual environment firstly
-python -m venv maro_venv
-source maro_venv/bin/activate
+- Prerequisites
+  - C++ Compiler
+    - Linux or Mac OS X: `gcc`
+    - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15) 
 
-# Install MARO from source, if you don't need CLI full feature
-pip install -r ./maro/requirements.build.txt
+- Enable Virtual Environment
+  - Mac OS / Linux
 
-# compile cython files
-bash scripts/compile_cython.sh
-pip install -e .
+    ```sh
+    # If your environment is not clean, create a virtual environment firstly.
+    python -m venv maro_venv
+    source ./maro_venv/bin/activate
+    ```
 
-# Or with script
-bash scripts/build_maro.sh
-```
+  - Windows
 
-### Quick example
+    ```ps
+    # If your environment is not clean, create a virtual environment firstly.
+    python -m venv maro_venv
+    .\maro_venv\Scripts\activate
+    ```
+
+- Install MARO
+
+  - Mac OS / Linux
+
+    ```sh
+    # Install MARO from source.
+    bash scripts/install_maro.sh
+    ```
+
+  - Windows
+
+    ```ps
+    # Install MARO from source.
+    .\scripts\install_maro.bat
+    ```
+
+## Quick example
 
 ```python
 from maro.simulator import Env
 
 env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
-_, decision_event, is_done = env.step(None)
+metrics, decision_event, is_done = env.step(None)
 
 while not is_done:
-    reward, decision_event, is_done = env.step(None)
+    metrics, decision_event, is_done = env.step(None)
 
-tot_shortage = env.snapshot_list["ports"][::"shortage"].sum()
-print(f"total shortage: {tot_shortage}")
+print(f"environment metrics: {env.metrics}")
 
 ```
 
-### Run playground
+## Run playground
 
 ```sh
 # Build playground image
 docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
+
 # Run playground container
 # Redis commander (GUI for redis) -> http://127.0.0.1:40009
 # Local host docs -> http://127.0.0.1:40010
@@ -75,7 +94,7 @@ docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
 docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
 ```
 
-### Contributing
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
