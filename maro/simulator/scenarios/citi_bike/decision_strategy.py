@@ -30,6 +30,9 @@ class DistanceFilter:
 
         return result
 
+    def reset(self):
+        pass
+
 class RequirementsFilter:
     def __init__(self, conf: dict):
         self._output_num = conf["num"]
@@ -42,27 +45,47 @@ class RequirementsFilter:
 
         return {neighbor_scope[i][0]: neighbor_scope[i][1] for i in range(output_num)}
 
+    def reset(self):
+        pass
+
 class TripsWindowFilter:
     def __init__(self, conf: dict, snapshot_list):
         self._output_num = conf["num"]
         self._windows = conf["windows"]
         self._snapshot_list = snapshot_list
 
+        self._window_states_cache = {}
+
     def filter(self, station_idx:int, decision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
         output_num = min(self._output_num, len(source))
 
         avaiable_frame_indices = self._snapshot_list.get_frame_index_list()
 
-        avaiable_frame_indices = avaiable_frame_indices[-output_num:]
+        # max windows we can get
+        available_windows = min(self._windows, len(avaiable_frame_indices))
 
-        trip_states = self._snapshot_list["stations"][avaiable_frame_indices::"trip_requirement"]
-        trip_states = trip_states.reshape(-1, len(self._snapshot_list["stations"]))
+        # get frame index list for latest N windows
+        avaiable_frame_indices = avaiable_frame_indices[-available_windows:]
 
         source_trips = {}
 
-        for neighbor_idx, _ in source.items():
-            source_trips[neighbor_idx] = trip_states[:, neighbor_idx].sum()
+        for i, frame_index in enumerate(avaiable_frame_indices):
+            if i == available_windows -1 or frame_index not in self._window_states_cache:
+                # overwrite latest one, since it may be changes, and cache not exist one
+                trip_state = self._snapshot_list["stations"][frame_index::"trip_requirement"]
 
+                self._window_states_cache[frame_index] = trip_state
+
+            trip_state = self._window_states_cache[frame_index]
+
+            for neighbor_idx, _ in source.items():
+                trip_num = trip_state[neighbor_idx]
+                
+                if neighbor_idx not in source_trips:
+                    source_trips[neighbor_idx] = trip_num
+                else:
+                    source_trips[neighbor_idx] += trip_num
+                    
         is_sort_reverse = False
 
         if decision_type == DecisionType.Demand:
@@ -75,7 +98,11 @@ class TripsWindowFilter:
         for neighbor_idx, _ in sorted_neighbors[0: output_num]:
             result[neighbor_idx] = source[neighbor_idx]
 
+
         return result
+
+    def reset(self):
+        self._window_states_cache.clear()
 
 
 class BikeDecisionStrategy:
@@ -218,6 +245,11 @@ class BikeDecisionStrategy:
 
             if bike_number == 0:
                 break
+
+    def reset(self):
+        """Reset internal states"""
+        for filter_instance in self._filters:
+            filter_instance.reset()
 
     def _construct_action_scope_filters(self, conf: dict):
         for filter_conf in conf["filters"]:

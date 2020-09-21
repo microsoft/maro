@@ -154,6 +154,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             station.reset()
 
         self._matrices_node.reset()
+        
+        self._decision_strategy.reset()
 
     def get_agent_idx_list(self) -> List[int]:
         return [station.index for station in self._stations]
@@ -451,7 +453,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if self._topology in citi_bike_process.topologies:
             pid = str(os.getpid())
             logger.warning_yellow(
-                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. If you want to keep the data, please use MARO CLI command 'maro data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
+                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. If you want to keep the data, please use MARO CLI command 'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
             self._citi_bike_data_pipeline = citi_bike_process.topologies[self._topology]
             self._citi_bike_data_pipeline.download()
             self._citi_bike_data_pipeline.clean()

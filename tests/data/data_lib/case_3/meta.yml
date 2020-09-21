@@ -1,0 +1,11 @@
+entity: 
+  durations: 
+    column: 'duration'
+    dtype: 'i'
+  src_station: 
+    column: 'start_station_index'
+    dtype: 'i'
+  dest_station: 
+    column: 'end_station_index'
+    dtype: 'i'
+    slot: 1
