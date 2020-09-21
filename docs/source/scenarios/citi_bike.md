@@ -361,11 +361,11 @@ Once we get a `DecisionEvent` from the environment, we should respond with an
 
 - `None`, which means do nothing.
 - A valid `Action` instance, including:
-  - **from_station_idx**: (int) the id of the source station of the bike
+  - **from_station_idx**: (int) The id of the source station of the bike
   transportation;
-  - **to_station_idx**: (int) the id of the destination station of the bike
+  - **to_station_idx**: (int) The id of the destination station of the bike
   transportation;
-  - **number**: (int) the quantity of the bike transportation.
+  - **number**: (int) The quantity of the bike transportation.
 
 ### Example
 
@@ -461,4 +461,5 @@ for ep in range(num_episode):
     env.reset()
 ```
 
-Jump to [this notebook](..) for a quick experience.
+Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/bike_repositioning/interact_with_simulator.ipynb)
+for a quick experience.

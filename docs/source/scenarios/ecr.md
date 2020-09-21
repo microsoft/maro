@@ -225,11 +225,11 @@ Once we get a `DecisionEvent` from the environment, we should respond with an
 
 - `None`, which means do nothing.
 - A valid `Action` instance, including:
-  - **vessel_idx**: (int) the id of the vessel/operation object of the port/agent;
-  - **port_idx**: (int) the id of the port/agent that take this action;
-  - **quantity**: (int) the sign of this value denotes different meanings:
-    - positive quantity means discharging empty containers from vessel to port.
-    - negative quantity means loading empty containers from port to vessel.
+  - **vessel_idx**: (int) The id of the vessel/operation object of the port/agent;
+  - **port_idx**: (int) The id of the port/agent that take this action;
+  - **quantity**: (int) The sign of this value denotes different meanings:
+    - Positive quantity means discharging empty containers from vessel to port.
+    - Negative quantity means loading empty containers from port to vessel.
 
 ### Example
 
@@ -293,4 +293,5 @@ for ep in range(num_episode):
     env.reset()
 ```
 
-Jump to [this notebook](..) for a quick experience.
+Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/empty_container_repositioning/interact_with_simulator.ipynb)
+for a quick experience.
