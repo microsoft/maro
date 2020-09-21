@@ -183,75 +183,114 @@ different topologies. The performance metric used here is the *fulfillment ratio
 | global_trade.22p_l0.7 | 60.14 +/- 0.47   | 56.38 +/- 0.75       |
 | global_trade.22p_l0.8 | 60.17 +/- 0.45   | 56.45 +/- 0.67       |
 
-<!-- ## Quick Start
+## Quick Start
 
 ### Data Preparation
 
+To start a simulation in ECR scenario, no extra data processing is needed. You
+can just specify the scenario and the topology when initialize an environment and
+enjoy your exploration in this scenario.
+
 ### Environment Interface
+
+Before starting interaction with the environment, we need to know the definition
+of `DecisionEvent` and `Action` in ECR scenario first. Besides, you can query the
+environment [snapshot list](../key_components/data_model.html#advanced-features)
+to get more detailed information for the decision making.
 
 #### DecisionEvent
 
-Once the environment need the agent's response to promote the simulation, it will throw an **DecisionEvent**. In the scenario of ECR, the information of each DecisionEvent is listed as below:
+Once the environment need the agent's response to promote the simulation, it will
+throw an `DecisionEvent`. In the scenario of ECR, the information of each
+`DecisionEvent` is listed as below:
 
-- **tick**: (int) the corresponding tick
-- **port_idx**: (int) the id of the port/agent that needs to respond to the environment
-- **vessel_idx**: (int) the id of the vessel/operation object of the port/agnet.
-- **snapshot_list**: (int) **Snapshots of the environment to input into the decision model** TODO: confirm the meaning
-- **action_scope**: **Load and discharge scope for agent to generate decision**
-- **early_discharge**: **Early discharge number of corresponding vessel**
+- **tick**: (int) The corresponding tick;
+- **port_idx**: (int) The id of the port/agent that needs to respond to the
+environment;
+- **vessel_idx**: (int) The id of the vessel/operation object of the port/agent;
+- **action_scope**: (ActionScope) ActionScope has two attributes:
+  - `load` indicates the maximum quantity that can be loaded from the port the
+  vessel;
+  - `discharge` indicates the maximum quantity that can be discharged from the
+  vessel to the port;
+- **early_discharge**: (int) When the available capacity in the vessel is not
+enough to load the ladens, some of the empty containers in the vessel will be
+early discharged to free the space. The quantity of empty containers that have
+been early discharged due to the laden loading is recorded in this field.
 
 #### Action
 
-Once we get a DecisionEvent from the environment, we should respond with an Action. Valid Action could be:
+Once we get a `DecisionEvent` from the environment, we should respond with an
+`Action`. Valid `Action` could be:
 
-- None, which means do nothing.
-- A valid Action instance, including:
-  - **vessel_idx**: (int) the id of the vessel/operation object of the port/agent.
-  - **port_idx**: (int) the id of the port/agent that take this action.
+- `None`, which means do nothing.
+- A valid `Action` instance, including:
+  - **vessel_idx**: (int) the id of the vessel/operation object of the port/agent;
+  - **port_idx**: (int) the id of the port/agent that take this action;
   - **quantity**: (int) the sign of this value denotes different meanings:
-    - positive quantity means unloading empty containers from vessel to port.
+    - positive quantity means discharging empty containers from vessel to port.
     - negative quantity means loading empty containers from port to vessel.
 
-### Example (Random Action)
+### Example
+
+Here we will show you a simple example of interaction the environment with random
+actions, we hope this could help you learn how how to use the environment interfaces:
 
 ```python
 from maro.simulator import Env
-from maro.simulator.scenarios.ecr.common import Action
+from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 
-start_tick = 0
-durations = 100  # 100 days
+import random
 
-# Initialize an environment with a specific scenario, related topology.
-env = Env(scenario="ecr", topology="5p_ssddd_l0.0",
-          start_tick=start_tick, durations=durations)
+# Initialize an environment of ECR scenario, with a specific topology.
+# In ECR, 1 tick corresponds to 1 day, durations=100 here indicates a length of 100 days
+env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
-# Query environment summary, which includes business instances, intra-instance attributes, etc.
+# Query for the environment summary, the business instances and intra-instance attributes
+# will be listed in the output for your reference
 print(env.summary)
 
-for ep in range(2):
+metrics: object = None
+decision_event: DecisionEvent = None
+is_done: bool = False
+action: Action = None
+
+num_episode = 2
+for ep in range(num_episode):
     # Gym-like step function
     metrics, decision_event, is_done = env.step(None)
 
     while not is_done:
-        past_week_ticks = [x for x in range(
-            decision_event.tick - 7, decision_event.tick)]
+        past_week_ticks = [
+            x for x in range(decision_event.tick - 7, decision_event.tick)
+        ]
         decision_port_idx = decision_event.port_idx
         intr_port_infos = ["booking", "empty", "shortage"]
 
-        # Query the decision port booking, empty container inventory, shortage information in the past week
-        past_week_info = env.snapshot_list["ports"][past_week_ticks:
-                                                    decision_port_idx:
-                                                    intr_port_infos]
+        # Query the snapshot list of this environment to get the information of
+        # the booking, empty, shortage of the decision port in the past week
+        past_week_info = env.snapshot_list["ports"][
+            past_week_ticks : decision_port_idx : intr_port_infos
+        ]
 
-        dummy_action = Action(decision_event.vessel_idx,
-                              decision_event.port_idx, 0)
+        # Generate a random Action according to the action_scope in DecisionEvent
+        random_quantity = random.randint(
+            -decision_event.action_scope.load,
+            decision_event.action_scope.discharge
+        )
+        action = Action(
+            vessel_idx=decision_event.vessel_idx,
+            port_idx=decision_event.port_idx,
+            quantity=random_quantity
+        )
 
-        # Drive environment with dummy action (no repositioning)
-        metrics, decision_event, is_done = env.step(dummy_action)
+        # Drive the environment with the random action
+        metrics, decision_event, is_done = env.step(action)
 
-    # Query environment business metrics at the end of an episode, it is your optimized object (usually includes multi-target).
-    print(f"ep: {ep}, environment metrics: {env.get_metrics()}")
+    # Query for the environment business metrics at the end of each episode,
+    # it is usually users' optimized object in ECR scenario (usually includes multi-target).
+    print(f"ep: {ep}, environment metrics: {env.metrics}")
     env.reset()
 ```
 
-Detail link -->
+Jump to [this notebook](..) for a quick experience.
