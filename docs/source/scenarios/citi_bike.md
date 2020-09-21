@@ -149,7 +149,54 @@ this series of topologies to better simulate the actual Citi Bike scenario.
 Below are the performance of *no repositioning* and *random repositioning* in
 different topologies. The performance metric used here is the *fulfillment ratio*.
 For each experiment, we setup the init the environment and test for a duration
-of 1 week.
+of 1 month (30 days for toy topologies, 1 natural month for real topologies).
+
+| Topology  | No Repositioning | Random Repositioning |
+| :-------: | :--------------: | :------------------: |
+| toy.3s_4t | 45.46            | 44.3 +/- 0.0         |
+| toy.4s_4t | 30.17            | 53.9 +/- 0.5         |
+| toy.5s_6t | 43.54            | 52.0 +/- 0.1         |
+
+| Topology  | No Repositioning | Random Repositioning |
+| :-------: | :--------------: | :------------------: |
+| ny.201801 | 92.53            | 83.0 +/- 0.1         |
+| ny.201802 | 91.96            | 82.0 +/- 0.1         |
+| ny.201803 | 91.68            | 83.7 +/- 0.0         |
+| ny.201804 | 91.43            | 84.8 +/- 0.1         |
+| ny.201805 | 90.83            | 83.8 +/- 0.1         |
+| ny.201806 | 90.51            | 83.8 +/- 0.0         |
+| ny.201807 | 89.36            | 80.3 +/- 0.2         |
+| ny.201808 | 89.42            | 82.1 +/- 0.1         |
+| ny.201809 | 91.44            | 81.2 +/- 0.1         |
+| ny.201810 | 91.46            | 81.4 +/- 0.1         |
+| ny.201811 | 91.81            | 86.0 +/- 0.0         |
+| ny.201812 | 92.96            | 88.9 +/- 0.0         |
+
+| Topology  | No Repositioning | Random Repositioning |
+| :-------: | :--------------: | :------------------: |
+| ny.201901 | 93.00            | 88.7 +/- 0.1         |
+| ny.201902 | 92.97            | 88.3 +/- 0.1         |
+| ny.201903 | 93.73            | 90.0 +/- 0.0         |
+| ny.201904 | 92.90            | 88.8 +/- 0.1         |
+| ny.201905 | 90.31            | 84.7 +/- 0.1         |
+| ny.201906 | 90.85            | 87.8 +/- 0.0         |
+| ny.201907 | 90.22            | 87.6 +/- 0.1         |
+| ny.201908 | 89.90            | 86.5 +/- 0.0         |
+| ny.201909 | 91.20            | 88.9 +/- 0.0         |
+| ny.201910 | 91.15            | 88.9 +/- 0.1         |
+| ny.201911 | 91.91            | 90.4 +/- 0.1         |
+| ny.201912 | 92.66            | 91.0 +/- 0.0         |
+
+| Topology  | No Repositioning | Random Repositioning |
+| :-------: | :--------------: | :------------------: |
+| ny.202001 | 91.60            | 87.9 +/- 0.1         |
+| ny.202002 | 92.28            | 88.4 +/- 0.1         |
+| ny.202003 | 93.94            | 92.0 +/- 0.1         |
+| ny.202004 | 96.50            | 95.6 +/- 0.1         |
+| ny.202005 | 95.15            | 93.6 +/- 0.0         |
+| ny.202006 | 95.13            | 94.2 +/- 0.1         |
+
+<!-- #### 1 Week
 
 | Topology  | No Repositioning | Random Repositioning |
 | :-------: | :--------------: | :------------------: |
@@ -194,7 +241,7 @@ of 1 week.
 | ny.202003 | 93.43            | 92.9 +/- 1.9         |
 | ny.202004 | 97.43            | 96.8 +/- 0.2         |
 | ny.202005 | 96.92            | 94.8 +/- 0.5         |
-| ny.202006 | 96.14            | 95.2 +/- 0.5         |
+| ny.202006 | 96.14            | 95.2 +/- 0.5         | -->
 
 ## Quick Start
 
