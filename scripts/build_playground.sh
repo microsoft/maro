@@ -2,7 +2,11 @@
 
 # script to build docker for playground image on linux/mac, this require the source code of maro
 
-cd "$(dirname $(readlink -f $0))/.."
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    cd "$(dirname $(readlink -f $0))/.."
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    cd "$(cd "$(dirname "$0")"; pwd -P)/.."
+fi
 
 bash ./scripts/compile_cython.sh
 

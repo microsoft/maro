@@ -109,7 +109,6 @@ setup(
         "azure-storage-common==2.1.0",
         "geopy==2.0.0",
         "pandas==0.25.3",
-        "pycurl==7.43.0.5",
         "PyYAML==5.3.1"
     ],
     entry_points={
