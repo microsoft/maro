@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
 MARO_GRASS_CREATE = """
 Examples:
   Create a cluster in grass mode with a deployment

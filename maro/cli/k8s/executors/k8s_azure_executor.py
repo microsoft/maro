@@ -435,7 +435,10 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
-        copy_command = f'azcopy copy "{local_path}" "https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_dir}?{sas}" --recursive=True'
+        copy_command = f'azcopy copy ' \
+                       f'"{local_path}" ' \
+                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_dir}?{sas}" ' \
+                       f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def pull_data(self, local_dir: str, remote_path: str):
@@ -447,7 +450,10 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
-        copy_command = f'azcopy copy "https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" "{local_dir}" --recursive=True'
+        copy_command = f'azcopy copy ' \
+                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
+                       f'"{local_dir}" ' \
+                       f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def remove_data(self, remote_path: str):
@@ -461,7 +467,9 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Remove data
-        copy_command = f'azcopy remove "https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" --recursive=True'
+        copy_command = f'azcopy remove ' \
+                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
+                       f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def _check_and_get_account_sas(self):
@@ -523,12 +531,14 @@ class K8sAzureExecutor:
             yaml.safe_dump(k8s_job_config, fw)
 
         # Apply k8s config
-        command = f"kubectl apply -f {GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
+        command = f"kubectl apply -f " \
+                  f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
         _ = SubProcess.run(command)
 
     def stop_job(self, job_name: str):
         # Stop job
-        command = f"kubectl delete -f {GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
+        command = f"kubectl delete -f " \
+                  f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
         _ = SubProcess.run(command)
 
     @staticmethod
