@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
 from functools import wraps
 
 from maro.cli.utils.details import load_cluster_details
