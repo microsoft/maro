@@ -3,17 +3,34 @@
 MARO (Multi-Agent Resource Optimization) serves as a domain-specific RL solution,
 which uses multi-agent RL to solve real-world resource optimization problems.
 It can be applied to many important industrial domains,
-such as empty container repositioning in logistics, bike repositioning in transportation,
+such as container inventory management in logistics, bike repositioning in transportation,
 VM provisioning in data center, assets management in finance, etc.
 MARO has complete support on data processing, simulator building, RL algorithms selection, distributed training.
 
+Key Components of MARO:
+
+- Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
+- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
+- Distributed toolkit: it provides distributed communication components, User-Defined Functions (UDF) interface for message auto-handling, cluster provision, and job orchestration.
+
+![MARO Key Components](./docs/source/images/maro_overall.svg)
+
 ## Contents
 
-| File/folder | Description                 |
-| ----------- | --------------------------- |
-| `maro`      | MARO source code.           |
-| `examples`  | Showcase of MARO.           |
-| `notebooks` | MARO quick-start notebooks. |
+| File/folder | Description                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| `maro`      | MARO source code.                                                                                 |
+| `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/index.html#).        |
+| `examples`  | Showcase of MARO.                                                                                 |
+| `notebooks` | MARO quick-start notebooks.                                                                       |
+<!-- 
+## Key Components
+
+
+
+- Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
+- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
+- Distributed toolkit: it provides distributed communication components, User-Defined Functions (UDF) interface for message auto-handling, cluster provision, and job orchestration. -->
 
 ## Prerequisites
 
@@ -65,7 +82,7 @@ pip install maro
     .\scripts\install_maro.bat
     ```
 
-## Quick example
+## Quick Example
 
 ```python
 from maro.simulator import Env
@@ -81,7 +98,7 @@ print(f"environment metrics: {env.metrics}")
 
 ```
 
-## Run playground
+## Run Playground
 
 ```sh
 # Build playground image

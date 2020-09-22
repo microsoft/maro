@@ -82,7 +82,8 @@ def deploy(hide_info=True):
     error_list = []
     try:
         clean_deployment_folder()
-        # deploy started
+
+        # Deployment started.
         version_info = configparser.ConfigParser()
         version_info["MARO_DATA"] = {}
         version_info["MARO_DATA"]["version"] = __data_version__
@@ -93,19 +94,21 @@ def deploy(hide_info=True):
 
         for target_dir, source_dir in target_source_pairs:
             shutil.copytree(source_dir, target_dir)
-        # deploy success
+
+        # Deployment succeeded.
         version_info["MARO_DATA"]["deploy_status"] = "deployed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)
         info_list.append("Data files for MARO deployed.")
     except Exception as e:
-        # deploy failed
+
+        # Deployment failed.
         error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
         version_info["MARO_DATA"]["deploy_status"] = "failed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)
         clean_deployment_folder()
-
+        
     finally:
         if len(error_list) > 0:
             for error in error_list:

@@ -71,11 +71,6 @@ Quick Start
         env.reset()
 
 Contents
-====================
-.. toctree::
-    :maxdepth: 2
-    :caption: Installation
-
     installation/pip_install.md
     installation/playground.md
     installation/grass_cluster_provisioning_on_azure.md

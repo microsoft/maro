@@ -1,0 +1,33 @@
+env:
+  scenario: "ecr"
+  topology: "toy.4p_ssdd_l0.0"
+  durations: 1120
+rl:
+  modeling: "dqn"
+  total_training_episodes: 500 # max episode
+  seed: 1024
+state_shaping:
+  look_back: 7
+  max_ports_downstream: 2
+  port_attributes:
+    - "empty"
+    - "full"
+    - "on_shipper"
+    - "on_consignee"
+    - "booking"
+    - "shortage"
+    - "fulfillment"
+  vessel_attributes:
+    - "empty"
+    - "full"
+    - "remaining_space"
+reward_shaping:
+  type: "truncated"
+  k_step:
+    reward_decay: 0.9
+    steps: 5
+  truncated:
+    time_window: 100
+    fulfillment_factor: 1.0
+    shortage_factor: 1.0
+    time_decay_factor: 0.97
