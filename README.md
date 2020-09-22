@@ -15,14 +15,6 @@ Key Components of MARO:
 
 ![MARO Key Components](./docs/source/images/maro_overview.svg)
 
-Key Components of MARO:
-
-- Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
-- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
-- Distributed toolkit: it provides distributed communication components, User-Defined Functions (UDF) interface for message auto-handling, cluster provision, and job orchestration.
-
-![MARO Key Components](./docs/source/images/maro_overall.svg)
-
 ## Contents
 
 | File/folder | Description                                                                                       |
@@ -31,14 +23,6 @@ Key Components of MARO:
 | `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/index.html#).        |
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
-<!-- 
-## Key Components
-
-
-
-- Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
-- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
-- Distributed toolkit: it provides distributed communication components, User-Defined Functions (UDF) interface for message auto-handling, cluster provision, and job orchestration. -->
 
 ## Prerequisites
 
