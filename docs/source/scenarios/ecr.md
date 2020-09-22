@@ -132,56 +132,109 @@ manually.
 
 ### Naive Baseline
 
-Below are the performance of *no repositioning* and *random repositioning* in
-different topologies. The performance metric used here is the *fulfillment ratio*.
+Below are the final environment metrics of the method *no repositioning* and
+*random repositioning* in different topologies. For each experiment, we setup
+the environment and test for a duration of 1120 ticks (days).
 
-| Topology         | No Repositioning | Random Repositioning |
-| :--------------: | :--------------: | :------------------: |
-| toy.4p_ssdd_l0.0 | 11.16 +/- 0.00   | 36.76 +/-  3.19      |
-| toy.4p_ssdd_l0.1 | 11.16 +/- 0.00   | 78.42 +/-  5.67      |
-| toy.4p_ssdd_l0.2 | 11.16 +/- 0.00   | 71.37 +/- 12.51      |
-| toy.4p_ssdd_l0.3 | 11.16 +/- 0.00   | 67.37 +/- 11.60      |
-| toy.4p_ssdd_l0.4 | 11.16 +/- 0.03   | 68.99 +/- 12.11      |
-| toy.4p_ssdd_l0.5 | 11.16 +/- 0.03   | 67.07 +/- 12.81      |
-| toy.4p_ssdd_l0.6 | 11.16 +/- 0.03   | 67.90 +/-  4.44      |
-| toy.4p_ssdd_l0.7 | 11.16 +/- 0.03   | 62.13 +/-  5.82      |
-| toy.4p_ssdd_l0.8 | 11.17 +/- 0.03   | 64.05 +/-  5.16      |
+#### No Repositioning
 
-| Topology          | No Repositioning | Random Repositioning |
-| :---------------: | :--------------: | :------------------: |
-| toy.5p_ssddd_l0.0 | 22.32 +/- 0.00   | 57.15 +/- 4.38       |
-| toy.5p_ssddd_l0.1 | 22.32 +/- 0.00   | 64.15 +/- 3.91       |
-| toy.5p_ssddd_l0.2 | 22.32 +/- 0.00   | 64.14 +/- 3.54       |
-| toy.5p_ssddd_l0.3 | 22.33 +/- 0.00   | 64.37 +/- 3.87       |
-| toy.5p_ssddd_l0.4 | 22.32 +/- 0.06   | 63.53 +/- 3.93       |
-| toy.5p_ssddd_l0.5 | 22.32 +/- 0.06   | 63.93 +/- 3.72       |
-| toy.5p_ssddd_l0.6 | 22.32 +/- 0.06   | 54.60 +/- 5.40       |
-| toy.5p_ssddd_l0.7 | 22.32 +/- 0.06   | 45.00 +/- 6.05       |
-| toy.5p_ssddd_l0.8 | 22.34 +/- 0.06   | 46.32 +/- 4.96       |
+| Topology         | Total Requirement | Resource Shortage | Repositioning Cost|
+| :--------------: | :---------------: | :---------------: | :---------------: |
+| toy.4p_ssdd_l0.0 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.1 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.2 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.3 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.4 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.5 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.6 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.8 |       +/-         |       +/-         |       +/-         |
 
-| Topology           | No Repositioning | Random Repositioning |
-| :----------------: | :--------------: | :------------------: |
-| toy.6p_sssbdd_l0.0 | 34.15 +/- 0.00   | 44.69 +/- 6.84       |
-| toy.6p_sssbdd_l0.1 | 34.15 +/- 0.00   | 59.35 +/- 5.11       |
-| toy.6p_sssbdd_l0.2 | 34.15 +/- 0.00   | 59.35 +/- 4.97       |
-| toy.6p_sssbdd_l0.3 | 34.16 +/- 0.00   | 56.69 +/- 4.45       |
-| toy.6p_sssbdd_l0.4 | 34.14 +/- 0.09   | 56.72 +/- 4.37       |
-| toy.6p_sssbdd_l0.5 | 34.14 +/- 0.09   | 56.13 +/- 4.34       |
-| toy.6p_sssbdd_l0.6 | 34.14 +/- 0.09   | 56.76 +/- 1.52       |
-| toy.6p_sssbdd_l0.7 | 34.14 +/- 0.09   | 55.86 +/- 2.70       |
-| toy.6p_sssbdd_l0.8 | 34.18 +/- 0.09   | 55.36 +/- 2.11       |
+| Topology          | Total Requirement | Resource Shortage | Repositioning Cost|
+| :---------------: | :---------------: | :---------------: | :---------------: |
+| toy.5p_ssddd_l0.0 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.1 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.2 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.3 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.4 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.5 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.6 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.8 |       +/-         |       +/-         |       +/-         |
 
-| Topology              | No Repositioning | Random Repositioning |
-| :-------------------: | :--------------: | :------------------: |
-| global_trade.22p_l0.0 | 68.57 +/- 0.00   | 59.27 +/- 1.56       |
-| global_trade.22p_l0.1 | 66.64 +/- 0.00   | 64.56 +/- 0.70       |
-| global_trade.22p_l0.2 | 66.55 +/- 0.00   | 64.73 +/- 0.57       |
-| global_trade.22p_l0.3 | 65.24 +/- 0.00   | 63.31 +/- 0.68       |
-| global_trade.22p_l0.4 | 65.22 +/- 0.15   | 63.46 +/- 0.76       |
-| global_trade.22p_l0.5 | 64.90 +/- 0.15   | 63.10 +/- 0.79       |
-| global_trade.22p_l0.6 | 63.74 +/- 0.49   | 60.98 +/- 0.50       |
-| global_trade.22p_l0.7 | 60.14 +/- 0.47   | 56.38 +/- 0.75       |
-| global_trade.22p_l0.8 | 60.17 +/- 0.45   | 56.45 +/- 0.67       |
+| Topology           | Total Requirement | Resource Shortage | Repositioning Cost|
+| :----------------: | :---------------: | :---------------: | :---------------: |
+| toy.6p_sssbdd_l0.0 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.1 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.2 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.3 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.4 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.5 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.6 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.8 |       +/-         |       +/-         |       +/-         |
+
+| Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------------------: | :---------------: | :---------------: | :---------------: |
+| global_trade.22p_l0.0 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.1 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.2 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.3 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.4 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.5 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.6 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.7 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.8 |       +/-         |       +/-         |       +/-         |
+
+#### Random Repositioning
+
+| Topology         | Total Requirement | Resource Shortage | Repositioning Cost|
+| :--------------: | :---------------: | :---------------: | :---------------: |
+| toy.4p_ssdd_l0.0 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.1 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.2 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.3 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.4 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.5 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.6 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.8 |       +/-         |       +/-         |       +/-         |
+
+| Topology          | Total Requirement | Resource Shortage | Repositioning Cost|
+| :---------------: | :---------------: | :---------------: | :---------------: |
+| toy.5p_ssddd_l0.0 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.1 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.2 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.3 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.4 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.5 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.6 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.8 |       +/-         |       +/-         |       +/-         |
+
+| Topology           | Total Requirement | Resource Shortage | Repositioning Cost|
+| :----------------: | :---------------: | :---------------: | :---------------: |
+| toy.6p_sssbdd_l0.0 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.1 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.2 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.3 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.4 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.5 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.6 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.8 |       +/-         |       +/-         |       +/-         |
+
+| Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------------------: | :---------------: | :---------------: | :---------------: |
+| global_trade.22p_l0.0 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.1 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.2 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.3 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.4 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.5 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.6 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.7 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.8 |       +/-         |       +/-         |       +/-         |
 
 ## Quick Start
 
