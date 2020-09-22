@@ -252,7 +252,7 @@ related data. Below is the introduction to the related commands:
 
 #### Environment List Command
 
-The data environment list command is used to list the environments that need the
+The data environment `list` command is used to list the environments that need the
 data files generated before the simulation.
 
 ```sh
@@ -270,9 +270,9 @@ scenario: citi_bike, topology: ny.201806
 
 #### Generate Command
 
-The data generate command is used to automatically download and build the specified
+The data `generate` command is used to automatically download and build the specified
 predefined scenario and topology data files for the simulation. Currently, there
-are three arguments for the data generate command:
+are three arguments for the data `generate` command:
 
 - `-s`: required, used to specify the predefined scenario. Valid scenarios are
 listed in the result of [environment list command](#environment-list-command).
@@ -303,9 +303,9 @@ For the example above, the directory structure should be like:
 
 #### Convert Command
 
-The data convert command is used to convert the CSV data files to binary data
+The data `convert` command is used to convert the CSV data files to binary data
 files that the simulator needs. Currently, there are three arguments for the data
-convert command:
+`convert` command:
 
 - `--meta`: required, used to specify the path of the meta file. The source
 columns that to be converted and the data type of each columns should be
