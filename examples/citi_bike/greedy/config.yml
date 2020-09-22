@@ -1,0 +1,10 @@
+env:
+  scenario: "citi_bike"
+  topology: "ny.201801"
+  start_tick: 0
+  durations: 2880
+  resolution: 10
+  seed: 128
+agent:
+  supply_top_k: 1
+  demand_top_k: 1
