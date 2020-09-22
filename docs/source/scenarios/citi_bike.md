@@ -148,8 +148,8 @@ this series of topologies to better simulate the actual Citi Bike scenario.
 
 Below are the performance of *no repositioning* and *random repositioning* in
 different topologies. The performance metric used here is the *fulfillment ratio*.
-For each experiment, we setup the init the environment and test for a duration
-of 1 month (30 days for toy topologies, 1 natural month for real topologies).
+For each experiment, we setup the environment and test for a duration of 1 month
+(30 days for toy topologies, 1 natural month for real topologies).
 
 | Topology  | No Repositioning | Random Repositioning |
 | :-------: | :--------------: | :------------------: |
