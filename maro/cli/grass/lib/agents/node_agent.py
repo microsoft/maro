@@ -143,7 +143,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
                                                encoding='utf8')
             nvidia_smi_str = completed_process.stdout
             node_details['resources']['actual_gpu_usage'] = f"{float(nvidia_smi_str)}%"
-        except:
+        except Exception:
             pass
 
     @staticmethod

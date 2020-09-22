@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 
+import configparser
 from glob import glob
 import io
 import numpy as np
@@ -11,7 +12,6 @@ import random
 import shutil
 import time
 import warnings
-import yaml
 
 from maro import __data_version__
 from maro.utils.exception.cli_exception import CommandError
@@ -61,7 +61,7 @@ def set_seeds(seed):
     random.seed(seed)
 
 
-version_file_path = os.path.join(os.path.expanduser("~/.maro"), "version.yml")
+version_file_path = os.path.join(os.path.expanduser("~/.maro"), "version.ini")
 
 project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 
@@ -85,12 +85,12 @@ def deploy(hide_info=True):
         for target_dir, source_dir in target_source_pairs:
             shutil.copytree(source_dir, target_dir)
         # deploy success
-        version_info = {
-            "data_version": __data_version__,
-            "deploy_time": time.time()
-        }
+        version_info = configparser.ConfigParser()
+        version_info["MARO_DATA"] = {}
+        version_info["MARO_DATA"]["version"] = __data_version__
+        version_info["MARO_DATA"]["deploy_time"] = str(int(time.time()))
         with io.open(version_file_path, "w") as version_file:
-            yaml.dump(version_info, version_file)
+            version_info.write(version_file)
         info_list.append("Data files for MARO deployed.")
     except Exception as e:
         error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
@@ -111,10 +111,12 @@ def check_deployment_status():
     ret = False
     if os.path.exists(version_file_path):
         with io.open(version_file_path, "r") as version_file:
-            version_info = yaml.safe_load(version_file)
-            if "deploy_time" in version_info \
-                and "data_version" in version_info \
-                and version_info["data_version"] == __data_version__:
+            version_info = configparser.ConfigParser()
+            version_info.read(version_file)
+            if "MARO_DATA" in version_info \
+                and "deploy_time" in version_info["MARO_DATA"] \
+                and "version" in version_info["MARO_DATA"] \
+                and version_info["MARO_DATA"]["version"] == __data_version__:
                 ret = True
     return ret
 

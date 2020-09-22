@@ -135,7 +135,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return tick + 1 == self._max_tick
 
     def get_node_mapping(self)->dict:
-        return {}
+        node_mapping = {}
+        for station in self._stations:
+            node_mapping[station.index] = station.id
+        return node_mapping
 
     def reset(self):
         """Reset after episode"""
@@ -154,6 +157,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             station.reset()
 
         self._matrices_node.reset()
+        
+        self._decision_strategy.reset()
 
     def get_agent_idx_list(self) -> List[int]:
         return [station.index for station in self._stations]
@@ -446,12 +451,13 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.insert_event(transfer_evt)
 
     def _build_temp_data(self):
+        """build temporary data for predefined environment"""
         logger.warning_yellow(f"Binary data files for scenario: citi_bike topology: {self._topology} not found.")
         citi_bike_process = CitiBikeProcess(is_temp=True)
         if self._topology in citi_bike_process.topologies:
             pid = str(os.getpid())
             logger.warning_yellow(
-                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. If you want to keep the data, please use MARO CLI command 'maro data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
+                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. If you want to keep the data, please use MARO CLI command 'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
             self._citi_bike_data_pipeline = citi_bike_process.topologies[self._topology]
             self._citi_bike_data_pipeline.download()
             self._citi_bike_data_pipeline.clean()

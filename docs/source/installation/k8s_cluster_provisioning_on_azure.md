@@ -8,7 +8,8 @@ on Azure and run your training job in a distributed environment.
 
 - [Install the Azure CLI and login](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 - [Install and set up kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-- [Install docker](https://docs.docker.com/engine/install/) and [Configure docker to make sure it can be managed as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
+- [Install docker](https://docs.docker.com/engine/install/) and
+[Configure docker to make sure it can be managed as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
 
 ## Cluster Management
 

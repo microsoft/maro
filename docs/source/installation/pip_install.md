@@ -6,27 +6,43 @@
 pip install maro
 ```
 
-## Install from Source
+## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
-### Prerequisites
+- Prerequisites
+  - [Python >= 3.6, < 3.8](https://www.python.org/downloads/)
+  - C++ Compiler
+    - Linux or Mac OS X: `gcc`
+    - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
 
-- [Python >= 3.6, < 3.8](https://www.python.org/downloads/)
-- C++ Compiler
-  - Linux or Mac OS X: `gcc`
-  - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
+- Enable Virtual Environment
+  - Mac OS / Linux
 
-```sh
-# If your environment is not clean, create a virtual environment first
-python -m venv maro_venv
-source maro_venv/bin/activate
+    ```sh
+    # If your environment is not clean, create a virtual environment firstly.
+    python -m venv maro_venv
+    source ./maro_venv/bin/activate
+    ```
 
-# Install MARO from source, if you don't need CLI full feature
-pip install -r ./maro/requirements.build.txt
+  - Windows
 
-# compile cython files
-bash scripts/compile_cython.sh
-pip install -e .
+    ```powershell
+    # If your environment is not clean, create a virtual environment firstly.
+    python -m venv maro_venv
+    .\maro_venv\Scripts\activate
+    ```
 
-# Or with script
-bash scripts/build_maro.sh
-```
+- Install MARO
+
+  - Mac OS / Linux
+
+    ```sh
+    # Install MARO from source.
+    bash scripts/install_maro.sh
+    ```
+
+  - Windows
+
+    ```powershell
+    # Install MARO from source.
+    .\scripts\install_maro.bat
+    ```

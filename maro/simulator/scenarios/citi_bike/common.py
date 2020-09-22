@@ -53,6 +53,9 @@ class DecisionEvent:
     def __repr__(self):
         return f"decision event {self.__getstate__()}"
 
+    def __str__(self):
+        return f'DecisionEvent(tick={self.tick}, station_idx={self.station_idx}, type={self.type}, action_scope={self.action_scope})'
+
 
 class Action:
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int):

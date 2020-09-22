@@ -378,6 +378,8 @@ cdef class NPSnapshotList(SnapshotListAbc):
         """Reset snapshot list"""
         self._cur_index = 0
         self._tick2index_dict.clear()
+        self._index2tick_dict.clear()
+        self._history_dict.clear()
 
         cdef str node_name
         cdef AttrInfo attr_info
