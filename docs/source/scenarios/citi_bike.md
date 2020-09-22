@@ -1,4 +1,4 @@
-# Citi Bike (Bike Repositioning)
+# Bike Repositioning (Citi Bike)
 
 The Citi Bike scenario simulates the bike repositioning problem triggered by the
 one-way bike trips based on the public trip data from
