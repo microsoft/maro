@@ -248,7 +248,7 @@ of 1 month (30 days for toy topologies, 1 natural month for real topologies).
 ### Data Preparation
 
 To start the simulation of Citi Bike scenario, users need to first generate the
-related data. Below are the introduction to the related commands:
+related data. Below is the introduction to the related commands:
 
 #### Environment List Command
 
@@ -256,7 +256,7 @@ The data environment list command is used to list the environments that need the
 data files generated before the simulation.
 
 ```console
-user@maro:~/MARO$ maro env data list
+$ maro env data list
 
 scenario: citi_bike, topology: ny.201801
 scenario: citi_bike, topology: ny.201802
@@ -282,7 +282,7 @@ listed in the result of [environment list command](#environment-list-command).
 and overwrite the already existing ones.
 
 ```console
-user@maro:~/MARO$ maro env data generate -s citi_bike -t ny.201802
+$ maro env data generate -s citi_bike -t ny.201802
 
 The data files for citi_bike-ny201802 will then be downloaded and deployed to ~/.maro/data/citibike/_build/ny201802.
 ```
@@ -316,7 +316,7 @@ the source files in a specific file and use a `@` symbol to specify it.
 - `--output`: required, used to specify the path of the target binary file.
 
 ```console
-user@maro:~/MARO$ maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+$ maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
 ```
 
 ### Environment Interface
@@ -328,28 +328,28 @@ to get more detailed information for the decision making.
 
 #### DecisionEvent
 
-Once the environment need the agent's response to promote the simulation, it will
+Once the environment need the agent's response to reposition bikes, it will
 throw an `DecisionEvent`. In the scenario of Citi Bike, the information of each
 `DecisionEvent` is listed as below:
 
 - **station_idx**: (int) The id of the station/agent that needs to respond to the
-environment;
-- **tick**: (int) The corresponding tick;
+environment.
+- **tick**: (int) The corresponding tick.
 - **frame_index**: (int) The corresponding frame index, that is the index of the
-corresponding snapshot in the environment snapshot list;
+corresponding snapshot in the environment snapshot list.
 - **type**: (DecisionType) The decision type of this decision event. In Citi Bike
 scenario, there are 2 types:
   - `Supply` indicates there is too many bikes in the corresponding station, so
-  it is better to reposition some of them to other stations;
+  it is better to reposition some of them to other stations.
   - `Demand` indicates there is no enough bikes in the corresponding station, so
-  it is better to reposition bikes from other stations
-- **action_scope**: (Dict) A dictionary that maintains the information for
+  it is better to reposition bikes from other stations.
+- **action_scope**: (dict) A dictionary that maintains the information for
 calculating the valid action scope:
-  - The key of these item indicate the station/agent ids;
+  - The key of these item indicate the station/agent ids.
   - The meaning of the value differs for different decision type:
     - If the decision type is `Supply`, the value of the station itself means its
     bike inventory at that moment, while the value of other target stations means
-    the number of their empty docks;
+    the number of their empty docks.
     - If the decision type is `Demand`, the value of the station itself means the
     number of its empty docks, while the value of other target stations means
     their bike inventory.
@@ -362,9 +362,9 @@ Once we get a `DecisionEvent` from the environment, we should respond with an
 - `None`, which means do nothing.
 - A valid `Action` instance, including:
   - **from_station_idx**: (int) The id of the source station of the bike
-  transportation;
+  transportation.
   - **to_station_idx**: (int) The id of the destination station of the bike
-  transportation;
+  transportation.
   - **number**: (int) The quantity of the bike transportation.
 
 ### Example
@@ -379,11 +379,11 @@ from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, Dec
 import random
 
 # Initialize an environment of Citi Bike scenario, with a specific topology.
-# In CitiBike, 1 tick corresponds to 1 minute, durations=1440 here indicates a length of 1 day.
+# In CitiBike, 1 tick means 1 minute, durations=1440 here indicates a length of 1 day.
 env = Env(scenario="citi_bike", topology="toy.3s_4t", start_tick=0, durations=1440, snapshot_resolution=30)
 
 # Query for the environment summary, the business instances and intra-instance attributes
-# will be listed in the output for your reference
+# will be listed in the output for your reference.
 print(env.summary)
 
 metrics: object = None
@@ -393,7 +393,7 @@ action: Action = None
 
 num_episode = 2
 for ep in range(num_episode):
-    # Gym-like step function
+    # Gym-like step function.
     metrics, decision_event, is_done = env.step(None)
 
     while not is_done:
@@ -404,25 +404,25 @@ for ep in range(num_episode):
         intr_station_infos = ["trip_requirement", "bikes", "shortage"]
 
         # Query the snapshot list of this environment to get the information of
-        # the trip requirements, bikes, shortage of the decision station in the past 2 days
+        # the trip requirements, bikes, shortage of the decision station in the past 2 hours.
         past_2hour_info = env.snapshot_list["stations"][
             past_2hour_frames : decision_station_idx : intr_station_infos
         ]
 
         if decision_event.type == DecisionType.Supply:
-            # Supply: the value of the station itself means the bike inventory
+            # Supply: the value of the station itself means the bike inventory.
             self_bike_inventory = decision_event.action_scope[decision_event.station_idx]
-            # Supply: the value of other stations means the quantity of empty docks
+            # Supply: the value of other stations means the quantity of empty docks.
             target_idx_dock_tuple_list = [
                 (k, v) for k, v in decision_event.action_scope.items() if k != decision_event.station_idx
             ]
-            # Randomly choose a target station weighted by the quantity of empty docks
+            # Randomly choose a target station weighted by the quantity of empty docks.
             target_idx, target_dock = random.choices(
                 target_idx_dock_tuple_list,
                 weights=[item[1] for item in target_idx_dock_tuple_list],
                 k=1
             )[0]
-            # Generate the corresponding random Action
+            # Generate the corresponding random Action.
             action = Action(
                 from_station_idx=decision_event.station_idx,
                 to_station_idx=target_idx,
@@ -430,19 +430,19 @@ for ep in range(num_episode):
             )
 
         elif decision_event.type == DecisionType.Demand:
-            # Demand: the value of the station itself means the quantity of empty docks
+            # Demand: the value of the station itself means the quantity of empty docks.
             self_available_dock = decision_event.action_scope[decision_event.station_idx]
-            # Demand: the value of other stations means their bike inventory
+            # Demand: the value of other stations means their bike inventory.
             target_idx_inventory_tuple_list = [
                 (k, v) for k, v in decision_event.action_scope.items() if k != decision_event.station_idx
             ]
-            # Randomly choose a target station weighted by the bike inventory
+            # Randomly choose a target station weighted by the bike inventory.
             target_idx, target_inventory = random.choices(
                 target_idx_inventory_tuple_list,
                 weights=[item[1] for item in target_idx_inventory_tuple_list],
                 k=1
             )[0]
-            # Generate the corresponding random Action
+            # Generate the corresponding random Action.
             action = Action(
                 from_station_idx=target_idx,
                 to_station_idx=decision_event.station_idx,
@@ -452,7 +452,7 @@ for ep in range(num_episode):
         else:
             action = None
 
-        # Drive the environment with the random action
+        # Drive the environment with the random action.
         metrics, decision_event, is_done = env.step(action)
 
     # Query for the environment business metrics at the end of each episode,

@@ -204,15 +204,15 @@ Once the environment need the agent's response to promote the simulation, it wil
 throw an `DecisionEvent`. In the scenario of ECR, the information of each
 `DecisionEvent` is listed as below:
 
-- **tick**: (int) The corresponding tick;
+- **tick**: (int) The corresponding tick.
 - **port_idx**: (int) The id of the port/agent that needs to respond to the
-environment;
-- **vessel_idx**: (int) The id of the vessel/operation object of the port/agent;
+environment.
+- **vessel_idx**: (int) The id of the vessel/operation object of the port/agent.
 - **action_scope**: (ActionScope) ActionScope has two attributes:
   - `load` indicates the maximum quantity that can be loaded from the port the
-  vessel;
+  vessel.
   - `discharge` indicates the maximum quantity that can be discharged from the
-  vessel to the port;
+  vessel to the port.
 - **early_discharge**: (int) When the available capacity in the vessel is not
 enough to load the ladens, some of the empty containers in the vessel will be
 early discharged to free the space. The quantity of empty containers that have
@@ -225,8 +225,8 @@ Once we get a `DecisionEvent` from the environment, we should respond with an
 
 - `None`, which means do nothing.
 - A valid `Action` instance, including:
-  - **vessel_idx**: (int) The id of the vessel/operation object of the port/agent;
-  - **port_idx**: (int) The id of the port/agent that take this action;
+  - **vessel_idx**: (int) The id of the vessel/operation object of the port/agent.
+  - **port_idx**: (int) The id of the port/agent that take this action.
   - **quantity**: (int) The sign of this value denotes different meanings:
     - Positive quantity means discharging empty containers from vessel to port.
     - Negative quantity means loading empty containers from port to vessel.
@@ -243,11 +243,11 @@ from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
 import random
 
 # Initialize an environment of ECR scenario, with a specific topology.
-# In ECR, 1 tick corresponds to 1 day, durations=100 here indicates a length of 100 days
+# In ECR, 1 tick means 1 day, durations=100 here indicates a length of 100 days.
 env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
 # Query for the environment summary, the business instances and intra-instance attributes
-# will be listed in the output for your reference
+# will be listed in the output for your reference.
 print(env.summary)
 
 metrics: object = None
@@ -257,7 +257,7 @@ action: Action = None
 
 num_episode = 2
 for ep in range(num_episode):
-    # Gym-like step function
+    # Gym-like step function.
     metrics, decision_event, is_done = env.step(None)
 
     while not is_done:
@@ -268,12 +268,12 @@ for ep in range(num_episode):
         intr_port_infos = ["booking", "empty", "shortage"]
 
         # Query the snapshot list of this environment to get the information of
-        # the booking, empty, shortage of the decision port in the past week
+        # the booking, empty, shortage of the decision port in the past week.
         past_week_info = env.snapshot_list["ports"][
             past_week_ticks : decision_port_idx : intr_port_infos
         ]
 
-        # Generate a random Action according to the action_scope in DecisionEvent
+        # Generate a random Action according to the action_scope in DecisionEvent.
         random_quantity = random.randint(
             -decision_event.action_scope.load,
             decision_event.action_scope.discharge
@@ -284,7 +284,7 @@ for ep in range(num_episode):
             quantity=random_quantity
         )
 
-        # Drive the environment with the random action
+        # Drive the environment with the random action.
         metrics, decision_event, is_done = env.step(action)
 
     # Query for the environment business metrics at the end of each episode,
