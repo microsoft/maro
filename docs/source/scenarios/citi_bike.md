@@ -144,106 +144,6 @@ topologies, the definition of the bike flow and the trigger mechanism of
 repositioning actions are the same as those in the toy topologies. We provide
 this series of topologies to better simulate the actual Citi Bike scenario.
 
-### Naive Baseline
-
-Below are the final environment metrics of the method *no repositioning* and
-*random repositioning* in different topologies. For each experiment, we setup
-the environment and test for a duration of 1 week.
-
-#### No Repositioning
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| toy.3s_4t |       +/-         |       +/-         |       +/-         |
-| toy.4s_4t |       +/-         |       +/-         |       +/-         |
-| toy.5s_6t |       +/-         |       +/-         |       +/-         |
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.201801 |       +/-         |       +/-         |       +/-         |
-| ny.201802 |       +/-         |       +/-         |       +/-         |
-| ny.201803 |       +/-         |       +/-         |       +/-         |
-| ny.201804 |       +/-         |       +/-         |       +/-         |
-| ny.201805 |       +/-         |       +/-         |       +/-         |
-| ny.201806 |       +/-         |       +/-         |       +/-         |
-| ny.201807 |       +/-         |       +/-         |       +/-         |
-| ny.201808 |       +/-         |       +/-         |       +/-         |
-| ny.201809 |       +/-         |       +/-         |       +/-         |
-| ny.201810 |       +/-         |       +/-         |       +/-         |
-| ny.201811 |       +/-         |       +/-         |       +/-         |
-| ny.201812 |       +/-         |       +/-         |       +/-         |
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.201901 |       +/-         |       +/-         |       +/-         |
-| ny.201902 |       +/-         |       +/-         |       +/-         |
-| ny.201903 |       +/-         |       +/-         |       +/-         |
-| ny.201904 |       +/-         |       +/-         |       +/-         |
-| ny.201905 |       +/-         |       +/-         |       +/-         |
-| ny.201906 |       +/-         |       +/-         |       +/-         |
-| ny.201907 |       +/-         |       +/-         |       +/-         |
-| ny.201908 |       +/-         |       +/-         |       +/-         |
-| ny.201909 |       +/-         |       +/-         |       +/-         |
-| ny.201910 |       +/-         |       +/-         |       +/-         |
-| ny.201911 |       +/-         |       +/-         |       +/-         |
-| ny.201912 |       +/-         |       +/-         |       +/-         |
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.202001 |       +/-         |       +/-         |       +/-         |
-| ny.202002 |       +/-         |       +/-         |       +/-         |
-| ny.202003 |       +/-         |       +/-         |       +/-         |
-| ny.202004 |       +/-         |       +/-         |       +/-         |
-| ny.202005 |       +/-         |       +/-         |       +/-         |
-| ny.202006 |       +/-         |       +/-         |       +/-         |
-
-#### Random Repositioning
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| toy.3s_4t |       +/-         |       +/-         |       +/-         |
-| toy.4s_4t |       +/-         |       +/-         |       +/-         |
-| toy.5s_6t |       +/-         |       +/-         |       +/-         |
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.201801 |       +/-         |       +/-         |       +/-         |
-| ny.201802 |       +/-         |       +/-         |       +/-         |
-| ny.201803 |       +/-         |       +/-         |       +/-         |
-| ny.201804 |       +/-         |       +/-         |       +/-         |
-| ny.201805 |       +/-         |       +/-         |       +/-         |
-| ny.201806 |       +/-         |       +/-         |       +/-         |
-| ny.201807 |       +/-         |       +/-         |       +/-         |
-| ny.201808 |       +/-         |       +/-         |       +/-         |
-| ny.201809 |       +/-         |       +/-         |       +/-         |
-| ny.201810 |       +/-         |       +/-         |       +/-         |
-| ny.201811 |       +/-         |       +/-         |       +/-         |
-| ny.201812 |       +/-         |       +/-         |       +/-         |
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.201901 |       +/-         |       +/-         |       +/-         |
-| ny.201902 |       +/-         |       +/-         |       +/-         |
-| ny.201903 |       +/-         |       +/-         |       +/-         |
-| ny.201904 |       +/-         |       +/-         |       +/-         |
-| ny.201905 |       +/-         |       +/-         |       +/-         |
-| ny.201906 |       +/-         |       +/-         |       +/-         |
-| ny.201907 |       +/-         |       +/-         |       +/-         |
-| ny.201908 |       +/-         |       +/-         |       +/-         |
-| ny.201909 |       +/-         |       +/-         |       +/-         |
-| ny.201910 |       +/-         |       +/-         |       +/-         |
-| ny.201911 |       +/-         |       +/-         |       +/-         |
-| ny.201912 |       +/-         |       +/-         |       +/-         |
-
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.202001 |       +/-         |       +/-         |       +/-         |
-| ny.202002 |       +/-         |       +/-         |       +/-         |
-| ny.202003 |       +/-         |       +/-         |       +/-         |
-| ny.202004 |       +/-         |       +/-         |       +/-         |
-| ny.202005 |       +/-         |       +/-         |       +/-         |
-| ny.202006 |       +/-         |       +/-         |       +/-         |
-
 ## Quick Start
 
 ### Data Preparation
@@ -466,3 +366,105 @@ for ep in range(num_episode):
 
 Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/bike_repositioning/interact_with_simulator.ipynb)
 for a quick experience.
+
+<!--
+### Naive Baseline
+
+Below are the final environment metrics of the method *no repositioning* and
+*random repositioning* in different topologies. For each experiment, we setup
+the environment and test for a duration of 1 week.
+
+#### No Repositioning
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| toy.3s_4t |       +/-         |       +/-         |       +/-         |
+| toy.4s_4t |       +/-         |       +/-         |       +/-         |
+| toy.5s_6t |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201801 |       +/-         |       +/-         |       +/-         |
+| ny.201802 |       +/-         |       +/-         |       +/-         |
+| ny.201803 |       +/-         |       +/-         |       +/-         |
+| ny.201804 |       +/-         |       +/-         |       +/-         |
+| ny.201805 |       +/-         |       +/-         |       +/-         |
+| ny.201806 |       +/-         |       +/-         |       +/-         |
+| ny.201807 |       +/-         |       +/-         |       +/-         |
+| ny.201808 |       +/-         |       +/-         |       +/-         |
+| ny.201809 |       +/-         |       +/-         |       +/-         |
+| ny.201810 |       +/-         |       +/-         |       +/-         |
+| ny.201811 |       +/-         |       +/-         |       +/-         |
+| ny.201812 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201901 |       +/-         |       +/-         |       +/-         |
+| ny.201902 |       +/-         |       +/-         |       +/-         |
+| ny.201903 |       +/-         |       +/-         |       +/-         |
+| ny.201904 |       +/-         |       +/-         |       +/-         |
+| ny.201905 |       +/-         |       +/-         |       +/-         |
+| ny.201906 |       +/-         |       +/-         |       +/-         |
+| ny.201907 |       +/-         |       +/-         |       +/-         |
+| ny.201908 |       +/-         |       +/-         |       +/-         |
+| ny.201909 |       +/-         |       +/-         |       +/-         |
+| ny.201910 |       +/-         |       +/-         |       +/-         |
+| ny.201911 |       +/-         |       +/-         |       +/-         |
+| ny.201912 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.202001 |       +/-         |       +/-         |       +/-         |
+| ny.202002 |       +/-         |       +/-         |       +/-         |
+| ny.202003 |       +/-         |       +/-         |       +/-         |
+| ny.202004 |       +/-         |       +/-         |       +/-         |
+| ny.202005 |       +/-         |       +/-         |       +/-         |
+| ny.202006 |       +/-         |       +/-         |       +/-         |
+
+#### Random Repositioning
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| toy.3s_4t |       +/-         |       +/-         |       +/-         |
+| toy.4s_4t |       +/-         |       +/-         |       +/-         |
+| toy.5s_6t |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201801 |       +/-         |       +/-         |       +/-         |
+| ny.201802 |       +/-         |       +/-         |       +/-         |
+| ny.201803 |       +/-         |       +/-         |       +/-         |
+| ny.201804 |       +/-         |       +/-         |       +/-         |
+| ny.201805 |       +/-         |       +/-         |       +/-         |
+| ny.201806 |       +/-         |       +/-         |       +/-         |
+| ny.201807 |       +/-         |       +/-         |       +/-         |
+| ny.201808 |       +/-         |       +/-         |       +/-         |
+| ny.201809 |       +/-         |       +/-         |       +/-         |
+| ny.201810 |       +/-         |       +/-         |       +/-         |
+| ny.201811 |       +/-         |       +/-         |       +/-         |
+| ny.201812 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201901 |       +/-         |       +/-         |       +/-         |
+| ny.201902 |       +/-         |       +/-         |       +/-         |
+| ny.201903 |       +/-         |       +/-         |       +/-         |
+| ny.201904 |       +/-         |       +/-         |       +/-         |
+| ny.201905 |       +/-         |       +/-         |       +/-         |
+| ny.201906 |       +/-         |       +/-         |       +/-         |
+| ny.201907 |       +/-         |       +/-         |       +/-         |
+| ny.201908 |       +/-         |       +/-         |       +/-         |
+| ny.201909 |       +/-         |       +/-         |       +/-         |
+| ny.201910 |       +/-         |       +/-         |       +/-         |
+| ny.201911 |       +/-         |       +/-         |       +/-         |
+| ny.201912 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.202001 |       +/-         |       +/-         |       +/-         |
+| ny.202002 |       +/-         |       +/-         |       +/-         |
+| ny.202003 |       +/-         |       +/-         |       +/-         |
+| ny.202004 |       +/-         |       +/-         |       +/-         |
+| ny.202005 |       +/-         |       +/-         |       +/-         |
+| ny.202006 |       +/-         |       +/-         |       +/-         |
+-->
