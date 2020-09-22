@@ -3,7 +3,12 @@
 
 
 import hashlib
+import re
 import uuid
+
+
+def get_valid_file_name(file_name: str):
+    return re.sub(r'[\\/*?:"<>|]', "_", file_name)
 
 
 def generate_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
