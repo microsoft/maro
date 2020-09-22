@@ -99,13 +99,13 @@ def deploy(hide_info=True):
             version_info.write(version_file)
         info_list.append("Data files for MARO deployed.")
     except Exception as e:
-        # deploy success
+        # deploy failed
         error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
         version_info["MARO_DATA"]["deploy_status"] = "failed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)
         clean_deployment_folder()
-        
+
     finally:
         if len(error_list) > 0:
             for error in error_list:
