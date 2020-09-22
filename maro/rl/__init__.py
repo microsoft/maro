@@ -1,60 +1,55 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.actor.abstract_actor import AbstractActor, RolloutMode
+from maro.rl.actor.abs_actor import AbsActor
 from maro.rl.actor.simple_actor import SimpleActor
-from maro.rl.learner.abstract_learner import AbstractLearner
+from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
-from maro.rl.agent.agent import Agent, AgentParameters
-from maro.rl.agent.agent_manager import AgentManager, AgentMode
-from maro.rl.algorithms.torch.algorithm import Algorithm
+from maro.rl.agent.abs_agent import AbsAgent
+from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentMode
+from maro.rl.algorithms.torch.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.torch.dqn import DQN, DQNHyperParams
 from maro.rl.models.torch.mlp_representation import MLPRepresentation
 from maro.rl.models.torch.decision_layers import MLPDecisionLayers
 from maro.rl.models.torch.learning_model import LearningModel
-from maro.rl.storage.abstract_store import AbstractStore
-from maro.rl.storage.unbounded_store import UnboundedStore
-from maro.rl.storage.fixed_size_store import FixedSizeStore, OverwriteType
-from maro.rl.shaping.abstract_state_shaper import AbstractStateShaper
-from maro.rl.shaping.abstract_action_shaper import AbstractActionShaper
-from maro.rl.shaping.abstract_reward_shaper import AbstractRewardShaper
-from maro.rl.shaping.k_step_reward_shaper import KStepRewardShaper
-from maro.rl.explorer.abstract_explorer import AbstractExplorer
+from maro.rl.storage.abs_store import AbsStore
+from maro.rl.storage.column_based_store import ColumnBasedStore
+from maro.rl.storage.utils import OverwriteType
+from maro.rl.shaping.abs_shaper import AbsShaper
+from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.shaping.action_shaper import ActionShaper
+from maro.rl.shaping.experience_shaper import ExperienceShaper
+from maro.rl.shaping.k_step_experience_shaper import KStepExperienceShaper
+from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
-from maro.rl.dist_topologies.multi_actor_single_learner_sync import ActorProxy, ActorWorker
-from maro.rl.common import ExperienceKey, ExperienceInfoKey, TransitionInfoKey
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
 
 
 __all__ = [
-    "AbstractActor",
-    "RolloutMode",
+    "AbsActor",
     "SimpleActor",
-    "AbstractLearner",
+    "AbsLearner",
     "SimpleLearner",
-    "Agent",
-    "AgentParameters",
-    "AgentManager",
+    "AbsAgent",
+    "AbsAgentManager",
     "AgentMode",
-    "Algorithm",
+    "AbsAlgorithm",
     "DQN",
     "DQNHyperParams",
     "MLPRepresentation",
     "MLPDecisionLayers",
     "LearningModel",
-    "AbstractStore",
-    "UnboundedStore",
-    "FixedSizeStore",
+    "AbsStore",
+    "ColumnBasedStore",
     "OverwriteType",
-    "AbstractStateShaper",
-    "AbstractActionShaper",
-    "AbstractRewardShaper",
-    "KStepRewardShaper",
-    "AbstractExplorer",
+    "AbsShaper",
+    "StateShaper",
+    "ActionShaper",
+    "ExperienceShaper",
+    "KStepExperienceShaper",
+    "AbsExplorer",
     "LinearExplorer",
     "TwoPhaseLinearExplorer",
     "ActorProxy",
-    "ActorWorker",
-    "ExperienceKey",
-    "ExperienceInfoKey",
-    "TransitionInfoKey"
+    "ActorWorker"
     ]
