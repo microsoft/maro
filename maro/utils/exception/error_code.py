@@ -33,4 +33,9 @@ ERROR_CODE = {
     3001: "Command Error",
     3002: "Parsing Error",
     3003: "Deployment Error",
+
+    # 4000-4999: Error codes for RL toolkit
+    4001: "Unsupported Agent Mode Error",
+    4002: "Missing Shaper Error",
+    4003: "Wrong Agent Mode Error"
 }
