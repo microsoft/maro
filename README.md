@@ -75,7 +75,7 @@ pip install maro
 ```python
 from maro.simulator import Env
 
-env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
 metrics, decision_event, is_done = env.step(None)
 
