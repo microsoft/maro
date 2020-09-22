@@ -95,8 +95,8 @@ class Logger:
 
     Args:
         tag (str): Log tag for stream and file output.
-        format_ (LogFormat): Predefined formatter, the default value is LogFormat.full. \n
-                        i.e. LogFormat.full: full time | host | user | pid | tag | level | msg \n
+        format_ (LogFormat): Predefined formatter, the default value is LogFormat.full.
+                        i.e. LogFormat.full: full time | host | user | pid | tag | level | msg
                              LogFormat.simple: simple time | tag | level | msg
         dump_folder (str): Log dumped folder, the default value is the current folder. The dumped log level is
                         logging.DEBUG. The full path of the dumped log file is `dump_folder/tag.log`.

@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .abstract_explorer import AbstractExplorer
+from .abs_explorer import AbsExplorer
 
 
-class LinearExplorer(AbstractExplorer):
+class LinearExplorer(AbsExplorer):
     def __init__(self, agent_id_list, total_episodes, epsilon_range_dict, with_cache=True):
         super().__init__(agent_id_list, total_episodes, epsilon_range_dict, with_cache=with_cache)
         self._step_dict = {}
@@ -17,7 +17,7 @@ class LinearExplorer(AbstractExplorer):
             self._current_epsilon[agent_id] = max(.0, self._current_epsilon[agent_id] - self._step_dict[agent_id])
 
 
-class TwoPhaseLinearExplorer(AbstractExplorer):
+class TwoPhaseLinearExplorer(AbsExplorer):
     """
     An exploration scheme that consists of two linear schedules separated by a split point
     """

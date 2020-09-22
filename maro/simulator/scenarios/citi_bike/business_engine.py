@@ -135,7 +135,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return tick + 1 == self._max_tick
 
     def get_node_mapping(self)->dict:
-        return {}
+        node_mapping = {}
+        for station in self._stations:
+            node_mapping[station.index] = station.id
+        return node_mapping
 
     def reset(self):
         """Reset after episode"""
@@ -448,6 +451,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.insert_event(transfer_evt)
 
     def _build_temp_data(self):
+        """build temporary data for predefined environment"""
         logger.warning_yellow(f"Binary data files for scenario: citi_bike topology: {self._topology} not found.")
         citi_bike_process = CitiBikeProcess(is_temp=True)
         if self._topology in citi_bike_process.topologies:
