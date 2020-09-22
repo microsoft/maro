@@ -1036,6 +1036,24 @@ class GrassAzureExecutor:
         # Remote clean
         self.grass_executor.remote_clean(parallels=GlobalParams.PARALLELS)
 
+    # maro grass status
+    
+    def status(self, resource_name: str):
+        if resource_name == "master":
+            return_status = self.grass_executor.remote_get_master_details()
+        elif resource_name == "nodes":
+            return_status = self.grass_executor.remote_get_nodes_details()
+        else:
+            raise CliException(f"Resource {resource_name} is unsupported")
+
+        # Print status
+        logger.info(
+            json.dumps(
+                return_status,
+                indent=4, sort_keys=True
+            )
+        )
+
     # maro grass template
 
     @staticmethod
