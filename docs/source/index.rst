@@ -1,5 +1,5 @@
 .. figure:: ./images/logo.svg
-    :width: 250px
+    :width: 666px
     :align: center
     :alt: MARO
 
