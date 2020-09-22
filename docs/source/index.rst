@@ -6,7 +6,7 @@
 MARO (Multi-Agent Resource Optimization) serves as a domain-specific Reinforcement
 Learning (RL) solution. In MARO, multi-agent RL is used to solve real-world resource
 optimization problems. It can be applied to many important industrial domains,
-such as empty container repositioning (ECR) in logistics, bike repositioning in
+such as container inventory management in logistics, bike repositioning in
 transportation, virtual machine (VM) provisioning in data centers, and asset
 management in finance, etc. Besides, MARO is not limited to RL, we also support
 other planning/decision-related components, such as
@@ -30,11 +30,11 @@ Quick Start
 .. code-block:: python
 
     from maro.simulator import Env
-    from maro.simulator.scenarios.ecr.common import Action
+    from maro.simulator.scenarios.cim.common import Action
 
     # Initialize an environment with a specific scenario, related topology.
-    # In ECR, 1 tick means 1 day, here durations=100 means a length of 100 days
-    env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+    # In Container Inventory Management, 1 tick means 1 day, here durations=100 means a length of 100 days
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
     # Query environment summary, which includes business instances, intra-instance attributes, etc.
     print(env.summary)
@@ -85,7 +85,7 @@ Contents
     :maxdepth: 2
     :caption: Scenarios
 
-    scenarios/ecr.md
+    scenarios/container_inventory_management.md
     scenarios/citi_bike.md
 
 .. toctree::

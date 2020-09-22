@@ -1,6 +1,6 @@
-# Empty Container Repositioning (ECR)
+# Container Inventory Management (CIM)
 
-The Empty Container Repositioning (ECR) scenario simulates a common problem of
+The Container Inventory Management (CIM) scenario simulates a common problem of
 container shipping in marine transportation. Imagine an international market:
 The goods are packed in containers and shipped by vessels from the exporting
 country to the importing country. As a result of the imbalanced global trade,
@@ -19,7 +19,7 @@ the source port to the destination port.
 - The second one is the repositioning operation. It is used to rebalance the
 container distribution worldwide.
 
-![The Life Cycle of the Container](../images/scenario/ecr.container_flow.svg)
+![The Life Cycle of the Container](../images/scenario/cim.container_flow.svg)
 
 ### Order
 
@@ -72,7 +72,7 @@ and situation of the upstream and downstream ports.
 ## Topologies
 
 To provide an exploration road map from easy to difficult, two kinds of topologies
-are designed and provided in ECR scenario. Toy topologies provide simplified
+are designed and provided in CIM scenario. Toy topologies provide simplified
 environments for algorithm debugging and will show some typical relationships
 between ports to users. We hope these will provide users with some insights to
 know more and deeper about this scenario. While the global topologies are based
@@ -81,7 +81,7 @@ problem.
 
 ### Toy Topologies
 
-![ECR toy topologies](../images/scenario/ecr.toys.svg)
+![CIM toy topologies](../images/scenario/cim.toys.svg)
 
 *(In these topologies, the solid lines indicate the service route (voyage) among
 ports, while the dashed lines indicate the container flow triggered by orders.)*
@@ -126,7 +126,7 @@ ports no longer have a simple supply/demand feature. The cooperation among ports
 is much more complex and it is difficult to find an efficient repositioning policy
 manually.
 
-![global_trade.22p](../images/scenario/ecr.global_trade.svg)
+![global_trade.22p](../images/scenario/cim.global_trade.svg)
 
 *(To make it clearer, the figure above only shows the service routes among ports.)*
 
@@ -134,21 +134,21 @@ manually.
 
 ### Data Preparation
 
-To start a simulation in ECR scenario, no extra data processing is needed. You
+To start a simulation in CIM scenario, no extra data processing is needed. You
 can just specify the scenario and the topology when initialize an environment and
 enjoy your exploration in this scenario.
 
 ### Environment Interface
 
 Before starting interaction with the environment, we need to know the definition
-of `DecisionEvent` and `Action` in ECR scenario first. Besides, you can query the
+of `DecisionEvent` and `Action` in CIM scenario first. Besides, you can query the
 environment [snapshot list](../key_components/data_model.html#advanced-features)
 to get more detailed information for the decision making.
 
 #### DecisionEvent
 
 Once the environment need the agent's response to promote the simulation, it will
-throw an `DecisionEvent`. In the scenario of ECR, the information of each
+throw an `DecisionEvent`. In the scenario of CIM, the information of each
 `DecisionEvent` is listed as below:
 
 - **tick** (int): The corresponding tick.
@@ -185,13 +185,13 @@ random mode, we hope this could help you learn how to use the environment interf
 
 ```python
 from maro.simulator import Env
-from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 
 import random
 
-# Initialize an environment of ECR scenario, with a specific topology.
-# In ECR, 1 tick means 1 day, durations=100 here indicates a length of 100 days.
-env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+# Initialize an environment of CIM scenario, with a specific topology.
+# In Container Inventory Management, 1 tick means 1 day, durations=100 here indicates a length of 100 days.
+env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
 # Query for the environment summary, the business instances and intra-instance attributes
 # will be listed in the output for your reference.
@@ -235,12 +235,12 @@ for ep in range(num_episode):
         metrics, decision_event, is_done = env.step(action)
 
     # Query for the environment business metrics at the end of each episode,
-    # it is usually users' optimized object in ECR scenario (usually includes multi-target).
+    # it is usually users' optimized object in CIM scenario (usually includes multi-target).
     print(f"ep: {ep}, environment metrics: {env.metrics}")
     env.reset()
 ```
 
-Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/empty_container_repositioning/interact_with_simulator.ipynb)
+Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/container_inventory_management/interact_with_simulator.ipynb)
 for a quick experience.
 
 <!--
