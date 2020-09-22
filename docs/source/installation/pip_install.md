@@ -6,7 +6,7 @@
 pip install maro
 ```
 
-## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
 - Prerequisites
   - [Python >= 3.6, < 3.8](https://www.python.org/downloads/)
@@ -25,7 +25,7 @@ pip install maro
 
   - Windows
 
-    ```ps
+    ```powershell
     # If your environment is not clean, create a virtual environment firstly.
     python -m venv maro_venv
     .\maro_venv\Scripts\activate
@@ -42,7 +42,7 @@ pip install maro
 
   - Windows
 
-    ```ps
+    ```powershell
     # Install MARO from source.
     .\scripts\install_maro.bat
     ```
