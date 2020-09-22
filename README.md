@@ -21,7 +21,7 @@ Key Components of MARO:
 | File/folder | Description                                                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------- |
 | `maro`      | MARO source code.                                                                                 |
-| `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/index.html#).        |
+| `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/).                   |
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
 
