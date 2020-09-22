@@ -9,11 +9,12 @@ MARO has complete support on data processing, simulator building, RL algorithms 
 
 ## Contents
 
-| File/folder | Description                 |
-| ----------- | --------------------------- |
-| `maro`      | MARO source code.           |
-| `examples`  | Showcase of MARO.           |
-| `notebooks` | MARO quick-start notebooks. |
+| File/folder | Description                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| `maro`      | MARO source code.                                                                                 |
+| `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/index.html#).        |
+| `examples`  | Showcase of MARO.                                                                                 |
+| `notebooks` | MARO quick-start notebooks.                                                                       |
 
 ## Prerequisites
 
