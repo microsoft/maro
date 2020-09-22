@@ -255,8 +255,8 @@ related data. Below is the introduction to the related commands:
 The data environment list command is used to list the environments that need the
 data files generated before the simulation.
 
-```console
-$ maro env data list
+```sh
+maro env data list
 
 scenario: citi_bike, topology: ny.201801
 scenario: citi_bike, topology: ny.201802
@@ -281,8 +281,8 @@ listed in the result of [environment list command](#environment-list-command).
 - `-f`: optional, if set, to force to re-download and re-generate the data files
 and overwrite the already existing ones.
 
-```console
-$ maro env data generate -s citi_bike -t ny.201802
+```sh
+maro env data generate -s citi_bike -t ny.201802
 
 The data files for citi_bike-ny201802 will then be downloaded and deployed to ~/.maro/data/citibike/_build/ny201802.
 ```
@@ -315,8 +315,8 @@ If multiple source CSV data files are needed, you can list all the full paths of
 the source files in a specific file and use a `@` symbol to specify it.
 - `--output`: required, used to specify the path of the target binary file.
 
-```console
-$ maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+```sh
+maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
 ```
 
 ### Environment Interface
@@ -332,18 +332,18 @@ Once the environment need the agent's response to reposition bikes, it will
 throw an `DecisionEvent`. In the scenario of Citi Bike, the information of each
 `DecisionEvent` is listed as below:
 
-- **station_idx**: (int) The id of the station/agent that needs to respond to the
+- **station_idx** (int): The id of the station/agent that needs to respond to the
 environment.
-- **tick**: (int) The corresponding tick.
-- **frame_index**: (int) The corresponding frame index, that is the index of the
+- **tick** (int): The corresponding tick.
+- **frame_index** (int): The corresponding frame index, that is the index of the
 corresponding snapshot in the environment snapshot list.
-- **type**: (DecisionType) The decision type of this decision event. In Citi Bike
+- **type** (DecisionType): The decision type of this decision event. In Citi Bike
 scenario, there are 2 types:
   - `Supply` indicates there is too many bikes in the corresponding station, so
   it is better to reposition some of them to other stations.
   - `Demand` indicates there is no enough bikes in the corresponding station, so
   it is better to reposition bikes from other stations.
-- **action_scope**: (dict) A dictionary that maintains the information for
+- **action_scope** (dict): A dictionary that maintains the information for
 calculating the valid action scope:
   - The key of these item indicate the station/agent ids.
   - The meaning of the value differs for different decision type:
@@ -361,16 +361,16 @@ Once we get a `DecisionEvent` from the environment, we should respond with an
 
 - `None`, which means do nothing.
 - A valid `Action` instance, including:
-  - **from_station_idx**: (int) The id of the source station of the bike
+  - **from_station_idx** (int): The id of the source station of the bike
   transportation.
-  - **to_station_idx**: (int) The id of the destination station of the bike
+  - **to_station_idx** (int): The id of the destination station of the bike
   transportation.
-  - **number**: (int) The quantity of the bike transportation.
+  - **number** (int): The quantity of the bike transportation.
 
 ### Example
 
-Here we will show you a simple example of interaction the environment with random
-actions, we hope this could help you learn how how to use the environment interfaces:
+Here we will show you a simple example of interaction with the environment in
+random mode, we hope this could help you learn how to use the environment interfaces:
 
 ```python
 from maro.simulator import Env
@@ -380,6 +380,8 @@ import random
 
 # Initialize an environment of Citi Bike scenario, with a specific topology.
 # In CitiBike, 1 tick means 1 minute, durations=1440 here indicates a length of 1 day.
+# In CitiBike, one snapshot will be maintained every snapshot_resolution ticks,
+# snapshot_resolution=30 here indicates 1 snapshot per 30 minutes.
 env = Env(scenario="citi_bike", topology="toy.3s_4t", start_tick=0, durations=1440, snapshot_resolution=30)
 
 # Query for the environment summary, the business instances and intra-instance attributes

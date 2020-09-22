@@ -204,16 +204,16 @@ Once the environment need the agent's response to promote the simulation, it wil
 throw an `DecisionEvent`. In the scenario of ECR, the information of each
 `DecisionEvent` is listed as below:
 
-- **tick**: (int) The corresponding tick.
-- **port_idx**: (int) The id of the port/agent that needs to respond to the
+- **tick** (int): The corresponding tick.
+- **port_idx** (int): The id of the port/agent that needs to respond to the
 environment.
-- **vessel_idx**: (int) The id of the vessel/operation object of the port/agent.
-- **action_scope**: (ActionScope) ActionScope has two attributes:
+- **vessel_idx** (int): The id of the vessel/operation object of the port/agent.
+- **action_scope** (ActionScope): ActionScope has two attributes:
   - `load` indicates the maximum quantity that can be loaded from the port the
   vessel.
   - `discharge` indicates the maximum quantity that can be discharged from the
   vessel to the port.
-- **early_discharge**: (int) When the available capacity in the vessel is not
+- **early_discharge** (int): When the available capacity in the vessel is not
 enough to load the ladens, some of the empty containers in the vessel will be
 early discharged to free the space. The quantity of empty containers that have
 been early discharged due to the laden loading is recorded in this field.
@@ -225,16 +225,16 @@ Once we get a `DecisionEvent` from the environment, we should respond with an
 
 - `None`, which means do nothing.
 - A valid `Action` instance, including:
-  - **vessel_idx**: (int) The id of the vessel/operation object of the port/agent.
-  - **port_idx**: (int) The id of the port/agent that take this action.
-  - **quantity**: (int) The sign of this value denotes different meanings:
+  - **vessel_idx** (int): The id of the vessel/operation object of the port/agent.
+  - **port_idx** (int): The id of the port/agent that take this action.
+  - **quantity** (int): The sign of this value denotes different meanings:
     - Positive quantity means discharging empty containers from vessel to port.
     - Negative quantity means loading empty containers from port to vessel.
 
 ### Example
 
-Here we will show you a simple example of interaction the environment with random
-actions, we hope this could help you learn how how to use the environment interfaces:
+Here we will show you a simple example of interaction with the environment in
+random mode, we hope this could help you learn how to use the environment interfaces:
 
 ```python
 from maro.simulator import Env
