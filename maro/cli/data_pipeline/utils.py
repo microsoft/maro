@@ -1,13 +1,13 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 
 import json
 import numpy as np
 import os
-import pycurl
-import requests
 import shutil
 import sys
+import urllib.request
 import uuid
 
 from maro.cli.utils.params import GlobalPaths
@@ -43,13 +43,10 @@ def download_file(source: str, destination: str):
     os.makedirs(tmpdir, exist_ok=True)
     os.makedirs(os.path.dirname(destination), exist_ok=True)
 
+    source_data = urllib.request.urlopen(source) 
+    res_data = source_data.read()
     with open(temp_file_name, "wb") as f:
-        curl = pycurl.Curl()
-        curl.setopt(pycurl.URL, source)
-        curl.setopt(pycurl.WRITEDATA, f)
-        curl.setopt(pycurl.FOLLOWLOCATION, True)
-        curl.perform()
-        curl.close()
+        f.write(res_data)
 
     if os.path.exists(destination):
         os.remove(destination)

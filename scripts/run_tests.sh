@@ -1,6 +1,10 @@
 #!/bin/bash
 
-cd "$(dirname $(readlink -f $0))/.."
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    cd "$(dirname $(readlink -f $0))/.."
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    cd "$(cd "$(dirname "$0")"; pwd -P)/.."
+fi
 
 bash ./scripts/build_maro.sh
 
@@ -9,7 +13,7 @@ bash ./scripts/build_maro.sh
 export PYTHONPATH="."
 
 # install requirements
-pip install -r ./tests/requirements.txt
+pip install -r ./tests/requirements.test.txt
 
 coverage run --rcfile=./tests/.coveragerc
 

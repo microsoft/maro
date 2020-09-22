@@ -2,7 +2,11 @@
 
 # script to create source package on linux
 
-cd "$(dirname $(readlink -f $0))/.."
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    cd "$(dirname $(readlink -f $0))/.."
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    cd "$(cd "$(dirname "$0")"; pwd -P)/.."
+fi
 
 bash ./scripts/compile_cython.sh
 

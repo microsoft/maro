@@ -8,7 +8,7 @@ call scripts/build_maro.bat
 
 rem install requirements
 
-pip install -r ./tests/requirements.txt
+pip install -r ./tests/requirements.test.txt
 
 rem show coverage
 

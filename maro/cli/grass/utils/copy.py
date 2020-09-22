@@ -21,7 +21,8 @@ def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, no
         admin_username (str)
         node_ip_address (str)
     """
-    copy_scripts = f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az {local_path} {admin_username}@{node_ip_address}:{remote_dir}"
+    copy_scripts = f"rsync -e 'ssh -o StrictHostKeyChecking=no' " \
+                   f"-az {local_path} {admin_username}@{node_ip_address}:{remote_dir}"
     _ = SubProcess.run(copy_scripts)
 
 
@@ -34,7 +35,8 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
         admin_username (str)
         node_ip_address (str)
     """
-    copy_scripts = f"rsync -e 'ssh -o StrictHostKeyChecking=no' -az {admin_username}@{node_ip_address}:{remote_path} {local_dir}"
+    copy_scripts = f"rsync -e 'ssh -o StrictHostKeyChecking=no' " \
+                   f"-az {admin_username}@{node_ip_address}:{remote_path} {local_dir}"
     _ = SubProcess.run(copy_scripts)
 
 

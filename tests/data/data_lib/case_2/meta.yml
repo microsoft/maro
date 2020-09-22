@@ -1,0 +1,26 @@
+events:
+  RequireBike: # type name
+    display_name: "require_bike" # can be empty, then will be same as type name (key)
+  ReturnBike:
+    display_name: "return_bike"
+  RebalanceBike:
+    display_name: "rebalance_bike"
+  DeliverBike:
+    display_name: "deliver_bike"
+    
+  "_default": "RequireBike" # default event type if not event type in column, such as citibike scenario, all the rows are trip_requirement, so we do not need to specified event column
+entity:
+  timestamp:
+    column: 'start_time'
+    dtype: 'i8'
+    tzone: "America/New_York" 
+  durations: 
+    column: 'duration'
+    dtype: 'i'
+  src_station: 
+    column: 'start_station_index'
+    dtype: 'i'
+  dest_station: 
+    column: 'end_station_index'
+    dtype: 'i'
+    slot: 1
