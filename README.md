@@ -86,7 +86,6 @@ print(f"environment metrics: {env.metrics}")
 ```sh
 # Build playground image
 docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
-
 # Run playground container
 # Redis commander (GUI for redis) -> http://127.0.0.1:40009
 # Local host docs -> http://127.0.0.1:40010
