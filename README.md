@@ -57,6 +57,9 @@ pip install maro
     # If your environment is not clean, create a virtual environment firstly.
     python -m venv maro_venv
     .\maro_venv\Scripts\activate
+
+    # You may need this for SecurityError in PowerShell.
+    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
     ```
 
 - Install MARO
