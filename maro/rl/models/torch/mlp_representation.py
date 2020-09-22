@@ -34,11 +34,10 @@ class MLPRepresentation(nn.Module):
             self._head = nn.Linear(self._input_dim, self._output_dim)
         else:
             self._head = nn.Linear(hidden_dims[-1], self._output_dim)
-        self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self._net = nn.Sequential(*self._layers, self._head).to(self._device)
+        self._net = nn.Sequential(*self._layers, self._head)
 
     def forward(self, x):
-        return self._net(x.to(self._device)).double()
+        return self._net(x).double()
 
     @property
     def input_dim(self):

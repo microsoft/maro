@@ -1,6 +1,5 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 import os
 import sys
