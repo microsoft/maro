@@ -84,6 +84,7 @@ def deploy(hide_info=True):
         clean_deployment_folder()
 
         # Deployment started.
+        os.makedirs(os.path.dirname(version_file_path), exist_ok=True)
         version_info = configparser.ConfigParser()
         version_info["MARO_DATA"] = {}
         version_info["MARO_DATA"]["version"] = __data_version__
