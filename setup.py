@@ -8,6 +8,9 @@ from setuptools.command.install import install
 from setuptools.command.develop import develop
 import sys
 
+# set environment variable to skip development process of MARO
+os.environ["SKIP_DEPLOY"] = "TRUE"
+
 from maro import __version__
 
 # root path to backend

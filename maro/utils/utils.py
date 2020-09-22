@@ -121,7 +121,10 @@ def deploy(hide_info=True):
 
 def check_deployment_status():
     ret = False
-    if os.path.exists(version_file_path):
+    skip_deployment = os.environ.get("SKIP_DEPLOY", "FALSE")
+    if skip_deployment == "TRUE":
+        ret = True
+    elif os.path.exists(version_file_path):
         version_info = configparser.ConfigParser()
         version_info.read(version_file_path)
         if "MARO_DATA" in version_info \
