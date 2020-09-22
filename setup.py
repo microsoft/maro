@@ -8,8 +8,8 @@ from setuptools.command.install import install
 from setuptools.command.develop import develop
 import sys
 
-# set environment variable to skip development process of MARO
-os.environ["SKIP_DEPLOY"] = "TRUE"
+# Set environment variable to skip deployment process of MARO
+os.environ["SKIP_DEPLOYMENT"] = "TRUE"
 
 from maro import __version__
 

@@ -121,7 +121,7 @@ def deploy(hide_info=True):
 
 def check_deployment_status():
     ret = False
-    skip_deployment = os.environ.get("SKIP_DEPLOY", "FALSE")
+    skip_deployment = os.environ.get("SKIP_DEPLOYMENT", "FALSE")
     if skip_deployment == "TRUE":
         ret = True
     elif os.path.exists(version_file_path):
