@@ -14,12 +14,13 @@ from shutil import rmtree
 import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
-from maro.cli.grass.utils.copy import copy_files_to_node, copy_files_from_node, sync_mkdir
+from maro.cli.grass.utils.copy import copy_files_to_node, copy_files_from_node, sync_mkdir, copy_and_rename
 from maro.cli.grass.utils.hash import get_checksum
 from maro.cli.utils.details import load_cluster_details, save_cluster_details, load_job_details, save_job_details, \
     load_schedule_details, save_schedule_details
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_node_name
+from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_node_name, \
+    get_valid_file_name
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
@@ -708,16 +709,17 @@ class GrassAzureExecutor:
 
         # Push image
         if image_name:
-            image_path = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images/{image_name}"
-            GrassAzureExecutor._save_image(
+            new_file_name = get_valid_file_name(image_name)
+            image_path = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
+            self._save_image(
                 image_name=image_name,
-                export_path=image_path
+                export_path=os.path.expanduser(image_path)
             )
             if self._check_checksum_validity(
                     local_file_path=os.path.expanduser(image_path),
                     remote_file_path=os.path.join(images_dir, image_name)
             ):
-                logger.info_green(f"The image '{image_name}' already exists")
+                logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
             copy_files_to_node(
                 local_path=image_path,
@@ -729,15 +731,21 @@ class GrassAzureExecutor:
             logger.info_green(f"Image {image_name} is loaded")
         elif image_path:
             file_name = os.path.basename(image_path)
+            new_file_name = get_valid_file_name(file_name)
+            image_path = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
+            copy_and_rename(
+                source_path=os.path.expanduser(image_path),
+                target_dir=image_path
+            )
             if self._check_checksum_validity(
                     local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, file_name)
+                    remote_file_path=os.path.join(images_dir, new_file_name)
             ):
-                logger.info_green(f"The image file '{file_name}' already exists")
+                logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
             copy_files_to_node(
                 local_path=image_path,
-                remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images/",
+                remote_dir=images_dir,
                 admin_username=admin_username, node_ip_address=master_public_ip_address
             )
             self.grass_executor.remote_update_image_files_details()
@@ -754,7 +762,7 @@ class GrassAzureExecutor:
     @staticmethod
     def _save_image(image_name: str, export_path: str):
         # Save image to specific folder
-        command = f"docker save {image_name} > {export_path}"
+        command = f"docker save '{image_name}' --output '{export_path}'"
         _ = SubProcess.run(command)
 
     def _batch_load_images(self):
@@ -1027,6 +1035,24 @@ class GrassAzureExecutor:
 
         # Remote clean
         self.grass_executor.remote_clean(parallels=GlobalParams.PARALLELS)
+
+    # maro grass status
+    
+    def status(self, resource_name: str):
+        if resource_name == "master":
+            return_status = self.grass_executor.remote_get_master_details()
+        elif resource_name == "nodes":
+            return_status = self.grass_executor.remote_get_nodes_details()
+        else:
+            raise CliException(f"Resource {resource_name} is unsupported")
+
+        # Print status
+        logger.info(
+            json.dumps(
+                return_status,
+                indent=4, sort_keys=True
+            )
+        )
 
     # maro grass template
 

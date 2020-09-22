@@ -11,14 +11,15 @@ from redis import Redis
 from utils import load_cluster_details, get_master_details, set_master_details
 
 
-def get_current_image_files_details() -> dict:
-    current_images = glob.glob(os.path.expanduser(f"~/.maro/clusters/maro_grass_test/images/*"))
+def get_current_image_files_details(cluster_name: str) -> dict:
+    image_paths = glob.glob(os.path.expanduser(f"~/.maro/clusters/{cluster_name}/images/*"))
     image_files_details = {}
 
-    for current_image in current_images:
-        image_files_details[current_image] = {
-            'modify_time': os.path.getmtime(current_image),
-            'size': os.path.getsize(current_image)
+    for image_path in image_paths:
+        file_name = os.path.basename(image_path)
+        image_files_details[file_name] = {
+            'modify_time': os.path.getmtime(image_path),
+            'size': os.path.getsize(image_path)
         }
 
     return image_files_details
@@ -39,7 +40,7 @@ if __name__ == "__main__":
                   charset="utf-8", decode_responses=True)
 
     # Get details
-    curr_image_files_details = get_current_image_files_details()
+    curr_image_files_details = get_current_image_files_details(cluster_name=args.cluster_name)
     with redis.lock("lock:master"):
         master_details = get_master_details(
             redis=redis,
