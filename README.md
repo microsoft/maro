@@ -1,6 +1,6 @@
 ![MARO LOGO](./docs/source/images/logo.svg)
 
-Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement Learning as a Service (RaaS) for real-world resource optimization.
+Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement learning as a Service (RaaS) for real-world resource optimization.
 It can be applied to many important industrial domains,
 such as container inventory management in logistics, bike repositioning in
 transportation, virtual machine provisioning in data centers, and asset
@@ -14,6 +14,14 @@ Key Components of MARO:
 - Distributed toolkit: it provides distributed communication components, interface of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 ![MARO Key Components](./docs/source/images/maro_overview.svg)
+
+Key Components of MARO:
+
+- Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
+- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
+- Distributed toolkit: it provides distributed communication components, User-Defined Functions (UDF) interface for message auto-handling, cluster provision, and job orchestration.
+
+![MARO Key Components](./docs/source/images/maro_overall.svg)
 
 ## Contents
 
