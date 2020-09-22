@@ -144,72 +144,20 @@ topologies, the definition of the bike flow and the trigger mechanism of
 repositioning actions are the same as those in the toy topologies. We provide
 this series of topologies to better simulate the actual Citi Bike scenario.
 
-### Naive Baseline
+## Quick Start
 
-Below are the performance of *no repositioning* and *random repositioning* in
-different topologies. The performance metric used here is the *fulfillment ratio*.
-For each experiment, we setup the init the environment and test for a duration
-of 1 week.
-
-| Topology  | No Repositioning | Random Repositioning |
-| :-------: | :--------------: | :------------------: |
-| toy.3s_4t | 45.12            | 44.5 +/- 0.1         |
-| toy.4s_4t | 31.50            | 54.5 +/- 0.4         |
-| toy.5s_6t | 42.81            | 52.2 +/- 0.3         |
-
-| Topology  | No Repositioning | Random Repositioning |
-| :-------: | :--------------: | :------------------: |
-| ny.201801 | 94.42            | 88.3 +/- 2.8         |
-| ny.201802 | 93.04            | 86.7 +/- 2.8         |
-| ny.201803 | 92.23            | 87.7 +/- 2.4         |
-| ny.201804 | 93.83            | 89.7 +/- 2.0         |
-| ny.201805 | 91.08            | 87.0 +/- 2.7         |
-| ny.201806 | 91.62            | 87.6 +/- 2.3         |
-| ny.201807 | 92.38            | 85.5 +/- 2.4         |
-| ny.201808 | 91.32            | 86.2 +/- 2.7         |
-| ny.201809 | 91.00            | 84.7 +/- 2.6         |
-| ny.201810 | 92.94            | 85.8 +/- 2.7         |
-| ny.201811 | 91.92            | 88.3 +/- 2.3         |
-| ny.201812 | 92.55            | 90.6 +/- 2.1         |
-
-| Topology  | No Repositioning | Random Repositioning |
-| :-------: | :--------------: | :------------------: |
-| ny.201901 | 93.51            | 91.1 +/- 1.7         |
-| ny.201902 | 93.46            | 90.3 +/- 2.0         |
-| ny.201903 | 95.17            | 93.7 +/- 1.1         |
-| ny.201904 | 94.11            | 92.1 +/- 1.7         |
-| ny.201905 | 90.69            | 88.2 +/- 2.4         |
-| ny.201906 | 91.05            | 90.1 +/- 2.2         |
-| ny.201907 | 93.22            | 91.4 +/- 1.6         |
-| ny.201908 | 91.00            | 89.3 +/- 2.1         |
-| ny.201909 | 92.97            | 92.5 +/- 1.6         |
-| ny.201910 | 91.72            | 91.8 +/- 2.0         |
-| ny.201911 | 91.01            | 92.3 +/- 1.9         |
-| ny.201912 | 92.32            | 92.3 +/- 2.1         |
-
-| Topology  | No Repositioning | Random Repositioning |
-| :-------: | :--------------: | :------------------: |
-| ny.202001 | 92.65            | 92.1 +/- 1.8         |
-| ny.202002 | 92.90            | 91.5 +/- 2.2         |
-| ny.202003 | 93.43            | 92.9 +/- 1.9         |
-| ny.202004 | 97.43            | 96.8 +/- 0.2         |
-| ny.202005 | 96.92            | 94.8 +/- 0.5         |
-| ny.202006 | 96.14            | 95.2 +/- 0.5         |
-
-<!-- ## Quick Start
-
-### Data Processing
+### Data Preparation
 
 To start the simulation of Citi Bike scenario, users need to first generate the
-related data. Below are the introduction to the related commands:
+related data. Below is the introduction to the related commands:
 
 #### Environment List Command
 
-The data environment list command is used to list the environments that need the
+The data environment `list` command is used to list the environments that need the
 data files generated before the simulation.
 
-```console
-user@maro:~/MARO$ maro env data list
+```sh
+maro env data list
 
 scenario: citi_bike, topology: ny.201801
 scenario: citi_bike, topology: ny.201802
@@ -223,9 +171,9 @@ scenario: citi_bike, topology: ny.201806
 
 #### Generate Command
 
-The data generate command is used to automatically download and build the
-specified predefined scenario and topology data files for the simulation.
-Currently, there are three arguments for the data generate command:
+The data `generate` command is used to automatically download and build the specified
+predefined scenario and topology data files for the simulation. Currently, there
+are three arguments for the data `generate` command:
 
 - `-s`: required, used to specify the predefined scenario. Valid scenarios are
 listed in the result of [environment list command](#environment-list-command).
@@ -234,8 +182,8 @@ listed in the result of [environment list command](#environment-list-command).
 - `-f`: optional, if set, to force to re-download and re-generate the data files
 and overwrite the already existing ones.
 
-```console
-user@maro:~/MARO$ maro env data generate -s citi_bike -t ny.201802
+```sh
+maro env data generate -s citi_bike -t ny.201802
 
 The data files for citi_bike-ny201802 will then be downloaded and deployed to ~/.maro/data/citibike/_build/ny201802.
 ```
@@ -256,9 +204,9 @@ For the example above, the directory structure should be like:
 
 #### Convert Command
 
-The data convert command is used to convert the CSV data files to binary data
+The data `convert` command is used to convert the CSV data files to binary data
 files that the simulator needs. Currently, there are three arguments for the data
-convert command:
+`convert` command:
 
 - `--meta`: required, used to specify the path of the meta file. The source
 columns that to be converted and the data type of each columns should be
@@ -268,38 +216,62 @@ If multiple source CSV data files are needed, you can list all the full paths of
 the source files in a specific file and use a `@` symbol to specify it.
 - `--output`: required, used to specify the path of the target binary file.
 
-```console
-user@maro:~/MARO$ maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+```sh
+maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
 ```
 
-### DecisionEvent
+### Environment Interface
 
-Once the environment need the agent's response to promote the simulation, it will throw an **DecisionEvent**. In the scenario of citi_bike, the information of each DecisionEvent is listed as below:
+Before starting interaction with the environment, we need to know the definition
+of `DecisionEvent` and `Action` in Citi Bike scenario first. Besides, you can query
+the environment [snapshot list](../key_components/data_model.html#advanced-features)
+to get more detailed information for the decision making.
 
-- **station_idx**: the id of the station/agent that needs to respond to the environment
-- **tick**: the corresponding tick
-- **frame_index**: the corresponding frame index, that is the index of the corresponding snapshot in the snapshot list
-- **type**: the decision type of this decision event. In citi_bike scenario, there are 2 types:
-  - **Supply**: There is too many bikes in the corresponding station, it's better to reposition some of them to other stations.
-  - **Demand**: There is no enough bikes in the corresponding station, it's better to reposition bikes from other stations
+#### DecisionEvent
 
-- **action_scope**: a dictionary of valid action items.
-  - The key of the item indicates the station/agent id;
+Once the environment need the agent's response to reposition bikes, it will
+throw an `DecisionEvent`. In the scenario of Citi Bike, the information of each
+`DecisionEvent` is listed as below:
+
+- **station_idx** (int): The id of the station/agent that needs to respond to the
+environment.
+- **tick** (int): The corresponding tick.
+- **frame_index** (int): The corresponding frame index, that is the index of the
+corresponding snapshot in the environment snapshot list.
+- **type** (DecisionType): The decision type of this decision event. In Citi Bike
+scenario, there are 2 types:
+  - `Supply` indicates there is too many bikes in the corresponding station, so
+  it is better to reposition some of them to other stations.
+  - `Demand` indicates there is no enough bikes in the corresponding station, so
+  it is better to reposition bikes from other stations.
+- **action_scope** (dict): A dictionary that maintains the information for
+calculating the valid action scope:
+  - The key of these item indicate the station/agent ids.
   - The meaning of the value differs for different decision type:
-    - If the decision type is Supply, the value of the station itself means its bike inventory at that moment, while the value of other target stations means the number of their empty docks;
-    - If the decision type is Demand, the value of the station itself means the number of its empty docks, while the value of other target stations means their bike inventory.
+    - If the decision type is `Supply`, the value of the station itself means its
+    bike inventory at that moment, while the value of other target stations means
+    the number of their empty docks.
+    - If the decision type is `Demand`, the value of the station itself means the
+    number of its empty docks, while the value of other target stations means
+    their bike inventory.
 
-### Action
+#### Action
 
-Once we get a **DecisionEvent** from the envirionment, we should respond with an **Action**. Valid Action could be:
+Once we get a `DecisionEvent` from the environment, we should respond with an
+`Action`. Valid `Action` could be:
 
-- None, which means do nothing.
-- A valid Action instance, including:
-  - **from_station_idx**: int, the id of the source station of the bike transportation
-  - **to_station_idx**: int, the id of the destination station of the bike transportation
-  - **number**: int, the quantity of the bike transportation
+- `None`, which means do nothing.
+- A valid `Action` instance, including:
+  - **from_station_idx** (int): The id of the source station of the bike
+  transportation.
+  - **to_station_idx** (int): The id of the destination station of the bike
+  transportation.
+  - **number** (int): The quantity of the bike transportation.
 
 ### Example
+
+Here we will show you a simple example of interaction with the environment in
+random mode, we hope this could help you learn how to use the environment interfaces:
 
 ```python
 from maro.simulator import Env
@@ -307,62 +279,192 @@ from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, Dec
 
 import random
 
-# Initialize an Env for citi_bike scenario
-env = Env(scenario="citi_bike", topology="ny201912", start_tick=0, durations=1440, snapshot_resolution=30)
+# Initialize an environment of Citi Bike scenario, with a specific topology.
+# In CitiBike, 1 tick means 1 minute, durations=1440 here indicates a length of 1 day.
+# In CitiBike, one snapshot will be maintained every snapshot_resolution ticks,
+# snapshot_resolution=30 here indicates 1 snapshot per 30 minutes.
+env = Env(scenario="citi_bike", topology="toy.3s_4t", start_tick=0, durations=1440, snapshot_resolution=30)
 
-is_done: bool = False
-reward: int = None
+# Query for the environment summary, the business instances and intra-instance attributes
+# will be listed in the output for your reference.
+print(env.summary)
+
+metrics: object = None
 decision_event: DecisionEvent = None
+is_done: bool = False
 action: Action = None
 
-# Start the env with a None Action
-reward, decision_event, is_done = env.step(action)
+num_episode = 2
+for ep in range(num_episode):
+    # Gym-like step function.
+    metrics, decision_event, is_done = env.step(None)
 
-while not is_done:
-    if decision_event.type == DecisionType.Supply:
-        # the value of the station itself means the bike inventory if Supply
-        self_bike_inventory = decision_event.action_scope[decision_event.station_idx]
-        # the value of other stations means the quantity of empty docks if Supply
-        target_idx_dock_tuple_list = [
-            (k, v) for k, v in decision_event.action_scope.items() if k != decision_event.station_idx
+    while not is_done:
+        past_2hour_frames = [
+            x for x in range(decision_event.frame_index - 4, decision_event.frame_index)
         ]
-        # random choose a target station weighted by the quantity of empty docks
-        target_idx, target_dock = random.choices(
-            target_idx_dock_tuple_list,
-            weights=[item[1] for item in target_idx_dock_tuple_list]
-        )[0]
-        # generate the corresponding random Action
-        action = Action(
-            from_station_idx=decision_event.station_idx,
-            to_station_idx=target_idx,
-            number=random.randint(0, min(self_bike_inventory, target_dock))
-        )
+        decision_station_idx = decision_event.station_idx
+        intr_station_infos = ["trip_requirement", "bikes", "shortage"]
 
-    elif decision_event.type == DecisionType.Demand:
-        # the value of the station itself means the quantity of empty docks if Demand
-        self_available_dock = decision_event.action_scope[decision_event.station_idx]
-        # the value of other stations means their bike inventory if Demand
-        target_idx_inventory_tuple_list = [
-            (k, v) for k, v in decision_event.action_scope.items() if k != decision_event.station_idx
+        # Query the snapshot list of this environment to get the information of
+        # the trip requirements, bikes, shortage of the decision station in the past 2 hours.
+        past_2hour_info = env.snapshot_list["stations"][
+            past_2hour_frames : decision_station_idx : intr_station_infos
         ]
-        # random choose a target station weighted by the bike inventory
-        target_idx, target_inventory = random.choices(
-            target_idx_inventory_tuple_list,
-            weights=[item[1] for item in target_idx_inventory_tuple_list]
-        )[0]
-        # generate the corresponding random Action
-        action = Action(
-            from_station_idx=target_idx,
-            to_station_idx=decision_event.station_idx,
-            number=random.randint(0, min(self_available_dock, target_inventory))
-        )
 
-    else:
-        action = None
+        if decision_event.type == DecisionType.Supply:
+            # Supply: the value of the station itself means the bike inventory.
+            self_bike_inventory = decision_event.action_scope[decision_event.station_idx]
+            # Supply: the value of other stations means the quantity of empty docks.
+            target_idx_dock_tuple_list = [
+                (k, v) for k, v in decision_event.action_scope.items() if k != decision_event.station_idx
+            ]
+            # Randomly choose a target station weighted by the quantity of empty docks.
+            target_idx, target_dock = random.choices(
+                target_idx_dock_tuple_list,
+                weights=[item[1] for item in target_idx_dock_tuple_list],
+                k=1
+            )[0]
+            # Generate the corresponding random Action.
+            action = Action(
+                from_station_idx=decision_event.station_idx,
+                to_station_idx=target_idx,
+                number=random.randint(0, min(self_bike_inventory, target_dock))
+            )
 
-    # Random sampling some records to show in the output   TODO
-    #  if random.random() > 0.95:
-        #  print("*************\n{decision_event}\n{action}")
-    # Respond the environment with the generated Action
-    reward, decision_event, is_done = env.step(action)
-``` -->
+        elif decision_event.type == DecisionType.Demand:
+            # Demand: the value of the station itself means the quantity of empty docks.
+            self_available_dock = decision_event.action_scope[decision_event.station_idx]
+            # Demand: the value of other stations means their bike inventory.
+            target_idx_inventory_tuple_list = [
+                (k, v) for k, v in decision_event.action_scope.items() if k != decision_event.station_idx
+            ]
+            # Randomly choose a target station weighted by the bike inventory.
+            target_idx, target_inventory = random.choices(
+                target_idx_inventory_tuple_list,
+                weights=[item[1] for item in target_idx_inventory_tuple_list],
+                k=1
+            )[0]
+            # Generate the corresponding random Action.
+            action = Action(
+                from_station_idx=target_idx,
+                to_station_idx=decision_event.station_idx,
+                number=random.randint(0, min(self_available_dock, target_inventory))
+            )
+
+        else:
+            action = None
+
+        # Drive the environment with the random action.
+        metrics, decision_event, is_done = env.step(action)
+
+    # Query for the environment business metrics at the end of each episode,
+    # it is usually users' optimized object (usually includes multi-target).
+    print(f"ep: {ep}, environment metrics: {env.metrics}")
+    env.reset()
+```
+
+Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/bike_repositioning/interact_with_simulator.ipynb)
+for a quick experience.
+
+<!--
+### Naive Baseline
+
+Below are the final environment metrics of the method *no repositioning* and
+*random repositioning* in different topologies. For each experiment, we setup
+the environment and test for a duration of 1 week.
+
+#### No Repositioning
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| toy.3s_4t |       +/-         |       +/-         |       +/-         |
+| toy.4s_4t |       +/-         |       +/-         |       +/-         |
+| toy.5s_6t |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201801 |       +/-         |       +/-         |       +/-         |
+| ny.201802 |       +/-         |       +/-         |       +/-         |
+| ny.201803 |       +/-         |       +/-         |       +/-         |
+| ny.201804 |       +/-         |       +/-         |       +/-         |
+| ny.201805 |       +/-         |       +/-         |       +/-         |
+| ny.201806 |       +/-         |       +/-         |       +/-         |
+| ny.201807 |       +/-         |       +/-         |       +/-         |
+| ny.201808 |       +/-         |       +/-         |       +/-         |
+| ny.201809 |       +/-         |       +/-         |       +/-         |
+| ny.201810 |       +/-         |       +/-         |       +/-         |
+| ny.201811 |       +/-         |       +/-         |       +/-         |
+| ny.201812 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201901 |       +/-         |       +/-         |       +/-         |
+| ny.201902 |       +/-         |       +/-         |       +/-         |
+| ny.201903 |       +/-         |       +/-         |       +/-         |
+| ny.201904 |       +/-         |       +/-         |       +/-         |
+| ny.201905 |       +/-         |       +/-         |       +/-         |
+| ny.201906 |       +/-         |       +/-         |       +/-         |
+| ny.201907 |       +/-         |       +/-         |       +/-         |
+| ny.201908 |       +/-         |       +/-         |       +/-         |
+| ny.201909 |       +/-         |       +/-         |       +/-         |
+| ny.201910 |       +/-         |       +/-         |       +/-         |
+| ny.201911 |       +/-         |       +/-         |       +/-         |
+| ny.201912 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.202001 |       +/-         |       +/-         |       +/-         |
+| ny.202002 |       +/-         |       +/-         |       +/-         |
+| ny.202003 |       +/-         |       +/-         |       +/-         |
+| ny.202004 |       +/-         |       +/-         |       +/-         |
+| ny.202005 |       +/-         |       +/-         |       +/-         |
+| ny.202006 |       +/-         |       +/-         |       +/-         |
+
+#### Random Repositioning
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| toy.3s_4t |       +/-         |       +/-         |       +/-         |
+| toy.4s_4t |       +/-         |       +/-         |       +/-         |
+| toy.5s_6t |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201801 |       +/-         |       +/-         |       +/-         |
+| ny.201802 |       +/-         |       +/-         |       +/-         |
+| ny.201803 |       +/-         |       +/-         |       +/-         |
+| ny.201804 |       +/-         |       +/-         |       +/-         |
+| ny.201805 |       +/-         |       +/-         |       +/-         |
+| ny.201806 |       +/-         |       +/-         |       +/-         |
+| ny.201807 |       +/-         |       +/-         |       +/-         |
+| ny.201808 |       +/-         |       +/-         |       +/-         |
+| ny.201809 |       +/-         |       +/-         |       +/-         |
+| ny.201810 |       +/-         |       +/-         |       +/-         |
+| ny.201811 |       +/-         |       +/-         |       +/-         |
+| ny.201812 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.201901 |       +/-         |       +/-         |       +/-         |
+| ny.201902 |       +/-         |       +/-         |       +/-         |
+| ny.201903 |       +/-         |       +/-         |       +/-         |
+| ny.201904 |       +/-         |       +/-         |       +/-         |
+| ny.201905 |       +/-         |       +/-         |       +/-         |
+| ny.201906 |       +/-         |       +/-         |       +/-         |
+| ny.201907 |       +/-         |       +/-         |       +/-         |
+| ny.201908 |       +/-         |       +/-         |       +/-         |
+| ny.201909 |       +/-         |       +/-         |       +/-         |
+| ny.201910 |       +/-         |       +/-         |       +/-         |
+| ny.201911 |       +/-         |       +/-         |       +/-         |
+| ny.201912 |       +/-         |       +/-         |       +/-         |
+
+| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| :-------: | :---------------: | :---------------: | :---------------: |
+| ny.202001 |       +/-         |       +/-         |       +/-         |
+| ny.202002 |       +/-         |       +/-         |       +/-         |
+| ny.202003 |       +/-         |       +/-         |       +/-         |
+| ny.202004 |       +/-         |       +/-         |       +/-         |
+| ny.202005 |       +/-         |       +/-         |       +/-         |
+| ny.202006 |       +/-         |       +/-         |       +/-         |
+-->
