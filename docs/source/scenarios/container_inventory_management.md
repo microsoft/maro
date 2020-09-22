@@ -118,9 +118,7 @@ The order generation model in this topology is built based on the trade data fro
 2019 to October 2019, The ports with large trade volume are selected, and the
 proportion of each port as the source of orders is directly proportional to the
 export volume of the country it belongs to, while the proportion as the destination
-is proportional to the import volume. While the service routes among the selected
-ports in this topology are following the service routes provided by
-[OOCL](https://www.oocl.com/eng/ourservices/serviceroutes/Pages/default.aspx).
+is proportional to the import volume.
 In this scenario, there are much more ports, much more service routes. And most
 ports no longer have a simple supply/demand feature. The cooperation among ports
 is much more complex and it is difficult to find an efficient repositioning policy
