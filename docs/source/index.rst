@@ -90,14 +90,6 @@ Contents
 
 .. toctree::
     :maxdepth: 2
-    :caption: Examples
-
-    examples/hello_world.md
-    examples/ecr_single_host.md
-    examples/ecr_distributed.md
-
-.. toctree::
-    :maxdepth: 2
     :caption: Key Components
 
     key_components/simulation_toolkit.md
