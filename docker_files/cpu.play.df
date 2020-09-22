@@ -20,9 +20,9 @@ RUN jupyter contrib nbextension install --system
 RUN jt -t onedork -fs 95 -altp -tfs 11 -nfs 115 -cellw 88% -T
 
 # Install maro
-COPY --from=ext_build /maro_build/dist/maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl ./maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl
-RUN pip install maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl
-RUN rm maro-0.0.1a0-cp36-cp36m-manylinux2010_x86_64.whl
+COPY --from=ext_build /maro_build/dist/maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl ./maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl
+RUN pip install maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl
+RUN rm maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl
 
 # Install redis
 RUN wget http://download.redis.io/releases/redis-6.0.6.tar.gz; tar xzf redis-6.0.6.tar.gz; cd redis-6.0.6; make

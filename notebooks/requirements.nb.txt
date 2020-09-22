@@ -1,5 +1,5 @@
 jupyter==1.0.0
-jupyter-client==5.3.4
+jupyter-client==6.1.7
 jupyter-console==6.0.0
 jupyter-contrib-core==0.3.3
 jupyter-contrib-nbextensions==0.5.1
