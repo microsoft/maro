@@ -7,9 +7,9 @@ import yaml
 
 from maro.simulator import Env
 from maro.rl import ActorProxy, SimpleLearner, AgentMode, TwoPhaseLinearExplorer
-from examples.ecr.dqn.components.state_shaper import ECRStateShaper
+from examples.cim.dqn.components.state_shaper import CIMStateShaper
 from maro.utils import Logger, convert_dottable
-from examples.ecr.dqn.components.agent_manager import DQNAgentManager
+from examples.cim.dqn.components.agent_manager import DQNAgentManager
 
 
 with io.open("config.yml", "r") as in_file:
@@ -20,13 +20,13 @@ with io.open("config.yml", "r") as in_file:
 if __name__ == "__main__":
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    state_shaper = ECRStateShaper(**config.state_shaping)
+    state_shaper = CIMStateShaper(**config.state_shaping)
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},
                           "with_cache": config.exploration.with_cache
                           }
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
-    agent_manager = DQNAgentManager(name="ecr_remote_learner", agent_id_list=agent_id_list, mode=AgentMode.TRAIN,
+    agent_manager = DQNAgentManager(name="cim_remote_learner", agent_id_list=agent_id_list, mode=AgentMode.TRAIN,
                                     state_shaper=state_shaper, explorer=explorer)
 
     proxy_params = {"group_name": config.distributed.group_name,
@@ -35,7 +35,7 @@ if __name__ == "__main__":
                     }
     learner = SimpleLearner(trainable_agents=agent_manager,
                             actor=ActorProxy(proxy_params=proxy_params),
-                            logger=Logger("distributed_ecr_learner", auto_timestamp=False))
+                            logger=Logger("distributed_cim_learner", auto_timestamp=False))
     learner.train(total_episodes=config.general.total_training_episodes)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))

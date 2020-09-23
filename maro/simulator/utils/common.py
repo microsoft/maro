@@ -14,7 +14,7 @@ def get_available_envs():
     get available environment settings under scenarios folder
 
     Returns:
-        List[dict]: list of environment settings like [{"scenario": "ecr", "topology": "5p_ssddd"}]
+        List[dict]: list of environment settings like [{"scenario": "cim", "topology": "toy.5p_ssddd_l0.1"}]
     """
     
 

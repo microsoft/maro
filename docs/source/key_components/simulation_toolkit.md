@@ -1,7 +1,8 @@
 # Simulation Toolkit
 
 MARO simulation toolkit provides some predefined environments, such as
-[ECR](../scenarios/ecr.html), [Citi Bike](../scenarios/citi_bike.html), etc.
+[CIM](../scenarios/container_inventory_management.html),
+[Citi Bike](../scenarios/citi_bike.html), etc.
 It also provides some critical and reusable wheels for easily building new scenarios,
 with a high-performance guarantee and uniformed programming paradigm, including
 [Data Model](./data_model.html), [Event Buffer](./event_buffer.html), and
@@ -39,7 +40,8 @@ the overall architecture of the MARO simulation system.
 ## Environment
 
 Well-designed topologies are provided in each predefined scenario
-(i.e. [ECR](../scenarios/ecr.html), [Citi Bike](../scenarios/citi_bike.html)).
+(i.e. [CIM](../scenarios/container_inventory_management.html),
+[Citi Bike](../scenarios/citi_bike.html)).
 You can specify both the scenario and the topology when initializing an environment.
 To distinguish the complicated problems in the real world, we provide various
 topologies with different difficulties for the user to do a step-by-step exploration.
@@ -54,11 +56,11 @@ workflow and code snippet.
 
 ```python
 from maro.simulator import Env
-from maro.simulator.scenarios.ecr.common import Action
+from maro.simulator.scenarios.cim.common import Action
 
 # Initialize an environment with a specific scenario, related topology.
-# In ECR, 1 tick means 1 day, here durations=100 means a length of 100 days
-env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+# In Container Inventory Management, 1 tick means 1 day, here durations=100 means a length of 100 days
+env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
 # Query environment summary, which includes business instances, intra-instance attributes, etc.
 print(env.summary)
