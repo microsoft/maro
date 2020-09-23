@@ -19,7 +19,7 @@ class TrainableAgent(AbsAgent):
             while shuffler.has_next():
                 batch = shuffler.next()
                 actor_loss, critic_loss, entropy_loss, tot_loss = self._algorithm.train(batch, self._name[0], 
-                        self._name[1], entropy= training_config.entropy_loss_enable)
+                        self._name[1])
                 loss_dict['actor'].append(actor_loss)
                 loss_dict['critic'].append(critic_loss)
                 loss_dict['entropy'].append(entropy_loss)

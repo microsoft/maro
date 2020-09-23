@@ -8,7 +8,7 @@ from torch.nn.utils import clip_grad
 
 from maro.rl import AbsAlgorithm
 
-from examples.ecr.gnn.utils import differ_gnn_union
+from examples.ecr.gnn.utils import gnn_union
 
 class ActorCritic(AbsAlgorithm):
     def __init__(self, model: nn.Module, 
@@ -105,12 +105,12 @@ class ActorCritic(AbsAlgorithm):
         return_batch = batch['R']
         next_obs_batch = batch['s_']
 
-        obs_batch = differ_gnn_union(obs_batch['p'], obs_batch['po'], obs_batch['pedge'], obs_batch['v'], 
+        obs_batch = gnn_union(obs_batch['p'], obs_batch['po'], obs_batch['pedge'], obs_batch['v'], 
                                         obs_batch['vo'], obs_batch['vedge'], self._p2p_adj, obs_batch['ppedge'], 
                                         obs_batch['mask'], self._device)
         action_batch = torch.from_numpy(action_batch).long().to(self._device)
         return_batch = torch.from_numpy(return_batch).float().to(self._device)
-        next_obs_batch = differ_gnn_union(next_obs_batch['p'], next_obs_batch['po'], next_obs_batch['pedge'], 
+        next_obs_batch = gnn_union(next_obs_batch['p'], next_obs_batch['po'], next_obs_batch['pedge'], 
                                         next_obs_batch['v'], next_obs_batch['vo'], next_obs_batch['vedge'],
                                         self._p2p_adj, next_obs_batch['ppedge'], next_obs_batch['mask'], 
                                         self._device)

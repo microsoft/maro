@@ -38,13 +38,11 @@ class GNNLearner(AbsLearner):
                 loss_dict = self._trainable_agents.train(training_config)
                     
                 training_time += time.time() - tick
-                self._logger.info()
 
-            
             if log_pth is not None and (i+1) % training_config.model_save_freq == 0:
                 self._actor.save_model(os.path.join(log_pth, 'models'), i+1)
 
-            self._logger.debug('tot rollout_time: %d' % int(rollout_time))
+            self._logger.debug('total rollout_time: %d' % int(rollout_time))
             self._logger.debug('train_time: %d' % int(training_time))
 
 

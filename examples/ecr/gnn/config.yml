@@ -7,9 +7,9 @@ env:
     # topology: "toy.4p_ssdd_l0.0"
 training:
   enable: True
-  parallel_cnt: 2
+  parallel_cnt: 24
   device: 'cuda:1'
-  batch_size: 150
+  batch_size: 1024
   shuffle_time: 1
   rollout_cnt: 1000
   train_freq: 1

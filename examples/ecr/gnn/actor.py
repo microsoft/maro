@@ -11,9 +11,8 @@ from maro.simulator import Env
 from maro.rl import AbsActor
 from examples.ecr.gnn.numpy_store import NumpyStore, Shuffler
 from examples.ecr.gnn.action_shaper import DiscreteActionShaper
-from examples.ecr.gnn.utils import fix_seed, differ_gnn_union
+from examples.ecr.gnn.utils import fix_seed, gnn_union
 from examples.ecr.gnn.experience_shaper import ExperienceShaper
-from examples.ecr.gnn.differ_gnn_model import SharedAC
 from examples.ecr.gnn.state_shaper import GNNStateShaper
 from collections import defaultdict, OrderedDict
 from examples.ecr.gnn.actor_critic import ActorCritic
@@ -319,7 +318,7 @@ class ParallelActor(AbsActor):
             step_i += 1
 
             t = time.time()
-            graph = differ_gnn_union(self.action_io_np['p'], self.action_io_np['po'], self.action_io_np['pedge'],
+            graph = gnn_union(self.action_io_np['p'], self.action_io_np['po'], self.action_io_np['pedge'],
                                       self.action_io_np['v'], self.action_io_np['vo'], self.action_io_np['vedge'], 
                                       self._gnn_state_shaper.p2p_static_graph, self.action_io_np['ppedge'], self.action_io_np['mask'], self.device)
             t_state += time.time() - t
@@ -345,7 +344,7 @@ class ParallelActor(AbsActor):
         self._trainsfer_time += time.time() - tick
 
 
-        self.logger.debug(dict(zip(self.log_header, self.action_io_np['sh'])))
+        self._logger.debug(dict(zip(self.log_header, self.action_io_np['sh'])))
         # print(loged_dict)
 
         with open(os.path.join(self.config.log.path, 'logs_%d'%self._roll_out_cnt), 'wb') as fp:
@@ -359,8 +358,8 @@ class ParallelActor(AbsActor):
             with open(os.path.join(self.config.log.path, 'exp_%d'%self._roll_out_cnt), 'wb') as fp:
                 pickle.dump(result, fp)
 
-        self._logger.debug('play time: %d' % int(self._actor._roll_out_time))
-        self._logger.debug('transfer time: %d' % int(self._actor._trainsfer_time))
+        self._logger.debug('play time: %d' % int(self._roll_out_time))
+        self._logger.debug('transfer time: %d' % int(self._trainsfer_time))
         return result
 
     def exit(self):

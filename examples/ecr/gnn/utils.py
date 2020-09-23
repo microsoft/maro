@@ -37,7 +37,7 @@ def warm_up_lr(opt, warmup_steps):
 def from_numpy(device, *np_values):
     return [torch.from_numpy(v).to(device) for v in np_values]
 
-def differ_gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
+def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     '''
     v: (seq_len, batch, v_cnt, v_dim)
     vo: (batch, v_cnt, p_cnt)
@@ -97,78 +97,6 @@ def differ_gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
         'mask': seq_mask,
     }
 
-def lstm_graph_union(v, p, vo, po, device, v2v=None, p2p=None):
-    batch, seq_len, v_cnt, v_dim = v.shape
-    _, _, p_cnt, p_dim = p.shape
-
-    v = torch.from_numpy(v).to(device)
-    p = torch.from_numpy(p).to(device)
-    vo = torch.from_numpy(vo).to(device)
-    po = torch.from_numpy(po).to(device)
-
-    v = v.transpose(0, 1)
-    p = p.transpose(0, 1)
-    vo = vo.transpose(0, 1)
-    po = po.transpose(0, 1)
-
-    batch_range = torch.arange(batch*seq_len, dtype=torch.long).to(device)
-    vo = flatten_embedding(vo, batch_range)
-    po = flatten_embedding(po, batch_range)
-
-    v = v.reshape(seq_len*batch*v_cnt, v_dim)
-    p = p.reshape(seq_len*batch*p_cnt, p_dim)
-
-    ret = {'v': v, 'p': p, 'vo': vo, 'po': po}
-
-    if v2v is not None:
-        v2v = torch.from_numpy(v2v).to(device).repeat(seq_len, batch, 1, 1)
-        v2v = flatten_embedding(v2v, batch_range)
-        ret['v2v'] = v2v
-    if p2p is not None:
-        p2p = torch.from_numpy(p2p).to(device).repeat(seq_len, batch, 1, 1)
-        p2p = flatten_embedding(p2p, batch_range)
-        ret['p2p'] = p2p
-    return ret
-
-def order_union(v, p, vo, po, device, v2v=None, p2p=None):
-    # batch = v.shape[0]
-    batch, v_cnt, seq_len, v_dim = v.shape
-    _, p_cnt, _, p_dim = p.shape
-
-    v = torch.from_numpy(v).to(device)
-    p = torch.from_numpy(p).to(device)
-    vo = torch.from_numpy(vo).to(device)
-    po = torch.from_numpy(po).to(device)
-
-    v = v.reshape(batch *v_cnt, seq_len, v_dim)
-    p = p.reshape(batch *p_cnt, seq_len, p_dim)
-
-    batch_range = torch.arange(batch, dtype=torch.long).to(device)
-    vo = flatten_embedding(vo, batch_range)
-    po = flatten_embedding(po, batch_range)
-
-    ret = {'v': v, 'p': p, 'vo': vo, 'po': po}
-
-    if v2v is not None:
-        v2v = torch.from_numpy(v2v).to(device).repeat(batch, 1, 1)
-        v2v = flatten_embedding(v2v, batch_range)
-        ret['v2v'] = v2v
-    if p2p is not None:
-        p2p = torch.from_numpy(p2p).to(device).repeat(batch, 1, 1)
-        p2p = flatten_embedding(p2p, batch_range)
-        ret['p2p'] = p2p
-    
-    return ret
-
-def base_union(v, device):
-    # batch = v.shape[0]
-    batch, seq_len, v_dim = v.shape
-    v = v.reshape(batch, seq_len, v_dim)
-    # v = np.transpose(v,(1,0,2))
-    v = torch.from_numpy(v).to(device)
-    
-
-    return v
 
 def flatten_embedding(embedding, batch_range, edge=None):
     if len(embedding.shape) == 3:
@@ -191,6 +119,9 @@ def flatten_embedding(embedding, batch_range, edge=None):
         return ret, edge
 
 def log2json(file_path):
+    """load the log file as a json list.
+    """
+
     with open(file_path, 'r') as fp:
         lines = fp.read().splitlines()
         json_list = '[' + ','.join(lines) + ']'
@@ -330,29 +261,3 @@ def analysis_speed(env):
         eq_speed += 1.0*cnt/sp
     eq_speed = 1.0/eq_speed
     return speed_dict, eq_speed
-        
-
-if __name__ == "__main__":
-    for i in range(5):
-
-        snapshot_list6 = zero_play(max_tick=500, scenario='ecr', topology='22p_global_l0.0')
-        sh6 = snapshot_list6.static_nodes[499:list(range(22)):('acc_shortage', 0)]
-        print(sh6)
-        print(sum(sh6))
-
-        snapshot_list7 = zero_play(max_tick=500, scenario='ecr', topology='22p_global_l0.0')
-        sh7 = snapshot_list7.static_nodes[499:list(range(22)):('acc_shortage', 0)]
-        print(sh7)
-        print(sum(sh7))
-
-    env6 = Env(max_tick=500, scenario='ecr', topology='22p_global_l0.0')
-    spd6, eq6 = analysis_speed(env6)
-    dd6 = decision_cnt_analysis(env6)
-    print(spd6)
-    print(dd6)
-
-    env7 = Env(max_tick=500, scenario='ecr', topology='22p_global_l0.0')
-    spd7, eq7 = analysis_speed(env7)
-    dd7 = decision_cnt_analysis(env7)
-    print(spd7)
-    print(dd7)

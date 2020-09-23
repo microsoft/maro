@@ -77,7 +77,6 @@ class SimpleAgentManger(AbsAgentManager):
         self._algorithm.load_model(model_pth)
 
     def train(self, training_config):
-        
         for agent in self._agent_dict.values():
             agent.train(training_config)
     

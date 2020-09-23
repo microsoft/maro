@@ -17,7 +17,7 @@ import time
 
 
 if __name__ == "__main__":
-    config_pth = 'examples/ecr/gnn/config_22p.yml'
+    config_pth = 'examples/ecr/gnn/config.yml'
     config = load_config(config_pth)
 
     # generate log path.
