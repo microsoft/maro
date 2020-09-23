@@ -290,15 +290,15 @@ the environment and test for a duration of 1120 ticks (days).
 
 | Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
 | :-------------------: | :---------------: | :---------------: | :---------------: |
-| global_trade.22p_l0.0 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.1 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.2 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.3 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.4 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.5 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.6 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.7 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.8 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.0 |      2240000      |      1028481      |         0         |
+| global_trade.22p_l0.1 |      2240000      |      1081935      |         0         |
+| global_trade.22p_l0.2 |      2240000      |      1083358      |         0         |
+| global_trade.22p_l0.3 |      2239460      |      1085212      |         0         |
+| global_trade.22p_l0.4 |      2244068      |      1089628      |         0         |
+| global_trade.22p_l0.5 |      2244068      |      1102913      |         0         |
+| global_trade.22p_l0.6 |      2244068      |      1122092      |         0         |
+| global_trade.22p_l0.7 |      2244068      |      1162108      |         0         |
+| global_trade.22p_l0.8 |      2241716      |      1161714      |         0         |
 
 #### Random Repositioning
 
@@ -336,17 +336,17 @@ the environment and test for a duration of 1120 ticks (days).
 | toy.6p_sssbdd_l0.5 |      2244068      |  1755551+/-44855  |   55055+/-2759    |
 | toy.6p_sssbdd_l0.6 |      2244068      |  1830504+/-10690  |   57083+/-526     |
 | toy.6p_sssbdd_l0.7 |      2244068      |  1742129+/-23910  |   65571+/-3228    |
-| toy.6p_sssbdd_l0.8 |      2244068      |  1761283+/-22338  |   66827+/-1501    |
+| toy.6p_sssbdd_l0.8 |      2241716      |  1761283+/-22338  |   66827+/-1501    |
 
 | Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
 | :-------------------: | :---------------: | :---------------: | :---------------: |
-| global_trade.22p_l0.0 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.1 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.2 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.3 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.4 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.5 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.6 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.7 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.8 |       +/-         |       +/-         |       +/-         |
+| global_trade.22p_l0.0 |      2240000      |  1010009+/-20942  |    27412+/-730    |
+| global_trade.22p_l0.1 |      2240000      |  1027395+/-19183  |    9408+/-647     |
+| global_trade.22p_l0.2 |      2240000      |  1035851+/-4352   |    9062+/-262     |
+| global_trade.22p_l0.3 |      2239460      |  1032480+/-1332   |    9511+/-446     |
+| global_trade.22p_l0.4 |      2244068      |  1034412+/-11689  |    9304+/-314     |
+| global_trade.22p_l0.5 |      2244068      |  1042869+/-16146  |    9436+/-394     |
+| global_trade.22p_l0.6 |      2244068      |  1096502+/-26896  |    15114+/-1377   |
+| global_trade.22p_l0.7 |      2244068      |  1144981+/-5355   |    14176+/-1285   |
+| global_trade.22p_l0.8 |      2241716      |  1154184+/-7043   |    13548+/-112    |
 -->
