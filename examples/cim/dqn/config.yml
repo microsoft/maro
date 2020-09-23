@@ -1,5 +1,5 @@
 env:
-  scenario: "ecr"
+  scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
 general:
