@@ -95,7 +95,6 @@ setup(
     python_requires=">=3.6,<3.8",
     setup_requires=[
         "numpy==1.19.1",
-        "PyYAML==5.3.1"
     ],
     install_requires=[
         # TODO: use a helper function to collect these

@@ -12,6 +12,6 @@ class MetaTimestampNotExist(MAROException):
         super().__init__(2000, ERROR_CODE[2000])
 
 
-class EcrGeneratorInvalidParkingDuration(MAROException):
+class CimGeneratorInvalidParkingDuration(MAROException):
     def __init__(self):
         super().__init__(2001, ERROR_CODE[2001])
