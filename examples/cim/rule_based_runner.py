@@ -111,7 +111,7 @@ def main(args):
         results = [tp]
         for i, seed in enumerate(args.seed):
             result = run(env, agent, seed)
-            results.extend([result["order_requirements"], result["container_shortage"], result["operation_cost"]])
+            results.extend([result["order_requirements"], result["container_shortage"], result["operation_number"]])
 
         with open(file_name, 'a') as fp:
             writer = csv.writer(fp)

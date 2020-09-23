@@ -137,11 +137,11 @@ def main(args):
         results = [tp]
         if args.mode == "null" or (args.mode == "greedy" and args.k == 1):  # no use for seed
             result = run(env, agent)
-            results.extend([result["trip_requirements"], result["bike_shortage"], result["operation_cost"]])
+            results.extend([result["trip_requirements"], result["bike_shortage"], result["operation_number"]])
         else:
             for i, seed in enumerate(args.seed):
                 result = run(env, agent, seed)
-                results.extend([result["trip_requirements"], result["bike_shortage"], result["operation_cost"]])
+                results.extend([result["trip_requirements"], result["bike_shortage"], result["operation_number"]])
 
         with open(file_name, 'a') as fp:
             writer = csv.writer(fp)
