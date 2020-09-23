@@ -1,3 +1,6 @@
+![unittest](https://github.com/microsoft/maro/workflows/unittest/badge.svg)
+![build](https://github.com/microsoft/maro/workflows/build/badge.svg)
+
 # ![MARO LOGO](./docs/source/images/logo.svg)
 
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
