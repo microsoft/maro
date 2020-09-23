@@ -25,30 +25,17 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    
+    - name: Build image
+      run: |
+        docker build -f ./docker_files/cpu.play.df . -t arthursjiang/maro:cpu
 
-      - name: Build and push Docker images
-        # You may pin to the exact commit or the version.
-        # uses: docker/build-push-action@ab83648e2e224cfeeab899e23b639660765c3a89
-        uses: docker/build-push-action@v1.1.1
-        with:
-          # Username used to log in to a Docker registry. If not set then no login will occur
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          # Server address of Docker registry. If not set then will default to Docker Hub
-          registry: https://hub.docker.com/repository/docker/arthursjiang/maro
-          # Docker repository to tag the image with
-          repository: latest
-          # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
-          tags: citi-bike, inventory-management, operations-research, reinforcement-learning, resource-optimization, simulator
-          # Automatically tags the built image with the git reference as per the readme
-          # Path to the build context
-          path: .
-          # Path to the Dockerfile (Default is '{path}/Dockerfile')
-          dockerfile: docker_files/cpu.play.df
-          # Sets the target stage to build
-          target: maro/playground:cpu
-          # Whether to push the image
-          push: true
+    - name: Login docker hub
+      run: |
+        docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_HUB_PASSWORD }}
+        
+    - name: Push image
+      run: |
+        docker push arthursjiang/maro
