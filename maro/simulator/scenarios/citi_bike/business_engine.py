@@ -200,12 +200,12 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if trip_data_path.startswith("~"):
             trip_data_path = os.path.expanduser(trip_data_path)
 
-        # Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
         # if (not os.path.exists(weather_data_path)) or (not os.path.exists(trip_data_path)):
         if not os.path.exists(trip_data_path):
             self._build_temp_data()
 
-        # Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
         # self._weather_lut = WeatherTable(self._conf["weather_data"], self._time_zone)
 
         self._trip_reader = BinaryReader(self._conf["trip_data"])
@@ -304,7 +304,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._last_date = cur_datetime
 
-        # Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
         # weather_info = self._weather_lut[cur_datetime]
 
         weekday = cur_datetime.weekday()
@@ -314,7 +314,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         weather = 0
         temperature = 0
 
-        # Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
         # if weather_info is not None:
         #     weather = weather_info.weather
         #     temperature = weather_info.temp
@@ -469,7 +469,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             self._citi_bike_data_pipeline.build()
             build_folders = self._citi_bike_data_pipeline.get_build_folders()
             trip_folder = build_folders["trip"]
-            # Weather data source changed, temporarily disable, will enable it later when new data source is available.
+            # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
             # weather_folder = build_folders["weather"]
             # self._conf["weather_data"] = chagne_file_path(self._conf["weather_data"], weather_folder)
             self._conf["trip_data"] = chagne_file_path(self._conf["trip_data"], trip_folder)
