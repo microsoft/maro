@@ -100,8 +100,7 @@ class Action:
         return self.__str__()
 
     def __str__(self):
-        return f'Action {{quantity: {self.quantity}, port: {self.port_idx}, vessel: {self.vessel_idx} }}'
-
+        return f'Action(port_idx={self.port_idx}, vessel_idx={self.vessel_idx}, quantity={self.quantity})'
 
 class ActionScope:
     """
@@ -115,8 +114,7 @@ class ActionScope:
         return self.__str__()
 
     def __str__(self):
-        return f'ActionScope {{load: {self.load}, discharge: {self.discharge} }}'
-
+        return f'ActionScope(load={self.load}, discharge={self.discharge})'
 
 class DecisionEvent:
     """

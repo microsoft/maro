@@ -14,7 +14,7 @@ on:
       logLevel:
         description: 'package version'     
         required: true
-        default: '0.0.1a0'
+        default: '0.1.1a0'
 
 jobs:
   build:
