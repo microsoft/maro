@@ -376,60 +376,60 @@ the environment and test for a duration of 1 week.
 
 #### No Repositioning
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| toy.3s_4t |       15118       |       8233        |         0         |
-| toy.4s_4t |       9976        |       7048        |         0         |
-| toy.5s_6t |       16341       |       9231        |         0         |
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
+| :-------: | :---------------: | :---------------: | :-----------------: |
+| toy.3s_4t |      15,118       |      8,233        |          0          |
+| toy.4s_4t |       9,976       |      7,048        |          0          |
+| toy.5s_6t |      16,341       |      9,231        |          0          |
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.201801 |       48089       |       2688        |         0         |
-| ny.201802 |       126374      |       8814        |         0         |
-| ny.201803 |       138952      |       10942       |         0         |
-| ny.201804 |       161443      |       10349       |         0         |
-| ny.201805 |       323375      |       29081       |         0         |
-| ny.201806 |       305971      |       26412       |         0         |
-| ny.201807 |       254715      |       19669       |         0         |
-| ny.201808 |       302589      |       26352       |         0         |
-| ny.201809 |       313002      |       28472       |         0         |
-| ny.201810 |       339268      |       24109       |         0         |
-| ny.201811 |       263227      |       21485       |         0         |
-| ny.201812 |       209102      |       15876       |         0         |
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
+| :-------: | :---------------: | :---------------: | :-----------------: |
+| ny.201801 |       48,089      |       2,688       |          0          |
+| ny.201802 |      126,374      |       8,814       |          0          |
+| ny.201803 |      138,952      |      10,942       |          0          |
+| ny.201804 |      161,443      |      10,349       |          0          |
+| ny.201805 |      323,375      |      29,081       |          0          |
+| ny.201806 |      305,971      |      26,412       |          0          |
+| ny.201807 |      254,715      |      19,669       |          0          |
+| ny.201808 |      302,589      |      26,352       |          0          |
+| ny.201809 |      313,002      |      28,472       |          0          |
+| ny.201810 |      339,268      |      24,109       |          0          |
+| ny.201811 |      263,227      |      21,485       |          0          |
+| ny.201812 |      209,102      |      15,876       |          0          |
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.201901 |       161474      |       10775       |         0         |
-| ny.201902 |       187354      |       12593       |         0         |
-| ny.201903 |       148371      |       7193        |         0         |
-| ny.201904 |       280852      |       16906       |         0         |
-| ny.201905 |       287290      |       27213       |         0         |
-| ny.201906 |       379415      |       33968       |         0         |
-| ny.201907 |       309365      |       21105       |         0         |
-| ny.201908 |       371969      |       33703       |         0         |
-| ny.201909 |       344847      |       24528       |         0         |
-| ny.201910 |       351855      |       29544       |         0         |
-| ny.201911 |       324327      |       29489       |         0         |
-| ny.201912 |       184015      |       14205       |         0         |
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
+| :-------: | :---------------: | :---------------: | :-----------------: |
+| ny.201901 |      161,474      |      10,775       |          0          |
+| ny.201902 |      187,354      |      12,593       |          0          |
+| ny.201903 |      148,371      |       7,193       |          0          |
+| ny.201904 |      280,852      |      16,906       |          0          |
+| ny.201905 |      287,290      |      27,213       |          0          |
+| ny.201906 |      379,415      |      33,968       |          0          |
+| ny.201907 |      309,365      |      21,105       |          0          |
+| ny.201908 |      371,969      |      33,703       |          0          |
+| ny.201909 |      344,847      |      24,528       |          0          |
+| ny.201910 |      351,855      |      29,544       |          0          |
+| ny.201911 |      324,327      |      29,489       |          0          |
+| ny.201912 |      184,015      |      14,205       |          0          |
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------: | :---------------: | :---------------: | :---------------: |
-| ny.202001 |       169304      |       12449       |         0         |
-| ny.202002 |       206105      |       14794       |         0         |
-| ny.202003 |       235986      |       15436       |         0         |
-| ny.202004 |       91810       |       2348        |         0         |
-| ny.202005 |       169412      |       5231        |         0         |
-| ny.202006 |       197883      |       7608        |         0         |
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
+| :-------: | :---------------: | :---------------: | :-----------------: |
+| ny.202001 |      169,304      |      12,449       |          0          |
+| ny.202002 |      206,105      |      14,794       |          0          |
+| ny.202003 |      235,986      |      15,436       |          0          |
+| ny.202004 |       91,810      |       2,348       |          0          |
+| ny.202005 |      169,412      |       5,231       |          0          |
+| ny.202006 |      197,883      |       7,608       |          0          |
 
 #### Random Repositioning
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
 | :-------: | :---------------: | :---------------: | :---------------: |
 | toy.3s_4t |       +/-         |       +/-         |       +/-         |
 | toy.4s_4t |       +/-         |       +/-         |       +/-         |
 | toy.5s_6t |       +/-         |       +/-         |       +/-         |
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
 | :-------: | :---------------: | :---------------: | :---------------: |
 | ny.201801 |       +/-         |       +/-         |       +/-         |
 | ny.201802 |       +/-         |       +/-         |       +/-         |
@@ -444,7 +444,7 @@ the environment and test for a duration of 1 week.
 | ny.201811 |       +/-         |       +/-         |       +/-         |
 | ny.201812 |       +/-         |       +/-         |       +/-         |
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
 | :-------: | :---------------: | :---------------: | :---------------: |
 | ny.201901 |       +/-         |       +/-         |       +/-         |
 | ny.201902 |       +/-         |       +/-         |       +/-         |
@@ -459,7 +459,7 @@ the environment and test for a duration of 1 week.
 | ny.201911 |       +/-         |       +/-         |       +/-         |
 | ny.201912 |       +/-         |       +/-         |       +/-         |
 
-| Topology  | Total Requirement | Resource Shortage | Repositioning Cost|
+| Topology  | Total Requirement | Resource Shortage | Repositioning Number|
 | :-------: | :---------------: | :---------------: | :---------------: |
 | ny.202001 |       +/-         |       +/-         |       +/-         |
 | ny.202002 |       +/-         |       +/-         |       +/-         |
