@@ -59,7 +59,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
         mkdir -p dist
-        cp wheelhouse/*-manylinux*.whl dist
+        cp wheelhouse/maro-*-manylinux*.whl dist
 
     - name: build source package on linux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
@@ -69,12 +69,14 @@ jobs:
     - name: Upload linux wheel to artifact
       uses: actions/upload-artifact@v2
       with:
-        name: citest-wheels
+        name: local-wheels
         path: |
           dist/*.whl
+          dist/*.gz
   #   - name: Publish wheels to PyPI
   #     env:
   #       TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
   #       TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
   #     run: |
   #       twine upload dist/*.whl
+  #       twine upload dist/*.gz
