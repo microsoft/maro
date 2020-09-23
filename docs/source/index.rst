@@ -1,19 +1,14 @@
 .. figure:: ./images/logo.svg
-    :width: 250px
+    :width: 666px
     :align: center
     :alt: MARO
 
-MARO (Multi-Agent Resource Optimization) serves as a domain-specific Reinforcement
-Learning (RL) solution. In MARO, multi-agent RL is used to solve real-world resource
-optimization problems. It can be applied to many important industrial domains,
-such as empty container repositioning (ECR) in logistics, bike repositioning in
-transportation, virtual machine (VM) provisioning in data centers, and asset
-management in finance, etc. Besides, MARO is not limited to RL, we also support
-other planning/decision-related components, such as
-`Operations Research (OR) <https://en.wikipedia.org/wiki/Operations_research>`_
-based planning, which is already in our further worklist. MARO provides comprehensive
-support in data processing, simulator building, RL algorithm selection, and
-distributed training.
+Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement learning as a Service (RaaS) for real-world resource optimization.
+It can be applied to many important industrial domains,
+such as container inventory management in logistics, bike repositioning in
+transportation, virtual machine provisioning in data centers, and asset
+management in finance. Besides RL, it also supports other planning/decision mechanisms, such as
+`Operations Research <https://en.wikipedia.org/wiki/Operations_research>`_.
 
 
 Key Components
@@ -23,7 +18,7 @@ Key Components
 
 - Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
 - RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
-- Distributed toolkit: it provides distributed communication components, User-Defined Functions (UDF) interface for message auto-handling, cluster provision, and job orchestration.
+- Distributed toolkit: it provides distributed communication components, interface of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 Quick Start
 ====================
@@ -71,6 +66,11 @@ Quick Start
         env.reset()
 
 Contents
+====================
+.. toctree::
+    :maxdepth: 2
+    :caption: Installation
+
     installation/pip_install.md
     installation/playground.md
     installation/grass_cluster_provisioning_on_azure.md

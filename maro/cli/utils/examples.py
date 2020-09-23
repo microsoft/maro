@@ -109,6 +109,13 @@ Examples:
     maro grass clean MyClusterName
 """
 
+MARO_GRASS_STATUS = """
+Examples:
+  Get status of the resource in the cluster
+    maro grass status MyClusterName master
+    maro grass status MyClusterName nodes
+"""
+
 MARO_GRASS_TEMPLATES = """
 Examples:
   Get deployment templates to target directory
