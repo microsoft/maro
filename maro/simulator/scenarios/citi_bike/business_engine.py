@@ -40,11 +40,11 @@ logger = CliLogger(name=__name__)
 metrics_desc = """
 Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick), it contains following keys:
 
-perf (float):  performance (fulfillment/total_trips) until now
+trip_requirements (int): accumulative trips until now 
 
-total_trips (int): accumulative trips until this now 
+bike_shortage (int): accumulative shortage until now 
 
-total_shortage (int): accumulative shortage until this now 
+operation_cost (int): accumulative operation cost until now 
 
 """
 
@@ -66,6 +66,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._total_trips: int = 0
         self._total_shortages: int = 0
+        self._total_cost: int = 0
 
         self._init()
 
@@ -143,6 +144,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset after episode"""
         self._total_trips = 0
+        self._total_cost = 0
         self._total_shortages = 0
 
         self._frame.reset()
@@ -169,9 +171,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         total_shortage = self._total_shortages
 
         return DocableDict(metrics_desc, 
-                perf = (total_trips - total_shortage) / total_trips if total_trips != 0 else 1, 
-                total_trips = total_trips, 
-                total_shortage = total_shortage)
+                trip_requirements = total_trips, 
+                bike_shortage = total_shortage,
+                operation_cost = self._total_cost)
 
     def __del__(self):
         """Collect resource by order"""
@@ -410,10 +412,13 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if max_accept_number < transfered_number:
             src_station = self._stations[payload.from_station_idx]
 
-            self._decision_strategy.move_to_neighbor(src_station, station, transfered_number - max_accept_number)
+            cost = self._decision_strategy.move_to_neighbor(src_station, station, transfered_number - max_accept_number)
+
+            self._total_cost += cost
 
         if max_accept_number > 0:
             station.transfer_cost += max_accept_number
+            self._total_cost += max_accept_number
 
         station.bikes = station_bikes + max_accept_number
 

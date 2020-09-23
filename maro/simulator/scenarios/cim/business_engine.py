@@ -20,9 +20,9 @@ from maro.data_lib.cim import data_from_generator, data_from_dumps, CimDataConta
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick), it contains following keys:
 
-perf (float): performance (accumulative fulfillment / accumulative orders) until now
-total_shortage (int): accumulative shortage until now
-total_cost (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
+order_requirements (int): accumulative orders until now
+container_shortage (int): accumulative shortage until now
+operation_cost (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
 """
 
 
@@ -268,9 +268,9 @@ class CimBusinessEngine(AbsBusinessEngine):
         total_booking = sum([p.acc_booking for p in self._ports])
 
         return DocableDict(metrics_desc,
-            perf = (total_booking - total_shortage)/total_booking if total_booking != 0 else 1,
-            total_shortage = total_shortage,
-            total_cost = self._total_transfer_cost
+            order_requirements = total_booking,
+            container_shortage = total_shortage,
+            operation_cost = self._total_transfer_cost
         )
 
     def get_node_mapping(self) -> dict:
