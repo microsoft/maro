@@ -1,6 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+######################################################################################
+pk_description = """
+Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
+learning as a Service (RaaS) for real-world resource optimization.
+"""
+
+with open("README.md", "r") as f:
+    pk_long_description = "".join(f.readlines())
+
+with open("LICENSE", "r") as f:
+    pk_license = "".join(f.readlines())
+######################################################################################
 from glob import glob
 import os
 from setuptools import setup, find_packages, Extension
@@ -73,20 +85,20 @@ extensions.append(
 setup(
     name="maro",
     version=__version__,
-    description="",
-    long_description="",
+    description=pk_description,
+    long_description=pk_long_description,
     long_description_content_type="text/markdown",
-    author="",
-    author_email="",
-    url="",
+    author="Arthur Jiang",
+    author_email="shujia.jiang@microsoft.com",
+    url="https://github.com/microsoft/maro",
     project_urls={
-        "Code": "/path/to/code/repo",
-        "Issues": "/path/to/issues",
-        "Documents": "/path/to/documents"
+        "Code": "https://github.com/microsoft/maro",
+        "Issues": "https://github.com/microsoft/maro/issues",
+        "Documents": "https://maro.readthedocs.io/en/latest"
     },
-    license="",
-    platforms=[],
-    keywords=[],
+    license=pk_license,
+    platforms=["Windows", "Linux", "macOS"],
+    keywords=["citi-bike", "inventory-management", "operations-research", "reinforcement-learning", "resource-optimization", "simulator"],
     classifiers=[
         # See <https://pypi.org/classifiers/> for all classifiers
         "Programing Language :: Python",
@@ -95,7 +107,6 @@ setup(
     python_requires=">=3.6,<3.8",
     setup_requires=[
         "numpy==1.19.1",
-        "PyYAML==5.3.1"
     ],
     install_requires=[
         # TODO: use a helper function to collect these
@@ -122,7 +133,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        "maro.simulator.scenarios.ecr": ["topologies/*/*.yml", "meta/*.yml"],
+        "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.cli.k8s": ["lib/**/*"],
         "maro.cli.grass": ["lib/**/*"],

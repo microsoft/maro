@@ -1,18 +1,22 @@
-![MARO LOGO](./docs/source/images/logo.svg)
+# ![MARO LOGO](./docs/source/images/logo.svg)
 
-Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement learning as a Service (RaaS) for real-world resource optimization.
-It can be applied to many important industrial domains,
-such as container inventory management in logistics, bike repositioning in
-transportation, virtual machine provisioning in data centers, and asset
-management in finance. Besides [Reinforcement Learning](https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf) (RL),
+Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
+learning as a Service (RaaS) for real-world resource optimization. It can be
+applied to many important industrial domains, such as container inventory
+management in logistics, bike repositioning in transportation, virtual machine
+provisioning in data centers, and asset management in finance. Besides
+[Reinforcement Learning](https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf) (RL),
 it also supports other planning/decision mechanisms, such as
 [Operations Research](https://en.wikipedia.org/wiki/Operations_research).
 
 Key Components of MARO:
 
-- Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
-- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager, agent, RL algorithms, learner, actor, and various shapers.
-- Distributed toolkit: it provides distributed communication components, interface of user-defined functions for message auto-handling, cluster provision, and job orchestration.
+- Simulation toolkit: it provides some predefined scenarios, and the reusable
+wheels for building new scenarios.
+- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager,
+agent, RL algorithms, learner, actor, and various shapers.
+- Distributed toolkit: it provides distributed communication components, interface
+of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 ![MARO Key Components](./docs/source/images/maro_overview.svg)
 
@@ -28,12 +32,6 @@ Key Components of MARO:
 ## Prerequisites
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
-
-## Install MARO from PyPI
-
-```sh
-pip install maro
-```
 
 ## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
@@ -83,7 +81,7 @@ pip install maro
 ```python
 from maro.simulator import Env
 
-env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
 metrics, decision_event, is_done = env.step(None)
 
@@ -109,17 +107,22 @@ docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+This project welcomes contributions and suggestions. Most contributions require
+you to agree to a Contributor License Agreement (CLA) declaring that you have
+the right to, and actually do, grant us the rights to use your contribution. For
+details, visit https://cla.opensource.microsoft.com.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+When you submit a pull request, a CLA bot will automatically determine whether
+you need to provide a CLA and decorate the PR appropriately (e.g., status check,
+comment). Simply follow the instructions provided by the bot. You will only need
+to do this once across all repos using our CLA.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the
+[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the
+[Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
+with any additional questions or comments.
 
 ## License
 

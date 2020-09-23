@@ -4,10 +4,10 @@
 
 from time import time
 from maro.simulator import Env
-from maro.simulator.scenarios.ecr.frame_builder import gen_ecr_frame
+from maro.simulator.scenarios.cim.frame_builder import gen_cim_frame
 
 """
-in this file we will test performance for frame, snapshotlist, and ecr scenario,with following config
+In this file we will test performance for frame, snapshotlist, and cim scenario, with following config
 
 1. ports: 100
 2. vessels: 100
@@ -26,7 +26,7 @@ STATES_QURING_TIME = 100000
 def test_frame_only():
     start_time = time()
 
-    frm = gen_ecr_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
+    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
 
     static_node = frm.ports[0]
 
@@ -41,7 +41,7 @@ def test_frame_only():
 
 
 def test_snapshot_list_only():
-    frm = gen_ecr_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
+    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
 
     start_time = time()
 
@@ -55,7 +55,7 @@ def test_snapshot_list_only():
 
 
 def test_states_quering():
-    frm = gen_ecr_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
+    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
     frm.take_snapshot(0)
 
     start_time = time()
@@ -70,10 +70,10 @@ def test_states_quering():
     print(f"Single state quering {STATES_QURING_TIME} times: {end_time - start_time}")
 
 
-def test_ecr():
+def test_cim():
     eps = 4
 
-    env = Env("ecr", "toy.5p_ssddd_l0.0", durations=MAX_TICK)
+    env = Env("cim", "toy.5p_ssddd_l0.0", durations=MAX_TICK)
 
     start_time = time()
 
@@ -87,11 +87,11 @@ def test_ecr():
 
     end_time = time()
 
-    print(f"ecr 5p toplogy with {MAX_TICK} total time cost: {(end_time - start_time)/eps}")
+    print(f"cim 5p toplogy with {MAX_TICK} total time cost: {(end_time - start_time)/eps}")
 
 
 if __name__ == "__main__":
     test_frame_only()
     test_snapshot_list_only()
     test_states_quering()
-    test_ecr()
+    test_cim()
