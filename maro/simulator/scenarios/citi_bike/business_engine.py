@@ -40,11 +40,11 @@ logger = CliLogger(name=__name__)
 metrics_desc = """
 Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick), it contains following keys:
 
-perf (float):  performance (fulfillment/total_trips) until now
+trip_requirements (int): accumulative trips until now 
 
-total_trips (int): accumulative trips until this now 
+bike_shortage (int): accumulative shortage until now 
 
-total_shortage (int): accumulative shortage until this now 
+operation_number (int): accumulative operation cost until now 
 
 """
 
@@ -66,6 +66,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._total_trips: int = 0
         self._total_shortages: int = 0
+        self._total_operate_num: int = 0
 
         self._init()
 
@@ -143,6 +144,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset after episode"""
         self._total_trips = 0
+        self._total_operate_num = 0
         self._total_shortages = 0
 
         self._frame.reset()
@@ -169,9 +171,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         total_shortage = self._total_shortages
 
         return DocableDict(metrics_desc, 
-                perf = (total_trips - total_shortage) / total_trips if total_trips != 0 else 1, 
-                total_trips = total_trips, 
-                total_shortage = total_shortage)
+                trip_requirements = total_trips, 
+                bike_shortage = total_shortage,
+                operation_number = self._total_operate_num)
 
     def __del__(self):
         """Collect resource by order"""
@@ -276,7 +278,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self._trips_adj = MatrixAttributeAccessor(self._matrices_node, "trips_adj", station_num, station_num)
 
     def _init_frame(self, station_num: int):
-        # TODO: read the station number later
         self._frame = build_frame(station_num, self.calc_max_snapshots())
         self._snapshots = self._frame.snapshots
 
@@ -419,6 +420,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         if max_accept_number > 0:
             station.transfer_cost += max_accept_number
+            self._total_operate_num += max_accept_number
 
         station.bikes = station_bikes + max_accept_number
 
