@@ -1,14 +1,10 @@
-seed: 4096
-transfer_cost_factors:
-  load: 0.05
-  dsch: 0.05
 container_usage_proportion:
   period: 112
   sample_nodes:
   - - 0
-    - 0.012
+    - 0.01
   - - 111
-    - 0.012
+    - 0.01
   sample_noise: 0
 container_volumes:
 - 1
@@ -943,13 +939,17 @@ routes:
     port_name: yokohama_jpn
   - distance: 60
     port_name: shanghai_chn
+seed: 4096
 stop_number:
 - 4
 - 3
 total_containers: 100000
+transfer_cost_factors:
+  dsch: 0.05
+  load: 0.05
 vessels:
   a3s_vessel_000:
-    capacity: 7739
+    capacity: 3869
     parking:
       duration: 1
       noise: 0
@@ -960,7 +960,7 @@ vessels:
       noise: 0
       speed: 10
   a3s_vessel_001:
-    capacity: 7739
+    capacity: 3869
     parking:
       duration: 1
       noise: 0
@@ -971,7 +971,7 @@ vessels:
       noise: 0
       speed: 10
   asa_vessel_000:
-    capacity: 4379
+    capacity: 2189
     parking:
       duration: 1
       noise: 0
@@ -982,7 +982,7 @@ vessels:
       noise: 0
       speed: 10
   asa_vessel_001:
-    capacity: 4379
+    capacity: 2189
     parking:
       duration: 1
       noise: 0
@@ -993,7 +993,7 @@ vessels:
       noise: 0
       speed: 10
   ate1_vessel_000:
-    capacity: 46069
+    capacity: 23034
     parking:
       duration: 1
       noise: 0
@@ -1004,7 +1004,7 @@ vessels:
       noise: 0
       speed: 10
   ate1_vessel_001:
-    capacity: 46069
+    capacity: 23034
     parking:
       duration: 1
       noise: 0
@@ -1015,7 +1015,7 @@ vessels:
       noise: 0
       speed: 10
   gex1_vessel_000:
-    capacity: 9182
+    capacity: 4591
     parking:
       duration: 1
       noise: 0
@@ -1026,7 +1026,7 @@ vessels:
       noise: 0
       speed: 10
   gex1_vessel_001:
-    capacity: 9182
+    capacity: 4591
     parking:
       duration: 1
       noise: 0
@@ -1037,7 +1037,7 @@ vessels:
       noise: 0
       speed: 10
   ktx5_vessel_000:
-    capacity: 11328
+    capacity: 5664
     parking:
       duration: 1
       noise: 0
@@ -1048,7 +1048,7 @@ vessels:
       noise: 0
       speed: 10
   ktx5_vessel_001:
-    capacity: 11328
+    capacity: 5664
     parking:
       duration: 1
       noise: 0
@@ -1059,7 +1059,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_000:
-    capacity: 52831
+    capacity: 26415
     parking:
       duration: 1
       noise: 0
@@ -1070,7 +1070,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_001:
-    capacity: 52831
+    capacity: 26415
     parking:
       duration: 1
       noise: 0
@@ -1081,7 +1081,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_002:
-    capacity: 52831
+    capacity: 26415
     parking:
       duration: 1
       noise: 0
@@ -1092,7 +1092,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_003:
-    capacity: 52831
+    capacity: 26415
     parking:
       duration: 1
       noise: 0
@@ -1103,7 +1103,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_004:
-    capacity: 52831
+    capacity: 26415
     parking:
       duration: 1
       noise: 0
@@ -1114,7 +1114,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_005:
-    capacity: 52831
+    capacity: 26415
     parking:
       duration: 1
       noise: 0
@@ -1125,7 +1125,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_000:
-    capacity: 39380
+    capacity: 19690
     parking:
       duration: 1
       noise: 0
@@ -1136,7 +1136,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_001:
-    capacity: 39380
+    capacity: 19690
     parking:
       duration: 1
       noise: 0
@@ -1147,7 +1147,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_002:
-    capacity: 39380
+    capacity: 19690
     parking:
       duration: 1
       noise: 0
@@ -1158,7 +1158,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_000:
-    capacity: 19551
+    capacity: 9775
     parking:
       duration: 1
       noise: 0
@@ -1169,7 +1169,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_001:
-    capacity: 19551
+    capacity: 9775
     parking:
       duration: 1
       noise: 0
@@ -1180,7 +1180,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_002:
-    capacity: 19551
+    capacity: 9775
     parking:
       duration: 1
       noise: 0
@@ -1191,7 +1191,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_000:
-    capacity: 17039
+    capacity: 8519
     parking:
       duration: 1
       noise: 0
@@ -1202,7 +1202,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_001:
-    capacity: 17039
+    capacity: 8519
     parking:
       duration: 1
       noise: 0
@@ -1213,7 +1213,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_002:
-    capacity: 17039
+    capacity: 8519
     parking:
       duration: 1
       noise: 0
@@ -1224,7 +1224,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_000:
-    capacity: 7178
+    capacity: 3589
     parking:
       duration: 1
       noise: 0
@@ -1235,7 +1235,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_001:
-    capacity: 7178
+    capacity: 3589
     parking:
       duration: 1
       noise: 0
@@ -1246,7 +1246,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_002:
-    capacity: 7178
+    capacity: 3589
     parking:
       duration: 1
       noise: 0
@@ -1257,7 +1257,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_003:
-    capacity: 7178
+    capacity: 3589
     parking:
       duration: 1
       noise: 0
@@ -1268,7 +1268,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_004:
-    capacity: 7178
+    capacity: 3589
     parking:
       duration: 1
       noise: 0
@@ -1279,7 +1279,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_000:
-    capacity: 5177
+    capacity: 2588
     parking:
       duration: 1
       noise: 0
@@ -1290,7 +1290,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_001:
-    capacity: 5177
+    capacity: 2588
     parking:
       duration: 1
       noise: 0
@@ -1301,7 +1301,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_002:
-    capacity: 5177
+    capacity: 2588
     parking:
       duration: 1
       noise: 0
@@ -1312,7 +1312,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_003:
-    capacity: 5177
+    capacity: 2588
     parking:
       duration: 1
       noise: 0
@@ -1323,7 +1323,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_000:
-    capacity: 9480
+    capacity: 4740
     parking:
       duration: 1
       noise: 0
@@ -1334,7 +1334,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_001:
-    capacity: 9480
+    capacity: 4740
     parking:
       duration: 1
       noise: 0
@@ -1345,7 +1345,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_002:
-    capacity: 9480
+    capacity: 4740
     parking:
       duration: 1
       noise: 0
@@ -1356,7 +1356,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_003:
-    capacity: 9480
+    capacity: 4740
     parking:
       duration: 1
       noise: 0
@@ -1367,7 +1367,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_004:
-    capacity: 9480
+    capacity: 4740
     parking:
       duration: 1
       noise: 0
@@ -1378,7 +1378,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_005:
-    capacity: 9480
+    capacity: 4740
     parking:
       duration: 1
       noise: 0
@@ -1389,7 +1389,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_000:
-    capacity: 50660
+    capacity: 25330
     parking:
       duration: 1
       noise: 0
@@ -1400,7 +1400,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_001:
-    capacity: 50660
+    capacity: 25330
     parking:
       duration: 1
       noise: 0
@@ -1411,7 +1411,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_002:
-    capacity: 50660
+    capacity: 25330
     parking:
       duration: 1
       noise: 0
@@ -1422,7 +1422,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_003:
-    capacity: 50660
+    capacity: 25330
     parking:
       duration: 1
       noise: 0
@@ -1433,7 +1433,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_004:
-    capacity: 50660
+    capacity: 25330
     parking:
       duration: 1
       noise: 0
@@ -1444,7 +1444,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_005:
-    capacity: 50660
+    capacity: 25330
     parking:
       duration: 1
       noise: 0

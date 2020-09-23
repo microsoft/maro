@@ -1,234 +1,230 @@
-seed: 4096
-transfer_cost_factors:
-  load: 0.05
-  dsch: 0.05
 container_usage_proportion:
   period: 112
   sample_nodes:
   - - 0
-    - 0.015
+    - 0.005
   - - 1
-    - 0.015007865924910917
+    - 0.005007865924910917
   - - 2
-    - 0.015031438950533788
+    - 0.005031438950533787
   - - 3
-    - 0.015070644907408821
+    - 0.005070644907408821
   - - 4
-    - 0.015125360439090883
+    - 0.005125360439090882
   - - 5
-    - 0.015195413390274502
+    - 0.005195413390274502
   - - 6
-    - 0.015280583348458162
+    - 0.005280583348458163
   - - 7
-    - 0.015380602337443566
+    - 0.005380602337443566
   - - 8
-    - 0.015495155660487904
+    - 0.005495155660487905
   - - 9
-    - 0.015623882890456232
+    - 0.0056238828904562315
   - - 10
-    - 0.015766379003858577
+    - 0.0057663790038585796
   - - 11
-    - 0.0159221956552037
+    - 0.005922195655203699
   - - 12
-    - 0.016090842587659852
+    - 0.006090842587659851
   - - 13
-    - 0.016271789175584174
+    - 0.006271789175584172
   - - 14
-    - 0.01646446609406726
+    - 0.006464466094067262
   - - 15
-    - 0.01666826711023998
+    - 0.006668267110239981
   - - 16
-    - 0.016882550990706333
+    - 0.006882550990706332
   - - 17
-    - 0.017106643519100972
+    - 0.007106643519100972
   - - 18
-    - 0.017339839617423317
+    - 0.007339839617423317
   - - 19
-    - 0.017581405564473802
+    - 0.007581405564473801
   - - 20
-    - 0.01783058130441221
+    - 0.007830581304412209
   - - 21
-    - 0.01808658283817455
+    - 0.00808658283817455
   - - 22
-    - 0.018348604690224164
+    - 0.008348604690224165
   - - 23
-    - 0.018615822442875754
+    - 0.008615822442875754
   - - 24
-    - 0.018887395330218427
+    - 0.008887395330218428
   - - 25
-    - 0.01916246888347632
+    - 0.009162468883476318
   - - 26
-    - 0.01944017761948346
+    - 0.00944017761948346
   - - 27
-    - 0.01971964776381404
+    - 0.009719647763814041
   - - 28
-    - 0.02
+    - 0.01
   - - 29
-    - 0.02028035223618596
+    - 0.01028035223618596
   - - 30
-    - 0.02055982238051654
+    - 0.010559822380516538
   - - 31
-    - 0.020837531116523682
+    - 0.010837531116523682
   - - 32
-    - 0.02111260466978157
+    - 0.011112604669781572
   - - 33
-    - 0.021384177557124247
+    - 0.011384177557124247
   - - 34
-    - 0.021651395309775834
+    - 0.011651395309775834
   - - 35
-    - 0.02191341716182545
+    - 0.011913417161825448
   - - 36
-    - 0.022169418695587792
+    - 0.01216941869558779
   - - 37
-    - 0.0224185944355262
+    - 0.0124185944355262
   - - 38
-    - 0.022660160382576684
+    - 0.012660160382576682
   - - 39
-    - 0.02289335648089903
+    - 0.012893356480899029
   - - 40
-    - 0.023117449009293668
+    - 0.013117449009293668
   - - 41
-    - 0.02333173288976002
+    - 0.01333173288976002
   - - 42
-    - 0.023535533905932736
+    - 0.013535533905932737
   - - 43
-    - 0.023728210824415827
+    - 0.013728210824415828
   - - 44
-    - 0.02390915741234015
+    - 0.01390915741234015
   - - 45
-    - 0.0240778043447963
+    - 0.014077804344796302
   - - 46
-    - 0.02423362099614142
+    - 0.014233620996141422
   - - 47
-    - 0.02437611710954377
+    - 0.014376117109543769
   - - 48
-    - 0.024504844339512097
+    - 0.014504844339512095
   - - 49
-    - 0.024619397662556435
+    - 0.014619397662556434
   - - 50
-    - 0.02471941665154184
+    - 0.014719416651541837
   - - 51
-    - 0.0248045866097255
+    - 0.014804586609725497
   - - 52
-    - 0.024874639560909118
+    - 0.014874639560909118
   - - 53
-    - 0.024929355092591178
+    - 0.01492935509259118
   - - 54
-    - 0.024968561049466213
+    - 0.014968561049466214
   - - 55
-    - 0.024992134075089083
+    - 0.014992134075089083
   - - 56
-    - 0.025
+    - 0.015
   - - 57
-    - 0.024992134075089083
+    - 0.014992134075089083
   - - 58
-    - 0.024968561049466213
+    - 0.014968561049466212
   - - 59
-    - 0.024929355092591178
+    - 0.01492935509259118
   - - 60
-    - 0.024874639560909118
+    - 0.014874639560909118
   - - 61
-    - 0.0248045866097255
+    - 0.014804586609725499
   - - 62
-    - 0.02471941665154184
+    - 0.014719416651541837
   - - 63
-    - 0.024619397662556435
+    - 0.014619397662556434
   - - 64
-    - 0.024504844339512097
+    - 0.014504844339512095
   - - 65
-    - 0.02437611710954377
+    - 0.014376117109543767
   - - 66
-    - 0.024233620996141424
+    - 0.014233620996141422
   - - 67
-    - 0.024077804344796304
+    - 0.014077804344796302
   - - 68
-    - 0.023909157412340152
+    - 0.01390915741234015
   - - 69
-    - 0.02372821082441583
+    - 0.013728210824415828
   - - 70
-    - 0.02353553390593274
+    - 0.01353553390593274
   - - 71
-    - 0.02333173288976002
+    - 0.01333173288976002
   - - 72
-    - 0.023117449009293668
+    - 0.01311744900929367
   - - 73
-    - 0.02289335648089903
+    - 0.012893356480899027
   - - 74
-    - 0.022660160382576684
+    - 0.012660160382576684
   - - 75
-    - 0.022418594435526202
+    - 0.012418594435526202
   - - 76
-    - 0.022169418695587792
+    - 0.012169418695587792
   - - 77
-    - 0.021913417161825453
+    - 0.011913417161825451
   - - 78
-    - 0.021651395309775837
+    - 0.011651395309775837
   - - 79
-    - 0.021384177557124247
+    - 0.011384177557124247
   - - 80
-    - 0.021112604669781574
+    - 0.011112604669781574
   - - 81
-    - 0.020837531116523686
+    - 0.010837531116523686
   - - 82
-    - 0.02055982238051654
+    - 0.01055982238051654
   - - 83
-    - 0.020280352236185958
+    - 0.010280352236185957
   - - 84
-    - 0.02
+    - 0.010000000000000002
   - - 85
-    - 0.019719647763814043
+    - 0.009719647763814045
   - - 86
-    - 0.01944017761948346
+    - 0.009440177619483462
   - - 87
-    - 0.01916246888347632
+    - 0.009162468883476316
   - - 88
-    - 0.01888739533021843
+    - 0.008887395330218428
   - - 89
-    - 0.018615822442875758
+    - 0.008615822442875756
   - - 90
-    - 0.018348604690224167
+    - 0.008348604690224165
   - - 91
-    - 0.01808658283817455
+    - 0.00808658283817455
   - - 92
-    - 0.01783058130441221
+    - 0.00783058130441221
   - - 93
-    - 0.0175814055644738
+    - 0.0075814055644738
   - - 94
-    - 0.01733983961742332
+    - 0.007339839617423318
   - - 95
-    - 0.017106643519100975
+    - 0.007106643519100974
   - - 96
-    - 0.016882550990706333
+    - 0.006882550990706333
   - - 97
-    - 0.01666826711023998
+    - 0.006668267110239979
   - - 98
-    - 0.016464466094067265
+    - 0.006464466094067263
   - - 99
-    - 0.016271789175584174
+    - 0.006271789175584174
   - - 100
-    - 0.016090842587659852
+    - 0.006090842587659851
   - - 101
-    - 0.015922195655203697
+    - 0.0059221956552036985
   - - 102
-    - 0.01576637900385858
+    - 0.00576637900385858
   - - 103
-    - 0.015623882890456233
+    - 0.005623882890456233
   - - 104
-    - 0.015495155660487904
+    - 0.005495155660487905
   - - 105
-    - 0.015380602337443568
+    - 0.005380602337443568
   - - 106
-    - 0.015280583348458162
+    - 0.005280583348458163
   - - 107
-    - 0.015195413390274502
+    - 0.005195413390274502
   - - 108
-    - 0.015125360439090883
+    - 0.005125360439090882
   - - 109
-    - 0.015070644907408821
+    - 0.005070644907408821
   - - 110
-    - 0.015031438950533788
+    - 0.005031438950533787
   - - 111
-    - 0.015007865924910917
+    - 0.005007865924910917
   sample_noise: 0.002
 container_volumes:
 - 1
@@ -245,32 +241,32 @@ ports:
     initial_container_proportion: 0.16
     order_distribution:
       source:
-        noise: 0.025134751494652507
+        noise: 0.013443725935320523
         proportion: 0.16
       targets:
         leHavre_fra:
-          noise: 0.025432733187591285
+          noise: 0.030270714085038748
           proportion: 0.18755329471737509
         montreal_can:
-          noise: 0.014981815264884504
+          noise: 0.013320576022818739
           proportion: 0.0756906048807678
         newYork_usa:
-          noise: 0.07860790872534353
+          noise: 0.07689493882565487
           proportion: 0.47933778254893905
         pusan_kor:
-          noise: 0.002902145091237068
+          noise: 0.007972433806655532
           proportion: 0.07667664751459422
         qingdao_chn:
-          noise: 0.0016703057083900894
+          noise: 0.007497817787595211
           proportion: 0.0512157380304634
         shanghai_chn:
-          noise: 0.004329384963154748
+          noise: 0.007633866843340292
           proportion: 0.04763588234031061
         singapore_sgp:
-          noise: 0.00014700838968303593
+          noise: 0.0010106861866602764
           proportion: 0.005882857005910926
         yantian_chn:
-          noise: 0.014277274600949947
+          noise: 0.012219624836344655
           proportion: 0.07600719296163895
   durban_sau:
     capacity: 10000
@@ -283,20 +279,20 @@ ports:
     initial_container_proportion: 0.01
     order_distribution:
       source:
-        noise: 0.0003905851406890507
+        noise: 0.0019530280872261515
         proportion: 0.01
       targets:
         qingdao_chn:
-          noise: 0.03386602700899302
+          noise: 0.0034939030178053614
           proportion: 0.2502879616953551
         shanghai_chn:
-          noise: 0.04099351916502508
+          noise: 0.04233393468254242
           proportion: 0.2501170152675811
         singapore_sgp:
-          noise: 0.02983331512414685
+          noise: 0.021838198102471493
           proportion: 0.24812321657873454
         yantian_chn:
-          noise: 0.0398838857119423
+          noise: 0.046242815176850596
           proportion: 0.25147180645832923
   itagual_bra:
     capacity: 10000
@@ -309,23 +305,23 @@ ports:
     initial_container_proportion: 0.01
     order_distribution:
       source:
-        noise: 0.0017049012580563228
+        noise: 0.0019129579921117862
         proportion: 0.01
       targets:
         qingdao_chn:
-          noise: 0.006704071585248814
+          noise: 0.012228512488579733
           proportion: 0.19992517767067194
         santos_bra:
-          noise: 0.01065215665926791
+          noise: 0.028078880905400762
           proportion: 0.20145578663243896
         shanghai_chn:
-          noise: 0.01889939427623029
+          noise: 0.023876351340743802
           proportion: 0.19975353803822685
         singapore_sgp:
-          noise: 0.030425501405892584
+          noise: 0.029319437252031597
           proportion: 0.19775168293424744
         yantian_chn:
-          noise: 0.0038049637706619867
+          noise: 0.01928917747193642
           proportion: 0.20111381472441478
   leHavre_fra:
     capacity: 10000
@@ -338,32 +334,32 @@ ports:
     initial_container_proportion: 0.06
     order_distribution:
       source:
-        noise: 0.010023093144315015
+        noise: 0.00350760127602979
         proportion: 0.06
       targets:
         bremerhaven_ger:
-          noise: 0.046713884416130814
+          noise: 0.032528716547168546
           proportion: 0.2613085269688243
         montreal_can:
-          noise: 0.007011738109808054
+          noise: 0.014821251534050164
           proportion: 0.09474419644790176
         newYork_usa:
-          noise: 0.0075575968616494
+          noise: 0.02447312721184167
           proportion: 0.20255309034522379
         pusan_kor:
-          noise: 0.0022204132834372364
+          noise: 0.0043063159539580825
           proportion: 0.09500755942526971
         qingdao_chn:
-          noise: 0.0025163323117031356
+          noise: 0.0061997544295394206
           proportion: 0.08820727646821312
         shanghai_chn:
-          noise: 0.012253843912920523
+          noise: 0.0014225749496497644
           proportion: 0.08725114792024982
         singapore_sgp:
-          noise: 0.014556815408633276
+          noise: 0.0049886669336311005
           proportion: 0.07609945087001035
         yantian_chn:
-          noise: 0.007509358525794673
+          noise: 0.010202155612950937
           proportion: 0.09482875155430699
   losAngeles_usa:
     capacity: 10000
@@ -376,23 +372,23 @@ ports:
     initial_container_proportion: 0.05
     order_distribution:
       source:
-        noise: 0.007441531984981497
+        noise: 0.007116233975121642
         proportion: 0.05
       targets:
         oakland_usa:
-          noise: 0.04265188459544233
+          noise: 0.021750420577675664
           proportion: 0.27616189497862537
         princeRupert_can:
-          noise: 0.00273897680516611
+          noise: 0.007223156875444034
           proportion: 0.15754923155692402
         qingdao_chn:
-          noise: 0.01517255937598155
+          noise: 0.008409198610215574
           proportion: 0.1623492157793647
         seattle_usa:
-          noise: 0.014299850500812094
+          noise: 0.04468140938124822
           proportion: 0.2423747616801366
         shanghai_chn:
-          noise: 0.0051011672478115
+          noise: 0.022579209428659604
           proportion: 0.16156489600494922
   manzanillo_mex:
     capacity: 10000
@@ -405,29 +401,29 @@ ports:
     initial_container_proportion: 0.05
     order_distribution:
       source:
-        noise: 0.005425915310841583
+        noise: 0.001237859415806274
         proportion: 0.05
       targets:
         manzanillo_mex:
-          noise: 0.0073296927183103605
+          noise: 0.004468190881652269
           proportion: 0.1642819028757581
         pusan_kor:
-          noise: 0.018169915140256784
+          noise: 0.015630343651636142
           proportion: 0.1269237319062987
         qingdao_chn:
-          noise: 0.02383787277319661
+          noise: 0.01705599320218467
           proportion: 0.12072756120502863
         sanAntonio_par:
-          noise: 0.0025563544317216205
+          noise: 0.002949720393204809
           proportion: 0.10518021746764428
         shanghai_chn:
-          noise: 0.02058384394808081
+          noise: 0.0062556847598889565
           proportion: 0.11985637174894495
         yantian_chn:
-          noise: 0.00989286132515691
+          noise: 0.017417960137127892
           proportion: 0.12676080545008
         yokohama_jpn:
-          noise: 0.0007488162438248653
+          noise: 0.027064881430223564
           proportion: 0.23626940934624543
   melbourne_aus:
     capacity: 10000
@@ -440,17 +436,17 @@ ports:
     initial_container_proportion: 0.015
     order_distribution:
       source:
-        noise: 0.0029979553756433923
+        noise: 0.0022241630073084333
         proportion: 0.015
       targets:
         singapore_sgp:
-          noise: 0.0566906410775888
+          noise: 0.04113598506120082
           proportion: 0.3293364398135728
         sydney_aus:
-          noise: 0.01865388192132147
+          noise: 0.05585356106243802
           proportion: 0.3364188275147848
         yantian_chn:
-          noise: 0.014238633997660635
+          noise: 0.04970952158933521
           proportion: 0.33424473267164256
   montreal_can:
     capacity: 10000
@@ -463,14 +459,14 @@ ports:
     initial_container_proportion: 0.015
     order_distribution:
       source:
-        noise: 0.0005621554647653919
+        noise: 0.0023396017313775798
         proportion: 0.015
       targets:
         bremerhaven_ger:
-          noise: 0.08779643369212999
+          noise: 0.029006641730691472
           proportion: 0.5172441914124826
         leHavre_fra:
-          noise: 0.07842477295179612
+          noise: 0.052743138595601397
           proportion: 0.4827558085875176
   newYork_usa:
     capacity: 10000
@@ -483,14 +479,14 @@ ports:
     initial_container_proportion: 0.03
     order_distribution:
       source:
-        noise: 0.00016057717079772171
+        noise: 0.0029698121952597563
         proportion: 0.03
       targets:
         bremerhaven_ger:
-          noise: 0.05981761122488196
+          noise: 0.002300273308223476
           proportion: 0.5332513888590196
         leHavre_fra:
-          noise: 0.03990533991720246
+          noise: 0.026329645545883667
           proportion: 0.46674861114098054
   oakland_usa:
     capacity: 10000
@@ -503,20 +499,20 @@ ports:
     initial_container_proportion: 0.03
     order_distribution:
       source:
-        noise: 0.004910915544061917
+        noise: 0.00034658625196087867
         proportion: 0.03
       targets:
         losAngeles_usa:
-          noise: 0.048963812038470556
+          noise: 0.03805042564171647
           proportion: 0.30175478642890274
         princeRupert_can:
-          noise: 0.0254961817963097
+          noise: 0.026783528316198884
           proportion: 0.23086917432389525
         qingdao_chn:
-          noise: 0.03349874892050399
+          noise: 0.02520719401293405
           proportion: 0.23393880851694335
         shanghai_chn:
-          noise: 0.012993114869682515
+          noise: 0.011450474320078908
           proportion: 0.23343723073025868
   princeRupert_can:
     capacity: 10000
@@ -529,20 +525,20 @@ ports:
     initial_container_proportion: 0.015
     order_distribution:
       source:
-        noise: 0.0027667472862969076
+        noise: 0.0027574439469690735
         proportion: 0.015
       targets:
         losAngeles_usa:
-          noise: 0.05091486367601389
+          noise: 0.030666144891490648
           proportion: 0.2657898185062753
         oakland_usa:
-          noise: 0.028397329439457514
+          noise: 0.05069695864471698
           proportion: 0.26818216862044597
         qingdao_chn:
-          noise: 0.0016646658939369785
+          noise: 1.5150697900596916e-05
           proportion: 0.23313476502804797
         shanghai_chn:
-          noise: 0.013742472852754001
+          noise: 0.005507254948856576
           proportion: 0.23289324784523086
   pusan_kor:
     capacity: 10000
@@ -555,41 +551,41 @@ ports:
     initial_container_proportion: 0.06
     order_distribution:
       source:
-        noise: 0.009320427377742116
+        noise: 0.003886006717160586
         proportion: 0.06
       targets:
         bremerhaven_ger:
-          noise: 0.031991420231325084
+          noise: 0.027386818215617247
           proportion: 0.21204226502906795
         leHavre_fra:
-          noise: 0.005105457599858164
+          noise: 0.011340855749132506
           proportion: 0.08535909653471886
         manzanillo_mex:
-          noise: 0.005809147275802185
+          noise: 0.0015411008699796073
           proportion: 0.0959125358074426
         qingdao_chn:
-          noise: 0.0033945457967072133
+          noise: 0.0011819920685648456
           proportion: 0.051610240792657115
         sanAntonio_par:
-          noise: 0.001854192137165468
+          noise: 0.005415688613917366
           proportion: 0.035795894860646466
         seattle_usa:
-          noise: 0.018330317944630015
+          noise: 0.012679066272107449
           proportion: 0.14202580193983683
         shanghai_chn:
-          noise: 0.009459052846765289
+          noise: 0.004046325432066565
           proportion: 0.05072408949335503
         singapore_sgp:
-          noise: 0.0016197423680226325
+          noise: 0.004754201755016008
           proportion: 0.04038858042581788
         vancouver_can:
-          noise: 0.00469787131269142
+          noise: 0.010845469930487786
           proportion: 0.059258114284493034
         yantian_chn:
-          noise: 0.003856257701007031
+          noise: 0.009847287555290789
           proportion: 0.05774708854229363
         yokohama_jpn:
-          noise: 0.014803870326138143
+          noise: 0.016857865956875252
           proportion: 0.1691362922896707
   qingdao_chn:
     capacity: 10000
@@ -602,53 +598,53 @@ ports:
     initial_container_proportion: 0.08
     order_distribution:
       source:
-        noise: 0.007181454765417904
+        noise: 0.0013405281331279736
         proportion: 0.08
       targets:
         bremerhaven_ger:
-          noise: 0.02952708760272511
+          noise: 0.017720647298623885
           proportion: 0.19166868266386958
         durban_sau:
-          noise: 0.0026860007722877676
+          noise: 0.004430489262425184
           proportion: 0.025475188174797537
         itagual_bra:
-          noise: 0.0023058721270403397
+          noise: 0.0029551319318284
           proportion: 0.020374390901285715
         leHavre_fra:
-          noise: 0.008262798336030506
+          noise: 0.00884618941305856
           proportion: 0.04940051725539669
         losAngeles_usa:
-          noise: 0.014599621251693524
+          noise: 0.008287055306659491
           proportion: 0.14605127409748705
         manzanillo_mex:
-          noise: 0.004578888771735588
+          noise: 0.010416910937371144
           proportion: 0.061252276599797005
         oakland_usa:
-          noise: 0.0018968128853613635
+          noise: 0.030726016025509867
           proportion: 0.15590868899027802
         princeRupert_can:
-          noise: 7.825075850514062e-05
+          noise: 0.001029469211236195
           proportion: 0.005409393840032325
         pusan_kor:
-          noise: 0.0007151691535729856
+          noise: 0.00253441394213481
           proportion: 0.018577689927305203
         santos_bra:
-          noise: 0.0036806154087330586
+          noise: 0.0012007740198499907
           proportion: 0.02037439104592543
         seattle_usa:
-          noise: 0.0016116464454415448
+          noise: 0.015740512852146334
           proportion: 0.113038562331156
         shanghai_chn:
-          noise: 0.0011503058311188963
+          noise: 0.001828465916657425
           proportion: 0.010504586083902057
         vancouver_can:
-          noise: 0.0031091344585237185
+          noise: 0.000962793819981486
           proportion: 0.02008850220677704
         yantian_chn:
-          noise: 0.0017512950798533396
+          noise: 0.001870686969127809
           proportion: 0.018391591436727996
         yokohama_jpn:
-          noise: 0.023837737047619264
+          noise: 0.020726812866609105
           proportion: 0.14348426444526224
   sanAntonio_par:
     capacity: 10000
@@ -661,26 +657,26 @@ ports:
     initial_container_proportion: 0.01
     order_distribution:
       source:
-        noise: 0.0015229565945744795
+        noise: 0.00046662157321829305
         proportion: 0.01
       targets:
         manzanillo_mex:
-          noise: 0.029864110340333205
+          noise: 0.0335790014316909
           proportion: 0.1695702560614863
         pusan_kor:
-          noise: 0.030434021872288986
+          noise: 0.019876836766735944
           proportion: 0.16240810942168046
         qingdao_chn:
-          noise: 0.031654173870326326
+          noise: 0.021055304334577304
           proportion: 0.1612201993861513
         shanghai_chn:
-          noise: 0.022840905205567065
+          noise: 0.010351683215713024
           proportion: 0.16105317774270345
         yantian_chn:
-          noise: 0.022058626605590343
+          noise: 0.020655951601841832
           proportion: 0.16237686231768783
         yokohama_jpn:
-          noise: 0.020882193597463152
+          noise: 0.009059407942596073
           proportion: 0.18337139507029068
   santos_bra:
     capacity: 10000
@@ -693,23 +689,23 @@ ports:
     initial_container_proportion: 0.01
     order_distribution:
       source:
-        noise: 0.0017591918390130468
+        noise: 0.0003480997833509656
         proportion: 0.01
       targets:
         itagual_bra:
-          noise: 0.00015677478442405662
+          noise: 0.020657961926928516
           proportion: 0.20145578737905992
         qingdao_chn:
-          noise: 0.007951708444894913
+          noise: 0.013072578761377065
           proportion: 0.19992517738434895
         shanghai_chn:
-          noise: 0.008394529742993468
+          noise: 0.027172218926956353
           proportion: 0.19975353831991421
         singapore_sgp:
-          noise: 0.01406059678653582
+          noise: 0.028255176146783356
           proportion: 0.19775168256638195
         yantian_chn:
-          noise: 0.011310434190498734
+          noise: 0.02522960406069968
           proportion: 0.20111381435029493
   seattle_usa:
     capacity: 10000
@@ -722,29 +718,29 @@ ports:
     initial_container_proportion: 0.07
     order_distribution:
       source:
-        noise: 0.009178972285261822
+        noise: 0.0007339846715492771
         proportion: 0.07
       targets:
         losAngeles_usa:
-          noise: 0.023523817623575388
+          noise: 0.005803300102787883
           proportion: 0.2912736754142012
         pusan_kor:
-          noise: 0.01876947062956955
+          noise: 0.011767093399526167
           proportion: 0.12538821688519616
         qingdao_chn:
-          noise: 0.02029673306956859
+          noise: 0.01342850609637382
           proportion: 0.11617748395503369
         shanghai_chn:
-          noise: 0.011329185762784782
+          noise: 0.02208223845904732
           proportion: 0.11488243812354347
         singapore_sgp:
-          noise: 0.00024014816912197655
+          noise: 0.01317084017907106
           proportion: 0.09977785851511455
         vancouver_can:
-          noise: 0.02057342705041732
+          noise: 0.0032415669173149184
           proportion: 0.1273542861551621
         yantian_chn:
-          noise: 0.020083358186626803
+          noise: 0.01697269521746073
           proportion: 0.12514604095174878
   shanghai_chn:
     capacity: 10000
@@ -757,50 +753,50 @@ ports:
     initial_container_proportion: 0.1
     order_distribution:
       source:
-        noise: 0.017109626305467616
+        noise: 0.014530243985042664
         proportion: 0.1
       targets:
         bremerhaven_ger:
-          noise: 0.021959106592952006
+          noise: 0.02131285237332896
           proportion: 0.21398371679064213
         durban_sau:
-          noise: 0.00010435314516980227
+          noise: 0.002948998809093681
           proportion: 0.017462167174606275
         itagual_bra:
-          noise: 0.0020594969751376174
+          noise: 0.001713993122608175
           proportion: 0.011430536063236027
         leHavre_fra:
-          noise: 0.0009873199353313093
+          noise: 0.0009800848688656188
           proportion: 0.04575353580273499
         losAngeles_usa:
-          noise: 0.014743978442771179
+          noise: 0.0050873385069792705
           proportion: 0.16004173887997492
         manzanillo_mex:
-          noise: 0.0012374290703743276
+          noise: 0.004983219928480878
           proportion: 0.05976808154382374
         oakland_usa:
-          noise: 0.022426459611386496
+          noise: 0.021596249916838263
           proportion: 0.1716979971992254
         pusan_kor:
-          noise: 0.0005070099495173756
+          noise: 0.0014764151425764754
           proportion: 0.00930596400725694
         qingdao_chn:
-          noise: 1.8783239577936313e-05
+          noise: 2.741759926803036e-05
           proportion: 0.0009364036349727401
         santos_bra:
-          noise: 0.0012407696401487867
+          noise: 0.0003052926172722117
           proportion: 0.011430536346128936
         seattle_usa:
-          noise: 0.011299147787220907
+          noise: 0.01952308695587358
           proportion: 0.12100465463531186
         vancouver_can:
-          noise: 0.002147321460772641
+          noise: 0.0019949337867570943
           proportion: 0.011092475826618629
         yantian_chn:
-          noise: 0.000883163479902347
+          noise: 0.0005520948508266831
           proportion: 0.009085896257062817
         yokohama_jpn:
-          noise: 0.012495339718107597
+          noise: 0.015187739134572683
           proportion: 0.1570062958384047
   singapore_sgp:
     capacity: 10000
@@ -813,53 +809,53 @@ ports:
     initial_container_proportion: 0.04
     order_distribution:
       source:
-        noise: 0.0014198451145378962
+        noise: 0.005693120029153821
         proportion: 0.04
       targets:
         bremerhaven_ger:
-          noise: 0.02403294164090424
+          noise: 0.020122388762735893
           proportion: 0.16163465526933787
         durban_sau:
-          noise: 0.007339857249890276
+          noise: 0.0019491514734383516
           proportion: 0.052947229587582224
         itagual_bra:
-          noise: 0.004826948332878951
+          noise: 0.0002586292721110565
           proportion: 0.049611409618781833
         leHavre_fra:
-          noise: 0.000697323478201817
+          noise: 0.004984389187243039
           proportion: 0.06859394881607536
         melbourne_aus:
-          noise: 0.009748446374379698
+          noise: 0.0015861611856993322
           proportion: 0.054598902525719965
         pusan_kor:
-          noise: 0.0052864459821632135
+          noise: 0.006025000972759821
           proportion: 0.04843640111672956
         qingdao_chn:
-          noise: 0.00020264478777542088
+          noise: 0.0004286935806667211
           proportion: 0.04380756610509279
         santos_bra:
-          noise: 0.0060662606703405855
+          noise: 0.003416715058071535
           proportion: 0.0496114180206766
         seattle_usa:
-          noise: 0.002184489196293904
+          noise: 0.007700381604340727
           proportion: 0.11021203091597927
         shanghai_chn:
-          noise: 0.00446890645579302
+          noise: 0.003544364668028845
           proportion: 0.043156750350596414
         singapore_sgp:
-          noise: 0.0005079804300151535
+          noise: 0.002802086921079384
           proportion: 0.03556597867096123
         sydney_aus:
-          noise: 0.0032814259751614335
+          noise: 0.010185014617976348
           proportion: 0.053961624659387086
         vancouver_can:
-          noise: 0.0013725415556900408
+          noise: 0.002789491330076127
           proportion: 0.04942443509903704
         yantian_chn:
-          noise: 0.007866049277209214
+          noise: 0.005000384119150195
           proportion: 0.04831469461601993
         yokohama_jpn:
-          noise: 0.013995694253814077
+          noise: 0.008577499395403343
           proportion: 0.13012295462802295
   sydney_aus:
     capacity: 10000
@@ -872,17 +868,17 @@ ports:
     initial_container_proportion: 0.015
     order_distribution:
       source:
-        noise: 5.318259543305715e-05
+        noise: 0.002150752663893203
         proportion: 0.015
       targets:
         melbourne_aus:
-          noise: 0.010959524006592607
+          noise: 0.05922344082123652
           proportion: 0.33665441119009204
         singapore_sgp:
-          noise: 0.013378806626384264
+          noise: 0.05193975256137971
           proportion: 0.3291642505650358
         yantian_chn:
-          noise: 0.043398566324619615
+          noise: 0.061788693147246415
           proportion: 0.3341813382448723
   vancouver_can:
     capacity: 10000
@@ -895,26 +891,26 @@ ports:
     initial_container_proportion: 0.02
     order_distribution:
       source:
-        noise: 0.002260078974868654
+        noise: 0.002068294648050253
         proportion: 0.02
       targets:
         pusan_kor:
-          noise: 0.01022517907397126
+          noise: 0.016845200307234364
           proportion: 0.16323476832180567
         qingdao_chn:
-          noise: 0.025111111836521687
+          noise: 0.014999981061310954
           proportion: 0.16078294599848347
         seattle_usa:
-          noise: 0.025666860266381805
+          noise: 0.01896644075283542
           proportion: 0.19595625809774195
         shanghai_chn:
-          noise: 0.00391575019491024
+          noise: 0.0077549932712456865
           proportion: 0.1604382196746799
         singapore_sgp:
-          noise: 0.009869415376296499
+          noise: 0.02055123864749911
           proportion: 0.15641751563334233
         yantian_chn:
-          noise: 0.01646828787230074
+          noise: 0.03050803433828264
           proportion: 0.1631702922739467
   yantian_chn:
     capacity: 10000
@@ -927,56 +923,56 @@ ports:
     initial_container_proportion: 0.07
     order_distribution:
       source:
-        noise: 0.005460106707641842
+        noise: 0.002609757843993272
         proportion: 0.07
       targets:
         bremerhaven_ger:
-          noise: 0.03183934815230198
+          noise: 0.025222997739158936
           proportion: 0.23063506921338092
         durban_sau:
-          noise: 0.006955761417407662
+          noise: 0.0018608540738386267
           proportion: 0.036977112629701755
         itagual_bra:
-          noise: 0.003879986047538319
+          noise: 0.004923606222292092
           proportion: 0.03103337062146673
         leHavre_fra:
-          noise: 0.0033746270986396783
+          noise: 0.012389321950936184
           proportion: 0.06485623632186012
         manzanillo_mex:
-          noise: 0.014297914647911386
+          noise: 0.003548726911160303
           proportion: 0.07866656356344162
         melbourne_aus:
-          noise: 0.0055998037357593185
+          noise: 0.000882486825036804
           proportion: 0.03992004007199072
         pusan_kor:
-          noise: 0.004337884540903886
+          noise: 0.0005349297708399651
           proportion: 0.028939753926030695
         qingdao_chn:
-          noise: 0.0034845335834618927
+          noise: 0.0007216029643777133
           proportion: 0.020692152164438926
         santos_bra:
-          noise: 0.0023084677027446535
+          noise: 0.0008948241044821844
           proportion: 0.03103337095193521
         seattle_usa:
-          noise: 0.0043141199296154705
+          noise: 0.006808164648780424
           proportion: 0.13901084519757625
         shanghai_chn:
-          noise: 0.0001996474876791818
+          noise: 0.0019668709850992473
           proportion: 0.01953252624072474
         singapore_sgp:
-          noise: 0.0011502086812016938
+          noise: 0.0008244631028521047
           proportion: 0.006007386215135132
         sydney_aus:
-          noise: 0.0019319056238978993
+          noise: 0.003274678869997879
           proportion: 0.03878455068512264
         vancouver_can:
-          noise: 0.0007858696914021227
+          noise: 0.0003213862877618055
           proportion: 0.03070023678474206
         yantian_chn:
-          noise: 0.0016168667042640794
+          noise: 0.0026076979418575303
           proportion: 0.02872289950079146
         yokohama_jpn:
-          noise: 0.023246811699828965
+          noise: 0.026806722998433646
           proportion: 0.17448788591166092
   yokohama_jpn:
     capacity: 10000
@@ -989,29 +985,29 @@ ports:
     initial_container_proportion: 0.08
     order_distribution:
       source:
-        noise: 0.014254332625813097
+        noise: 0.011506949353344573
         proportion: 0.08
       targets:
         manzanillo_mex:
-          noise: 0.03244047063421112
+          noise: 0.042678902760188174
           proportion: 0.224773870587767
         pusan_kor:
-          noise: 0.018126081484701975
+          noise: 0.02092931566180752
           proportion: 0.1473122137604972
         qingdao_chn:
-          noise: 0.017152304680050526
+          noise: 0.012790853044052902
           proportion: 0.1344645529933837
         sanAntonio_par:
-          noise: 0.0003086488347039955
+          noise: 0.00713764692173517
           proportion: 0.10222734144856105
         shanghai_chn:
-          noise: 0.0056287128415065625
+          noise: 0.018867879170398616
           proportion: 0.13265815413379464
         singapore_sgp:
-          noise: 0.019438990767313084
+          noise: 0.014299288167726593
           proportion: 0.1115894561579222
         yantian_chn:
-          noise: 0.014838419143613479
+          noise: 0.010558592890221315
           proportion: 0.14697441091807414
 routes:
   a3s:
@@ -1163,13 +1159,17 @@ routes:
     port_name: yokohama_jpn
   - distance: 60
     port_name: shanghai_chn
+seed: 4096
 stop_number:
 - 4
 - 3
 total_containers: 100000
+transfer_cost_factors:
+  dsch: 0.05
+  load: 0.05
 vessels:
   a3s_vessel_000:
-    capacity: 522
+    capacity: 290
     parking:
       duration: 1
       noise: 0
@@ -1180,7 +1180,7 @@ vessels:
       noise: 0
       speed: 10
   a3s_vessel_001:
-    capacity: 580
+    capacity: 290
     parking:
       duration: 1
       noise: 0
@@ -1191,7 +1191,7 @@ vessels:
       noise: 0
       speed: 10
   asa_vessel_000:
-    capacity: 360
+    capacity: 164
     parking:
       duration: 1
       noise: 0
@@ -1202,7 +1202,7 @@ vessels:
       noise: 0
       speed: 10
   asa_vessel_001:
-    capacity: 296
+    capacity: 164
     parking:
       duration: 1
       noise: 0
@@ -1213,7 +1213,7 @@ vessels:
       noise: 0
       speed: 10
   ate1_vessel_000:
-    capacity: 3455
+    capacity: 1727
     parking:
       duration: 1
       noise: 0
@@ -1224,7 +1224,7 @@ vessels:
       noise: 0
       speed: 10
   ate1_vessel_001:
-    capacity: 3800
+    capacity: 1727
     parking:
       duration: 1
       noise: 0
@@ -1235,7 +1235,7 @@ vessels:
       noise: 0
       speed: 10
   gex1_vessel_000:
-    capacity: 620
+    capacity: 344
     parking:
       duration: 1
       noise: 0
@@ -1246,7 +1246,7 @@ vessels:
       noise: 0
       speed: 10
   gex1_vessel_001:
-    capacity: 688
+    capacity: 344
     parking:
       duration: 1
       noise: 0
@@ -1257,7 +1257,7 @@ vessels:
       noise: 0
       speed: 10
   ktx5_vessel_000:
-    capacity: 933
+    capacity: 424
     parking:
       duration: 1
       noise: 0
@@ -1268,7 +1268,7 @@ vessels:
       noise: 0
       speed: 10
   ktx5_vessel_001:
-    capacity: 765
+    capacity: 424
     parking:
       duration: 1
       noise: 0
@@ -1279,7 +1279,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_000:
-    capacity: 3962
+    capacity: 1981
     parking:
       duration: 1
       noise: 0
@@ -1290,7 +1290,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_001:
-    capacity: 4358
+    capacity: 1981
     parking:
       duration: 1
       noise: 0
@@ -1301,7 +1301,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_002:
-    capacity: 3566
+    capacity: 1981
     parking:
       duration: 1
       noise: 0
@@ -1312,7 +1312,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_003:
-    capacity: 3962
+    capacity: 1981
     parking:
       duration: 1
       noise: 0
@@ -1323,7 +1323,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_004:
-    capacity: 4358
+    capacity: 1981
     parking:
       duration: 1
       noise: 0
@@ -1334,7 +1334,7 @@ vessels:
       noise: 0
       speed: 10
   ll4_vessel_005:
-    capacity: 3566
+    capacity: 1981
     parking:
       duration: 1
       noise: 0
@@ -1345,7 +1345,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_000:
-    capacity: 2953
+    capacity: 1476
     parking:
       duration: 1
       noise: 0
@@ -1356,7 +1356,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_001:
-    capacity: 3248
+    capacity: 1476
     parking:
       duration: 1
       noise: 0
@@ -1367,7 +1367,7 @@ vessels:
       noise: 0
       speed: 10
   pcc1_vessel_002:
-    capacity: 2658
+    capacity: 1476
     parking:
       duration: 1
       noise: 0
@@ -1378,7 +1378,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_000:
-    capacity: 1466
+    capacity: 733
     parking:
       duration: 1
       noise: 0
@@ -1389,7 +1389,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_001:
-    capacity: 1612
+    capacity: 733
     parking:
       duration: 1
       noise: 0
@@ -1400,7 +1400,7 @@ vessels:
       noise: 0
       speed: 10
   pcc2_vessel_002:
-    capacity: 1320
+    capacity: 733
     parking:
       duration: 1
       noise: 0
@@ -1411,7 +1411,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_000:
-    capacity: 1277
+    capacity: 638
     parking:
       duration: 1
       noise: 0
@@ -1422,7 +1422,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_001:
-    capacity: 1404
+    capacity: 638
     parking:
       duration: 1
       noise: 0
@@ -1433,7 +1433,7 @@ vessels:
       noise: 0
       speed: 10
   pnw1_vessel_002:
-    capacity: 1150
+    capacity: 638
     parking:
       duration: 1
       noise: 0
@@ -1444,7 +1444,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_000:
-    capacity: 538
+    capacity: 269
     parking:
       duration: 1
       noise: 0
@@ -1455,7 +1455,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_001:
-    capacity: 591
+    capacity: 269
     parking:
       duration: 1
       noise: 0
@@ -1466,7 +1466,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_002:
-    capacity: 485
+    capacity: 269
     parking:
       duration: 1
       noise: 0
@@ -1477,7 +1477,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_003:
-    capacity: 538
+    capacity: 269
     parking:
       duration: 1
       noise: 0
@@ -1488,7 +1488,7 @@ vessels:
       noise: 0
       speed: 10
   pnw2_vessel_004:
-    capacity: 591
+    capacity: 269
     parking:
       duration: 1
       noise: 0
@@ -1499,7 +1499,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_000:
-    capacity: 350
+    capacity: 194
     parking:
       duration: 1
       noise: 0
@@ -1510,7 +1510,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_001:
-    capacity: 388
+    capacity: 194
     parking:
       duration: 1
       noise: 0
@@ -1521,7 +1521,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_002:
-    capacity: 426
+    capacity: 194
     parking:
       duration: 1
       noise: 0
@@ -1532,7 +1532,7 @@ vessels:
       noise: 0
       speed: 10
   saf3_vessel_003:
-    capacity: 350
+    capacity: 194
     parking:
       duration: 1
       noise: 0
@@ -1543,7 +1543,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_000:
-    capacity: 711
+    capacity: 355
     parking:
       duration: 1
       noise: 0
@@ -1554,7 +1554,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_001:
-    capacity: 782
+    capacity: 355
     parking:
       duration: 1
       noise: 0
@@ -1565,7 +1565,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_002:
-    capacity: 640
+    capacity: 355
     parking:
       duration: 1
       noise: 0
@@ -1576,7 +1576,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_003:
-    capacity: 711
+    capacity: 355
     parking:
       duration: 1
       noise: 0
@@ -1587,7 +1587,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_004:
-    capacity: 782
+    capacity: 355
     parking:
       duration: 1
       noise: 0
@@ -1598,7 +1598,7 @@ vessels:
       noise: 0
       speed: 10
   tla2_vessel_005:
-    capacity: 640
+    capacity: 355
     parking:
       duration: 1
       noise: 0
@@ -1609,7 +1609,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_000:
-    capacity: 3799
+    capacity: 1899
     parking:
       duration: 1
       noise: 0
@@ -1620,7 +1620,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_001:
-    capacity: 4178
+    capacity: 1899
     parking:
       duration: 1
       noise: 0
@@ -1631,7 +1631,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_002:
-    capacity: 3420
+    capacity: 1899
     parking:
       duration: 1
       noise: 0
@@ -1642,7 +1642,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_003:
-    capacity: 3799
+    capacity: 1899
     parking:
       duration: 1
       noise: 0
@@ -1653,7 +1653,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_004:
-    capacity: 4178
+    capacity: 1899
     parking:
       duration: 1
       noise: 0
@@ -1664,7 +1664,7 @@ vessels:
       noise: 0
       speed: 10
   tlp1_vessel_005:
-    capacity: 3420
+    capacity: 1899
     parking:
       duration: 1
       noise: 0
