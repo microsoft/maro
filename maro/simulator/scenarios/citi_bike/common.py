@@ -51,7 +51,7 @@ class DecisionEvent:
             "action_scope": self.action_scope}
 
     def __repr__(self):
-        return f"decision event {self.__getstate__()}"
+        return self.__str__()
 
     def __str__(self):
         return f'DecisionEvent(tick={self.tick}, station_idx={self.station_idx}, type={self.type}, action_scope={self.action_scope})'
@@ -62,6 +62,12 @@ class Action:
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
         self.number = number
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f'Action(from_station_idx={self.from_station_idx}, to_station_idx={self.to_station_idx}, number={self.number})'
 
 
 class ExtraCostMode(Enum):
