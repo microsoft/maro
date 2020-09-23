@@ -364,7 +364,8 @@ class CitiBikeTopology(DataTopology):
     def __init__(self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
-        self._data_pipeline["weather"] = WeatherPipeline(topology, weather_source, is_temp)
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # self._data_pipeline["weather"] = WeatherPipeline(topology, weather_source, is_temp)
         self._is_temp = is_temp
 
     def __del__(self):
@@ -585,7 +586,8 @@ class CitiBikeToyTopology(DataTopology):
             with open(config_path) as fp:
                 cfg = safe_load(fp)
                 self._data_pipeline["trip"] = CitiBikeToyPipeline(start_time=cfg["start_time"], end_time=cfg["end_time"], stations=cfg["stations"], trips=cfg["trips"], topology=topology, is_temp=is_temp)
-                self._data_pipeline["weather"] = WeatherToyPipeline(topology=topology, start_time=cfg["start_time"], end_time=cfg["end_time"], is_temp=is_temp)
+                # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+                # self._data_pipeline["weather"] = WeatherToyPipeline(topology=topology, start_time=cfg["start_time"], end_time=cfg["end_time"], is_temp=is_temp)
         else:
             logger.warning(f"Config file {config_path} for toy topology {topology} not found.")
 
