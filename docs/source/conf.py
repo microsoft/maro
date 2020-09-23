@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 os.environ["APIDOC_GEN"] = os.environ.get("APIDOC_GEN") or "True"
 # -- Project information -----------------------------------------------------
 
-project = 'maro'
+project = 'MARO'
 copyright = '2020 Microsoft'
 author = 'MARO Team'
 
