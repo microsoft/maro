@@ -33,7 +33,7 @@ class TestUnboundedStore(unittest.TestCase):
         store = ColumnBasedStore(capacity=5, overwrite_type=OverwriteType.ROLLING)
         store.put({"a": [1, 2, 3, 4, 5], "b": [6, 7, 8, 9, 10], "c": [11, 12, 13, 14, 15]})
         store.update([0, 3], {"a": [-1, -4], "c": [-11, -14]})
-        actual = store.take()
+        actual = store.dumps()
         expected = {"a": [-1, 2, 3, -4, 5], "b": [6, 7, 8, 9, 10], "c": [-11, 12, 13, -14, 15]}
         self.assertEqual(actual, expected, msg=f"expected store content = {expected}, got {actual}")
 
@@ -54,7 +54,7 @@ class TestFixedSizeStore(unittest.TestCase):
         indexes = store.put({"a": [10, 11, 12, 13], "b": [14, 15, 16, 17], "c": [18, 19, 20, 21]})
         expected = [-2, -1, 0, 1]
         self.assertEqual(indexes, expected, msg=f"expected indexes = {expected}, got {indexes}")
-        actual = store.take()
+        actual = store.dumps()
         expected = {"a": [12, 13, 3, 10, 11], "b": [16, 17, 6, 14, 15], "c": [20, 21, 9, 18, 19]}
         self.assertEqual(actual, expected, msg=f"expected store content = {expected}, got {actual}")
 
