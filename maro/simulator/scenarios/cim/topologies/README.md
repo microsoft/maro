@@ -1,16 +1,12 @@
-*This is the folder which contains config files about topologies and grades of difficulty.*
+# Topologies
 
----
+- **toy.4p_ssdd** has 2 supply ports and 2 demand ports. Vessel capacities of this series of topologies are in {6000, 8000, 10000}, while the ratio of containers needed by order is sampled from [0.007, 0.009]
+- **toy.5p_ssddd** has 2 supply ports and 3 demand ports. One of demand ports is a transport port at the same time. Vessel capacities of this series of topologies are in {8000, 9000, 10000}, while the ratio of containers needed by order is sampled from [0.018, 0.022]
+- **toy.6p_sssbdd** has 3 supply ports, 2 demand ports and 1 balanced port. The balanced port and one of supply ports are 2 transport ports. Vessel capacities of this series of topologies are in {8000, 9000, 10000}, while the ratio of containers needed by order is sampled from [0.01, 0.02]
+- **global_trade.22p** is a simplified global traffic topology.
 
-####Topologies
-- **4p_ssdd** has 2 supply ports and 2 demand ports. Vessel capacities of this series of topologies are in {6000, 8000, 10000}, while the ratio of containers needed by order is sampled from [0.007, 0.009]
-- **5p_ssddd** has 2 supply ports and 3 demand ports. One of demand ports is a transport port at the same time. Vessel capacities of this series of topologies are in {8000, 9000, 10000}, while the ratio of containers needed by order is sampled from [0.018, 0.022]
-- **6p_sssbdd** has 3 supply ports, 2 demand ports and 1 balanced port. The balanced port and one of supply ports are 2 transport ports. Vessel capacities of this series of topologies are in {8000, 9000, 10000}, while the ratio of containers needed by order is sampled from [0.01, 0.02]
-- **22p_global** is a simplified global traffic topology.
+## Grades of difficulty
 
----
-
-####Grades of difficulty
 - **l0.0** i.e. level 0.0, which is the simplest level without any fluctuation, noise or limitation.
 - **l0.1** i.e. level 0.1, which has limited vessel capacity based on level 0.0.
 - **l0.2** i.e. level 0.2, which has different capacity for different vessels based on level 0.1.
