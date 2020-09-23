@@ -254,39 +254,39 @@ the environment and test for a duration of 1120 ticks (days).
 
 | Topology         | Total Requirement | Resource Shortage | Repositioning Cost|
 | :--------------: | :---------------: | :---------------: | :---------------: |
-| toy.4p_ssdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.8 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.0 |      2240000      |      2190000      |         0         |
+| toy.4p_ssdd_l0.1 |      2240000      |      2190000      |         0         |
+| toy.4p_ssdd_l0.2 |      2240000      |      2190000      |         0         |
+| toy.4p_ssdd_l0.3 |      2239460      |      2189460      |         0         |
+| toy.4p_ssdd_l0.4 |      2244068      |      2194068      |         0         |
+| toy.4p_ssdd_l0.5 |      2244068      |      2194068      |         0         |
+| toy.4p_ssdd_l0.6 |      2244068      |      2194068      |         0         |
+| toy.4p_ssdd_l0.7 |      2244068      |      2194068      |         0         |
+| toy.4p_ssdd_l0.8 |      2241716      |      2191716      |         0         |
 
 | Topology          | Total Requirement | Resource Shortage | Repositioning Cost|
 | :---------------: | :---------------: | :---------------: | :---------------: |
-| toy.5p_ssddd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.8 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.0 |      2240000      |      2140000      |         0         |
+| toy.5p_ssddd_l0.1 |      2240000      |      2140000      |         0         |
+| toy.5p_ssddd_l0.2 |      2240000      |      2140000      |         0         |
+| toy.5p_ssddd_l0.3 |      2239460      |      2139460      |         0         |
+| toy.5p_ssddd_l0.4 |      2244068      |      2144068      |         0         |
+| toy.5p_ssddd_l0.5 |      2244068      |      2144068      |         0         |
+| toy.5p_ssddd_l0.6 |      2244068      |      2144068      |         0         |
+| toy.5p_ssddd_l0.7 |      2244068      |      2144068      |         0         |
+| toy.5p_ssddd_l0.8 |      2241716      |      2141716      |         0         |   
 
 | Topology           | Total Requirement | Resource Shortage | Repositioning Cost|
 | :----------------: | :---------------: | :---------------: | :---------------: |
-| toy.6p_sssbdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.8 |       +/-         |       +/-         |       +/-         |
+| toy.6p_sssbdd_l0.0 |      2240000      |      2087000      |         0         |
+| toy.6p_sssbdd_l0.1 |      2240000      |      2087000      |         0         |
+| toy.6p_sssbdd_l0.2 |      2240000      |      2087000      |         0         |
+| toy.6p_sssbdd_l0.3 |      2239460      |      2086460      |         0         |
+| toy.6p_sssbdd_l0.4 |      2244068      |      2091068      |         0         |
+| toy.6p_sssbdd_l0.5 |      2244068      |      2091068      |         0         |
+| toy.6p_sssbdd_l0.6 |      2244068      |      2091068      |         0         |
+| toy.6p_sssbdd_l0.7 |      2244068      |      2091068      |         0         |
+| toy.6p_sssbdd_l0.8 |      2241716      |      2088716      |         0         |
 
 | Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
 | :-------------------: | :---------------: | :---------------: | :---------------: |
@@ -304,26 +304,26 @@ the environment and test for a duration of 1120 ticks (days).
 
 | Topology         | Total Requirement | Resource Shortage | Repositioning Cost|
 | :--------------: | :---------------: | :---------------: | :---------------: |
-| toy.4p_ssdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.8 |       +/-         |       +/-         |       +/-         |
+| toy.4p_ssdd_l0.0 |      2240000      |  1497138+/-30423  |   209254+/-9257   |
+| toy.4p_ssdd_l0.1 |      2240000      |  1623710+/-36421  |   100918+/-1835   |
+| toy.4p_ssdd_l0.2 |      2240000      |  1501466+/-48566  |   107259+/-4015   |
+| toy.4p_ssdd_l0.3 |      2239460      |  1577011+/-35109  |   104925+/-1756   |
+| toy.4p_ssdd_l0.4 |      2244068      |  1501835+/-103196 |   109024+/-1651   |
+| toy.4p_ssdd_l0.5 |      2244068      |  1546227+/-81107  |   103866+/-5687   |
+| toy.4p_ssdd_l0.6 |      2244068      |  1578863+/-127815 |   111036+/-5333   |
+| toy.4p_ssdd_l0.7 |      2244068      |  1519495+/-60555  |   122074+/-3985   |
+| toy.4p_ssdd_l0.8 |      2241716      |  1603063+/-109149 |   125946+/-9660   |
 
 | Topology          | Total Requirement | Resource Shortage | Repositioning Cost|
 | :---------------: | :---------------: | :---------------: | :---------------: |
-| toy.5p_ssddd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.7 |       +/-         |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.0 |     2240000       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.1 |     2240000       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.2 |     2240000       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.3 |     2239460       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.4 |     2244068       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.5 |     2244068       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.6 |     2244068       |       +/-         |       +/-         |
+| toy.5p_ssddd_l0.7 |     2244068       |       +/-         |       +/-         |
 | toy.5p_ssddd_l0.8 |       +/-         |       +/-         |       +/-         |
 
 | Topology           | Total Requirement | Resource Shortage | Repositioning Cost|
