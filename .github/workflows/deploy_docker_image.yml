@@ -30,6 +30,7 @@ jobs:
     
     - name: Build image
       run: |
+        pip install -r ./maro/requirements.build.txt
         bash ./scripts/compile_cython.sh
         docker build -f ./docker_files/cpu.play.df . -t arthursjiang/maro:cpu
 
