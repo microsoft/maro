@@ -1,14 +1,14 @@
-This file contains instructions on how to use MARO on the Empty Container Repositioning (ECR) scenario.
+This file contains instructions on how to use MARO on container inventory management (CIM).
 
 ### Overview
-The ECR problem is one of the quintessential use cases of MARO. The example can be run with a set of scenario 
+Container inventory management (CIM) is one of the quintessential use cases of MARO. The example can be run with a set of scenario 
 configurations that can be found under maro/simulator/scenarios/cim. General experimental parameters (e.g., type of 
 topology, type of algorithm to use, number of training episodes) can be configured through config.yml. Each RL 
 formulation has a dedicated folder, e.g., dqn, and all algorithm-specific parameters can be configured through
 the config.py file in that folder.   
 
 ### Single-host Single-process Mode:
-To run the ECR example using the DQN algorithm under single-host mode, go to examples/cim/dqn and run 
+To run the CIM example using the DQN algorithm under single-host mode, go to examples/cim/dqn and run 
 single_process_launcher.py. You may play around with the configuration if you want to try out different
 settings. 
 

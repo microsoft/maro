@@ -5,7 +5,7 @@ import numpy as np
 from maro.rl import StateShaper
 
 
-class ECRStateShaper(StateShaper):
+class CIMStateShaper(StateShaper):
     def __init__(self, *, look_back, max_ports_downstream, port_attributes, vessel_attributes):
         super().__init__()
         self._look_back = look_back
