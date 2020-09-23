@@ -1,4 +1,4 @@
-![MARO LOGO](./docs/source/images/logo.svg)
+# ![MARO LOGO](./docs/source/images/logo.svg)
 
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization. It can be
@@ -20,7 +20,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 ![MARO Key Components](./docs/source/images/maro_overview.svg)
 
-# Contents
+## Contents
 
 | File/folder | Description                                                                                       |
 | ----------- | ------------------------------------------------------------------------------------------------- |
@@ -29,17 +29,17 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
 
-# Prerequisites
+## Prerequisites
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
 
-# Install MARO from PyPI
+## Install MARO from PyPI
 
 ```sh
 pip install maro
 ```
 
-# Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
 - Prerequisites
   - C++ Compiler
@@ -82,7 +82,7 @@ pip install maro
     .\scripts\install_maro.bat
     ```
 
-# Quick Example
+## Quick Example
 
 ```python
 from maro.simulator import Env
@@ -98,7 +98,7 @@ print(f"environment metrics: {env.metrics}")
 
 ```
 
-# Run Playground
+## Run Playground
 
 ```sh
 # Build playground image
@@ -111,7 +111,7 @@ docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
 docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
 ```
 
-# Contributing
+## Contributing
 
 This project welcomes contributions and suggestions. Most contributions require
 you to agree to a Contributor License Agreement (CLA) declaring that you have
@@ -130,7 +130,7 @@ For more information see the
 or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
 with any additional questions or comments.
 
-# License
+## License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 
