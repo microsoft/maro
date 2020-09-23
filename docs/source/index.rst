@@ -3,13 +3,13 @@
     :align: center
     :alt: MARO
 
-Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement learning as a Service (RaaS) for real-world resource optimization.
-It can be applied to many important industrial domains,
-such as container inventory management in logistics, bike repositioning in
-transportation, virtual machine provisioning in data centers, and asset
-management in finance. Besides RL, it also supports other planning/decision mechanisms, such as
+Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
+learning as a Service (RaaS) for real-world resource optimization. It can be
+applied to many important industrial domains, such as container inventory
+management in logistics, bike repositioning in transportation, virtual machine
+provisioning in data centers, and asset management in finance. Besides RL, it
+also supports other planning/decision mechanisms, such as
 `Operations Research <https://en.wikipedia.org/wiki/Operations_research>`_.
-
 
 Key Components
 ====================
@@ -25,11 +25,11 @@ Quick Start
 .. code-block:: python
 
     from maro.simulator import Env
-    from maro.simulator.scenarios.ecr.common import Action
+    from maro.simulator.scenarios.cim.common import Action
 
     # Initialize an environment with a specific scenario, related topology.
-    # In ECR, 1 tick means 1 day, here durations=100 means a length of 100 days
-    env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
+    # In Container Inventory Management, 1 tick means 1 day, here durations=100 means a length of 100 days
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", start_tick=0, durations=100)
 
     # Query environment summary, which includes business instances, intra-instance attributes, etc.
     print(env.summary)
@@ -80,7 +80,7 @@ Contents
     :maxdepth: 2
     :caption: Scenarios
 
-    scenarios/ecr.md
+    scenarios/container_inventory_management.md
     scenarios/citi_bike.md
 
 .. toctree::

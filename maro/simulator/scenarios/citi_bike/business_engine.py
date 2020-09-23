@@ -40,11 +40,11 @@ logger = CliLogger(name=__name__)
 metrics_desc = """
 Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick), it contains following keys:
 
-perf (float):  performance (fulfillment/total_trips) until now
+trip_requirements (int): accumulative trips until now 
 
-total_trips (int): accumulative trips until this now 
+bike_shortage (int): accumulative shortage until now 
 
-total_shortage (int): accumulative shortage until this now 
+operation_number (int): accumulative operation cost until now 
 
 """
 
@@ -66,6 +66,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._total_trips: int = 0
         self._total_shortages: int = 0
+        self._total_operate_num: int = 0
 
         self._init()
 
@@ -143,6 +144,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset after episode"""
         self._total_trips = 0
+        self._total_operate_num = 0
         self._total_shortages = 0
 
         self._frame.reset()
@@ -169,9 +171,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         total_shortage = self._total_shortages
 
         return DocableDict(metrics_desc, 
-                perf = (total_trips - total_shortage) / total_trips if total_trips != 0 else 1, 
-                total_trips = total_trips, 
-                total_shortage = total_shortage)
+                trip_requirements = total_trips, 
+                bike_shortage = total_shortage,
+                operation_number = self._total_operate_num)
 
     def __del__(self):
         """Collect resource by order"""
@@ -200,10 +202,13 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if trip_data_path.startswith("~"):
             trip_data_path = os.path.expanduser(trip_data_path)
 
-        if (not os.path.exists(weather_data_path)) or (not os.path.exists(trip_data_path)):
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # if (not os.path.exists(weather_data_path)) or (not os.path.exists(trip_data_path)):
+        if not os.path.exists(trip_data_path):
             self._build_temp_data()
 
-        self._weather_lut = WeatherTable(self._conf["weather_data"], self._time_zone)
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # self._weather_lut = WeatherTable(self._conf["weather_data"], self._time_zone)
 
         self._trip_reader = BinaryReader(self._conf["trip_data"])
 
@@ -251,7 +256,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             # get related station, and set the init states
             station = self._stations[state.index]
 
-            station.set_init_state(state.bikes, state.capacity)
+            station.set_init_state(state.bikes, state.capacity, state.id)
 
     def _init_adj_matrix(self):
         # our distance adj
@@ -273,7 +278,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self._trips_adj = MatrixAttributeAccessor(self._matrices_node, "trips_adj", station_num, station_num)
 
     def _init_frame(self, station_num: int):
-        # TODO: read the station number later
         self._frame = build_frame(station_num, self.calc_max_snapshots())
         self._snapshots = self._frame.snapshots
 
@@ -301,7 +305,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._last_date = cur_datetime
 
-        weather_info = self._weather_lut[cur_datetime]
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # weather_info = self._weather_lut[cur_datetime]
 
         weekday = cur_datetime.weekday()
         holiday = cur_datetime in self._us_holidays
@@ -310,9 +315,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         weather = 0
         temperature = 0
 
-        if weather_info is not None:
-            weather = weather_info.weather
-            temperature = weather_info.temp
+        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # if weather_info is not None:
+        #     weather = weather_info.weather
+        #     temperature = weather_info.temp
 
         for station in self._stations:
             station.weekday = weekday
@@ -414,6 +420,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         if max_accept_number > 0:
             station.transfer_cost += max_accept_number
+            self._total_operate_num += max_accept_number
 
         station.bikes = station_bikes + max_accept_number
 
@@ -464,8 +471,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             self._citi_bike_data_pipeline.build()
             build_folders = self._citi_bike_data_pipeline.get_build_folders()
             trip_folder = build_folders["trip"]
-            weather_folder = build_folders["weather"]
-            self._conf["weather_data"] = chagne_file_path(self._conf["weather_data"], weather_folder)
+            # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
+            # weather_folder = build_folders["weather"]
+            # self._conf["weather_data"] = chagne_file_path(self._conf["weather_data"], weather_folder)
             self._conf["trip_data"] = chagne_file_path(self._conf["trip_data"], trip_folder)
             self._conf["stations_init_data"] = chagne_file_path(self._conf["stations_init_data"], trip_folder)
             self._conf["distance_adj_data"] = chagne_file_path(self._conf["distance_adj_data"], trip_folder)

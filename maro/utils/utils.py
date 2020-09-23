@@ -68,8 +68,8 @@ project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 target_source_pairs = [
     (os.path.expanduser("~/.maro/data/citi_bike/meta"),
      os.path.join(project_root, "simulator/scenarios/citi_bike/meta")),
-    (os.path.expanduser("~/.maro/data/ecr/meta"),
-     os.path.join(project_root, "simulator/scenarios/ecr/meta")),
+    (os.path.expanduser("~/.maro/data/cim/meta"),
+     os.path.join(project_root, "simulator/scenarios/cim/meta")),
     (os.path.expanduser("~/.maro/lib/k8s"),
      os.path.join(project_root, "cli/k8s/lib")),
     (os.path.expanduser("~/.maro/lib/grass"),

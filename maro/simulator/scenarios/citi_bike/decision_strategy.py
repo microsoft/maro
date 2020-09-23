@@ -216,6 +216,7 @@ class BikeDecisionStrategy:
         NOTE: since we have a full neighbors list now, we do not need the N-step way to move, just 1 for now,
         we use distance (order index) as factor of extra cost now
         """
+        total_cost = 0
         cost = 0
 
         neighbors = self._get_neighbors(cur_station.index)
@@ -239,12 +240,16 @@ class BikeDecisionStrategy:
             cost = self._calculate_extra_cost(
                 accept_number, distance, order_index)
 
+            total_cost += cost
+
             self._set_extra_cost(src_station, cur_station, neighbor, cost)
 
             bike_number = bike_number - accept_number
 
             if bike_number == 0:
                 break
+
+        return total_cost
 
     def reset(self):
         """Reset internal states"""
