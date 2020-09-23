@@ -52,10 +52,22 @@ jobs:
         sphinx-apidoc -f -o ./source/apidoc ../maro/
         make html
 
-    - name: Push to gh-pages
-      run: |
-        git checkout gh-pages
-        cp -r docs/_build/html/* .
-        git add _images _modules _sources _static apidoc installation key_components scenarios index.html genindex.html objects.inv py-modindex.html search.html searchindex.js
-        git commit -m "update pages"
-        git push
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@3.6.1
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: docs/_build/html/ # The folder the action should deploy.
+        CLEAN: true # Automatically remove deleted files from the deploy branch
+  
+#     - name: Switch to gh-pages
+#       run: |
+#         git checkout gh-pages
+
+#     - name: Copy output files
+#         cp -r docs/_build/html/* .
+  
+#     - name: Commit change
+#         git add _images _modules _sources _static apidoc installation key_components scenarios index.html genindex.html objects.inv py-modindex.html search.html searchindex.js
+#         git commit -m "update pages"
+#         git push
