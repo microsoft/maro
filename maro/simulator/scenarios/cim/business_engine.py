@@ -634,8 +634,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                 evt.event_type = CimEventType.DISCHARGE_EMPTY if move_num > 0 else CimEventType.LOAD_EMPTY
 
                 # update cost
-                cost_factor = self._dsch_cost_factor if evt.event_type == CimEventType.DISCHARGE_EMPTY else self._load_cost_factor
-                cost = cost_factor * abs(move_num)
+                cost = abs(move_num)
 
                 # update transfer cost for port and metrics
                 self._total_transfer_cost += cost
