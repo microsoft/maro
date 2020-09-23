@@ -1,21 +1,21 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import io
+import os
 import yaml
 
 from maro.simulator import Env
 from maro.rl import ActorProxy, SimpleLearner, AgentMode, TwoPhaseLinearExplorer
-from examples.cim.dqn.components.state_shaper import CIMStateShaper
+from state_shaper import CIMStateShaper
 from maro.utils import Logger, convert_dottable
-from examples.cim.dqn.components.agent_manager import DQNAgentManager
+from agent_manager import DQNAgentManager
 
 
-with io.open("config.yml", "r") as in_file:
+config_path = os.path.join(os.path.split(os.path.realpath(__file__))[0], "../config.yml")
+with io.open(config_path, "r") as in_file:
     raw_config = yaml.safe_load(in_file)
     config = convert_dottable(raw_config)
-
 
 if __name__ == "__main__":
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)

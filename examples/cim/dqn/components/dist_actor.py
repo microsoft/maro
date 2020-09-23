@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import io
+import os
 import yaml
 
 import numpy as np
@@ -9,13 +10,14 @@ import numpy as np
 from maro.simulator import Env
 from maro.rl import AgentMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
 from maro.utils import convert_dottable
-from examples.cim.dqn.components.state_shaper import CIMStateShaper
-from examples.cim.dqn.components.action_shaper import CIMActionShaper
-from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
-from examples.cim.dqn.components.agent_manager import DQNAgentManager
+from state_shaper import CIMStateShaper
+from action_shaper import CIMActionShaper
+from experience_shaper import TruncatedExperienceShaper
+from agent_manager import DQNAgentManager
 
 
-with io.open("config.yml", "r") as in_file:
+config_path = os.path.join(os.path.split(os.path.realpath(__file__))[0], "../config.yml")
+with io.open(config_path, "r") as in_file:
     raw_config = yaml.safe_load(in_file)
     config = convert_dottable(raw_config)
 
