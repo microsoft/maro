@@ -102,7 +102,6 @@ class Action:
     def __str__(self):
         return f'Action(port_idx={self.port_idx}, vessel_idx={self.vessel_idx}, quantity={self.quantity})'
 
-
 class ActionScope:
     """
     Load and discharge scope for agent to generate decision
@@ -116,7 +115,6 @@ class ActionScope:
 
     def __str__(self):
         return f'ActionScope(load={self.load}, discharge={self.discharge})'
-
 
 class DecisionEvent:
     """
