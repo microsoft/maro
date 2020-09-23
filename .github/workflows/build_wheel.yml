@@ -11,7 +11,7 @@ on:
       logLevel:
         description: 'package version'     
         required: true
-        default: '0.0.1a0'
+        default: '0.1.1a0'
 
 jobs:
   build:
@@ -32,7 +32,7 @@ jobs:
     - name: install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install wheel
+        pip install wheel twine
 
     - name: Install build dependencies
       run: | 
@@ -59,7 +59,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
         mkdir -p dist
-        cp wheelhouse/*-manylinux*.whl dist
+        cp wheelhouse/maro-*-manylinux*.whl dist
 
     - name: build source package on linux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
@@ -69,12 +69,15 @@ jobs:
     - name: Upload linux wheel to artifact
       uses: actions/upload-artifact@v2
       with:
-        name: citest-wheels
+        name: local-wheels
         path: |
           dist/*.whl
-  #   - name: Publish wheels to PyPI
-  #     env:
-  #       TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-  #       TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-  #     run: |
-  #       twine upload dist/*.whl
+          dist/*.gz
+#     - name: Publish wheels to PyPI
+#       env:
+#         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+#         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+#       if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
+#       run: |
+#         twine upload dist/*.whl
+#         twine upload dist/*.gz

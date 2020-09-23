@@ -1,0 +1,73 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: deploy_gh_pages
+
+# on:
+#   push:
+#     tags:
+#     - "v*.*.*"
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'package version'     
+        required: true
+        default: '0.1.1a0'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Install docs dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U -r ./docs/requirements.docs.txt
+
+    - name: Install build dependencies
+      run: | 
+        pip install -r maro/requirements.build.txt
+    
+    - name: Compile cython files
+      run: |
+        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
+    
+    - name: Build maro inplace
+      run: |
+        python setup.py build_ext -i
+
+    - name: make html
+      env:
+        PYTHONPATH: .
+      run: |
+        cd ./docs
+        sphinx-apidoc -f -o ./source/apidoc ../maro/
+        make html
+
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@3.6.1
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: docs/_build/html/ # The folder the action should deploy.
+        CLEAN: true # Automatically remove deleted files from the deploy branch
+  
+#     - name: Switch to gh-pages
+#       run: |
+#         git checkout gh-pages
+
+#     - name: Copy output files
+#         cp -r docs/_build/html/* .
+  
+#     - name: Commit change
+#         git add _images _modules _sources _static apidoc installation key_components scenarios index.html genindex.html objects.inv py-modindex.html search.html searchindex.js
+#         git commit -m "update pages"
+#         git push

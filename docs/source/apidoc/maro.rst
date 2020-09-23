@@ -1,4 +1,4 @@
-maro package
+MARO Package
 ============
 
 Subpackages
@@ -13,7 +13,7 @@ Subpackages
    maro.simulator
    maro.utils
 
-Module contents
+Module Contents
 ---------------
 
 .. automodule:: maro
