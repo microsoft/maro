@@ -8,19 +8,20 @@ The business engine is responsible for defining:
 
 - **Business instance**. Generally, the business instances are the resource
 holders in the business logic. For example:
-  - The ports and vessels in the [ECR](../scenarios/ecr.html) scenario;
+  - The ports and vessels in the [CIM](../scenarios/container_inventory_management.html)
+  scenario;
   - The stations in the [Citi Bike](../scenarios/citi_bike.html) scenario;
 - **Business event**. Since it is closely related to the actual business logic,
 the business events are reproduced based on the existing business log data or
 generated according to the predefined business rules. For example:
-  - The receiving of customers' orders, the vessel departure, etc in the ECR scenario;
+  - The receiving of customers' orders, the vessel departure, etc in the CIM scenario;
   - The receiving of the customers' trip requirements, the finishing of a trip,
   etc in the Citi Bike scenario;
 - **Decision event**. It is the external interactive interface for the resource
 optimization. The environment returns the decision events to the decision agent
 to trigger the agent's actions. For example:
   - The empty container repositioning operations that triggered by a vessel arrival
-  event in the ECR scenario;
+  event in the CIM scenario;
   - The bike repositioning operations that triggered when there are too many or
   too few bikes remained in the station in Citi Bike scenario;
 - **Optimize metrics**. There are often multiple goals in real business scenarios,
