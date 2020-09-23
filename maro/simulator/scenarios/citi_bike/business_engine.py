@@ -44,7 +44,7 @@ trip_requirements (int): accumulative trips until now
 
 bike_shortage (int): accumulative shortage until now 
 
-operation_cost (int): accumulative operation cost until now 
+operation_number (int): accumulative operation cost until now 
 
 """
 
@@ -66,7 +66,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._total_trips: int = 0
         self._total_shortages: int = 0
-        self._total_cost: int = 0
+        self._total_operate_num: int = 0
 
         self._init()
 
@@ -144,7 +144,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset after episode"""
         self._total_trips = 0
-        self._total_cost = 0
+        self._total_operate_num = 0
         self._total_shortages = 0
 
         self._frame.reset()
@@ -173,7 +173,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return DocableDict(metrics_desc, 
                 trip_requirements = total_trips, 
                 bike_shortage = total_shortage,
-                operation_cost = self._total_cost)
+                operation_number = self._total_operate_num)
 
     def __del__(self):
         """Collect resource by order"""
@@ -275,7 +275,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self._trips_adj = MatrixAttributeAccessor(self._matrices_node, "trips_adj", station_num, station_num)
 
     def _init_frame(self, station_num: int):
-        # TODO: read the station number later
         self._frame = build_frame(station_num, self.calc_max_snapshots())
         self._snapshots = self._frame.snapshots
 
@@ -412,13 +411,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if max_accept_number < transfered_number:
             src_station = self._stations[payload.from_station_idx]
 
-            cost = self._decision_strategy.move_to_neighbor(src_station, station, transfered_number - max_accept_number)
-
-            self._total_cost += cost
+            self._decision_strategy.move_to_neighbor(src_station, station, transfered_number - max_accept_number)
 
         if max_accept_number > 0:
             station.transfer_cost += max_accept_number
-            self._total_cost += max_accept_number
+            self._total_operate_num += max_accept_number
 
         station.bikes = station_bikes + max_accept_number
 

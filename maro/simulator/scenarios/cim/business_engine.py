@@ -22,7 +22,7 @@ CIM metrics used provide statistics information until now (may be in the middle 
 
 order_requirements (int): accumulative orders until now
 container_shortage (int): accumulative shortage until now
-operation_cost (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
+operation_number (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
 """
 
 
@@ -59,7 +59,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._dsch_cost_factor: float = transfer_cost_factors["dsch"]
 
         # used to collect total cost to avoid to much snapshot querying
-        self._total_transfer_cost: float = 0
+        self._total_operate_num: float = 0
 
         self._init_frame()
 
@@ -231,7 +231,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         # insert departure event again
         self._load_departure_events()
 
-        self._total_transfer_cost = 0
+        self._total_operate_num = 0
 
     def action_scope(self, port_idx: int, vessel_idx: int) -> ActionScope:
         """
@@ -270,7 +270,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         return DocableDict(metrics_desc,
             order_requirements = total_booking,
             container_shortage = total_shortage,
-            operation_cost = self._total_transfer_cost
+            operation_number = self._total_operate_num
         )
 
     def get_node_mapping(self) -> dict:
@@ -634,10 +634,10 @@ class CimBusinessEngine(AbsBusinessEngine):
                 evt.event_type = CimEventType.DISCHARGE_EMPTY if move_num > 0 else CimEventType.LOAD_EMPTY
 
                 # update cost
-                cost = abs(move_num)
+                num = abs(move_num)
 
                 # update transfer cost for port and metrics
-                self._total_transfer_cost += cost
-                port.transfer_cost += cost
+                self._total_operate_num += num
+                port.transfer_cost += num
 
                 self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
