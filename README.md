@@ -1,36 +1,45 @@
 ![MARO LOGO](./docs/source/images/logo.svg)
 
-MARO (Multi-Agent Resource Optimization) serves as a domain-specific Reinforcement
-Learning (RL) solution. In MARO, multi-agent RL is used to solve real-world resource
-optimization problems. It can be applied to many important industrial domains,
-such as container inventory management in logistics, bike repositioning in
-transportation, virtual machine (VM) provisioning in data centers, and asset
-management in finance, etc. Besides, MARO is not limited to RL, we also support
-other planning/decision-related components, such as
-`Operations Research (OR) <https://en.wikipedia.org/wiki/Operations_research>`_
-based planning, which is already in our further worklist. MARO provides comprehensive
-support in data processing, simulator building, RL algorithm selection, and
-distributed training.
+Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
+learning as a Service (RaaS) for real-world resource optimization. It can be
+applied to many important industrial domains, such as container inventory
+management in logistics, bike repositioning in transportation, virtual machine
+provisioning in data centers, and asset management in finance. Besides
+[Reinforcement Learning](https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf) (RL),
+it also supports other planning/decision mechanisms, such as
+[Operations Research](https://en.wikipedia.org/wiki/Operations_research).
 
-## Contents
+Key Components of MARO:
 
-| File/folder | Description                 |
-| ----------- | --------------------------- |
-| `maro`      | MARO source code.           |
-| `examples`  | Showcase of MARO.           |
-| `notebooks` | MARO quick-start notebooks. |
+- Simulation toolkit: it provides some predefined scenarios, and the reusable
+wheels for building new scenarios.
+- RL toolkit: it provides a full-stack abstraction for RL, such as agent manager,
+agent, RL algorithms, learner, actor, and various shapers.
+- Distributed toolkit: it provides distributed communication components, interface
+of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
-## Prerequisites
+![MARO Key Components](./docs/source/images/maro_overview.svg)
+
+# Contents
+
+| File/folder | Description                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| `maro`      | MARO source code.                                                                                 |
+| `docs`      | MARO docs, it is host on [readthedocs](https://maro.readthedocs.io/en/latest/).                   |
+| `examples`  | Showcase of MARO.                                                                                 |
+| `notebooks` | MARO quick-start notebooks.                                                                       |
+
+# Prerequisites
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
 
-## Install MARO from PyPI
+# Install MARO from PyPI
 
 ```sh
 pip install maro
 ```
 
-## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+# Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
 - Prerequisites
   - C++ Compiler
@@ -52,6 +61,9 @@ pip install maro
     # If your environment is not clean, create a virtual environment firstly.
     python -m venv maro_venv
     .\maro_venv\Scripts\activate
+
+    # You may need this for SecurityError in PowerShell.
+    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
     ```
 
 - Install MARO
@@ -70,7 +82,7 @@ pip install maro
     .\scripts\install_maro.bat
     ```
 
-## Quick example
+# Quick Example
 
 ```python
 from maro.simulator import Env
@@ -86,7 +98,7 @@ print(f"environment metrics: {env.metrics}")
 
 ```
 
-## Run playground
+# Run Playground
 
 ```sh
 # Build playground image
@@ -99,21 +111,26 @@ docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
 docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
 ```
 
-## Contributing
+# Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+This project welcomes contributions and suggestions. Most contributions require
+you to agree to a Contributor License Agreement (CLA) declaring that you have
+the right to, and actually do, grant us the rights to use your contribution. For
+details, visit https://cla.opensource.microsoft.com.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+When you submit a pull request, a CLA bot will automatically determine whether
+you need to provide a CLA and decorate the PR appropriately (e.g., status check,
+comment). Simply follow the instructions provided by the bot. You will only need
+to do this once across all repos using our CLA.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the
+[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the
+[Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
+with any additional questions or comments.
 
-## License
+# License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 

@@ -388,6 +388,18 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
         'cluster_name', help='Name of the cluster')
     parser_clean.set_defaults(func=clean)
 
+    # maro grass status
+    from maro.cli.grass.status import status
+    parser_status = subparsers.add_parser(
+        'status',
+        help='Get status of the cluster',
+        examples=CliExamples.MARO_GRASS_STATUS,
+        parents=[global_parser]
+    )
+    parser_status.add_argument('cluster_name', help='Name of the cluster')
+    parser_status.add_argument('resource_name', help='Name of the resource')
+    parser_status.set_defaults(func=status)
+
     # maro grass template
     from maro.cli.grass.template import template
     parser_clean = subparsers.add_parser(

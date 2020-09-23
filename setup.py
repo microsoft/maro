@@ -8,6 +8,9 @@ from setuptools.command.install import install
 from setuptools.command.develop import develop
 import sys
 
+# Set environment variable to skip deployment process of MARO
+os.environ["SKIP_DEPLOYMENT"] = "TRUE"
+
 from maro import __version__
 
 # root path to backend
@@ -119,10 +122,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        "maro.simulator.scenarios.ecr": ["topologies/*/*.yml","meta/*.yml"],
-        "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml","meta/*.yml"],
-        "maro.cli.k8s": ["lib/*/*.*"],
-        "maro.cli.grass": ["lib/*/*.*"],
+        "maro.simulator.scenarios.ecr": ["topologies/*/*.yml", "meta/*.yml"],
+        "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
+        "maro.cli.k8s": ["lib/**/*"],
+        "maro.cli.grass": ["lib/**/*"],
     },
     zip_safe=False,
     ext_modules=extensions,

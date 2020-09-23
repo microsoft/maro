@@ -82,22 +82,34 @@ def deploy(hide_info=True):
     error_list = []
     try:
         clean_deployment_folder()
-        for target_dir, source_dir in target_source_pairs:
-            shutil.copytree(source_dir, target_dir)
-        # deploy success
+
+        # Deployment started.
+        os.makedirs(os.path.dirname(version_file_path), exist_ok=True)
         version_info = configparser.ConfigParser()
         version_info["MARO_DATA"] = {}
         version_info["MARO_DATA"]["version"] = __data_version__
         version_info["MARO_DATA"]["deploy_time"] = str(int(time.time()))
+        version_info["MARO_DATA"]["deploy_status"] = "started"
+        with io.open(version_file_path, "w") as version_file:
+            version_info.write(version_file)
+
+        for target_dir, source_dir in target_source_pairs:
+            shutil.copytree(source_dir, target_dir)
+
+        # Deployment succeeded.
+        version_info["MARO_DATA"]["deploy_status"] = "deployed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)
         info_list.append("Data files for MARO deployed.")
     except Exception as e:
-        error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
 
-        for target_dir, _ in target_source_pairs:
-            if os.path.exists(target_dir):
-                shutil.rmtree(target_dir)
+        # Deployment failed.
+        error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
+        version_info["MARO_DATA"]["deploy_status"] = "failed"
+        with io.open(version_file_path, "w") as version_file:
+            version_info.write(version_file)
+        clean_deployment_folder()
+        
     finally:
         if len(error_list) > 0:
             for error in error_list:
@@ -109,15 +121,19 @@ def deploy(hide_info=True):
 
 def check_deployment_status():
     ret = False
-    if os.path.exists(version_file_path):
-        with io.open(version_file_path, "r") as version_file:
-            version_info = configparser.ConfigParser()
-            version_info.read(version_file)
-            if "MARO_DATA" in version_info \
-                and "deploy_time" in version_info["MARO_DATA"] \
-                and "version" in version_info["MARO_DATA"] \
-                and version_info["MARO_DATA"]["version"] == __data_version__:
-                ret = True
+    skip_deployment = os.environ.get("SKIP_DEPLOYMENT", "FALSE")
+    if skip_deployment == "TRUE":
+        ret = True
+    elif os.path.exists(version_file_path):
+        version_info = configparser.ConfigParser()
+        version_info.read(version_file_path)
+        if "MARO_DATA" in version_info \
+            and "deploy_time" in version_info["MARO_DATA"] \
+            and "version" in version_info["MARO_DATA"] \
+            and "deploy_status" in version_info["MARO_DATA"] \
+            and version_info["MARO_DATA"]["version"] == __data_version__ \
+            and version_info["MARO_DATA"]["deploy_status"] != "failed" :
+            ret = True
     return ret
 
 
