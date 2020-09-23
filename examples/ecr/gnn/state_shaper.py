@@ -4,8 +4,21 @@ import pickle as pkl
 from .utils import compute_v2p_degree_matrix
 
 class GNNStateShaper:
+    """State shaper to extract graph information.
+
+    Args:
+        port_code_list (list): The list of the port codes in the CIM topology.
+        vessel_code_list (list): The list of the vessel code in the CIM topology.
+        max_tick (int): The duration of the simulation.
+        feature_config (dict): The dottable dict that stores the configuration of the observation feature.
+        max_value (int): The norm scale. All the feature are simply divided by this number.
+        tick_buffer (int): The value n in n-step TD.
+        only_demo (bool): Define if the shaper instance is used only for shape demonstration(True) or runtime 
+            shaping(False).
+    """
+
     def __init__(self, port_code_list, vessel_code_list, max_tick, feature_config, max_value=100000, 
-                    attention_order='temporal', tick_buffer=20, only_demo=False):
+                    tick_buffer=20, only_demo=False):
         # collect and encode all ports
         self.port_code_list = list(port_code_list)
         self.port_cnt = len(self.port_code_list)
@@ -34,7 +47,6 @@ class GNNStateShaper:
 
         self._max_tick = max_tick
         self._tick_buffer = tick_buffer
-        self._attention_order = attention_order
         # to identify one vessel would never arrive at the port
         self.max_arrival_time = 99999999
 
@@ -94,6 +106,7 @@ class GNNStateShaper:
         else:
             return at_index, attr
 
+    '''
     def arg_idx(self, arrival_time, p_or_v):
         if self._feature_config.attention_order == 'temporal':
             return self.sort(arrival_time)
@@ -102,6 +115,7 @@ class GNNStateShaper:
         else:
             # randomize the arrival time
             return self.sort(arrival_time + np.random.randint(self._max_tick, size=arrival_time.shape))
+    '''
 
     def end_ep_callback(self, snapshot_list):
         if self._only_demo:

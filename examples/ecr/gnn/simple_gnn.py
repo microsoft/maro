@@ -136,7 +136,7 @@ class SimpleGATLayer(nn.Module):
         return dest_emb.reshape(batch, d_cnt, self.hidden_size)
 
 class SimpleGAT(nn.Module):
-    """Graph attention network with multiple graph in the ECR scenario.
+    """Graph attention network with multiple graph in the CIM scenario.
     
     This module aggregates information in the port-to-port graph, port-to-vessel graph and vessel-to-port graph. The 
     aggregation in the two graph are done separatedly and then the port features are concatenated as the final result.
@@ -244,6 +244,14 @@ class Header(nn.Module):
 
 
 class SharedAC(nn.Module):
+    """The actor-critic module shared with multiple agents.
+
+    This module maps the input graph of the observation to the policy and value space. It first extracts the temporal 
+    information separately for each node with a small transformer block and then extracts the spatial information with
+    a multi-graph/channel graph attention. Finally, the extracted feature embedding is fed to a actor header as well 
+    as a critic layer, which are the two MLPs with residual connections.
+    """
+
     def __init__(self, input_dim_p, edge_dim_p, input_dim_v, edge_dim_v, tick_buffer, action_dim, a=True, c=True, scale=4, ac_head='res'):
         super().__init__()
         assert(a or c)

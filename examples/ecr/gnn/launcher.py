@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # create and assemble agent_manager
     agent_id_list = list(config.env.exp_per_ep.keys())
     training_logger = Logger(tag='training', dump_folder=config.log.path, dump_mode='w', auto_timestamp=False)
-    agent_manager = SimpleAgentManger("ecr-GNN-ma", agent_id_list, static_code_list, dynamic_code_list, demo_env, 
+    agent_manager = SimpleAgentManger("CIM-GNN-manager", agent_id_list, static_code_list, dynamic_code_list, demo_env, 
                                         gnn_state_shaper, training_logger)
     agent_manager.assemble(config)
 

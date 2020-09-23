@@ -7,7 +7,7 @@ import os
 
 class GNNLearner(AbsLearner):
     def __init__(self, actor: AbsActor, trainable_agents:AbsAgentManager, logger=DummyLogger()):
-        """Learner class for the training pipeline and the specialized logging in GNN solution for ECR problem.
+        """Learner class for the training pipeline and the specialized logging in GNN solution for CIM problem.
         
         Args:
             actor (AbsActor): The actor instance to collect experience.
