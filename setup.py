@@ -95,7 +95,6 @@ setup(
     python_requires=">=3.6,<3.8",
     setup_requires=[
         "numpy==1.19.1",
-        "PyYAML==5.3.1"
     ],
     install_requires=[
         # TODO: use a helper function to collect these
@@ -122,7 +121,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        "maro.simulator.scenarios.ecr": ["topologies/*/*.yml", "meta/*.yml"],
+        "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.cli.k8s": ["lib/**/*"],
         "maro.cli.grass": ["lib/**/*"],

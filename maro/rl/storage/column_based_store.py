@@ -182,7 +182,7 @@ class ColumnBasedStore(AbsStore):
         return indexes, self.get(indexes)
 
     def dumps(self):
-        return clone(self._store)
+        return clone(dict(self._store))
 
     def get_by_key(self, key):
         return self._store[key]

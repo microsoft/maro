@@ -21,10 +21,10 @@ class TestEnv(unittest.TestCase):
     """        
 
     def test_builtin_scenario_with_default_parameters(self):
-        """Test if the env with built-in scenario inititializing correct"""
+        """Test if the env with built-in scenario initializing correct"""
         max_tick = 10
 
-        env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0", durations=max_tick)
+        env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0", durations=max_tick)
 
         run_to_end(env)
 
@@ -194,7 +194,7 @@ class TestEnv(unittest.TestCase):
 
         max_tick = 10
 
-        env = Env(scenario="ecr", topology="tests/data/ecr/customized_config", start_tick=0, durations=max_tick)
+        env = Env(scenario="cim", topology="tests/data/cim/customized_config", start_tick=0, durations=max_tick)
 
         run_to_end(env)
 
@@ -210,7 +210,7 @@ class TestEnv(unittest.TestCase):
 
         # not exist topology
         with self.assertRaises(FileNotFoundError) as ctx:
-            env = Env("ecr", "None", 100)
+            env = Env("cim", "None", 100)
 
 
 
