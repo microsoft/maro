@@ -254,7 +254,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             # get related station, and set the init states
             station = self._stations[state.index]
 
-            station.set_init_state(state.bikes, state.capacity)
+            station.set_init_state(state.bikes, state.capacity, state.id)
 
     def _init_adj_matrix(self):
         # our distance adj

@@ -18,6 +18,7 @@ class Station(NodeBase):
     fulfillment = NodeAttribute("i")
 
     capacity = NodeAttribute("i")
+    id = NodeAttribute("i")
 
     # additional features
     weekday = NodeAttribute("i2")
@@ -34,11 +35,13 @@ class Station(NodeBase):
     def __init__(self):
         self._init_capacity = 0 # internal use for reset
         self._init_bikes = 0 # internal use for reset
+        self._id = 0 # original id in data file
 
-    def set_init_state(self, bikes:int, capacity:int):
+    def set_init_state(self, bikes:int, capacity:int, id: int):
         """set initialize state, usually for 1st using"""
         self._init_bikes = bikes
         self._init_capacity = capacity
+        self._id = id
 
         self.reset()
 
@@ -48,6 +51,7 @@ class Station(NodeBase):
         self.capacity = self._init_capacity
         self.bikes = self._init_bikes
         self.min_bikes = self._init_bikes
+        self.id = self._id
 
     def _on_bikes_changed(self, value: int):
         """Update min bikes after bikes changed"""
