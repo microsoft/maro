@@ -69,8 +69,6 @@ the role of an agent assembler. It can assemble different RL agents according to
 the actual requirements, such as whether to share the underlying model, whether
 to share the experience pool, etc.
 
-![Agent Manager](../images/rl/agent_manager.svg)
-
 ```python
 def assemble_agents(self, config):
     # Initialize experience pool instance.
@@ -86,6 +84,8 @@ def assemble_agents(self, config):
 Furthermore, to well serve the distributed algorithm (scalable), the agent
 manager provides two kinds of working modes, which can be applied in different
 distributed components, such as inference mode in actor, training mode in learner.
+
+![Agent Manager](../images/rl/agent_manager.svg)
 
 - In **inference mode**, the agent manager is responsible to access and shape
 the environment state for the related agent, convert the model action to an
