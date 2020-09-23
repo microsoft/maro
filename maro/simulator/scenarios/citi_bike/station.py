@@ -37,7 +37,7 @@ class Station(NodeBase):
         self._init_bikes = 0 # internal use for reset
         self._id = 0 # original id in data file
 
-    def set_init_state(self, bikes:int, capacity:int, id: int):
+    def set_init_state(self, bikes:int, capacity:int, id:int):
         """set initialize state, usually for 1st using"""
         self._init_bikes = bikes
         self._init_capacity = capacity
