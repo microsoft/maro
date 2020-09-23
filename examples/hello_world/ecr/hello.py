@@ -2,13 +2,13 @@
 # Licensed under the MIT license.
 
 from maro.simulator import Env
-from maro.simulator.scenarios.ecr.common import Action
+from maro.simulator.scenarios.cim.common import Action
 
 start_tick = 0
 durations = 100  # 100 days
 
 # Initialize an environment with a specific scenario, related topology.
-env = Env(scenario="ecr", topology="toy.5p_ssddd_l0.0",
+env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=start_tick, durations=durations)
 
 
