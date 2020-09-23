@@ -4,6 +4,8 @@ FROM quay.io/pypa/manylinux2010_x86_64 as ext_build
 WORKDIR /maro_build
 
 ADD ./maro ./maro
+ADD README.md ./README.md
+ADD LICENSE ./LICENSE
 ADD setup.py ./setup.py
 RUN  PYBIN="/opt/python/cp36-cp36m/bin"; "${PYBIN}/pip" install -r maro/requirements.build.txt; "${PYBIN}/python" setup.py bdist_wheel --plat-name manylinux2010_x86_64
 
