@@ -4,7 +4,7 @@ import math
 import shutil
 import random
 
-TOPOLOGY_LIST = ["4p_ssdd", "5p_ssddd", "6p_sssbdd", "22p_global_ratio"]
+TOPOLOGY_LIST = ["toy.4p_ssdd", "toy.5p_ssddd", "toy.6p_sssbdd", "global_trade.22p"]
 SAILING_TIME = 7
 VESSEL_CAPACITY_REDUNDANCY_RATIOS = [20, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.5, 2.5]
 VESSEL_CAPACITY_DELTA_RATIO = 0.1
