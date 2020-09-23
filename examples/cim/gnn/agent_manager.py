@@ -1,10 +1,10 @@
 from maro.rl import AbsAgentManager, AgentMode
-from examples.ecr.gnn.agent import TrainableAgent
-from examples.ecr.gnn.actor_critic import ActorCritic
-# from examples.ecr.gnn.differ_gnn_model import SharedAC
-from examples.ecr.gnn.simple_gnn import SharedAC
-from examples.ecr.gnn.numpy_store import NumpyStore
-from examples.ecr.gnn.utils import compute_v2p_degree_matrix
+from examples.cim.gnn.agent import TrainableAgent
+from examples.cim.gnn.actor_critic import ActorCritic
+# from examples.cim.gnn.differ_gnn_model import SharedAC
+from examples.cim.gnn.simple_gnn import SharedAC
+from examples.cim.gnn.numpy_store import NumpyStore
+from examples.cim.gnn.utils import compute_v2p_degree_matrix
 from maro.utils import DummyLogger
 import numpy as np
 from copy import copy

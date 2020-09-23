@@ -1,23 +1,23 @@
 import time, os
 import torch
-from examples.ecr.gnn.numpy_store import NumpyStore, Shuffler
+from examples.cim.gnn.numpy_store import NumpyStore, Shuffler
 import numpy as np
-from examples.ecr.gnn.experience_shaper import ExperienceShaper
+from examples.cim.gnn.experience_shaper import ExperienceShaper
 import multiprocessing
 from collections import defaultdict
-from examples.ecr.gnn.actor import ParallelActor
-from examples.ecr.gnn.learner import GNNLearner
+from examples.cim.gnn.actor import ParallelActor
+from examples.cim.gnn.learner import GNNLearner
 from maro.simulator import Env
-from examples.ecr.gnn.state_shaper import GNNStateShaper
-from examples.ecr.gnn.utils import decision_cnt_analysis, load_config, save_config, save_code, return_scaler
-from examples.ecr.gnn.agent_manager import SimpleAgentManger
+from examples.cim.gnn.state_shaper import GNNStateShaper
+from examples.cim.gnn.utils import decision_cnt_analysis, load_config, save_config, save_code, return_scaler
+from examples.cim.gnn.agent_manager import SimpleAgentManger
 from maro.utils import Logger, LogFormat
 import datetime
 import time
 
 
 if __name__ == "__main__":
-    config_pth = 'examples/ecr/gnn/config.yml'
+    config_pth = 'examples/cim/gnn/config.yml'
     config = load_config(config_pth)
 
     # generate log path.
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     simulation_logger.info("Return value will be scaled down by the factor %f"%config.env.return_scaler)
 
     save_config(config, os.path.join(config.log.path, 'config.yml'))
-    save_code('examples/ecr/gnn',config.log.path)
+    save_code('examples/cim/gnn',config.log.path)
 
     port_mapping = demo_env.summary['node_mapping']['ports']
     vessel_mapping = demo_env.summary['node_mapping']['vessels']

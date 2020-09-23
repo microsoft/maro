@@ -2,7 +2,7 @@ from maro.rl import AbsAgent
 from maro.utils import DummyLogger
 import time
 from collections import defaultdict
-from examples.ecr.gnn.numpy_store import Shuffler
+from examples.cim.gnn.numpy_store import Shuffler
 import numpy as np
 
 class TrainableAgent(AbsAgent):

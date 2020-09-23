@@ -8,7 +8,7 @@ from torch.nn.utils import clip_grad
 
 from maro.rl import AbsAlgorithm
 
-from examples.ecr.gnn.utils import gnn_union
+from .utils import gnn_union
 
 class ActorCritic(AbsAlgorithm):
     def __init__(self, model: nn.Module, 
@@ -20,7 +20,7 @@ class ActorCritic(AbsAlgorithm):
                     entropy_factor=0.1):
         '''
 
-        Actor-Critic algorithm in ECR problem.
+        Actor-Critic algorithm in CIM problem.
 
         Args:
             model (nn.Module): A actor-critic module outputing both the policy network and the value network

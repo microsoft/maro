@@ -3,7 +3,7 @@ import torch, sys, argparse
 import json
 import ast, math
 from collections import defaultdict, OrderedDict
-from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 from maro.simulator import Env
 import shutil
 from maro.utils import convert_dottable, clone

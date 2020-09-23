@@ -9,18 +9,18 @@ from multiprocessing import Process, Pipe, Event, Manager
 
 from maro.simulator import Env
 from maro.rl import AbsActor
-from examples.ecr.gnn.numpy_store import NumpyStore, Shuffler
-from examples.ecr.gnn.action_shaper import DiscreteActionShaper
-from examples.ecr.gnn.utils import fix_seed, gnn_union
-from examples.ecr.gnn.experience_shaper import ExperienceShaper
-from examples.ecr.gnn.state_shaper import GNNStateShaper
+from examples.cim.gnn.numpy_store import NumpyStore, Shuffler
+from examples.cim.gnn.action_shaper import DiscreteActionShaper
+from examples.cim.gnn.utils import fix_seed, gnn_union
+from examples.cim.gnn.experience_shaper import ExperienceShaper
+from examples.cim.gnn.state_shaper import GNNStateShaper
 from collections import defaultdict, OrderedDict
-from examples.ecr.gnn.actor_critic import ActorCritic
+from examples.cim.gnn.actor_critic import ActorCritic
 from maro.simulator import Env
-from maro.simulator.scenarios.ecr.common import Action, DecisionEvent
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 from maro.utils import Logger, LogFormat, convert_dottable
-from examples.ecr.gnn.shared_structure import SharedStructure
-from examples.ecr.gnn.utils import decision_cnt_analysis, compute_v2p_degree_matrix
+from examples.cim.gnn.shared_structure import SharedStructure
+from examples.cim.gnn.utils import decision_cnt_analysis, compute_v2p_degree_matrix
 import random
 
 

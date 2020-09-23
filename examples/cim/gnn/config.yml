@@ -2,13 +2,13 @@ env:
   seed: 10
   param:
     durations: 750
-    scenario: "ecr"
-    topology: 'global_trade.22p_l0.0'
+    scenario: "cim"
+    topology: 'global_trade.22p_l0.1'
     # topology: "toy.4p_ssdd_l0.0"
 training:
   enable: True
   parallel_cnt: 24
-  device: 'cuda:0'
+  device: 'cuda:1'
   batch_size: 150
   shuffle_time: 1
   rollout_cnt: 1000
