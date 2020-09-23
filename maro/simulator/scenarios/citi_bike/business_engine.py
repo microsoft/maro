@@ -200,7 +200,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if trip_data_path.startswith("~"):
             trip_data_path = os.path.expanduser(trip_data_path)
 
-        if (not os.path.exists(weather_data_path)) or (not os.path.exists(trip_data_path)):
+        # Weather data source changed, temporarily disable, will enable it later when new data source is available.
+        # if (not os.path.exists(weather_data_path)) or (not os.path.exists(trip_data_path)):
+        if not os.path.exists(trip_data_path):
             self._build_temp_data()
 
         # Weather data source changed, temporarily disable, will enable it later when new data source is available.
