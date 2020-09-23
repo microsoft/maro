@@ -38,7 +38,7 @@ jobs:
           # Password or personal access token used to log in to a Docker registry. If not set then no login will occur
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           # Server address of Docker registry. If not set then will default to Docker Hub
-          registry: arthursjiang/maro
+          registry: https://hub.docker.com/repository/docker/arthursjiang/maro
           # Docker repository to tag the image with
           repository: latest
           # Comma-delimited list of tags. These will be added to the registry/repository to form the image's tags
