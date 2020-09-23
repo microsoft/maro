@@ -6,7 +6,7 @@ import numpy as np
 from maro.rl import AbsAgent, ColumnBasedStore
 
 
-class ECRAgent(AbsAgent):
+class CIMAgent(AbsAgent):
     def __init__(self, name, algorithm, experience_pool: ColumnBasedStore, min_experiences_to_train,
                  num_batches, batch_size):
         super().__init__(name, algorithm, experience_pool)

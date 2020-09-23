@@ -9,7 +9,7 @@ from torch.optim import RMSprop
 
 from maro.rl import AbsAgentManager, LearningModel, MLPDecisionLayers, DQN, DQNHyperParams, ColumnBasedStore
 from maro.utils import convert_dottable, set_seeds
-from .agent import ECRAgent
+from .agent import CIMAgent
 
 
 with io.open("config.yml", "r") as in_file:
@@ -36,7 +36,7 @@ class DQNAgentManager(AbsAgentManager):
                                                         num_actions=num_actions))
 
             experience_pool = ColumnBasedStore(**config.experience_pool)
-            agent_dict[agent_id] = ECRAgent(name=agent_id, algorithm=algorithm, experience_pool=experience_pool,
+            agent_dict[agent_id] = CIMAgent(name=agent_id, algorithm=algorithm, experience_pool=experience_pool,
                                             **config.training_loop_parameters)
 
     def store_experiences(self, experiences):
