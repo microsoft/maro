@@ -66,18 +66,18 @@ jobs:
       run: |
         python setup.py sdist 
 
-#     - name: Upload linux wheel to artifact
-#       uses: actions/upload-artifact@v2
-#       with:
-#         name: local-wheels
-#         path: |
-#           dist/*.whl
-#           dist/*.gz
-    - name: Publish wheels to PyPI
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
-      run: |
-        twine upload dist/*.whl
-        twine upload dist/*.gz
+    - name: Upload linux wheel to artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: local-wheels
+        path: |
+          dist/*.whl
+          dist/*.gz
+#     - name: Publish wheels to PyPI
+#       env:
+#         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+#         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+#       if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
+#       run: |
+#         twine upload dist/*.whl
+#         twine upload dist/*.gz
