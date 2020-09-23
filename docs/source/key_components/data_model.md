@@ -13,14 +13,14 @@ implementation based on their real performance requirement and device limitation
 As shown in the figure above, there are some key concepts in the data model:
 
 - **Node** is the abstraction of the resource holder, which is usually the major
-business instance of the scenario (i.e. vessels and ports in ECR scenario). A
+business instance of the scenario (i.e. vessels and ports in CIM scenario). A
 node usually has various attributes to present the business nature.
 - **(Slot) Attribute** is the abstraction of business properties for the
 scenarios-specific resource holder (node). The attributes of a node could be
 declared as different data types based on the real requirements. Furthermore,
 for each attribute, a `slot` feature is provided to support the fixed-size array.
 The `slot` number can indicate the attribute values (e.g. the three different
-container types in ECR scenario) or the detailed categories (e.g. the ten specific
+container types in CIM scenario) or the detailed categories (e.g. the ten specific
 products in the [Use Case](#use-case) below). By default, the `slot` value is one.
 - **Frame** is the collection of all nodes in the environment. The historical frames
 present the aggregated state of the environment during a specific period, while
@@ -32,7 +32,7 @@ It captures the aggregated changes of the environment between the dump points.
 scenarios-specific resource holder. Different attributes of one node can be
 different data types. Besides, for each attribute, you can also declare a `slot`
 number (the default value is one). It can indicate the attribute values (e.g.
-the three different container types in ECR scenario), the detailed categories
+the three different container types in CIM scenario), the detailed categories
 (e.g. the ten specific products in the Use Case below), etc. Also, the attribute
 with a slot number can be seen as a fixed-sized array. -->
 

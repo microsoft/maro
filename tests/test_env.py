@@ -206,7 +206,7 @@ class TestEnv(unittest.TestCase):
 
         # not exist scenario
         with self.assertRaises(ModuleNotFoundError) as ctx:
-            env = Env("None", "5p_ssddd", 100)
+            env = Env("None", "toy.5p_ssddd_l0.0", 100)
 
         # not exist topology
         with self.assertRaises(FileNotFoundError) as ctx:

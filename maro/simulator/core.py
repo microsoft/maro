@@ -67,8 +67,7 @@ class Env(AbsEnv):
 
             - reward for current action. a list of reward if the input action is a list
 
-            - decision_event for sequential decision mode, or a list of decision_event (the pending event can be any object,
-              like DecisionEvent for ECR scenario)"
+            - decision_event for sequential decision mode, or a list of decision_event
 
             - whether the episode ends
         """

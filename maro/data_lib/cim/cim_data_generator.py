@@ -18,7 +18,7 @@ from maro.simulator.utils import seed
 from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
 
 
-ECR_GENERATOR_VERSION = 0x000001
+CIM_GENERATOR_VERSION = 0x000001
 
 
 class CimDataGenerator:
@@ -86,7 +86,7 @@ class CimDataGenerator:
             vessel_period_no_noise,
             max_tick,
             topology_seed,
-            ECR_GENERATOR_VERSION)
+            CIM_GENERATOR_VERSION)
 
     def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting, ports_setting, port_mapping, routes, route_mapping):
         """Extend route with specified tick range"""
