@@ -1,6 +1,5 @@
 .ignore
 Dockerfile
-README.md
 maro_cli/
 examples/**/*.log
 examples/**/*.csv

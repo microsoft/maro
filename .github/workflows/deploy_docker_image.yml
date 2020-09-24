@@ -1,0 +1,47 @@
+# This is a basic workflow to help you get started with Actions
+
+name: deploy_docker_image
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+# on:
+#   push:
+#     tags:
+#     - "v*.*.*"
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'package version'     
+        required: true
+        default: '0.1.1a0'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+
+    - name: Build image
+      run: |
+        pip install -r ./maro/requirements.build.txt
+        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
+        docker build -f ./docker_files/cpu.play.df . -t ${{ secrets.DOCKER_HUB_USERNAME }}/maro:cpu
+
+    - name: Login docker hub
+      run: |
+        docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_HUB_PASSWORD }}
+        
+    - name: Push image
+      run: |
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/maro
