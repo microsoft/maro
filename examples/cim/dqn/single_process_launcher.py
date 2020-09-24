@@ -13,13 +13,9 @@ from maro.utils import Logger, convert_dottable
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import DQNAgentManager
+from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
-
-
-with io.open("config.yml", "r") as in_file:
-    raw_config = yaml.safe_load(in_file)
-    config = convert_dottable(raw_config)
 
 
 if __name__ == "__main__":
