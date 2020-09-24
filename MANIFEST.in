@@ -1,9 +1,5 @@
-
-prune maro/simulator/scenarios/sample
 prune tests
 prune examples
-prune samples
 
-include maro/backends/*.pxd
 include maro/simulator/scenarios/cim/topologies/*/*.yml
 include maro/simulator/scenarios/citi_bike/topologies/*/*.yml
