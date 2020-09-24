@@ -3,7 +3,6 @@
 
 import io
 import os
-import sys
 import yaml
 
 import numpy as np
@@ -12,11 +11,10 @@ from maro.simulator import Env
 from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper, TwoPhaseLinearExplorer
 from maro.utils import Logger, convert_dottable
 
-sys.path.insert(1, "components")
-from state_shaper import CIMStateShaper
-from action_shaper import CIMActionShaper
-from experience_shaper import TruncatedExperienceShaper
-from agent_manager import DQNAgentManager
+from components.state_shaper import CIMStateShaper
+from components.action_shaper import CIMActionShaper
+from components.experience_shaper import TruncatedExperienceShaper
+from components.agent_manager import DQNAgentManager
 
 
 with io.open("config.yml", "r") as in_file:
