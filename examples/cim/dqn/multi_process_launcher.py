@@ -7,7 +7,7 @@ This script is used to debug distributed algorithm in single host multi-process 
 
 import os
 
-from .components.config import config
+from components.config import config
 
 
 ACTOR_NUM = config.distributed.learner.peer["actor_worker"]  # must be same as in config
