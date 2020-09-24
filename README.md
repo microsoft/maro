@@ -1,3 +1,8 @@
+[![test](https://github.com/microsoft/maro/workflows/unittest/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Aunittest)
+[![build](https://github.com/microsoft/maro/workflows/build/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Abuild)
+[![docker](https://github.com/microsoft/maro/workflows/docker/badge.svg)](https://hub.docker.com/repository/docker/arthursjiang/maro)
+[![docs](https://readthedocs.org/projects/maro/badge/?version=latest)](https://maro.readthedocs.io/)
+
 # ![MARO LOGO](./docs/source/images/logo.svg)
 
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
@@ -33,7 +38,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
 
-## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
 - Prerequisites
   - C++ Compiler

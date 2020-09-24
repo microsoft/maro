@@ -8,11 +8,12 @@ learning as a Service (RaaS) for real-world resource optimization.
 """
 
 with open("README.md", "r") as f:
-    pk_long_description = "".join(f.readlines())
+    pk_long_description = "".join(f.readlines()[4:])
 
 with open("LICENSE", "r") as f:
     pk_license = "".join(f.readlines())
 ######################################################################################
+
 from glob import glob
 import os
 from setuptools import setup, find_packages, Extension
@@ -130,7 +131,7 @@ setup(
             "maro=maro.cli.maro:main",
         ]
     },
-    packages=find_packages(),
+    packages=find_packages(exclude=["examples", "examples.*"]),
     include_package_data=True,
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
