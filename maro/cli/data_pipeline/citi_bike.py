@@ -629,7 +629,7 @@ class NOAAWeatherPipeline(WeatherPipeline):
 
     def __init__(self, topology: str, source: str, is_temp: bool = False):
         """
-        Generate weather data bin for the specified topology from frontierweather.com.
+        Generate weather data bin for the specified topology from ncei.noaa.gov.
         Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
         Folder structure: 
         ~/.maro

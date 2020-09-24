@@ -162,6 +162,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         
         self._decision_strategy.reset()
 
+        self._last_date = None
+
     def get_agent_idx_list(self) -> List[int]:
         return [station.index for station in self._stations]
 
@@ -296,7 +298,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def _update_station_extra_features(self, tick: int):
         """update features that not related to trips"""
         cur_datetime = self._tick_2_date(tick)
-
+        
         if self._last_date == cur_datetime:
             return
 
