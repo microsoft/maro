@@ -20,7 +20,8 @@ if __name__ == "__main__":
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: mt["perf"], **config.experience_shaping.k_step)
+        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+                                                  **config.experience_shaping.k_step)
 
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},
