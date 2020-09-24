@@ -3,12 +3,12 @@
 
 import os
 
-from agent_manager import DQNAgentManager
-from config import config
 from maro.rl import ActorProxy, SimpleLearner, AgentMode, TwoPhaseLinearExplorer
 from maro.simulator import Env
 from maro.utils import Logger
-from state_shaper import CIMStateShaper
+from .state_shaper import CIMStateShaper
+from .agent_manager import DQNAgentManager
+from .config import config
 
 
 if __name__ == "__main__":

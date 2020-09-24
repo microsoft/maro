@@ -4,8 +4,8 @@
 from torch.nn.functional import smooth_l1_loss
 from torch.optim import RMSprop
 
-from agent import CIMAgent
-from config import config
+from .agent import CIMAgent
+from .config import config
 from maro.rl import AbsAgentManager, LearningModel, MLPDecisionLayers, DQN, DQNHyperParams, ColumnBasedStore
 from maro.utils import set_seeds
 
