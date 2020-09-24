@@ -1,20 +1,19 @@
 # This is a basic workflow to help you get started with Actions
 
-name: deploy_docker_image
+name: docker
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   push:
     tags:
-    - "v*.*.*"
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       logLevel:
-#         description: 'package version'     
-#         required: true
-#         default: '0.1.1a0'
+    - "maro-[0-9]+\\.[0-9]+\\.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'package version'     
+        required: true
+        default: '0.1.1a0'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
