@@ -6,8 +6,11 @@ This script is used to debug distributed algorithm in single host multi-process 
 """
 
 import os
+import sys
 
-from components.config import config
+sys.path.insert(1, "components")
+
+from config import config
 from maro.utils import Logger, convert_dottable
 
 
