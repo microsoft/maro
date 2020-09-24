@@ -69,5 +69,67 @@ trips:
 weather:
   ny_weather_url: "http://www.frontierweather.com/historicaldataonly/KNYC_daily.txt"
 
+  ny.201801: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-01-01&endDate=2018-02-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201802: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-02-01&endDate=2018-03-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201803: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-03-01&endDate=2018-04-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201804: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-04-01&endDate=2018-05-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201805: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-05-01&endDate=2018-06-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201806: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-06-01&endDate=2018-07-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201807: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-07-01&endDate=2018-08-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201808: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-08-01&endDate=2018-09-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201809: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-09-01&endDate=2018-10-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201810: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-10-01&endDate=2018-11-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201811: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-11-01&endDate=2018-12-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201812: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-12-01&endDate=2019-01-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201901: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-01-01&endDate=2019-02-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201902: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-02-01&endDate=2019-03-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201903: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-03-01&endDate=2019-04-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201904: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-04-01&endDate=2019-05-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201905: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-05-01&endDate=2019-06-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201906: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-06-01&endDate=2019-07-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201907: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-07-01&endDate=2019-08-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201908: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-08-01&endDate=2019-09-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201909: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-09-01&endDate=2019-10-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201910: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-10-01&endDate=2019-11-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201911: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-11-01&endDate=2019-12-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.201912: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2019-12-01&endDate=2020-01-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.202001: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2020-01-01&endDate=2020-02-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.202002: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2020-02-01&endDate=2020-03-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.202003: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2020-03-01&endDate=2020-04-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.202004: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2020-04-01&endDate=2020-05-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.202005: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2020-05-01&endDate=2020-06-01&boundingBox=40.78,-74.0,40.76,-73.7"
+  ny.202006: 
+    noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2020-06-01&endDate=2020-07-01&boundingBox=40.78,-74.0,40.76,-73.7"
+
+
 station_info:
   ny_station_info_url: "https://gbfs.citibikenyc.com/gbfs/en/station_information.json"
