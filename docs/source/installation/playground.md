@@ -2,13 +2,13 @@
 
 ## Pull from [Docker Hub](https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1)
 
-    ```sh
-    # Run playground container.
-    # Redis commander (GUI for redis) -> http://127.0.0.1:40009
-    # Local host docs -> http://127.0.0.1:40010
-    # Jupyter lab with maro -> http://127.0.0.1:40011
-    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 arthursjiang/maro:cpu
-    ```
+```sh
+# Run playground container.
+# Redis commander (GUI for redis) -> http://127.0.0.1:40009
+# Local host docs -> http://127.0.0.1:40010
+# Jupyter lab with maro -> http://127.0.0.1:40011
+docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 arthursjiang/maro:cpu
+```
 
 ## Run from Source
 
@@ -27,7 +27,7 @@
 
 - Windows
 
-  ```powershell
+  ```
   # Build playground image.
   .\scripts\build_playground.bat
 
