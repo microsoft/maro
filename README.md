@@ -1,5 +1,6 @@
 ![test](https://github.com/microsoft/maro/workflows/unittest/badge.svg)
 ![build](https://github.com/microsoft/maro/workflows/build/badge.svg)
+![deploy_docker_image](https://github.com/microsoft/maro/workflows/deploy_docker_image/badge.svg)
 
 # ![MARO LOGO](./docs/source/images/logo.svg)
 
