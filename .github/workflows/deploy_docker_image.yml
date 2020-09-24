@@ -7,7 +7,7 @@ name: deploy_docker_image
 on:
   push:
     tags:
-    - "v*.*.*"
+    - "maro-[0-9]+\\.[0-9]+\\.[0-9]+"
 # on:
 #   workflow_dispatch:
 #     inputs:
