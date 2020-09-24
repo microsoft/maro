@@ -1,17 +1,17 @@
 
 name: build
 
-# on:
-#   push:
-#     tags:
-#     - "v*.*.*"
 on:
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'package version'     
-        required: true
-        default: '0.1.1a0'
+  push:
+    tags:
+    - "v*.*.*"
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       logLevel:
+#         description: 'package version'     
+#         required: true
+#         default: '0.1.1a0'
 
 jobs:
   build:
