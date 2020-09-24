@@ -33,7 +33,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
 
-## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
 - Prerequisites
   - C++ Compiler
