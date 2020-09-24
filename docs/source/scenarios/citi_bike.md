@@ -201,9 +201,9 @@ the environment and test for a duration of 1 week.
 
 | Topology  | Total Requirement | Resource Shortage | Repositioning Number|
 | :-------: | :---------------: | :---------------: | :-----------------: |
-| toy.3s_4t |      15,154       |   8,422 +/- 11    |       449 +/- 22    |
-| toy.4s_4t |      10,186       |   4,371 +/- 72    |     3,392 +/- 83    |
-| toy.5s_6t |      16,171       |   7,513 +/- 40    |     3,242 +/- 71    |
+| toy.3s_4t |      15,154       |   8,422 +/-    11 |       449 +/-    22 |
+| toy.4s_4t |      10,186       |   4,371 +/-    72 |     3,392 +/-    83 |
+| toy.5s_6t |      16,171       |   7,513 +/-    40 |     3,242 +/-    71 |
 
 | Topology  | Total Requirement | Resource Shortage | Repositioning Number|
 | :-------: | :---------------: | :---------------: | :-----------------: |
