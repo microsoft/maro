@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import numpy as np
+
 from maro.rl import StateShaper
 
 
