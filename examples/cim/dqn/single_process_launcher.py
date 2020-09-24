@@ -11,10 +11,10 @@ from maro.simulator import Env
 from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper, TwoPhaseLinearExplorer
 from maro.utils import Logger, convert_dottable
 
-from components.state_shaper import CIMStateShaper
 from components.action_shaper import CIMActionShaper
-from components.experience_shaper import TruncatedExperienceShaper
 from components.agent_manager import DQNAgentManager
+from components.experience_shaper import TruncatedExperienceShaper
+from components.state_shaper import CIMStateShaper
 
 
 with io.open("config.yml", "r") as in_file:
