@@ -102,7 +102,7 @@ By registering the `conditional event` and related `handler function` to
 the register table, the handler function will be automatically executed
 with the received messages when the event conditions are met.
 
-![Register Table](../images/distributed/register_table.svg)
+![Register Table](../images/distributed/register_table.register.svg)
 
 `Conditional event` is used to declare the required message group for
 auto-triggering the related handler function.
@@ -149,6 +149,8 @@ combined_event_mix = (("worker_01:update:2", "worker_02:update:3", "AND"),
 `Handler function` is a user-defined callback function that is bind to
 a specific conditional event. When the condition of the event is met,
 the related messages will be sent to the handler function for its execution.
+
+![Register Table](../images/distributed/register_table.trigger.svg)
 
 ```python
 # A common handler function signature

@@ -36,10 +36,12 @@ def get_scenarios()->List[str]:
     """
     try:
         _, scenarios, _ = next(os.walk(scenarios_root_folder))
+        scenarios = sorted([s for s in scenarios if not s.startswith("__")])
+
     except StopIteration:
         return []
 
-    return [s for s in scenarios if not s.startswith("__")]
+    return scenarios
 
 def get_topologies(scenario: str)-> List[str]:
     """Get topology list of built-in scenario
@@ -57,6 +59,8 @@ def get_topologies(scenario: str)-> List[str]:
 
     try:
         _, topologies, _ = next(os.walk(scenario_topology_root))
+        topologies = sorted(topologies)
+
     except StopIteration:
         return []
 

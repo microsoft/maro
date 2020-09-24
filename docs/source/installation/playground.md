@@ -1,23 +1,42 @@
 # Playground Docker Image
 
-## Pull from `Docker Hub`
+## Pull from [Docker Hub](https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1)
 
-```sh
-# TODO: have not pushed to Docker Hub
-```
+    ```sh
+    # Run playground container.
+    # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+    # Local host docs -> http://127.0.0.1:40010
+    # Jupyter lab with maro -> http://127.0.0.1:40011
+    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 arthursjiang/maro:cpu
+    ```
 
 ## Run from Source
 
-```sh
-# Build playground image
-docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
+- Mac OS / Linux
 
-# Run playground container
-# Redis commander (GUI for redis) -> http://127.0.0.1:40009
-# Local host docs -> http://127.0.0.1:40010
-# Jupyter lab with maro -> http://127.0.0.1:40011
-docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
-```
+  ```sh
+  # Build playground image.
+  bash ./scripts/build_playground.sh
+
+  # Run playground container.
+  # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+  # Local host docs -> http://127.0.0.1:40010
+  # Jupyter lab with maro -> http://127.0.0.1:40011
+  docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+  ```
+
+- Windows
+
+  ```powershell
+  # Build playground image.
+  .\scripts\build_playground.bat
+
+  # Run playground container.
+  # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+  # Local host docs -> http://127.0.0.1:40010
+  # Jupyter lab with maro -> http://127.0.0.1:40011
+  docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+  ```
 
 ## Major Services in Playground
 
