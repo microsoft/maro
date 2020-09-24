@@ -13,7 +13,6 @@ from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper
 from maro.utils import Logger, convert_dottable
 
 sys.path.insert(1, "components")
-
 from state_shaper import CIMStateShaper
 from action_shaper import CIMActionShaper
 from experience_shaper import TruncatedExperienceShaper

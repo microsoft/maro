@@ -9,9 +9,7 @@ import os
 import sys
 
 sys.path.insert(1, "components")
-
 from config import config
-from maro.utils import Logger, convert_dottable
 
 
 ACTOR_NUM = config.distributed.learner.peer["actor_worker"]  # must be same as in config
