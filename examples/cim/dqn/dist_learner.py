@@ -7,9 +7,9 @@ from maro.rl import ActorProxy, SimpleLearner, AgentMode, TwoPhaseLinearExplorer
 from maro.simulator import Env
 from maro.utils import Logger
 
-from components.state_shaper import CIMStateShaper
 from components.agent_manager import DQNAgentManager
 from components.config import config
+from components.state_shaper import CIMStateShaper
 
 
 if __name__ == "__main__":
