@@ -1,6 +1,7 @@
-![test](https://github.com/microsoft/maro/workflows/unittest/badge.svg)
-![build](https://github.com/microsoft/maro/workflows/build/badge.svg)
-![deploy_docker_image](https://github.com/microsoft/maro/workflows/deploy_docker_image/badge.svg)
+[![test](https://github.com/microsoft/maro/workflows/unittest/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Aunittest)
+[![build](https://github.com/microsoft/maro/workflows/build/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Abuild)
+[![docker](https://github.com/microsoft/maro/workflows/docker/badge.svg)](https://hub.docker.com/repository/docker/arthursjiang/maro)
+[![docs](https://readthedocs.org/projects/maro/badge/?version=latest)](https://maro.readthedocs.io/)
 
 # ![MARO LOGO](./docs/source/images/logo.svg)
 

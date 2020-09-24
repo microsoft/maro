@@ -8,11 +8,12 @@ learning as a Service (RaaS) for real-world resource optimization.
 """
 
 with open("README.md", "r") as f:
-    pk_long_description = "".join(f.readlines()[3:])
+    pk_long_description = "".join(f.readlines()[4:])
 
 with open("LICENSE", "r") as f:
     pk_license = "".join(f.readlines())
 ######################################################################################
+
 from glob import glob
 import os
 from setuptools import setup, find_packages, Extension
