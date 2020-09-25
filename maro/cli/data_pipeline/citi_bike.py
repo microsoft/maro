@@ -364,8 +364,7 @@ class CitiBikeTopology(DataTopology):
     def __init__(self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
-        # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
-        # self._data_pipeline["weather"] = WeatherPipeline(topology, weather_source, is_temp)
+        self._data_pipeline["weather"] = NOAAWeatherPipeline(topology, weather_source, is_temp)
         self._is_temp = is_temp
 
     def __del__(self):
@@ -586,8 +585,7 @@ class CitiBikeToyTopology(DataTopology):
             with open(config_path) as fp:
                 cfg = safe_load(fp)
                 self._data_pipeline["trip"] = CitiBikeToyPipeline(start_time=cfg["start_time"], end_time=cfg["end_time"], stations=cfg["stations"], trips=cfg["trips"], topology=topology, is_temp=is_temp)
-                # TODO: Weather data source changed, temporarily disable, will enable it later when new data source is available.
-                # self._data_pipeline["weather"] = WeatherToyPipeline(topology=topology, start_time=cfg["start_time"], end_time=cfg["end_time"], is_temp=is_temp)
+                self._data_pipeline["weather"] = WeatherToyPipeline(topology=topology, start_time=cfg["start_time"], end_time=cfg["end_time"], is_temp=is_temp)
         else:
             logger.warning(f"Config file {config_path} for toy topology {topology} not found.")
 
@@ -617,7 +615,74 @@ class CitiBikeProcess:
             self._conf = safe_load(fp)
             for topology in self._conf["trips"].keys():
                 if topology.startswith("toy"):
-                    self.topologies[topology] = CitiBikeToyTopology(topology=topology, config_path=self._conf["trips"][topology]["toy_meta_path"], is_temp=is_temp)
+                    self.topologies[topology] = CitiBikeToyTopology(topology=topology, 
+                                                                    config_path=self._conf["trips"][topology]["toy_meta_path"], 
+                                                                    is_temp=is_temp)
                 else:
                     self.topologies[topology] = CitiBikeTopology(topology=topology, trip_source=self._conf["trips"][topology]["trip_remote_url"],
-                                                                 station_info=self._conf["station_info"]["ny_station_info_url"], weather_source=self._conf["weather"]["ny_weather_url"], is_temp=is_temp)
+                                                                 station_info=self._conf["station_info"]["ny_station_info_url"], 
+                                                                 weather_source=self._conf["weather"][topology]["noaa_weather_url"], 
+                                                                 is_temp=is_temp)
+
+
+class NOAAWeatherPipeline(WeatherPipeline):
+
+    def __init__(self, topology: str, source: str, is_temp: bool = False):
+        """
+        Generate weather data bin for the specified topology from ncei.noaa.gov.
+        Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+        Folder structure: 
+        ~/.maro
+                /data/citi_bike/[topology]
+                                        /_build bin data file
+                                        /source
+                                                /_download original data file
+                                                /_clean cleaned data file
+                /temp download temp file
+
+        Args:
+            topology(str): topology name of the data file
+            source(str): source url of original data file
+            is_temp(bool): (optional) if the data file is temporary
+        """
+        super().__init__(topology, source, is_temp)
+
+    def clean(self):
+        super().clean()
+        if os.path.exists(self._download_file):
+            self._new_file_list.append(self._clean_file)
+            logger.info_green("Cleaning weather data")
+            self._preprocess(input_file=self._download_file, output_file=self._clean_file)
+        else:
+            logger.warning(f"Not found downloaded weather data: {self._download_file}")
+
+    def _weather(self, row):
+        water = row["PRCP"] if row["PRCP"] is not None else 0.0
+
+        snow = row["SNOW"] if row["SNOW"] is not None else 0.0
+
+        if snow > 0.0 and water > 0:
+            return WeatherPipeline.WeatherEnum.SLEET.value
+        elif water > 0.0:
+            return WeatherPipeline.WeatherEnum.RAINY.value
+        elif snow > 0.0:
+            return WeatherPipeline.WeatherEnum.SNOWY.value
+        else:
+            return WeatherPipeline.WeatherEnum.SUNNY.value
+
+    def _preprocess(self, input_file: str, output_file: str):
+        data: pd.DataFrame = pd.DataFrame()
+
+        with open(input_file, "rt") as fp:
+            org_data = pd.read_csv(fp)
+            org_data["PRCP"] = pd.to_numeric(org_data["PRCP"], errors="coerce", downcast="integer")
+            org_data["SNOW"] = pd.to_numeric(org_data["SNOW"], errors="coerce", downcast="integer")
+            org_data["TMAX"] = pd.to_numeric(org_data["TMAX"], errors="coerce", downcast="integer")
+            org_data["TMIN"] = pd.to_numeric(org_data["TMIN"], errors="coerce", downcast="integer")
+
+            data["date"] = org_data["DATE"]
+            data["weather"] = org_data.apply(self._weather, axis=1)
+            data["temp"] = (org_data["TMAX"] + org_data["TMIN"])/2
+
+        with open(output_file,  mode="w", encoding="utf-8", newline="") as f:
+            data.to_csv(f, index=False, header=True)
