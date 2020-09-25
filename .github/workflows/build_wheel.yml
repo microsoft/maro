@@ -79,5 +79,5 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
       run: |
-        twine upload dist/*.whl
-        twine upload dist/*.gz
+        twine upload --verbose dist/*.whl
+        twine upload --verbose dist/*.gz
