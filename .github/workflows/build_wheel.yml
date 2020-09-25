@@ -1,17 +1,17 @@
 
 name: build
 
-# on:
-#   push:
-#     tags:
-#     - "v*.*.*"
 on:
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'package version'     
-        required: true
-        default: '0.1.1a0'
+  push:
+    tags:
+    - "maro-[0-9]+\\.[0-9]+\\.[0-9]+"
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       logLevel:
+#         description: 'package version'     
+#         required: true
+#         default: '0.1.1a0'
 
 jobs:
   build:
@@ -29,7 +29,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: install dependencies
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install wheel twine
@@ -42,12 +42,12 @@ jobs:
       run: |
         cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
 
-    - name: build wheel on Windows and macOS
+    - name: Build wheel on Windows and macOS
       if: runner.os == 'Windows' || runner.os == 'macOS'
       run: |
         python setup.py bdist_wheel
 
-    - name: build manylinux wheel
+    - name: Build manylinux wheel
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2010_x86_64
       with:
@@ -55,13 +55,13 @@ jobs:
         build-requirements: 'numpy'
         pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
     
-    - name: move valid packages to dist folder for manylinux
+    - name: Move valid packages to dist folder for manylinux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
         mkdir -p dist
         cp wheelhouse/maro-*-manylinux*.whl dist
 
-    - name: build source package on linux
+    - name: Build source package on linux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
         python setup.py sdist 

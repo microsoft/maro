@@ -1,6 +1,7 @@
-![test](https://github.com/microsoft/maro/workflows/unittest/badge.svg)
-![build](https://github.com/microsoft/maro/workflows/build/badge.svg)
-![deploy_docker_image](https://github.com/microsoft/maro/workflows/deploy_docker_image/badge.svg)
+[![test](https://github.com/microsoft/maro/workflows/test/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Atest)
+[![build](https://github.com/microsoft/maro/workflows/build/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Abuild)
+[![docker](https://github.com/microsoft/maro/workflows/docker/badge.svg)](https://hub.docker.com/repository/docker/arthursjiang/maro)
+[![docs](https://readthedocs.org/projects/maro/badge/?version=latest)](https://maro.readthedocs.io/)
 
 # ![MARO LOGO](./docs/source/images/logo.svg)
 
@@ -37,7 +38,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 - [Python == 3.6/3.7](https://www.python.org/downloads/)
 
-## Install MARO from Source ([editable mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
+## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
 - Prerequisites
   - C++ Compiler
@@ -55,7 +56,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
   - Windows
 
-    ```ps
+    ```powershell
     # If your environment is not clean, create a virtual environment firstly.
     python -m venv maro_venv
     .\maro_venv\Scripts\activate
@@ -75,7 +76,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
   - Windows
 
-    ```ps
+    ```powershell
     # Install MARO from source.
     .\scripts\install_maro.bat
     ```
@@ -98,16 +99,42 @@ print(f"environment metrics: {env.metrics}")
 
 ## Run Playground
 
-```sh
-# Build playground image
-docker build -f ./docker_files/cpu.play.df . -t maro/playground:cpu
+- Pull from [Docker Hub](https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1)
 
-# Run playground container
-# Redis commander (GUI for redis) -> http://127.0.0.1:40009
-# Local host docs -> http://127.0.0.1:40010
-# Jupyter lab with maro -> http://127.0.0.1:40011
-docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
-```
+  ```sh
+  # Run playground container.
+  # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+  # Local host docs -> http://127.0.0.1:40010
+  # Jupyter lab with maro -> http://127.0.0.1:40011
+  docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 arthursjiang/maro:cpu
+  ```
+
+- Build from source
+  - Mac OS / Linux
+
+    ```sh
+    # Build playground image.
+    bash ./scripts/build_playground.sh
+
+    # Run playground container.
+    # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+    # Local host docs -> http://127.0.0.1:40010
+    # Jupyter lab with maro -> http://127.0.0.1:40011
+    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+    ```
+
+  - Windows
+
+    ```powershell
+    # Build playground image.
+    .\scripts\build_playground.bat
+
+    # Run playground container.
+    # Redis commander (GUI for redis) -> http://127.0.0.1:40009
+    # Local host docs -> http://127.0.0.1:40010
+    # Jupyter lab with maro -> http://127.0.0.1:40011
+    docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
+    ```
 
 ## Contributing
 

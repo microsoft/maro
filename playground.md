@@ -16,5 +16,3 @@ Playground provides a standalone MARO running environment, it also includes exam
 | `examples`        | Showcases of predefined scenarios.         |
 | `notebooks`       | Quick-start tutorial.                      |
 *(Others can be ignored, which aren't mentioned in the table.)*
-
-## Data CLI (TODO)

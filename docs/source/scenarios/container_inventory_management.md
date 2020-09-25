@@ -128,6 +128,112 @@ manually.
 
 *(To make it clearer, the figure above only shows the service routes among ports.)*
 
+### Naive Baseline
+
+Below are the final environment metrics of the method *no repositioning* and
+*random repositioning* in different topologies. For each experiment, we setup
+the environment and test for a duration of 1120 ticks (days).
+
+#### No Repositioning
+
+| Topology         | Total Requirement | Resource Shortage | Repositioning Number|
+| :--------------: | :---------------: | :---------------: | :-----------------: |
+| toy.4p_ssdd_l0.0 |     2,240,000     |     2,190,000     |          0          |
+| toy.4p_ssdd_l0.1 |     2,240,000     |     2,190,000     |          0          |
+| toy.4p_ssdd_l0.2 |     2,240,000     |     2,190,000     |          0          |
+| toy.4p_ssdd_l0.3 |     2,239,460     |     2,189,460     |          0          |
+| toy.4p_ssdd_l0.4 |     2,244,068     |     2,194,068     |          0          |
+| toy.4p_ssdd_l0.5 |     2,244,068     |     2,194,068     |          0          |
+| toy.4p_ssdd_l0.6 |     2,244,068     |     2,194,068     |          0          |
+| toy.4p_ssdd_l0.7 |     2,244,068     |     2,194,068     |          0          |
+| toy.4p_ssdd_l0.8 |     2,241,716     |     2,191,716     |          0          |
+
+| Topology          | Total Requirement | Resource Shortage | Repositioning Number|
+| :---------------: | :---------------: | :---------------: | :-----------------: |
+| toy.5p_ssddd_l0.0 |    2,240,000      |    2,140,000      |          0          |
+| toy.5p_ssddd_l0.1 |    2,240,000      |    2,140,000      |          0          |
+| toy.5p_ssddd_l0.2 |    2,240,000      |    2,140,000      |          0          |
+| toy.5p_ssddd_l0.3 |    2,239,460      |    2,139,460      |          0          |
+| toy.5p_ssddd_l0.4 |    2,244,068      |    2,144,068      |          0          |
+| toy.5p_ssddd_l0.5 |    2,244,068      |    2,144,068      |          0          |
+| toy.5p_ssddd_l0.6 |    2,244,068      |    2,144,068      |          0          |
+| toy.5p_ssddd_l0.7 |    2,244,068      |    2,144,068      |          0          |
+| toy.5p_ssddd_l0.8 |    2,241,716      |    2,141,716      |          0          |
+
+| Topology           | Total Requirement | Resource Shortage | Repositioning Number|
+| :----------------: | :---------------: | :---------------: | :-----------------: |
+| toy.6p_sssbdd_l0.0 |    2,240,000      |    2,087,000      |          0          |
+| toy.6p_sssbdd_l0.1 |    2,240,000      |    2,087,000      |          0          |
+| toy.6p_sssbdd_l0.2 |    2,240,000      |    2,087,000      |          0          |
+| toy.6p_sssbdd_l0.3 |    2,239,460      |    2,086,460      |          0          |
+| toy.6p_sssbdd_l0.4 |    2,244,068      |    2,091,068      |          0          |
+| toy.6p_sssbdd_l0.5 |    2,244,068      |    2,091,068      |          0          |
+| toy.6p_sssbdd_l0.6 |    2,244,068      |    2,091,068      |          0          |
+| toy.6p_sssbdd_l0.7 |    2,244,068      |    2,091,068      |          0          |
+| toy.6p_sssbdd_l0.8 |    2,241,716      |    2,088,716      |          0          |
+
+| Topology              | Total Requirement | Resource Shortage | Repositioning Number|
+| :-------------------: | :---------------: | :---------------: | :-----------------: |
+| global_trade.22p_l0.0 |    2,240,000      |    1,028,481      |          0          |
+| global_trade.22p_l0.1 |    2,240,000      |    1,081,935      |          0          |
+| global_trade.22p_l0.2 |    2,240,000      |    1,083,358      |          0          |
+| global_trade.22p_l0.3 |    2,239,460      |    1,085,212      |          0          |
+| global_trade.22p_l0.4 |    2,244,068      |    1,089,628      |          0          |
+| global_trade.22p_l0.5 |    2,244,068      |    1,102,913      |          0          |
+| global_trade.22p_l0.6 |    2,244,068      |    1,122,092      |          0          |
+| global_trade.22p_l0.7 |    2,244,068      |    1,162,108      |          0          |
+| global_trade.22p_l0.8 |    2,241,716      |    1,161,714      |          0          |
+
+#### Random Repositioning
+
+| Topology         | Total Requirement | Resource Shortage     | Repositioning Number  |
+| :--------------: | :---------------: | :-------------------: | :-------------------: |
+| toy.4p_ssdd_l0.0 |    2,240,000      | 1,497,138 +/-  30,423 | 4,185,080 +/- 185,140 |
+| toy.4p_ssdd_l0.1 |    2,240,000      | 1,623,710 +/-  36,421 | 2,018,360 +/-  36,700 |
+| toy.4p_ssdd_l0.2 |    2,240,000      | 1,501,466 +/-  48,566 | 2,145,180 +/-  90,300 |
+| toy.4p_ssdd_l0.3 |    2,239,460      | 1,577,011 +/-  35,109 | 2,098,500 +/-  35,120 |
+| toy.4p_ssdd_l0.4 |    2,244,068      | 1,501,835 +/- 103,196 | 2,180,480 +/-  33,020 |
+| toy.4p_ssdd_l0.5 |    2,244,068      | 1,546,227 +/-  81,107 | 2,077,320 +/- 113,740 |
+| toy.4p_ssdd_l0.6 |    2,244,068      | 1,578,863 +/- 127,815 | 2,220,720 +/- 106,660 |
+| toy.4p_ssdd_l0.7 |    2,244,068      | 1,519,495 +/-  60,555 | 2,441,480 +/-  79,700 |
+| toy.4p_ssdd_l0.8 |    2,241,716      | 1,603,063 +/- 109,149 | 2,518,920 +/- 193,200 |
+
+| Topology          | Total Requirement | Resource Shortage     | Repositioning Number  |
+| :---------------: | :---------------: | :-------------------: | :-------------------: |
+| toy.5p_ssddd_l0.0 |    2,240,000      | 1,371,021 +/-  34,619 | 3,966,120 +/- 138,960 |
+| toy.5p_ssddd_l0.1 |    2,240,000      | 1,720,068 +/-  18,939 | 1,550,280 +/-  25,600 |
+| toy.5p_ssddd_l0.2 |    2,240,000      | 1,716,435 +/-  15,499 | 1,496,860 +/-  31,260 |
+| toy.5p_ssddd_l0.3 |    2,239,460      | 1,700,456 +/-  26,510 | 1,586,640 +/-  11,500 |
+| toy.5p_ssddd_l0.4 |    2,244,068      | 1,663,139 +/-  34,244 | 1,594,160 +/- 103,040 |
+| toy.5p_ssddd_l0.5 |    2,244,068      | 1,681,519 +/- 107,863 | 1,635,360 +/-  61,880 |
+| toy.5p_ssddd_l0.6 |    2,244,068      | 1,660,330 +/-  38,318 | 1,630,060 +/-  81,580 |
+| toy.5p_ssddd_l0.7 |    2,244,068      | 1,709,022 +/-  31,440 | 1,854,340 +/- 167,080 |
+| toy.5p_ssddd_l0.8 |    2,241,716      | 1,763,950 +/-  73,935 | 1,858,420 +/-  60,680 |
+
+| Topology           | Total Requirement | Resource Shortage    | Repositioning Number  |
+| :----------------: | :---------------: | :------------------: | :-------------------: |
+| toy.6p_sssbdd_l0.0 |    2,240,000      | 1,529,774 +/- 73,104 | 3,989,560 +/- 232,740 |
+| toy.6p_sssbdd_l0.1 |    2,240,000      | 1,736,385 +/- 16,736 | 1,122,120 +/-  28,960 |
+| toy.6p_sssbdd_l0.2 |    2,240,000      | 1,765,945 +/-  4,680 | 1,052,520 +/-  44,020 |
+| toy.6p_sssbdd_l0.3 |    2,239,460      | 1,811,987 +/- 15,436 |   998,740 +/-  69,680 |
+| toy.6p_sssbdd_l0.4 |    2,244,068      | 1,783,362 +/- 39,122 | 1,059,860 +/-  49,100 |
+| toy.6p_sssbdd_l0.5 |    2,244,068      | 1,755,551 +/- 44,855 | 1,101,100 +/-  55,180 |
+| toy.6p_sssbdd_l0.6 |    2,244,068      | 1,830,504 +/- 10,690 | 1,141,660 +/-  10,520 |
+| toy.6p_sssbdd_l0.7 |    2,244,068      | 1,742,129 +/- 23,910 | 1,311,420 +/-  64,560 |
+| toy.6p_sssbdd_l0.8 |    2,241,716      | 1,761,283 +/- 22,338 | 1,336,540 +/-  30,020 |
+
+| Topology              | Total Requirement | Resource Shortage    | Repositioning Number|
+| :-------------------: | :---------------: | :------------------: | :-----------------: |
+| global_trade.22p_l0.0 |    2,240,000      | 1,010,009 +/- 20,942 | 548,240 +/-  14,600 |
+| global_trade.22p_l0.1 |    2,240,000      | 1,027,395 +/- 19,183 | 188,160 +/-  12,940 |
+| global_trade.22p_l0.2 |    2,240,000      | 1,035,851 +/-  4,352 | 181,240 +/-   5,240 |
+| global_trade.22p_l0.3 |    2,239,460      | 1,032,480 +/-  1,332 | 190,220 +/-   8,920 |
+| global_trade.22p_l0.4 |    2,244,068      | 1,034,412 +/- 11,689 | 186,080 +/-   6,280 |
+| global_trade.22p_l0.5 |    2,244,068      | 1,042,869 +/- 16,146 | 188,720 +/-   7,880 |
+| global_trade.22p_l0.6 |    2,244,068      | 1,096,502 +/- 26,896 | 302,280 +/-  27,540 |
+| global_trade.22p_l0.7 |    2,244,068      | 1,144,981 +/-  5,355 | 283,520 +/-  25,700 |
+| global_trade.22p_l0.8 |    2,241,716      | 1,154,184 +/-  7,043 | 270,960 +/-   2,240 |
+
 ## Quick Start
 
 ### Data Preparation
@@ -240,111 +346,3 @@ for ep in range(num_episode):
 
 Jump to [this notebook](https://github.com/microsoft/maro/blob/master/notebooks/container_inventory_management/interact_with_simulator.ipynb)
 for a quick experience.
-
-<!--
-### Naive Baseline
-
-Below are the final environment metrics of the method *no repositioning* and
-*random repositioning* in different topologies. For each experiment, we setup
-the environment and test for a duration of 1120 ticks (days).
-
-#### No Repositioning
-
-| Topology         | Total Requirement | Resource Shortage | Repositioning Cost|
-| :--------------: | :---------------: | :---------------: | :---------------: |
-| toy.4p_ssdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.8 |       +/-         |       +/-         |       +/-         |
-
-| Topology          | Total Requirement | Resource Shortage | Repositioning Cost|
-| :---------------: | :---------------: | :---------------: | :---------------: |
-| toy.5p_ssddd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.8 |       +/-         |       +/-         |       +/-         |
-
-| Topology           | Total Requirement | Resource Shortage | Repositioning Cost|
-| :----------------: | :---------------: | :---------------: | :---------------: |
-| toy.6p_sssbdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.8 |       +/-         |       +/-         |       +/-         |
-
-| Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------------------: | :---------------: | :---------------: | :---------------: |
-| global_trade.22p_l0.0 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.1 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.2 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.3 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.4 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.5 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.6 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.7 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.8 |       +/-         |       +/-         |       +/-         |
-
-#### Random Repositioning
-
-| Topology         | Total Requirement | Resource Shortage | Repositioning Cost|
-| :--------------: | :---------------: | :---------------: | :---------------: |
-| toy.4p_ssdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.4p_ssdd_l0.8 |       +/-         |       +/-         |       +/-         |
-
-| Topology          | Total Requirement | Resource Shortage | Repositioning Cost|
-| :---------------: | :---------------: | :---------------: | :---------------: |
-| toy.5p_ssddd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.5p_ssddd_l0.8 |       +/-         |       +/-         |       +/-         |
-
-| Topology           | Total Requirement | Resource Shortage | Repositioning Cost|
-| :----------------: | :---------------: | :---------------: | :---------------: |
-| toy.6p_sssbdd_l0.0 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.1 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.2 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.3 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.4 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.5 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.6 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.7 |       +/-         |       +/-         |       +/-         |
-| toy.6p_sssbdd_l0.8 |       +/-         |       +/-         |       +/-         |
-
-| Topology              | Total Requirement | Resource Shortage | Repositioning Cost|
-| :-------------------: | :---------------: | :---------------: | :---------------: |
-| global_trade.22p_l0.0 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.1 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.2 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.3 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.4 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.5 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.6 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.7 |       +/-         |       +/-         |       +/-         |
-| global_trade.22p_l0.8 |       +/-         |       +/-         |       +/-         |
--->

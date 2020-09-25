@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import io
+import os
 import yaml
 
 import numpy as np
@@ -10,15 +10,12 @@ import numpy as np
 from maro.simulator import Env
 from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper, TwoPhaseLinearExplorer
 from maro.utils import Logger, convert_dottable
-from examples.cim.dqn.components.state_shaper import CIMStateShaper
-from examples.cim.dqn.components.action_shaper import CIMActionShaper
-from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
-from examples.cim.dqn.components.agent_manager import DQNAgentManager
 
-
-with io.open("config.yml", "r") as in_file:
-    raw_config = yaml.safe_load(in_file)
-    config = convert_dottable(raw_config)
+from components.action_shaper import CIMActionShaper
+from components.agent_manager import DQNAgentManager
+from components.config import config
+from components.experience_shaper import TruncatedExperienceShaper
+from components.state_shaper import CIMStateShaper
 
 
 if __name__ == "__main__":
@@ -29,7 +26,8 @@ if __name__ == "__main__":
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: mt["perf"], **config.experience_shaping.k_step)
+        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+                                                  **config.experience_shaping.k_step)
 
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},
