@@ -24,4 +24,4 @@ RUN pip install psutil==5.7.2
 RUN pip install deepdiff==5.0.2
 
 # Install maro
-pip install pymaro
+RUN pip install pymaro
