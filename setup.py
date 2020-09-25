@@ -84,7 +84,7 @@ extensions.append(
 )
 
 setup(
-    name="maro",
+    name="pymaro",
     version=__version__,
     description=pk_description,
     long_description=pk_long_description,
