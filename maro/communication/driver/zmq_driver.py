@@ -44,11 +44,11 @@ class ZmqDriver(AbsDriver):
     def _setup_sockets(self):
         """
         Setup three kinds of sockets, and one poller.
-            unicast_receiver: the zmq.PULL socket, use for receiving message from one-to-one communication,
-            broadcast_sender: the zmq.PUB socket, use for broadcasting message to all subscribers,
-            broadcast_receiver: the zmq.SUB socket, use for listening message from broadcast.
 
-            poller: the zmq output multiplexing, use for receiving message from zmq.PULL socket and zmq.SUB socket.
+        unicast_receiver: the zmq.PULL socket, use for receiving message from one-to-one communication,
+        broadcast_sender: the zmq.PUB socket, use for broadcasting message to all subscribers,
+        broadcast_receiver: the zmq.SUB socket, use for listening message from broadcast.
+        poller: the zmq output multiplexing, use for receiving message from zmq.PULL socket and zmq.SUB socket.
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
@@ -75,9 +75,14 @@ class ZmqDriver(AbsDriver):
 
     @property
     def address(self) -> Dict[int, str]:
-        """ 
-        address Dict[int, str]: own sockets' address.
-            i.e. Dict[zmq.PULL, 'tcp://0.0.0.0:1234']
+        """
+        Return the address of zmq-pull socket and zmq-sub socket.
+
+        Returns:
+            Dict[int, str]: the sockets' address.
+                the key of dict is socket's type, \n
+                the value of dict is socket's ip address, which forms by protocol+ip+port.
+                    i.e. Dict[zmq.PULL, 'tcp://0.0.0.0:1234']
         """
         return self._address
 
@@ -87,10 +92,10 @@ class ZmqDriver(AbsDriver):
         for each peer.
         
         Args:
-            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict,
-                the key of dict is the peer's name, 
+            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict, \n
+                the key of dict is the peer's name, \n
                 the value of dict is the peer's socket connection address stored in dict.
-            i.e. Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
+                    i.e. Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
         """
         for peer_name, address_dict in peers_address_dict.items():
             for socket_type, address in address_dict.items():
@@ -114,6 +119,9 @@ class ZmqDriver(AbsDriver):
 
         Args:
             is_continuous (bool): Continuously receive message or not. Default is True.
+
+        Yields:
+            recv_message (Message): the received message from the poller.
         """
         while True:
             try:

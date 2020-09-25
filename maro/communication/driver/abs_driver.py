@@ -6,7 +6,7 @@ from typing import Dict
 
 
 class AbsDriver(ABC):
-    """ Abstract class of communication driver """
+    """ Abstract class of the communication driver. """
 
     @property
     @abstractmethod
@@ -14,35 +14,36 @@ class AbsDriver(ABC):
         """
         Return the socket's address.
 
-        Based on the real socket driver, the socket's address usually be a Dict with,
-            the key of dict is socket's type,
-            the value of dict is socket's address; usually, the format is protocol+ip+port.
+        Returns:
+            Based on the real socket driver, the socket's address usually be a Dict with, \n
+                the key of dict is socket's type, \n
+                the value of dict is socket's address; usually, the format is protocol+ip+port.
         """
         pass
 
     @abstractmethod
     def connect(self, peers_address: Dict):
-        """ 
-        Build the connection with other peers which given by peer address.
-
+        """
+        Build the connection with other peers which is given by the peer address.
+        
         Args:
-            peers_address (Dict): Peers socket address dict,
-                the key of dict is the peer's name, 
+            peers_address (Dict): Peers socket address dict, \n
+                the key of dict is the peer's name, \n
                 the value of dict is the peer's socket connection address.
         """
         pass
 
     @abstractmethod
     def receive(self):
-        """ Receive message """
+        """ Receive message. """
         pass
 
     @abstractmethod
     def send(self, message):
-        """ Unicast send message """
+        """ Unicast send message. """
         pass
 
     @abstractmethod
     def broadcast(self, message):
-        """ Broadcast send message """
+        """ Broadcast send message. """
         pass

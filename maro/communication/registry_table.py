@@ -16,16 +16,16 @@ class Operation(Enum):
 
 
 class SuffixTree:
-    """ 
+    """
     Suffix tree structure.
 
     Args:
         value (Operation|str): Event operation: Operation.AND or Operation.OR, or the unit conditional event,
         nodes List[SuffixTree]: List of the SuffixTree's nodes.
-
-    Examples:
-        For conditional event: ("actor:rollout:1", "actor:update:1", AND),
-            suffixtree.value = Operation.AND,
+    
+    For example, \n
+        given conditional event, ("actor:rollout:1", "actor:update:1", AND), \n
+            suffixtree.value = Operation.AND, \n
             suffixtree.nodes = [SuffixTree(value="actor:rollout:1"), SuffixTree(value="actor:update:1")].
     """
 
@@ -35,8 +35,21 @@ class SuffixTree:
 
 
 class ConditionalEvent:
-    """ 
+    """
     The description of the messages' combination.
+
+    Rules:
+        The conditional event can be composed of any number of unit conditional events and end with an Operation. 
+
+        For unit conditional event, \n
+            It must be three parts and divided by ':', \n
+                the first part of unit event represent the message's source,
+                    i.e. 'learner' or '*'
+                the second part of unit event represent the message's type,
+                    i.e. 'experience' or '*'
+                the third part of unit event represent how much messages needed,
+                    i.e. '1' or '90%'
+            Do not use special symbol in the unit event, such as ',', '(', ')'.
 
     Args:
         event (str|Tuple): The description of the requisite messages' combination,
@@ -58,6 +71,7 @@ class ConditionalEvent:
         operation_and_list = ["&&", "AND"]
         operation_or_list = ["||", "OR"]
 
+        # check it is unit conditional event(str) or conditional event(tuple)
         if isinstance(event, str):
             self._unit_event_syntax_check(event)
             self._unit_event_message_dict[event] = []
@@ -68,8 +82,8 @@ class ConditionalEvent:
             elif event[-1] in operation_or_list:
                 suffix_tree.value = Operation.OR
             else:
-                raise ConditionalEventSyntaxError(f"The last of the conditional event tuple must be \
-                                                  one of ['AND', 'OR', '&&', '||]")
+                raise ConditionalEventSyntaxError(f"The last of the conditional event tuple must be "
+                                                  f"one of ['AND', 'OR', '&&', '||]")
 
             for slot in event[:-1]:
                 node = SuffixTree()
@@ -87,23 +101,13 @@ class ConditionalEvent:
         """
         To check unit conditional event expression.
 
-        Rules:
-            unit event must be three parts and divided by ':',
-                the first part of unit event represent the message's source,
-                    i.e. 'learner' or '*'
-                the second part of unit event represent the message's type,
-                    i.e. 'experience' or '*'
-                the third part of unit event represent how much messages needed,
-                    i.e. '1' or '90%'
-            Do not use special symbol in the unit event, such as ',', '(', ')'.
-
         Args:
             unit_event (str): the description of the requisite messages.
         """
         slots = unit_event.split(":")
         if len(slots) != 3:
-            raise ConditionalEventSyntaxError(f"The conditional event: {unit_event}, \
-                                              must have three parts, and divided by ':'.")
+            raise ConditionalEventSyntaxError(f"The conditional event: {unit_event}, "
+                                              f"must have three parts, and divided by ':'.")
 
         # the third part of unit conditional event must be an integer or percentage(*%)
         if slots[-1][-1] == "%":
@@ -112,8 +116,8 @@ class ConditionalEvent:
         try:
             int(slots[-1])
         except Exception as e:
-            raise ConditionalEventSyntaxError(f"The third part of conditional event must be an integer or \
-                                              percentage with % in the end. {str(e)}")
+            raise ConditionalEventSyntaxError(f"The third part of conditional event must be an integer or "
+                                              f"percentage with % in the end. {str(e)}")
 
     def _get_request_message_number(self, unit_event: str) -> int:
         """ To get the number of request messages by the given unit event. """
@@ -130,10 +134,16 @@ class ConditionalEvent:
             return int(request_message_number) if int(request_message_number) <= peers_number else peers_number
 
     def _unit_event_satisfied(self, unit_event: str) -> List[str]:
-        """ To check if the given unit event has been satisfied. """
+        """
+        To check if the given unit conditional event has been satisfied.
+
+        Returns:
+            If the unit conditional event has been satisfied, it will return the list of unit conditional event;
+            otherwise, it will return None.
+        """
         request_message_number = self._get_request_message_number(unit_event)
 
-        # check if conditional event dict storied enough message
+        # check if unit conditional event dict storied enough message
         if request_message_number <= len(self._unit_event_message_dict[unit_event]):
             return [unit_event]
 
@@ -160,7 +170,7 @@ class ConditionalEvent:
         return flatten_result
 
     def push_message(self, message: Message):
-        """ 
+        """
         Push message to all satisfied unit conditional event.
 
         Args:
@@ -183,7 +193,7 @@ class ConditionalEvent:
                 self._unit_event_message_dict[unit_event].append(message)
 
     def get_qualified_message(self) -> List[Message]:
-        """ 
+        """
         Self-inspection of conditional event, if satisfied, pop qualified messages.
 
         Return:
@@ -205,8 +215,8 @@ class ConditionalEvent:
 
 
 class RegisterTable:
-    """ 
-    The RegisterTable is responsible for matching constraints and user-defined message handlers.  
+    """
+    The RegisterTable is responsible for matching constraints and user-defined message handlers.
 
     Args:
         get_peers (callable): return the newest peer list from proxy.
@@ -229,8 +239,8 @@ class RegisterTable:
         self._event_handler_dict[event] = handler_fn
 
     def push(self, message: Message):
-        """ 
-        Push message into each conditional event which register in Registry Table. 
+        """
+        Push message into all conditional events which register in Registry Table.
 
         Args:
             message (Message): Received message.
@@ -240,8 +250,8 @@ class RegisterTable:
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
         """
-        If any conditional event has been satisfied, return the requisite message list and the correlational handler
-        function.
+        If any conditional event has been satisfied, return the requisite message list and
+        the correlational handler function.
 
         Return:
             List[Tuple[callable, List[Message]]]: The list of triggered handler functions and messages.

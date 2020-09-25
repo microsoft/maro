@@ -6,9 +6,7 @@ from collections import defaultdict, namedtuple
 from enum import Enum
 import itertools
 import json
-import random
 import sys
-import string
 import signal
 import time
 from typing import List, Tuple, Dict, Union
@@ -26,21 +24,21 @@ from maro.utils.exception.communication_exception import RedisConnectionError, D
     InformationUncompletedError
 
 
-PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
+_PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
 PORT = default_parameters.proxy.redis.port
 MAX_RETRIES = default_parameters.proxy.redis.max_retries
 BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
-SUFFIX_LENGTH = default_parameters.proxy.suffix_length
 FAULT_TOLERANT = default_parameters.proxy.fault_tolerant
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 
 
 class Proxy:
     """
-    The communication module is responsible for receiving and sending messages. There are three ways of sending
-    messages: send, scatter, and broadcast. Also, there are two ways to receive messages from other peers: receive
-    and receive_by_id.
+    The communication module is responsible for receiving and sending messages.
+
+    There are three ways of sending messages: send, scatter, and broadcast. Also, there are two ways to
+    receive messages from other peers: receive and receive_by_id.
 
     Args:
         group_name (str): Identifier for the group of all distributed components,
@@ -52,7 +50,6 @@ class Proxy:
         redis_address (Tuple): Hostname and port of the Redis server,
         max_retries (int): Maximum number of retries before raising an exception,
         base_retry_interval (float = 0.1): The time interval between attempts,
-        suffix_length (int = 6): The suffix length,
         fault_tolerant (bool): Proxy can tolerate sending message error or not, default is False,
         log_enable (bool): Open logger or not, default is True.
     """
@@ -60,7 +57,7 @@ class Proxy:
     def __init__(self, group_name: str, component_type: str, expected_peers: dict,
                  driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
                  redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
-                 base_retry_interval: float = BASE_RETRY_INTERVAL, suffix_length: int = SUFFIX_LENGTH,
+                 base_retry_interval: float = BASE_RETRY_INTERVAL,
                  fault_tolerant: bool = FAULT_TOLERANT, log_enable: bool = True):
         self._group_name = group_name
         self._component_type = component_type
@@ -71,7 +68,6 @@ class Proxy:
         self._driver_parameters = driver_parameters
         self._max_retries = max_retries
         self._retry_interval = base_retry_interval
-        self._suffix_length = suffix_length
         self._is_enable_fault_tolerant = fault_tolerant
         self._log_enable = log_enable
 
@@ -80,11 +76,14 @@ class Proxy:
         except Exception as e:
             raise RedisConnectionError(f"{self._name} failure to connect to redis server due to {e}")
 
+        # record the peer's redis information
         self._peers_info_dict = {}
         for peer_type, number in expected_peers.items():
-            self._peers_info_dict[peer_type] = PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
+            self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
                                                          expected_number=number)
+        # record connected peers' name
         self._onboard_peers_name_dict = {}
+        # temporary store the message
         self._message_cache = defaultdict(list)
 
         self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
@@ -97,8 +96,9 @@ class Proxy:
         sys.exit(signum)
 
     def _join(self):
-        """ 
+        """
         Join the communication network for the experiment given by experiment_name with ID given by name.
+
         Specifically, it gets sockets' address for receiving (pulling) messages from its driver and uploads
         the receiving address to the Redis server. It then attempts to collect remote peers' receiving address
         by querying the Redis server. Finally, ask its driver to connect remote peers using those receiving address.
@@ -113,9 +113,9 @@ class Proxy:
         self._redis_connection.hdel(self._redis_hash_name, self._name)
 
     def _register_redis(self):
-        """ 
+        """
         Self-registration on Redis and driver initialization.
-        
+
         Redis store structure:
         Hash Table: name: group name + peer's type,
                     table (Dict[]): The key of table is the peer's name,
@@ -185,16 +185,17 @@ class Proxy:
 
     @property
     def group_name(self) -> str:
-        """ group name (str): Identifier for the group of all communication components. """
+        """ str: Identifier for the group of all communication components. """
         return self._group_name
 
     @property
     def component_name(self) -> str:
-        """ component name (str): Unique identifier in the current group. """
+        """ str: Unique identifier in the current group. """
         return self._name
 
     @property
     def peers(self) -> Dict:
+        """ Dict: The Dict of all connected peers' names, stored by peer type."""
         return self._onboard_peers_name_dict
 
     def get_peers(self, component_type: str = "*") -> List[str]:
@@ -227,12 +228,12 @@ class Proxy:
     def receive_by_id(self, session_id_list: list) -> List[Message]:
         """
         Receive target messages from communication driver.
-        
+
         Args:
             session_id_list List[str]: list of session_id,
                 i.e. ['0_learner0_actor0', '1_learner1_actor1', ...].
-            
-        Return:
+
+        Returns:
             List[Message]: list of received messages.
         """
         pending_message_list = session_id_list[:]
@@ -292,7 +293,7 @@ class Proxy:
                 session_id: str = None) -> List[Message]:
         """
         Scatters a list of data to peers, and return replied messages.
-        
+
         Args:
             tag (str|Enum): Message's tag,
             session_type (Enum): Message's session type,
@@ -300,9 +301,9 @@ class Proxy:
                 the first item of the tuple in list is the message destination,
                 the second item of the tuple in list is the message payload.
             session_id (str): Message's session id.
-                
-        Return:
-            replied_message_list [Message]: list of replied message.
+    
+        Returns:
+            List[Message]: list of replied message.
         """
         return self.receive_by_id(self._scatter(tag, session_type, destination_payload_list, session_id))
 
@@ -310,7 +311,7 @@ class Proxy:
                  session_id: str = None) -> List[str]:
         """
         Scatters a list of data to peers, and return list of message id.
-        
+
         Args:
             tag (str|Enum): Message's tag,
             session_type (Enum): Message's session type,
@@ -318,9 +319,9 @@ class Proxy:
                 the first item of the tuple in list is the message's destination,
                 the second item of the tuple in list is the message's payload.
             session_id (str): Message's session id.
-        
-        Return:
-            session_id_list [str]: List of message's session id.
+
+        Returns:
+            List[str]: List of message's session id.
         """
         return self._scatter(tag, session_type, destination_payload_list, session_id)
 
@@ -347,15 +348,15 @@ class Proxy:
                   session_id: str = None, payload=None) -> List[Message]:
         """
         Broadcast message to all peers, and return all replied messages.
-        
+
         Args:
             tag (str|Enum): Message's tag,
             session_type (Enum): Message's session type,
             session_id (str): Message's session id,
             payload (object): The true data.
-            
-        Return:
-            replied_message_list [Message]: list of replied messages.
+  
+        Returns:
+            List[Message]: list of replied messages.
         """
         return self.receive_by_id(self._broadcast(tag, session_type, session_id, payload))
 
@@ -370,8 +371,8 @@ class Proxy:
             session_id (str): Message's session id,
             payload (object): The true data.
 
-        Return:
-            session_id_list [str]: list of message's session id which related to the replied message.
+        Returns:
+            List[str]: list of message's session id which related to the replied message.
         """
         return self._broadcast(tag, session_type, session_id, payload)
 
@@ -381,9 +382,9 @@ class Proxy:
 
         Args:
             message: message to be sent.
-        
-        Return:
-            session_id_list [str]: list of message's session id.
+
+        Returns:
+            List[str]: list of message's session id.
         """
         sending_status = self._driver.send(message)
 
@@ -401,9 +402,9 @@ class Proxy:
 
         Args:
             message: message to be sent.
-        
-        Return:
-            replied_message_list[Message]: list of replied message.
+
+        Returns:
+            List[Message]: list of replied message.
         """
         sending_status = self._driver.send(message)
 
@@ -427,7 +428,7 @@ class Proxy:
             ack_reply (bool): If True, it is acknowledge reply.
 
         Returns:
-            session_id List[str]: Message belonged session id.
+            List[str]: Message belonged session id.
         """
         if received_message.session_type == SessionType.TASK:
             session_stage = TaskSessionStage.RECEIVE if ack_reply else TaskSessionStage.COMPLETE
@@ -445,7 +446,7 @@ class Proxy:
     def forward(self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None,
                 payload=None) -> List[str]:
         """
-        forward a received message.
+        Forward a received message.
 
         Args:
             received_message (Message): The message need to forward,
@@ -454,7 +455,7 @@ class Proxy:
             payload (object): Message payload, such as model parameters, experiences, etc.
 
         Returns:
-            session_id List[str]: Message belonged session id.
+            List[str]: Message belonged session id.
         """
         forward_message = SessionMessage(tag=tag if tag else received_message.tag,
                                          source=self._name,
