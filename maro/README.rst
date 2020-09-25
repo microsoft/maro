@@ -31,8 +31,8 @@
 
 
 
-.. image:: ./docs/source/images/logo.svg
-   :target: ./docs/source/images/logo.svg
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/logo.svg
+   :target: https://github.com/microsoft/maro
    :alt: MARO LOGO
 
 =======================================================================================================
@@ -57,8 +57,8 @@ Key Components of MARO:
   of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 
-.. image:: ./docs/source/images/maro_overview.svg
-   :target: ./docs/source/images/maro_overview.svg
+.. image:: https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/maro_overview.svg
+   :target: https://maro.readthedocs.io/en/latest/
    :alt: MARO Key Components
 
 
