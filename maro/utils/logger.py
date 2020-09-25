@@ -103,6 +103,8 @@ class Logger(object):
         extension_name (str): Final dumped file extension name. Defaults to `log`.
         auto_timestamp (bool): Add a timestamp to the dumped log file name or not.
             E.g: `tag.1574953673.137387.log`.
+        stdout_level (str): the logging level of the stdout handler. Defaults to
+            ``DEBUG``.
     """
 
     def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
