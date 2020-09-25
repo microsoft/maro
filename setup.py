@@ -8,10 +8,10 @@ learning as a Service (RaaS) for real-world resource optimization.
 """
 
 with open("./maro/README.rst", "r") as f:
-    pk_long_description = "".join(f.readlines()[4:])
+    pk_long_description = f.read()
 
 with open("LICENSE", "r") as f:
-    pk_license = "".join(f.readlines())
+    pk_license = f.read()
 ######################################################################################
 
 from glob import glob
