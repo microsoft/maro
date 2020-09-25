@@ -113,7 +113,7 @@ class Logger:
             FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_level = os.environ.get('LOG_LEVEL') or stdout_level
         self._logger = logging.getLogger(tag)
-        self._logger.setLevel(logging.INFO)
+        self._logger.setLevel(logging.DEBUG)
         self._extension_name = extension_name
 
         if not os.path.exists(dump_folder):
