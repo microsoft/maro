@@ -106,14 +106,14 @@ class Logger:
     """
 
     def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
-                 extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="DEBUG"):
+                 extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
             FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_level = os.environ.get('LOG_LEVEL') or stdout_level
         self._logger = logging.getLogger(tag)
-        self._logger.setLevel(logging.DEBUG)
+        self._logger.setLevel(logging.INFO)
         self._extension_name = extension_name
 
         if not os.path.exists(dump_folder):
