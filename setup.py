@@ -7,7 +7,7 @@ Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcemen
 learning as a Service (RaaS) for real-world resource optimization.
 """
 
-with open("README.md", "r") as f:
+with open("./maro/README.rst", "r") as f:
     pk_long_description = "".join(f.readlines()[4:])
 
 with open("LICENSE", "r") as f:
@@ -88,7 +88,6 @@ setup(
     version=__version__,
     description=pk_description,
     long_description=pk_long_description,
-    long_description_content_type="text/markdown",
     author="Arthur Jiang",
     author_email="shujia.jiang@microsoft.com",
     url="https://github.com/microsoft/maro",
