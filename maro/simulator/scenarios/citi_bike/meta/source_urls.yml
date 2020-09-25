@@ -68,7 +68,7 @@ trips:
 
 weather:
   ny_weather_url: "http://www.frontierweather.com/historicaldataonly/KNYC_daily.txt"
-
+  # Use www.ncei.noaa.gov's daily-summaries data of "US NY NY CENTRAL PARK, NY US" station (USW00094728) to represent the weather conditions in New York City.
   ny.201801: 
     noaa_weather_url: "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=PRCP,SNOW,TMAX,TMIN,AWND&stations=USW00094728&startDate=2018-01-01&endDate=2018-02-01&boundingBox=40.78,-74.0,40.76,-73.7"
   ny.201802: 
