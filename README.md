@@ -9,9 +9,10 @@
 [![Issues](https://img.shields.io/github/issues/microsoft/maro)](https://github.com/microsoft/maro/issues)
 [![Code Size](https://img.shields.io/github/languages/code-size/microsoft/maro)](https://github.com/microsoft/maro)
 [![Docker Size](https://img.shields.io/docker/image-size/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro/tags?page=1)
-[![Platforms](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/platforms.svg)](https://pypi.org/project/pymaro/)
+[![Platform](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/platform.svg)](https://pypi.org/project/pymaro/)
 [![Citi Bike](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/citi_bike.svg)](https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html)
 [![CIM](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/cim.svg)](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
+[![Gitter](https://img.shields.io/gitter/room/microsoft/maro)](https://gitter.im/Microsoft/MARO#)
 
 # ![MARO LOGO](./docs/source/images/logo.svg)
 
