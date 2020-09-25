@@ -298,7 +298,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def _update_station_extra_features(self, tick: int):
         """update features that not related to trips"""
         cur_datetime = self._tick_2_date(tick)
-        
+
         if self._last_date == cur_datetime:
             return
 
