@@ -1,14 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-######################################################################################
-pk_description = """
-Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
-learning as a Service (RaaS) for real-world resource optimization.
-"""
-######################################################################################
-
 from glob import glob
+import io
 import os
 from setuptools import setup, find_packages, Extension
 from setuptools.command.install import install
@@ -77,10 +71,15 @@ extensions.append(
         include_dirs=include_dirs)
 )
 
+
+readme = io.open("./maro/README.rst", encoding="utf-8").read()
+
 setup(
     name="pymaro",
     version=__version__,
-    description=pk_description,
+    description="MARO Python Package",
+    long_description=readme,
+    long_description_content_type="text/x-rst",
     author="Arthur Jiang",
     author_email="shujia.jiang@microsoft.com",
     url="https://github.com/microsoft/maro",
@@ -93,10 +92,18 @@ setup(
     platforms=["Windows", "Linux", "macOS"],
     keywords=["citi-bike", "inventory-management", "operations-research", "reinforcement-learning", "resource-optimization", "simulator"],
     classifiers=[
-        # See <https://pypi.org/classifiers/> for all classifiers
-        "Programing Language :: Python",
-        "Programing Language :: Python :: 3"
-    ],
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        'Operating System :: MacOS',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Operating System :: Unix',
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence"    ],
     python_requires=">=3.6,<3.8",
     setup_requires=[
         "numpy==1.19.1",
@@ -128,8 +135,8 @@ setup(
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
-        "maro.cli.k8s": ["lib/**/*"],
-        "maro.cli.grass": ["lib/**/*"],
+        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*"],
+        "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*"],
     },
     zip_safe=False,
     ext_modules=extensions,

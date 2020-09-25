@@ -91,7 +91,7 @@ class Logger:
         - CRITICAL
         - PROGRESS
 
-    the file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
+    Note: The file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
 
     Args:
         tag (str): Log tag for stream and file output.

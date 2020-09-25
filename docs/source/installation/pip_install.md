@@ -1,10 +1,21 @@
 # Package
 
-## Install from PyPI Using `pip`
+## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
-```sh
-pip install maro
-```
+- Max OS / Linux
+
+  ```sh
+  pip install pymaro
+  ```
+
+- Windows
+
+  ```powershell
+  # Install torch first, if you don't have one.
+  pip install torch===1.6.0 torchvision===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+
+  pip install pymaro
+  ```
 
 ## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
