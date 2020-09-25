@@ -1,17 +1,3 @@
-# Step 1: build maro
-FROM quay.io/pypa/manylinux2010_x86_64 as ext_build
-
-WORKDIR /maro_build
-
-# Build wheels
-ADD ./maro ./maro
-ADD setup.py ./setup.py
-ADD README.md ./README.md
-ADD LICENSE ./LICENSE
-RUN PYBIN="/opt/python/cp36-cp36m/bin"; "${PYBIN}/pip" install -r maro/requirements.build.txt; "${PYBIN}/python" setup.py bdist_wheel --plat-name manylinux2010_x86_64
-
-
-# Step 2: Install components
 FROM nvidia/cuda:11.0-runtime-ubuntu18.04
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -43,6 +29,4 @@ RUN pip install psutil==5.7.2
 RUN pip install deepdiff==5.0.2
 
 # Install maro
-COPY --from=ext_build /maro_build/dist/maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl ./maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl
-RUN pip install maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl
-RUN rm maro-0.1.1a0-cp36-cp36m-manylinux2010_x86_64.whl
+RUN pip install pymaro
