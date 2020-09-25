@@ -52,27 +52,8 @@ Key Components of MARO:
    :alt: MARO Key Components
 
 
-Contents
---------
-
-.. list-table::
-   :header-rows: 1
-
-   * - File/folder
-     - Description
-   * - ``maro``
-     - MARO source code.
-   * - ``docs``
-     - MARO docs, it is host on `readthedocs <https://maro.readthedocs.io/en/latest/>`_.
-   * - ``examples``
-     - Showcase of MARO.
-   * - ``notebooks``
-     - MARO quick-start notebooks.
-
-
 Prerequisites
 -------------
-
 
 * `Python == 3.6/3.7 <https://www.python.org/downloads/>`_
 
