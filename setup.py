@@ -6,12 +6,6 @@ pk_description = """
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization.
 """
-
-with open("README.md", "r") as f:
-    pk_long_description = "".join(f.readlines()[4:])
-
-with open("LICENSE", "r") as f:
-    pk_license = "".join(f.readlines())
 ######################################################################################
 
 from glob import glob
@@ -87,8 +81,6 @@ setup(
     name="pymaro",
     version=__version__,
     description=pk_description,
-    long_description=pk_long_description,
-    long_description_content_type="text/markdown",
     author="Arthur Jiang",
     author_email="shujia.jiang@microsoft.com",
     url="https://github.com/microsoft/maro",
@@ -97,7 +89,7 @@ setup(
         "Issues": "https://github.com/microsoft/maro/issues",
         "Documents": "https://maro.readthedocs.io/en/latest"
     },
-    license=pk_license,
+    license="MIT License",
     platforms=["Windows", "Linux", "macOS"],
     keywords=["citi-bike", "inventory-management", "operations-research", "reinforcement-learning", "resource-optimization", "simulator"],
     classifiers=[
