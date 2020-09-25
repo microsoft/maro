@@ -58,7 +58,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
         mkdir -p dist
-        cp wheelhouse/maro-*-manylinux*.whl dist
+        cp wheelhouse/pymaro-*-manylinux*.whl dist
 
     - name: Build source package on linux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
