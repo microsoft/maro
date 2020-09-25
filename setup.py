@@ -71,14 +71,15 @@ extensions.append(
         include_dirs=include_dirs)
 )
 
-readme = io.open("README.md", encoding="utf-8").read()
+
+readme = io.open("./maro/README.rst", encoding="utf-8").read()
 
 setup(
     name="pymaro",
     version=__version__,
     description="MARO Python Package",
     long_description=readme,
-    long_description_content_typ="text/markdown",
+    long_description_content_type="text/x-rst",
     author="Arthur Jiang",
     author_email="shujia.jiang@microsoft.com",
     url="https://github.com/microsoft/maro",
@@ -98,12 +99,11 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Operating System :: Unix',
-        "Programing Language :: Python",
-        "Programing Language :: Python :: 3",
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence'
-    ],
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence"    ],
     python_requires=">=3.6,<3.8",
     setup_requires=[
         "numpy==1.19.1",
