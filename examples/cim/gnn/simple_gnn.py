@@ -1,20 +1,14 @@
-import torch
-from torch import Tensor
-import copy
-import torch.nn as nn
 import math
-from torch.autograd import Variable
-from torch.nn import functional as F
 
+import torch
+import torch.nn as nn
+from torch import Tensor
+from torch.nn import functional as F
 # lib for transformer
-from torch.nn.modules.module import Module
-from torch.nn.modules.activation import MultiheadAttention
-from torch.nn.modules.container import ModuleList
-from torch.nn.init import xavier_uniform_
-from torch.nn.modules.dropout import Dropout
-from torch.nn.modules.linear import Linear
-from torch.nn.modules.normalization import LayerNorm
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
+from torch.nn.modules.activation import MultiheadAttention
+from torch.nn.modules.dropout import Dropout
+from torch.nn.modules.normalization import LayerNorm
 
 class PositionalEncoder(nn.Module):
     '''

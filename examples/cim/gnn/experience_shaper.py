@@ -1,6 +1,5 @@
 import numpy as np
 from collections import defaultdict
-import pickle as pkl
 
 class ExperienceShaper:
     def __init__(self, static_list, dynamic_list, max_tick, gnn_state_shaper, scale_factor=0.0001, time_slot=100, discount_factor=0.97,

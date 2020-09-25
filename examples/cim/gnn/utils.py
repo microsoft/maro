@@ -1,17 +1,16 @@
-import numpy as np
-import torch, sys, argparse
-import json
 import ast, math
+import io, yaml, os, shutil
+import numpy as np
+import random
+import sys
 from collections import defaultdict, OrderedDict
+
+import torch
+from torch.optim.lr_scheduler import LambdaLR
+
 from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 from maro.simulator import Env
-import shutil
 from maro.utils import convert_dottable, clone
-import io, yaml, os, shutil
-import datetime
-from torch.optim.lr_scheduler import LambdaLR
-from torch.optim import SGD
-import random
 
 def compute_v2p_degree_matrix(env):
     '''

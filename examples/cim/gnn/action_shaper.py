@@ -3,6 +3,7 @@ from maro.rl import ActionShaper
 
 class DiscreteActionShaper(ActionShaper):
     def __init__(self, action_dim):
+        super.__init__()
         self._action_dim = action_dim
         self._zero_action = self._action_dim // 2
 

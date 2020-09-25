@@ -1,6 +1,7 @@
 import numpy as np
-from maro.rl import AbsStore
 from typing import Sequence
+
+from maro.rl import AbsStore
 
 
 def get_item(data_dict, key_tuple):
@@ -68,6 +69,7 @@ class NumpyStore(AbsStore):
 
             capacity (int): The maximum stored experience in the store.
         """
+        super().__init__()
         self.domain_type_dict = dict(domain_type_dict)
         self.store = {key: np.zeros(shape=(capacity, *shape) if batch_first else (shape[0], capacity, *shape[1:]), dtype=data_type)
                         for key, (shape, data_type, batch_first) in domain_type_dict.items()}
@@ -148,7 +150,7 @@ class NumpyStore(AbsStore):
     def update(self, indexes: Sequence, contents: Sequence):
         raise NotImplementedError("NumpyStore does not support modifying the experience!")
 
-    def sample(self, size, replace: bool = True):
+    def sample(self, size, weights: Sequence, replace: bool = True):
         raise NotImplementedError("NumpyStore does not support sampling. Please use outer sampler to fetch samples!")
 
     def clear(self):

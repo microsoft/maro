@@ -1,15 +1,11 @@
 import time, os, pickle, math
 import multiprocessing
 import numpy as np
-import torch.nn.functional as F
-from torch.distributions import Categorical
 import ctypes
 import torch
 from multiprocessing import Process, Pipe, Event, Manager
 
-from maro.simulator import Env
 from maro.rl import AbsActor
-from examples.cim.gnn.numpy_store import NumpyStore, Shuffler
 from examples.cim.gnn.action_shaper import DiscreteActionShaper
 from examples.cim.gnn.utils import fix_seed, gnn_union
 from examples.cim.gnn.experience_shaper import ExperienceShaper
@@ -203,6 +199,7 @@ class ParallelActor(AbsActor):
             logger: The logger instance to log information during the rollout.
 
         '''
+        super().__init__(demo_env, agent_manager)
         multiprocessing.set_start_method('spawn', True)
         self._logger = logger
         self.config = config
@@ -210,7 +207,6 @@ class ParallelActor(AbsActor):
         self._static_node_mapping = demo_env.summary['node_mapping']['ports']
         self._dynamic_node_mapping = demo_env.summary['node_mapping']['vessels']
         self._gnn_state_shaper = gnn_state_shaper
-        self._agent_manager = agent_manager
         self.device = torch.device(config.training.device)
 
         self.parallel_cnt = config.training.parallel_cnt
@@ -328,7 +324,7 @@ class ParallelActor(AbsActor):
             assert(np.min(self.action_io_np['vid']) == np.max(self.action_io_np['vid']))
 
             t = time.time()
-            actions = self._agent_manager.choose_action(agent_id = (self.action_io_np['pid'][0], self.action_io_np['vid'][0]), state=graph)
+            actions = self._inference_agents.choose_action(agent_id = (self.action_io_np['pid'][0], self.action_io_np['vid'][0]), state=graph)
             t_action += time.time() - t
 
             for i, p in enumerate(self.pipes):

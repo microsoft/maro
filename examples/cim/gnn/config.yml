@@ -21,7 +21,6 @@ training:
 model:
   # path: '/data/log/20200119/demo_6p'
   path: '/dcdata/log/test'
-  path: none
   tick_buffer: 20
   hidden_size: 32
   graph_output_dim: 32

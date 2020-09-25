@@ -1,9 +1,7 @@
-import numpy as np
-
-import torch, os
-from torch.distributions import Categorical
+import os
+import torch
 from torch import nn
-import torch.nn.functional as F
+from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
 from maro.rl import AbsAlgorithm
@@ -11,26 +9,27 @@ from maro.rl import AbsAlgorithm
 from .utils import gnn_union
 
 class ActorCritic(AbsAlgorithm):
-    def __init__(self, model: nn.Module, 
-                    device: torch.device, 
+    '''
+
+    Actor-Critic algorithm in CIM problem.
+
+    Args:
+        model (nn.Module): A actor-critic module outputing both the policy network and the value network
+        device (torch.device): A PyTorch device instance where the module is computed on.
+        p2p_adj (numpy.array): The static port-to-port adjencency matrix.
+        td_steps (int): The value 'n' in the n-step TD algorithm.
+        gamma (float): The time decay.
+        learning_rate (float): The learning rate for the module.
+        entropy_factor (float): The weight of the policy's entropy to boost exploration.
+    '''
+
+    def __init__(self, model: nn.Module,
+                 device: torch.device,
                     p2p_adj=None, 
                     td_steps=100, 
                     gamma=0.97, 
                     learning_rate=0.0003, 
                     entropy_factor=0.1):
-        '''
-
-        Actor-Critic algorithm in CIM problem.
-
-        Args:
-            model (nn.Module): A actor-critic module outputing both the policy network and the value network
-            device (torch.device): A PyTorch device instance where the module is computed on.
-            p2p_adj (numpy.array): The static port-to-port adjencency matrix.
-            td_steps (int): The value 'n' in the n-step TD algorithm.
-            gamma (float): The time decay. 
-            learning_rate (float): The learning rate for the module.
-            entropy_factor (float): The weight of the policy's entropy to boost exploration.
-        '''
         self._model = model
 
         self._gamma = gamma
@@ -41,6 +40,8 @@ class ActorCritic(AbsAlgorithm):
         self._device = device
         self._tot_batchs = 0
         self._p2p_adj = p2p_adj
+        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": self._optimizer}, loss_func_dict={},
+                         hyper_params=None)
 
     def choose_action(self, state: dict, p_idx: int, v_idx: int):
         '''

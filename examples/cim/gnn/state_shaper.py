@@ -1,9 +1,8 @@
 import numpy as np
-import torch
-import pickle as pkl
+from maro.rl.shaping.state_shaper import StateShaper
 from .utils import compute_v2p_degree_matrix
 
-class GNNStateShaper:
+class GNNStateShaper(StateShaper):
     """State shaper to extract graph information.
 
     Args:

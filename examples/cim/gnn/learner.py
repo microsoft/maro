@@ -1,19 +1,23 @@
-from maro.rl import AbsLearner
-from maro.rl import AbsActor
-from maro.rl import AbsAgentManager
-from maro.utils import DummyLogger
 import time
 import os
 
+from maro.rl import AbsLearner
+from maro.utils import DummyLogger
+
+from examples.cim.gnn.agent_manager import SimpleAgentManger
+from examples.cim.gnn.actor import ParallelActor
+
 class GNNLearner(AbsLearner):
-    def __init__(self, actor: AbsActor, trainable_agents:AbsAgentManager, logger=DummyLogger()):
-        """Learner class for the training pipeline and the specialized logging in GNN solution for CIM problem.
-        
-        Args:
-            actor (AbsActor): The actor instance to collect experience.
-            trainable_agents (AbsAgentManager): The agent manager for training RL models.
-            logger (Logger)
-        """
+    """Learner class for the training pipeline and the specialized logging in GNN solution for CIM problem.
+
+    Args:
+        actor (AbsActor): The actor instance to collect experience.
+        trainable_agents (AbsAgentManager): The agent manager for training RL models.
+        logger (Logger)
+    """
+
+    def __init__(self, actor: ParallelActor, trainable_agents:SimpleAgentManger, logger=DummyLogger()):
+        super().__init__()
         self._actor = actor
         self._trainable_agents = trainable_agents
         self._logger = logger
