@@ -4,10 +4,10 @@
 
 import logging
 
+
 class GlobalParams:
     PARALLELS = 5
-
-    LOG_LEVEL = logging.DEBUG
+    LOG_LEVEL = logging.INFO
 
 
 class GlobalPaths:
