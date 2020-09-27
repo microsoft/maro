@@ -20,8 +20,8 @@ import sys
 from recommonmark.parser import CommonMarkParser
 sys.path.insert(0, os.path.abspath('../..'))
 
-# TODO: improve API Docs
-os.environ["APIDOC_GEN"] = os.environ.get("APIDOC_GEN", "False")
+
+os.environ["APIDOC_GEN"] = os.environ.get("APIDOC_GEN", "True")
 # -- Project information -----------------------------------------------------
 
 project = 'MARO'
