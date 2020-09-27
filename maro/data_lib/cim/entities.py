@@ -1,83 +1,83 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
 from collections import namedtuple
+from enum import Enum
 
 # item used to hold base value and related noise
 NoisedItem = namedtuple("NoisedItem", ["index", "base", "noise"])
 
 # data collection from data generator
 CimDataCollection = namedtuple("CimDataCollection", [
-        "total_containers",
-        "past_stop_number",
-        "future_stop_number",
-        "cntr_volume",
-        "order_mode",
-        "ports_settings",
-        "port_mapping",
-        "vessels_settings",
-        "vessel_mapping",
-        "vessels_stops",
-        "order_proportion",
-        "routes",
-        "route_mapping",
-        "vessel_period_no_noise",
-        "max_tick",
-        "seed",
-        "version"
+    "total_containers",
+    "past_stop_number",
+    "future_stop_number",
+    "cntr_volume",
+    "order_mode",
+    "ports_settings",
+    "port_mapping",
+    "vessels_settings",
+    "vessel_mapping",
+    "vessels_stops",
+    "order_proportion",
+    "routes",
+    "route_mapping",
+    "vessel_period_no_noise",
+    "max_tick",
+    "seed",
+    "version"
 ])
 
 # stop for vessel
 Stop = namedtuple("Stop", [
-        "index", 
-        "arrive_tick", 
-        "leave_tick", 
-        "port_idx", 
-        "vessel_idx"
+    "index",
+    "arrive_tick",
+    "leave_tick",
+    "port_idx",
+    "vessel_idx"
 ])
 
 # settings for port
 PortSetting = namedtuple("PortSetting", [
-        "index", 
-        "name",
-        "capacity", 
-        "empty", 
-        "source_proportion", 
-        "target_proportions", 
-        "empty_return_buffer", 
-        "full_return_buffer"
+    "index",
+    "name",
+    "capacity",
+    "empty",
+    "source_proportion",
+    "target_proportions",
+    "empty_return_buffer",
+    "full_return_buffer"
 ])
 
 # settings for vessel
 VesselSetting = namedtuple("VesselSettings", [
-        "index",
-        "name", 
-        "capacity", 
-        "route_name", 
-        "start_port_name", 
-        "sailing_speed", 
-        "sailing_noise", 
-        "parking_duration", 
-        "parking_noise",
-        "empty"
+    "index",
+    "name",
+    "capacity",
+    "route_name",
+    "start_port_name",
+    "sailing_speed",
+    "sailing_noise",
+    "parking_duration",
+    "parking_noise",
+    "empty"
 ])
 
 # a point in rote definition
 RoutePoint = namedtuple("RoutePoint", [
-        "index", 
-        "port_name", 
-        "distance"
+    "index",
+    "port_name",
+    "distance"
 ])
 
 
 class OrderGenerateMode(Enum):
     """Mode to generate orders from configuration.
-    
+
     There are 2 modes for now:
     1. fixed: order is generated base on total containers, do not care about available empty container
     2. unfixed: order is generated with configured ratio, and considering available empty containers
-    
+
     """
     FIXED = "fixed"
     UNFIXED = "unfixed"

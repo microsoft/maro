@@ -3,8 +3,10 @@
 
 from .station import Station
 
+
 class StationReward:
     """Class to calculate station reward"""
+
     def __init__(self, stations: list, options: dict):
         self._stations = stations
         self._fulfillment_factor = options["fulfillment_factor"]
@@ -16,7 +18,7 @@ class StationReward:
         station: Station = self._stations[station_idx]
 
         reward = self._fulfillment_factor * station.fulfillment \
-                - self._shortage_factor * station.shortage \
-                - self._transfer_cost_factor * station.transfer_cost
+            - self._shortage_factor * station.shortage \
+            - self._transfer_cost_factor * station.transfer_cost
 
         return reward

@@ -4,20 +4,20 @@
 
 from abc import ABC, abstractmethod
 from enum import IntEnum
-from typing import Any, Dict, List, Tuple
+from typing import List
 
+from maro.backends.frame import SnapshotList
 from maro.event_buffer import Event, EventBuffer
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
-from maro.backends.frame import FrameBase, SnapshotList
 
 
 class DecisionMode(IntEnum):
     """Decision mode that interactive with agent."""
 
     # ask agent for action one by one
-    Sequential = 0 
+    Sequential = 0
     # ask agent for action at same time, not supported yes
-    Joint = 1  
+    Joint = 1
 
 
 class AbsEnv(ABC):
@@ -38,7 +38,8 @@ class AbsEnv(ABC):
             durations (int): duration ticks of this environment from start_tick
             snapshot_resolution (int): how many ticks will take a snapshot
             max_snapshots (int): max in-memory snapshot number, less snapshots lower memory cost
-            business_engine_cls : class of business engine, if specified, then use it to construct be instance, or will search internal by scenario
+            business_engine_cls : class of business engine, if specified, then use it to construct be instance,
+                or will search internal by scenario
             options (dict): additional parameters passed to business engine
         """
         self._tick = start_tick
@@ -88,7 +89,7 @@ class AbsEnv(ABC):
     @property
     @abstractmethod
     def configs(self) -> dict:
-        """object: Configurations of current environment, 
+        """object: Configurations of current environment,
         this field would be different for different scenario"""
         pass
 
@@ -130,19 +131,19 @@ class AbsEnv(ABC):
 
     def set_seed(self, seed: int):
         """Set random seed used by simulator.
-        
+
         NOTE: this will not set seed for python random or other packages' seed, such as numpy.
-        
+
         Args:
-            seed (int): 
+            seed (int):
         """
 
         pass
-    
+
     @property
     def metrics(self) -> dict:
         """Some statistics information provided by business engine
-        
+
         Returns:
             dict: dictionary of metrics, content and format is determined by business engine
         """

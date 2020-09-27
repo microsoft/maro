@@ -1,14 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from collections import namedtuple
-from math import ceil, floor
-from typing import List, Union
+from math import ceil
+from typing import List
 
-import numpy as np
 from maro.simulator.utils import seed
-from maro.utils.exception.data_lib_exeption import \
-    CimGeneratorInvalidParkingDuration
+from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
 from yaml import safe_load
 
 from .entities import CimDataCollection, OrderGenerateMode, Stop
@@ -62,8 +59,9 @@ class CimDataGenerator:
         vessel_mapping, vessels_setting = self._vessels_parser.parse(conf["vessels"])
         port_mapping, ports_setting = self._ports_parser.parse(conf["ports"], total_containers)
         route_mapping, routes = self._routes_parser.parse(conf["routes"])
-        global_order_proportion = self._global_order_proportion.parse(conf["container_usage_proportion"],
-                                                total_containers, start_tick=start_tick, max_tick=max_tick)
+        global_order_proportion = self._global_order_proportion.parse(
+            conf["container_usage_proportion"],
+            total_containers, start_tick=start_tick, max_tick=max_tick)
 
         # extend routes with specified tick range
         vessels_stops, vessel_period_no_noise = self._extend_route(
@@ -88,10 +86,10 @@ class CimDataGenerator:
             topology_seed,
             CIM_GENERATOR_VERSION)
 
-    def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting, 
-        ports_setting, port_mapping, routes, route_mapping):
+    def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting,
+                      ports_setting, port_mapping, routes, route_mapping):
         """Extend route with specified tick range"""
-        
+
         vessels_stops: List[List[Stop]] = []
         vessel_period_no_noise: list = []
 
@@ -137,10 +135,10 @@ class CimDataGenerator:
                     raise CimGeneratorInvalidParkingDuration()
 
                 # a new stop
-                stop = Stop(stop_index, 
-                            tick, 
+                stop = Stop(stop_index,
+                            tick,
                             tick + parking_duration,
-                            port_idx, 
+                            port_idx,
                             vessel_setting.index)
 
                 # append to current vessels stops list
@@ -157,11 +155,12 @@ class CimDataGenerator:
                 tick += parking_duration + sailing_duration
 
                 # sailing durations without noise
-                whole_duration_no_noise = duration + ceil(distance/speed)
+                whole_duration_no_noise = duration + ceil(distance / speed)
 
                 # only add period at 1st route circle
-                period_no_noise += (whole_duration_no_noise if len(vessels_stops[vessel_setting.index]) <= route_length else 0)
-                
+                period_no_noise += (whole_duration_no_noise if len(
+                    vessels_stops[vessel_setting.index]) <= route_length else 0)
+
                 # next location index
                 loc_idx_in_route = (loc_idx_in_route + 1) % route_length
 

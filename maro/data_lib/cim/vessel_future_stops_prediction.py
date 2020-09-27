@@ -1,14 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from math import ceil, floor
+from math import ceil
+
 from .entities import CimDataCollection, Stop
 
 
 class VesselFutureStopsPrediction:
     """Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.
-    
-    
+
+
     Examples:
 
         .. code-block:: python
@@ -16,6 +17,7 @@ class VesselFutureStopsPrediction:
             # get future stops of vessel 0
             stops = data_cntr.vessel_future_stops[0]
     """
+
     def __init__(self, data: CimDataCollection):
         self._vessels = data.vessels_settings
         self._stops = data.vessels_stops
@@ -63,7 +65,7 @@ class VesselFutureStopsPrediction:
             if self._port_mapping[route_point.port_name] == last_port_idx:
                 last_loc_idx = loc_idx
                 break
-        
+
         # return if not in current route
         if last_loc_idx < 0:
             return []
@@ -75,7 +77,7 @@ class VesselFutureStopsPrediction:
         for loc_idx in range(last_loc_idx + 1, last_loc_idx + stop_number + 1):
             route_info = route_points[loc_idx % route_length]
             port_idx, distance = self._port_mapping[route_info.port_name], route_info.distance
-            
+
             # NO noise for speed
             arrive_tick += duration + ceil(distance / speed)
 

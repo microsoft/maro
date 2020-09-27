@@ -2,11 +2,12 @@
 # Licensed under the MIT license.
 
 from enum import Enum
-from datetime import datetime
+
 
 class BikeTransferPayload:
     """Payload for bike transfer event"""
-    def __init__(self, from_station_idx: int, to_station_idx: int, number: int=1):
+
+    def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
         self.number = number
@@ -14,6 +15,7 @@ class BikeTransferPayload:
 
 class BikeReturnPayload:
     """Payload for bike return event"""
+
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
@@ -23,14 +25,16 @@ class BikeReturnPayload:
 class DecisionType(Enum):
     """Station decision type"""
     # current cell has too more bikes, need transfer to others
-    Supply = 'supply' 
+    Supply = 'supply'
     # current cell has no enough bikes, need neighbors transfer bikes to it
-    Demand = 'demand' 
+    Demand = 'demand'
 
 
 class DecisionEvent:
     """Citi bike scenario decision event that contains station information for agent to choose action"""
-    def __init__(self, station_idx: int, tick: int, frame_index: int, action_scope_func: callable, decision_type: DecisionType):
+
+    def __init__(self, station_idx: int, tick: int,
+                 frame_index: int, action_scope_func: callable, decision_type: DecisionType):
         self.station_idx = station_idx
         self.tick = tick
         self.frame_index = frame_index
@@ -41,7 +45,7 @@ class DecisionEvent:
     @property
     def action_scope(self):
         """Get the scope of current action.
-        
+
         Returns:
             dict: a dictionary that contains requirements of current and neighbor stations,
                 key is the station index, value is the max demand or supply number
@@ -64,11 +68,13 @@ class DecisionEvent:
         return self.__str__()
 
     def __str__(self):
-        return f'DecisionEvent(tick={self.tick}, station_idx={self.station_idx}, type={self.type}, action_scope={self.action_scope})'
+        return f'DecisionEvent(tick={self.tick}, station_idx={self.station_idx}, \
+            type={self.type}, action_scope={self.action_scope})'
 
 
 class Action:
     """Citi bike scenario action object, that used to pass action from agent to business engine."""
+
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
@@ -78,7 +84,8 @@ class Action:
         return self.__str__()
 
     def __str__(self):
-        return f'Action(from_station_idx={self.from_station_idx}, to_station_idx={self.to_station_idx}, number={self.number})'
+        return f'Action(from_station_idx={self.from_station_idx}, \
+            to_station_idx={self.to_station_idx}, number={self.number})'
 
 
 class ExtraCostMode(Enum):

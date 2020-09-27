@@ -2,17 +2,19 @@
 # Licensed under the MIT license.s
 
 from datetime import datetime
+
 from maro.data_lib import BinaryReader
-from maro.event_buffer import EventBuffer, Event
+from maro.event_buffer import EventBuffer
 
 UNPROECESSED_EVENT = "item_not_bind_with_event"
 
+
 class EventBindBinaryReader:
     """Binary reader that will generate and insert event that defined in meta into event buffer.
-    If items that not match any event type, then they will bind to a predefined event UNPROECESSED_EVENT, 
+    If items that not match any event type, then they will bind to a predefined event UNPROECESSED_EVENT,
     you can handle this by register an event handler.
-    
-    
+
+
     Examples:
 
         .. code-block:: python
@@ -46,25 +48,26 @@ class EventBindBinaryReader:
             def on_unprocessed_item(evt: Event):
                 pass
 
-        
+
     Args:
         event_cls (type): event class that will be mapped to
         event_buffer (EventBuffer): event buffer that used to generate and insert events
         binary_file_path (str): path to binary file to read
         start_tick (int): start tick to filter, default is 0
         end_tick (int): end tick to filter, de fault is 100
-        time_unit (str): unit of tick, available units are "d", "h", "m", "s", 
+        time_unit (str): unit of tick, available units are "d", "h", "m", "s"
             different unit will affect the reading result
         buffer_size (int): in memory buffer size
         enable_value_adjust (bool): if reader should adjust the value of the fields that marked as adjust-able
 
     """
-    def __init__(self, event_cls: type, event_buffer: EventBuffer, binary_file_path: str, 
-        start_tick:int = 0, end_tick=100, time_unit: str = "s", buffer_size: int = 100, 
-        enable_value_adjust: bool = False):
 
-        self._reader = BinaryReader(file_path=binary_file_path, 
-            enable_value_adjust=enable_value_adjust, buffer_size=buffer_size)
+    def __init__(self, event_cls: type, event_buffer: EventBuffer, binary_file_path: str,
+                 start_tick: int = 0, end_tick=100, time_unit: str = "s", buffer_size: int = 100,
+                 enable_value_adjust: bool = False):
+
+        self._reader = BinaryReader(file_path=binary_file_path,
+                                    enable_value_adjust=enable_value_adjust, buffer_size=buffer_size)
 
         self._event_buffer = event_buffer
 
@@ -73,8 +76,8 @@ class EventBindBinaryReader:
         self._time_unit = time_unit
         self._event_cls = event_cls
 
-        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick, 
-                end_time_offset=self._end_tick, time_unit=self._time_unit)
+        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick,
+                                                      end_time_offset=self._end_tick, time_unit=self._time_unit)
 
         self._init_meta()
 
@@ -95,7 +98,7 @@ class EventBindBinaryReader:
 
     def read_items(self, tick: int):
         """Read items by tick and generate related events, then insert them into EventBuffer.
-        
+
         Args:
             tick(int): tick to get items, NOTE: the tick must specified sequentially
         """
@@ -108,8 +111,8 @@ class EventBindBinaryReader:
     def reset(self):
         """Reset states of reader"""
         self._reader.reset()
-        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick, 
-                end_time_offset=self._end_tick, time_unit=self._time_unit)
+        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick,
+                                                      end_time_offset=self._end_tick, time_unit=self._time_unit)
 
     def _gen_event_by_item(self, item, tick):
         event_name = None
@@ -135,7 +138,7 @@ class EventBindBinaryReader:
         self._default_event = None
 
         # value -> display name
-        self._events = {} 
+        self._events = {}
 
         for event in meta.events:
             self._events[event.value] = event.display_name
@@ -145,5 +148,3 @@ class EventBindBinaryReader:
                 self._default_event = event.display_name
 
         self._event_field_name = meta.event_attr_name
-
-

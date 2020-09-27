@@ -6,8 +6,8 @@ from .entities import CimDataCollection
 
 class VesselPastStopsWrapper:
     """Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one
-        
-        
+
+
     Examples:
 
         .. code-block:: python
@@ -15,6 +15,7 @@ class VesselPastStopsWrapper:
             # get past stops of vessel 0
             stops = data_cntr.vessel_past_stops[0]
     """
+
     def __init__(self, data: CimDataCollection):
         self._stop_number = data.past_stop_number
         self._stops = data.vessels_stops

@@ -3,21 +3,22 @@
 
 import sys
 import warnings
-
 from datetime import datetime
-from dateutil.tz import UTC
+
 from dateutil.relativedelta import relativedelta
-from maro.backends.frame import node, NodeBase, NodeAttribute
+from dateutil.tz import UTC
+from maro.backends.frame import NodeBase
 
 timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
 
+
 def utc_timestamp_to_timezone(timestamp: int, timezone):
     """Convert utc timestamp into specified tiemzone datetime
-    
+
     Args:
         timestamp(int): UTC timestamp to convert
         timezone: target timezone
-    
+
     """
     if sys.platform == "win32":
         # windows do not support negative timestamp, use this to support it
@@ -28,11 +29,12 @@ def utc_timestamp_to_timezone(timestamp: int, timezone):
 
 class DocableDict:
     """A thin wrapper that provide a read-only dictionary with customized doc
-    
+
     Args:
         doc (str): customized doc of the dict
         kwargs (dict): dictionary items to store
     """
+
     def __init__(self, doc: str, **kwargs):
         self._original_dict = kwargs
         DocableDict.__doc__ = doc
@@ -72,6 +74,7 @@ class MatrixAttributeAccessor:
         row_num(int): result matrix row number
         col_num(int): result matrix column number
     """
+
     def __init__(self, node: NodeBase, attribute: str, row_num: int, col_num: int):
         self._node = node
         self._attr = None
@@ -109,7 +112,7 @@ class MatrixAttributeAccessor:
         elif key_type == slice:
             return self._attr[:]
 
-    def __setitem__(self, key: tuple, value:int):
+    def __setitem__(self, key: tuple, value: int):
         key_type = type(key)
 
         self._ensure_attr()

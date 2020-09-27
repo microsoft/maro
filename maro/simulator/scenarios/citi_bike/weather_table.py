@@ -7,8 +7,10 @@ from maro.data_lib.binary_reader import BinaryReader
 
 from maro.simulator.scenarios.helpers import utc_timestamp_to_timezone
 
+
 class WeatherTable:
     """Value look-up table, date->weather info"""
+
     def __init__(self, file: str, timezone):
         self._setup_in_memory_table(file, timezone)
 
@@ -18,12 +20,12 @@ class WeatherTable:
         self._weather_lut = {}
 
         # just get all the items without filters
-        for item in reader.items(): 
+        for item in reader.items():
             dt = utc_timestamp_to_timezone(item.timestamp, timezone)
 
             self._weather_lut[dt.date()] = item
 
     def __getitem__(self, key: date):
         assert type(key) == date
-        
+
         return self._weather_lut.get(key, None)

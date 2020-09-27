@@ -1,20 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import mmap
 import os
 import sys
-import mmap
-import threading 
 import warnings
 from datetime import datetime
-from dateutil.tz import UTC, gettz
-from dateutil.relativedelta import relativedelta
-from io import BytesIO 
-from struct import Struct, unpack
-from collections import namedtuple
-from maro.data_lib.item_meta import BinaryMeta
-from maro.data_lib.common import VERSION, header_struct, FileHeader, meta_item_format, dtype_pack_map
 from typing import Union
+
+from dateutil.relativedelta import relativedelta
+from dateutil.tz import UTC
+from maro.data_lib.common import (VERSION, FileHeader, header_struct)
+from maro.data_lib.item_meta import BinaryMeta
+
 
 # used to get correct datetime with negative timestamp on Windows
 timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
@@ -22,7 +20,7 @@ timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 def unit_seconds(unit: str):
     # default for second
-    seconds = 1  
+    seconds = 1
 
     if unit == "m":
         seconds = 60
@@ -49,7 +47,7 @@ class ItemBuffer:
         self._enable_adjust_ratio = enable_adjust_ratio
         self._bytes = memoryview(bytearray(number_of_item * meta.item_size))
         # valid items in buffer
-        self.item_number = 0  
+        self.item_number = 0
 
     def items(self):
         index = 0
@@ -83,7 +81,7 @@ class ItemTickPicker:
         """get items for specified ticks
 
         NOTE:
-        this method will compare timestamp of item to pick 
+            this method will compare timestamp of item to pick
         """
         seconds_per_unit = unit_seconds(self._time_unit)
         ticks_in_seconds = self._starttime + tick * seconds_per_unit
@@ -91,7 +89,7 @@ class ItemTickPicker:
         while True:
             item = self._cached_item
             # clear the cache
-            self._cached_item = None  
+            self._cached_item = None
 
             if item is None:
                 try:
@@ -120,7 +118,7 @@ class BinaryReader:
     Examples:
 
         .. code-block:: python
-        
+
             reader = BinaryReader(bin_file)
 
             # read items in between 0-10 minute (relative to binary start time)
@@ -136,7 +134,7 @@ class BinaryReader:
 
     Args:
         file_path(str): binary file path to read
-        enable_value_adjust(bool): if reader should adjust the value of fields that enabled 
+        enable_value_adjust(bool): if reader should adjust the value of fields that enabled
             'value_adjust' feature in meta randomly
         buffer_size(int): size of in-memory buffer
     """
@@ -194,8 +192,8 @@ class BinaryReader:
         return self._to_utc_datetime(self.header.endtime)
 
     def items_tick_picker(self, start_time_offset: int = 0, end_time_offset: int = None, time_unit: str = "s"):
-        """Filter items by specified time range, and then pick by tick sequentially        
-        
+        """Filter items by specified time range, and then pick by tick sequentially
+
         Args:
             start_time_offset(int): specified the which tick (in seconds) to start
             end_time_offset(int): specified the end tick (in seconds) to start
@@ -317,7 +315,7 @@ class BinaryReader:
         # if current version less than file, then a warning
         if VERSION < self.header.version:
             warnings.warn(
-                f"File version is greater than current reader version, may cause unknown behavior!.")
+                "File version is greater than current reader version, may cause unknown behavior!.")
 
     def _read_meta(self):
         """Read meta part"""

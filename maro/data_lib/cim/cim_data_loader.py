@@ -17,12 +17,13 @@ from .entities import (CimDataCollection, NoisedItem, OrderGenerateMode,
 
 class CimDumpDataLoader:
     """Utility to load data from dump folder"""
+
     def load(self, dumps_folder: str) -> CimDataCollection:
         """Load data from dump folder
 
-        NOTE: 
-            dumps folder should contains following files.
-        ports.csv, vessels.csv, routes.csv, order_proportion.csv, 
+        NOTE:
+        dumps folder should contains following files.
+        ports.csv, vessels.csv, routes.csv, order_proportion.csv,
         global_order_proportion.txt, misc.yml, stops.bin
 
         Args:
@@ -106,11 +107,11 @@ class CimDumpDataLoader:
                 float(line["proportion_noise"])
             )
 
-            target_proportions[source_port_index].append(target_prop)            
+            target_proportions[source_port_index].append(target_prop)
 
         return target_proportions
 
-    def _load_ports(self, dumps_folder: str, order_target_proportion:  dict) -> dict:
+    def _load_ports(self, dumps_folder: str, order_target_proportion: dict) -> dict:
         ports_file_path = os.path.join(dumps_folder, "ports.csv")
 
         port_mapping: Dict[str, int] = {}
@@ -139,13 +140,13 @@ class CimDumpDataLoader:
             )
 
             port = PortSetting(port_index,
-                                port_name,
-                                int(line["capacity"]),
-                                int(line["empty"]),
-                                source_order_proportion,
-                                order_target_proportion[port_index],
-                                empty_rtn_buffer,
-                                full_rtn_buffer)
+                               port_name,
+                               int(line["capacity"]),
+                               int(line["empty"]),
+                               source_order_proportion,
+                               order_target_proportion[port_index],
+                               empty_rtn_buffer,
+                               full_rtn_buffer)
 
             ports.append(port)
 
@@ -166,15 +167,15 @@ class CimDumpDataLoader:
             periods_without_noise.append(int(line["period"]))
 
             vessel = VesselSetting(vessel_index,
-                                    vessel_name,
-                                    int(line["capacity"]),
-                                    line["route_name"],
-                                    line["start_port_name"],
-                                    float(line["sailing_speed"]),
-                                    float(line["sailing_speed_noise"]),
-                                    int(line["parking_duration"]),
-                                    float(line["parking_noise"]),
-                                    int(line["empty"]))
+                                   vessel_name,
+                                   int(line["capacity"]),
+                                   line["route_name"],
+                                   line["start_port_name"],
+                                   float(line["sailing_speed"]),
+                                   float(line["sailing_speed_noise"]),
+                                   int(line["parking_duration"]),
+                                   float(line["parking_noise"]),
+                                   int(line["empty"]))
 
             vessels.append(vessel)
 
@@ -215,10 +216,10 @@ class CimDumpDataLoader:
         for stop_item in reader.items():
             vessel_stops: List[Stop] = stops[stop_item.vessel_index]
 
-            stop = Stop(len(vessel_stops), 
+            stop = Stop(len(vessel_stops),
                         stop_item.timestamp,
-                        stop_item.leave_tick, 
-                        stop_item.port_index, 
+                        stop_item.leave_tick,
+                        stop_item.port_index,
                         stop_item.vessel_index)
 
             vessel_stops.append(stop)
@@ -228,15 +229,15 @@ class CimDumpDataLoader:
 
 def load_from_folder(source_folder: str) -> CimDataCollection:
     """Load data from dump folder
-    
-    NOTE: 
+
+    NOTE:
         dumps folder should contains following files.
-    ports.csv, vessels.csv, routes.csv, order_proportion.csv, 
+    ports.csv, vessels.csv, routes.csv, order_proportion.csv,
     global_order_proportion.txt, misc.yml, stops.bin
 
     Args:
         source_folder(str): source folder container dumped files
-    
+
     Returns:
         CimDataCollection: data collection for cim data container
     """

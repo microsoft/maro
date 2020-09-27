@@ -4,13 +4,11 @@
 import os
 import urllib.parse
 
-from .cim_data_generator import CimDataGenerator
-from .cim_data_container import CimDataContainer
-from .cim_data_loader import load_from_folder
-from .cim_data_dump import dump_from_config
+from maro.cli.data_pipeline.utils import StaticParameter
 
-from maro.simulator.utils.sim_random import random, SimRandom
-from maro.cli.data_pipeline.utils import convert, StaticParameter
+from .cim_data_container import CimDataContainer
+from .cim_data_generator import CimDataGenerator
+from .cim_data_loader import load_from_folder
 
 
 class CimDataContainerWrapper:
@@ -22,15 +20,15 @@ class CimDataContainerWrapper:
         self._start_tick = 0
 
         self._topology = topology
-        self._output_folder = os.path.join(StaticParameter.data_root, "cim", 
-            urllib.parse.quote(self._topology), str(self._max_tick))
+        self._output_folder = os.path.join(StaticParameter.data_root, "cim",
+                                           urllib.parse.quote(self._topology), str(self._max_tick))
         self._meta_path = os.path.join(StaticParameter.data_root, "cim", "meta", "cim.stops.meta.yml")
 
         self._init_data_container()
 
     def _init_data_container(self):
-        self._data_cntr = data_from_generator(config_path=self._config_path, 
-            max_tick=self._max_tick, start_tick=self._start_tick)
+        self._data_cntr = data_from_generator(config_path=self._config_path,
+                                              max_tick=self._max_tick, start_tick=self._start_tick)
 
     def reset(self):
         """Reset data container internal state"""
@@ -60,13 +58,13 @@ def data_from_dumps(dumps_folder: str) -> CimDataContainer:
 
 def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0) -> CimDataContainer:
     """Collect data from data generator with configurations
-    
-    
+
+
     Args:
         config_path(str): path of configuration file (yaml)
         max_tick (int): max tick to generate data
         start_tick(int): start tick to generate data
-    
+
     Returns:
         CimDataContainer: data container used to provide cim data related interfaces
     """

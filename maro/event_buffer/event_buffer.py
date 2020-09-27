@@ -4,16 +4,16 @@
 
 # TODO:
 # 1. priority
-# 2. event object pool, this will make get_finished_events function stop working. 
+# 2. event object pool, this will make get_finished_events function stop working.
 #    we can enable this to disable pooling
 
 from enum import IntEnum
 from collections import defaultdict
-from typing import List, Dict, Callable
+from typing import List, Callable
 
 
 DECISION_EVENT = 0
-"""Predefined decision event type, if business engine need to process actions from agent, 
+"""Predefined decision event type, if business engine need to process actions from agent,
 then it must register handler with this event."""
 
 
@@ -37,7 +37,7 @@ class EventState(IntEnum):
 class Event:
     """Event object that used to hold information that for callback.
 
-    Some times there may be some events that depend on another one, 
+    Some times there may be some events that depend on another one,
     then you can append these events into immediate_event_list, then
     these events will be processed after the main event at same tick.
 
@@ -46,24 +46,25 @@ class Event:
 
     Args:
         tick (int): tick that this event will be processed
-        event_type (int): type of this event, this is a customize field, 
+        event_type (int): type of this event, this is a customize field,
         there is one predefined event type is 0 (PREDEFINE_EVENT_ACTION)
         payload (object): payload of this event
         category (EventCategory): category mark of this event
 
 
     Attributes:
-        id (int): id of this event, usually this is used for "joint decision" node 
+        id (int): id of this event, usually this is used for "joint decision" node
                 that need "sequential action".
         tick (int): process tick of this event
         payload (object): payload of this event, can be any object
         category (EventCategory): category of this event
-        event_type (object): type of this event, can be any type, usually int, 
+        event_type (object): type of this event, can be any type, usually int,
                 EventBuffer will use this to match handlers
         state (EventState): internal life-circle state of event
-        immediate_event_list (List[Event]): used to hold events that depend on current event, 
+        immediate_event_list (List[Event]): used to hold events that depend on current event,
                 these events will be processed after this event
     """
+
     def __init__(self, id: int, tick: int, event_type: object, payload, category: EventCategory):
         self.id = id
         self.tick = tick
@@ -87,24 +88,25 @@ class EventBuffer:
 
 
     NOTE:
-        Different with normal event dispatcher, 
-        EventBuffer will stop executing and return following cascade events when it meet 
-        first pending cascade event, this may cause each tick is separated into several parts, 
+        Different with normal event dispatcher,
+        EventBuffer will stop executing and return following cascade events when it meet
+        first pending cascade event, this may cause each tick is separated into several parts,
         users should check the return result before step to next tick.
-    
 
-        And insert order will affect the processing order, 
+
+        And insert order will affect the processing order,
         so ensure the order when you need something strange.
     """
+
     def __init__(self):
         # id for events that generate from this instance
         self._id = 0
         self._pending_events = defaultdict(list)
         self._handlers = defaultdict(list)
         # used to hold all the events that being processed
-        self._finished_events = []  
+        self._finished_events = []
         # index of current pending event
-        self._current_index = 0  
+        self._current_index = 0
 
     def get_finished_events(self) -> List[Event]:
         """Get all the processed events, call this function before reset method
@@ -116,7 +118,7 @@ class EventBuffer:
 
     def get_pending_events(self, tick: int) -> List[Event]:
         """Get pending event at specified tick.
-        
+
         Args:
             tick (int): tick of events to get
 
@@ -128,23 +130,21 @@ class EventBuffer:
     def reset(self):
         """Reset internal states, this method will clear all events.
 
-        NOTE: 
+        NOTE:
             After reset the get_finished_event method will return empty list
         """
         self._pending_events = defaultdict(list)
         self._finished_events = []
         self._current_index = 0
 
-    def gen_atom_event(self, tick: int, event_type: int, payload: object=None) -> Event:
-        """Generate an atom event, an atom event is for normal usages, 
+    def gen_atom_event(self, tick: int, event_type: int, payload: object = None) -> Event:
+        """Generate an atom event, an atom event is for normal usages,
         they will not stop current event dispatching process.
-
 
         Args:
             tick (int): tick that the event will be processed
             event_type (int): type of this event
             payload (object): payload of event, used to pass data to handlers
-
 
         Returns:
             Event: Event object with ATOM category
@@ -157,7 +157,7 @@ class EventBuffer:
         """Generate an cascade event that used to retrieve action from agent.
 
 
-        A cascade event will stop current dispatching process, 
+        A cascade event will stop current dispatching process,
         and simulator will try to generate a decision event to ask agent give it an action.
 
 
@@ -175,7 +175,7 @@ class EventBuffer:
         return Event(self._id, tick, event_type, payload, EventCategory.CASCADE)
 
     def register_event_handler(self, event_type: int, handler: Callable):
-        """Register an event with handler, when there is an event need to be processed, 
+        """Register an event with handler, when there is an event need to be processed,
         EventBuffer will invoke the handler if there are any event's type match specified at each tick.
 
 
@@ -188,13 +188,13 @@ class EventBuffer:
             handler (Callable): handler that will process the event
         """
         self._handlers[event_type].append(handler)
-    
+
     def insert_event(self, event: Event):
         """Insert an event to the pending queue
 
 
         Args:
-            event (Event): event to insert, 
+            event (Event): event to insert,
                 usually get event object from get_atom_event or get_cascade_event
         """
 
@@ -205,8 +205,8 @@ class EventBuffer:
 
 
         NOTE:
-            The executing process will be stopped if there is any cascade event, 
-            and all following cascade events will be returned, 
+            The executing process will be stopped if there is any cascade event,
+            and all following cascade events will be returned,
             so should check if the return list is empty before step to next tick.
 
 
@@ -228,7 +228,7 @@ class EventBuffer:
                 if event is None:
                     break
 
-                # 2. check if it is a cascade event and its state, 
+                # 2. check if it is a cascade event and its state,
                 #    we only process cascade events that in pending state
                 if event.category == EventCategory.CASCADE and event.state == EventState.PENDING:
                     # NOTE: here we return all the cascade events next to current one
@@ -274,8 +274,3 @@ class EventBuffer:
             # reset
             self._current_index = 0
         return []
-
-
-                    
-
-

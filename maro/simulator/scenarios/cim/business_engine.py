@@ -14,15 +14,16 @@ from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDic
 
 from .common import (ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload)
 from .frame_builder import gen_cim_frame
-from maro.data_lib.cim import data_from_generator, data_from_dumps, CimDataContainer, Stop, Order, CimDataContainerWrapper
+from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
 
 
 metrics_desc = """
-CIM metrics used provide statistics information until now (may be in the middle of current tick), it contains following keys:
+CIM metrics used provide statistics information until now (may be in the middle of current tick),
+ it contains following keys:
 
 order_requirements (int): accumulative orders until now
 container_shortage (int): accumulative shortage until now
-operation_number (int): total empty transfer (both load and discharge) cost, 
+operation_number (int): total empty transfer (both load and discharge) cost,
     the cost factors can be configured in configuration file at section "transfer_cost_factors"
 """
 
@@ -30,8 +31,8 @@ operation_number (int): total empty transfer (both load and discharge) cost,
 class CimBusinessEngine(AbsBusinessEngine):
     """Cim business engine, used simulate CIM related problem"""
 
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, 
-        snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
+    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int,
+                 snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
         super().__init__("cim", event_buffer, topology, start_tick, max_tick,
                          snapshot_resolution, max_snapshots, additional_options)
 
@@ -229,7 +230,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._reset_nodes()
 
         self._data_cntr.reset()
-        
+
         # insert departure event again
         self._load_departure_events()
 
@@ -262,19 +263,19 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     def get_metrics(self) -> DocableDict:
         """Get metrics information for cim scenario.
-        
+
         Args:
-            dict: a dict that contains "perf", "total_shortage" and "total_cost", 
+            dict: a dict that contains "perf", "total_shortage" and "total_cost",
                 and can use help method to show help docs
         """
         total_shortage = sum([p.acc_shortage for p in self._ports])
         total_booking = sum([p.acc_booking for p in self._ports])
 
         return DocableDict(metrics_desc,
-            order_requirements = total_booking,
-            container_shortage = total_shortage,
-            operation_number = self._total_operate_num
-        )
+                           order_requirements=total_booking,
+                           container_shortage=total_shortage,
+                           operation_number=self._total_operate_num
+                           )
 
     def get_node_mapping(self) -> dict:
         """
@@ -296,13 +297,13 @@ class CimBusinessEngine(AbsBusinessEngine):
         """
         Get port index list related with this environment
 
-        Returns: 
+        Returns:
             A list of port index
         """
         return [i for i in range(self._data_cntr.port_number)]
 
     def _init_nodes(self):
-        # initial ports 
+        # initial ports
         for port_settings in self._data_cntr.ports:
             port = self._ports[port_settings.index]
             port.set_init_state(port_settings.name, port_settings.capacity, port_settings.empty)
@@ -311,13 +312,13 @@ class CimBusinessEngine(AbsBusinessEngine):
         for vessel_setting in self._data_cntr.vessels:
             vessel = self._vessels[vessel_setting.index]
 
-            vessel.set_init_state(vessel_setting.name, 
-                    self._data_cntr.container_volume, 
-                    vessel_setting.capacity, 
-                    self._data_cntr.route_mapping[vessel_setting.route_name],
-                    vessel_setting.empty)
+            vessel.set_init_state(vessel_setting.name,
+                                  self._data_cntr.container_volume,
+                                  vessel_setting.capacity,
+                                  self._data_cntr.route_mapping[vessel_setting.route_name],
+                                  vessel_setting.empty)
 
-        # init vessel plans 
+        # init vessel plans
         self._vessel_plans[:] = -1
 
     def _reset_nodes(self):

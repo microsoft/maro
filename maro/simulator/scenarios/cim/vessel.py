@@ -63,7 +63,7 @@ def gen_vessel_definition(stop_nums: tuple):
             """Initialize vessel info"""
             self._name = name
             self._container_volume = container_volume
-            self._total_space = floor(capacity/container_volume)
+            self._total_space = floor(capacity / container_volume)
 
             self._capacity = capacity
             self._route_idx = route_idx
@@ -76,8 +76,8 @@ def gen_vessel_definition(stop_nums: tuple):
             self.capacity = self._capacity
             self.route_idx = self._route_idx
             self.empty = self._empty
-        
-        def set_stop_list(self, past_stop_list:list, future_stop_list:list):
+
+        def set_stop_list(self, past_stop_list: list, future_stop_list: list):
             """
             Set the future stops (configured in config) when the vessel arrive at a port
             Args:

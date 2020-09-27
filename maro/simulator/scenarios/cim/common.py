@@ -30,7 +30,7 @@ class CimEventType(IntEnum):
     PENDING_DECISION = 19
     LOAD_EMPTY = 20
     DISCHARGE_EMPTY = 21
-    
+
 
 # used for arrival and departure cascade event
 class VesselStatePayload:
@@ -102,10 +102,12 @@ class Action:
     def __str__(self):
         return f'Action(port_idx={self.port_idx}, vessel_idx={self.vessel_idx}, quantity={self.quantity})'
 
+
 class ActionScope:
     """
     Load and discharge scope for agent to generate decision
     """
+
     def __init__(self, load: int, discharge: int):
         self.load = load
         self.discharge = discharge
@@ -115,6 +117,7 @@ class ActionScope:
 
     def __str__(self):
         return f'ActionScope(load={self.load}, discharge={self.discharge})'
+
 
 class DecisionEvent:
     """
@@ -141,9 +144,9 @@ class DecisionEvent:
         self.vessel_idx = vessel_idx
         self.snapshot_list = snapshot_list
         # this field will be fixed after the action_scope property is called 1st time
-        self._action_scope = None  
+        self._action_scope = None
         # this field will be fixed after the early_discharge property is called 1st time
-        self._early_discharge = None  
+        self._early_discharge = None
         self._action_scope_func = action_scope_func
         self._early_discharge_func = early_discharge_func
 
@@ -169,7 +172,7 @@ class DecisionEvent:
 
     def __getstate__(self):
         """Return pickleable dictionary.
-        
+
         NOTE: this class do not support unpickle"""
         return {
             "tick": self.tick,

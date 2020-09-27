@@ -2,17 +2,17 @@
 # Licensed under the MIT license.
 
 import time
+from collections import OrderedDict
 from random import Random
 from typing import Dict
-from collections import OrderedDict
 
 
 class SimRandom:
-    """Simulator random object that will keep a module level random.Random object to keep its internal random sequence, 
+    """Simulator random object that will keep a module level random.Random object to keep its internal random sequence,
     it will not be affected by outside, and outside can set seed with seed function as normal.
 
-    
-    Use it as a dict to get another random object with a name, all the random objects from this way will be 
+
+    Use it as a dict to get another random object with a name, all the random objects from this way will be
     affect the seed method.
 
 
@@ -28,6 +28,7 @@ class SimRandom:
         seed(1)
 
     """
+
     def __init__(self):
         # random object instances
         self._rand_instances: Dict[str, Random] = OrderedDict()
@@ -54,7 +55,7 @@ class SimRandom:
             seed = seed_num + self._index
 
             rand.seed(seed)
-            
+
             self._seed_dict[key] = seed
 
             self._index += 1
@@ -77,12 +78,12 @@ class SimRandom:
 
         NOTE:
             This will only return the seed of first random object that specified by user (or default).
-        
+
         Args:
             key(str): key of item to get
 
         Returns:
-            int: if key is None return seed for 1st instance (same as what passed to seed function), 
+            int: if key is None return seed for 1st instance (same as what passed to seed function),
                 else return seed for specified generator
         """
         if key is not None:

@@ -2,9 +2,9 @@
 # Licensed under the MIT license.
 
 from math import floor
-from typing import List, Dict
-import numpy as np
+from typing import Dict
 
+import numpy as np
 from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
 
 from .common import DecisionType, ExtraCostMode
@@ -13,11 +13,12 @@ from .station import Station
 
 class DistanceFilter:
     """Filter neighbors by distance (from near to far), and return first N configured number of neighbors"""
+
     def __init__(self, conf: dict, strategy):
         self._output_num = conf["num"]
         self._strategy = strategy
 
-    def filter(self, station_idx:int, deision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
+    def filter(self, station_idx: int, deision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
         output_num = min(self._output_num, len(source))
 
         neighbors = self._strategy._get_neighbors(station_idx)
@@ -34,12 +35,14 @@ class DistanceFilter:
     def reset(self):
         pass
 
+
 class RequirementsFilter:
     """Filters by demand or supply requirement number, from more to less."""
+
     def __init__(self, conf: dict):
         self._output_num = conf["num"]
 
-    def filter(self, station_idx:int, deision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
+    def filter(self, station_idx: int, deision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
         output_num = min(self._output_num, len(source))
 
         neighbor_scope = sorted(source.items(),
@@ -50,12 +53,14 @@ class RequirementsFilter:
     def reset(self):
         pass
 
+
 class TripsWindowFilter:
     """Filter neighbors by trip requirement in latest N windows.
-    
+
     NOTE:
         This filter will cache its states, need to be reset before each episode
     """
+
     def __init__(self, conf: dict, snapshot_list):
         self._output_num = conf["num"]
         self._windows = conf["windows"]
@@ -63,7 +68,7 @@ class TripsWindowFilter:
 
         self._window_states_cache = {}
 
-    def filter(self, station_idx:int, decision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
+    def filter(self, station_idx: int, decision_type: DecisionType, source: Dict[int, int]) -> Dict[int, int]:
         output_num = min(self._output_num, len(source))
 
         avaiable_frame_indices = self._snapshot_list.get_frame_index_list()
@@ -77,7 +82,7 @@ class TripsWindowFilter:
         source_trips = {}
 
         for i, frame_index in enumerate(avaiable_frame_indices):
-            if i == available_windows -1 or frame_index not in self._window_states_cache:
+            if i == available_windows - 1 or frame_index not in self._window_states_cache:
                 # overwrite latest one, since it may be changes, and cache not exist one
                 trip_state = self._snapshot_list["stations"][frame_index::"trip_requirement"]
 
@@ -87,24 +92,23 @@ class TripsWindowFilter:
 
             for neighbor_idx, _ in source.items():
                 trip_num = trip_state[neighbor_idx]
-                
+
                 if neighbor_idx not in source_trips:
                     source_trips[neighbor_idx] = trip_num
                 else:
                     source_trips[neighbor_idx] += trip_num
-                    
+
         is_sort_reverse = False
 
         if decision_type == DecisionType.Demand:
             is_sort_reverse = True
-            
+
         sorted_neighbors = sorted(source_trips.items(), key=lambda kv: (kv[1], kv[0]), reverse=is_sort_reverse)
 
         result = {}
 
         for neighbor_idx, _ in sorted_neighbors[0: output_num]:
             result[neighbor_idx] = source[neighbor_idx]
-
 
         return result
 
@@ -115,7 +119,7 @@ class TripsWindowFilter:
 class BikeDecisionStrategy:
     """Helper to provide decision related logic"""
 
-    def __init__(self, stations: list, distance_adj: MatrixAttributeAccessor, snapshots,  options: dict):
+    def __init__(self, stations: list, distance_adj: MatrixAttributeAccessor, snapshots, options: dict):
         self._filter_cls_mapping = {
             "distance": {
                 "cls": DistanceFilter,
@@ -127,7 +131,7 @@ class BikeDecisionStrategy:
             "trip_window": {
                 "cls": TripsWindowFilter,
                 "options": [snapshots]
-            } 
+            }
         }
 
         self._filters = []
@@ -159,7 +163,7 @@ class BikeDecisionStrategy:
 
     def is_decision_tick(self, tick: int):
         """If it is time to generate a decision event"""
-        return (tick+1) % self.resolution == 0
+        return (tick + 1) % self.resolution == 0
 
     def get_stations_need_decision(self, tick: int) -> list:
         """Get stations that need to take an action from agent at current tick"""

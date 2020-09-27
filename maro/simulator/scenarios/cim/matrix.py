@@ -5,9 +5,10 @@ from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
 
 from maro.backends.frame import node, NodeBase, NodeAttribute
 
+
 def gen_matrix(port_num: int, vessel_num: int):
     """A node that contains matrix in frame
-    
+
     Args:
         port_num (int): number of ports
         vessel_num (int): number of vessels

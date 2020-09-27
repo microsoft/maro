@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
 
 from maro.backends.frame import node, NodeBase, NodeAttribute
 
@@ -24,11 +23,11 @@ class Station(NodeBase):
     weekday = NodeAttribute("i2")
 
     # avg temp
-    temperature = NodeAttribute("i2") 
-     # 0: sunny, 1: rainy, 2: snowy， 3: sleet
-    weather = NodeAttribute("i2") 
+    temperature = NodeAttribute("i2")
+    # 0: sunny, 1: rainy, 2: snowy， 3: sleet
+    weather = NodeAttribute("i2")
     # 0: holiday, 1: not holiday
-    holiday = NodeAttribute("i2") 
+    holiday = NodeAttribute("i2")
     extra_cost = NodeAttribute("i")
     transfer_cost = NodeAttribute("i")
     failed_return = NodeAttribute("i")
@@ -38,13 +37,13 @@ class Station(NodeBase):
 
     def __init__(self):
         # internal use for reset
-        self._init_capacity = 0 
+        self._init_capacity = 0
         # internal use for reset
         self._init_bikes = 0
         # original id in data file
-        self._id = 0 
+        self._id = 0
 
-    def set_init_state(self, bikes:int, capacity:int, id:int):
+    def set_init_state(self, bikes: int, capacity: int, id: int):
         """set initialize state, usually for 1st using"""
         self._init_bikes = bikes
         self._init_capacity = capacity
@@ -76,6 +75,5 @@ def gen_matrices_node_definition(station_num: int):
 
         def reset(self):
             pass
-                
 
     return Matrices

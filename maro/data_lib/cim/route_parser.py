@@ -3,6 +3,7 @@
 # Licensed under the MIT license.
 
 from typing import Dict, List
+
 from .entities import RoutePoint
 
 

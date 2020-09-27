@@ -6,9 +6,10 @@ from .port import Port
 from .vessel import gen_vessel_definition
 from .matrix import gen_matrix
 
+
 def gen_cim_frame(port_num: int, vessel_num: int, stop_nums: tuple, snapshots_num: int):
     """Define and generate cim frame
-    
+
     Args:
         port_num (int): number of ports
         vessel_num (int): number of vessels

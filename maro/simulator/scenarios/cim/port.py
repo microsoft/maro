@@ -3,6 +3,7 @@
 
 from maro.backends.frame import node, NodeBase, NodeAttribute
 
+
 @node("ports")
 class Port(NodeBase):
     # The capacity of port for stocking containers.

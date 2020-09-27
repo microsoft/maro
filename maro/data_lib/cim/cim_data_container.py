@@ -5,10 +5,8 @@ import warnings
 from math import ceil
 from typing import Dict, List
 
-from maro.simulator.utils import seed
-
 from .entities import (CimDataCollection, NoisedItem, Order, OrderGenerateMode,
-                       PortSetting, Stop, VesselSetting)
+                       PortSetting, VesselSetting)
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
 from .utils import (apply_noise, buffer_tick_rand, get_buffer_tick_seed,
                     get_order_num_seed, list_sum_normalize, order_num_rand)
@@ -20,9 +18,9 @@ from .vessel_stop_wrapper import VesselStopsWrapper
 
 
 class CimDataContainer:
-    """Data container for cim scenario, used to provide interfaces for business engine, 
+    """Data container for cim scenario, used to provide interfaces for business engine,
     and hide the details about data source, currently we support data from generator and dump files.
-    
+
 
     Example:
 
@@ -36,7 +34,7 @@ class CimDataContainer:
 
     Args:
         data_collection (CimDataCollection): data collection from data source
-    
+
     """
 
     def __init__(self, data_collection: CimDataCollection):
@@ -44,8 +42,10 @@ class CimDataContainer:
 
         # wrapper for interfaces, to make it easy to use
         self._stops_wrapper = VesselStopsWrapper(self._data_collection)
-        self._full_return_buffer_wrapper = PortBufferTickWrapper(self._data_collection, lambda p: p.full_return_buffer)
-        self._empty_return_buffer_wrapper = PortBufferTickWrapper(self._data_collection, lambda p: p.empty_return_buffer)
+        self._full_return_buffer_wrapper = \
+            PortBufferTickWrapper(self._data_collection, lambda p: p.full_return_buffer)
+        self._empty_return_buffer_wrapper = \
+            PortBufferTickWrapper(self._data_collection, lambda p: p.empty_return_buffer)
         self._future_stop_prediction = VesselFutureStopsPrediction(self._data_collection)
         self._past_stop_wrapper = VesselPastStopsWrapper(self._data_collection)
         self._vessel_plan_wrapper = VesselSailingPlanWrapper(self._data_collection)
@@ -91,7 +91,7 @@ class CimDataContainer:
     @property
     def container_volume(self) -> int:
         """Volume of a container
-        
+
         # NOTE: we only support 1 type container
         """
         return self._data_collection.cntr_volume
@@ -99,7 +99,7 @@ class CimDataContainer:
     @property
     def vessel_stops(self) -> VesselStopsWrapper:
         """Accessor for vessel stops.
-        
+
         Examples:
 
             .. code-block:: python
@@ -133,8 +133,7 @@ class CimDataContainer:
     @property
     def full_return_buffers(self) -> PortBufferTickWrapper:
         """Accessor to get full return buffer tick for specified port (with noise)
-        
-        
+
         Examples:
 
             .. code-block:: python
@@ -147,8 +146,8 @@ class CimDataContainer:
     @property
     def vessel_past_stops(self) -> VesselPastStopsWrapper:
         """Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one
-        
-        
+
+
         Examples:
 
             .. code-block:: python
@@ -161,8 +160,7 @@ class CimDataContainer:
     @property
     def vessel_future_stops(self) -> VesselFutureStopsPrediction:
         """Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.
-        
-        
+
         Examples:
 
             .. code-block:: python
@@ -174,24 +172,24 @@ class CimDataContainer:
 
     @property
     def vessel_planned_stops(self) -> VesselSailingPlanWrapper:
-        """Wrapper to get vessel sailing plan, this method will return a stop list that within configured time period (means no same port in list)
-        
-        
+        """Wrapper to get vessel sailing plan,
+        this method will return a stop list that within configured time period
+        (means no same port in list)
+
         Examples:
 
             .. code-block:: python
 
                 # get sailing plan for vessel 0
                 stops = data_cntr.vessel_planned_stops[0]
-        
+
         """
         return self._vessel_plan_wrapper
 
     @property
     def reachable_stops(self) -> VesselReachableStopsWrapper:
         """Wrapper to get a list of tuple which contains port index and arrive tick in vessel's route
-        
-        
+
         Examples:
 
             .. code-block:: python
@@ -204,8 +202,7 @@ class CimDataContainer:
     @property
     def vessel_period(self) -> int:
         """Wrapper to get vessel's planed sailing period (without noise to complete a whole route)
-        
-        
+
         Examples:
 
             .. code-block:: python
@@ -230,12 +227,11 @@ class CimDataContainer:
         """Name to index mapping for ports"""
         return self._data_collection.port_mapping
 
-    # TODO: get_events which composed with arrive, departure and order 
+    # TODO: get_events which composed with arrive, departure and order
 
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         """Get order list by specified tick.
 
-        
         Args:
             tick (int): tick of order
             total_empty_container (int): empty container at tick
@@ -267,18 +263,20 @@ class CimDataContainer:
 
     def _gen_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         """Generate order for specified tick.
-        
-        NOTE: Currently we will not dump orders into file even for fixed mode.
-        
+
+        NOTE:
+            Currently we will not dump orders into file even for fixed mode.
+
         """
-        order_list: List[Order] = [] # result
+        # result
+        order_list: List[Order] = []
         order_proportion = self._data_collection.order_proportion
         order_mode = self._data_collection.order_mode
         total_containers = self._data_collection.total_containers
 
         # max order to gen according to configuration
         orders_to_gen = int(order_proportion[tick])
-        
+
         # if under unfixed mode, we will consider current empty container as factor
         if order_mode == OrderGenerateMode.UNFIXED:
             delta = total_containers - total_empty_container
@@ -301,7 +299,7 @@ class CimDataContainer:
 
             noised_source_order_dist.append(noised_source_order_number)
 
-        # normalize it 
+        # normalize it
         noised_source_order_dist = list_sum_normalize(noised_source_order_dist)
 
         # generate order for each target port
@@ -333,7 +331,7 @@ class CimDataContainer:
                     # generate and correct order number for each target
                     cur_num = ceil(cur_port_order_num * noised_targets_dist[i])
                     cur_num = min(cur_num, target_remaining_orders)
-                    
+
                     # remaining orders for next target
                     target_remaining_orders -= cur_num
 

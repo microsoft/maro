@@ -6,7 +6,7 @@ from .entities import CimDataCollection
 
 class VesselStopsWrapper:
     """Accessor for vessel stops.
-    
+
     Examples:
 
         .. code-block:: python

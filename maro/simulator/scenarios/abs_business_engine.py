@@ -4,7 +4,7 @@
 import os
 from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import Dict, List, Union
+from typing import List, Union
 
 from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
@@ -16,7 +16,8 @@ class AbsBusinessEngine(ABC):
     used to hold all related logics.
 
 
-    A business engine should have a name that used to identify it, built-in scenarios also use it to 
+    A business engine should have a name that used to identify it, built-in scenarios also use it to
+
     find built-in topologies.
 
 
@@ -24,7 +25,7 @@ class AbsBusinessEngine(ABC):
 
     1. step: will be called one time at each tick
     2. post_step: will be called at the end of each tick after all the events being processed,
-       simulator use the return value of this method (bool), to decide if it should stop simulation. 
+       simulator use the return value of this method (bool), to decide if it should stop simulation.
        This is also a good place to check business final state of current tick if you follow event-driven pattern.
 
 
@@ -33,14 +34,16 @@ class AbsBusinessEngine(ABC):
         topology (str): config name
         start_tick (int): start tick of this business engine
         max_tick (int): max tick of this business engine
-        snapshot_resolution (int): frequency to take a snapshot, 
-            NOTE: though we have this configuration, 
+        snapshot_resolution (int): frequency to take a snapshot,
+            NOTE: though we have this configuration,
             but business engine has the full control about the frequency of taking snapshot
         max_snapshots(int): max number of in-memory snapshots
         addition_options (dict): additional options for this business engine from outside
     """
 
-    def __init__(self, scenario_name: str, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict=None):
+    def __init__(self, scenario_name: str, event_buffer: EventBuffer, topology: str,
+                 start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
+                 additional_options: dict = None):
         self._scenario_name = scenario_name
         self._topology = topology
         self._event_buffer = event_buffer
@@ -67,14 +70,14 @@ class AbsBusinessEngine(ABC):
         """SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside."""
         pass
 
-    def frame_index(self, tick:int) -> int:
+    def frame_index(self, tick: int) -> int:
         """Helper method for child class, used to get index of frame in snapshot list for specified tick.
-        
-        
+
+
         Args:
             tick (int): tick to calculate frame index
 
-        
+
         Returns:
             int: frame index in snapshot list of specified tick
         """
@@ -82,21 +85,21 @@ class AbsBusinessEngine(ABC):
 
     def calc_max_snapshots(self) -> int:
         """Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.
-        
 
-        NOTE: 
+
+        NOTE:
             This method will return max number that can contains all the frame state to the end.
         you can use a small size to hold states, when hit the limitation, oldest one will be overwrote
-        
+
 
         Returns:
             int: max snapshot number for current configuration
         """
-        return  self._max_snapshots if self._max_snapshots is not None \
+        return self._max_snapshots if self._max_snapshots is not None \
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
 
     def update_config_root_path(self, business_engine_file_path: str):
-        """Helper method used to update the config path with business engine path if you 
+        """Helper method used to update the config path with business engine path if you
         follow the way to load configuration file as built-in scenarios.
 
 
@@ -118,16 +121,16 @@ class AbsBusinessEngine(ABC):
 
                         # use __file__ as parameter
                         self.update_config_root_path(__file__)
-        
+
         Args:
             business_engine_file_path(str): full path of real business engine file
-        
-        
+
+
         """
         if self._topology:
             path = Path(self._topology)
-            
-            if path.exists() and path.is_dir(): # and path.parent.name == "topologies":
+
+            if path.exists() and path.is_dir():  # and path.parent.name == "topologies":
                 # if topology is a existing path, then use it as config root path
                 self._config_path = self._topology
             else:
@@ -164,9 +167,9 @@ class AbsBusinessEngine(ABC):
         """Reset states business engine"""
         pass
 
-    def post_step(self, tick:int) -> bool:
+    def post_step(self, tick: int) -> bool:
         """This method will be called at the end of each tick, used to post-process for each tick,
-        for complex business logic with many events, it maybe not easy to determine 
+        for complex business logic with many events, it maybe not easy to determine
         if stop the scenario at the middle of tick, so this method is used to avoid this.
 
         Args:
@@ -179,7 +182,7 @@ class AbsBusinessEngine(ABC):
 
     def get_node_mapping(self) -> dict:
         """Get mapping for nodes, like index->name or index->id, may different for scenarios
-        
+
         Returns:
             dict: key is node index, value is decided by scenario, usually is name or id
         """
@@ -191,7 +194,7 @@ class AbsBusinessEngine(ABC):
 
         Returns:
             dict: dictionary about metrics, content and format determined by business engine
-        
+
         """
 
         return {}

@@ -2,17 +2,17 @@
 # Licensed under the MIT license.
 
 import os
-import re
 import random
+import re
 import warnings
-
-from struct import Struct
-from typing import Union, List
 from collections import namedtuple
-from yaml import safe_load, safe_dump, YAMLObject, SafeLoader, SafeDumper
+from struct import Struct
+from typing import List, Union
+
+from maro.data_lib.common import dtype_pack_map
 
 from maro.utils.exception.data_lib_exeption import MetaTimestampNotExist
-from maro.data_lib.common import dtype_convert_map, dtype_pack_map, meta_item_format
+from yaml import SafeDumper, SafeLoader, YAMLObject, safe_dump, safe_load
 
 
 class EntityAttr(YAMLObject):
@@ -51,14 +51,14 @@ class BinaryMeta:
         self._tzone = None
         # which attribute used as events
 
-        self._event_attr_name = None  
+        self._event_attr_name = None
         # if value cannot matched to any event definition, then treat it as default
         self._default_event_name = None
         self._raw_cols = []
         # fields need adjust
-        self._adjust_attrs = {}  
+        self._adjust_attrs = {}
         # EntityAttr
-        self._attrs: List[EntityAttr] = []  
+        self._attrs: List[EntityAttr] = []
         self._events: List[Event] = []
 
     @property
@@ -169,8 +169,8 @@ class BinaryMeta:
 
             for index, ratio in self._adjust_attrs.items():
                 # make it percentage
-                item_tuple[index] += random.randrange(int(ratio[0]), int(ratio[1])) * 0.01 * item_tuple[index]  
-                
+                item_tuple[index] += random.randrange(int(ratio[0]), int(ratio[1])) * 0.01 * item_tuple[index]
+
         return self._item_nt._make(item_tuple)
 
     def _build_item_struct(self):
@@ -239,5 +239,6 @@ class BinaryMeta:
 
             self._events.append(
                 Event(display_name, evt_type_name, value_in_csv))
+
 
 __all__ = ["BinaryMeta"]

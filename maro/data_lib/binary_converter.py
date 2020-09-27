@@ -1,19 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import sys
-import time
-import warnings
 import calendar
-
-from struct import Struct
+import warnings
 from csv import DictReader
 
 from dateutil.parser import parse as parse_dt
-from dateutil.tz import gettz, UTC
+from dateutil.tz import UTC, gettz
+from maro.data_lib.common import (SINGLE_BIN_FILE_TYPE, VERSION,
+                                  dtype_convert_map, header_struct)
 from maro.data_lib.item_meta import BinaryMeta
-from maro.data_lib.common import dtype_convert_map, header_struct, SINGLE_BIN_FILE_TYPE, VERSION
+
 
 def is_datetime(val: str, tzone=None):
     """Check if a string is datetime, return the datetime if yes"""
@@ -40,14 +37,17 @@ def convert_val(val: str, dtype: str, tzone):
     result = None
 
     # process the value first
-    val = val.strip("\"\'") # clear 
-    val = val.strip() # clear space at 2 side
+    # clear
+    val = val.strip("\"\'")
+    # clear space at 2 side
+    val = val.strip()
 
-    #NOTE: we only support numeric value for now
+    # NOTE: we only support numeric value for now
     t = dtype_convert_map[dtype]
 
     try:
-        v=float(val) # convert to float first, to avoid int("1.111") error
+        # convert to float first, to avoid int("1.111") error
+        v = float(val)
 
         result = t(v)
     except ValueError:
@@ -77,7 +77,7 @@ class BinaryConverter:
     Args:
         output_file(str): output binary file full path
         meta_file(str): path to the meta file (yaml)
-        utc_start_timestamp(int): start timestamp in UTC which will be considered as tick 0, 
+        utc_start_timestamp(int): start timestamp in UTC which will be considered as tick 0,
             used to adjust the data reader pipeline
 
     """
@@ -113,7 +113,7 @@ class BinaryConverter:
 
     def add_csv(self, csv_file: str):
         """Convert specified csv file into current binary file, this converter will not sort the item.
-        This method can be called several times to convert multiple csv file into one binary, 
+        This method can be called several times to convert multiple csv file into one binary,
         the order will be same as calling sequence.
 
         Args:
@@ -155,10 +155,10 @@ class BinaryConverter:
 
         self._meta_offset = len(header_bytes)
         # seek the output file beginning
-        self._output_fp.seek(0, 0) 
+        self._output_fp.seek(0, 0)
         self._output_fp.write(header_bytes)
         # seek to the file end
-        self._output_fp.seek(0, 2) 
+        self._output_fp.seek(0, 2)
 
     def _write_meta(self):
         """Write file meta"""
@@ -173,24 +173,24 @@ class BinaryConverter:
     def _write_items(self, reader: DictReader):
         """Write items into binary"""
         # columns need to convert
-        columns = self._meta.columns 
+        columns = self._meta.columns
         # values buffer from each row, used to pack into binary
-        values = [0] * len(columns.keys()) 
+        values = [0] * len(columns.keys())
         # item binary buffer
-        buffer = memoryview(bytearray(self._meta.item_size)) 
+        buffer = memoryview(bytearray(self._meta.item_size))
         # field -> data type
-        field_type_dict = self._meta.items() 
+        field_type_dict = self._meta.items()
         # some column's value may cannot be parse, will skip it
         has_invalid_column = False
 
         for row in reader:
-            field_index = 0 #
+            field_index = 0
             has_invalid_column = False
 
             # clear the values
             for j in range(len(values)):
                 values[j] = 0
-            
+
             # read from current row
             for field, dtype in field_type_dict.items():
                 column_name = columns[field]
@@ -212,13 +212,13 @@ class BinaryConverter:
                         else:
                             self._starttime = min(self._starttime, val)
 
-                        self._endtime =max(val, self._endtime)
+                        self._endtime = max(val, self._endtime)
 
                 field_index += 1
 
             if not has_invalid_column:
                 # convert item into bytes buffer, and write to file
-                self._meta.item_to_bytes(values, buffer)    
+                self._meta.item_to_bytes(values, buffer)
                 self._output_fp.write(buffer)
 
                 # update header fields for final update

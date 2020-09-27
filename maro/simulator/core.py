@@ -1,23 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
-import os
-
-from math import floor
+from collections import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
-from typing import Any, Dict, List, Tuple
-from collections import Iterable
+from typing import List
 
-from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
 from maro.backends.frame import FrameBase, SnapshotList
-from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
+from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
+from maro.utils.exception.simulator_exception import \
+    BusinessEngineNotFoundError
 
-from .utils.common import tick_to_frame_index
-from .utils import seed as sim_seed
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
+from .utils import seed as sim_seed
+from .utils.common import tick_to_frame_index
 
 
 class Env(AbsEnv):
@@ -25,28 +22,29 @@ class Env(AbsEnv):
 
     Args:
         scenario (str): scenario name under maro/sim/scenarios folder
-        topology (str): topology name under specified scenario folder, 
+        topology (str): topology name under specified scenario folder,
             if this point to a existing folder, then it will use this as topology for built-in scenario
         start_tick (int): start tick of the scenario, usually used for pre-processed data streaming
         durations (int): duration ticks of this environment from start_tick
         snapshot_resolution (int): how many ticks will take a snapshot
-        max_snapshots(int): max in-memory snapshot number, default None means keep all snapshots in memory, 
+        max_snapshots(int): max in-memory snapshot number, default None means keep all snapshots in memory,
             when taking a snapshot, if it reaches this limitation, oldest one will be overwrote.
-        business_engine_cls : class of business engine, if specified, then use it to construct be instance, 
+        business_engine_cls : class of business engine, if specified, then use it to construct be instance,
             or will search internal by scenario
         options (dict): additional parameters passed to business engine
 
     """
 
     def __init__(self, scenario: str = None, topology: str = None,
-                 start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1,  max_snapshots: int = None,
+                 start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
                  decision_mode: DecisionMode = DecisionMode.Sequential,
                  business_engine_cls: type = None,
                  options: dict = {}):
         super().__init__(scenario, topology, start_tick, durations,
                          snapshot_resolution, max_snapshots, decision_mode, business_engine_cls, options)
 
-        self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None else business_engine_cls.__name__
+        self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
+            else business_engine_cls.__name__
         self._business_engine: AbsBusinessEngine = None
 
         self._event_buffer = EventBuffer()
@@ -113,15 +111,14 @@ class Env(AbsEnv):
     @property
     def summary(self) -> dict:
         """Summary about current simulator, include node details, and mappings
-        
-        NOTE: 
+
+        NOTE:
             This is provided by scenario, so may have different format and content
         """
         return {
             "node_mapping": self._business_engine.get_node_mapping(),
             "node_detail": self.current_frame.get_node_info()
         }
-        
 
     @property
     def name(self) -> str:
@@ -158,11 +155,11 @@ class Env(AbsEnv):
 
     def set_seed(self, seed: int):
         """Set random seed used by simulator.
-        
+
         NOTE: this will not set seed for python random or other packages' seed, such as numpy.
-        
+
         Args:
-            seed (int): 
+            seed (int):
         """
 
         if seed is not None:
@@ -171,7 +168,7 @@ class Env(AbsEnv):
     @property
     def metrics(self) -> dict:
         """Some statistics information provided by business engine
-        
+
         Returns:
             dict: dictionary of metrics, content and format is determined by business engine
         """
@@ -197,7 +194,7 @@ class Env(AbsEnv):
 
         NOTE:
         1. internal scenarios will always under "maro/simulator/scenarios" folder
-        2. external scenarios, we access the business engine class to create instance 
+        2. external scenarios, we access the business engine class to create instance
         """
         max_tick = self._start_tick + self._durations
 
@@ -222,13 +219,13 @@ class Env(AbsEnv):
             if business_class is None:
                 raise BusinessEngineNotFoundError()
 
-        self._business_engine = business_class(event_buffer=self._event_buffer, 
-                                            topology=self._topology,
-                                            start_tick=self._start_tick, 
-                                            max_tick=max_tick, 
-                                            snapshot_resolution=self._snapshot_resolution, 
-                                            max_snapshots=self._max_snapshots,
-                                            additional_options=self._additional_options)
+        self._business_engine = business_class(event_buffer=self._event_buffer,
+                                               topology=self._topology,
+                                               start_tick=self._start_tick,
+                                               max_tick=max_tick,
+                                               snapshot_resolution=self._snapshot_resolution,
+                                               max_snapshots=self._max_snapshots,
+                                               additional_options=self._additional_options)
 
     def _simulate(self):
         """
@@ -265,7 +262,6 @@ class Env(AbsEnv):
 
                     decision_events.append(payload)
 
-
                 decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential \
                     else decision_events
 
@@ -273,7 +269,7 @@ class Env(AbsEnv):
                 actions = yield self._business_engine.get_metrics(), decision_events, False
 
                 if actions is None:
-                    actions = [] # make business engine easy to work
+                    actions = []  # make business engine easy to work
 
                 if actions is not None and not isinstance(actions, Iterable):
                     actions = [actions]
@@ -289,7 +285,7 @@ class Env(AbsEnv):
 
                 if self._decision_mode == DecisionMode.Joint:
                     # for joint event, we will disable following cascade event
-                    
+
                     # we expect that first action contains a src_event_id to support joint event with sequential action
                     action_related_event_id = None if len(actions) == 1 else getattr(actions[0], "src_event_id", None)
 
@@ -305,7 +301,7 @@ class Env(AbsEnv):
                             pending_events[i].state = EventState.FINISHED
 
             # check if we should end simulation
-            is_end_tick = self._business_engine.post_step(self._tick) == True
+            is_end_tick = self._business_engine.post_step(self._tick)
 
             if is_end_tick:
                 break
