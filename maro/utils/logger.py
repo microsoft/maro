@@ -55,7 +55,8 @@ FORMAT_NAME_TO_STDOUT_FORMAT = {
     LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
 }
 
-PROGRESS = 60  # progress of training, we give it a highest level
+# progress of training, we give it a highest level
+PROGRESS = 60
 logging.addLevelName(PROGRESS, "PROGRESS")
 
 level_map = {
