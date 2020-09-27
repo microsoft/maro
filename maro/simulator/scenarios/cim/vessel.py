@@ -1,7 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
+
 from math import floor
 from maro.backends.frame import node, NodeBase, NodeAttribute
+
 
 def gen_vessel_definition(stop_nums: tuple):
     @node("vessels")

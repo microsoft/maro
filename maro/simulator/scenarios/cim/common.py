@@ -132,16 +132,18 @@ class DecisionEvent:
             vessel_idx (int): Which vessel will take action
             snapshot_list (int): Snapshots of the environment to input into the decision model
             action_scope_func (Function): Function to calculate action scope, we use function here to make it
-                                            to get the value as late as possible
+                                            getting the value as late as possible
             early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
-                                            use function here to make it to get the value as late as possible
+                                            use function here to make it getting the value as late as possible
         """
         self.tick = tick
         self.port_idx = port_idx
         self.vessel_idx = vessel_idx
         self.snapshot_list = snapshot_list
-        self._action_scope = None  # this field will be fixed after the action_scope property is called 1st time
-        self._early_discharge = None  # this field will be fixed after the early_discharge property is called 1st time
+        # this field will be fixed after the action_scope property is called 1st time
+        self._action_scope = None  
+        # this field will be fixed after the early_discharge property is called 1st time
+        self._early_discharge = None  
         self._action_scope_func = action_scope_func
         self._early_discharge_func = early_discharge_func
 
@@ -181,4 +183,5 @@ class DecisionEvent:
         return self.__str__()
 
     def __str__(self):
-        return f'DecisionEvent(tick={self.tick}, port_idx={self.port_idx}, vessel_idx={self.vessel_idx}, action_scope={self.action_scope})'
+        return f'DecisionEvent(tick={self.tick}, port_idx={self.port_idx}, \
+            vessel_idx={self.vessel_idx}, action_scope={self.action_scope})'

@@ -22,14 +22,16 @@ CIM metrics used provide statistics information until now (may be in the middle 
 
 order_requirements (int): accumulative orders until now
 container_shortage (int): accumulative shortage until now
-operation_number (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
+operation_number (int): total empty transfer (both load and discharge) cost, 
+    the cost factors can be configured in configuration file at section "transfer_cost_factors"
 """
 
 
 class CimBusinessEngine(AbsBusinessEngine):
     """Cim business engine, used simulate CIM related problem"""
 
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
+    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, 
+        snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
         super().__init__("cim", event_buffer, topology, start_tick, max_tick,
                          snapshot_resolution, max_snapshots, additional_options)
 
@@ -262,7 +264,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         """Get metrics information for cim scenario.
         
         Args:
-            dict: a dict that contains "perf", "total_shortage" and "total_cost", and can use help method to show help docs
+            dict: a dict that contains "perf", "total_shortage" and "total_cost", 
+                and can use help method to show help docs
         """
         total_shortage = sum([p.acc_shortage for p in self._ports])
         total_booking = sum([p.acc_booking for p in self._ports])
