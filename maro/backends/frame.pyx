@@ -8,7 +8,8 @@ cimport cython
 from cpython cimport bool
 from typing import Union
 
-from maro.utils.exception.backends_exception import BackendsGetItemInvalidException, BackendsSetItemInvalidException, BackendsArrayAttributeAccessException
+from maro.utils.exception.backends_exception import (BackendsGetItemInvalidException, BackendsSetItemInvalidException, 
+                                                    BackendsArrayAttributeAccessException)
 from maro.backends.backend cimport BackendAbc, SnapshotListAbc
 
 # NOTE: here to support backend switching
@@ -288,27 +289,31 @@ cdef class FrameBase:
         self._backend.reset()
 
     cpdef void take_snapshot(self, int tick) except *:
-        """Take snapshot for specified point (tick) for current frame. This method will copy current frame value into snapshot list
-        for later using.
+        """Take snapshot for specified point (tick) for current frame. 
+        This method will copy current frame value into snapshot list for later using.
 
 
         NOTE:
-            Frame and SnapshotList do not know about snapshot_resolution from simulator, they just accept a point as tick for current frame states.
-            Current scenarios and decision event already provided a property "frame_index" used to get correct point of snapshot.
+            Frame and SnapshotList do not know about snapshot_resolution from simulator, 
+            they just accept a point as tick for current frame states.
+            Current scenarios and decision event already provided a property "frame_index" 
+            used to get correct point of snapshot.
 
 
         Args:
-            tick (int): tick (point or frame index) for current frame states, this value will be used when querying states from snapshot list
+            tick (int): tick (point or frame index) for current frame states, 
+                this value will be used when querying states from snapshot list
         """
         if self._backend.snapshots is not None:
             self._backend.snapshots.take_snapshot(tick)
 
     cpdef void enable_history(self, str path) except *:
-        """Enable snapshot history, history will be dumped into files under specified folder, history of nodes will be dump seperately, named as node name.
+        """Enable snapshot history, history will be dumped into files under specified folder, 
+        history of nodes will be dump seperately, named as node name.
 
 
-        Different with take snapshot, history will not over-write oldest or snapshot at same point, it will keep all the changes after take_snapshot methos
-        is called.
+        Different with take snapshot, history will not over-write oldest or snapshot at same point, 
+        it will keep all the changes after take_snapshot method is called.
 
 
         Args:

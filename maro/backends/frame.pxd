@@ -12,27 +12,31 @@ cdef class SnapshotList:
     """List of frame snapshot for ticks (frame index), usually used to query states.
     
 
-    SnapshotList is read-only for out-side of simulator, it provides a slice interface to query states for nodes at specified ticks (frame index).
+    SnapshotList is read-only for out-side of simulator, it provides a slice interface to query states 
+    for nodes at specified ticks (frame index).
 
 
-    Same as frame, snapshot list is composed with serveral nodes, you should get snapshot list for a node with node name, before querying,
-    then use the slice interface to query.
+    Same as frame, snapshot list is composed with serveral nodes, you should get snapshot list for 
+    a node with node name, before querying,then use the slice interface to query.
 
 
-    Slice interface accept 3 parameters: tick/tick_list (frame index), node_index/node_index_list, attribute_name/attribute_name_list,
-    tick and node_index can be empty, then means all the ticks (frame index) or all the nodes.
+    Slice interface accept 3 parameters: tick/tick_list (frame index), node_index/node_index_list, 
+    attribute_name/attribute_name_list, tick and node_index can be empty, then means all the ticks (frame index) 
+    or all the nodes.
 
 
     When querying, all the slot of specified attribute will be returned.
-    The querying result is a 1 dim numpy array, and grouped like: [[node[attr] for node in nodes] attr for attr in attributes] * len(ticks)
+    The querying result is a 1 dim numpy array, and grouped like: 
+    [[node[attr] for node in nodes] attr for attr in attributes] * len(ticks)
 
 
     NOTE:
-        Slice interface returns a 1-dim numpy array, you may need to reshape it as your requirement. Also the attribute must defined in specified node,
-        or will cause error.
+        Slice interface returns a 1-dim numpy array, you may need to reshape it as your requirement. 
+        Also the attribute must defined in specified node, or will cause error.
 
         
-        Invalid tick (frame index) will be padding in return value, that means all the value for that tick (frame index) will be 0, and will not cause error.
+        Invalid tick (frame index) will be padding in return value, 
+        that means all the value for that tick (frame index) will be 0, and will not cause error.
 
 
     Examples:
@@ -82,13 +86,13 @@ cdef class FrameBase:
 
     
     The snapshot list is used to hold snapshot of current frame at specified point (tick or frame index), it can be
-    configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach the limitation, this is
-    useful when the memory is not enough.
+    configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach 
+    the limitation, this is useful when the memory is not enough.
 
 
     When defining a frame, number of node must be specified, this may not suitable for all the case, such as the node number
-    is dynamic generated after initializing, this is a workaround to fix this that use function wrapper to generate frame definition
-    at runtime.
+    is dynamic generated after initializing, this is a workaround to fix this that use function wrapper to generate frame 
+    definition at runtime.
 
 
     .. code-block:: python
@@ -106,8 +110,8 @@ cdef class FrameBase:
             return MyDynamicFrame
 
 
-    After initializing, frame will generate instance list for all the nodes, these list can be accessed by their definition name,
-    each node instance will be assigned an index attribute (0 based) for later quering.
+    After initializing, frame will generate instance list for all the nodes, these list can be accessed 
+    by their definition name, each node instance will be assigned an index attribute (0 based) for later quering.
 
     
     .. code-block:: python
@@ -167,7 +171,8 @@ cdef class FrameNode:
 
 
 cdef class NodeBase:
-    """Helper class used to define a node with attributes, any node that need to be hosted in backend should inherit from this class.
+    """Helper class used to define a node with attributes, any node that need to be hosted in backend should 
+    inherit from this class.
     A node is composed with serveral attributes that defined with NodeAttribute class with data type and slot number. 
         
         
