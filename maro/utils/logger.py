@@ -91,7 +91,7 @@ class Logger:
         - CRITICAL
         - PROGRESS
 
-    the file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
+    Note: The file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
 
     Args:
         tag (str): Log tag for stream and file output.
@@ -106,7 +106,7 @@ class Logger:
     """
 
     def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
-                 extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="DEBUG"):
+                 extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \

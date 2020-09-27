@@ -4,14 +4,13 @@ name: build
 on:
   push:
     tags:
-    - "maro-[0-9]+\\.[0-9]+\\.[0-9]+"
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       logLevel:
-#         description: 'package version'     
-#         required: true
-#         default: '0.1.1a0'
+    - "maro-[0-9]+\\.[0-9]+\\.*"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'package version'     
+        required: true
+        default: ''
 
 jobs:
   build:
@@ -59,7 +58,7 @@ jobs:
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
         mkdir -p dist
-        cp wheelhouse/maro-*-manylinux*.whl dist
+        cp wheelhouse/pymaro-*-manylinux*.whl dist
 
     - name: Build source package on linux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
@@ -73,11 +72,11 @@ jobs:
         path: |
           dist/*.whl
           dist/*.gz
-#     - name: Publish wheels to PyPI
-#       env:
-#         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-#         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-#       if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
-#       run: |
-#         twine upload dist/*.whl
-#         twine upload dist/*.gz
+
+    - name: Publish wheels to PyPI
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
+      run: |
+        twine upload --verbose dist/*.whl
