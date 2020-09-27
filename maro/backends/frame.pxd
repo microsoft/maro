@@ -30,6 +30,7 @@ cdef class SnapshotList:
         Slice interface returns a 1-dim numpy array, you may need to reshape it as your requirement. Also the attribute must defined in specified node,
         or will cause error.
 
+
     Examples:
 
         .. code-block:: python
@@ -61,26 +62,70 @@ cdef class SnapshotList:
 
 
 cdef class FrameBase:
-    """Wrapper to define Frame as a class to make it simple to write.
+    """Base object used to define frame in backend, any frame that need to be hosted in backend should inherit from this.
+    Usually a frame is composed with serveral nodes (NodeBase), a snapshot list if enabled.
+
+    .. code-block:: python
+
+        # normal frame definition
+        class MyFrame(FrameBase):
+            # assuming we have 2 nodes definition with NodeBase (MyNode, YourNodes)
+            mynodes = FrameNode(MyNode, 10)
+            yournodes = FrameNode(YourNode, 12)
+
+            def __init__(self, enable_snapshot:bool=True, snapshot_number: int = 10):
+                super().__init__(self, enable_snapshot, total_snapshots=snapshot_number)
+
     
-    Examples:
-        Define a frame with 2 nodes.
+    The snapshot list is used to hold snapshot of current frame at specified point (tick or frame index), it can be
+    configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach the limitation, this is
+    useful when the memory is not enough.
 
-        .. code-block:: python
 
-            class MyFrame(FrameBase):
-                # assuming we have 2 nodes definition with NodeBase (MyNode, YourNodes)
-                mynodes = FrameNode(MyNode, 10)
-                yournodes = FrameNode(YourNode, 12)
+    When defining a frame, number of node must be specified, this may not suitable for all the case, such as the node number
+    is dynamic generated after initializing, this is a workaround to fix this that use function wrapper to generate frame definition
+    at runtime.
 
-                def __init__(self, enable_snapshot:bool=True, snapshot_number: int = 10):
-                    super().__init__(self, enable_snapshot, total_snapshots=snapshot_number)
+
+    .. code-block:: python
+
+        # using function to wrap the frame definition to support dynamic node number
+        function gen_frame_definition(my_node_number: int):
+            class MyDynamicFrame(FrameBase):
+                mynodes = FrameNode(MyNode, my_node_number)
+                yourndes = FrameNode(YourNode, 12)
+
+                def __init__(self):
+                    super().__init__(self, True, total_snapshots=10)
+
+            # this is our final frame definition
+            return MyDynamicFrame
+
+
+    After initializing, frame will generate instance list for all the nodes, these list can be accessed by their definition name,
+    each node instance will be assigned an index attribute (0 based) for later quering.
+
+    
+    .. code-block:: python
+        
+        frame = MyFrame()
+
+        # get instance list of MyNode
+        my_nodes_list = frame.mynodes
+        your_nodes_list = frame.yournodes
+
+        for mnode in my_node_list:
+            print(mnode.index) # 0 - len(my_node_list)
 
     
     Args:
-        enable_snapshot (bool): if enable snapshot to keep Frame states, default False
+        enable_snapshot (bool): if enable snapshot list to keep frame snapshot at specified point, default False
         total_snapshots (int): total snapshots number in memory
         options (dict): additional options, reserved for later using
+
+    
+    Attributes:
+        snapshots (SnapshotList): property to access snapshot list, readonly, see SnapshotList for details.
     """
     cdef:
         BackendAbc _backend
@@ -101,25 +146,26 @@ cdef class FrameBase:
 
 
 cdef class FrameNode:
-    """Wrapper to define node in-side Frame definition.
+    """Helper class used to define a node in frame, specified node class and number.
     
+
     Usually use with FrameBase, see FrameBase for details.
+    
     
     Args:
         node_cls(type): class type of node definition inherit from NodeBase
         number(int): the number of this node in Frame
     """
     cdef:
-        # customized node class
-        public type node_cls
+        public type _node_cls
 
-        # node number in Frame
-        public int number
+        public int _number
 
 
 cdef class NodeBase:
     """Helper to provide easy way to define a node in Frame.
     
+
     Example:
         .. code-block:: python
 
@@ -150,17 +196,19 @@ cdef class NodeBase:
 
 
 cdef class NodeAttribute:
-    """Helper to declare an attribute in node(NodeBase).
+    """Helper class used to declare an attribute in node that inherit from NodeBase.
     
-    See NodeBase for details.
+
+    Currently we only support these data types: 'i', 'i2', 'i4', 'i8', 'f', 'd'
+
 
     Args:
-        dtype(str): type of this attribute, it support following data types like numpy: 'i', 'i2', 'i4', 'i8', 'f', 'd'
-        slots(int): if this number greater than 1, then it will be treat as an array, this is the array size.
+        dtype(str): type of this attribute, it support following data types.
+        slots(int): if this number greater than 1, then it will be treat as an array, this will be the array size.
     """
     cdef:
         # data type of attribute, same as numpy string dtype
-        public str dtype
+        public str _dtype
 
         # array size of tis attribute
-        public int slot_number
+        public int _slot_number

@@ -39,16 +39,16 @@ def node(name: str):
 
 
 cdef class NodeAttribute:
-    def __cinit__(self, dtype: str, slot_num: int = 1):
-        self.dtype = dtype
-        self.slot_number = slot_num
+    def __init__(self, dtype: str, slot_num: int = 1):
+        self._dtype = dtype
+        self._slot_number = slot_num
 
 
 # TODO: a better way to support multiple value get/set for an attribute with more than one slot
 # 
 # Wrapper to provide easy way to access attribute value of specified node
 # with this wrapper, user can get/set attribute value more easily
-cdef class NodeAttributeAccessor:
+cdef class _NodeAttributeAccessor:
     cdef:
         # target node
         str _node_name
@@ -102,7 +102,7 @@ cdef class NodeAttributeAccessor:
         if slot_list is None:
             if slot_type == slice:
                 start = 0 if slot.start is None else slot.start
-                stop = self.attr.slot_number if slot.stop is None else slot.stop
+                stop = self.attr._slot_number if slot.stop is None else slot.stop
 
                 slot_list = np.arange(start, stop, dtype='i')
             elif slot_type == list or slot_type == tuple:
@@ -143,7 +143,7 @@ cdef class NodeAttributeAccessor:
             if slot_list is None:
                 if slot_type == slice:
                     start = 0 if slot.start is None else slot.start
-                    stop = self.attr.slot_number if slot.stop is None else slot.stop
+                    stop = self.attr._slot_number if slot.stop is None else slot.stop
 
                     slot_list = np.arange(start, stop, dtype='i')
                 elif slot_type == list or slot_type == tuple:
@@ -198,7 +198,7 @@ cdef class NodeBase:
         cdef str name
         cdef str node_name
         cdef str cb_name
-        cdef NodeAttributeAccessor attr_acc
+        cdef _NodeAttributeAccessor attr_acc
 
         for name, attr in type(self).__dict__.items():
             # append an attribute access wrapper to current instance
@@ -207,7 +207,7 @@ cdef class NodeBase:
                 node_name = getattr(type(self), "__node_name__", None)
 
                 # NOTE: here we have to use __dict__ to avoid infinite loop, as we override __getattribute__
-                attr_acc = NodeAttributeAccessor(attr, node_name, name, self._backend, self._index)
+                attr_acc = _NodeAttributeAccessor(attr, node_name, name, self._backend, self._index)
 
                 __dict__[name] = attr_acc
 
@@ -226,8 +226,8 @@ cdef class NodeBase:
         if attr_name in __dict__:
             attr_acc = __dict__[attr_name]
 
-            if isinstance(attr_acc, NodeAttributeAccessor):
-                if attr_acc.attr.slot_number > 1:
+            if isinstance(attr_acc, _NodeAttributeAccessor):
+                if attr_acc.attr._slot_number > 1:
                     raise BackendsArrayAttributeAccessException()
                 else:
                     # short-hand for attributes with 1 slot
@@ -245,8 +245,8 @@ cdef class NodeBase:
         if attr_name in __dict__:
             attr_acc = __dict__[attr_name]
 
-            if isinstance(attr_acc, NodeAttributeAccessor):
-                if attr_acc.attr.slot_number == 1:
+            if isinstance(attr_acc, _NodeAttributeAccessor):
+                if attr_acc.attr._slot_number == 1:
                     return attr_acc[0]
 
             return attr_acc
@@ -256,8 +256,8 @@ cdef class NodeBase:
 
 cdef class FrameNode:
     def __cinit__(self, type node_cls, int number):
-        self.node_cls = node_cls
-        self.number = number
+        self._node_cls = node_cls
+        self._number = number
 
 
 cdef class FrameBase:
@@ -268,11 +268,11 @@ cdef class FrameBase:
 
     @property
     def snapshots(self) -> SnapshotList:
-        """Snapshots of this frame"""
+        """SnapshotList: Snapshots of this frame"""
         return self._snapshot_list
 
     def get_node_info(self) -> dict:
-        """Get node information.
+        """Get a dictionary contains node attribute and number definition.
         
         Returns:
             dict: key is node name in Frame, key is a dictionary contains attribute and number 
@@ -280,13 +280,41 @@ cdef class FrameBase:
         return self._backend.get_node_info()
 
     cpdef void reset(self) except *:
+        """Reset internal states of frame, currently all the attributes will reset to 0.
+        
+        Note:
+            This method will not reset states in snapshot list.
+        """
         self._backend.reset()
 
     cpdef void take_snapshot(self, int tick) except *:
+        """Take snapshot for specified point (tick) for current frame. This method will copy current frame value into snapshot list
+        for later using.
+
+
+        NOTE:
+            Frame and SnapshotList do not know about snapshot_resolution from simulator, they just accept a point as tick for current frame states.
+            Current scenarios and decision event already provided a property "frame_index" used to get correct point of snapshot.
+
+
+        Args:
+            tick (int): tick (point or frame index) for current frame states, this value will be used when querying states from snapshot list
+        """
         if self._backend.snapshots is not None:
             self._backend.snapshots.take_snapshot(tick)
 
     cpdef void enable_history(self, str path) except *:
+        """Enable snapshot history, history will be dumped into files under specified folder, history of nodes will be dump seperately, named as node name.
+
+
+        Different with take snapshot, history will not over-write oldest or snapshot at same point, it will keep all the changes after take_snapshot methos
+        is called.
+
+
+        Args:
+            path (str): folder path to save history files.
+        
+        """
         if self._backend.snapshots is not None:
             self._backend.snapshots.enable_history(path)
 
@@ -311,8 +339,8 @@ cdef class FrameBase:
         #for node_cls in self._node_def_list:
         for frame_attr_name, frame_attr in type(self).__dict__.items():
             if isinstance(frame_attr, FrameNode):
-                node_cls = frame_attr.node_cls
-                node_number = frame_attr.number
+                node_cls = frame_attr._node_cls
+                node_number = frame_attr._number
                 node_name = node_cls.__node_name__
 
                 # temp list to hold current node instances
@@ -326,7 +354,7 @@ cdef class FrameBase:
                 # register attribute
                 for node_attr_name, node_attr in node_cls.__dict__.items():
                     if isinstance(node_attr, NodeAttribute):
-                        self._backend.add_attr(node_name, node_attr_name, node_attr.dtype, node_attr.slot_number)
+                        self._backend.add_attr(node_name, node_attr_name, node_attr._dtype, node_attr._slot_number)
 
                 # create instance
                 for i in range(node_number):
