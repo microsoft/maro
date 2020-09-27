@@ -46,8 +46,8 @@ class Proxy:
             i.e. Dict['learner': 1, 'actor': 2]
         driver_type (Enum): A type of communication driver class uses to communicate with other components,
                             defaults to DriverType.ZMQ.
-        driver_parameters (Dict): The arguments for communication driver class initial, Defaults to None.
-        redis_address (Tuple): Hostname and port of the Redis server, Defaults to ("localhost", 6379).
+        driver_parameters (Dict): The arguments for communication driver class initial, defaults to None.
+        redis_address (Tuple): Hostname and port of the Redis server, defaults to ("localhost", 6379).
         max_retries (int): Maximum number of retries before raising an exception, defaults to 5.
         base_retry_interval (float): The time interval between attempts, defaults to 0.1.
         fault_tolerant (bool): Proxy can tolerate sending message error or not, defaults to False.
@@ -200,7 +200,7 @@ class Proxy:
         """Return peers' name list.
 
         Args:
-            component_type (str): the peers' type, if *, return all peers' name in the proxy. Defaults to "*".
+            component_type (str): the peers' type, if *, return all peers' name in the proxy. Defaults to "\*".
 
         Returns:
             List[str]: list of peers' name.

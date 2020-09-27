@@ -15,7 +15,7 @@ class AbsDriver(ABC):
         """Return the socket's address.
 
         Returns:
-            Based on the real socket driver, the socket's address usually be a Dict with, \n
+            Based on the real socket driver, the socket's address usually be a Dict with. \n
                 the key of dict is socket's type, \n
                 the value of dict is socket's address; usually, the format is protocol+ip+port.
         """
@@ -26,7 +26,7 @@ class AbsDriver(ABC):
         """Build the connection with other peers which is given by the peer address.
         
         Args:
-            peers_address (Dict): Peers socket address dict, \n
+            peers_address (Dict): Peers socket address dict. \n
                 the key of dict is the peer's name, \n
                 the value of dict is the peer's socket connection address.
         """

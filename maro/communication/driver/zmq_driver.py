@@ -80,10 +80,9 @@ class ZmqDriver(AbsDriver):
         """Return the address of zmq-pull socket and zmq-sub socket.
 
         Returns:
-            Dict[int, str]: the sockets' address.
+            Dict[int, str]: the sockets' address. For example: Dict[zmq.PULL, 'tcp://0.0.0.0:1234'].
                 the key of dict is socket's type, \n
                 the value of dict is socket's ip address, which forms by protocol+ip+port.
-                    i.e. Dict[zmq.PULL, 'tcp://0.0.0.0:1234']
         """
         return self._address
 
@@ -92,10 +91,10 @@ class ZmqDriver(AbsDriver):
         for each peer.
         
         Args:
-            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict. \n
+            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict. For example: 
+                Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']]. \n
                 the key of dict is the peer's name, \n
                 the value of dict is the peer's socket connection address stored in dict.
-                    i.e. Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
         """
         for peer_name, address_dict in peers_address_dict.items():
             for socket_type, address in address_dict.items():
