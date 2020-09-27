@@ -2,24 +2,26 @@
 # Licensed under the MIT license.
 
 import warnings
-
 from math import ceil
-from typing import List, Dict
-
-from .utils import apply_noise, buffer_tick_rand, order_num_rand, list_sum_normalize, get_buffer_tick_seed, get_order_num_seed
-from .entities import Order, Stop, PortSetting, NoisedItem, VesselSetting, CimDataCollection, OrderGenerateMode
-from .port_buffer_tick_wrapper import PortBufferTickWrapper
-from .vessel_stop_wrapper import VesselStopsWrapper
-from .vessel_past_stops_wrapper import VesselPastStopsWrapper
-from .vessel_reachable_stops_wrapper import VesselReachableStopsWrapper
-from .vessel_future_stops_prediction import VesselFutureStopsPrediction
-from .vessel_sailing_plan_wrapper import VesselSailingPlanWrapper
+from typing import Dict, List
 
 from maro.simulator.utils import seed
 
+from .entities import (CimDataCollection, NoisedItem, Order, OrderGenerateMode,
+                       PortSetting, Stop, VesselSetting)
+from .port_buffer_tick_wrapper import PortBufferTickWrapper
+from .utils import (apply_noise, buffer_tick_rand, get_buffer_tick_seed,
+                    get_order_num_seed, list_sum_normalize, order_num_rand)
+from .vessel_future_stops_prediction import VesselFutureStopsPrediction
+from .vessel_past_stops_wrapper import VesselPastStopsWrapper
+from .vessel_reachable_stops_wrapper import VesselReachableStopsWrapper
+from .vessel_sailing_plan_wrapper import VesselSailingPlanWrapper
+from .vessel_stop_wrapper import VesselStopsWrapper
+
+
 class CimDataContainer:
-    """Data container for cim scenario, used to provide interfaces for business engine, and hide the details about data source, 
-    currently we support data from generator and dump files.
+    """Data container for cim scenario, used to provide interfaces for business engine, 
+    and hide the details about data source, currently we support data from generator and dump files.
     
 
     Example:

@@ -6,7 +6,8 @@ from .vessel_future_stops_prediction import VesselFutureStopsPrediction
 
 
 class VesselSailingPlanWrapper(VesselFutureStopsPrediction):
-    """Wrapper to get vessel sailing plan, this method will return a stop list that within configured time peroid (means no same port in list)
+    """Wrapper to get vessel sailing plan, this method will return a stop 
+    list that within configured time peroid (means no same port in list)
     
     
     Examples:

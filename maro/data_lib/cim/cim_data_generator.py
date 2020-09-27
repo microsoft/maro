@@ -1,22 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import numpy as np
-
+from collections import namedtuple
 from math import ceil, floor
 from typing import List, Union
-from yaml import safe_load
-from collections import namedtuple
 
+import numpy as np
+from maro.simulator.utils import seed
+from maro.utils.exception.data_lib_exeption import \
+    CimGeneratorInvalidParkingDuration
+from yaml import safe_load
+
+from .entities import CimDataCollection, OrderGenerateMode, Stop
 from .global_order_proportion import GlobalOrderProportion
 from .port_parser import PortsParser
-from .vessel_parser import VesselsParser
 from .route_parser import RoutesParser
 from .utils import apply_noise, route_init_rand
-from .entities import CimDataCollection, Stop, OrderGenerateMode
-from maro.simulator.utils import seed
-from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
-
+from .vessel_parser import VesselsParser
 
 CIM_GENERATOR_VERSION = 0x000001
 
@@ -63,7 +63,7 @@ class CimDataGenerator:
         port_mapping, ports_setting = self._ports_parser.parse(conf["ports"], total_containers)
         route_mapping, routes = self._routes_parser.parse(conf["routes"])
         global_order_proportion = self._global_order_proportion.parse(conf["container_usage_proportion"],
-                                                                      total_containers, start_tick=start_tick, max_tick=max_tick)
+                                                total_containers, start_tick=start_tick, max_tick=max_tick)
 
         # extend routes with specified tick range
         vessels_stops, vessel_period_no_noise = self._extend_route(
@@ -88,7 +88,8 @@ class CimDataGenerator:
             topology_seed,
             CIM_GENERATOR_VERSION)
 
-    def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting, ports_setting, port_mapping, routes, route_mapping):
+    def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting, 
+        ports_setting, port_mapping, routes, route_mapping):
         """Extend route with specified tick range"""
         
         vessels_stops: List[List[Stop]] = []

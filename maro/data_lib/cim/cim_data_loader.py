@@ -1,18 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import csv
+import os
 import time
-import numpy as np
-
 from collections import defaultdict
+from typing import Dict, List
 
-from typing import List, Dict
+import numpy as np
+from maro.data_lib import BinaryReader
 from yaml import safe_load
 
-from maro.data_lib import BinaryReader
-from .entities import CimDataCollection, OrderGenerateMode, NoisedItem, PortSetting, VesselSetting, Stop, RoutePoint
+from .entities import (CimDataCollection, NoisedItem, OrderGenerateMode,
+                       PortSetting, RoutePoint, Stop, VesselSetting)
 
 
 class CimDumpDataLoader:
@@ -20,8 +20,10 @@ class CimDumpDataLoader:
     def load(self, dumps_folder: str) -> CimDataCollection:
         """Load data from dump folder
 
-        NOTE: dumps folder should contains following files.
-        ports.csv, vessels.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml, stops.bin
+        NOTE: 
+            dumps folder should contains following files.
+        ports.csv, vessels.csv, routes.csv, order_proportion.csv, 
+        global_order_proportion.txt, misc.yml, stops.bin
 
         Args:
             dumps_folders(str): folder that contains dumped files
@@ -108,7 +110,7 @@ class CimDumpDataLoader:
 
         return target_proportions
 
-    def _load_ports(self, dumps_folder: str, order_target_proportion:  Dict[int, List[NoisedItem]]) -> (Dict[str, int], List[PortSetting]):
+    def _load_ports(self, dumps_folder: str, order_target_proportion:  dict) -> dict:
         ports_file_path = os.path.join(dumps_folder, "ports.csv")
 
         port_mapping: Dict[str, int] = {}
@@ -227,8 +229,10 @@ class CimDumpDataLoader:
 def load_from_folder(source_folder: str) -> CimDataCollection:
     """Load data from dump folder
     
-    NOTE: dumps folder should contains following files.
-    ports.csv, vessels.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml, stops.bin
+    NOTE: 
+        dumps folder should contains following files.
+    ports.csv, vessels.csv, routes.csv, order_proportion.csv, 
+    global_order_proportion.txt, misc.yml, stops.bin
 
     Args:
         source_folder(str): source folder container dumped files

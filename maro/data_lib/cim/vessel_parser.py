@@ -40,7 +40,8 @@ class VesselsParser:
                 sailing["noise"], 
                 parking["duration"], 
                 parking["noise"],
-                vessel_node.get("empty", 0))) # default no empty 
+                # default no empty 
+                vessel_node.get("empty", 0))) 
 
             index += 1
 

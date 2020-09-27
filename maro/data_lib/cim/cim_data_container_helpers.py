@@ -22,13 +22,15 @@ class CimDataContainerWrapper:
         self._start_tick = 0
 
         self._topology = topology
-        self._output_folder = os.path.join(StaticParameter.data_root, "cim", urllib.parse.quote(self._topology), str(self._max_tick))
+        self._output_folder = os.path.join(StaticParameter.data_root, "cim", 
+            urllib.parse.quote(self._topology), str(self._max_tick))
         self._meta_path = os.path.join(StaticParameter.data_root, "cim", "meta", "cim.stops.meta.yml")
 
         self._init_data_container()
 
     def _init_data_container(self):
-        self._data_cntr = data_from_generator(config_path=self._config_path, max_tick=self._max_tick, start_tick=self._start_tick)
+        self._data_cntr = data_from_generator(config_path=self._config_path, 
+            max_tick=self._max_tick, start_tick=self._start_tick)
 
     def reset(self):
         """Reset data container internal state"""

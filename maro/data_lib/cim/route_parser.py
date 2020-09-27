@@ -17,7 +17,8 @@ class RoutesParser:
             conf (dict): configuration to parse
 
         Returns:
-            (Dict[str, int], List[List[RoutePoint]]): route mapping (name to index), and list of route point list (index is route index)
+            (Dict[str, int], List[List[RoutePoint]]): route mapping (name to index),
+                 and list of route point list (index is route index)
 
         """
         routes: List[List[RoutePoint]] = []

@@ -79,7 +79,8 @@ class CimDataDumpUtil:
 
         ports_file_path = os.path.join(output_folder, "ports.csv")
         headers = ["index", "name", "capacity", "empty", "order_proportion", "order_proportion_noise",
-                    "empty_return_buffer", "empty_return_buffer_noise", "full_return_buffer", "full_return_buffer_noise"]
+                    "empty_return_buffer", "empty_return_buffer_noise", 
+                    "full_return_buffer", "full_return_buffer_noise"]
 
         def port_generator():
             for port in self._data_collection.ports_settings:
@@ -101,12 +102,14 @@ class CimDataDumpUtil:
     def _dump_vessels(self, output_folder: str):
         """
         vessels.csv
-            index, name, capacity, route_name, route_index, start_port_name, start_port_index, sailing_speed, sailing_speed_noise, parking_duration, parking_noise
+            index, name, capacity, route_name, route_index, start_port_name, 
+            start_port_index, sailing_speed, sailing_speed_noise, parking_duration, parking_noise
 
         """
         vessels_file_path = os.path.join(output_folder, "vessels.csv")
         headers = ["index", "name", "capacity", "route_name", "route_index", "start_port_name",
-                    "start_port_index", "sailing_speed", "sailing_speed_noise", "parking_duration", "parking_noise", "period", "empty"]
+                    "start_port_index", "sailing_speed", "sailing_speed_noise", "parking_duration", 
+                    "parking_noise", "period", "empty"]
 
         route_mapping = self._data_collection.route_mapping
         port_mapping = self._data_collection.port_mapping
