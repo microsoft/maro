@@ -20,8 +20,15 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-def clone(obj):
-    """Clone an object."""
+def clone(obj: any) -> any:
+    """Clone an object with pickle dumps and loads.
+
+    Args:
+        obj (any): The object to clone.
+
+    Returns:
+        any: The clone of the object.
+    """
     return loads(dumps(obj))
 
 
@@ -35,7 +42,7 @@ class DottableDict(dict):
 
 def convert_dottable(natural_dict: dict) -> DottableDict:
     """Convert a dictionary to DottableDict.
-    
+
     Args:
         natural_dict (dict): Dictionary to convert to DottableDict.
 
@@ -86,11 +93,11 @@ target_source_pairs = [
 ]
 
 
-def deploy(hide_info=True):
+def deploy(hide_info: bool = True):
     """Deploy the meta files, and lib files of MARO to ~/.maro.
 
     Args:
-        hide_info (bool): (optional) If True, will not display information, 
+        hide_info (bool): (optional) If True, will not display any information,\n
             else info and error logs will be shown.
     """
     info_list = []
