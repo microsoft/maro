@@ -13,7 +13,7 @@ with io.open("config.yml", "r") as in_file:
     config = convert_dottable(raw_config)
 
 
-class GreedyAgent:
+class GreedyPolicy:
     def __init__(self, supply_top_k: int = 1, demand_top_k: int = 1):
         """
         Agent that executes a greedy policy. If the event type is supply, send as many bikes as possible to one of the
@@ -67,10 +67,10 @@ if __name__ == "__main__":
     if config.env.seed is not None:
         env.set_seed(config.env.seed)
 
-    agent = GreedyAgent(config.agent.supply_top_k, config.agent.demand_top_k)
+    policy = GreedyPolicy(config.agent.supply_top_k, config.agent.demand_top_k)
     metrics, decision_event, done = env.step(None)
     while not done:
-        metrics, decision_event, done = env.step(agent.choose_action(decision_event))
+        metrics, decision_event, done = env.step(policy.choose_action(decision_event))
 
     print(f"Greedy agent policy performance: {env.metrics}")
 
