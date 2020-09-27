@@ -10,14 +10,11 @@ topologies_folder = "topologies"
 scenarios_root_folder = os.path.join(os.path.split(os.path.realpath(__file__))[0], "../scenarios")
 
 def get_available_envs():
-    """
-    get available environment settings under scenarios folder
+    """Get available built-in scenarios and their topologies.
 
     Returns:
         List[dict]: list of environment settings like [{"scenario": "cim", "topology": "toy.5p_ssddd_l0.1"}]
     """
-    
-
     envs = []
 
     scenarios = get_scenarios()
@@ -29,7 +26,7 @@ def get_available_envs():
     return envs
 
 def get_scenarios()->List[str]:
-    """Get built-in scenario names
+    """Get built-in scenario name list.
     
     Returns:
         List[str]: list of scenario name
@@ -44,7 +41,7 @@ def get_scenarios()->List[str]:
     return scenarios
 
 def get_topologies(scenario: str)-> List[str]:
-    """Get topology list of built-in scenario
+    """Get topology list of specified built-in scenario name.
 
     Args:
         scenario(str): built-in scenario name
@@ -67,7 +64,9 @@ def get_topologies(scenario: str)-> List[str]:
     return topologies
 
 def tick_to_frame_index(start_tick: int, cur_tick: int, resolution: int) -> int:
-    """Calculate frame index in snapshot list
+    """Calculate frame index in snapshot list of specified configurations, usually is used
+    when taking snapshot.
+
     
     Args:
         start_tick(int): start tick of current simulation
@@ -80,7 +79,18 @@ def tick_to_frame_index(start_tick: int, cur_tick: int, resolution: int) -> int:
     return floor((cur_tick - start_tick)/resolution)
 
 def frame_index_to_ticks(start_tick: int, max_tick: int, resolution:int) -> dict:
-    """Return frame index to ticks mapping dictionary"""
+    """Calculate a dictionary that key is frame index, value is ticks
+    
+    
+    Args:
+        start_tick (int): start tick of current simulation
+        max_tick (int): max tick of current simulation
+        resolution (int): current snapshot resolution
+
+    
+    Returns:
+        dict: key is the frame index in snapshot list, value is tick list for current frame index
+    """
     
     mapping = {}
 
@@ -97,15 +107,21 @@ def frame_index_to_ticks(start_tick: int, max_tick: int, resolution:int) -> dict
 
 
 def total_frames(start_tick: int, max_tick: int, resolution: int) -> int:
-    """Calculate total frames in snapshot
+    """Calculate total frame snapshot in snapshot list.
+
+    NOTE: 
+        This method return the max snapshot number, 
+        but you can use small value to reduce memory using your own one
+
     
     Args:
         start_tick(int): start tick of current simulation
         max_tick(int): max tick of current simulation
         resolution(int): snapshot resolution
+
     
     Returns:
-        int: max snapshots will be generated, NOTE: this is the max, but you can use small value to reduce memory using
+        int: max snapshots will be generated, 
     """
     return ceil((max_tick - start_tick)/resolution)
 
