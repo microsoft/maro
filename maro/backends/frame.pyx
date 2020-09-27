@@ -467,5 +467,5 @@ cdef class SnapshotList:
         return len(self._snapshots)
 
     def reset(self):
-        """Reset current snapshot"""
+        """Reset current states, this will cause all the values to be 0, make sure call it after states querying."""
         self._snapshots.reset()
