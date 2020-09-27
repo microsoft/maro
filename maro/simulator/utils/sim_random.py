@@ -8,8 +8,25 @@ from collections import OrderedDict
 
 
 class SimRandom:
-    """Simulator random object that will keep a module level random.Random object to keep its internal random sequence, to make sure that,
-    it will not be affected by outside, and outside can set seed with seed function
+    """Simulator random object that will keep a module level random.Random object to keep its internal random sequence, 
+    it will not be affected by outside, and outside can set seed with seed function as normal.
+
+    
+    Use it as a dict to get another random object with a name, all the random objects from this way will be 
+    affect the seed method.
+
+
+    .. code-block:: python
+
+        from maro.simulator.utils import random, seed
+
+        # this will create 2 random object, each has different sequence
+        r1 = random["r1"]
+        r2 = random["r2"]
+
+        # seed will reset above random sequence
+        seed(1)
+
     """
     def __init__(self):
         # random object instances
@@ -19,7 +36,10 @@ class SimRandom:
         self._index = 0
 
     def seed(self, seed_num: int):
-        """Set seed for simulator
+        """Set seed for simulator random objects.
+
+        NOTE:
+            This method will affect all the random object that get from this class.
 
         Args:
             seed_num (int): seed to set, must be an integer
@@ -53,7 +73,10 @@ class SimRandom:
         return self._rand_instances[key]
 
     def get_seed(self, key: str = None) -> int:
-        """Get seed of current random generator
+        """Get seed of current random generator.
+
+        NOTE:
+            This will only return the seed of first random object that specified by user (or default).
         
         Args:
             key(str): key of item to get
