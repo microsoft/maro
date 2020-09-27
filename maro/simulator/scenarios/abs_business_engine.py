@@ -131,7 +131,8 @@ class AbsBusinessEngine(ABC):
                 # if topology is a existing path, then use it as config root path
                 self._config_path = self._topology
             else:
-                self._config_path = os.path.join(os.path.split(os.path.realpath(business_engine_file_path))[0], "topologies", self._topology)
+                be_file_path = os.path.split(os.path.realpath(business_engine_file_path))[0]
+                self._config_path = os.path.join(be_file_path, "topologies", self._topology)
 
     @abstractmethod
     def step(self, tick: int):
@@ -165,8 +166,8 @@ class AbsBusinessEngine(ABC):
 
     def post_step(self, tick:int) -> bool:
         """This method will be called at the end of each tick, used to post-process for each tick,
-        for complex business logic with many events, it maybe not easy to determine if stop the scenario at the middle of tick, 
-        so this method is used to avoid this.
+        for complex business logic with many events, it maybe not easy to determine 
+        if stop the scenario at the middle of tick, so this method is used to avoid this.
 
         Args:
             tick (int): current tick

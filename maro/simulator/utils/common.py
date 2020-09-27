@@ -125,4 +125,5 @@ def total_frames(start_tick: int, max_tick: int, resolution: int) -> int:
     """
     return ceil((max_tick - start_tick)/resolution)
 
-__all__ = ['get_available_envs', 'get_scenarios', 'get_topologies', 'tick_to_frame_index', 'frame_index_to_ticks', 'total_frames']
+__all__ = ['get_available_envs', 'get_scenarios', 'get_topologies', 
+    'tick_to_frame_index', 'frame_index_to_ticks', 'total_frames']

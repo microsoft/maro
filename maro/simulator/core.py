@@ -25,12 +25,15 @@ class Env(AbsEnv):
 
     Args:
         scenario (str): scenario name under maro/sim/scenarios folder
-        topology (str): topology name under specified scenario folder, if this point to a existing folder, then it will use this as topology for built-in scenario
+        topology (str): topology name under specified scenario folder, 
+            if this point to a existing folder, then it will use this as topology for built-in scenario
         start_tick (int): start tick of the scenario, usually used for pre-processed data streaming
         durations (int): duration ticks of this environment from start_tick
         snapshot_resolution (int): how many ticks will take a snapshot
-        max_snapshots(int): max in-memory snapshot number, default None means keep all snapshots in memory, when taking a snapshot, if it reaches this limitation, oldest one will be overwrote.
-        business_engine_cls : class of business engine, if specified, then use it to construct be instance, or will search internal by scenario
+        max_snapshots(int): max in-memory snapshot number, default None means keep all snapshots in memory, 
+            when taking a snapshot, if it reaches this limitation, oldest one will be overwrote.
+        business_engine_cls : class of business engine, if specified, then use it to construct be instance, 
+            or will search internal by scenario
         options (dict): additional parameters passed to business engine
 
     """
@@ -111,7 +114,8 @@ class Env(AbsEnv):
     def summary(self) -> dict:
         """Summary about current simulator, include node details, and mappings
         
-        NOTE: this is provided by scenario, so may have different format and content
+        NOTE: 
+            This is provided by scenario, so may have different format and content
         """
         return {
             "node_mapping": self._business_engine.get_node_mapping(),
@@ -262,7 +266,8 @@ class Env(AbsEnv):
                     decision_events.append(payload)
 
 
-                decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential else decision_events
+                decision_events = decision_events[0] if self._decision_mode == DecisionMode.Sequential \
+                    else decision_events
 
                 # yield current state first, and waiting for action
                 actions = yield self._business_engine.get_metrics(), decision_events, False

@@ -13,8 +13,11 @@ from maro.backends.frame import FrameBase, SnapshotList
 
 class DecisionMode(IntEnum):
     """Decision mode that interactive with agent."""
-    Sequential = 0  # ask agent for action one by one
-    Joint = 1  # ask agent for action at same time, not supported yes
+
+    # ask agent for action one by one
+    Sequential = 0 
+    # ask agent for action at same time, not supported yes
+    Joint = 1  
 
 
 class AbsEnv(ABC):
@@ -85,7 +88,8 @@ class AbsEnv(ABC):
     @property
     @abstractmethod
     def configs(self) -> dict:
-        """object: Configurations of current environment, this field would be different for different scenario"""
+        """object: Configurations of current environment, 
+        this field would be different for different scenario"""
         pass
 
     @property

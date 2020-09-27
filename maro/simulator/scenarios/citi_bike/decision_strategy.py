@@ -12,6 +12,7 @@ from .station import Station
 
 
 class DistanceFilter:
+    """Filter neighbors by distance (from near to far), and return first N configured number of neighbors"""
     def __init__(self, conf: dict, strategy):
         self._output_num = conf["num"]
         self._strategy = strategy
@@ -34,6 +35,7 @@ class DistanceFilter:
         pass
 
 class RequirementsFilter:
+    """Filters by demand or supply requirement number, from more to less."""
     def __init__(self, conf: dict):
         self._output_num = conf["num"]
 
@@ -49,6 +51,11 @@ class RequirementsFilter:
         pass
 
 class TripsWindowFilter:
+    """Filter neighbors by trip requirement in latest N windows.
+    
+    NOTE:
+        This filter will cache its states, need to be reset before each episode
+    """
     def __init__(self, conf: dict, snapshot_list):
         self._output_num = conf["num"]
         self._windows = conf["windows"]

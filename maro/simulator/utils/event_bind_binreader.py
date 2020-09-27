@@ -63,7 +63,8 @@ class EventBindBinaryReader:
         start_tick:int = 0, end_tick=100, time_unit: str = "s", buffer_size: int = 100, 
         enable_value_adjust: bool = False):
 
-        self._reader = BinaryReader(file_path=binary_file_path, enable_value_adjust=enable_value_adjust, buffer_size=buffer_size)
+        self._reader = BinaryReader(file_path=binary_file_path, 
+            enable_value_adjust=enable_value_adjust, buffer_size=buffer_size)
 
         self._event_buffer = event_buffer
 
@@ -72,7 +73,8 @@ class EventBindBinaryReader:
         self._time_unit = time_unit
         self._event_cls = event_cls
 
-        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick, end_time_offset=self._end_tick, time_unit=self._time_unit)
+        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick, 
+                end_time_offset=self._end_tick, time_unit=self._time_unit)
 
         self._init_meta()
 
@@ -106,7 +108,8 @@ class EventBindBinaryReader:
     def reset(self):
         """Reset states of reader"""
         self._reader.reset()
-        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick, end_time_offset=self._end_tick, time_unit=self._time_unit)
+        self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick, 
+                end_time_offset=self._end_tick, time_unit=self._time_unit)
 
     def _gen_event_by_item(self, item, tick):
         event_name = None
@@ -128,8 +131,11 @@ class EventBindBinaryReader:
     def _init_meta(self):
         meta = self._reader.meta
 
-        self._default_event = None # default event display name
-        self._events = {} # value -> display name
+        # default event display name
+        self._default_event = None
+
+        # value -> display name
+        self._events = {} 
 
         for event in meta.events:
             self._events[event.value] = event.display_name

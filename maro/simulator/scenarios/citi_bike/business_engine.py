@@ -49,8 +49,10 @@ operation_number (int): accumulative operation cost until now
 """
 
 class CitibikeBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots:int, additional_options: dict = {}):
-        super().__init__("citi_bike", event_buffer, topology, start_tick, max_tick, snapshot_resolution, max_snapshots, additional_options)
+    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, 
+        max_tick: int, snapshot_resolution: int, max_snapshots:int, additional_options: dict = {}):
+        super().__init__("citi_bike", event_buffer, topology, start_tick, max_tick, 
+            snapshot_resolution, max_snapshots, additional_options)
 
         # trip binary reader
         self._trip_reader: BinaryReader = None
@@ -223,7 +225,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # filter data with tick range by minute (time_unit='m')
         self._item_picker = self._trip_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="m")
 
-        # we use this to init frame and stations init states
+        # we use this to initializing frame and stations states
         stations_states = get_station_info(self._conf["stations_init_data"])
 
         self._init_frame(len(stations_states))
@@ -352,7 +354,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             # durations from csv file is in seconds, convert it into minutes
             return_tick = evt.tick + trip.durations
 
-            bike_return_evt = self._event_buffer.gen_atom_event(return_tick, CitiBikeEvents.ReturnBike, payload=return_payload)
+            bike_return_evt = self._event_buffer.gen_atom_event(return_tick, 
+                CitiBikeEvents.ReturnBike, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
@@ -461,7 +464,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if self._topology in citi_bike_process.topologies:
             pid = str(os.getpid())
             logger.warning_yellow(
-                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. If you want to keep the data, please use MARO CLI command 'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
+                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. \
+                If you want to keep the data, please use MARO CLI command \
+                'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
             self._citi_bike_data_pipeline = citi_bike_process.topologies[self._topology]
             self._citi_bike_data_pipeline.download()
             self._citi_bike_data_pipeline.clean()

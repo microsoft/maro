@@ -1,5 +1,5 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.s
+# Licensed under the MIT license.
 
 from datetime import date
 
@@ -17,7 +17,8 @@ class WeatherTable:
 
         self._weather_lut = {}
 
-        for item in reader.items(): # just get all the items without filters
+        # just get all the items without filters
+        for item in reader.items(): 
             dt = utc_timestamp_to_timezone(item.timestamp, timezone)
 
             self._weather_lut[dt.date()] = item

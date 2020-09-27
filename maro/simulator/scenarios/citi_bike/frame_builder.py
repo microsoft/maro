@@ -1,5 +1,5 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.s
+# Licensed under the MIT license.
 
 from maro.backends.frame import FrameNode, FrameBase
 
@@ -11,7 +11,8 @@ def build_frame(station_num: int, snapshots_num: int):
 
     class CitibikeFrame(FrameBase):
         stations = FrameNode(Station, station_num)
-        matrices = FrameNode(matrices_cls, 1) # for adj frame, we only need 1 node to hold the data
+        # for adj frame, we only need 1 node to hold the data
+        matrices = FrameNode(matrices_cls, 1) 
 
         def __init__(self):
             super().__init__(enable_snapshot=True, total_snapshot=snapshots_num)

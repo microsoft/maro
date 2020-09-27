@@ -82,7 +82,8 @@ class SimRandom:
             key(str): key of item to get
 
         Returns:
-            int: if key is None return seed for 1st instance (same as what passed to seed function), else return seed for specified generator
+            int: if key is None return seed for 1st instance (same as what passed to seed function), 
+                else return seed for specified generator
         """
         if key is not None:
             return self._seed_dict.get(key, None)

@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.s
+# Licensed under the MIT license.
 
 from enum import Enum
 from datetime import datetime
 
 class BikeTransferPayload:
+    """Payload for bike transfer event"""
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int=1):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
@@ -12,6 +13,7 @@ class BikeTransferPayload:
 
 
 class BikeReturnPayload:
+    """Payload for bike return event"""
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
@@ -19,11 +21,15 @@ class BikeReturnPayload:
 
 
 class DecisionType(Enum):
-    Supply = 'supply' # current cell has too more bikes, need transfer to others
-    Demand = 'demand' # current cell has no enough bikes, need neighbors transfer bikes to it
+    """Station decision type"""
+    # current cell has too more bikes, need transfer to others
+    Supply = 'supply' 
+    # current cell has no enough bikes, need neighbors transfer bikes to it
+    Demand = 'demand' 
 
 
 class DecisionEvent:
+    """Citi bike scenario decision event that contains station information for agent to choose action"""
     def __init__(self, station_idx: int, tick: int, frame_index: int, action_scope_func: callable, decision_type: DecisionType):
         self.station_idx = station_idx
         self.tick = tick
@@ -34,15 +40,19 @@ class DecisionEvent:
 
     @property
     def action_scope(self):
+        """Get the scope of current action.
+        
+        Returns:
+            dict: a dictionary that contains requirements of current and neighbor stations,
+                key is the station index, value is the max demand or supply number
+        """
         if self._action_scope is None:
             self._action_scope = self._action_scope_func(self.station_idx, self.type)
 
         return self._action_scope
 
     def __getstate__(self):
-        """Return pickleable dictionary.
-        
-        NOTE: this class do not support unpickle"""
+        """Return pickleable dictionary."""
         return {
             "station_idx": self.station_idx,
             "tick": self.tick,
@@ -58,6 +68,7 @@ class DecisionEvent:
 
 
 class Action:
+    """Citi bike scenario action object, that used to pass action from agent to business engine."""
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
@@ -71,6 +82,7 @@ class Action:
 
 
 class ExtraCostMode(Enum):
+    """The mode to process extra cost"""
     Source = "source"
     Target = "target"
     # TargetNeighbors = "target_neighbors"
