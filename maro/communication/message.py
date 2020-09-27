@@ -1,17 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 from enum import Enum
 from typing import Union
 import uuid
 
+# private lib
 from maro.utils.exception.communication_exception import MessageSessionTypeError
 from maro.communication.utils import session_id_generator
 
 
 class SessionType(Enum):
-    """
-    Communication session categories.
+    """Communication session categories.
 
     TASK: Task session is used to trigger remote job(s). \n
     NOTIFICATION: Notification session is used to sync information to peers.
@@ -21,8 +22,7 @@ class SessionType(Enum):
 
 
 class TaskSessionStage(Enum):
-    """
-    Task session stages.
+    """Task session stages.
 
     REQUEST: Task session stage 1. \n
     RECEIVE: Task session stage 2. \n
@@ -34,8 +34,7 @@ class TaskSessionStage(Enum):
 
 
 class NotificationSessionStage(Enum):
-    """
-    Notification session stages.
+    """Notification session stages.
 
     REQUEST: Notification session stage 1. \n
     RECEIVE: Notification session stage 2.
@@ -45,14 +44,13 @@ class NotificationSessionStage(Enum):
 
 
 class Message(object):
-    """
-    General Message for hosting payload between receiver and sender.
+    """General Message for hosting payload between receiver and sender.
 
     Args:
-        tag (str|Enum): Message tag, which is customized by the user, for specific application logic,
-        source (str): The sender of message,
-        destination (str): The receiver of message,
-        payload (object): Message payload, such as model parameters, experiences, etc,
+        tag (str|Enum): Message tag, which is customized by the user, for specific application logic.
+        source (str): The sender of message.
+        destination (str): The receiver of message.
+        payload (object): Message payload, such as model parameters, experiences, etc. Defaults to None.
         session_id (str): Message belonged session id, it will be generated automatically by default, you can use it,
                           group message based on your application logic.
     """
@@ -70,8 +68,7 @@ class Message(object):
 
 
 class SessionMessage(Message):
-    """
-    The session message class.
+    """The session message class.
 
     It is used by a specific session, which will contain session stage to support more complex application logic.
 

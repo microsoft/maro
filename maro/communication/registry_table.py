@@ -1,11 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 from enum import Enum
 import itertools
 import numpy as np
 from typing import List, Tuple, Union
 
+# private lib
 from maro.communication import Message
 from maro.utils.exception.communication_exception import ConditionalEventSyntaxError, PeersMissError
 
@@ -16,14 +18,13 @@ class Operation(Enum):
 
 
 class SuffixTree:
-    """
-    Suffix tree structure.
+    """Suffix tree structure.
 
     Args:
-        value (Operation|str): Event operation: Operation.AND or Operation.OR, or the unit conditional event,
+        value (Operation|str): Event operation: Operation.AND or Operation.OR, or the unit conditional event.
         nodes List[SuffixTree]: List of the SuffixTree's nodes.
     
-    For example, \n
+    For example: \n
         given conditional event, ("actor:rollout:1", "actor:update:1", AND), \n
             suffixtree.value = Operation.AND, \n
             suffixtree.nodes = [SuffixTree(value="actor:rollout:1"), SuffixTree(value="actor:update:1")].
@@ -35,8 +36,7 @@ class SuffixTree:
 
 
 class ConditionalEvent:
-    """
-    The description of the messages' combination.
+    """The description of the messages' combination.
 
     Rules:
         The conditional event can be composed of any number of unit conditional events and end with an Operation. 
@@ -52,7 +52,7 @@ class ConditionalEvent:
             Do not use special symbol in the unit event, such as ',', '(', ')'.
 
     Args:
-        event (str|Tuple): The description of the requisite messages' combination,
+        event (str|Tuple): The description of the requisite messages' combination.
             i.e. unit conditional event (str): "actor:rollout:1" or 
                  conditional event (Tuple): ("learner:rollout:1", "learner:update:1", "AND")
         get_peers (callable): Return the newest peer's name list from proxy.
@@ -67,7 +67,7 @@ class ConditionalEvent:
         self._decomposer(self._event, self._suffix_tree)
 
     def _decomposer(self, event: Union[str, Tuple], suffix_tree: SuffixTree):
-        """ To generate suffix tree depending on the conditional event. """
+        """To generate suffix tree depending on the conditional event."""
         operation_and_list = ["&&", "AND"]
         operation_or_list = ["||", "OR"]
 
@@ -98,8 +98,7 @@ class ConditionalEvent:
             raise ConditionalEventSyntaxError(f"Conditional event should be string or tuple.")
 
     def _unit_event_syntax_check(self, unit_event: str):
-        """
-        To check unit conditional event expression.
+        """To check unit conditional event expression.
 
         Args:
             unit_event (str): the description of the requisite messages.
@@ -120,7 +119,7 @@ class ConditionalEvent:
                                               f"percentage with % in the end. {str(e)}")
 
     def _get_request_message_number(self, unit_event: str) -> int:
-        """ To get the number of request messages by the given unit event. """
+        """To get the number of request messages by the given unit event."""
         component_type, _, number = unit_event.split(":")
         peers_number = len(self._get_peers(component_type))
 
@@ -134,8 +133,7 @@ class ConditionalEvent:
             return int(request_message_number) if int(request_message_number) <= peers_number else peers_number
 
     def _unit_event_satisfied(self, unit_event: str) -> List[str]:
-        """
-        To check if the given unit conditional event has been satisfied.
+        """To check if the given unit conditional event has been satisfied.
 
         Returns:
             If the unit conditional event has been satisfied, it will return the list of unit conditional event;
@@ -150,7 +148,7 @@ class ConditionalEvent:
         return []
 
     def _conditional_event_satisfied(self, suffixtree) -> List[str]:
-        """ To check if the completed conditional event been satisfied. """
+        """To check if the completed conditional event been satisfied."""
         operation = suffixtree.value
         if isinstance(operation, str):
             return self._unit_event_satisfied(operation)
@@ -170,8 +168,7 @@ class ConditionalEvent:
         return flatten_result
 
     def push_message(self, message: Message):
-        """
-        Push message to all satisfied unit conditional event.
+        """Push message to all satisfied unit conditional events.
 
         Args:
             message (Message): Received message.
@@ -193,8 +190,7 @@ class ConditionalEvent:
                 self._unit_event_message_dict[unit_event].append(message)
 
     def get_qualified_message(self) -> List[Message]:
-        """
-        Self-inspection of conditional event, if satisfied, pop qualified messages.
+        """Self-inspection of conditional event, if satisfied, pop qualified messages.
 
         Return:
             List[Message]: List of qualified messages.
@@ -215,8 +211,7 @@ class ConditionalEvent:
 
 
 class RegisterTable:
-    """
-    The RegisterTable is responsible for matching constraints and user-defined message handlers.
+    """The RegisterTable is responsible for matching constraints and user-defined message handlers.
 
     Args:
         get_peers (callable): return the newest peer list from proxy.
@@ -227,20 +222,18 @@ class RegisterTable:
         self._get_peers = get_peers
 
     def register_event_handler(self, event: Union[str, tuple], handler_fn: callable):
-        """
-        Register conditional event in the RegisterTable, and create a dict which match message handler and
+        """Register conditional event in the RegisterTable, and create a dict which match message handler and
         conditional event.
 
         Args:
             event (str|Tuple): the description of the requisite messages' combination,
             handler_fn (callable): User-define function which usually uses to handle incoming messages.
-        """ 
+        """
         event = ConditionalEvent(event, self._get_peers)
         self._event_handler_dict[event] = handler_fn
 
     def push(self, message: Message):
-        """
-        Push message into all conditional events which register in Registry Table.
+        """Push message into all conditional events which register in Registry Table.
 
         Args:
             message (Message): Received message.
@@ -249,8 +242,7 @@ class RegisterTable:
             event.push_message(message)
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
-        """
-        If any conditional event has been satisfied, return the requisite message list and
+        """If any conditional event has been satisfied, return the requisite message list and
         the correlational handler function.
 
         Return:

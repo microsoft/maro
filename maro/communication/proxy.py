@@ -34,24 +34,24 @@ DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 
 
 class Proxy:
-    """
-    The communication module is responsible for receiving and sending messages.
+    """The communication module is responsible for receiving and sending messages.
 
     There are three ways of sending messages: send, scatter, and broadcast. Also, there are two ways to
     receive messages from other peers: receive and receive_by_id.
 
     Args:
-        group_name (str): Identifier for the group of all distributed components,
-        component_type (str): Component's type in the current group,
-        expected_peers (Dict): Dict of peers' information which contains peer type and expected number,
+        group_name (str): Identifier for the group of all distributed components.
+        component_type (str): Component's type in the current group.
+        expected_peers (Dict): Dict of peers' information which contains peer type and expected number.
             i.e. Dict['learner': 1, 'actor': 2]
         driver_type (Enum): A type of communication driver class uses to communicate with other components,
-        driver_parameters (Dict): The arguments for communication driver class initial,
-        redis_address (Tuple): Hostname and port of the Redis server,
-        max_retries (int): Maximum number of retries before raising an exception,
-        base_retry_interval (float = 0.1): The time interval between attempts,
-        fault_tolerant (bool): Proxy can tolerate sending message error or not, default is False,
-        log_enable (bool): Open logger or not, default is True.
+                            defaults to DriverType.ZMQ.
+        driver_parameters (Dict): The arguments for communication driver class initial, Defaults to None.
+        redis_address (Tuple): Hostname and port of the Redis server, Defaults to ("localhost", 6379).
+        max_retries (int): Maximum number of retries before raising an exception, defaults to 5.
+        base_retry_interval (float): The time interval between attempts, defaults to 0.1.
+        fault_tolerant (bool): Proxy can tolerate sending message error or not, defaults to False.
+        log_enable (bool): Open internal logger or not, defaults to True.
     """
 
     def __init__(self, group_name: str, component_type: str, expected_peers: dict,
@@ -80,7 +80,7 @@ class Proxy:
         self._peers_info_dict = {}
         for peer_type, number in expected_peers.items():
             self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
-                                                         expected_number=number)
+                                                          expected_number=number)
         # record connected peers' name
         self._onboard_peers_name_dict = {}
         # temporary store the message
@@ -96,8 +96,7 @@ class Proxy:
         sys.exit(signum)
 
     def _join(self):
-        """
-        Join the communication network for the experiment given by experiment_name with ID given by name.
+        """Join the communication network for the experiment given by experiment_name with ID given by name.
 
         Specifically, it gets sockets' address for receiving (pulling) messages from its driver and uploads
         the receiving address to the Redis server. It then attempts to collect remote peers' receiving address
@@ -113,8 +112,7 @@ class Proxy:
         self._redis_connection.hdel(self._redis_hash_name, self._name)
 
     def _register_redis(self):
-        """
-        Self-registration on Redis and driver initialization.
+        """Self-registration on Redis and driver initialization.
 
         Redis store structure:
         Hash Table: name: group name + peer's type,
@@ -140,7 +138,7 @@ class Proxy:
                                   f"Due to {str(e)}.")
 
     def _get_peers_list(self):
-        """ To collect all peers' name in the same group (group name) from the redis. """
+        """To collect all peers' name in the same group (group name) from the redis."""
         if not self._peers_info_dict:
             raise PeersMissError(f"Cannot get {self._name}\'s peers.")
 
@@ -169,7 +167,7 @@ class Proxy:
             self._onboard_peers_name_dict[peer_type] = expected_peers_name
 
     def _build_connection(self):
-        """ Grabbing all peers' address from Redis, and connect all peers in driver. """
+        """Grabbing all peers' address from Redis, and connect all peers in driver."""
         peers_socket_dict = {}
         for peer_type, name_list in self._onboard_peers_name_dict.items():
             try:
@@ -185,25 +183,24 @@ class Proxy:
 
     @property
     def group_name(self) -> str:
-        """ str: Identifier for the group of all communication components. """
+        """str: Identifier for the group of all communication components."""
         return self._group_name
 
     @property
     def component_name(self) -> str:
-        """ str: Unique identifier in the current group. """
+        """str: Unique identifier in the current group."""
         return self._name
 
     @property
     def peers(self) -> Dict:
-        """ Dict: The Dict of all connected peers' names, stored by peer type."""
+        """Dict: The Dict of all connected peers' names, stored by peer type."""
         return self._onboard_peers_name_dict
 
     def get_peers(self, component_type: str = "*") -> List[str]:
-        """
-        Return peers' name list.
+        """Return peers' name list.
 
         Args:
-            component_type (str): the peers' type, if *, return all peers' name in the proxy.
+            component_type (str): the peers' type, if *, return all peers' name in the proxy. Defaults to "*".
 
         Returns:
             List[str]: list of peers' name.
@@ -217,20 +214,18 @@ class Proxy:
         return self._onboard_peers_name_dict[component_type]
 
     def receive(self, is_continuous: bool = True):
-        """
-        Receive messages from communication driver.
+        """Receive messages from communication driver.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Default is True.
+            is_continuous (bool): Continuously receive message or not, defaults to True.
         """
         return self._driver.receive(is_continuous)
 
     def receive_by_id(self, session_id_list: list) -> List[Message]:
-        """
-        Receive target messages from communication driver.
+        """Receive target messages from communication driver.
 
         Args:
-            session_id_list List[str]: list of session_id,
+            session_id_list List[str]: list of session_id.
                 i.e. ['0_learner0_actor0', '1_learner1_actor1', ...].
 
         Returns:
@@ -267,7 +262,7 @@ class Proxy:
 
     def _scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
                  session_id: str = None) -> List[str]:
-        """ Scatters a list of data to peers, and return list of session id. """
+        """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
 
         for destination, payload in destination_payload_list:
@@ -291,17 +286,16 @@ class Proxy:
 
     def scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
                 session_id: str = None) -> List[Message]:
-        """
-        Scatters a list of data to peers, and return replied messages.
+        """Scatters a list of data to peers, and return replied messages.
 
         Args:
-            tag (str|Enum): Message's tag,
-            session_type (Enum): Message's session type,
-            destination_payload_list ([Tuple(str, object)]): The destination-payload list,
+            tag (str|Enum): Message's tag.
+            session_type (Enum): Message's session type.
+            destination_payload_list ([Tuple(str, object)]): The destination-payload list.
                 the first item of the tuple in list is the message destination,
                 the second item of the tuple in list is the message payload.
-            session_id (str): Message's session id.
-    
+            session_id (str): Message's session id. Defaults to None.
+
         Returns:
             List[Message]: list of replied message.
         """
@@ -309,16 +303,15 @@ class Proxy:
 
     def iscatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
                  session_id: str = None) -> List[str]:
-        """
-        Scatters a list of data to peers, and return list of message id.
+        """Scatters a list of data to peers, and return list of message id.
 
         Args:
-            tag (str|Enum): Message's tag,
-            session_type (Enum): Message's session type,
-            destination_payload_list ([Tuple(str, object)]): The destination-payload list,
+            tag (str|Enum): Message's tag.
+            session_type (Enum): Message's session type.
+            destination_payload_list ([Tuple(str, object)]): The destination-payload list.
                 the first item of the tuple in list is the message's destination,
                 the second item of the tuple in list is the message's payload.
-            session_id (str): Message's session id.
+            session_id (str): Message's session id. Defaults to None.
 
         Returns:
             List[str]: List of message's session id.
@@ -327,7 +320,7 @@ class Proxy:
 
     def _broadcast(self, tag: Union[str, Enum], session_type: SessionType,
                    session_id: str = None, payload=None) -> List[str]:
-        """ Broadcast message to all peers, and return list of session id """
+        """Broadcast message to all peers, and return list of session id."""
         message = SessionMessage(tag=tag,
                                  source=self._name,
                                  destination="*",
@@ -346,15 +339,14 @@ class Proxy:
 
     def broadcast(self, tag: Union[str, Enum], session_type: SessionType,
                   session_id: str = None, payload=None) -> List[Message]:
-        """
-        Broadcast message to all peers, and return all replied messages.
+        """Broadcast message to all peers, and return all replied messages.
 
         Args:
-            tag (str|Enum): Message's tag,
-            session_type (Enum): Message's session type,
-            session_id (str): Message's session id,
-            payload (object): The true data.
-  
+            tag (str|Enum): Message's tag.
+            session_type (Enum): Message's session type.
+            session_id (str): Message's session id. Defaults to None.
+            payload (object): The true data. Defaults to None.
+
         Returns:
             List[Message]: list of replied messages.
         """
@@ -362,14 +354,13 @@ class Proxy:
 
     def ibroadcast(self, tag: Union[str, Enum], session_type: SessionType,
                    session_id: str = None, payload=None) -> List[str]:
-        """
-        Broadcast message to all subscribers, and return list of message's session id.
+        """Broadcast message to all subscribers, and return list of message's session id.
 
         Args:
-            tag (str|Enum): Message's tag,
-            session_type (Enum): Message's session type,
-            session_id (str): Message's session id,
-            payload (object): The true data.
+            tag (str|Enum): Message's tag.
+            session_type (Enum): Message's session type.
+            session_id (str): Message's session id. Defaults to None.
+            payload (object): The true data. Defaults to None.
 
         Returns:
             List[str]: list of message's session id which related to the replied message.
@@ -377,8 +368,7 @@ class Proxy:
         return self._broadcast(tag, session_type, session_id, payload)
 
     def isend(self, message: Message) -> List[str]:
-        """
-        Send a message to a remote peer.
+        """Send a message to a remote peer.
 
         Args:
             message: message to be sent.
@@ -397,8 +387,7 @@ class Proxy:
             raise sending_status
 
     def send(self, message: Message) -> List[Message]:
-        """
-        Send a message to a remote peer.
+        """Send a message to a remote peer.
 
         Args:
             message: message to be sent.
@@ -418,14 +407,13 @@ class Proxy:
 
     def reply(self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None,
               ack_reply: bool = False) -> List[str]:
-        """
-        Reply a received message.
+        """Reply a received message.
 
         Args:
-            received_message (Message): The message need to reply,
-            tag (str|Enum): Message tag, which is customized by the user, for specific application logic,
-            payload (object): Message payload, such as model parameters, experiences, etc,
-            ack_reply (bool): If True, it is acknowledge reply.
+            received_message (Message): The message need to reply.
+            tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
+            payload (object): New message payload, if None, keeps the original message's payload. Defaults to None.
+            ack_reply (bool): If True, it is acknowledge reply. Defaults to False.
 
         Returns:
             List[str]: Message belonged session id.
@@ -445,14 +433,13 @@ class Proxy:
 
     def forward(self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None,
                 payload=None) -> List[str]:
-        """
-        Forward a received message.
+        """Forward a received message.
 
         Args:
-            received_message (Message): The message need to forward,
-            destination (str): The receiver of message,
-            tag (str|Enum): Message tag, which is customized by the user, for specific application logic,
-            payload (object): Message payload, such as model parameters, experiences, etc.
+            received_message (Message): The message need to forward.
+            destination (str): The receiver of message.
+            tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
+            payload (object): Message payload, if None, keeps the original message's payload. Defaults to None.
 
         Returns:
             List[str]: Message belonged session id.

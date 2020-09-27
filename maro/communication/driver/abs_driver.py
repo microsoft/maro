@@ -1,18 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 from abc import ABC, abstractmethod
 from typing import Dict
 
 
 class AbsDriver(ABC):
-    """ Abstract class of the communication driver. """
+    """Abstract class of the communication driver."""
 
     @property
     @abstractmethod
     def address(self):
-        """
-        Return the socket's address.
+        """Return the socket's address.
 
         Returns:
             Based on the real socket driver, the socket's address usually be a Dict with, \n
@@ -23,8 +23,7 @@ class AbsDriver(ABC):
 
     @abstractmethod
     def connect(self, peers_address: Dict):
-        """
-        Build the connection with other peers which is given by the peer address.
+        """Build the connection with other peers which is given by the peer address.
         
         Args:
             peers_address (Dict): Peers socket address dict, \n
@@ -35,15 +34,15 @@ class AbsDriver(ABC):
 
     @abstractmethod
     def receive(self):
-        """ Receive message. """
+        """Receive message."""
         pass
 
     @abstractmethod
     def send(self, message):
-        """ Unicast send message. """
+        """Unicast send message."""
         pass
 
     @abstractmethod
     def broadcast(self, message):
-        """ Broadcast send message. """
+        """Broadcast send message."""
         pass

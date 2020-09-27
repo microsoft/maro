@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 import socket
 from typing import Dict
 
@@ -22,12 +23,14 @@ RECEIVE_TIMEOUT = default_parameters.driver.zmq.receive_timeout
 
 class ZmqDriver(AbsDriver):
     """The communication driver based on ZMQ.
-    
+
     Args:
-        protocol (str): underlying transport-layer protocol for transferring messages,
-        send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite),
-        receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite),
-        logger: logger instance or DummyLogger.
+        protocol (str): underlying transport-layer protocol for transferring messages, defaults to tcp.
+        send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
+                            Defaults to -1.
+        receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
+                               Defaults to -1.
+        logger: logger instance or DummyLogger. Defaults to DummyLogger().
     """
 
     def __init__(self, protocol: str = PROTOCOL, send_timeout: int = SEND_TIMEOUT,
@@ -42,8 +45,7 @@ class ZmqDriver(AbsDriver):
         self._setup_sockets()
 
     def _setup_sockets(self):
-        """
-        Setup three kinds of sockets, and one poller.
+        """Setup three kinds of sockets, and one poller.
 
         unicast_receiver: the zmq.PULL socket, use for receiving message from one-to-one communication,
         broadcast_sender: the zmq.PUB socket, use for broadcasting message to all subscribers,
@@ -75,8 +77,7 @@ class ZmqDriver(AbsDriver):
 
     @property
     def address(self) -> Dict[int, str]:
-        """
-        Return the address of zmq-pull socket and zmq-sub socket.
+        """Return the address of zmq-pull socket and zmq-sub socket.
 
         Returns:
             Dict[int, str]: the sockets' address.
@@ -87,12 +88,11 @@ class ZmqDriver(AbsDriver):
         return self._address
 
     def connect(self, peers_address_dict: Dict[str, Dict[str, str]]):
-        """
-        Build a connection with all peers in peers socket address, and set up unicast sender which is zmq.PUSH socket
+        """Build a connection with all peers in peers socket address, and set up unicast sender which is zmq.PUSH socket
         for each peer.
         
         Args:
-            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict, \n
+            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict. \n
                 the key of dict is the peer's name, \n
                 the value of dict is the peer's socket connection address stored in dict.
                     i.e. Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
@@ -114,11 +114,10 @@ class ZmqDriver(AbsDriver):
                     raise PeersConnectionError(f"Driver cannot connect to {peer_name}! Due to {str(e)}")
 
     def receive(self, is_continuous: bool = True):
-        """
-        Receive message from zmq.POLLER.
+        """Receive message from zmq.POLLER.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Default is True.
+            is_continuous (bool): Continuously receive message or not. Defaults to True.
 
         Yields:
             recv_message (Message): the received message from the poller.
@@ -142,8 +141,7 @@ class ZmqDriver(AbsDriver):
                 break
 
     def send(self, message: Message):
-        """
-        Send message.
+        """Send message.
 
         Args:
             message (class): message to be sent.
@@ -155,8 +153,7 @@ class ZmqDriver(AbsDriver):
             return DriverSendError(f"Failure to send message caused by: {e}")
 
     def broadcast(self, message: Message):
-        """
-        Broadcast message.
+        """Broadcast message.
 
         Args:
             message(class): message to be sent.

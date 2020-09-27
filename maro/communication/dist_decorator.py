@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 from functools import partial
 from typing import Callable
 
@@ -15,8 +16,8 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
     """
     def dist_decorator(cls):
         class Wrapper:
-            """
-            A wrapper class for cls, the class to be decorated.
+            """A wrapper class for cls, the class to be decorated.
+
             It contains a reference to the proxy and a message handler lookup table and defines a launch method as
             the universal entry point for running a cls instance in distributed mode.
             """
@@ -38,7 +39,7 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 return getattr(self.local_instance, name)
 
             def launch(self):
-                """ Universal entry point for running a cls instance in distributed mode. """
+                """Universal entry point for running a cls instance in distributed mode."""
                 for msg in self.proxy.receive():
                     self._registry_table.push(msg)
                     triggered_event = self._registry_table.get()
