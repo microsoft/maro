@@ -12,14 +12,30 @@ from maro.simulator.utils.common import tick_to_frame_index, total_frames
 
 
 class AbsBusinessEngine(ABC):
-    """Abstract class for all the business engine
+    """Abstract class for all the business engine, a business engine is the core part of a scenario,
+    used to hold all related logics.
+
+
+    A business engine should have a name that used to identify it, built-in scenarios also use it to 
+    find built-in topologies.
+
+
+    The core part of business engine is the step and post_step methods:
+
+    1. step: will be called one time at each tick
+    2. post_step: will be called at the end of each tick after all the events being processed,
+       simulator use the return value of this method (bool), to decide if it should stop simulation. 
+       This is also a good place to check business final state of current tick if you follow event-driven pattern.
+
 
     Args:
         event_buffer (EventBuffer): used to process events
         topology (str): config name
         start_tick (int): start tick of this business engine
         max_tick (int): max tick of this business engine
-        snapshot_resolution (int): frequency to take a snapshot, NOTE: though we have this configuration, but business engine has the full control about the frequency of taking snapshot
+        snapshot_resolution (int): frequency to take a snapshot, 
+            NOTE: though we have this configuration, 
+            but business engine has the full control about the frequency of taking snapshot
         max_snapshots(int): max number of in-memory snapshots
         addition_options (dict): additional options for this business engine from outside
     """
@@ -42,28 +58,54 @@ class AbsBusinessEngine(ABC):
     @property
     @abstractmethod
     def frame(self) -> FrameBase:
+        """FrameBase: frame instance of current business engine."""
         pass
 
     @property
     @abstractmethod
     def snapshots(self) -> SnapshotList:
-        """SnapshotList: Snapshot list of current frame"""
+        """SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside."""
         pass
 
-    def frame_index(self, tick) -> int:
-        """int: index of frame in snapshot list"""
+    def frame_index(self, tick:int) -> int:
+        """Helper method for child class, used to get index of frame in snapshot list for specified tick.
+        
+        
+        Args:
+            tick (int): tick to calculate frame index
+
+        
+        Returns:
+            int: frame index in snapshot list of specified tick
+        """
         return tick_to_frame_index(self._start_tick, tick, self._snapshot_resolution)
 
     def calc_max_snapshots(self) -> int:
-        """int: total snapshot should be in snapshot list.
+        """Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.
         
-        NOTE: this property will return max number that can contains all the frame state to the end.
+
+        NOTE: 
+            This method will return max number that can contains all the frame state to the end.
         you can use a small size to hold states, when hit the limitation, oldest one will be overwrote
+        
+
+        Returns:
+            int: max snapshot number for current configuration
         """
-        return  self._max_snapshots if self._max_snapshots is not None else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
+        return  self._max_snapshots if self._max_snapshots is not None \
+            else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
 
     def update_config_root_path(self, business_engine_file_path: str):
-        """Update the config path with business engine path.
+        """Helper method used to update the config path with business engine path if you 
+        follow the way to load configuration file as built-in scenarios.
+
+
+        This method assuming that all the configuration (topologies) is under their scenario folder,
+        and named as topologies, each topology is one folder.
+
+
+        NOTE:
+            You can use your own way to place the configuration files, and ignore this.
 
         Examples:
 
@@ -93,20 +135,20 @@ class AbsBusinessEngine(ABC):
 
     @abstractmethod
     def step(self, tick: int):
-        """Used to process events at specified tick, usually this is called by Env at each tick
+        """Method that is called at each tick, usually used to trigger business logic at current tick.
 
         Args:
-            tick (int): tick to process
+            tick (int): current tick from simulator
         """
         pass
 
     @property
     def configs(self) -> dict:
-        """object: Configurations of this business engine"""
+        """dict: Configurations of this business engine"""
         pass
 
-    def rewards(self, actions) -> Union[float, List[float]]:
-        """Calculate rewards based on actions
+    def rewards(self, actions: Union[list, object]) -> Union[float, List[float]]:
+        """Calculate rewards based on actions, the value is based on scenario.
 
         Args:
             actions(list): Action(s) from agent
@@ -118,18 +160,19 @@ class AbsBusinessEngine(ABC):
 
     @abstractmethod
     def reset(self):
-        """Reset business engine"""
+        """Reset states business engine"""
         pass
 
     def post_step(self, tick:int) -> bool:
-        """Post-process at specified tick, this function will be called at the end of each tick, 
-        for complex business logic with many events, it maybe not easy to determine if stop the scenario at the middle of tick, so this method if used to avoid this.
+        """This method will be called at the end of each tick, used to post-process for each tick,
+        for complex business logic with many events, it maybe not easy to determine if stop the scenario at the middle of tick, 
+        so this method is used to avoid this.
 
         Args:
-            tick (int): tick to process
+            tick (int): current tick
 
         Returns:
-            bool: if scenario end at this tick
+            bool: if simulator should stop simulation at current tick
         """
         return False
 
@@ -143,7 +186,7 @@ class AbsBusinessEngine(ABC):
         return {}
 
     def get_metrics(self) -> dict:
-        """Get statistics information
+        """Get statistics information, may different for scenarios
 
         Returns:
             dict: dictionary about metrics, content and format determined by business engine
