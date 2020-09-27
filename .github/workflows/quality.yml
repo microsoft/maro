@@ -16,8 +16,8 @@ jobs:
         code_inspector_secret_key: ${{ secrets.CODE_INSPECTOR_SECRET_KEY }}
         min_quality_grade: 'WARNING'
         min_quality_score: '50'
-        max_defects_rate: '0.0005'
-        max_complex_functions_rate: '0.0005'
-        max_long_functions_rate: '0.0005'
+        max_defects_rate: '0.005'
+        max_complex_functions_rate: '0.005'
+        max_long_functions_rate: '0.005'
         project_name: ''
         max_timeout_sec: '600'
