@@ -34,21 +34,21 @@ maro.simulator.scenarios.abs_business_engine
 Utils
 ================================================================================
 
-maro.simulator.utils.common 
+maro.simulator.utils.common
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.simulator.utils.common
    :members:
    :show-inheritance:
 
-maro.simulator.utils.event\_bind\_binreader 
+maro.simulator.utils.event\_bind\_binreader
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.simulator.utils.event_bind_binreader
    :members:
    :show-inheritance:
 
-maro.simulator.utils.sim\_random 
+maro.simulator.utils.sim\_random
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.simulator.utils.sim_random

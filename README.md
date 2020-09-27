@@ -1,7 +1,17 @@
+[![License](https://img.shields.io/pypi/l/pymaro)](https://github.com/microsoft/maro/blob/master/LICENSE)
 [![test](https://github.com/microsoft/maro/workflows/test/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Atest)
 [![build](https://github.com/microsoft/maro/workflows/build/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Abuild)
 [![docker](https://github.com/microsoft/maro/workflows/docker/badge.svg)](https://hub.docker.com/repository/docker/arthursjiang/maro)
 [![docs](https://readthedocs.org/projects/maro/badge/?version=latest)](https://maro.readthedocs.io/)
+[![PypI Versions](https://img.shields.io/pypi/v/pymaro)](https://pypi.org/project/pymaro/#files)
+[![Wheel](https://img.shields.io/pypi/wheel/pymaro)](https://pypi.org/project/pymaro/#files)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pymaro.svg?logo=python&logoColor=white)](https://pypi.org/project/pymaro/#files)
+[![Issues](https://img.shields.io/github/issues/microsoft/maro)](https://github.com/microsoft/maro/issues)
+[![Code Size](https://img.shields.io/github/languages/code-size/microsoft/maro)](https://github.com/microsoft/maro)
+[![Docker Size](https://img.shields.io/docker/image-size/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro/tags?page=1)
+[![Platforms](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/platforms.svg)](https://pypi.org/project/pymaro/)
+[![Citi Bike](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/citi_bike.svg)](https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html)
+[![CIM](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/cim.svg)](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
 
 # ![MARO LOGO](./docs/source/images/logo.svg)
 
@@ -34,9 +44,22 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 | `examples`  | Showcase of MARO.                                                                                 |
 | `notebooks` | MARO quick-start notebooks.                                                                       |
 
-## Prerequisites
+## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
-- [Python == 3.6/3.7](https://www.python.org/downloads/)
+- Max OS / Linux
+
+  ```sh
+  pip install pymaro
+  ```
+
+- Windows
+
+  ```powershell
+  # Install torch first, if you don't have one.
+  pip install torch===1.6.0 torchvision===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+
+  pip install pymaro
+  ```
 
 ## Install MARO from Source ([Editable Mode](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs))
 
