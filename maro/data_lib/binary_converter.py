@@ -77,7 +77,8 @@ class BinaryConverter:
     Args:
         output_file(str): output binary file full path
         meta_file(str): path to the meta file (yaml)
-        utc_start_timestamp(int): start timestamp in UTC which will be considered as tick 0, used to adjust the data reader pipeline
+        utc_start_timestamp(int): start timestamp in UTC which will be considered as tick 0, 
+            used to adjust the data reader pipeline
 
     """
     def __init__(self, output_file: str, meta_file: str, utc_start_timestamp: int = None):
@@ -112,7 +113,8 @@ class BinaryConverter:
 
     def add_csv(self, csv_file: str):
         """Convert specified csv file into current binary file, this converter will not sort the item.
-        This method can be called several times to convert multiple csv file into one binary, the order will be same as calling sequence.
+        This method can be called several times to convert multiple csv file into one binary, 
+        the order will be same as calling sequence.
 
         Args:
             csv_file(str): csv to convert
@@ -152,10 +154,11 @@ class BinaryConverter:
         )
 
         self._meta_offset = len(header_bytes)
-
-        self._output_fp.seek(0, 0) # seek the output file beginning
+        # seek the output file beginning
+        self._output_fp.seek(0, 0) 
         self._output_fp.write(header_bytes)
-        self._output_fp.seek(0, 2) # seek to the file end
+        # seek to the file end
+        self._output_fp.seek(0, 2) 
 
     def _write_meta(self):
         """Write file meta"""
@@ -169,13 +172,16 @@ class BinaryConverter:
 
     def _write_items(self, reader: DictReader):
         """Write items into binary"""
-        columns = self._meta.columns # columns need to convert
-        values = [0] * len(columns.keys()) # values buffer from each row, used to pack into binary
-        buffer = memoryview(bytearray(self._meta.item_size)) # item binary buffer
-
-        field_type_dict = self._meta.items() # field -> data type
-
-        has_invalid_column = False # some column's value may cannot be parse, will skip it
+        # columns need to convert
+        columns = self._meta.columns 
+        # values buffer from each row, used to pack into binary
+        values = [0] * len(columns.keys()) 
+        # item binary buffer
+        buffer = memoryview(bytearray(self._meta.item_size)) 
+        # field -> data type
+        field_type_dict = self._meta.items() 
+        # some column's value may cannot be parse, will skip it
+        has_invalid_column = False
 
         for row in reader:
             field_index = 0 #

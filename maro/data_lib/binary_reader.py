@@ -4,12 +4,12 @@
 import os
 import sys
 import mmap
-import threading  # since we are I/O bound issue, this may not the problem
+import threading 
 import warnings
 from datetime import datetime
 from dateutil.tz import UTC, gettz
 from dateutil.relativedelta import relativedelta
-from io import BytesIO  # in-memory buffer
+from io import BytesIO 
 from struct import Struct, unpack
 from collections import namedtuple
 from maro.data_lib.item_meta import BinaryMeta
@@ -21,7 +21,8 @@ timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 
 def unit_seconds(unit: str):
-    seconds = 1  # default for second
+    # default for second
+    seconds = 1  
 
     if unit == "m":
         seconds = 60
@@ -47,7 +48,8 @@ class ItemBuffer:
         self._meta = meta
         self._enable_adjust_ratio = enable_adjust_ratio
         self._bytes = memoryview(bytearray(number_of_item * meta.item_size))
-        self.item_number = 0  # valid items in buffer
+        # valid items in buffer
+        self.item_number = 0  
 
     def items(self):
         index = 0
@@ -88,7 +90,8 @@ class ItemTickPicker:
 
         while True:
             item = self._cached_item
-            self._cached_item = None  # clear the cache
+            # clear the cache
+            self._cached_item = None  
 
             if item is None:
                 try:
@@ -133,7 +136,8 @@ class BinaryReader:
 
     Args:
         file_path(str): binary file path to read
-        enable_value_adjust(bool): if reader should adjust the value of fields that enabled 'value_adjust' feature in meta randomly
+        enable_value_adjust(bool): if reader should adjust the value of fields that enabled 
+            'value_adjust' feature in meta randomly
         buffer_size(int): size of in-memory buffer
     """
 

@@ -49,13 +49,16 @@ class BinaryMeta:
         self._item_struct: Struct = None
 
         self._tzone = None
-        self._event_attr_name = None  # which attribute used as events
+        # which attribute used as events
 
+        self._event_attr_name = None  
         # if value cannot matched to any event definition, then treat it as default
         self._default_event_name = None
         self._raw_cols = []
-        self._adjust_attrs = {}  # fields need adjust
-        self._attrs: List[EntityAttr] = []  # EntityAttr
+        # fields need adjust
+        self._adjust_attrs = {}  
+        # EntityAttr
+        self._attrs: List[EntityAttr] = []  
         self._events: List[Event] = []
 
     @property
@@ -165,8 +168,9 @@ class BinaryMeta:
             item_tuple = list(item_tuple)
 
             for index, ratio in self._adjust_attrs.items():
-                item_tuple[index] += random.randrange(int(ratio[0]), int(ratio[1])) * 0.01 * item_tuple[index]  # make it percentage
-
+                # make it percentage
+                item_tuple[index] += random.randrange(int(ratio[0]), int(ratio[1])) * 0.01 * item_tuple[index]  
+                
         return self._item_nt._make(item_tuple)
 
     def _build_item_struct(self):
