@@ -25,6 +25,9 @@ class LogFormat(Enum):
     Example:
         - ``LogFormat.full``: full time | host | user | pid | tag | level | msg
         - ``LogFormat.simple``: simple time | tag | level | msg
+        - ``LogFormat.cli_debug`` : simple time | level | msg
+        - ``LogFormat.cli_info`` (file): simple time | level | msg
+        - ``LogFormat.cli_info`` (stdout):  msg
     """
     full = 1
     simple = 2
@@ -213,11 +216,16 @@ class InternalLogger(Logger):
 
 
 class CliLogger:
+    """An internal logger for CLI logging
+
+    CliLogger maintains a singleton logger in a CLI command lifecycle.
+    The logger is inited at the very beginning, and use different logging formats based on the --debug argument.
+    """
+
     class _CliLogger(Logger):
         def __init__(self):
-            # Init params
+            """Init singleton logger based on the --debug argument"""
             self.log_level = CliGlobalParams.LOG_LEVEL
-
             current_time = f"{datetime.now().strftime('%Y%m%d')}"
             self._dump_folder = os.path.join(os.path.expanduser("~/.maro/log/cli"), current_time)
             if self.log_level == logging.DEBUG:
@@ -238,38 +246,79 @@ class CliLogger:
     def __init__(self, name):
         self.name = name
 
-    def passive_init(self):
+    def passive_init(self) -> None:
+        """Init a new CliLogger if current logger is not matched with the parameters."""
         if not CliLogger._logger or CliLogger._logger.log_level != CliGlobalParams.LOG_LEVEL:
-            CliLogger._logger = CliLogger._CliLogger()
+            CliLogger._logger = self._CliLogger()
 
-    def debug(self, message: str):
+    def debug(self, message: str) -> None:
+        """logger.debug() with passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.debug(message)
 
-    def debug_yellow(self, message: str):
+    def debug_yellow(self, message: str) -> None:
+        """logger.debug() with color yellow and passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.debug('\033[33m' + message + '\033[0m')
 
-    def info(self, message: str):
+    def info(self, message: str) -> None:
+        """logger.info() passive init
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.info(message)
 
-    def warning(self, message: str):
+    def warning(self, message: str) -> None:
+        """logger.warning() with passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.warn(message)
 
-    def error(self, message: str):
+    def error(self, message: str) -> None:
+        """logger.error() with passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.error(message)
 
-    def info_green(self, message: str):
+    def info_green(self, message: str) -> None:
+        """logger.info() with color green and passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.info('\033[32m' + message + '\033[0m')
 
-    def warning_yellow(self, message: str):
+    def warning_yellow(self, message: str) -> None:
+        """logger.warning() with color yellow and passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.warn('\033[33m' + message + '\033[0m')
 
-    def error_red(self, message: str):
+    def error_red(self, message: str) -> None:
+        """logger.error() with color red and passive init.
+
+        Args:
+            message (str): logged message
+        """
         self.passive_init()
         self._logger.error('\033[31m' + message + '\033[0m')

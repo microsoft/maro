@@ -11,7 +11,12 @@ class CliException(MAROException):
     def __init__(self, message: str = None, error_code: int = 3000):
         super().__init__(error_code, message)
 
-    def get_message(self):
+    def get_message(self) -> str:
+        """Get the error message of the Exception.
+
+        Returns:
+            str: Error message.
+        """
         return self.strerror
 
 
