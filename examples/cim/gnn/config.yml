@@ -8,7 +8,7 @@ env:
 training:
   enable: True
   parallel_cnt: 24
-  device: 'cuda:1'
+  device: 'cuda:0'
   batch_size: 150
   shuffle_time: 1
   rollout_cnt: 1000

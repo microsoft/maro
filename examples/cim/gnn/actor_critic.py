@@ -6,7 +6,7 @@ from torch.nn.utils import clip_grad
 
 from maro.rl import AbsAlgorithm
 
-from .utils import gnn_union
+from examples.cim.gnn.utils import gnn_union
 
 class ActorCritic(AbsAlgorithm):
     '''
@@ -30,17 +30,14 @@ class ActorCritic(AbsAlgorithm):
                     gamma=0.97, 
                     learning_rate=0.0003, 
                     entropy_factor=0.1):
-        self._model = model
-
         self._gamma = gamma
         self._td_steps = td_steps
         self._value_discount = gamma**100
-        self._optimizer = torch.optim.Adam(self._model.parameters(), lr=learning_rate)
         self._entropy_factor = entropy_factor
         self._device = device
         self._tot_batchs = 0
         self._p2p_adj = p2p_adj
-        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": self._optimizer}, loss_func_dict={},
+        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})}, loss_func_dict={},
                          hyper_params=None)
 
     def choose_action(self, state: dict, p_idx: int, v_idx: int):
@@ -74,7 +71,7 @@ class ActorCritic(AbsAlgorithm):
             model_action (numpy.int64): The action returned from the module
         '''
         with torch.no_grad():
-            prob, _ = self._model(state, a=True, p_idx=p_idx, v_idx=v_idx)
+            prob, _ = self._model_dict["a&c"](state, a=True, p_idx=p_idx, v_idx=v_idx)
             distribution = Categorical(prob)
             model_action = distribution.sample().cpu().numpy()
             return model_action
@@ -119,17 +116,17 @@ class ActorCritic(AbsAlgorithm):
         # train actor network
         # self._actor_optimizer.zero_grad()
         # self._critic_optimizer.zero_grad()
-        self._optimizer.zero_grad()
+        self._optimizer["a&c"].zero_grad()
 
         # every port has a value
         # values.shape: (batch, p_cnt)
 
-        probs, values = self._model(obs_batch, a=True, p_idx=p_idx, v_idx=v_idx, c=True)
+        probs, values = self._model_dict["a&c"](obs_batch, a=True, p_idx=p_idx, v_idx=v_idx, c=True)
         distribution = Categorical(probs)
         log_prob = distribution.log_prob(action_batch)
         entropy_loss = distribution.entropy()
 
-        _, values_ = self._model(next_obs_batch, c=True)
+        _, values_ = self._model_dict["a&c"](next_obs_batch, c=True)
         advantage = return_batch + self._value_discount * values_.detach() - values
 
         if self._entropy_factor != 0:
@@ -139,7 +136,7 @@ class ActorCritic(AbsAlgorithm):
         actor_loss = - (log_prob*torch.sum(advantage, axis=-1).detach()).mean()
 
         # actor_loss.backward(retain_graph=True)
-        # self._actor_optimizer.step()
+        # self._actor_optimizer["a&c"].step()
         
         item_a_loss = actor_loss.item()
         item_e_loss = entropy_loss.mean().item()
@@ -149,18 +146,18 @@ class ActorCritic(AbsAlgorithm):
         # critic_loss.backward()
         item_c_loss = critic_loss.item()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
-        # self._critic_optimizer.step()
+        # self._critic_optimizer["a&c"].step()
         tot_loss = 0.1*actor_loss + critic_loss # - self._entropy_factor * entropy_loss
         tot_loss.backward()
-        tot_norm = clip_grad.clip_grad_norm_(self._model.parameters(), 1)
-        self._optimizer.step()
+        tot_norm = clip_grad.clip_grad_norm_(self._model_dict["a&c"].parameters(), 1)
+        self._optimizer["a&c"].step()
         return item_a_loss, item_c_loss, item_e_loss, float(tot_norm)
 
     def set_weights(self, weights):
-        self._model.load_state_dict(weights)
+        self._model_dict["a&c"].load_state_dict(weights)
 
     def get_weights(self):
-        return self._model.state_dict()
+        return self._model_dict["a&c"].state_dict()
 
     def _get_save_idx(self, fp_str):
         return int(fp_str.split('.')[0].split('_')[0])
@@ -169,12 +166,12 @@ class ActorCritic(AbsAlgorithm):
         if not os.path.exists(pth):
             os.makedirs(pth)
         pth = os.path.join(pth, '%d_ac.pkl'%id)
-        torch.save(self._model.state_dict(), pth)
+        torch.save(self._model_dict["a&c"].state_dict(), pth)
     
     def _set_gnn_weights(self, weights):
         for key in weights:
-            if key in self._model.state_dict().keys():
-                self._model.state_dict()[key].copy_(weights[key])
+            if key in self._model_dict["a&c"].state_dict().keys():
+                self._model_dict["a&c"].state_dict()[key].copy_(weights[key])
 
     def load_model(self, folder_pth, idx=-1):
         if idx == -1:
