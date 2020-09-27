@@ -97,11 +97,14 @@ class EventBuffer:
         so ensure the order when you need something strange.
     """
     def __init__(self):
-        self._id = 0 # id for events that generate from this instance
+        # id for events that generate from this instance
+        self._id = 0
         self._pending_events = defaultdict(list)
         self._handlers = defaultdict(list)
-        self._finished_events = []  # used to hold all the events that being processed
-        self._current_index = 0  # index of current pending event
+        # used to hold all the events that being processed
+        self._finished_events = []  
+        # index of current pending event
+        self._current_index = 0  
 
     def get_finished_events(self) -> List[Event]:
         """Get all the processed events, call this function before reset method
