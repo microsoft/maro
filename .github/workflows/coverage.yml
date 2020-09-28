@@ -19,9 +19,9 @@ jobs:
         # Job flag name, e.g. "Unit", "Functional", or "Integration". Will be shown in the Coveralls UI.
         flag-name: Unit
         # Set to true if you are running parallel jobs, then use "parallel_finished: true" for the last action.
-        parallel: true
+        parallel: false
         # Set to true for the last action when using "parallel: true".
-        parallel-finished: true
+        parallel-finished: false
         # Coveralls Enterprise server (more info: https://enterprise.coveralls.io)
         coveralls-endpoint: https://coveralls.io/github/microsoft/maro
         # The root folder of the project that originally ran the tests
