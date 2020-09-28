@@ -58,7 +58,7 @@ def convert_dottable(natural_dict: dict) -> DottableDict:
 
 
 def set_seeds(seed):
-    """Set the seeds of Torch, np.random and random.
+    """Set the seeds of "Torch", "np.random" and "random".
 
     Args:
         seed : Value of the seed.
@@ -71,7 +71,7 @@ def set_seeds(seed):
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
     except Exception:
-        warnings.warn("Torch not installed.")
+        warnings.warn("\"Torch\" not installed.")
 
     np.random.seed(seed)
     random.seed(seed)
@@ -94,7 +94,7 @@ target_source_pairs = [
 
 
 def deploy(hide_info: bool = True):
-    """Deploy the meta files, and lib files of MARO to ~/.maro.
+    """Deploy the meta files, and lib files of MARO to '~/.maro'.
 
     Args:
         hide_info (bool): (optional) If True, will not display any information,\n
