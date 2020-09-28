@@ -18,8 +18,7 @@ class LinearExplorer(AbsExplorer):
 
 
 class TwoPhaseLinearExplorer(AbsExplorer):
-    """
-    An exploration scheme that consists of two linear schedules separated by a split point
+    """An exploration scheme that consists of two linear schedules separated by a split point.
     """
     def __init__(self, agent_id_list, total_episodes, epsilon_range_dict, split_point_dict: dict, with_cache=True):
         super().__init__(agent_id_list, total_episodes, epsilon_range_dict, with_cache=with_cache)

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 class AbsExplorer(ABC):
     def __init__(self, agent_id_list: list, total_episodes: int, epsilon_range_dict: dict, with_cache: bool = True):
-        """General explorer class.
+        """Abstract explorer class.
 
         Args:
             agent_id_list (list): List of agent ID's.

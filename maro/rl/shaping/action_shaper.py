@@ -6,7 +6,9 @@ from .abs_shaper import AbsShaper
 
 
 class ActionShaper(AbsShaper):
-    """An action shaper is used to convert an agent's model output to an environment executable action.
+    """Action shaper class
+
+        An action shaper is used to convert an agent's model output to an environment executable action.
     """
     @abstractmethod
     def __call__(self, model_action, decision_event, snapshot_list):

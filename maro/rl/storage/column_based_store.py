@@ -14,11 +14,12 @@ from maro.utils import clone
 class ColumnBasedStore(AbsStore):
     def __init__(self, capacity: int = -1, overwrite_type: OverwriteType = None):
         """
-        An implementation of `AbsStore` that uses a dictionary of lists as the internal data structure.
+        An implementation of `AbsStore` for experience storage in RL.
 
-            The objects for each key are stored in a list. To be useful for experience storage in RL, uniformity
-            checks are performed during put operations to ensure that the list lengths remain the same for all keys
-            at all times. Both unlimited and limited storage are supported.
+            This implementation uses a dictionary of lists as the internal data structure. The objects for each key
+            are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
+            put operations to ensure that the list lengths remain the same for all keys at all times. Both unlimited
+            and limited storage are supported.
 
         Args:
             capacity (int): If -1, the store is of unlimited capacity. Defaults to -1.
@@ -95,7 +96,9 @@ class ColumnBasedStore(AbsStore):
 
         Args:
             indexes (Sequence): Positions where updates are to be made.
-            contents (dict): Contents to write to the internal store at given positions.
+            contents (dict): Contents to write to the internal store at given positions. It is subject to uniformity
+                checks to ensure that the lists for all keys have the same length.
+
         Returns:
             The indexes where store contents are updated.
         """

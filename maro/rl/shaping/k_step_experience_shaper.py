@@ -20,7 +20,7 @@ class KStepExperienceKeys(Enum):
 
 class KStepExperienceShaper(ExperienceShaper):
     def __init__(self, reward_func: Callable, reward_decay: float, steps: int, is_per_agent: bool = True):
-        """An experience shaper that generates K-step and full returns for each transition along a trajectory.
+        """Experience shaper to generate K-step and full returns for each transition along a trajectory.
 
         Args:
             reward_func (Callable): a function used to compute immediate rewards from metrics given by the env.

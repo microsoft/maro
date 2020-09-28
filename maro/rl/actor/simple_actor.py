@@ -18,7 +18,7 @@ class SimpleActor(AbsActor):
 
     def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
                  return_details: bool = True):
-        """This simple implementation performs one episode of roll-out and returns performance and experiences.
+        """Perform one episode of roll-out and return performance and experiences.
 
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
@@ -27,6 +27,9 @@ class SimpleActor(AbsActor):
             done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
                 This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+
+        Returns:
+            Performance and relevant details from the episode (e.g., experiences).
         """
         if done:
             return None, None

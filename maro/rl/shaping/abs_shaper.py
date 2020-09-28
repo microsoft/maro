@@ -12,6 +12,6 @@ class AbsShaper(ABC):
 
     @abstractmethod
     def __call__(self, *args, **kwargs):
-        """The general interface to convert objects.
+        """The general interface for conversion.
         """
         pass

@@ -17,12 +17,12 @@ class AbsAgent(ABC):
                  algorithm: AbsAlgorithm,
                  experience_pool: AbsStore
                  ):
-        """RL agent class. It's a sandbox for the RL algorithm. Scenario-specific details will be excluded.
+        """Abstract RL agent class. It's a sandbox for the RL algorithm. Scenario-specific details will be excluded.
 
-        We focus on the abstraction algorithm development here. Environment observation and decision events will be
-        converted to a uniform format before calling in. And the output will be converted to an environment executable
-        format before return back to the environment. Its key responsibility is optimizing policy based on interaction
-        with the environment.
+            We focus on the abstraction algorithm development here. Environment observation and decision events will
+            be converted to a uniform format before calling in. And the output will be converted to an environment
+            executable format before return back to the environment. Its key responsibility is optimizing policy based
+            on interaction with the environment.
 
         Args:
             name (str): Agent's name.

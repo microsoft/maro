@@ -7,8 +7,7 @@ import torch.nn as nn
 
 class MLPDecisionLayers(nn.Module):
     def __init__(self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float):
-        """
-        Deep Q network.
+        """Deep Q network.
 
             Choose multi-layer full connection with dropout as the basic network architecture.
 
@@ -49,8 +48,8 @@ class MLPDecisionLayers(nn.Module):
         return self._output_dim
 
     def _build_basic_layer(self, input_dim, output_dim):
-        """
-        Build basic layer.
+        """Build basic layer.
+
             BN -> Linear -> LeakyReLU -> Dropout
         """
         return nn.Sequential(nn.BatchNorm1d(input_dim),
@@ -59,8 +58,8 @@ class MLPDecisionLayers(nn.Module):
                              nn.Dropout(p=self._dropout_p))
 
     def _build_layers(self, layer_dims: []):
-        """
-        Build multi basic layer.
+        """Build multi basic layer.
+
             BasicLayer1 -> BasicLayer2 -> ...
         """
         layers = []

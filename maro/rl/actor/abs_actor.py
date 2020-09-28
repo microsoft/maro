@@ -10,9 +10,10 @@ from maro.simulator import Env
 
 class AbsActor(ABC):
     def __init__(self, env: Env, inference_agents: Union[AbsAgentManager, dict]):
-        """An actor is responsible for collecting experience from interactions with the environment.
+        """Abstract actor class.
 
-            Actor is a wrapper of an env and an agent manager or a dict of agents.
+            An actor is a wrapper of an env and an agent manager or a dict of agents and is responsible for
+            collecting experience from interacting with the environment.
 
         Args:
             env (Env): An Env instance.

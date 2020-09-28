@@ -8,10 +8,11 @@ from typing import Union
 
 class AbsAlgorithm(ABC):
     def __init__(self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict, hyper_params: object):
-        """Abstraction of RL algorithm which provides a uniform policy interface such as `choose_action` and `train`.
+        """Abstract RL algorithm class.
 
-            We also provide some predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it
-            to customize their own algorithms.
+            The class provides uniform policy interfaces such as `choose_action` and `train`. We also provide some
+            predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it to customize their own
+            algorithms.
 
         Args:
             model_dict (dict): Underlying models for the algorithm (e.g., for A2C, model_dict could be something like

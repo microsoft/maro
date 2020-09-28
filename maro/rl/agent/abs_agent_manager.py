@@ -27,8 +27,7 @@ class AbsAgentManager(ABC):
                  action_shaper: ActionShaper = None,
                  experience_shaper: ExperienceShaper = None,
                  explorer: AbsExplorer = None):
-        """
-        An agent manager manages all agents.
+        """Abstract agent manager class.
 
             The agent manager provides a unified interactive interface with the environment for RL agent(s). From
             the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous

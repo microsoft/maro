@@ -8,7 +8,9 @@ from .abs_shaper import AbsShaper
 
 class ExperienceShaper(AbsShaper):
     def __init__(self, reward_func: Union[Callable, None], *args, **kwargs):
-        """An experience shaper is used to convert a trajectory of transitions to experiences for training.
+        """Experience shaper class.
+
+            An experience shaper is used to convert a trajectory of transitions to experiences for training.
 
         Args:
             reward_func (Callable or None): A reward function to compute immediate rewards from the business

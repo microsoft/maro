@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 class AbsLearner(ABC):
     def __init__(self):
-        """It is used to control the policy learning process...
+        """Abstract learner class to control the policy learning process...
         """
         pass
 

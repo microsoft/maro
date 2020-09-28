@@ -42,7 +42,7 @@ class SimpleLearner(AbsLearner):
             self._trainable_agents.update_epsilon(performance)
 
     def test(self):
-        """This tells the actor to perform one episode of roll-out for testing purposes.
+        """Test policy performance.
         """
         performance, _ = self._actor.roll_out(model_dict=self._trainable_agents.get_models(), return_details=False)
         for actor_id, perf in performance.items():
