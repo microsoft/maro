@@ -50,7 +50,7 @@ class AbsStore(ABC):
 
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                          i.e. [lambda d: d['a'] == 1 and d['b'] == 1].
+                                          e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
         Returns:
             Filtered indexes and corresponding objects.
         """

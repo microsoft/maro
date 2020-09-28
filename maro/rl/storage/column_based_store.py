@@ -116,7 +116,7 @@ class ColumnBasedStore(AbsStore):
 
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                          i.e. [lambda d: d['a'] == 1 and d['b'] == 1].
+                                          e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
         Returns:
             Filtered indexes and corresponding objects.
         """
@@ -135,7 +135,7 @@ class ColumnBasedStore(AbsStore):
         Args:
             samplers (Sequence): A sequence of weight functions for computing the sampling weights of the items
                 in the store,
-                i.e. [lambda d: d['a'], lambda d: d['b']].
+                e.g., [lambda d: d['a'], lambda d: d['b']].
             replace (bool): If True, sampling will be performed with replacement.
         Returns:
             Sampled indexes and corresponding objects.
@@ -159,7 +159,7 @@ class ColumnBasedStore(AbsStore):
             replace (bool): if True, sampling is performed with replacement. Default is True.
         Returns:
             Sampled indexes and the corresponding objects,
-            i.e. [1, 2, 3], ['a', 'b', 'c'].
+            e.g., [1, 2, 3], ['a', 'b', 'c'].
         """
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
         return indexes, self.get(indexes)
