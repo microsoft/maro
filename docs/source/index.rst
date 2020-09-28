@@ -77,30 +77,30 @@ Contents
     :maxdepth: 2
     :caption: Installation
 
-    installation/pip_install.md
-    installation/playground.md
-    installation/grass_cluster_provisioning_on_azure.md
-    installation/k8s_cluster_provisioning_on_azure.md
+    installation/pip_install.rst
+    installation/playground.rst
+    installation/grass_cluster_provisioning_on_azure.rst
+    installation/k8s_cluster_provisioning_on_azure.rst
 
 .. toctree::
     :maxdepth: 2
     :caption: Scenarios
 
-    scenarios/container_inventory_management.md
-    scenarios/citi_bike.md
+    scenarios/container_inventory_management.rst
+    scenarios/citi_bike.rst
 
 .. toctree::
     :maxdepth: 2
     :caption: Key Components
 
-    key_components/simulation_toolkit.md
-    key_components/data_model.md
-    key_components/event_buffer.md
-    key_components/business_engine.md
-    key_components/rl_toolkit.md
-    key_components/distributed_toolkit.md
-    key_components/communication.md
-    key_components/orchestration.md
+    key_components/simulation_toolkit.rst
+    key_components/data_model.rst
+    key_components/event_buffer.rst
+    key_components/business_engine.rst
+    key_components/rl_toolkit.rst
+    key_components/distributed_toolkit.rst
+    key_components/communication.rst
+    key_components/orchestration.rst
 
 .. toctree::
     :maxdepth: 2
