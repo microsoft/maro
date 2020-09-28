@@ -7,25 +7,29 @@ from maro.simulator import Env
 
 
 class SimpleActor(AbsActor):
-    """
-    A simple actor class that implements simple roll-out logic
+    """A simple ``AbsActor`` implementation.
+
+    Args:
+        env (Env): An Env instance.
+        inference_agents (AbsAgentManager): An AgentManager instance that manages all agents.
     """
     def __init__(self, env: Env, inference_agents: AbsAgentManager):
         super().__init__(env, inference_agents)
 
     def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
                  return_details: bool = True):
-        """
-        The main interface provided by the Actor class, in which the agents perform a single episode of roll-out
-        to collect experiences and performance data from the environment
+        """Perform one episode of roll-out and return performance and experiences.
 
         Args:
-            model_dict (dict): if not None, the agents will load the models from model_dict and use these models
-                           to perform roll-out.
-            epsilon_dict (dict): exploration rate by agent
-            done (bool): if True, the current call is the last call, i.e., no more roll-outs will be performed.
-                         This flag is used to signal remote actor workers to exit.
-            return_details (bool): if True, return experiences as well as performance metrics provided by the env.
+            model_dict (dict): If not None, the agents will load the models from model_dict and use these models
+                to perform roll-out.
+            epsilon_dict (dict): Exploration rate by agent.
+            done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
+                This flag is used to signal remote actor workers to exit.
+            return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+
+        Returns:
+            Performance and relevant details from the episode (e.g., experiences).
         """
         if done:
             return None, None

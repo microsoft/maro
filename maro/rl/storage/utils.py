@@ -36,7 +36,7 @@ class OverwriteType(Enum):
     RANDOM = "random"
 
 
-def get_update_indexes(size, added_size, capacity, overwrite_type, overwrite_indexes=None):
+def get_update_indexes(size: int, added_size: int, capacity: int, overwrite_type, overwrite_indexes=None):
     if added_size > capacity:
         raise ValueError(f"size of added items should not exceed the store capacity.")
 
