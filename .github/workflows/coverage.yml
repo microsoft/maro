@@ -13,7 +13,7 @@ jobs:
       # uses: coverallsapp/github-action@8cbef1dea373ebce56de0a14c68d6267baa10b44
       uses: coverallsapp/github-action@v1.1.2
       with:
-        github-token:  ${{ secrets.COVERALLS_TOKEN }}
+        github-token:  ${{ secrets.GITHUB_TOKEN }}
         # Path to lcov file
         path-to-lcov: ./coverage/lcov.info
         # Job flag name, e.g. "Unit", "Functional", or "Integration". Will be shown in the Coveralls UI.
