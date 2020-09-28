@@ -9,7 +9,7 @@ name: deploy_gh_pages
 #     - "v*.*.*"
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   build:
