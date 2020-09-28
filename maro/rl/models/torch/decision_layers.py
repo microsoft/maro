@@ -6,13 +6,11 @@ import torch.nn as nn
 
 
 class MLPDecisionLayers(nn.Module):
-    """
-    Deep Q network.
-        Choose multi-layer full connection with dropout as the basic network architecture.
-    """
     def __init__(self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float):
         """
-        Init deep Q network.
+        Deep Q network.
+
+            Choose multi-layer full connection with dropout as the basic network architecture.
 
         Args:
             name (str): Network name.

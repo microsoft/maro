@@ -8,20 +8,20 @@ from typing import Union
 
 class AbsAlgorithm(ABC):
     def __init__(self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict, hyper_params: object):
-        """
-        It's the abstraction of RL algorithm, which provides a uniform policy interface, such choose_action, train_on_batch.
-        We also provide some predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it to customize
-        their own algorithms.
+        """Abstraction of RL algorithm which provides a uniform policy interface such as `choose_action` and `train`.
+
+            We also provide some predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it
+            to customize their own algorithms.
 
         Args:
-            model_dict (dict): underlying models for the algorithm (e.g., for A2C,
-                               model_dict = {"actor": ..., "critic": ...})
-            optimizer_opt (tuple or dict): tuple or dict of tuples of (optimizer_class, optimizer_params) associated
-                                           with the models in model_dict. If it is a tuple, the optimizer to be
-                                           instantiated applies to all trainable parameters from model_dict. If it
-                                           is a dict, the optimizer will be applied to the related model with the same key.
-            loss_func_dict (dict): loss function types associated with the models in model_dict.
-            hyper_params (object): algorithm-specific hyper-parameter set.
+            model_dict (dict): Underlying models for the algorithm (e.g., for A2C, model_dict could be something like
+                {"actor": ..., "critic": ...})
+            optimizer_opt (tuple or dict): Tuple or dict of tuples of (optimizer_class, optimizer_params) associated
+                with the models in model_dict. If it is a tuple, the optimizer to be instantiated applies to all
+                trainable parameters from `model_dict`. If it is a dict, the optimizer will be applied to the related
+                model with the same key.
+            loss_func_dict (dict): Loss function types associated with the models.
+            hyper_params (object): Algorithm-specific hyper-parameter set.
         """
         self._loss_func_dict = loss_func_dict
         self._hyper_params = hyper_params
@@ -56,8 +56,20 @@ class AbsAlgorithm(ABC):
 
     @abstractmethod
     def train(self, *args, **kwargs):
+        """
+        """
         return NotImplementedError
 
     @abstractmethod
     def choose_action(self, state, epsilon: float = None):
+        """This method uses the underlying model(s) to compute an action from a shaped state.
+
+        Args:
+            state: A state object shaped by a `StateShaper` to conform to the model input format.
+            epsilon (float, optional): Exploration rate. Defaults to None.
+
+        Returns:
+            An action to be taken given the `state`. It is usually necessary to use an `ActionShaper` to convert this
+            to an environment executable action.
+        """
         return NotImplementedError

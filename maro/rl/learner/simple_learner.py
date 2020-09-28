@@ -8,17 +8,13 @@ from maro.utils import DummyLogger
 
 
 class SimpleLearner(AbsLearner):
-    """
-    It is used to control the policy learning process...
-    """
     def __init__(self, trainable_agents: AbsAgentManager, actor, logger=DummyLogger()):
-        """
-        seed (int): initial random seed value for the underlying simulator. If None, no manual seed setting is
-                    performed.
+        """A simple implementation of `AbsLearner`.
+
         Args:
             trainable_agents (AbsAgentManager): an AgentManager instance that manages all agents.
             actor (Actor or ActorProxy): an Actor or VectorActorProxy instance.
-            logger: used for logging important events.
+            logger: used for logging important messages.
         """
         super().__init__()
         self._trainable_agents = trainable_agents
@@ -26,10 +22,10 @@ class SimpleLearner(AbsLearner):
         self._logger = logger
 
     def train(self, total_episodes):
-        """
-        Main loop for collecting experiences and performance from the actor and using them to optimize models.
+        """Main loop for collecting experiences from the actor and using them to update policies.
+
         Args:
-            total_episodes (int): number of episodes for the main training loop.
+            total_episodes (int): number of episodes to be run.
         """
         for current_ep in range(1, total_episodes+1):
             model_dict = None if self._is_shared_agent_instance() else self._trainable_agents.get_models()
@@ -46,8 +42,7 @@ class SimpleLearner(AbsLearner):
             self._trainable_agents.update_epsilon(performance)
 
     def test(self):
-        """
-        This tells the actor to perform one episode of roll-out for model testing purposes.
+        """This tells the actor to perform one episode of roll-out for testing purposes.
         """
         performance, _ = self._actor.roll_out(model_dict=self._trainable_agents.get_models(), return_details=False)
         for actor_id, perf in performance.items():
@@ -58,7 +53,6 @@ class SimpleLearner(AbsLearner):
         self._trainable_agents.dump_models(dir_path)
 
     def _is_shared_agent_instance(self):
-        """
-        If true, the set of agents performing inference in actor is the same as self._trainable_agents.
+        """If true, the set of agents performing inference in actor is the same as self._trainable_agents.
         """
         return isinstance(self._actor, SimpleActor) and id(self._actor.inference_agents) == id(self._trainable_agents)
