@@ -43,23 +43,23 @@ cdef class SnapshotList:
 
         .. code-block:: python
 
-            # suppose it contains 'yournodes' and 'mynodes' in definition
+            # Suppose it contains 'yournodes' and 'mynodes' in definition.
             frame = MyFrame()
 
-            # get snapshots of 'mynodes' node
+            # Get snapshots of 'mynodes' node.
             my_snapshots = frame.snapshots["mynodes"]
 
-            # query attributes states from snapshot list
-            # get values of all 'mynodes' node at all the tick
+            # Query attributes states from snapshot list.
+            # Get values of all 'mynodes' node at all the tick.
             my_value_at_all_tick = my_snapshot[::"value"]
 
-            # get values of all 'mynodes' node at 1st tick
+            # Get values of all 'mynodes' node at 1st tick.
             my_value_at_1st_tick = my_snapshot[0::"value"]
 
-            # get values of all 'mynodes' node at [0, 2, 3] ticks
+            # Get values of all 'mynodes' node at [0, 2, 3] ticks.
             my_values = my_snapshot[(0, 2, 3)::"value"]
 
-            # get all value of 1st 'mynodes' node at 1st tick
+            # Get all value of 1st 'mynodes' node at 1st tick.
             my_values = my_snapshot[0:0:"value"]
     
     """
@@ -70,14 +70,16 @@ cdef class SnapshotList:
 
 
 cdef class FrameBase:
+
     """Base object used to define frame in backend, any frame that need to be hosted in backend should inherit from this.
     Usually a frame is composed with serveral nodes (NodeBase), a snapshot list if enabled.
 
+
     .. code-block:: python
 
-        # normal frame definition
+        # Normal frame definition.
         class MyFrame(FrameBase):
-            # assuming we have 2 nodes definition with NodeBase (MyNode, YourNodes)
+            # Assuming we have 2 nodes definition with NodeBase (MyNode, YourNodes).
             mynodes = FrameNode(MyNode, 10)
             yournodes = FrameNode(YourNode, 12)
 
@@ -97,7 +99,7 @@ cdef class FrameBase:
 
     .. code-block:: python
 
-        # using function to wrap the frame definition to support dynamic node number
+        # Using function to wrap the frame definition to support dynamic node number.
         def gen_frame_definition(my_node_number: int):
             class MyDynamicFrame(FrameBase):
                 mynodes = FrameNode(MyNode, my_node_number)
@@ -106,7 +108,7 @@ cdef class FrameBase:
                 def __init__(self):
                     super().__init__(self, True, total_snapshots=10)
 
-            # this is our final frame definition
+            # This is our final frame definition.
             return MyDynamicFrame
 
 
@@ -118,7 +120,7 @@ cdef class FrameBase:
         
         frame = MyFrame()
 
-        # get instance list of MyNode
+        # Get instance list of MyNode.
         my_nodes_list = frame.mynodes
         your_nodes_list = frame.yournodes
 
@@ -127,9 +129,9 @@ cdef class FrameBase:
 
     
     Args:
-        enable_snapshot (bool): if enable snapshot list to keep frame snapshot at specified point, default False
-        total_snapshots (int): total snapshots number in memory
-        options (dict): additional options, reserved for later using
+        enable_snapshot (bool): if enable snapshot list to keep frame snapshot at specified point, default False.
+        total_snapshots (int): total snapshots number in memory.
+        options (dict): additional options, reserved for later using.
 
     
     Attributes:
@@ -161,8 +163,8 @@ cdef class FrameNode:
     
     
     Args:
-        node_cls(type): class type of node definition inherit from NodeBase
-        number(int): the number of this node in Frame
+        node_cls(type): class type of node definition inherit from NodeBase.
+        number(int): the number of this node in Frame.
     """
     cdef:
         public type _node_cls
@@ -188,19 +190,38 @@ cdef class NodeBase:
 
     .. code-block:: python
 
-        # node name in Frame, we use this name to query from snapshot list
+        # Node name in Frame, we use this name to query from snapshot list.
         @node("my nodes")
         class MyNode(NodeBase): # node class we used in business engine
-            # attribute name, and its data type
-            my_int_attr = NodeAttribute("i") # int attribute with 1 value
-            my_float_array_attr = NodeAttribute("f", 2) # a fixed size float array
+            # Attribute name, and its data type.
+            # int attribute with 1 value
+            my_int_attr = NodeAttribute("i")
 
+            # a fixed size float array
+            my_float_array_attr = NodeAttribute("f", 2)
+
+
+    Each attribute will have a default hook than will trigger an event after the value changed, to recieve this event
+    there should be a specified method that named as '_on_<attribute name>_changed' in node definition class,
+    this method will recieve the new value as its only parameter.
+
+
+    .. code-block:: python
+
+        @node("my nodes")
+        class MyNode(NodeBase):
+            my_int_attr = NodeAttrbute("i")
+
+            def _on_my_int_attr_changed(self, new_val):
+                # Do something here
+                pass
+                
 
     Same as frame definition, if you need dynamic slot number, you use a function that wrap a node defnition too.
 
 
     NOTE:
-        Do not create instance of nodes by yourself, it will cause error.
+        Do not create instance of nodes by yourself, it will cause error, as each node need to know about frame.
 
 
     .. code-block:: python
@@ -222,13 +243,13 @@ cdef class NodeBase:
 
         f = MyFrame()
 
-        # get MyNode instance list
+        # Get MyNode instance list.
         my_nodes = f.mynodes
 
-        # 1st MyNode
+        # 1st MyNode.
         mnode_1 = my_nodes[0]
 
-        # access predefined attributes
+        # Access predefined attributes.
         print(mnode_1.my_int_attr)
 
 
@@ -242,16 +263,16 @@ cdef class NodeBase:
 
     .. code-block:: python
 
-        # accessing by slot index to get a value at that slot
+        # Accessing by slot index to get a value at that slot.
         print(my_nodes.my_float_array_attr[0])
 
-        # accessing with range of slot index, will return values at those slots
+        # Accessing with range of slot index, will return values at those slots.
         print(my_nodes.my_float_array_attr[(0, 1)])
 
-        # get all values at all slots of this attribute
+        # Get all values at all slots of this attribute.
         print(my_nodes.my_float_array_attr[:])
 
-        # also you can use same way to assign values
+        # Also you can use same way to assign values.
         my_nodes.my_float_array_attr[0] = 1.1
         my_nodes.my_float_array_attr[(0, 1)] = (0.1, 0.2)
 

@@ -23,10 +23,9 @@ for ep in range(max_ep):
     while not is_done:
         metrics, decision_evt, is_done = env.step(action)
 
-        if decision_evt is not None:  # it will be None at the end
+        # it will be None at the end
+        if decision_evt is not None:
             action = Action(decision_evt.station_idx, 0, 10)
-
-            # print(decision_evt.action_scope)
 
     station_ss = env.snapshot_list['stations']
     shortage_states = station_ss[::'shortage']
@@ -41,7 +40,7 @@ for ep in range(max_ep):
 
     matrix_ss = env.snapshot_list["matrices"]
 
-    # since we may have different snapshot resolution,
+    # Since we may have different snapshot resolution,
     # so we should use frame_index to retrieve index in snapshots of current tick
     last_snapshot_index = env.frame_index
 
