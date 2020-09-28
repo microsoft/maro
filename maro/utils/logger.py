@@ -220,12 +220,12 @@ class CliLogger:
     """An internal logger for CLI logging
 
     CliLogger maintains a singleton logger in a CLI command lifecycle.
-    The logger is inited at the very beginning, and use different logging formats based on the --debug argument.
+    The logger is inited at the very beginning, and use different logging formats based on the ``--debug`` argument.
     """
 
     class _CliLogger(Logger):
         def __init__(self):
-            """Init singleton logger based on the --debug argument"""
+            """Init singleton logger based on the ``--debug`` argument"""
             self.log_level = CliGlobalParams.LOG_LEVEL
             current_time = f"{datetime.now().strftime('%Y%m%d')}"
             self._dump_folder = os.path.join(os.path.expanduser("~/.maro/log/cli"), current_time)
@@ -253,7 +253,7 @@ class CliLogger:
             CliLogger._logger = self._CliLogger()
 
     def debug(self, message: str) -> None:
-        """logger.debug() with passive init.
+        """``logger.debug()`` with passive init.
 
         Args:
             message (str): logged message
@@ -262,7 +262,7 @@ class CliLogger:
         self._logger.debug(message)
 
     def debug_yellow(self, message: str) -> None:
-        """logger.debug() with color yellow and passive init.
+        """``logger.debug()`` with color yellow and passive init.
 
         Args:
             message (str): logged message
@@ -271,7 +271,7 @@ class CliLogger:
         self._logger.debug('\033[33m' + message + '\033[0m')
 
     def info(self, message: str) -> None:
-        """logger.info() passive init
+        """``logger.info()`` passive init
 
         Args:
             message (str): logged message.
@@ -280,7 +280,7 @@ class CliLogger:
         self._logger.info(message)
 
     def warning(self, message: str) -> None:
-        """logger.warning() with passive init.
+        """``logger.warning()`` with passive init.
 
         Args:
             message (str): logged message
@@ -289,7 +289,7 @@ class CliLogger:
         self._logger.warn(message)
 
     def error(self, message: str) -> None:
-        """logger.error() with passive init.
+        """``logger.error()`` with passive init.
 
         Args:
             message (str): logged message
@@ -298,7 +298,7 @@ class CliLogger:
         self._logger.error(message)
 
     def info_green(self, message: str) -> None:
-        """logger.info() with color green and passive init.
+        """``logger.info()`` with color green and passive init.
 
         Args:
             message (str): logged message
@@ -307,7 +307,7 @@ class CliLogger:
         self._logger.info('\033[32m' + message + '\033[0m')
 
     def warning_yellow(self, message: str) -> None:
-        """logger.warning() with color yellow and passive init.
+        """``logger.warning()`` with color yellow and passive init.
 
         Args:
             message (str): logged message
@@ -316,7 +316,7 @@ class CliLogger:
         self._logger.warn('\033[33m' + message + '\033[0m')
 
     def error_red(self, message: str) -> None:
-        """logger.error() with color red and passive init.
+        """``logger.error()`` with color red and passive init.
 
         Args:
             message (str): logged message
