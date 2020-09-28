@@ -22,15 +22,15 @@ RECEIVE_TIMEOUT = default_parameters.driver.zmq.receive_timeout
 
 
 class ZmqDriver(AbsDriver):
-    """The communication driver based on "ZMQ".
+    """The communication driver based on ``ZMQ``.
 
     Args:
-        protocol (str): underlying transport-layer protocol for transferring messages, defaults to tcp.
+        protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
         send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
                             Defaults to -1.
         receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
                                Defaults to -1.
-        logger: logger instance or DummyLogger. Defaults to DummyLogger().
+        logger: The logger instance or DummyLogger. Defaults to DummyLogger().
     """
 
     def __init__(self, protocol: str = PROTOCOL, send_timeout: int = SEND_TIMEOUT,
@@ -47,10 +47,10 @@ class ZmqDriver(AbsDriver):
     def _setup_sockets(self):
         """Setup three kinds of sockets, and one poller.
 
-        "unicast_receiver": the "zmq.PULL" socket, use for receiving message from one-to-one communication,
-        "broadcast_sender": the "zmq.PUB" socket, use for broadcasting message to all subscribers,
-        "broadcast_receiver": the "zmq.SUB" socket, use for listening message from broadcast.
-        "poller": the zmq output multiplexing, use for receiving message from "zmq.PULL" socket and "zmq.SUB" socket.
+        ``unicast_receiver``: The ``zmq.PULL`` socket, use for receiving message from one-to-one communication,
+        ``broadcast_sender``: The ``zmq.PUB`` socket, use for broadcasting message to all subscribers,
+        ``broadcast_receiver``: The ``zmq.SUB`` socket, use for listening message from broadcast.
+        ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and ``zmq.SUB`` socket.
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
@@ -67,7 +67,7 @@ class ZmqDriver(AbsDriver):
         broadcast_receiver_port = self._broadcast_receiver.bind_to_random_port(f"{self._protocol}://*")
         self._logger.debug(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
 
-        # record own sockets' address
+        # Record own sockets' address.
         self._address = {zmq.PULL: f"{self._protocol}://{self._ip_address}:{unicast_receiver_port}",
                          zmq.SUB: f"{self._protocol}://{self._ip_address}:{broadcast_receiver_port}"}
 
@@ -79,25 +79,25 @@ class ZmqDriver(AbsDriver):
     def address(self) -> Dict[int, str]:
         """
         Returns:
-            Dict[int, str]: the sockets' address "Dict" of "zmq-pull" socket and "zmq-sub" socket. \n
+            Dict[int, str]: The sockets' address ``Dict`` of ``zmq.PULL`` socket and ``zmq.SUB`` socket. \n
                 the key of dict is socket's type, \n
                 the value of dict is socket's ip address, which forms by protocol+ip+port.
         
-        For example:
-            Dict{zmq.PULL: "tcp://0.0.0.0:1234", zmq.SUB: "tcp://0.0.0.0:1235"}
+        Example:
+            Dict[zmq.PULL: "tcp://0.0.0.0:1234", zmq.SUB: "tcp://0.0.0.0:1235"]
         """
         return self._address
 
     def connect(self, peers_address_dict: Dict[str, Dict[str, str]]):
         """Build a connection with all peers in peers socket address.
 
-        set up the unicast sender which is "zmq.PUSH" socket and the broadcast sender which is "zmq.PUB" socket.
+        Set up the unicast sender which is ``zmq.PUSH`` socket and the broadcast sender which is ``zmq.PUB`` socket.
         
         Args:
             peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict. \n
                 the key of dict is the peer's name, \n
                 the value of dict is the peer's socket connection address stored in dict. \n
-                For example: 
+                Example: 
                     Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
         """
         for peer_name, address_dict in peers_address_dict.items():
@@ -117,13 +117,13 @@ class ZmqDriver(AbsDriver):
                     raise PeersConnectionError(f"Driver cannot connect to {peer_name}! Due to {str(e)}")
 
     def receive(self, is_continuous: bool = True):
-        """Receive message from "zmq.POLLER".
+        """Receive message from ``zmq.POLLER``.
 
         Args:
-            is_continuous (bool): continuously receive message or not. Defaults to True.
+            is_continuous (bool): Continuously receive message or not. Defaults to True.
 
         Yields:
-            recv_message (Message): the received message from the poller.
+            recv_message (Message): The received message from the poller.
         """
         while True:
             try:
@@ -147,7 +147,7 @@ class ZmqDriver(AbsDriver):
         """Send message.
 
         Args:
-            message (class): message to be sent.
+            message (class): Message to be sent.
         """
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
@@ -159,7 +159,7 @@ class ZmqDriver(AbsDriver):
         """Broadcast message.
 
         Args:
-            message(class): message to be sent.
+            message(class): Message to be sent.
         """
         try:
             self._broadcast_sender.send_pyobj(message)

@@ -12,7 +12,7 @@ class AbsDriver(ABC):
     @property
     @abstractmethod
     def address(self):
-        """Dict: Based on the real socket driver, the socket's address usually be a "Dict"."""
+        """Dict: The socket's address. Based on the real socket driver, it usually be a ``Dict``."""
         pass
 
     @abstractmethod
@@ -21,7 +21,7 @@ class AbsDriver(ABC):
         
         Args:
             peers_address: The store of peers' socket address. Based on the real socket driver, 
-                           the peers' socket address usually be a "Dict".
+                           the peers' socket address usually be a ``Dict``.
         """
         pass
 

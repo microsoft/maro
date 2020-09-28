@@ -36,22 +36,22 @@ DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 class Proxy:
     """The communication module is responsible for receiving and sending messages.
 
-    There are three ways of sending messages: "send", "scatter", and "broadcast". Also, there are two ways to
-    receive messages from other peers: "receive" and "receive_by_id".
+    There are three ways of sending messages: ``send``, ``scatter``, and ``broadcast``. Also, there are two ways to
+    receive messages from other peers: ``receive`` and ``receive_by_id``.
 
     Args:
         group_name (str): Identifier for the group of all distributed components.
         component_type (str): Component's type in the current group.
         expected_peers (Dict): Dict of peers' information which contains peer type and expected number.
-            i.e. Dict['learner': 1, 'actor': 2]
-        driver_type (Enum): A type of communication driver class uses to communicate with other components,
-                            defaults to DriverType.ZMQ.
-        driver_parameters (Dict): The arguments for communication driver class initial, defaults to None.
-        redis_address (Tuple): Hostname and port of the Redis server, defaults to ("localhost", 6379).
-        max_retries (int): Maximum number of retries before raising an exception, defaults to 5.
-        base_retry_interval (float): The time interval between attempts, defaults to 0.1.
-        fault_tolerant (bool): Proxy can tolerate sending message error or not, defaults to False.
-        log_enable (bool): Open internal logger or not, defaults to True.
+            E.g. Dict['learner': 1, 'actor': 2]
+        driver_type (Enum): A type of communication driver class uses to communicate with other components.
+            Defaults to DriverType.ZMQ.
+        driver_parameters (Dict): The arguments for communication driver class initial. Defaults to None.
+        redis_address (Tuple): Hostname and port of the Redis server. Defaults to ("localhost", 6379).
+        max_retries (int): Maximum number of retries before raising an exception. Defaults to 5.
+        base_retry_interval (float): The time interval between attempts. Defaults to 0.1.
+        fault_tolerant (bool): Proxy can tolerate sending message error or not. Defaults to False.
+        log_enable (bool): Open internal logger or not. Defaults to True.
     """
 
     def __init__(self, group_name: str, component_type: str, expected_peers: dict,
@@ -105,7 +105,7 @@ class Proxy:
         self._register_redis()
         self._get_peers_list()
         self._build_connection()
-        # TODO: handle slow joiner for PUB/SUB
+        # TODO: Handle slow joiner for PUB/SUB.
         time.sleep(DELAY_FOR_SLOW_JOINER)
 
     def __del__(self):
@@ -128,7 +128,7 @@ class Proxy:
         driver_address = self._driver.address
         self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(driver_address))
 
-        # handle interrupt signal for clearing Redis record.
+        # Handle interrupt signal for clearing Redis record.
         try:
             signal.signal(signal.SIGINT, self._signal_handler)
             signal.signal(signal.SIGTERM, self._signal_handler)
@@ -200,10 +200,10 @@ class Proxy:
         """Return peers' name list depending on the component type.
 
         Args:
-            component_type (str): the peers' type, if "\*", return all peers' name in the proxy. Defaults to "\*".
+            component_type (str): The peers' type, if "\*", return all peers' name in the proxy. Defaults to "\*".
 
         Returns:
-            List[str]: list of peers' name.
+            List[str]: List of peers' name.
         """
         if component_type == "*":
             return list(itertools.chain.from_iterable(self._onboard_peers_name_dict.values()))
@@ -217,7 +217,7 @@ class Proxy:
         """Receive messages from communication driver.
 
         Args:
-            is_continuous (bool): Continuously receive message or not, defaults to True.
+            is_continuous (bool): Continuously receive message or not. Defaults to True.
         """
         return self._driver.receive(is_continuous)
 
@@ -225,17 +225,17 @@ class Proxy:
         """Receive target messages from communication driver.
 
         Args:
-            session_id_list List[str]: list of "session_id". \n
-                For examples:
+            session_id_list List[str]: List of ''session_id''. \n
+                Examples:
                     ['0_learner0_actor0', '1_learner1_actor1', ...].
 
         Returns:
-            List[Message]: list of received messages.
+            List[Message]: List of received messages.
         """
         pending_message_list = session_id_list[:]
         received_message = []
 
-        # check message cache for saved messages
+        # Check message cache for saved messages.
         for msg_key in session_id_list:
             if msg_key in list(self._message_cache.keys()):
                 for msg in self._message_cache[msg_key]:
@@ -246,7 +246,7 @@ class Proxy:
         if not pending_message_list:
             return received_message
 
-        # wait for incoming messages
+        # Wait for incoming messages.
         for msg in self._driver.receive():
             msg_key = msg.session_id
 
@@ -298,7 +298,7 @@ class Proxy:
             session_id (str): Message's session id. Defaults to None.
 
         Returns:
-            List[Message]: list of replied message.
+            List[Message]: List of replied message.
         """
         return self.receive_by_id(self._scatter(tag, session_type, destination_payload_list, session_id))
 
@@ -349,7 +349,7 @@ class Proxy:
             payload (object): The true data. Defaults to None.
 
         Returns:
-            List[Message]: list of replied messages.
+            List[Message]: List of replied messages.
         """
         return self.receive_by_id(self._broadcast(tag, session_type, session_id, payload))
 
@@ -364,7 +364,7 @@ class Proxy:
             payload (object): The true data. Defaults to None.
 
         Returns:
-            List[str]: list of message's session id which related to the replied message.
+            List[str]: List of message's session id which related to the replied message.
         """
         return self._broadcast(tag, session_type, session_id, payload)
 
@@ -372,10 +372,10 @@ class Proxy:
         """Send a message to a remote peer.
 
         Args:
-            message: message to be sent.
+            message: Message to be sent.
 
         Returns:
-            List[str]: list of message's session id.
+            List[str]: List of message's session id.
         """
         sending_status = self._driver.send(message)
 
@@ -391,10 +391,10 @@ class Proxy:
         """Send a message to a remote peer.
 
         Args:
-            message: message to be sent.
+            message: Message to be sent.
 
         Returns:
-            List[Message]: list of replied message.
+            List[Message]: List of replied message.
         """
         sending_status = self._driver.send(message)
 

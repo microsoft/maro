@@ -24,7 +24,7 @@ class SuffixTree:
         value (Operation|str): Event operation: Operation.AND or Operation.OR, or the unit conditional event.
         nodes List[SuffixTree]: List of the SuffixTree's nodes.
     
-    For example: \n
+    Examples: \n
         given conditional event, ("actor:rollout:1", "actor:update:1", AND), \n
             suffixtree.value = Operation.AND, \n
             suffixtree.nodes = [SuffixTree(value="actor:rollout:1"), SuffixTree(value="actor:update:1")].
@@ -44,18 +44,18 @@ class ConditionalEvent:
         For unit conditional event, \n
             It must be three parts and divided by ':', \n
                 the first part of unit event represent the message's source,
-                    e.g. 'learner' or '*'
+                    E.g. 'learner' or '*'
                 the second part of unit event represent the message's type,
-                    e.g. 'experience' or '*'
+                    E.g. 'experience' or '*'
                 the third part of unit event represent how much messages needed,
-                    e.g. '1' or '90%'
+                    E.g. '1' or '90%'
             Do not use special symbol in the unit event, such as ',', '(', ')'.
 
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
-            e.g. unit conditional event (str): "actor:rollout:1" or 
+            E.g. unit conditional event (str): "actor:rollout:1" or 
                  conditional event (Tuple): ("learner:rollout:1", "learner:update:1", "AND")
-        get_peers (callable): Return the newest peer's name list from proxy.
+        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
     """
 
     def __init__(self, event: Union[str, Tuple], get_peers: callable):
@@ -71,7 +71,7 @@ class ConditionalEvent:
         operation_and_list = ["&&", "AND"]
         operation_or_list = ["||", "OR"]
 
-        # check it is unit conditional event(str) or conditional event(tuple)
+        # Check it is unit conditional event(str) or conditional event(tuple).
         if isinstance(event, str):
             self._unit_event_syntax_check(event)
             self._unit_event_message_dict[event] = []
@@ -101,14 +101,14 @@ class ConditionalEvent:
         """To check unit conditional event expression.
 
         Args:
-            unit_event (str): the description of the requisite messages.
+            unit_event (str): The description of the requisite messages.
         """
         slots = unit_event.split(":")
         if len(slots) != 3:
             raise ConditionalEventSyntaxError(f"The conditional event: {unit_event}, "
                                               f"must have three parts, and divided by ':'.")
 
-        # the third part of unit conditional event must be an integer or percentage(*%)
+        # The third part of unit conditional event must be an integer or percentage(*%).
         if slots[-1][-1] == "%":
             slots[-1] = slots[-1][:-1]
 
@@ -141,7 +141,7 @@ class ConditionalEvent:
         """
         request_message_number = self._get_request_message_number(unit_event)
 
-        # check if unit conditional event dict storied enough message
+        # Check if unit conditional event dict storied enough message.
         if request_message_number <= len(self._unit_event_message_dict[unit_event]):
             return [unit_event]
 
@@ -163,7 +163,7 @@ class ConditionalEvent:
             if operation == Operation.OR and r:
                 return r
 
-        # flatten
+        # Flatten.
         flatten_result = list(itertools.chain.from_iterable(result))
         return flatten_result
 
@@ -204,17 +204,17 @@ class ConditionalEvent:
                 message_list.append(self._unit_event_message_dict[unit_event][:request_message_number])
                 del self._unit_event_message_dict[unit_event][:request_message_number]
 
-            # flatten
+            # Flatten.
             message_list = list(itertools.chain.from_iterable(message_list))
 
         return message_list
 
 
 class RegisterTable:
-    """The RegisterTable is responsible for matching "conditional events" and "user-defined message handlers".
+    """The RegisterTable is responsible for matching ``conditional events`` and ``user-defined message handlers``.
 
     Args:
-        get_peers (callable): return the newest peer list from proxy.
+        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
     """
 
     def __init__(self, get_peers: callable):
@@ -222,18 +222,18 @@ class RegisterTable:
         self._get_peers = get_peers
 
     def register_event_handler(self, event: Union[str, tuple], handler_fn: callable):
-        """Register conditional event in the RegisterTable, and create a dict which match "message handler" and
-        "conditional event".
+        """Register conditional event in the RegisterTable, and create a dict which match ``message handler`` and
+        ``conditional event``.
 
         Args:
-            event (str|Tuple): the description of the requisite messages' combination,
-            handler_fn (callable): User-define function which usually uses to handle incoming messages.
+            event (str|Tuple): The description of the requisite messages' combination,
+            handler_fn (callable): The user-define function which usually uses to handle incoming messages.
         """
         event = ConditionalEvent(event, self._get_peers)
         self._event_handler_dict[event] = handler_fn
 
     def push(self, message: Message):
-        """Push message into all "conditional events" which register in the Registry Table.
+        """Push message into all ``conditional events`` which register in the Registry Table.
 
         Args:
             message (Message): Received message.
@@ -242,12 +242,12 @@ class RegisterTable:
             event.push_message(message)
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
-        """If any "conditional event" has been satisfied, return the requisite message list and
+        """If any ``conditional event`` has been satisfied, return the requisite message list and
         the correlational handler function.
 
         Return:
             List[Tuple[callable, List[Message]]]: The list of triggered handler functions and messages.
-                e.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]
+                E.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]
         """
         satisfied_handler_fn = []
 

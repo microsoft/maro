@@ -51,8 +51,8 @@ class Message(object):
         source (str): The sender of message.
         destination (str): The receiver of message.
         payload (object): Message payload, such as model parameters, experiences, etc. Defaults to None.
-        session_id (str): Message belonged session id, it will be generated automatically by default, you can use it,
-                          group message based on your application logic.
+        session_id (str): Message belonged session id, it will be generated automatically by default, you can use it 
+            to group message based on your application logic.
     """
 
     def __init__(self, tag: Union[str, Enum], source: str, destination: str, payload=None, session_id: str = None):
