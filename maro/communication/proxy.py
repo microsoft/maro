@@ -192,7 +192,7 @@ class Proxy:
 
     @property
     def peers(self) -> Dict:
-        """Dict: The "Dict" of all connected peers' names, stored by peer type."""
+        """Dict: The ``Dict`` of all connected peers' names, stored by peer type."""
         return self._onboard_peers_name_dict
 
     def get_peers(self, component_type: str = "*") -> List[str]:
@@ -291,8 +291,8 @@ class Proxy:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
             destination_payload_list ([Tuple(str, object)]): The destination-payload list.
-                the first item of the tuple in list is the message destination,
-                the second item of the tuple in list is the message payload.
+                The first item of the tuple in list is the message destination, 
+                and the second item of the tuple in list is the message payload.
             session_id (str): Message's session id. Defaults to None.
 
         Returns:
@@ -308,8 +308,8 @@ class Proxy:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
             destination_payload_list ([Tuple(str, object)]): The destination-payload list.
-                the first item of the tuple in list is the message's destination,
-                the second item of the tuple in list is the message's payload.
+                The first item of the tuple in list is the message's destination, 
+                and the second item of the tuple in list is the message's payload.
             session_id (str): Message's session id. Defaults to None.
 
         Returns:

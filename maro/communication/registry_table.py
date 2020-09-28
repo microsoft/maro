@@ -13,22 +13,21 @@ from maro.utils.exception.communication_exception import ConditionalEventSyntaxE
 
 
 class Operation(Enum):
-    """The Enum class of the valid operations."""
+    """The Enum class of the logic operations."""
     AND = "AND"
     OR = "OR"
 
 
 class SuffixTree:
-    """Suffix tree structure.
+    """The suffix tree uses to decompose the conditional event.
+
+    For the unit conditional event, the ``SuffixTree.value`` is the unit conditional event; 
+    For the conditional event, the ``SuffixTree.value`` is one of the ``Operation``, and the 
+    ``SuffixTree.nodes`` is the list of the unit conditional event.
 
     Args:
         value (Operation|str): Event operation: ``Operation.AND`` or ``Operation.OR``, or the unit conditional event.
-        nodes List[SuffixTree]: List of the SuffixTree's nodes.
-
-    Examples:
-        Given a conditional event ``("actor:rollout:1", "actor:update:1", AND)``, the corresponding SuffixTree is:
-        ``suffixtree.value = Operation.AND``,
-        ``suffixtree.nodes = [SuffixTree(value="actor:rollout:1"), SuffixTree(value="actor:update:1")]``.
+        nodes List[SuffixTree]: List of the SuffixTrees.
     """
 
     def __init__(self, value=None, nodes=None):
@@ -50,8 +49,7 @@ class ConditionalEvent:
 
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
-            E.g. unit conditional event (str): "actor:rollout:1" or
-            conditional event (Tuple): ("learner:rollout:1", "learner:update:1", "AND").
+            E.g. "actor:rollout:1" or ("learner:rollout:1", "learner:update:1", "AND").
         get_peers (callable): The callable function which returns the newest peer's name list from proxy.
     """
 
