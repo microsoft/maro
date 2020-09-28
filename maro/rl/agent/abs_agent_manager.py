@@ -76,8 +76,7 @@ class AbsAgentManager(ABC):
         return self._agent_dict[agent_id]
 
     def _assemble(self, agent_dict):
-        """Assembles agents and fill the ``agent_dict`` with them.
-        """
+        """Assembles agents and fill the ``agent_dict`` with them."""
         return NotImplemented
 
     def choose_action(self, decision_event, snapshot_list):

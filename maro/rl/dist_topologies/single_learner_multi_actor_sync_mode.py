@@ -43,7 +43,7 @@ class ActorProxy(object):
             return_details (bool): If True, return experiences as well as performance metrics provided by the env.
 
         Returns:
-
+            Performance and per-agent experiences from the remote actor.
         """
         if done:
             self._proxy.ibroadcast(tag=MessageTag.ROLLOUT,
@@ -89,7 +89,6 @@ class ActorWorker(object):
 
         Args:
             message: Message containing roll-out parameters and options.
-
         """
         data = message.payload
         if data.get(PayloadKey.DONE, False):
@@ -109,7 +108,7 @@ class ActorWorker(object):
         """Entry point method.
 
         This enters the actor into an infinite loop of listening to requests and handling them according to the
-        register table. In this case, the only type of requests the actor needs to handle is roll-out requests.    
+        register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
         """
         for msg in self._proxy.receive():
             self._registry_table.push(msg)
