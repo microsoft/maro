@@ -8,8 +8,7 @@ name: deploy_gh_pages
 #     tags:
 #     - "v*.*.*"
 
-on:
-  workflow_dispatch:
+on: [ workflow_dispatch ]
 
 jobs:
   build:

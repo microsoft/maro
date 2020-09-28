@@ -2,11 +2,11 @@
 name: test
 
 on:
-  workflow_dispatch
   push:
     branches: [ master, v0.1 ]
   pull_request:
     branches: [ master, v0.1 ]
+  workflow_dispatch:
 
 jobs:
   test:
