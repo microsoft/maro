@@ -45,7 +45,7 @@ class Proxy:
         expected_peers (Dict): Dict of peers' information which contains peer type and expected number.
             E.g. Dict['learner': 1, 'actor': 2]
         driver_type (Enum): A type of communication driver class uses to communicate with other components.
-            Defaults to DriverType.ZMQ.
+            Defaults to ``DriverType.ZMQ``.
         driver_parameters (Dict): The arguments for communication driver class initial. Defaults to None.
         redis_address (Tuple): Hostname and port of the Redis server. Defaults to ("localhost", 6379).
         max_retries (int): Maximum number of retries before raising an exception. Defaults to 5.
@@ -200,7 +200,7 @@ class Proxy:
         """Return peers' name list depending on the component type.
 
         Args:
-            component_type (str): The peers' type, if "\*", return all peers' name in the proxy. Defaults to "\*".
+            component_type (str): The peers' type, if ``*``, return all peers' name in the proxy. Defaults to ``*``.
 
         Returns:
             List[str]: List of peers' name.
@@ -225,9 +225,8 @@ class Proxy:
         """Receive target messages from communication driver.
 
         Args:
-            session_id_list List[str]: List of ''session_id''. \n
-                Examples:
-                    ['0_learner0_actor0', '1_learner1_actor1', ...].
+            session_id_list List[str]: List of ``session_id``.
+                E.g. ['0_learner0_actor0', '1_learner1_actor1', ...].
 
         Returns:
             List[Message]: List of received messages.

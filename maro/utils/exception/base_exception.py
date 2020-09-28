@@ -11,7 +11,7 @@ class MAROException(Exception):
     Args:
         error_code (int): the predefined MARO error code. You can find the
             detailed definition in: `maro.utils.exception.error_code.py`.
-        msg (str): Description of the error. Defaults to ``None``, which will
+        msg (str): Description of the error. Defaults to None, which will
             show the base error information.
     """
 

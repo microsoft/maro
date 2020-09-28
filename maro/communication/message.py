@@ -14,8 +14,8 @@ from maro.communication.utils import session_id_generator
 class SessionType(Enum):
     """Communication session categories.
 
-    TASK: Task session is used to trigger remote job(s). \n
-    NOTIFICATION: Notification session is used to sync information to peers.
+    - ``TASK``: Task session is used to trigger remote job(s).
+    - ``NOTIFICATION``: Notification session is used to sync information to peers.
     """
     TASK = "task"
     NOTIFICATION = "notification"
@@ -24,9 +24,9 @@ class SessionType(Enum):
 class TaskSessionStage(Enum):
     """Task session stages.
 
-    REQUEST: Task session stage 1. \n
-    RECEIVE: Task session stage 2. \n
-    COMPLETE: Task session stage 3.
+    - ``REQUEST``: Task session stage 1.
+    - ``RECEIVE``: Task session stage 2.
+    - ``COMPLETE``: Task session stage 3.
     """
     REQUEST = "task_request"
     RECEIVE = "task_receive"
@@ -36,8 +36,8 @@ class TaskSessionStage(Enum):
 class NotificationSessionStage(Enum):
     """Notification session stages.
 
-    REQUEST: Notification session stage 1. \n
-    RECEIVE: Notification session stage 2.
+    - ``REQUEST``: Notification session stage 1.
+    - ``RECEIVE``: Notification session stage 2.
     """
     REQUEST = "notification_request"
     RECEIVE = "notification_receive"
@@ -51,7 +51,7 @@ class Message(object):
         source (str): The sender of message.
         destination (str): The receiver of message.
         payload (object): Message payload, such as model parameters, experiences, etc. Defaults to None.
-        session_id (str): Message belonged session id, it will be generated automatically by default, you can use it 
+        session_id (str): Message belonged session id, it will be generated automatically by default, you can use it
             to group message based on your application logic.
     """
 

@@ -13,6 +13,7 @@ from maro.utils.exception.communication_exception import ConditionalEventSyntaxE
 
 
 class Operation(Enum):
+    """The Enum class of the valid operations."""
     AND = "AND"
     OR = "OR"
 
@@ -21,13 +22,13 @@ class SuffixTree:
     """Suffix tree structure.
 
     Args:
-        value (Operation|str): Event operation: Operation.AND or Operation.OR, or the unit conditional event.
+        value (Operation|str): Event operation: ``Operation.AND`` or ``Operation.OR``, or the unit conditional event.
         nodes List[SuffixTree]: List of the SuffixTree's nodes.
-    
-    Examples: \n
-        given conditional event, ("actor:rollout:1", "actor:update:1", AND), \n
-            suffixtree.value = Operation.AND, \n
-            suffixtree.nodes = [SuffixTree(value="actor:rollout:1"), SuffixTree(value="actor:update:1")].
+
+    Examples:
+        Given a conditional event ``("actor:rollout:1", "actor:update:1", AND)``, the corresponding SuffixTree is:
+        ``suffixtree.value = Operation.AND``,
+        ``suffixtree.nodes = [SuffixTree(value="actor:rollout:1"), SuffixTree(value="actor:update:1")]``.
     """
 
     def __init__(self, value=None, nodes=None):
@@ -38,23 +39,19 @@ class SuffixTree:
 class ConditionalEvent:
     """The description of the messages' combination.
 
-    Rules:
-        The conditional event can be composed of any number of unit conditional events and end with an Operation. 
+    The conditional event can be composed of any number of unit conditional events and end with an Operation.
+    For unit conditional event, It must be three parts and divided by ``:``:
+        - The first part of unit event represent the message's source. E.g. ``learner`` or ``*``.
+        - The second part of unit event represent the message's type. E.g. ``experience`` or ``*``.
+        - The third part of unit event represent how much messages needed. E.g. ``1`` or ``90%``.
 
-        For unit conditional event, \n
-            It must be three parts and divided by ':', \n
-                the first part of unit event represent the message's source,
-                    E.g. 'learner' or '*'
-                the second part of unit event represent the message's type,
-                    E.g. 'experience' or '*'
-                the third part of unit event represent how much messages needed,
-                    E.g. '1' or '90%'
-            Do not use special symbol in the unit event, such as ',', '(', ')'.
+    Note:
+        Do not use special symbol in the unit event, such as ``,``, ``(``, ``)``.
 
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
-            E.g. unit conditional event (str): "actor:rollout:1" or 
-                 conditional event (Tuple): ("learner:rollout:1", "learner:update:1", "AND")
+            E.g. unit conditional event (str): "actor:rollout:1" or
+            conditional event (Tuple): ("learner:rollout:1", "learner:update:1", "AND").
         get_peers (callable): The callable function which returns the newest peer's name list from proxy.
     """
 
@@ -211,7 +208,7 @@ class ConditionalEvent:
 
 
 class RegisterTable:
-    """The RegisterTable is responsible for matching ``conditional events`` and ``user-defined message handlers``.
+    """The RegisterTable is responsible for matching ``conditional events`` and user-defined ``message handlers``.
 
     Args:
         get_peers (callable): The callable function which returns the newest peer's name list from proxy.
@@ -247,7 +244,7 @@ class RegisterTable:
 
         Return:
             List[Tuple[callable, List[Message]]]: The list of triggered handler functions and messages.
-                E.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]
+            E.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]
         """
         satisfied_handler_fn = []
 

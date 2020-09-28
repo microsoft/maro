@@ -96,9 +96,7 @@ class ZmqDriver(AbsDriver):
         Args:
             peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict.
                 The key of dict is the peer's name, while the value of dict is the peer's socket connection address
-                stored in dict.
-                Example:
-                    Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
+                stored in dict. E.g. Dict{'peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']}.
         """
         for peer_name, address_dict in peers_address_dict.items():
             for socket_type, address in address_dict.items():
