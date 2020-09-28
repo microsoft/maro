@@ -70,6 +70,7 @@ class Proxy:
         self._retry_interval = base_retry_interval
         self._is_enable_fault_tolerant = fault_tolerant
         self._log_enable = log_enable
+        self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
 
         try:
             self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1])
@@ -85,8 +86,6 @@ class Proxy:
         self._onboard_peers_name_dict = {}
         # Temporary store the message.
         self._message_cache = defaultdict(list)
-
-        self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
 
         self._join()
 
