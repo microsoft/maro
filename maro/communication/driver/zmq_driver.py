@@ -80,8 +80,8 @@ class ZmqDriver(AbsDriver):
         """
         Returns:
             Dict[int, str]: The sockets' address Dict of ``zmq.PULL`` socket and ``zmq.SUB`` socket.
-                The key of dict is the socket's type, while the value of dict is socket's ip address,
-                which forms by protocol+ip+port.
+            The key of dict is the socket's type, while the value of dict is socket's ip address,
+            which forms by protocol+ip+port.
 
         Example:
             Dict{zmq.PULL: "tcp://0.0.0.0:1234", zmq.SUB: "tcp://0.0.0.0:1235"}
