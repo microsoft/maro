@@ -10,7 +10,8 @@ Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcemen
 learning as a Service (RaaS) for real-world resource optimization. It can be
 applied to many important industrial domains, such as container inventory
 management in logistics, bike repositioning in transportation, virtual machine
-provisioning in data centers, and asset management in finance. Besides RL, it
+provisioning in data centers, and asset management in finance. Besides 
+`Reinforcement Learning <https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf>`_ (RL), it
 also supports other planning/decision mechanisms, such as
 `Operations Research <https://en.wikipedia.org/wiki/Operations_research>`_.
 
