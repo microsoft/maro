@@ -20,8 +20,6 @@ import sys
 from recommonmark.parser import CommonMarkParser
 sys.path.insert(0, os.path.abspath("../.."))
 
-from maro import __version__
-
 os.environ["APIDOC_GEN"] = os.environ.get("APIDOC_GEN") or "True"
 # -- Project information -----------------------------------------------------
 
@@ -87,7 +85,7 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ["_static"]
 html_favicon = "images/fav32x32.ico"
-html_title = f"MARO v{str(__version__)}"
+html_title = "latest"
 html_logo = "images/logo.svg"
 htmlhelp_basename = "MaroDoc"
 
