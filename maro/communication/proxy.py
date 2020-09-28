@@ -36,8 +36,8 @@ DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 class Proxy:
     """The communication module is responsible for receiving and sending messages.
 
-    There are three ways of sending messages: send, scatter, and broadcast. Also, there are two ways to
-    receive messages from other peers: receive and receive_by_id.
+    There are three ways of sending messages: "send", "scatter", and "broadcast". Also, there are two ways to
+    receive messages from other peers: "receive" and "receive_by_id".
 
     Args:
         group_name (str): Identifier for the group of all distributed components.
@@ -76,14 +76,14 @@ class Proxy:
         except Exception as e:
             raise RedisConnectionError(f"{self._name} failure to connect to redis server due to {e}")
 
-        # record the peer's redis information
+        # Record the peer's redis information.
         self._peers_info_dict = {}
         for peer_type, number in expected_peers.items():
             self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
                                                           expected_number=number)
-        # record connected peers' name
+        # Record connected peers' name.
         self._onboard_peers_name_dict = {}
-        # temporary store the message
+        # Temporary store the message.
         self._message_cache = defaultdict(list)
 
         self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
@@ -138,7 +138,7 @@ class Proxy:
                                   f"Due to {str(e)}.")
 
     def _get_peers_list(self):
-        """To collect all peers' name in the same group (group name) from the redis."""
+        """To collect all peers' name in the same group (group name) from Redis."""
         if not self._peers_info_dict:
             raise PeersMissError(f"Cannot get {self._name}\'s peers.")
 
@@ -156,8 +156,8 @@ class Proxy:
                     break
                 else:
                     self._logger.debug(f"{self._name} failed to get {peer_type}\'s name. Retrying in "
-                                       f"{self._retry_interval * (2**retry_number)} seconds.")
-                    time.sleep(self._retry_interval * (2**retry_number))
+                                       f"{self._retry_interval * (2 ** retry_number)} seconds.")
+                    time.sleep(self._retry_interval * (2 ** retry_number))
                     retry_number += 1
 
             if not expected_peers_name:
@@ -193,14 +193,14 @@ class Proxy:
 
     @property
     def peers(self) -> Dict:
-        """Dict: The Dict of all connected peers' names, stored by peer type."""
+        """Dict: The "Dict" of all connected peers' names, stored by peer type."""
         return self._onboard_peers_name_dict
 
     def get_peers(self, component_type: str = "*") -> List[str]:
-        """Return peers' name list.
+        """Return peers' name list depending on the component type.
 
         Args:
-            component_type (str): the peers' type, if *, return all peers' name in the proxy. Defaults to "\*".
+            component_type (str): the peers' type, if "\*", return all peers' name in the proxy. Defaults to "\*".
 
         Returns:
             List[str]: list of peers' name.
@@ -225,8 +225,9 @@ class Proxy:
         """Receive target messages from communication driver.
 
         Args:
-            session_id_list List[str]: list of session_id.
-                i.e. ['0_learner0_actor0', '1_learner1_actor1', ...].
+            session_id_list List[str]: list of "session_id". \n
+                For examples:
+                    ['0_learner0_actor0', '1_learner1_actor1', ...].
 
         Returns:
             List[Message]: list of received messages.

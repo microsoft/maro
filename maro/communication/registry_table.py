@@ -44,16 +44,16 @@ class ConditionalEvent:
         For unit conditional event, \n
             It must be three parts and divided by ':', \n
                 the first part of unit event represent the message's source,
-                    i.e. 'learner' or '*'
+                    e.g. 'learner' or '*'
                 the second part of unit event represent the message's type,
-                    i.e. 'experience' or '*'
+                    e.g. 'experience' or '*'
                 the third part of unit event represent how much messages needed,
-                    i.e. '1' or '90%'
+                    e.g. '1' or '90%'
             Do not use special symbol in the unit event, such as ',', '(', ')'.
 
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
-            i.e. unit conditional event (str): "actor:rollout:1" or 
+            e.g. unit conditional event (str): "actor:rollout:1" or 
                  conditional event (Tuple): ("learner:rollout:1", "learner:update:1", "AND")
         get_peers (callable): Return the newest peer's name list from proxy.
     """
@@ -211,7 +211,7 @@ class ConditionalEvent:
 
 
 class RegisterTable:
-    """The RegisterTable is responsible for matching constraints and user-defined message handlers.
+    """The RegisterTable is responsible for matching "conditional events" and "user-defined message handlers".
 
     Args:
         get_peers (callable): return the newest peer list from proxy.
@@ -222,8 +222,8 @@ class RegisterTable:
         self._get_peers = get_peers
 
     def register_event_handler(self, event: Union[str, tuple], handler_fn: callable):
-        """Register conditional event in the RegisterTable, and create a dict which match message handler and
-        conditional event.
+        """Register conditional event in the RegisterTable, and create a dict which match "message handler" and
+        "conditional event".
 
         Args:
             event (str|Tuple): the description of the requisite messages' combination,
@@ -233,7 +233,7 @@ class RegisterTable:
         self._event_handler_dict[event] = handler_fn
 
     def push(self, message: Message):
-        """Push message into all conditional events which register in Registry Table.
+        """Push message into all "conditional events" which register in the Registry Table.
 
         Args:
             message (Message): Received message.
@@ -242,12 +242,12 @@ class RegisterTable:
             event.push_message(message)
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
-        """If any conditional event has been satisfied, return the requisite message list and
+        """If any "conditional event" has been satisfied, return the requisite message list and
         the correlational handler function.
 
         Return:
             List[Tuple[callable, List[Message]]]: The list of triggered handler functions and messages.
-                i.e. [(handle_function_1, [messages]), (handle_function_2, [messages])]
+                e.g. [(handle_function_1, [messages]), (handle_function_2, [messages])]
         """
         satisfied_handler_fn = []
 

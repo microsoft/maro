@@ -12,23 +12,16 @@ class AbsDriver(ABC):
     @property
     @abstractmethod
     def address(self):
-        """Return the socket's address.
-
-        Returns:
-            Based on the real socket driver, the socket's address usually be a Dict with. \n
-                the key of dict is socket's type, \n
-                the value of dict is socket's address; usually, the format is protocol+ip+port.
-        """
+        """Dict: Based on the real socket driver, the socket's address usually be a "Dict"."""
         pass
 
     @abstractmethod
-    def connect(self, peers_address: Dict):
+    def connect(self, peers_address):
         """Build the connection with other peers which is given by the peer address.
         
         Args:
-            peers_address (Dict): Peers socket address dict. \n
-                the key of dict is the peer's name, \n
-                the value of dict is the peer's socket connection address.
+            peers_address: The store of peers' socket address. Based on the real socket driver, 
+                           the peers' socket address usually be a "Dict".
         """
         pass
 
