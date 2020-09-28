@@ -7,13 +7,13 @@ from maro.simulator import Env
 
 
 class SimpleActor(AbsActor):
-    def __init__(self, env: Env, inference_agents: AbsAgentManager):
-        """A simple `AbsActor` implementation.
+    """A simple ``AbsActor`` implementation.
 
-        Args:
-            env (Env): An Env instance.
-            inference_agents (AbsAgentManager): An AgentManager instance that manages all agents.
-        """
+    Args:
+        env (Env): An Env instance.
+        inference_agents (AbsAgentManager): An AgentManager instance that manages all agents.
+    """
+    def __init__(self, env: Env, inference_agents: AbsAgentManager):
         super().__init__(env, inference_agents)
 
     def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,

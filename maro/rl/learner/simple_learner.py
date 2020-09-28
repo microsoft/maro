@@ -8,14 +8,14 @@ from maro.utils import DummyLogger
 
 
 class SimpleLearner(AbsLearner):
-    def __init__(self, trainable_agents: AbsAgentManager, actor, logger=DummyLogger()):
-        """A simple implementation of `AbsLearner`.
+    """A simple implementation of ``AbsLearner``.
 
-        Args:
-            trainable_agents (AbsAgentManager): an AgentManager instance that manages all agents.
-            actor (Actor or ActorProxy): an Actor or VectorActorProxy instance.
-            logger: used for logging important messages.
-        """
+    Args:
+        trainable_agents (AbsAgentManager): an AgentManager instance that manages all agents.
+        actor (Actor or ActorProxy): an Actor or VectorActorProxy instance.
+        logger: used for logging important messages.
+    """
+    def __init__(self, trainable_agents: AbsAgentManager, actor, logger=DummyLogger()):
         super().__init__()
         self._trainable_agents = trainable_agents
         self._actor = actor
@@ -42,8 +42,7 @@ class SimpleLearner(AbsLearner):
             self._trainable_agents.update_epsilon(performance)
 
     def test(self):
-        """Test policy performance.
-        """
+        """Test policy performance."""
         performance, _ = self._actor.roll_out(model_dict=self._trainable_agents.get_models(), return_details=False)
         for actor_id, perf in performance.items():
             self._logger.info(f"test performance from {actor_id}: {perf}")
@@ -53,6 +52,5 @@ class SimpleLearner(AbsLearner):
         self._trainable_agents.dump_models(dir_path)
 
     def _is_shared_agent_instance(self):
-        """If true, the set of agents performing inference in actor is the same as self._trainable_agents.
-        """
+        """If true, the set of agents performing inference in actor is the same as self._trainable_agents."""
         return isinstance(self._actor, SimpleActor) and id(self._actor.inference_agents) == id(self._trainable_agents)

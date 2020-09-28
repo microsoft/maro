@@ -5,9 +5,8 @@ from abc import ABC, abstractmethod
 
 
 class AbsLearner(ABC):
+    """Abstract learner class to control the policy learning process."""
     def __init__(self):
-        """Abstract learner class to control the policy learning process...
-        """
         pass
 
     @abstractmethod

@@ -17,22 +17,22 @@ class MessageTag(Enum):
 
 
 class ActorProxy(object):
-    def __init__(self, proxy_params):
-        """A simple proxy wrapper for sending roll-out requests to remote actors.
+    """A simple proxy wrapper for sending roll-out requests to remote actors.
 
-        Args:
-            proxy_params: Parameters for instantiating a `Proxy` instance.
-        """
+    Args:
+        proxy_params: Parameters for instantiating a ``Proxy`` instance.
+    """
+    def __init__(self, proxy_params):
         self._proxy = Proxy(component_type="actor", **proxy_params)
 
     def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
                  return_details: bool = True):
         """Send roll-out requests to remote actors.
 
-            This method has exactly the same signature as `SimpleActor`'s `roll_out` method but instead of doing
-            the roll-out itself, sends roll-out requests to remote actors and returns the results sent back. The
-            `SimpleLearner` simply calls the actor's `roll_out` method without knowing whether its performed locally
-            or remotely.
+        This method has exactly the same signature as ``SimpleActor``'s ``roll_out`` method but instead of doing
+        the roll-out itself, sends roll-out requests to remote actors and returns the results sent back. The
+        ``SimpleLearner`` simply calls the actor's ``roll_out`` method without knowing whether its performed locally
+        or remotely.
 
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
@@ -72,13 +72,13 @@ class ActorProxy(object):
 
 
 class ActorWorker(object):
-    def __init__(self, local_actor: AbsActor, proxy_params):
-        """A `AbsActor` wrapper that accepts roll-out requests and performs roll-out tasks.
+    """A ``AbsActor`` wrapper that accepts roll-out requests and performs roll-out tasks.
 
-        Args:
-            local_actor: An `AbsActor` instance.
-            proxy_params: Parameters for instantiating a `Proxy` instance.
-        """
+    Args:
+        local_actor: An ``AbsActor`` instance.
+        proxy_params: Parameters for instantiating a ``Proxy`` instance.
+    """
+    def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor_worker", **proxy_params)
         self._registry_table = RegisterTable(self._proxy.get_peers)
@@ -107,6 +107,8 @@ class ActorWorker(object):
 
     def launch(self):
         """Entry point method.
+
+        Running this
         """
         for msg in self._proxy.receive():
             self._registry_table.push(msg)

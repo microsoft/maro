@@ -5,17 +5,17 @@ from abc import ABC, abstractmethod
 
 
 class AbsExplorer(ABC):
-    def __init__(self, agent_id_list: list, total_episodes: int, epsilon_range_dict: dict, with_cache: bool = True):
-        """Abstract explorer class.
+    """Abstract explorer class.
 
-        Args:
-            agent_id_list (list): List of agent ID's.
-            total_episodes (int): Total number of episodes in the training phase.
-            epsilon_range_dict (dict): A dictionary containing tuples of lower and upper bounds for the generated
-                exploration rate for each agent. If the dictionary contains "_all_" as a key, the corresponding
-                value will be shared amongst all agents.
-            with_cache (bool): If True, incoming performances will be cached.
-        """
+    Args:
+        agent_id_list (list): List of agent ID's.
+        total_episodes (int): Total number of episodes in the training phase.
+        epsilon_range_dict (dict): A dictionary containing tuples of lower and upper bounds for the generated
+            exploration rate for each agent. If the dictionary contains "_all_" as a key, the corresponding
+            value will be shared amongst all agents.
+        with_cache (bool): If True, incoming performances will be cached.
+    """
+    def __init__(self, agent_id_list: list, total_episodes: int, epsilon_range_dict: dict, with_cache: bool = True):
         self._total_episodes = total_episodes
         self._epsilon_range_dict = epsilon_range_dict
         self._performance_cache = [] if with_cache else None
@@ -28,8 +28,7 @@ class AbsExplorer(ABC):
     # TODO: performance: summary -> total perf (current version), details -> per-agent perf
     @abstractmethod
     def update(self, performance=None):
-        """
-        Updates current epsilon.
+        """Update exploration rates for each agent.
 
         Args:
             performance: Performance from the latest episode.

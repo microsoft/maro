@@ -9,17 +9,17 @@ from maro.simulator import Env
 
 
 class AbsActor(ABC):
+    """Abstract actor class.
+
+    An actor is a wrapper of an env and an agent manager or a dict of agents and is responsible for collecting
+    experience from interacting with the environment.
+
+    Args:
+        env (Env): An Env instance.
+        inference_agents (AbsAgentManager or dict): A dict of agents or an AgentManager instance that manages
+            all agents.
+    """
     def __init__(self, env: Env, inference_agents: Union[AbsAgentManager, dict]):
-        """Abstract actor class.
-
-            An actor is a wrapper of an env and an agent manager or a dict of agents and is responsible for
-            collecting experience from interacting with the environment.
-
-        Args:
-            env (Env): An Env instance.
-            inference_agents (AbsAgentManager or dict): A dict of agents or an AgentManager instance that manages
-                all agents.
-        """
         self._env = env
         self._inference_agents = inference_agents
 

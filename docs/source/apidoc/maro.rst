@@ -1,4 +1,4 @@
-MARO Package
+maro package
 ============
 
 Subpackages
@@ -8,12 +8,15 @@ Subpackages
    :maxdepth: 4
 
    maro.backends
-   maro.event_buffer
+   maro.cli
+   maro.communication
    maro.data_lib
+   maro.event_buffer
+   maro.rl
    maro.simulator
    maro.utils
 
-Module Contents
+Module contents
 ---------------
 
 .. automodule:: maro

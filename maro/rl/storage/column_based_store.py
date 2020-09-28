@@ -12,20 +12,20 @@ from maro.utils import clone
 
 
 class ColumnBasedStore(AbsStore):
+    """
+    An implementation of ``AbsStore`` for experience storage in RL.
+
+    This implementation uses a dictionary of lists as the internal data structure. The objects for each key
+    are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
+    put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
+    and limited storage are supported.
+
+    Args:
+        capacity (int): If -1, the store is of unlimited capacity. Defaults to -1.
+        overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
+            are overwritten when the capacity is exceeded.
+    """
     def __init__(self, capacity: int = -1, overwrite_type: OverwriteType = None):
-        """
-        An implementation of `AbsStore` for experience storage in RL.
-
-            This implementation uses a dictionary of lists as the internal data structure. The objects for each key
-            are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
-            put operations to ensure that the list lengths remain the same for all keys at all times. Both unlimited
-            and limited storage are supported.
-
-        Args:
-            capacity (int): If -1, the store is of unlimited capacity. Defaults to -1.
-            overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
-                are overwritten when the capacity is exceeded.
-        """
         super().__init__()
         self._capacity = capacity
         self._store = defaultdict(lambda: [] if self._capacity < 0 else [None] * self._capacity)
@@ -68,9 +68,9 @@ class ColumnBasedStore(AbsStore):
         Args:
             contents (Sequence): Item object list.
             overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
-                used when the store has a fixed capacity and putting `contents` in the store would exceed this
+                used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
-                according to the `overwrite` property. Defaults to None.
+                according to the ``overwrite`` property. Defaults to None.
         Returns:
             The indexes where the newly added entries reside in the store.
         """
@@ -129,12 +129,13 @@ class ColumnBasedStore(AbsStore):
     def apply_multi_samplers(self, samplers: Sequence, replace: bool = True) -> Tuple:
         """Multi-samplers method.
 
-            This implements chained sampling where the input to one sampler is the output from its predecessor in
-            the sequence.
+        This implements chained sampling where the input to one sampler is the output from its predecessor in
+        the sequence.
 
         Args:
             samplers (Sequence): A sequence of weight functions for computing the sampling weights of the items
-                in the store.
+                in the store,
+                i.e. [lambda d: d['a'], lambda d: d['b']].
             replace (bool): If True, sampling will be performed with replacement.
         Returns:
             Sampled indexes and corresponding objects.

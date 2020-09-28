@@ -6,9 +6,8 @@ from typing import Callable, Sequence
 
 
 class AbsStore(ABC):
+    """A data store abstraction that supports get, put, update and sample operations."""
     def __init__(self):
-        """A data store abstraction that supports get, put, update and sample operations.
-        """
         pass
 
     @abstractmethod
@@ -59,8 +58,7 @@ class AbsStore(ABC):
 
     @abstractmethod
     def sample(self, size: int, weights: Sequence, replace: bool = True):
-        """
-        Obtain a random sample from the experience pool.
+        """Obtain a random sample from the experience pool.
 
         Args:
             size (int): Sample sizes for each round of sampling in the chain. If this is a single integer, it is

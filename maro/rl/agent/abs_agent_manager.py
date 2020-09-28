@@ -19,6 +19,27 @@ class AgentMode(Enum):
 
 
 class AbsAgentManager(ABC):
+    """Abstract agent manager class.
+
+    The agent manager provides a unified interactive interface with the environment for RL agent(s). From
+    the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous
+    agents, so that the whole agent manager will behave just like a single agent. Besides that, the agent
+    manager also plays the role of an agent assembler. It can assemble different RL agents according to the
+    actual requirements, such as whether to share the underlying model, whether to share the experience
+    pool, etc.
+
+    Args:
+        name (str): Name of agent manager.
+        mode (AgentMode): An AgentMode enum member that specifies that role of the agent. Some attributes may
+                          be None under certain modes.
+        agent_id_list (list): List of agent identifiers.
+        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at the
+            end of an episode.
+        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model input.
+        action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
+            executable action. Cannot be None under Inference and TrainInference modes.
+        explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
+    """
     def __init__(self,
                  name: str,
                  mode: AgentMode,
@@ -27,27 +48,6 @@ class AbsAgentManager(ABC):
                  action_shaper: ActionShaper = None,
                  experience_shaper: ExperienceShaper = None,
                  explorer: AbsExplorer = None):
-        """Abstract agent manager class.
-
-            The agent manager provides a unified interactive interface with the environment for RL agent(s). From
-            the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous
-            agents, so that the whole agent manager will behave just like a single agent. Besides that, the agent
-            manager also plays the role of an agent assembler. It can assemble different RL agents according to the
-            actual requirements, such as whether to share the underlying model, whether to share the experience
-            pool, etc.
-
-        Args:
-            name (str): Name of agent manager.
-            mode (AgentMode): An AgentMode enum member that specifies that role of the agent. Some attributes may
-                              be None under certain modes.
-            agent_id_list (list): List of agent identifiers.
-            experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at the
-                end of an episode.
-            state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model input.
-            action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
-                executable action. Cannot be None under Inference and TrainInference modes.
-            explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
-        """
         self._name = name
         if mode not in AgentMode:
             raise UnsupportedAgentModeError(msg='mode must be "train", "inference" or "train_inference"')
@@ -76,7 +76,7 @@ class AbsAgentManager(ABC):
         return self._agent_dict[agent_id]
 
     def _assemble(self, agent_dict):
-        """Assembles agents and fill the `agent_dict` with them.
+        """Assembles agents and fill the ``agent_dict`` with them.
         """
         return NotImplemented
 
@@ -87,7 +87,7 @@ class AbsAgentManager(ABC):
         1. The decision event and snapshot list are converted by the state shaper to a model input. The state shaper
            also finds the target agent ID.
         2. The target agent takes the model input and uses its underlying models to compute an action.
-        3. Key information regarding the transition is recorded in the `_trajectory` attribute.
+        3. Key information regarding the transition is recorded in the ``_trajectory`` attribute.
         4. The action computed by the model is converted to an environment executable action by the action shaper.
          
         Args:
@@ -95,7 +95,7 @@ class AbsAgentManager(ABC):
             snapshot_list: An object that holds the detailed history of past env observations.
 
         Returns:
-            An action object that can be passed directly to an environment's `step` method.
+            An action object that can be passed directly to an environment's ``step`` method.
         """
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
@@ -133,9 +133,9 @@ class AbsAgentManager(ABC):
     def store_experiences(self, experiences):
         """Abstract method to store experiences generated by the experience shaper in the experience pool(s).
 
-            Depending on the user's implementation of the experience shaper's `__call__` method, `experiences`
-            may come in different formats (e.g., a dictionary with agent ID's as keys). The user must implement
-            this method in accordance with this format.
+        Depending on the user's implementation of the experience shaper's ``__call__`` method, ``experiences`` may
+        come in different formats (e.g., a dictionary with agent ID's as keys). The user must implement this
+        method in accordance with this format.
 
         Args:
             experiences: experiences generated by the experience shaper during post-processing.

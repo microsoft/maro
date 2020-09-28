@@ -7,11 +7,12 @@ from .abs_shaper import AbsShaper
 
 
 class ExperienceShaper(AbsShaper):
+    """Experience shaper class.
+
+    An experience shaper is used to convert a trajectory of transitions to experiences for training.
+    """
     def __init__(self, reward_func: Union[Callable, None], *args, **kwargs):
-        """Experience shaper class.
-
-            An experience shaper is used to convert a trajectory of transitions to experiences for training.
-
+        """
         Args:
             reward_func (Callable or None): A reward function to compute immediate rewards from the business
                 metrics associated with a transition. Under certain circumstances, reward calculations may
@@ -34,6 +35,5 @@ class ExperienceShaper(AbsShaper):
         pass
 
     def reset(self):
-        """If the class contains stateful objects, this resets them to their states at the beginning of an episode.
-        """
+        """Reset stateful members, if any, to their states at the beginning of an episode."""
         pass
