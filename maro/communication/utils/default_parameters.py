@@ -6,7 +6,6 @@ from maro.utils import convert_dottable
 
 
 proxy = convert_dottable({
-    "suffix_length": 6,
     "fault_tolerant": False,
     "delay_for_slow_joiner": 3,
     "redis": {
