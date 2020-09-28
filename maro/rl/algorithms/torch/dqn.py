@@ -32,8 +32,8 @@ class DQNHyperParams:
 class DQN(AbsAlgorithm):
     """The Deep-Q-Networks algorithm.
 
-    The model_dict must contain the key "eval". Optionally a model corresponding to the key "target" can be
-    provided. If the key "target" is absent or model_dict["target"] is None, the target model will be a deep
+    The model_dict must contain the key `eval`. Optionally a model corresponding to the key `target` can be
+    provided. If the key `target` is absent or model_dict[`target`] is None, the target model will be a deep
     copy of the provided eval model.
     """
     def __init__(self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict,

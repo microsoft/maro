@@ -156,7 +156,7 @@ class ColumnBasedStore(AbsStore):
             size (int): sample sizes for each round of sampling in the chain. If this is a single integer, it is
                         used as the sample size for all samplers in the chain.
             weights (Sequence): a sequence of sampling weights.
-            replace (bool): if True, sampling is performed with replacement. Default is True.
+            replace (bool): if True, sampling is performed with replacement. Defaults to True.
         Returns:
             Sampled indexes and the corresponding objects,
             e.g., [1, 2, 3], ['a', 'b', 'c'].

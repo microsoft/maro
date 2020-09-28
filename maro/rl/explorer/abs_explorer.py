@@ -11,7 +11,7 @@ class AbsExplorer(ABC):
         agent_id_list (list): List of agent ID's.
         total_episodes (int): Total number of episodes in the training phase.
         epsilon_range_dict (dict): A dictionary containing tuples of lower and upper bounds for the generated
-            exploration rate for each agent. If the dictionary contains "_all_" as a key, the corresponding
+            exploration rate for each agent. If the dictionary contains `_all_` as a key, the corresponding
             value will be shared amongst all agents.
         with_cache (bool): If True, incoming performances will be cached.
     """

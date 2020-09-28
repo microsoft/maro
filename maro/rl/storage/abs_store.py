@@ -64,7 +64,7 @@ class AbsStore(ABC):
             size (int): Sample sizes for each round of sampling in the chain. If this is a single integer, it is
                         used as the sample size for all samplers in the chain.
             weights (Sequence): A sequence of sampling weights.
-            replace (bool): If True, sampling is performed with replacement. Default is True.
+            replace (bool): If True, sampling is performed with replacement. Defaults to True.
         Returns:
             A random sample from the experience pool.
         """
