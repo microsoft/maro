@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+# native lib
 import getpass
 import logging
 import os
@@ -10,7 +10,9 @@ import sys
 from datetime import datetime
 from enum import Enum
 
+# private lib
 from maro.cli.utils.params import GlobalParams as CliGlobalParams
+
 
 cwd = os.getcwd()
 
@@ -125,7 +127,7 @@ class Logger(object):
         if not os.path.exists(dump_folder):
             try:
                 os.makedirs(dump_folder)
-            except FileExistsError as e:
+            except FileExistsError as _:
                 logging.warning(f"Receive File Exist Error about creating dump folder for internal log. "
                                 f"It may be caused by multi-thread and it won't have any impact on logger dumps.")
             except Exception as e:
@@ -183,6 +185,7 @@ class Logger(object):
 
 
 class DummyLogger:
+    """Dummy Logger uses when disabling logs."""
     def __init__(self):
         pass
 
@@ -203,7 +206,7 @@ class DummyLogger:
 
 
 class InternalLogger(Logger):
-    """ An internal logger uses for record internal system's log """
+    """An internal logger uses for recording the internal system's log."""
 
     def __init__(self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
                  dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',

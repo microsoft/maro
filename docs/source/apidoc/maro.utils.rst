@@ -137,22 +137,6 @@ maro.communication.registry\_table
    :undoc-members:
    :show-inheritance:
 
-maro.communication.utils.default\_parameters
---------------------------------------------------------------------------------
-
-.. automodule:: maro.communication.utils.default_parameters
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.communication.utils.generate\_session\_id
---------------------------------------------------------------------------------
-
-.. automodule:: maro.communication.utils.generate_session_id
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Others
 ================================================================================
