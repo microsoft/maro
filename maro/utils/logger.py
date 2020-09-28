@@ -55,7 +55,7 @@ FORMAT_NAME_TO_STDOUT_FORMAT = {
     LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
 }
 
-# progress of training, we give it a highest level
+# Progress of training, we give it a highest level.
 PROGRESS = 60
 logging.addLevelName(PROGRESS, "PROGRESS")
 
@@ -217,7 +217,7 @@ class InternalLogger(Logger):
 
 
 class CliLogger:
-    """An internal logger for CLI logging
+    """An internal logger for CLI logging.
 
     CliLogger maintains a singleton logger in a CLI command lifecycle.
     The logger is inited at the very beginning, and use different logging formats based on the ``--debug`` argument.
@@ -225,7 +225,7 @@ class CliLogger:
 
     class _CliLogger(Logger):
         def __init__(self):
-            """Init singleton logger based on the ``--debug`` argument"""
+            """Init singleton logger based on the ``--debug`` argument."""
             self.log_level = CliGlobalParams.LOG_LEVEL
             current_time = f"{datetime.now().strftime('%Y%m%d')}"
             self._dump_folder = os.path.join(os.path.expanduser("~/.maro/log/cli"), current_time)
@@ -256,7 +256,7 @@ class CliLogger:
         """``logger.debug()`` with passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.debug(message)
@@ -265,13 +265,13 @@ class CliLogger:
         """``logger.debug()`` with color yellow and passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.debug('\033[33m' + message + '\033[0m')
 
     def info(self, message: str) -> None:
-        """``logger.info()`` passive init
+        """``logger.info()`` passive init.
 
         Args:
             message (str): logged message.
@@ -283,7 +283,7 @@ class CliLogger:
         """``logger.warning()`` with passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.warn(message)
@@ -292,7 +292,7 @@ class CliLogger:
         """``logger.error()`` with passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.error(message)
@@ -301,7 +301,7 @@ class CliLogger:
         """``logger.info()`` with color green and passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.info('\033[32m' + message + '\033[0m')
@@ -310,7 +310,7 @@ class CliLogger:
         """``logger.warning()`` with color yellow and passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.warn('\033[33m' + message + '\033[0m')
@@ -319,7 +319,7 @@ class CliLogger:
         """``logger.error()`` with color red and passive init.
 
         Args:
-            message (str): logged message
+            message (str): logged message.
         """
         self.passive_init()
         self._logger.error('\033[31m' + message + '\033[0m')
