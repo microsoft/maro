@@ -18,6 +18,7 @@
 [![Stack Overflow](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/stack_overflow.svg)](https://stackoverflow.com/questions/ask?tags=maro)
 [![Releases](https://img.shields.io/github/release-date-pre/microsoft/maro)](https://github.com/microsoft/maro/releases)
 [![Commits](https://img.shields.io/github/commits-since/microsoft/maro/latest/master)](https://github.com/microsoft/maro/commits/master)
+[![Quality](https://github.com/microsoft/maro/workflows/quality/badge.svg?branch=master)](https://github.com/microsoft/maro/actions?query=workflow%3Aquality)
 [![Downloads](https://img.shields.io/pypi/dm/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Docker Pulls](https://img.shields.io/docker/pulls/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro)
 
