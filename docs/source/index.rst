@@ -1,3 +1,6 @@
+What is MARO?
+===============
+
 .. figure:: ./images/logo.svg
     :width: 666px
     :align: center
@@ -12,8 +15,9 @@ also supports other planning/decision mechanisms, such as
 `Operations Research <https://en.wikipedia.org/wiki/Operations_research>`_.
 
 Key Components
-====================
-.. image:: ./images/maro_overview.svg
+---------------
+
+.. figure:: ./images/maro_overview.svg
    :width: 1000px
 
 - Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
@@ -21,7 +25,8 @@ Key Components
 - Distributed toolkit: it provides distributed communication components, interface of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 Quick Start
-====================
+-------------
+
 .. code-block:: python
 
     from maro.simulator import Env
@@ -66,7 +71,8 @@ Quick Start
         env.reset()
 
 Contents
-====================
+----------
+
 .. toctree::
     :maxdepth: 2
     :caption: Installation

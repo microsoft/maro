@@ -2,7 +2,7 @@
 name: "\U0001F41B Bug Report"
 about: Submit a bug report to help us improve MARO.
 title: "\U0001F41B "
-labels: bug
+labels: "\U0001F41B bug"
 assignees: ArthurJiang
 
 ---
