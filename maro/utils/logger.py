@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+# native lib
 import getpass
 import logging
 import os
@@ -10,18 +10,26 @@ import sys
 from datetime import datetime
 from enum import Enum
 
+# private lib
 from maro.cli.utils.params import GlobalParams as CliGlobalParams
+
 
 cwd = os.getcwd()
 
-# for api generation, we should hide our build path for security issue
+# For API generation, we should hide our build path for security issue.
 if "APIDOC_GEN" in os.environ:
     cwd = ""
 
 
 class LogFormat(Enum):
-    """
-    Format of log
+    """The Enum class of the log format.
+
+    Example:
+        - ``LogFormat.full``: full time | host | user | pid | tag | level | msg
+        - ``LogFormat.simple``: simple time | tag | level | msg
+        - ``LogFormat.cli_debug`` : simple time | level | msg
+        - ``LogFormat.cli_info`` (file): simple time | level | msg
+        - ``LogFormat.cli_info`` (stdout):  msg
     """
     full = 1
     simple = 2
@@ -49,7 +57,8 @@ FORMAT_NAME_TO_STDOUT_FORMAT = {
     LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
 }
 
-PROGRESS = 60  # progress of training, we give it a highest level
+# Progress of training, we give it a highest level.
+PROGRESS = 60
 logging.addLevelName(PROGRESS, "PROGRESS")
 
 level_map = {
@@ -63,7 +72,7 @@ level_map = {
 
 
 def msgformat(logfunc):
-    """decorator to construct the log msg"""
+    """The decorator used to construct the log msg."""
 
     def _msgformatter(self, msg, *args):
         if args:
@@ -76,33 +85,32 @@ def msgformat(logfunc):
     return _msgformatter
 
 
-class Logger:
-    """
-    A simple wrapper for logging, the console logging level can be set by environment variable, which
-    also can be redirected.
+class Logger(object):
+    """A simple wrapper for logging.
 
-    e.g. export LOG_LEVEL=DEBUG.
+    The Logger hosts a file handler and a stdout handler. The file handler is set
+    to ``DEBUG`` level and will dump all the logging info to the given ``dump_folder``.
+    The logging level of the stdout handler is decided by the ``stdout_level``,
+    and can be redirected by setting the environment variable ``LOG_LEVEL``.
+    Supported ``LOG_LEVEL`` includes: ``DEBUG``, ``INFO``, ``WARN``, ``ERROR``,
+    ``CRITICAL``, ``PROCESS``.
 
-    Supported log levels
-        - DEBUG
-        - INFO
-        - WARN
-        - ERROR
-        - CRITICAL
-        - PROGRESS
-
-    Note: The file logging level is set to DEBUG, which cannot be impacted by the LOG_LEVEL.
+    Example:
+        ``$ export LOG_LEVEL=INFO``
 
     Args:
         tag (str): Log tag for stream and file output.
-        format_ (LogFormat): Predefined formatter, the default value is LogFormat.full.
-                        i.e. LogFormat.full: full time | host | user | pid | tag | level | msg
-                             LogFormat.simple: simple time | tag | level | msg
-        dump_folder (str): Log dumped folder, the default value is the current folder. The dumped log level is
-                        logging.DEBUG. The full path of the dumped log file is `dump_folder/tag.log`.
-        dump_mode (str): Write log file mode, the default value is 'w'. For appending, please use 'a'.
-        extension_name (str): Final dumped file extension name, default value is 'log'.
-        auto_timestamp (bool): If true the dumped log file name will add a timestamp. (e.g. tag.1574953673.137387.log)
+        format_ (LogFormat): Predefined formatter. Defaults to ``LogFormat.full``.
+        dump_folder (str): Log dumped folder. Defaults to the current folder.
+            The dumped log level is ``logging.DEBUG``. The full path of the
+            dumped log file is `dump_folder/tag.log`.
+        dump_mode (str): Write log file mode. Defaults to ``w``. Use ``a`` to
+            append log.
+        extension_name (str): Final dumped file extension name. Defaults to `log`.
+        auto_timestamp (bool): Add a timestamp to the dumped log file name or not.
+            E.g: `tag.1574953673.137387.log`.
+        stdout_level (str): the logging level of the stdout handler. Defaults to
+            ``DEBUG``.
     """
 
     def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
@@ -119,7 +127,7 @@ class Logger:
         if not os.path.exists(dump_folder):
             try:
                 os.makedirs(dump_folder)
-            except FileExistsError as e:
+            except FileExistsError as _:
                 logging.warning(f"Receive File Exist Error about creating dump folder for internal log. "
                                 f"It may be caused by multi-thread and it won't have any impact on logger dumps.")
             except Exception as e:
@@ -152,40 +160,32 @@ class Logger:
 
     @msgformat
     def debug(self, msg, *args):
+        """Add a log with ``DEBUG`` level."""
         self._logger.debug(msg, *args, extra=self._extra)
 
     @msgformat
     def info(self, msg, *args):
+        """Add a log with ``INFO`` level."""
         self._logger.info(msg, *args, extra=self._extra)
 
     @msgformat
     def warn(self, msg, *args):
+        """Add a log with ``WARN`` level."""
         self._logger.warning(msg, *args, extra=self._extra)
 
     @msgformat
     def error(self, msg, *args):
+        """Add a log with ``ERROR`` level."""
         self._logger.error(msg, *args, extra=self._extra)
 
     @msgformat
     def critical(self, msg, *args):
+        """Add a log with ``CRITICAL`` level."""
         self._logger.critical(msg, *args, extra=self._extra)
 
 
-class InternalLogger(Logger):
-    """ An internal logger uses for record internal system's log """
-
-    def __init__(self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
-                 dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
-                 auto_timestamp: bool = False):
-        current_time = f"{datetime.now().strftime('%Y%m%d%H%M')}"
-        self._dump_folder = dump_folder if dump_folder else \
-            os.path.join(os.path.expanduser("~"), ".maro/log", current_time, str(os.getpid()))
-        super().__init__(tag, format_, self._dump_folder, dump_mode, extension_name, auto_timestamp)
-
-        self._extra = {'component': component_name}
-
-
 class DummyLogger:
+    """A dummy Logger, which is used when disabling logs."""
     def __init__(self):
         pass
 
@@ -205,12 +205,31 @@ class DummyLogger:
         pass
 
 
+class InternalLogger(Logger):
+    """An internal logger uses for recording the internal system's log."""
+
+    def __init__(self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
+                 dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
+                 auto_timestamp: bool = False):
+        current_time = f"{datetime.now().strftime('%Y%m%d%H%M')}"
+        self._dump_folder = dump_folder if dump_folder else \
+            os.path.join(os.path.expanduser("~"), ".maro/log", current_time, str(os.getpid()))
+        super().__init__(tag, format_, self._dump_folder, dump_mode, extension_name, auto_timestamp)
+
+        self._extra = {'component': component_name}
+
+
 class CliLogger:
+    """An internal logger for CLI logging.
+
+    It maintains a singleton logger in a CLI command lifecycle.
+    The logger is inited at the very beginning, and use different logging formats based on the ``--debug`` argument.
+    """
+
     class _CliLogger(Logger):
         def __init__(self):
-            # Init params
+            """Init singleton logger based on the ``--debug`` argument."""
             self.log_level = CliGlobalParams.LOG_LEVEL
-
             current_time = f"{datetime.now().strftime('%Y%m%d')}"
             self._dump_folder = os.path.join(os.path.expanduser("~/.maro/log/cli"), current_time)
             if self.log_level == logging.DEBUG:
@@ -231,38 +250,79 @@ class CliLogger:
     def __init__(self, name):
         self.name = name
 
-    def passive_init(self):
+    def passive_init(self) -> None:
+        """Init a new ``CliLogger`` if current logger is not matched with the parameters."""
         if not CliLogger._logger or CliLogger._logger.log_level != CliGlobalParams.LOG_LEVEL:
-            CliLogger._logger = CliLogger._CliLogger()
+            CliLogger._logger = self._CliLogger()
 
-    def debug(self, message: str):
+    def debug(self, message: str) -> None:
+        """``logger.debug()`` with passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.debug(message)
 
-    def debug_yellow(self, message: str):
+    def debug_yellow(self, message: str) -> None:
+        """``logger.debug()`` with color yellow and passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.debug('\033[33m' + message + '\033[0m')
 
-    def info(self, message: str):
+    def info(self, message: str) -> None:
+        """``logger.info()`` with passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.info(message)
 
-    def warning(self, message: str):
+    def warning(self, message: str) -> None:
+        """``logger.warning()`` with passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.warn(message)
 
-    def error(self, message: str):
+    def error(self, message: str) -> None:
+        """``logger.error()`` with passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.error(message)
 
-    def info_green(self, message: str):
+    def info_green(self, message: str) -> None:
+        """``logger.info()`` with color green and passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.info('\033[32m' + message + '\033[0m')
 
-    def warning_yellow(self, message: str):
+    def warning_yellow(self, message: str) -> None:
+        """``logger.warning()`` with color yellow and passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.warn('\033[33m' + message + '\033[0m')
 
-    def error_red(self, message: str):
+    def error_red(self, message: str) -> None:
+        """``logger.error()`` with color red and passive init.
+
+        Args:
+            message (str): logged message.
+        """
         self.passive_init()
         self._logger.error('\033[31m' + message + '\033[0m')
