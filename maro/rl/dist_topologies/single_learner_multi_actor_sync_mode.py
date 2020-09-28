@@ -108,7 +108,8 @@ class ActorWorker(object):
     def launch(self):
         """Entry point method.
 
-        Running this
+        This enters the actor into an infinite loop of listening to requests and handling them according to the
+        register table. In this case, the only type of requests the actor needs to handle is roll-out requests.    
         """
         for msg in self._proxy.receive():
             self._registry_table.push(msg)

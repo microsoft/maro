@@ -57,7 +57,11 @@ class AbsAlgorithm(ABC):
 
     @abstractmethod
     def train(self, *args, **kwargs):
-        """Train models using samples."""
+        """Train models using samples.
+
+        This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
+        algorithm, this may look like train(self, state, action, reward, next_state).
+        """
         return NotImplementedError
 
     @abstractmethod
