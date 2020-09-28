@@ -6,7 +6,7 @@ from maro.utils.exception import MAROException
 
 
 class CliException(MAROException):
-    """The General CLI Exception."""
+    """The general CLI Exception."""
 
     def __init__(self, message: str = None, error_code: int = 3000):
         super().__init__(error_code, message)
@@ -21,7 +21,7 @@ class CliException(MAROException):
 
 
 class CommandError(CliException):
-    """Failed execution error of CLI Command."""
+    """Failed execution error of CLI command."""
 
     def __init__(self, cli_command: str, message: str = None):
         super().__init__(error_code=3001, message=message)

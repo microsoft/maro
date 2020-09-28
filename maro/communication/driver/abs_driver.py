@@ -18,10 +18,10 @@ class AbsDriver(ABC):
     @abstractmethod
     def connect(self, peers_address):
         """Build the connection with other peers which is given by the peer address.
-        
+
         Args:
-            peers_address: The store of peers' socket address. Based on the real socket driver, 
-                           the peers' socket address usually be a ``Dict``.
+            peers_address: The store of peers' socket address. Based on the real socket driver,
+                the peers' socket address usually be a ``Dict``.
         """
         pass
 

@@ -185,7 +185,7 @@ class Logger(object):
 
 
 class DummyLogger:
-    """Dummy Logger uses when disabling logs."""
+    """A dummy Logger, which is used when disabling logs."""
     def __init__(self):
         pass
 
@@ -222,7 +222,7 @@ class InternalLogger(Logger):
 class CliLogger:
     """An internal logger for CLI logging.
 
-    CliLogger maintains a singleton logger in a CLI command lifecycle.
+    It maintains a singleton logger in a CLI command lifecycle.
     The logger is inited at the very beginning, and use different logging formats based on the ``--debug`` argument.
     """
 
@@ -251,7 +251,7 @@ class CliLogger:
         self.name = name
 
     def passive_init(self) -> None:
-        """Init a new CliLogger if current logger is not matched with the parameters."""
+        """Init a new ``CliLogger`` if current logger is not matched with the parameters."""
         if not CliLogger._logger or CliLogger._logger.log_level != CliGlobalParams.LOG_LEVEL:
             CliLogger._logger = self._CliLogger()
 
@@ -274,7 +274,7 @@ class CliLogger:
         self._logger.debug('\033[33m' + message + '\033[0m')
 
     def info(self, message: str) -> None:
-        """``logger.info()`` passive init.
+        """``logger.info()`` with passive init.
 
         Args:
             message (str): logged message.

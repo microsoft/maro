@@ -27,9 +27,9 @@ class ZmqDriver(AbsDriver):
     Args:
         protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
         send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
-                            Defaults to -1.
+            Defaults to -1.
         receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
-                               Defaults to -1.
+            Defaults to -1.
         logger: The logger instance or DummyLogger. Defaults to DummyLogger().
     """
 
@@ -79,12 +79,12 @@ class ZmqDriver(AbsDriver):
     def address(self) -> Dict[int, str]:
         """
         Returns:
-            Dict[int, str]: The sockets' address ``Dict`` of ``zmq.PULL`` socket and ``zmq.SUB`` socket. \n
-                the key of dict is socket's type, \n
-                the value of dict is socket's ip address, which forms by protocol+ip+port.
-        
+            Dict[int, str]: The sockets' address Dict of ``zmq.PULL`` socket and ``zmq.SUB`` socket.
+                The key of dict is the socket's type, while the value of dict is socket's ip address,
+                which forms by protocol+ip+port.
+
         Example:
-            Dict[zmq.PULL: "tcp://0.0.0.0:1234", zmq.SUB: "tcp://0.0.0.0:1235"]
+            Dict{zmq.PULL: "tcp://0.0.0.0:1234", zmq.SUB: "tcp://0.0.0.0:1235"}
         """
         return self._address
 
@@ -92,12 +92,12 @@ class ZmqDriver(AbsDriver):
         """Build a connection with all peers in peers socket address.
 
         Set up the unicast sender which is ``zmq.PUSH`` socket and the broadcast sender which is ``zmq.PUB`` socket.
-        
+
         Args:
-            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict. \n
-                the key of dict is the peer's name, \n
-                the value of dict is the peer's socket connection address stored in dict. \n
-                Example: 
+            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict.
+                The key of dict is the peer's name, while the value of dict is the peer's socket connection address
+                stored in dict.
+                Example:
                     Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
         """
         for peer_name, address_dict in peers_address_dict.items():
