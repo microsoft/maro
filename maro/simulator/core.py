@@ -18,20 +18,20 @@ from .utils.common import tick_to_frame_index
 
 
 class Env(AbsEnv):
-    """Default environment
+    """Default environment implementation using generator.
 
     Args:
-        scenario (str): scenario name under maro/sim/scenarios folder
+        scenario (str): scenario name under maro/sim/scenarios folder.
         topology (str): topology name under specified scenario folder,
-            if this point to a existing folder, then it will use this as topology for built-in scenario
-        start_tick (int): start tick of the scenario, usually used for pre-processed data streaming
-        durations (int): duration ticks of this environment from start_tick
-        snapshot_resolution (int): how many ticks will take a snapshot
+            if this point to a existing folder, then it will use this as topology for built-in scenario.
+        start_tick (int): start tick of the scenario, usually used for pre-processed data streaming.
+        durations (int): duration ticks of this environment from start_tick.
+        snapshot_resolution (int): how many ticks will take a snapshot.
         max_snapshots(int): max in-memory snapshot number, default None means keep all snapshots in memory,
             when taking a snapshot, if it reaches this limitation, oldest one will be overwrote.
         business_engine_cls : class of business engine, if specified, then use it to construct be instance,
-            or will search internal by scenario
-        options (dict): additional parameters passed to business engine
+            or will search internal by scenario.
+        options (dict): additional parameters passed to business engine.
 
     """
 
@@ -56,21 +56,21 @@ class Env(AbsEnv):
         self._init_business_engine()
 
     def step(self, action):
-        """Push the environment to next step with action
+        """Push the environment to next step with action.
 
         Args:
-            action (Action): Action(s) from agent
+            action (Action): Action(s) from agent.
 
         Returns:
-            (float, object, bool): a tuple of (reward, decision event, is_done)
+            (float, object, bool): a tuple of (reward, decision event, is_done).
 
             The returned tuple contains 3 fields:
 
-            - reward for current action. a list of reward if the input action is a list
+            - reward for current action. a list of reward if the input action is a list.
 
-            - decision_event for sequential decision mode, or a list of decision_event
+            - decision_event for sequential decision mode, or a list of decision_event.
 
-            - whether the episode ends
+            - whether the episode ends.
         """
 
         try:
@@ -90,7 +90,7 @@ class Env(AbsEnv):
         return
 
     def reset(self):
-        """Reset environment"""
+        """Reset environment."""
         # . reset self
         self._tick = self._start_tick
 
@@ -105,15 +105,15 @@ class Env(AbsEnv):
 
     @property
     def configs(self) -> dict:
-        """object: Configurations of current environment"""
+        """object: Configurations of current environment."""
         return self._business_engine.configs
 
     @property
     def summary(self) -> dict:
-        """Summary about current simulator, include node details, and mappings
+        """Summary about current simulator, include node details, and mappings.
 
         NOTE:
-            This is provided by scenario, so may have different format and content
+            This is provided by scenario, so may have different format and content.
         """
         return {
             "node_mapping": self._business_engine.get_node_mapping(),
@@ -122,35 +122,35 @@ class Env(AbsEnv):
 
     @property
     def name(self) -> str:
-        """str: Name of current environment"""
+        """str: Name of current environment."""
         return self._name
 
     @property
     def current_frame(self) -> FrameBase:
-        """Frame: Frame of current environment"""
+        """Frame: Frame of current environment."""
         return self._business_engine.frame
 
     @property
     def tick(self) -> int:
-        """int: Current tick of environment"""
+        """int: Current tick of environment."""
         return self._tick
 
     @property
     def frame_index(self) -> int:
-        """int: frame index in snapshot list for current tick"""
+        """int: frame index in snapshot list for current tick."""
         return tick_to_frame_index(self._start_tick, self._tick, self._snapshot_resolution)
 
     @property
     def snapshot_list(self) -> SnapshotList:
-        """SnapshotList: Current snapshot list
+        """SnapshotList: Current snapshot list.
 
-        a snapshot list contains all the snapshots of frame at each tick
+        A snapshot list contains all the snapshots of frame at each tick.
         """
         return self._business_engine.snapshots
 
     @property
     def agent_idx_list(self) -> List[int]:
-        """List[int]: Agent index list that related to this environment"""
+        """List[int]: Agent index list that related to this environment."""
         return self._business_engine.get_agent_idx_list()
 
     def set_seed(self, seed: int):
@@ -159,7 +159,7 @@ class Env(AbsEnv):
         NOTE: this will not set seed for python random or other packages' seed, such as numpy.
 
         Args:
-            seed (int):
+            seed (int): seed to set.
         """
 
         if seed is not None:
@@ -167,25 +167,25 @@ class Env(AbsEnv):
 
     @property
     def metrics(self) -> dict:
-        """Some statistics information provided by business engine
+        """Some statistics information provided by business engine.
 
         Returns:
-            dict: dictionary of metrics, content and format is determined by business engine
+            dict: dictionary of metrics, content and format is determined by business engine.
         """
 
         return self._business_engine.get_metrics()
 
     def get_finished_events(self):
-        """List[Event]: All events finished so far
+        """List[Event]: All events finished so far.
         """
         return self._event_buffer.get_finished_events()
 
     def get_pending_events(self, tick):
         """
-        Pending events at certain tick
+        Pending events at certain tick.
 
         Args:
-            tick (int): Specified tick
+            tick (int): Specified tick.
         """
         return self._event_buffer.get_pending_events(tick)
 
@@ -193,8 +193,8 @@ class Env(AbsEnv):
         """Initialize business engine object.
 
         NOTE:
-        1. internal scenarios will always under "maro/simulator/scenarios" folder
-        2. external scenarios, we access the business engine class to create instance
+        1. internal scenarios will always under "maro/simulator/scenarios" folder.
+        2. external scenarios, we access the business engine class to create instance.
         """
         max_tick = self._start_tick + self._durations
 
@@ -229,7 +229,7 @@ class Env(AbsEnv):
 
     def _simulate(self):
         """
-        this is the generator to wrap each episode process
+        This is the generator to wrap each episode process.
         """
         is_end_tick = False
 

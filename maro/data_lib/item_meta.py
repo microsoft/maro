@@ -16,7 +16,7 @@ from yaml import SafeDumper, SafeLoader, YAMLObject, safe_dump, safe_load
 
 
 class EntityAttr(YAMLObject):
-    """Entity attribute in yaml"""
+    """Entity attribute in yaml."""
     yaml_tag = u"!MaroAttribute"
     yaml_loader = SafeLoader
     yaml_dumper = SafeDumper
@@ -31,7 +31,7 @@ class EntityAttr(YAMLObject):
 
 
 class Event(YAMLObject):
-    """Event from yaml"""
+    """Event from yaml."""
     yaml_tag = u"!MaroEvent"
     yaml_loader = SafeLoader
     yaml_dumper = SafeDumper
@@ -43,7 +43,7 @@ class Event(YAMLObject):
 
 
 class BinaryMeta:
-    """Meta for binary file"""
+    """Meta for binary file."""
     def __init__(self):
         self._item_nt: namedtuple = None
         self._item_struct: Struct = None
@@ -63,12 +63,12 @@ class BinaryMeta:
 
     @property
     def events(self) -> List[Event]:
-        """Events definition"""
+        """Events definition."""
         return self._events
 
     @property
     def default_event_name(self) -> str:
-        """Default event name, if no value matched"""
+        """Default event name, if no value matched."""
         return self._default_event_name
 
     @property
@@ -78,24 +78,24 @@ class BinaryMeta:
 
     @property
     def time_zone(self):
-        """Time zone of this meta, used to correct timestamp"""
+        """Time zone of this meta, used to correct timestamp."""
         return self._tzone
 
     @property
     def item_size(self) -> int:
-        """Item binary size (in bytes)"""
+        """Item binary size (in bytes)."""
         return self._item_struct.size
 
     @property
     def columns(self) -> dict:
-        """Columns to extract"""
+        """Columns to extract."""
         return {a.name: a.raw_name for a in self._attrs}
 
     def items(self) -> dict:
         return {a.name: a.dtype for a in self._attrs}
 
     def from_file(self, file: str):
-        """Read meta from yaml file"""
+        """Read meta from yaml file."""
         assert os.path.exists(file)
 
         with open(file, "rt") as fp:
@@ -106,7 +106,7 @@ class BinaryMeta:
             self._build_item_struct()
 
     def from_bytes(self, meta_bytes: Union[bytes, bytearray, memoryview]):
-        """Construct meta from bytes"""
+        """Construct meta from bytes."""
         assert meta_bytes is not None
 
         self._events.clear()
@@ -132,13 +132,13 @@ class BinaryMeta:
         self._build_item_struct()
 
     def from_dict(self, meta_dict: dict):
-        """Construct meta from dictionary"""
+        """Construct meta from dictionary."""
         self._validate(meta_dict)
 
         self._build_item_struct()
 
     def to_bytes(self):
-        """Convert meta into bytes"""
+        """Convert meta into bytes."""
         return safe_dump(
             {
                 "events": self._events,
@@ -149,18 +149,18 @@ class BinaryMeta:
         ).encode()
 
     def get_item_values(self, row: dict) -> Union[list, tuple]:
-        """Retrieve value for item """
+        """Retrieve value for item."""
         # NOTE: keep the order
         return (row[col] for col in self._raw_cols)
 
     def item_to_bytes(self, item_values: Union[tuple, list], out_bytes: Union[memoryview, bytearray]) -> int:
-        """Convert item into bytes"""
+        """Convert item into bytes."""
         self._item_struct.pack_into(out_bytes, 0, *item_values)
 
         return self.item_size
 
     def item_from_bytes(self, item_bytes: Union[bytes, bytearray, memoryview], adjust_value: bool = False):
-        """Convert bytes into item (namedtuple)"""
+        """Convert bytes into item (namedtuple)."""
         item_tuple = self._item_struct.unpack_from(item_bytes, 0)
 
         if adjust_value:
@@ -174,7 +174,7 @@ class BinaryMeta:
         return self._item_nt._make(item_tuple)
 
     def _build_item_struct(self):
-        """build item struct use field name in meta"""
+        """Build item struct use field name in meta."""
         self._item_nt = namedtuple("Item", [a.name for a in self._attrs])
 
         fmt: str = "<" + "".join([dtype_pack_map[a.dtype]

@@ -13,11 +13,11 @@ timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 
 def utc_timestamp_to_timezone(timestamp: int, timezone):
-    """Convert utc timestamp into specified tiemzone datetime
+    """Convert utc timestamp into specified tiemzone datetime.
 
     Args:
-        timestamp(int): UTC timestamp to convert
-        timezone: target timezone
+        timestamp(int): UTC timestamp to convert.
+        timezone: target timezone.
 
     """
     if sys.platform == "win32":
@@ -28,11 +28,11 @@ def utc_timestamp_to_timezone(timestamp: int, timezone):
 
 
 class DocableDict:
-    """A thin wrapper that provide a read-only dictionary with customized doc
+    """A thin wrapper that provide a read-only dictionary with customized doc.
 
     Args:
-        doc (str): customized doc of the dict
-        kwargs (dict): dictionary items to store
+        doc (str): customized doc of the dict.
+        kwargs (dict): dictionary items to store.
     """
 
     def __init__(self, doc: str, **kwargs):
@@ -65,14 +65,14 @@ class DocableDict:
 
 
 class MatrixAttributeAccessor:
-    """Wrapper for each attribute with matrix like interface
+    """Wrapper for each attribute with matrix like interface.
 
 
     Args:
-        node(NodeBase): node instance the attribute belongs to
-        attribute(str): attribute name to wrap
-        row_num(int): result matrix row number
-        col_num(int): result matrix column number
+        node(NodeBase): node instance the attribute belongs to.
+        attribute(str): attribute name to wrap.
+        row_num(int): result matrix row number.
+        col_num(int): result matrix column number.
     """
 
     def __init__(self, node: NodeBase, attribute: str, row_num: int, col_num: int):

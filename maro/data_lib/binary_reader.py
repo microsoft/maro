@@ -33,14 +33,14 @@ def unit_seconds(unit: str):
 
 
 def calc_time_offset(start_time: int, offset: int, unit: str):
-    """Calculate time by offset and time unit"""
+    """Calculate time by offset and time unit."""
     seconds_per_unit = unit_seconds(unit)
 
     return offset * seconds_per_unit + start_time
 
 
 class ItemBuffer:
-    """In-memory buffer for binary data"""
+    """In-memory buffer for binary data."""
 
     def __init__(self, number_of_item: int, meta: BinaryMeta, enable_adjust_ratio: bool = False):
         self._meta = meta
@@ -69,7 +69,7 @@ class ItemBuffer:
 
 
 class ItemTickPicker:
-    """Wrapper to support get items by tick"""
+    """Wrapper to support get items by tick."""
 
     def __init__(self, item_generaotr, starttime: int, time_unit: str):
         self._item_generaotr = item_generaotr
@@ -78,10 +78,10 @@ class ItemTickPicker:
         self._cached_item = None
 
     def items(self, tick: int):
-        """get items for specified ticks
+        """Get items for specified ticks.
 
         NOTE:
-            this method will compare timestamp of item to pick
+            This method will compare timestamp of item to pick.
         """
         seconds_per_unit = unit_seconds(self._time_unit)
         ticks_in_seconds = self._starttime + tick * seconds_per_unit
@@ -113,7 +113,7 @@ class ItemTickPicker:
 
 
 class BinaryReader:
-    """Read binary file converted by csv converter
+    """Read binary file converted by csv converter.
 
     Examples:
 
@@ -121,11 +121,11 @@ class BinaryReader:
 
             reader = BinaryReader(bin_file)
 
-            # read items in between 0-10 minute (relative to binary start time)
+            # Read items in between 0-10 minute (relative to binary start time).
             for item in reader.items(0, 10, time_unit="m"):
                 print(item)
 
-            # or get a picker that support query by tick sequentially
+            # Or get a picker that support query by tick sequentially.
             picker = reader.items_tick_picker(0, 10, time_unit="m"):
 
             for tick in range(0, 10):
@@ -133,10 +133,10 @@ class BinaryReader:
                     print(item)
 
     Args:
-        file_path(str): binary file path to read
+        file_path(str): binary file path to read.
         enable_value_adjust(bool): if reader should adjust the value of fields that enabled
-            'value_adjust' feature in meta randomly
-        buffer_size(int): size of in-memory buffer
+            'value_adjust' feature in meta randomly.
+        buffer_size(int): size of in-memory buffer.
     """
 
     def __init__(self, file_path: str, enable_value_adjust: bool = False, buffer_size: int = 100):
@@ -178,38 +178,44 @@ class BinaryReader:
 
     @property
     def meta(self) -> BinaryMeta:
-        """Meta data in binary file"""
+        """BinaryMeta: Meta data in binary file."""
         return self._meta
 
     @property
     def start_datetime(self) -> datetime:
-        """Start datetime of this file (UTC)"""
+        """datetime: Start datetime of this file (UTC)."""
         return self._to_utc_datetime(self.header.starttime)
 
     @property
     def end_datetime(self) -> datetime:
-        """End datetime of this file (UTC)"""
+        """datetime: End datetime of this file (UTC)."""
         return self._to_utc_datetime(self.header.endtime)
 
     def items_tick_picker(self, start_time_offset: int = 0, end_time_offset: int = None, time_unit: str = "s"):
-        """Filter items by specified time range, and then pick by tick sequentially
+        """Filter items by specified time range, and then pick by tick sequentially.
 
         Args:
-            start_time_offset(int): specified the which tick (in seconds) to start
-            end_time_offset(int): specified the end tick (in seconds) to start
-            time_unit (str): unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day
+            start_time_offset(int): specified the which tick (in seconds) to start.
+            end_time_offset(int): specified the end tick (in seconds) to start.
+            time_unit (str): unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day.
+
+        Returns:
+            ItemTickPicker: a picker object that support get items by tick in specified range.
         """
         item_filter = self.items(start_time_offset, end_time_offset, time_unit)
 
         return ItemTickPicker(item_filter, self.header.starttime, time_unit)
 
     def items(self, start_time_offset: int = 0, end_time_offset: int = None, time_unit: str = "s"):
-        """Get all items in specified time range
+        """Get all items in specified time range.
 
         Args:
-            start_time_offset(int): specified the which tick (in seconds) to start
-            end_time_offset(int): specified the end tick (in seconds) to start
-            time_unit (str): unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day
+            start_time_offset(int): specified the which tick (in seconds) to start.
+            end_time_offset(int): specified the end tick (in seconds) to start.
+            time_unit (str): unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day.
+
+        Returns
+            interable: items in specified range.
         """
         # reset to read from beginning
         self.reset()
@@ -277,15 +283,15 @@ class BinaryReader:
                 break
 
     def reset(self):
-        """Reset binary reader"""
+        """Reset binary reader."""
         self._readed_data_size = 0
 
     def __del__(self):
-        """Clear resources"""
+        """Clear resources."""
         self.close()
 
     def close(self):
-        """Close file"""
+        """Close file."""
         if self._mmap and not self._mmap.closed:
             self._mmap.close()
 
@@ -297,7 +303,7 @@ class BinaryReader:
             self._file_fp = None
 
     def _to_utc_datetime(self, timestamp: int):
-        """Convert timestamp into datetime"""
+        """Convert timestamp into datetime."""
 
         # TODO: make it as a common method
         if sys.platform == "win32":
@@ -306,7 +312,7 @@ class BinaryReader:
             return datetime.utcfromtimestamp(timestamp).replace(tzinfo=UTC)
 
     def _read_header(self):
-        """Read header part"""
+        """Read header part."""
         header_bytes = memoryview(self._mmap[0:header_struct.size])
 
         self.header = FileHeader._make(header_struct.unpack_from(header_bytes))
@@ -318,14 +324,14 @@ class BinaryReader:
                 "File version is greater than current reader version, may cause unknown behavior!.")
 
     def _read_meta(self):
-        """Read meta part"""
+        """Read meta part."""
         meta_bytes = self._mmap[self.header.meta_offset:
                                 self.header.meta_offset + self.header.meta_size]
 
         self._meta.from_bytes(meta_bytes)
 
     def _fulfill_buffer(self):
-        """fulfill buffer from file"""
+        """Fulfill buffer from file."""
 
         buffer = self._item_buffer
 

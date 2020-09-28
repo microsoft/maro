@@ -13,7 +13,7 @@ from maro.data_lib.item_meta import BinaryMeta
 
 
 def is_datetime(val: str, tzone=None):
-    """Check if a string is datetime, return the datetime if yes"""
+    """Check if a string is datetime, return the datetime if yes."""
     try:
         # default time zone
         if tzone is None:
@@ -33,7 +33,7 @@ def is_datetime(val: str, tzone=None):
 
 
 def convert_val(val: str, dtype: str, tzone):
-    """a simple function to convert str value into specified data type"""
+    """A simple function to convert str value into specified data type."""
     result = None
 
     # process the value first
@@ -71,14 +71,14 @@ class BinaryConverter:
     The output binary file composed with:
 
     1. header: file type, start/end time etc.
-    2. meta: meta content after validation
-    3. items
+    2. meta: meta content after validation.
+    3. items.
 
     Args:
-        output_file(str): output binary file full path
-        meta_file(str): path to the meta file (yaml)
+        output_file(str): output binary file full path.
+        meta_file(str): path to the meta file (yaml).
         utc_start_timestamp(int): start timestamp in UTC which will be considered as tick 0,
-            used to adjust the data reader pipeline
+            used to adjust the data reader pipeline.
 
     """
     def __init__(self, output_file: str, meta_file: str, utc_start_timestamp: int = None):
@@ -117,7 +117,7 @@ class BinaryConverter:
         the order will be same as calling sequence.
 
         Args:
-            csv_file(str): csv to convert
+            csv_file(str): csv to convert.
         """
         with open(csv_file, newline='') as csv_fp:
             reader = DictReader(csv_fp)
@@ -126,7 +126,7 @@ class BinaryConverter:
             self._write_items(reader)
 
     def flush(self):
-        """Flush the result into output file"""
+        """Flush the result into output file."""
         self._update_header()
 
     def __del__(self):
@@ -138,7 +138,7 @@ class BinaryConverter:
             self._output_fp.close()
 
     def _update_header(self):
-        """Update file header"""
+        """Update file header."""
         header_bytes = header_struct.pack(
             b"MARO",
             SINGLE_BIN_FILE_TYPE,
@@ -161,7 +161,7 @@ class BinaryConverter:
         self._output_fp.seek(0, 2)
 
     def _write_meta(self):
-        """Write file meta"""
+        """Write file meta."""
         meta_bytes = self._meta.to_bytes()
 
         # update header info
@@ -171,7 +171,7 @@ class BinaryConverter:
         self._output_fp.write(meta_bytes)
 
     def _write_items(self, reader: DictReader):
-        """Write items into binary"""
+        """Write items into binary."""
         # columns need to convert
         columns = self._meta.columns
         # values buffer from each row, used to pack into binary

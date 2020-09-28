@@ -17,28 +17,27 @@ class AbsBusinessEngine(ABC):
 
 
     A business engine should have a name that used to identify it, built-in scenarios also use it to
-
     find built-in topologies.
 
 
     The core part of business engine is the step and post_step methods:
 
-    1. step: will be called one time at each tick
+    1. step: will be called one time at each tick.
     2. post_step: will be called at the end of each tick after all the events being processed,
        simulator use the return value of this method (bool), to decide if it should stop simulation.
        This is also a good place to check business final state of current tick if you follow event-driven pattern.
 
 
     Args:
-        event_buffer (EventBuffer): used to process events
-        topology (str): config name
-        start_tick (int): start tick of this business engine
-        max_tick (int): max tick of this business engine
+        event_buffer (EventBuffer): used to process events.
+        topology (str): config name.
+        start_tick (int): start tick of this business engine.
+        max_tick (int): max tick of this business engine.
         snapshot_resolution (int): frequency to take a snapshot,
             NOTE: though we have this configuration,
-            but business engine has the full control about the frequency of taking snapshot
-        max_snapshots(int): max number of in-memory snapshots
-        addition_options (dict): additional options for this business engine from outside
+            but business engine has the full control about the frequency of taking snapshot.
+        max_snapshots(int): max number of in-memory snapshots, default is None that means max number of snapshots.
+        addition_options (dict): additional options for this business engine from outside.
     """
 
     def __init__(self, scenario_name: str, event_buffer: EventBuffer, topology: str,
@@ -75,11 +74,11 @@ class AbsBusinessEngine(ABC):
 
 
         Args:
-            tick (int): tick to calculate frame index
+            tick (int): tick to calculate frame index.
 
 
         Returns:
-            int: frame index in snapshot list of specified tick
+            int: frame index in snapshot list of specified tick.
         """
         return tick_to_frame_index(self._start_tick, tick, self._snapshot_resolution)
 
@@ -89,11 +88,11 @@ class AbsBusinessEngine(ABC):
 
         NOTE:
             This method will return max number that can contains all the frame state to the end.
-        you can use a small size to hold states, when hit the limitation, oldest one will be overwrote
+        you can use a small size to hold states, when hit the limitation, oldest one will be overwrote.
 
 
         Returns:
-            int: max snapshot number for current configuration
+            int: max snapshot number for current configuration.
         """
         return self._max_snapshots if self._max_snapshots is not None \
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
@@ -114,23 +113,22 @@ class AbsBusinessEngine(ABC):
 
             .. code-block:: python
 
-                # define a business engine
+                # Define a business engine.
                 class MyBusinessEngine(AbsBusinessEngine):
                     def __init__(self, *args, **kwargs):
                         super().__init__("my_be", *args, **kwargs)
 
-                        # use __file__ as parameter
+                        # Use __file__ as parameter.
                         self.update_config_root_path(__file__)
 
         Args:
-            business_engine_file_path(str): full path of real business engine file
-
+            business_engine_file_path(str): full path of real business engine file.
 
         """
         if self._topology:
             path = Path(self._topology)
 
-            if path.exists() and path.is_dir():  # and path.parent.name == "topologies":
+            if path.exists() and path.is_dir():
                 # if topology is a existing path, then use it as config root path
                 self._config_path = self._topology
             else:
@@ -142,29 +140,29 @@ class AbsBusinessEngine(ABC):
         """Method that is called at each tick, usually used to trigger business logic at current tick.
 
         Args:
-            tick (int): current tick from simulator
+            tick (int): current tick from simulator.
         """
         pass
 
     @property
     def configs(self) -> dict:
-        """dict: Configurations of this business engine"""
+        """dict: Configurations of this business engine."""
         pass
 
     def rewards(self, actions: Union[list, object]) -> Union[float, List[float]]:
         """Calculate rewards based on actions, the value is based on scenario.
 
         Args:
-            actions(list): Action(s) from agent
+            actions(list): Action(s) from agent.
 
         Returns:
-            Union[float, List[float]]: reward(s) based on actions
+            Union[float, List[float]]: reward(s) based on actions.
         """
         return []
 
     @abstractmethod
     def reset(self):
-        """Reset states business engine"""
+        """Reset states business engine."""
         pass
 
     def post_step(self, tick: int) -> bool:
@@ -173,27 +171,27 @@ class AbsBusinessEngine(ABC):
         if stop the scenario at the middle of tick, so this method is used to avoid this.
 
         Args:
-            tick (int): current tick
+            tick (int): current tick.
 
         Returns:
-            bool: if simulator should stop simulation at current tick
+            bool: if simulator should stop simulation at current tick.
         """
         return False
 
     def get_node_mapping(self) -> dict:
-        """Get mapping for nodes, like index->name or index->id, may different for scenarios
+        """Get mapping for nodes, like index->name or index->id, may different for scenarios.
 
         Returns:
-            dict: key is node index, value is decided by scenario, usually is name or id
+            dict: key is node index, value is decided by scenario, usually is name or id.
         """
 
         return {}
 
     def get_metrics(self) -> dict:
-        """Get statistics information, may different for scenarios
+        """Get statistics information, may different for scenarios.
 
         Returns:
-            dict: dictionary about metrics, content and format determined by business engine
+            dict: dictionary about metrics, content and format determined by business engine.
 
         """
 

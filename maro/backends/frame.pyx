@@ -29,7 +29,7 @@ def node(name: str):
     This node name used for querying from snapshot list, see NodeBase for details.
 
     Args:
-        name(str): node name in Frame
+        name(str): node name in Frame.
     """
     def node_dec(cls):
         cls.__node_name__ = name
@@ -176,7 +176,7 @@ cdef class _NodeAttributeAccessor:
             self._cb(value)
 
     def on_value_changed(self, cb):
-        """Set the value changed callback"""
+        """Set the value changed callback."""
         self._cb = cb
         
 
@@ -186,14 +186,14 @@ cdef class NodeBase:
         return self._index
 
     cdef void setup(self, BackendAbc backend, int index) except *:
-        """setup frame node, and bind attributes"""
+        """Setup frame node, and bind attributes."""
         self._index = index
         self._backend = backend
 
         self._bind_attributes()
 
     cdef void _bind_attributes(self) except *:
-        """bind attributes declared in class"""
+        """Bind attributes declared in class."""
         cdef dict __dict__ = object.__getattribute__(self, "__dict__")    
 
         cdef str name
@@ -220,7 +220,7 @@ cdef class NodeBase:
                     attr_acc.on_value_changed(cb_func)
 
     def __setattr__(self, name, value):
-        """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute"""
+        """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
         cdef dict __dict__ = self.__dict__ 
         cdef str attr_name = name
      
@@ -239,7 +239,7 @@ cdef class NodeBase:
             __dict__[attr_name] = value
 
     def __getattribute__(self, name):
-        """provide easy way to get attribute with 1 slot"""
+        """Provide easy way to get attribute with 1 slot."""
         cdef dict __dict__ = self.__dict__     
         cdef str attr_name = name 
 
@@ -269,14 +269,14 @@ cdef class FrameBase:
 
     @property
     def snapshots(self) -> SnapshotList:
-        """SnapshotList: Snapshots of this frame"""
+        """SnapshotList: snapshots of this frame."""
         return self._snapshot_list
 
     def get_node_info(self) -> dict:
         """Get a dictionary contains node attribute and number definition.
         
         Returns:
-            dict: key is node name in Frame, key is a dictionary contains attribute and number 
+            dict: key is node name in Frame, key is a dictionary contains attribute and number.
         """
         return self._backend.get_node_info()
 
@@ -302,7 +302,7 @@ cdef class FrameBase:
 
         Args:
             tick (int): tick (point or frame index) for current frame states, 
-                this value will be used when querying states from snapshot list
+                this value will be used when querying states from snapshot list.
         """
         if self._backend.snapshots is not None:
             self._backend.snapshots.take_snapshot(tick)
@@ -324,7 +324,7 @@ cdef class FrameBase:
             self._backend.snapshots.enable_history(path)
 
     cdef void _setup_backend(self, bool enable_snapshot, int total_snapshots, dict options) except *:
-        """setup Frame for further using"""
+        """Setup Frame for further using."""
         cdef str frame_attr_name
         cdef str node_attr_name
         cdef str node_name
@@ -399,11 +399,11 @@ cdef class SnapshotNode:
         self._snapshots = snapshots
 
     def __len__(self):
-        """Number of current node"""
+        """Number of current node."""
         return self._node_number
 
     def __getitem__(self, key: slice):
-        """Used to support states slice querying"""
+        """Used to support states slice querying."""
 
         cdef list ticks = []
         cdef list node_list = []
@@ -454,21 +454,21 @@ cdef class SnapshotList:
             self._nodes_dict[node_name] = SnapshotNode(node_name, node_number, snapshots)
 
     def get_frame_index_list(self)->list:
-        """Get list of available frame index in snapshot list
+        """Get list of available frame index in snapshot list.
         
         Returns:
-            List[int]: frame index list
+            List[int]: frame index list.
         """
         return self._snapshots.get_frame_index_list()
 
     def __getitem__(self, name: str):
-        """used to get slice querying interface for specified node"""
+        """Used to get slice querying interface for specified node."""
         cdef str node_name = name
 
         return self._nodes_dict.get(node_name, None)
 
     def __len__(self):
-        """Max size of snapshot"""
+        """Max size of snapshot."""
         return len(self._snapshots)
 
     def reset(self):

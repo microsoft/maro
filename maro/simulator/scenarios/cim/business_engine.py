@@ -21,10 +21,10 @@ metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick),
  it contains following keys:
 
-order_requirements (int): accumulative orders until now
-container_shortage (int): accumulative shortage until now
+order_requirements (int): accumulative orders until now.
+container_shortage (int): accumulative shortage until now.
 operation_number (int): total empty transfer (both load and discharge) cost,
-    the cost factors can be configured in configuration file at section "transfer_cost_factors"
+    the cost factors can be configured in configuration file at section "transfer_cost_factors".
 """
 
 
