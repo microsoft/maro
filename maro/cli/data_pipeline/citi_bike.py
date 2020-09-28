@@ -27,6 +27,23 @@ logger = CliLogger(name=__name__)
 
 
 class CitiBikePipeline(DataPipeline):
+    """Generate citi_bike data bin and other necessary files for the specified topology from specified source.
+    They will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+    Folder structure: 
+    ~/.maro
+            /data/citi_bike/[topology]
+                                    /_build bin data file and other necessory files
+                                    /source
+                                            /_download original data files
+                                            /_clean cleaned data files
+            /temp download temp files
+
+    Args:
+        topology(str): topology name of the data files
+        source(str): source url of original data file
+        station_info(str): source url of station info file
+        is_temp(bool): (optional) if the data file is temporary
+    """
 
     _download_file_name = "trips.zip"
     _station_info_file_name = "full_station.json"
@@ -40,23 +57,6 @@ class CitiBikePipeline(DataPipeline):
     _meta_file_name = "trips.yml"
 
     def __init__(self, topology: str, source: str, station_info: str, is_temp: bool = False):
-        """Generate citi_bike data bin and other necessary files for the specified topology from specified source.
-        They will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-        Folder structure: 
-        ~/.maro
-                /data/citi_bike/[topology]
-                                        /_build bin data file and other necessory files
-                                        /source
-                                                /_download original data files
-                                                /_clean cleaned data files
-                /temp download temp files
-
-        Args:
-            topology(str): topology name of the data files
-            source(str): source url of original data file
-            station_info(str): source url of station info file
-            is_temp(bool): (optional) if the data file is temporary
-        """
         super().__init__("citi_bike", topology, source, is_temp)
 
         self._station_info = station_info
@@ -251,6 +251,22 @@ class CitiBikePipeline(DataPipeline):
 
 
 class WeatherPipeline(DataPipeline):
+    """Generate weather data bin for the specified topology from frontierweather.com.
+    Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+    Folder structure: 
+    ~/.maro
+            /data/citi_bike/[topology]
+                                    /_build bin data file
+                                    /source
+                                            /_download original data file
+                                            /_clean cleaned data file
+            /temp download temp file
+
+    Args:
+        topology(str): topology name of the data file
+        source(str): source url of original data file
+        is_temp(bool): (optional) if the data file is temporary
+    """
 
     _last_day_temp = None  # used to fill the temp for days which have no temp info
 
@@ -269,22 +285,6 @@ class WeatherPipeline(DataPipeline):
         SLEET = 3
 
     def __init__(self, topology: str, source: str, is_temp: bool = False):
-        """Generate weather data bin for the specified topology from frontierweather.com.
-        Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-        Folder structure: 
-        ~/.maro
-                /data/citi_bike/[topology]
-                                        /_build bin data file
-                                        /source
-                                                /_download original data file
-                                                /_clean cleaned data file
-                /temp download temp file
-
-        Args:
-            topology(str): topology name of the data file
-            source(str): source url of original data file
-            is_temp(bool): (optional) if the data file is temporary
-        """
         super().__init__("citi_bike", topology, source, is_temp)
 
         self._common_data = {}
@@ -358,6 +358,7 @@ class CitiBikeTopology(DataTopology):
         weather_source(str): original source url of weather data
         is_temp(bool): (optional) if the data file is temporary
     """
+
     def __init__(self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
@@ -370,7 +371,22 @@ class CitiBikeTopology(DataTopology):
 
 
 class CitiBikeToyPipeline(DataPipeline):
-    
+    """Generate synthetic business events and station initialization distribution for Citi Bike scenario, from the predefined toy topologies.
+    Folder structure: 
+    ~/.maro
+            /data/citi_bike/[topology]
+                                    /_build bin data file and other necessory files
+
+
+    Args:
+        start_time(str): start time of the toy data 
+        end_time(str): end time of the toy data
+        stations(list): list of stations info
+        trips(list): list of trips probability
+        topology(str): topology name of the data files
+        is_temp(bool): (optional) if the data file is temporary
+    """
+
     _clean_file_name = "trips.csv"
 
     _build_file_name = "trips.bin"
@@ -380,21 +396,6 @@ class CitiBikeToyPipeline(DataPipeline):
     _meta_file_name = "trips.yml"
 
     def __init__(self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False):
-        """Generate synthetic business events and station initialization distribution for Citi Bike scenario, from the predefined toy topologies.
-        Folder structure: 
-        ~/.maro
-                /data/citi_bike/[topology]
-                                        /_build bin data file and other necessory files
-
-
-        Args:
-            start_time(str): start time of the toy data 
-            end_time(str): end time of the toy data
-            stations(list): list of stations info
-            trips(list): list of trips probability
-            topology(str): topology name of the data files
-            is_temp(bool): (optional) if the data file is temporary
-        """
         super().__init__("citi_bike", topology, "", is_temp)
         self._start_time = start_time
         self._end_time = end_time
@@ -493,25 +494,26 @@ class CitiBikeToyPipeline(DataPipeline):
 
 
 class WeatherToyPipeline(WeatherPipeline):
+    """Generate weather data bin for the specified topology from frontierweather.com.
+    It will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+    folder structure: 
+    ~/.maro
+            /data/citi_bike/[topology]
+                                    /_build bin data file
+                                    /source
+                                            /_download original data file
+                                            /_clean cleaned data file
+            /temp download temp file
+
+    Args:
+        topology(str): topology name of the data file.
+        start_time(str): start time of the toy data.
+        end_time(str): end time of the toy data.
+        is_temp(bool): (optional) if the data file is temporary.
+    """
 
     def __init__(self, topology: str, start_time: str, end_time: str, is_temp: bool = False):
-        """Generate weather data bin for the specified topology from frontierweather.com.
-        It will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-        folder structure: 
-        ~/.maro
-                /data/citi_bike/[topology]
-                                        /_build bin data file
-                                        /source
-                                                /_download original data file
-                                                /_clean cleaned data file
-                /temp download temp file
 
-        Args:
-            topology(str): topology name of the data file.
-            start_time(str): start time of the toy data.
-            end_time(str): end time of the toy data.
-            is_temp(bool): (optional) if the data file is temporary.
-        """
         super().__init__(topology, "", is_temp)
         self._start_time = start_time
         self._end_time = end_time
@@ -574,6 +576,7 @@ class CitiBikeToyTopology(DataTopology):
         config_path(str): config file path of the topology.
         is_temp(bool): (optional) if the data file is temporary.
     """
+
     def __init__(self, topology: str, config_path: str, is_temp: bool = False):
         super().__init__()
         self._is_temp = is_temp
@@ -600,6 +603,7 @@ class CitiBikeProcess:
     Args:
         is_temp(bool): (optional) if the data file is temporary.
     """
+
     meta_file_name = "source_urls.yml"
     meta_root = os.path.join(StaticParameter.data_root, "citi_bike/meta")
 
@@ -623,24 +627,24 @@ class CitiBikeProcess:
 
 
 class NOAAWeatherPipeline(WeatherPipeline):
+    """Generate weather data bin for the specified topology from ncei.noaa.gov.
+    Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
+    Folder structure: 
+    ~/.maro
+            /data/citi_bike/[topology]
+                                    /_build bin data file
+                                    /source
+                                            /_download original data file
+                                            /_clean cleaned data file
+            /temp download temp file
+
+    Args:
+        topology(str): topology name of the data file.
+        source(str): source url of original data file.
+        is_temp(bool): (optional) if the data file is temporary.
+    """
 
     def __init__(self, topology: str, source: str, is_temp: bool = False):
-        """Generate weather data bin for the specified topology from ncei.noaa.gov.
-        Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-        Folder structure: 
-        ~/.maro
-                /data/citi_bike/[topology]
-                                        /_build bin data file
-                                        /source
-                                                /_download original data file
-                                                /_clean cleaned data file
-                /temp download temp file
-
-        Args:
-            topology(str): topology name of the data file.
-            source(str): source url of original data file.
-            is_temp(bool): (optional) if the data file is temporary.
-        """
         super().__init__(topology, source, is_temp)
 
     def download(self, is_force: bool):

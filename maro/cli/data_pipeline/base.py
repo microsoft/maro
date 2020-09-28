@@ -14,6 +14,28 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 class DataPipeline(ABC):
+    """Base class of data pipeline.
+    Generate scenario/topology specific data for the business engine.
+    General workflow:
+    Step 1: Download the original data file from the source to download folder.
+    Step 2: Generate the clean data in clean folder.
+    Step 3: Build a binary data file in build folder.
+    The folder structer is:
+    ~/.maro
+            /data/[scenario]/[topology]
+                                    /_download original data file
+                                    /_clean cleaned data file
+                                    /_build bin data file and other necessory files
+                            /meta meta files for data pipeline
+
+
+    Args:
+        scenario(str): the scenario of the data.
+        topology(str): the topology of the scenario.
+        source(str): the original source of data file.
+        is_temp(bool): (optional) if the data file is temporary.
+    """
+
     _download_file_name = ""
 
     _clean_file_name = ""
@@ -23,27 +45,6 @@ class DataPipeline(ABC):
     _meta_file_name = ""
 
     def __init__(self, scenario: str, topology: str, source: str, is_temp: bool = False):
-        """Base class of data pipeline.
-        Generate scenario/topology specific data for the business engine.
-        General workflow:
-        Step 1: Download the original data file from the source to download folder.
-        Step 2: Generate the clean data in clean folder.
-        Step 3: Build a binary data file in build folder.
-        The folder structer is:
-        ~/.maro
-                /data/[scenario]/[topology]
-                                        /_download original data file
-                                        /_clean cleaned data file
-                                        /_build bin data file and other necessory files
-                                /meta meta files for data pipeline
-
-
-        Args:
-            scenario(str): the scenario of the data.
-            topology(str): the topology of the scenario.
-            source(str): the original source of data file.
-            is_temp(bool): (optional) if the data file is temporary.
-        """
         self._scenario = scenario
         self._topology = topology
         self._is_temp = is_temp
@@ -134,9 +135,9 @@ class DataPipeline(ABC):
 
 
 class DataTopology(ABC):
-
+    """Data topology manage multi data pipelines for a specified topology of a research scenario."""
+    
     def __init__(self):
-        """Data topology manage multi data pipelines for a specified topology of a research scenario."""
         self._data_pipeline = {}
 
     def get_build_folders(self)-> dict:
