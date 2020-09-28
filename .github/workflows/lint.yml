@@ -14,7 +14,7 @@ name: lint
 #############################
 # Start the job on all push #
 #############################
-on: [ pull_request, workflow_dispatch ]
+on: [ push, pull_request, workflow_dispatch ]
 
 ###############
 # Set the Job #
