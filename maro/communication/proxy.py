@@ -6,9 +6,7 @@ from collections import defaultdict, namedtuple
 from enum import Enum
 import itertools
 import json
-import random
 import sys
-import string
 import signal
 import time
 from typing import List, Tuple, Dict, Union
@@ -31,7 +29,6 @@ HOST = default_parameters.proxy.redis.host
 PORT = default_parameters.proxy.redis.port
 MAX_RETRIES = default_parameters.proxy.redis.max_retries
 BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
-SUFFIX_LENGTH = default_parameters.proxy.suffix_length
 FAULT_TOLERANT = default_parameters.proxy.fault_tolerant
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 
@@ -52,7 +49,6 @@ class Proxy:
         redis_address (Tuple): Hostname and port of the Redis server,
         max_retries (int): Maximum number of retries before raising an exception,
         base_retry_interval (float = 0.1): The time interval between attempts,
-        suffix_length (int = 6): The suffix length,
         fault_tolerant (bool): Proxy can tolerate sending message error or not, default is False,
         log_enable (bool): Open logger or not, default is True.
     """
@@ -60,7 +56,7 @@ class Proxy:
     def __init__(self, group_name: str, component_type: str, expected_peers: dict,
                  driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
                  redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
-                 base_retry_interval: float = BASE_RETRY_INTERVAL, suffix_length: int = SUFFIX_LENGTH,
+                 base_retry_interval: float = BASE_RETRY_INTERVAL,
                  fault_tolerant: bool = FAULT_TOLERANT, log_enable: bool = True):
         self._group_name = group_name
         self._component_type = component_type
@@ -71,9 +67,9 @@ class Proxy:
         self._driver_parameters = driver_parameters
         self._max_retries = max_retries
         self._retry_interval = base_retry_interval
-        self._suffix_length = suffix_length
         self._is_enable_fault_tolerant = fault_tolerant
         self._log_enable = log_enable
+        self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
 
         try:
             self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1])
@@ -86,8 +82,6 @@ class Proxy:
                                                          expected_number=number)
         self._onboard_peers_name_dict = {}
         self._message_cache = defaultdict(list)
-
-        self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
 
         self._join()
 
