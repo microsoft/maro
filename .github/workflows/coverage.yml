@@ -1,0 +1,28 @@
+
+name: coverage
+
+on: [ pull_request, workflow_dispatch ]
+
+jobs:
+  check-quality:
+    runs-on: ubuntu-latest
+    name: A job to check my unit test coverage
+    steps:
+    - name: Coveralls GitHub Action
+      # You may pin to the exact commit or the version.
+      # uses: coverallsapp/github-action@8cbef1dea373ebce56de0a14c68d6267baa10b44
+      uses: coverallsapp/github-action@v1.1.2
+      with:
+        github-token:  ${{ secrets.GITHUB_TOKEN }}
+        # Path to lcov file
+        path-to-lcov: ./coverage/lcov.info
+        # Job flag name, e.g. "Unit", "Functional", or "Integration". Will be shown in the Coveralls UI.
+        flag-name: Unit
+        # Set to true if you are running parallel jobs, then use "parallel_finished: true" for the last action.
+        parallel: false
+        # Set to true for the last action when using "parallel: true".
+        parallel-finished: false
+        # Coveralls Enterprise server (more info: https://enterprise.coveralls.io)
+        coveralls-endpoint: https://coveralls.io/github/microsoft/maro
+        # The root folder of the project that originally ran the tests
+        base-path: ./maro
