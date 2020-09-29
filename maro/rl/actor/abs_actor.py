@@ -44,4 +44,5 @@ class AbsActor(ABC):
 
     @property
     def inference_agents(self):
+        """Agents performing inference during roll-out. """
         return self._inference_agents

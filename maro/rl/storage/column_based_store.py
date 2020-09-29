@@ -21,9 +21,12 @@ class ColumnBasedStore(AbsStore):
     and limited storage are supported.
 
     Args:
-        capacity (int): If -1, the store is of unlimited capacity. Defaults to -1.
+        capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
         overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
-            are overwritten when the capacity is exceeded.
+            are overwritten when the capacity is exceeded. Two types of overwrite behavior are supported:
+            - Rolling, where overwrite occurs sequentially with wrap-around.
+            - Random, where overwrite occurs randomly among filled positions.
+            Alternatively, the user may also specify overwrite positions (see ``put``).
     """
     def __init__(self, capacity: int = -1, overwrite_type: OverwriteType = None):
         super().__init__()
@@ -52,10 +55,16 @@ class ColumnBasedStore(AbsStore):
 
     @property
     def capacity(self):
+        """Store capacity.
+
+        If negative, the store grows without bound. Otherwise, the number of items in the store will not exceed
+        this capacity.
+        """
         return self._capacity
 
     @property
     def overwrite_type(self):
+        """An ``OverwriteType`` member indicating the overwrite behavior when the store capacity is exceeded."""
         return self._overwrite_type
 
     def get(self, indexes: [int]) -> dict:
@@ -201,12 +210,15 @@ class ColumnBasedStore(AbsStore):
         return indexes, self.get(indexes)
 
     def dumps(self):
+        """Return a deep copy of store contents."""
         return clone(dict(self._store))
 
     def get_by_key(self, key):
+        """Get the contents of the store corresponding to ``key``."""
         return self._store[key]
 
     def clear(self):
+        """Empty the store."""
         del self._store
         self._store = defaultdict(lambda: [] if self._capacity < 0 else [None] * self._capacity)
         self._size = 0

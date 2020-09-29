@@ -20,4 +20,5 @@ class AbsLearner(ABC):
 
     @abstractmethod
     def test(self):
+        """Test policy performance."""
         pass

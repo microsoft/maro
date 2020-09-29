@@ -70,10 +70,12 @@ class AbsAlgorithm(ABC):
 
         Args:
             state: A state object shaped by a ``StateShaper`` to conform to the model input format.
-            epsilon (float, optional): Exploration rate. Defaults to None.
+            epsilon (float, optional): Exploration rate. For greedy value-based algorithms, this being None means
+                using the model output without exploration. For algorithms with inherently stochastic policies such
+                as policy gradient, this is usually ignored. Defaults to None.
 
         Returns:
-            An action to be taken given the ``state``. It is usually necessary to use an ``ActionShaper`` to convert this
-            to an environment executable action.
+            The action to be taken given ``state``. It is usually necessary to use an ``ActionShaper`` to convert
+            this to an environment executable action.
         """
         return NotImplementedError

@@ -5,6 +5,7 @@ from .abs_explorer import AbsExplorer
 
 
 class LinearExplorer(AbsExplorer):
+    """A simple linear exploration scheme."""
     def __init__(self, agent_id_list, total_episodes, epsilon_range_dict, with_cache=True):
         super().__init__(agent_id_list, total_episodes, epsilon_range_dict, with_cache=with_cache)
         self._step_dict = {}
