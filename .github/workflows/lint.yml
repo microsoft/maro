@@ -47,5 +47,6 @@ jobs:
           VALIDATE_PYTHON_BLACK: false # same as above
           PYTHON_FLAKE8_CONFIG_FILE: tox.ini
           FILTER_REGEX_INCLUDE: maro/.*
+          FILTER_REGEX_EXCLUDE: tests/.*
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.LINT_TOKEN }}
