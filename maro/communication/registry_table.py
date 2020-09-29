@@ -40,9 +40,10 @@ class ConditionalEvent:
 
     The conditional event can be composed of any number of unit conditional events and end with an Operation.
     For unit conditional event, It must be three parts and divided by ``:``:
-        - The first part of unit event represent the message's source. E.g. ``learner`` or ``*``.
-        - The second part of unit event represent the message's type. E.g. ``experience`` or ``*``.
-        - The third part of unit event represent how much messages needed. E.g. ``1`` or ``90%``.
+
+    - The first part of unit event represent the message's source. E.g. ``learner`` or ``*``.
+    - The second part of unit event represent the message's type. E.g. ``experience`` or ``*``.
+    - The third part of unit event represent how much messages needed. E.g. ``1`` or ``90%``.
 
     Note:
         Do not use special symbol in the unit event, such as ``,``, ``(``, ``)``.
