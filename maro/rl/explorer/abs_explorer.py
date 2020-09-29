@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 class AbsExplorer(ABC):
     """Abstract explorer class.
 
+    An explorer is responsible for generating exploration rates.
+
     Args:
         agent_id_list (list): List of agent ID's.
         total_episodes (int): Total number of episodes in the training phase.
@@ -37,10 +39,12 @@ class AbsExplorer(ABC):
 
     @property
     def epsilon_range_dict(self):
+        """Exploration rate ranges for each agent."""
         return self._epsilon_range_dict
 
     @property
     def epsilon(self):
+        """Current exploration rates for each agent."""
         return self._current_epsilon
 
     @epsilon.setter

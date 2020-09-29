@@ -49,6 +49,7 @@ class SimpleLearner(AbsLearner):
         self._actor.roll_out(done=True)
 
     def dump_models(self, dir_path: str):
+        """Dump agents' models to disk."""
         self._trainable_agents.dump_models(dir_path)
 
     def _is_shared_agent_instance(self):

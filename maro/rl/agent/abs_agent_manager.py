@@ -152,36 +152,50 @@ class AbsAgentManager(ABC):
             self._explorer.update(performance)
 
     def train(self):
+        """Train all agents."""
         self._assert_train_mode()
         for agent in self._agent_dict.values():
             agent.train()
 
     def load_models(self, agent_model_dict):
+        """Load models from memory for each agent."""
         for agent_id, model_dict in agent_model_dict.items():
             self._agent_dict[agent_id].load_model_dict(model_dict)
 
     def load_models_from_files(self, file_path_dict):
+        """Load models from disk for each agent."""
         for agent_id, file_path in file_path_dict.items():
             self._agent_dict[agent_id].load_model_dict_from(file_path)
 
     def dump_models(self, dir_path: str):
+        """Dump agents' models to disk.
+
+        Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
+        """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self._agent_dict.values():
             agent.dump_model_dict(dir_path)
 
     def get_models(self):
+        """Get agents' underlying models.
+
+        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
+        """
         return {agent_id: agent.algorithm.model_dict for agent_id, agent in self._agent_dict.items()}
 
     @property
     def name(self):
+        """Agent manager's name."""
         return self._name
 
     @property
     def agents(self):
+        """Agents managed by the agent manager."""
         return self._agent_dict
 
     @property
     def explorer(self):
+        """Explorer used by the agent manager."""
         return self._explorer
 
     def _assert_train_mode(self):

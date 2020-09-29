@@ -41,26 +41,10 @@ maro.rl.algorithms.torch.dqn
 Models
 ================================================================================
 
-maro.rl.models.torch.decision\_layers
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.models.torch.decision_layers
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 maro.rl.models.torch.learning\_model
 --------------------------------------------------------------------------------
 
 .. automodule:: maro.rl.models.torch.learning_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-maro.rl.models.torch.mlp\_representation
---------------------------------------------------------------------------------
-
-.. automodule:: maro.rl.models.torch.mlp_representation
    :members:
    :undoc-members:
    :show-inheritance:
