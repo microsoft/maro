@@ -13,16 +13,18 @@ cdef class SnapshotList:
 
     SnapshotList is read-only for out-side of simulator, it provides a slice interface to query states
     for nodes at specified ticks (frame index).
-
     Same as frame, snapshot list is composed with serveral nodes, you should get snapshot list for
     a node with node name, before querying,then use the slice interface to query.
 
-    Slice interface accept 3 parameters: tick/tick_list (frame index), node_index/node_index_list,
-    attribute_name/attribute_name_list, tick and node_index can be empty, then means all the ticks (frame index)
-    or all the nodes.
+    Slice interface accept 3 parameters:
+
+    - Tick/tick_list (frame index).
+    - Node_index/node_index_list.
+    - Attribute_name/attribute_name_list.
+
+    Tick and node_index can be empty, then means all the ticks (frame index) or all the nodes.
 
     When querying, all the slot of specified attribute will be returned.
-
     The querying result is a 1 dim numpy array, and grouped like:
     [[node[attr] for node in nodes] attr for attr in attributes] * len(ticks)
 
@@ -104,7 +106,7 @@ cdef class FrameBase:
     by their definition name, each node instance will be assigned an index attribute (0 based) for later quering.
 
     .. code-block:: python
-        
+
         frame = MyFrame()
 
         # Get instance list of MyNode.
@@ -112,10 +114,11 @@ cdef class FrameBase:
         your_nodes_list = frame.yournodes
 
         for mnode in my_node_list:
-            print(mnode.index) # 0 - len(my_node_list)
+            # 0 - len(my_node_list)
+            print(mnode.index)
 
     Args:
-        enable_snapshot (bool): If enable snapshot list to keep frame snapshot at specified point, default False.
+        enable_snapshot (bool): If enable snapshot list to keep frame snapshot at specified point. Defaults to False.
         total_snapshots (int): Total snapshots number in memory.
         options (dict): Additional options, reserved for later using.
 
@@ -129,7 +132,7 @@ cdef class FrameBase:
 
         # enable dynamic fields
         dict __dict__
-        
+
 
     cpdef void reset(self) except *
 
@@ -161,10 +164,10 @@ cdef class NodeBase:
 
     A node is composed with serveral attributes that defined with NodeAttribute class with data type and slot number.
 
-    A node must have a name that used to query states in snapshot list, this name is specified via @node decorator.
+    A node must have a name that used to query states in snapshot list, this name is specified via ``@node`` decorator.
 
     NOTE:
-        A node definition must decorated with @node decorator to specified a name, or will cause error.
+        A node definition must decorated with ``@node`` decorator to specified a name, or will cause error.
 
     To add an attribute in node definition, just add class variable that type is NodeAttribute to your node class.
 
@@ -181,7 +184,7 @@ cdef class NodeBase:
             my_float_array_attr = NodeAttribute("f", 2)
 
     Each attribute will have a default hook than will trigger an event after the value changed, to recieve this event
-    there should be a specified method that named as '_on_<attribute name>_changed' in node definition class,
+    there should be a specified method that named as ``_on_<attribute name>_changed`` in node definition class,
     this method will recieve the new value as its only parameter.
 
     .. code-block:: python

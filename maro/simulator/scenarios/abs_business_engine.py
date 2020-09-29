@@ -25,7 +25,6 @@ class AbsBusinessEngine(ABC):
        simulator use the return value of this method (bool), to decide if it should stop simulation.
        This is also a good place to check business final state of current tick if you follow event-driven pattern.
 
-
     Args:
         event_buffer (EventBuffer): Used to process events.
         topology (str): Config name.
@@ -56,7 +55,7 @@ class AbsBusinessEngine(ABC):
     @property
     @abstractmethod
     def frame(self) -> FrameBase:
-        """FrameBase: frame instance of current business engine."""
+        """FrameBase: Frame instance of current business engine."""
         pass
 
     @property
@@ -81,7 +80,7 @@ class AbsBusinessEngine(ABC):
 
         NOTE:
             This method will return max number that can contains all the frame state to the end.
-        you can use a small size to hold states, when hit the limitation, oldest one will be overwrote.
+            You can use a small size to hold states, when hit the limitation, oldest one will be overwrote.
 
         Returns:
             int: Max snapshot number for current configuration.
