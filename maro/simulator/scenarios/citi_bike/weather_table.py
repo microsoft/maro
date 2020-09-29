@@ -9,7 +9,21 @@ from maro.simulator.scenarios.helpers import utc_timestamp_to_timezone
 
 
 class WeatherTable:
-    """Value look-up table, date->weather info"""
+    """Value look-up table, used to query weather information by datetime.
+
+    After initializing, this lut object can be used as a normal dictionary which key is the datetime object.
+
+    .. code-block:: python
+
+        weather_lut = WeatherTable(path, UTC)
+
+        # Get weather at specified datetime, usually day leve.
+        weather = weather_lut[your_date]
+
+    Args:
+        file (str): Binary file that contains weather information.
+        timezone (object): Target timezone, used to convert timestamp from binary.
+    """
 
     def __init__(self, file: str, timezone):
         self._setup_in_memory_table(file, timezone)

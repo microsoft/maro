@@ -13,21 +13,21 @@ from .entities import CimDataCollection
 
 
 class CimDataDumpUtil:
-    """Utilities to dump cim data from data collection, it will generate following files in specified folder.
+    """Utilities to dump cim data from data collection, it will generate following files in specified folder:
     ports.csv, vessels.csv, stops.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml
 
     Args:
-        data_collection (CimDataCollection): data collection to dump
+        data_collection (CimDataCollection): Data collection to dump.
     """
 
     def __init__(self, data_collection: CimDataCollection):
         self._data_collection = data_collection
 
     def dump(self, output_folder: str):
-        """Dump cim data into specified folder
+        """Dump cim data into specified folder.
 
         Args:
-            output_folder (str): folder to save dumped files
+            output_folder (str): Folder to save dumped files.
 
         """
         # mapping for quick accessing
@@ -225,14 +225,15 @@ class CimDataDumpUtil:
 
 
 def dump_from_config(config_file: str, output_folder: str, max_tick: int):
-    """Dump cim data from config, this will call data generator to generate data , and dump it
+    """Dump cim data from config, this will call data generator to generate data , and dump it.
 
-    NOTE: this function will not convert csv files into binary
+    NOTE:
+        This function will not convert csv files into binary.
 
     Args:
-        config_file (str): configuration path
-        output_folder (str): output folder to save files
-        max_tick(int): max tick to gen
+        config_file (str): Configuration path.
+        output_folder (str): Output folder to save files.
+        max_tick(int): Max tick to gen.
     """
     assert config_file is not None and os.path.exists(config_file)
     assert output_folder is not None and os.path.exists(output_folder)

@@ -25,11 +25,11 @@ ELSE:
 
 def node(name: str):
     """Frame node decorator, used to specified node name in Frame and SnapshotList.
-    
+
     This node name used for querying from snapshot list, see NodeBase for details.
 
     Args:
-        name(str): node name in Frame.
+        name(str): Node name in Frame.
     """
     def node_dec(cls):
         cls.__node_name__ = name
@@ -269,56 +269,51 @@ cdef class FrameBase:
 
     @property
     def snapshots(self) -> SnapshotList:
-        """SnapshotList: snapshots of this frame."""
+        """SnapshotList: Snapshots of this frame."""
         return self._snapshot_list
 
     def get_node_info(self) -> dict:
         """Get a dictionary contains node attribute and number definition.
-        
+
         Returns:
-            dict: key is node name in Frame, key is a dictionary contains attribute and number.
+            dict: Key is node name in Frame, value is a dictionary contains attribute and number.
         """
         return self._backend.get_node_info()
 
     cpdef void reset(self) except *:
         """Reset internal states of frame, currently all the attributes will reset to 0.
-        
+
         Note:
             This method will not reset states in snapshot list.
         """
         self._backend.reset()
 
     cpdef void take_snapshot(self, int tick) except *:
-        """Take snapshot for specified point (tick) for current frame. 
+        """Take snapshot for specified point (tick) for current frame.
         This method will copy current frame value into snapshot list for later using.
 
-
         NOTE:
-            Frame and SnapshotList do not know about snapshot_resolution from simulator, 
+            Frame and SnapshotList do not know about snapshot_resolution from simulator,
             they just accept a point as tick for current frame states.
-            Current scenarios and decision event already provided a property "frame_index" 
+            Current scenarios and decision event already provided a property "frame_index"
             used to get correct point of snapshot.
 
-
         Args:
-            tick (int): tick (point or frame index) for current frame states, 
+            tick (int): Tick (point or frame index) for current frame states,
                 this value will be used when querying states from snapshot list.
         """
         if self._backend.snapshots is not None:
             self._backend.snapshots.take_snapshot(tick)
 
     cpdef void enable_history(self, str path) except *:
-        """Enable snapshot history, history will be dumped into files under specified folder, 
+        """Enable snapshot history, history will be dumped into files under specified folder,
         history of nodes will be dump seperately, named as node name.
 
-
-        Different with take snapshot, history will not over-write oldest or snapshot at same point, 
+        Different with take snapshot, history will not over-write oldest or snapshot at same point,
         it will keep all the changes after take_snapshot method is called.
 
-
         Args:
-            path (str): folder path to save history files.
-        
+            path (str): Folder path to save history files.
         """
         if self._backend.snapshots is not None:
             self._backend.snapshots.enable_history(path)
@@ -457,7 +452,7 @@ cdef class SnapshotList:
         """Get list of available frame index in snapshot list.
         
         Returns:
-            List[int]: frame index list.
+            List[int]: Frame index list.
         """
         return self._snapshots.get_frame_index_list()
 

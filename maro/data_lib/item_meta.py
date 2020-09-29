@@ -44,6 +44,7 @@ class Event(YAMLObject):
 
 class BinaryMeta:
     """Meta for binary file."""
+
     def __init__(self):
         self._item_nt: namedtuple = None
         self._item_struct: Struct = None
@@ -63,17 +64,17 @@ class BinaryMeta:
 
     @property
     def events(self) -> List[Event]:
-        """Events definition."""
+        """List[Event]: Events definition."""
         return self._events
 
     @property
     def default_event_name(self) -> str:
-        """Default event name, if no value matched."""
+        """str: Default event name, if no value matched."""
         return self._default_event_name
 
     @property
     def event_attr_name(self) -> str:
-        """Event attribute name"""
+        """str: Event attribute name."""
         return self._event_attr_name
 
     @property
@@ -83,15 +84,16 @@ class BinaryMeta:
 
     @property
     def item_size(self) -> int:
-        """Item binary size (in bytes)."""
+        """int: Item binary size (in bytes)."""
         return self._item_struct.size
 
     @property
     def columns(self) -> dict:
-        """Columns to extract."""
+        """dict: Columns to extract."""
         return {a.name: a.raw_name for a in self._attrs}
 
     def items(self) -> dict:
+        """dict: Attribute items."""
         return {a.name: a.dtype for a in self._attrs}
 
     def from_file(self, file: str):
@@ -106,7 +108,11 @@ class BinaryMeta:
             self._build_item_struct()
 
     def from_bytes(self, meta_bytes: Union[bytes, bytearray, memoryview]):
-        """Construct meta from bytes."""
+        """Construct meta from bytes.
+
+        Args:
+            meta_bytes (Union[bytes, bytearray, memoryview]): Bytes content of meta.
+        """
         assert meta_bytes is not None
 
         self._events.clear()
@@ -132,13 +138,21 @@ class BinaryMeta:
         self._build_item_struct()
 
     def from_dict(self, meta_dict: dict):
-        """Construct meta from dictionary."""
+        """Construct meta from dictionary.
+
+        Args:
+            meta_dict (dict): Meta dictionary.
+        """
         self._validate(meta_dict)
 
         self._build_item_struct()
 
     def to_bytes(self):
-        """Convert meta into bytes."""
+        """Convert meta into bytes.
+
+        Returns:
+            bytes: Bytes content of current meta.
+        """
         return safe_dump(
             {
                 "events": self._events,
@@ -149,18 +163,41 @@ class BinaryMeta:
         ).encode()
 
     def get_item_values(self, row: dict) -> Union[list, tuple]:
-        """Retrieve value for item."""
+        """Retrieve value for item.
+
+        Args:
+            row (dict): A row that from a csv file.
+
+        Returns:
+            Union[list, tuple]: Get value for configured attributes from dict.
+        """
         # NOTE: keep the order
         return (row[col] for col in self._raw_cols)
 
     def item_to_bytes(self, item_values: Union[tuple, list], out_bytes: Union[memoryview, bytearray]) -> int:
-        """Convert item into bytes."""
+        """Convert item into bytes.
+
+        Args:
+            item_values (Union[tuple, list]): Value of attributes used to construct item.
+            out_bytes (Union[memoryview, bytearray]): Item bytes content.
+
+        Returns:
+            int: Result item size.
+        """
         self._item_struct.pack_into(out_bytes, 0, *item_values)
 
         return self.item_size
 
     def item_from_bytes(self, item_bytes: Union[bytes, bytearray, memoryview], adjust_value: bool = False):
-        """Convert bytes into item (namedtuple)."""
+        """Convert bytes into item (namedtuple).
+
+        Args:
+            item_bytes (Union[bytes, bytearray, memoryview]): Item byte content.
+            adjust_value (bool): If need to adjust value for attributes that enabled this feature.
+
+        Returns:
+            namedtuple: Result item tuple.
+        """
         item_tuple = self._item_struct.unpack_from(item_bytes, 0)
 
         if adjust_value:

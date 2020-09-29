@@ -7,7 +7,15 @@ from .station import Station, gen_matrices_node_definition
 
 
 def build_frame(station_num: int, snapshots_num: int):
-    """Function to build citi_bike Frame"""
+    """Function to build citi_bike Frame.
+
+    Args:
+        station_num (int): Number of stations.
+        snapshot_num (int): Number of in-memory snapshots.
+
+    Returns:
+        CitibikeFrame: Frame instance for citi-bike scenario.
+    """
     matrices_cls = gen_matrices_node_definition(station_num)
 
     class CitibikeFrame(FrameBase):

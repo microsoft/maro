@@ -9,12 +9,11 @@ from .entities import CimDataCollection, Stop
 class VesselFutureStopsPrediction:
     """Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.
 
-
     Examples:
 
         .. code-block:: python
 
-            # get future stops of vessel 0
+            # Get future stops of vessel 0.
             stops = data_cntr.vessel_future_stops[0]
     """
 
@@ -27,7 +26,7 @@ class VesselFutureStopsPrediction:
         self._stop_number = data.future_stop_number
 
     def __getitem__(self, key):
-        """Used to support querying future stops by vessel index, last location index, next location index"""
+        """Used to support querying future stops by vessel index, last location index, next location index."""
         assert type(key) == tuple or type(key) == list
         assert len(key) == 3
 
@@ -48,8 +47,7 @@ class VesselFutureStopsPrediction:
         return self._predict_future_stops(vessel_idx, last_port_idx, last_port_arrive_tick, self._stop_number)
 
     def _predict_future_stops(self, vessel_idx: int, last_port_idx: int, last_port_arrive_tick: int, stop_number: int):
-        """
-        Do predict future stops
+        """Do predict future stops.
         """
         vessel = self._vessels[vessel_idx]
         speed = vessel.sailing_speed

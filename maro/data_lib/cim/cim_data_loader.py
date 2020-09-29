@@ -228,18 +228,18 @@ class CimDumpDataLoader:
 
 
 def load_from_folder(source_folder: str) -> CimDataCollection:
-    """Load data from dump folder
+    """Load data from dump folder.
 
     NOTE:
-        dumps folder should contains following files.
+        Dumps folder should contains following files:
     ports.csv, vessels.csv, routes.csv, order_proportion.csv,
-    global_order_proportion.txt, misc.yml, stops.bin
+    global_order_proportion.txt, misc.yml, stops.bin.
 
     Args:
-        source_folder(str): source folder container dumped files
+        source_folder(str): Source folder container dumped files.
 
     Returns:
-        CimDataCollection: data collection for cim data container
+        CimDataCollection: Data collection for cim data container.
     """
     loader = CimDumpDataLoader()
 

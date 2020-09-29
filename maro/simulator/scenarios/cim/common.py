@@ -7,16 +7,14 @@ from maro.backends.frame import SnapshotList
 
 
 class VesselState(IntEnum):
-    """
-    State of vessel
+    """State of vessel.
     """
     PARKING = 0
     SAILING = 1
 
 
 class CimEventType(IntEnum):
-    """
-    Event type for CIM problem
+    """Event type for CIM problem.
     """
     RELEASE_EMPTY = 10
     RETURN_FULL = 11
@@ -34,17 +32,14 @@ class CimEventType(IntEnum):
 
 # used for arrival and departure cascade event
 class VesselStatePayload:
-    """
-    Payload object used to hold vessel state changes for event
-    """
+    """Payload object used to hold vessel state changes for event.
 
+    Args:
+        port_idx (int): Which port the vessel at.
+        vessel_idx (int): Which vessel's state changed.
+    """
     def __init__(self, port_idx: int, vessel_idx: int):
-        """
 
-        Args:
-            port_idx (int): Which port the vessel at
-            vessel_idx (int): Which vessel's state changed
-        """
         self.port_idx = port_idx
         self.vessel_idx = vessel_idx
 
@@ -53,21 +48,15 @@ class VesselStatePayload:
 
 
 class VesselDischargePayload:
-    """
-    Payload object to hold information about container discharge
-    """
+    """Payload object to hold information about container discharge.
 
+    Args:
+        vessel_idx (int): Which vessel will discharge.
+        from_port_idx (int): Which port sent the discharged containers.
+        port_idx (int): Which port will receive the discharged containers.
+        quantity (int): How many containers will be discharged.
+    """
     def __init__(self, vessel_idx: int, from_port_idx: int, port_idx: int, quantity: int):
-        """
-        Create a new instance of VesselDischargePayload
-
-        Args:
-            vessel_idx (int): Which vessel will discharge
-            from_port_idx (int): Which port sent the discharged containers
-            port_idx (int): Which port will receive the discharged containers
-            quantity (int): How many containers will be discharged
-
-        """
         self.vessel_idx = vessel_idx
         self.from_port_idx = from_port_idx
         self.port_idx = port_idx
@@ -78,20 +67,15 @@ class VesselDischargePayload:
 
 
 class Action:
-    """
-    Action object
+    """Action object that used to pass action from agent to business engine.
+
+    Args:
+        vessel_idx (int): Which vessel will take action.
+        port_idx (int): Which port will take action.
+        quantity (int): How many containers can be moved from vessel to port (negative in reverse).
     """
 
     def __init__(self, vessel_idx: int, port_idx: int, quantity: int):
-        """
-        Create a new instance of VesselDischargePayload
-
-        Args:
-            vessel_idx (int): Which vessel will take action
-            port_idx (int): Which port will take action
-            quantity (int): How many containers can be moved from vessel to port (negative in reverse)
-
-        """
         self.vessel_idx = vessel_idx
         self.port_idx = port_idx
         self.quantity = quantity
@@ -104,8 +88,11 @@ class Action:
 
 
 class ActionScope:
-    """
-    Load and discharge scope for agent to generate decision
+    """Load and discharge scope for agent to generate decision.
+
+    Args:
+        load (int): Max number to load.
+        discharge (int): Max number to discharge.
     """
 
     def __init__(self, load: int, discharge: int):
@@ -120,25 +107,20 @@ class ActionScope:
 
 
 class DecisionEvent:
-    """
-    Decision event for agent
-    """
+    """Decision event for agent.
 
+    Args:
+        tick (int): On which tick we need an action.
+        port_idx (int): Which port will take action.
+        vessel_idx (int): Which vessel will take action.
+        snapshot_list (int): Snapshots of the environment to input into the decision model.
+        action_scope_func (Function): Function to calculate action scope, we use function here to make it
+            getting the value as late as possible.
+        early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
+            use function here to make it getting the value as late as possible.
+    """
     def __init__(self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
                  action_scope_func, early_discharge_func):
-        """
-        Create a new instance of CascadeEventPayload
-
-        Args:
-            tick (int): On which tick we need an action
-            port_idx (int): Which port will take action
-            vessel_idx (int): Which vessel will take action
-            snapshot_list (int): Snapshots of the environment to input into the decision model
-            action_scope_func (Function): Function to calculate action scope, we use function here to make it
-                                            getting the value as late as possible
-            early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
-                                            use function here to make it getting the value as late as possible
-        """
         self.tick = tick
         self.port_idx = port_idx
         self.vessel_idx = vessel_idx
@@ -152,8 +134,7 @@ class DecisionEvent:
 
     @property
     def action_scope(self) -> ActionScope:
-        """
-        Load and discharge scope for agent to generate decision
+        """ActionScope: Load and discharge scope for agent to generate decision.
         """
         if self._action_scope is None:
             self._action_scope = self._action_scope_func(self.port_idx, self.vessel_idx)
@@ -162,8 +143,7 @@ class DecisionEvent:
 
     @property
     def early_discharge(self) -> int:
-        """
-        Early discharge number of corresponding vessel
+        """int: Early discharge number of corresponding vessel.
         """
         if self._early_discharge is None:
             self._early_discharge = self._early_discharge_func(self.vessel_idx)

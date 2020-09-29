@@ -86,7 +86,7 @@ class OrderGenerateMode(Enum):
 # TODO: use object pooling to reduce memory cost
 class Order:
     """
-    Used to hold order information, this is for order generation
+    Used to hold order information, this is for order generation.
     """
 
     def __init__(self, tick: int, src_port_idx: int, dest_port_idx: int, quantity: int):
@@ -94,10 +94,10 @@ class Order:
         Create a new instants of order
 
         Args:
-            tick (int): Generated tick of current order
-            src_port_idx (int): Source port of this order
-            dest_port_idx (int): Destination port id of this order
-            quantity (int): Container quantity of this order
+            tick (int): Generated tick of current order.
+            src_port_idx (int): Source port of this order.
+            dest_port_idx (int): Destination port id of this order.
+            quantity (int): Container quantity of this order.
         """
         self.tick = tick
         self.src_port_idx = src_port_idx

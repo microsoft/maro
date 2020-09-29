@@ -133,10 +133,10 @@ class BinaryReader:
                     print(item)
 
     Args:
-        file_path(str): binary file path to read.
-        enable_value_adjust(bool): if reader should adjust the value of fields that enabled
+        file_path(str): Binary file path to read.
+        enable_value_adjust(bool): If reader should adjust the value of fields that enabled
             'value_adjust' feature in meta randomly.
-        buffer_size(int): size of in-memory buffer.
+        buffer_size(int): Size of in-memory buffer.
     """
 
     def __init__(self, file_path: str, enable_value_adjust: bool = False, buffer_size: int = 100):
@@ -195,12 +195,12 @@ class BinaryReader:
         """Filter items by specified time range, and then pick by tick sequentially.
 
         Args:
-            start_time_offset(int): specified the which tick (in seconds) to start.
-            end_time_offset(int): specified the end tick (in seconds) to start.
-            time_unit (str): unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day.
+            start_time_offset(int): Specified the which tick (in seconds) to start.
+            end_time_offset(int): Specified the end tick (in seconds) to start.
+            time_unit (str): Unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day.
 
         Returns:
-            ItemTickPicker: a picker object that support get items by tick in specified range.
+            ItemTickPicker: A picker object that support get items by tick in specified range.
         """
         item_filter = self.items(start_time_offset, end_time_offset, time_unit)
 
@@ -210,12 +210,12 @@ class BinaryReader:
         """Get all items in specified time range.
 
         Args:
-            start_time_offset(int): specified the which tick (in seconds) to start.
-            end_time_offset(int): specified the end tick (in seconds) to start.
-            time_unit (str): unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day.
+            start_time_offset(int): Specified the which tick (in seconds) to start.
+            end_time_offset(int): Specified the end tick (in seconds) to start.
+            time_unit (str): Unit of time used to calculate offset, 's': seconds, 'm': minute, 'h': hour, 'd': day.
 
         Returns
-            interable: items in specified range.
+            interable: Items in specified range.
         """
         # reset to read from beginning
         self.reset()

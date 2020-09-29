@@ -3,7 +3,7 @@
 
 import datetime
 import os
-from typing import List, Union
+from typing import List
 
 import holidays
 import numpy as np
@@ -38,12 +38,11 @@ metrics_desc = """
 Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick),
 it contains following keys:
 
-trip_requirements (int): accumulative trips until now
+trip_requirements (int): Accumulative trips until now.
 
-bike_shortage (int): accumulative shortage until now
+bike_shortage (int): Accumulative shortage until now.
 
-operation_number (int): accumulative operation cost until now
-
+operation_number (int): Accumulative operation cost until now.
 """
 
 
@@ -73,26 +72,27 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     @property
     def frame(self) -> FrameBase:
-        """Current frame"""
+        """FrameBase: Current frame."""
         return self._frame
 
     @property
     def snapshots(self) -> SnapshotList:
-        """Current snapshot list"""
+        """SnapshotList: Current snapshot list."""
         return self._snapshots
 
     @property
-    def configs(self):
+    def configs(self) -> dict:
+        """dict: Current configuration."""
         return self._conf
 
-    def rewards(self, actions) -> Union[float, list]:
-        """Calculate rewards based on actions
+    def rewards(self, actions) -> float:
+        """Calculate rewards based on actions.
 
         Args:
-            actions(list): Action(s) from agent
+            actions(list): Action(s) from agent.
 
         Returns:
-            float: reward based on actions
+            float: Reward based on actions.
         """
         if actions is None:
             return []
@@ -100,7 +100,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return sum([self._reward.reward(station.index) for station in self._stations])
 
     def step(self, tick: int):
-        """Push business engine to next step"""
+        """Push business engine to next step.
+
+        Args:
+            tick (int): Current tick to process.
+        """
         # if we do not set auto event, then we need to push it manually
         for trip in self._item_picker.items(tick):
             # generate a trip event, to dispatch to related callback to process this requirement
@@ -137,13 +141,14 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return tick + 1 == self._max_tick
 
     def get_node_mapping(self) -> dict:
+        """dict: Node mapping of current stations."""
         node_mapping = {}
         for station in self._stations:
             node_mapping[station.index] = station.id
         return node_mapping
 
     def reset(self):
-        """Reset after episode"""
+        """Reset internal states for episode."""
         self._total_trips = 0
         self._total_operate_num = 0
         self._total_shortages = 0
@@ -166,10 +171,22 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self._last_date = None
 
     def get_agent_idx_list(self) -> List[int]:
+        """Get a list of agent index.
+
+        Returns:
+            list: List of agent index.
+        """
         return [station.index for station in self._stations]
 
     def get_metrics(self) -> dict:
-        """metrics information"""
+        """Get current metrics information.
+
+        Note:
+            Call this method at different time will get different result.
+
+        Returns:
+            dict: Metrics information.
+        """
         total_trips = self._total_trips
         total_shortage = self._total_shortages
 

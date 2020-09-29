@@ -13,7 +13,6 @@ from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
 class DecisionMode(IntEnum):
     """Decision mode that interactive with agent."""
-
     # Ask agent for action one by one.
     Sequential = 0
     # Ask agent for action at same time, not supported yes.
@@ -22,6 +21,17 @@ class DecisionMode(IntEnum):
 
 class AbsEnv(ABC):
     """The main MARO simulator abstract class, which provides interfaces to agents.
+
+        Args:
+            scenario (str): Scenario name under maro/sim/scenarios folder.
+            topology (str): Topology name under specified scenario folder.
+            start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
+            durations (int): Duration ticks of this environment from start_tick.
+            snapshot_resolution (int): How many ticks will take a snapshot.
+            max_snapshots (int): Max in-memory snapshot number, less snapshots lower memory cost.
+            business_engine_cls : Class of business engine, if specified, then use it to construct be instance,
+                or will search internal by scenario.
+            options (dict): Additional parameters passed to business engine.
     """
 
     def __init__(self, scenario: str, topology: str,
@@ -29,19 +39,6 @@ class AbsEnv(ABC):
                  decision_mode: DecisionMode,
                  business_engine_cls: type,
                  options: dict):
-        """Create a new instance of environment.
-
-        Args:
-            scenario (str): scenario name under maro/sim/scenarios folder.
-            topology (str): topology name under specified scenario folder.
-            start_tick (int): start tick of the scenario, usually used for pre-processed data streaming.
-            durations (int): duration ticks of this environment from start_tick.
-            snapshot_resolution (int): how many ticks will take a snapshot.
-            max_snapshots (int): max in-memory snapshot number, less snapshots lower memory cost.
-            business_engine_cls : class of business engine, if specified, then use it to construct be instance,
-                or will search internal by scenario.
-            options (dict): additional parameters passed to business engine.
-        """
         self._tick = start_tick
         self._scenario = scenario
         self._topology = topology
@@ -64,15 +61,7 @@ class AbsEnv(ABC):
             action (Action): Action(s) from agent.
 
         Returns:
-            (float, object, bool): a tuple of (reward, decision event, is_done).
-
-            The returned tuple contains 3 fields:
-
-            - reward for current action. a list of reward if the input action is a list.
-
-            - decision_event for sequential decision mode, or a list of decision_event.
-
-            - whether the episode ends.
+            tuple: a tuple of (reward, decision event, is_done).
         """
         pass
 
@@ -113,31 +102,31 @@ class AbsEnv(ABC):
 
     @property
     def frame_index(self) -> int:
-        """int: frame index in snapshot list for current tick, USE this for snapshot querying."""
+        """int: Frame index in snapshot list for current tick, USE this for snapshot querying."""
         pass
 
     @property
     @abstractmethod
     def summary(self) -> dict:
-        """Summary about current simulator, may include node details, and mappings."""
+        """dict: Summary about current simulator, may include node details, and mappings."""
         pass
 
     @property
     @abstractmethod
     def snapshot_list(self) -> SnapshotList:
-        """Current snapshot list, a snapshot list contains all the snapshots of frame at each tick.
+        """SnapshotList: Current snapshot list, a snapshot list contains all the snapshots of frame at each tick.
         """
         pass
 
     def set_seed(self, seed: int):
         """Set random seed used by simulator.
 
-        NOTE: this will not set seed for python random or other packages' seed, such as numpy.
+        NOTE:
+            This will not set seed for python random or other packages' seed, such as numpy.
 
         Args:
-            seed (int): seed to set.
+            seed (int): Seed to set.
         """
-
         pass
 
     @property
@@ -145,9 +134,8 @@ class AbsEnv(ABC):
         """Some statistics information provided by business engine.
 
         Returns:
-            dict: dictionary of metrics, content and format is determined by business engine.
+            dict: Dictionary of metrics, content and format is determined by business engine.
         """
-
         return {}
 
     def get_finished_events(self) -> List[Event]:

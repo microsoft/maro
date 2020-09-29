@@ -5,7 +5,13 @@ from enum import Enum
 
 
 class BikeTransferPayload:
-    """Payload for bike transfer event"""
+    """Payload for bike transfer event.
+
+    Args:
+        from_station_idx (int): Which station (index) this bike come from.
+        to_station_idx (int): Which station (index) this bike to.
+        number (int): How many bikes for current trip requirement.
+    """
 
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
@@ -14,7 +20,13 @@ class BikeTransferPayload:
 
 
 class BikeReturnPayload:
-    """Payload for bike return event"""
+    """Payload for bike return event.
+
+    Args:
+        from_station_idx (int): Which station (index) this bike come from.
+        to_station_idx (int): Which station (index) this bike to.
+        number (int): How many bikes for current trip requirement.
+    """
 
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
@@ -23,7 +35,7 @@ class BikeReturnPayload:
 
 
 class DecisionType(Enum):
-    """Station decision type"""
+    """Station decision type."""
     # current cell has too more bikes, need transfer to others
     Supply = 'supply'
     # current cell has no enough bikes, need neighbors transfer bikes to it
@@ -31,7 +43,15 @@ class DecisionType(Enum):
 
 
 class DecisionEvent:
-    """Citi bike scenario decision event that contains station information for agent to choose action"""
+    """Citi bike scenario decision event that contains station information for agent to choose action.
+
+    Args:
+        station_idx (int): Which station need an action.
+        tick (int): Current simulator tick.
+        frame_index (int): Frame index of current tick, used to query from snapshots.
+        action_scope_func (callable): Function to retrieve latest action scope states.
+        decision_type (DecisionType): The type of this decision.
+    """
 
     def __init__(self, station_idx: int, tick: int,
                  frame_index: int, action_scope_func: callable, decision_type: DecisionType):
@@ -43,12 +63,9 @@ class DecisionEvent:
         self._action_scope_func = action_scope_func
 
     @property
-    def action_scope(self):
-        """Get the scope of current action.
-
-        Returns:
-            dict: a dictionary that contains requirements of current and neighbor stations,
-                key is the station index, value is the max demand or supply number
+    def action_scope(self) -> dict:
+        """dict: A dictionary that contains requirements of current and neighbor stations,
+                key is the station index, value is the max demand or supply number.
         """
         if self._action_scope is None:
             self._action_scope = self._action_scope_func(self.station_idx, self.type)
@@ -73,7 +90,13 @@ class DecisionEvent:
 
 
 class Action:
-    """Citi bike scenario action object, that used to pass action from agent to business engine."""
+    """Citi bike scenario action object, that used to pass action from agent to business engine.
+
+    Args:
+        from_station_idx (int): Which station will take this acion.
+        to_station_idx (int): Which station is the target of this action.
+        number (int): Bike number to transfer.
+    """
 
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int):
         self.from_station_idx = from_station_idx
@@ -89,7 +112,7 @@ class Action:
 
 
 class ExtraCostMode(Enum):
-    """The mode to process extra cost"""
+    """The mode to process extra cost."""
     Source = "source"
     Target = "target"
     # TargetNeighbors = "target_neighbors"

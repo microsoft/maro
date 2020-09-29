@@ -47,20 +47,26 @@ def gen_vessel_definition(stop_nums: tuple):
 
         @property
         def name(self) -> str:
-            """
-            Name of vessel (from config)
+            """str: Name of vessel (from config).
             """
             return self._name
 
         @property
         def idx(self) -> int:
-            """
-            Index of vessel
+            """int: Index of vessel.
             """
             return self.index
 
         def set_init_state(self, name: str, container_volume: float, capacity: int, route_idx: int, empty: int):
-            """Initialize vessel info"""
+            """Initialize vessel info that will be used after frame reset.
+
+            Args:
+                name (str): Name of vessel.
+                container_volume (float): Volume of each container.
+                capacity (int): Capacity of this vessel.
+                route_idx (int): The index of the route that this vessel belongs to.
+                empty (int): Initial empty number of this vessel.
+            """
             self._name = name
             self._container_volume = container_volume
             self._total_space = floor(capacity / container_volume)
@@ -72,16 +78,17 @@ def gen_vessel_definition(stop_nums: tuple):
             self.reset()
 
         def reset(self):
-            """Reset states of vessel"""
+            """Reset states of vessel."""
             self.capacity = self._capacity
             self.route_idx = self._route_idx
             self.empty = self._empty
 
         def set_stop_list(self, past_stop_list: list, future_stop_list: list):
-            """
-            Set the future stops (configured in config) when the vessel arrive at a port
+            """Set the future stops (configured in config) when the vessel arrive at a port.
+
             Args:
-                stop_list (tuple): list of past and future stop list tuple
+                past_stop_list (list): List of past stop list tuple.
+                future_stop_list (list): List of future stop list tuple.
             """
             # update past and future stop info
             features = [(past_stop_list, self.past_stop_list, self.past_stop_tick_list),

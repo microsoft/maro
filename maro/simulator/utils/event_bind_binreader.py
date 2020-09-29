@@ -14,7 +14,6 @@ class EventBindBinaryReader:
     If items that not match any event type, then they will bind to a predefined event UNPROECESSED_EVENT,
     you can handle this by register an event handler.
 
-
     Examples:
 
         .. code-block:: python
@@ -25,19 +24,18 @@ class EventBindBinaryReader:
 
             event_buffer = EventBuffer()
 
-            # handle events we defined
+            # Handle events we defined.
             event_buffer.register_event_handler(MyEvents.Event1, on_event1_occur)
             event_buffer.register_event_handler(MyEvents.Event2, on_event1_occur)
 
-            # handle item that cannot map to event
+            # Handle item that cannot map to event.
             event_buffer.register_event_handler(UNPROECESSED_EVENT, on_unprocessed_item)
 
-            # create reader within tick (0, 1000), and events will be mapped to MyEvents type
+            # Create reader within tick (0, 1000), and events will be mapped to MyEvents type.
             reader = EventBindBinaryReader(MyEvents, event_buffer, path_to_bin, 0, 1000)
 
-            # read and gen event at tick 0
+            # Read and gen event at tick 0.
             reader.read_items(0)
-
 
             def on_event1_occur(evt: Event):
                 pass
@@ -48,20 +46,17 @@ class EventBindBinaryReader:
             def on_unprocessed_item(evt: Event):
                 pass
 
-
     Args:
-        event_cls (type): event class that will be mapped to
-        event_buffer (EventBuffer): event buffer that used to generate and insert events
-        binary_file_path (str): path to binary file to read
-        start_tick (int): start tick to filter, default is 0
-        end_tick (int): end tick to filter, de fault is 100
-        time_unit (str): unit of tick, available units are "d", "h", "m", "s"
-            different unit will affect the reading result
-        buffer_size (int): in memory buffer size
-        enable_value_adjust (bool): if reader should adjust the value of the fields that marked as adjust-able
-
+        event_cls (type): Event class that will be mapped to.
+        event_buffer (EventBuffer): Event buffer that used to generate and insert events.
+        binary_file_path (str): Path to binary file to read.
+        start_tick (int): Start tick to filter, default is 0.
+        end_tick (int): End tick to filter, de fault is 100.
+        time_unit (str): Unit of tick, available units are "d", "h", "m", "s".
+            different unit will affect the reading result.
+        buffer_size (int): In memory buffer size.
+        enable_value_adjust (bool): If reader should adjust the value of the fields that marked as adjust-able.
     """
-
     def __init__(self, event_cls: type, event_buffer: EventBuffer, binary_file_path: str,
                  start_tick: int = 0, end_tick=100, time_unit: str = "s", buffer_size: int = 100,
                  enable_value_adjust: bool = False):
@@ -83,24 +78,24 @@ class EventBindBinaryReader:
 
     @property
     def start_datetime(self) -> datetime:
-        """datetime: Start datetime of this binary file"""
+        """datetime: Start datetime of this binary file."""
         return self._reader.start_datetime
 
     @property
     def end_datetime(self) -> datetime:
-        """datetime: End datetime of this binary file"""
+        """datetime: End datetime of this binary file."""
         return self._reader.end_datetime
 
     @property
     def header(self) -> tuple:
-        """tuple: Header in binary file"""
+        """tuple: Header in binary file."""
         return self._reader.header
 
     def read_items(self, tick: int):
         """Read items by tick and generate related events, then insert them into EventBuffer.
 
         Args:
-            tick(int): tick to get items, NOTE: the tick must specified sequentially
+            tick(int): Tick to get items, NOTE: the tick must specified sequentially.
         """
         if self._picker:
             for item in self._picker.items(tick):
@@ -109,7 +104,7 @@ class EventBindBinaryReader:
         return None
 
     def reset(self):
-        """Reset states of reader"""
+        """Reset states of reader."""
         self._reader.reset()
         self._picker = self._reader.items_tick_picker(start_time_offset=self._start_tick,
                                                       end_time_offset=self._end_tick, time_unit=self._time_unit)

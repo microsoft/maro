@@ -15,9 +15,8 @@ class PortBufferTickWrapper:
         ticks = data_cntr.empty_return_buffers[port_index]
 
     Args:
-        data (CimDataCollection): cim data collection
-        attribute_func (callable): function to get attribute, used to switch between empty and full
-
+        data (CimDataCollection): Cim data collection.
+        attribute_func (callable): Function to get attribute, used to switch between empty and full.
     """
 
     def __init__(self, data: CimDataCollection, attribute_func: callable):

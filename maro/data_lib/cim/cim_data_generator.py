@@ -19,7 +19,7 @@ CIM_GENERATOR_VERSION = 0x000001
 
 
 class CimDataGenerator:
-    """Utility to generate cim data from configuration file"""
+    """Utility to generate cim data from configuration file."""
 
     def __init__(self):
         # parsers
@@ -29,15 +29,15 @@ class CimDataGenerator:
         self._global_order_proportion = GlobalOrderProportion()
 
     def gen_data(self, config_file: str, max_tick: int, start_tick: int = 0) -> CimDataCollection:
-        """Generate data with specified configurations
+        """Generate data with specified configurations.
 
         Args:
-            config_file(str): file of configuration (yaml)
-            max_tick(int): max tick to generate
-            start_tick(int): start tick to generate
+            config_file(str): File of configuration (yaml).
+            max_tick(int): Max tick to generate.
+            start_tick(int): Start tick to generate.
 
         Returns:
-            CimDataCollection: data collection contains all cim data
+            CimDataCollection: Data collection contains all cim data.
         """
 
         # read config
@@ -88,7 +88,7 @@ class CimDataGenerator:
 
     def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting,
                       ports_setting, port_mapping, routes, route_mapping):
-        """Extend route with specified tick range"""
+        """Extend route with specified tick range."""
 
         vessels_stops: List[List[Stop]] = []
         vessel_period_no_noise: list = []

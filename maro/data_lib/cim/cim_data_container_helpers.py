@@ -42,12 +42,11 @@ def data_from_dumps(dumps_folder: str) -> CimDataContainer:
     """Collect data from dump folder which contains following files:
     ports.csv, vessels.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml, stops.bin
 
-
     Args:
-        dumps_folder(str): folder contains dumped files
+        dumps_folder(str): Folder contains dumped files.
 
     Returns:
-        CimDataContainer: data container used to provide cim data related interfaces
+        CimDataContainer: Data container used to provide cim data related interfaces.
     """
     assert os.path.exists(dumps_folder)
 
@@ -57,16 +56,15 @@ def data_from_dumps(dumps_folder: str) -> CimDataContainer:
 
 
 def data_from_generator(config_path: str, max_tick: int, start_tick: int = 0) -> CimDataContainer:
-    """Collect data from data generator with configurations
-
+    """Collect data from data generator with configurations.
 
     Args:
-        config_path(str): path of configuration file (yaml)
-        max_tick (int): max tick to generate data
-        start_tick(int): start tick to generate data
+        config_path(str): Path of configuration file (yaml).
+        max_tick (int): Max tick to generate data.
+        start_tick(int): Start tick to generate data.
 
     Returns:
-        CimDataContainer: data container used to provide cim data related interfaces
+        CimDataContainer: Data container used to provide cim data related interfaces.
     """
     edg = CimDataGenerator()
 

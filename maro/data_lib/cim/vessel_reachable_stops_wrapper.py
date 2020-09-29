@@ -5,14 +5,13 @@ from .entities import CimDataCollection
 
 
 class VesselReachableStopsWrapper:
-    """Wrapper to get a list of tuple which contains port index and arrive tick in vessel's route
-
+    """Wrapper to get a list of tuple which contains port index and arrive tick in vessel's route.
 
     Examples:
 
         .. code-block:: python
 
-            # get reachable_stops for vessel 0
+            # Get reachable_stops for vessel 0.
             stop_list = data_cntr.reachable_stops[0]
     """
 

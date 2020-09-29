@@ -11,14 +11,14 @@ class PortsParser:
     """
 
     def parse(self, conf: dict, total_container: int) -> (Dict[str, int], List[PortSetting]):
-        """Parse specified port configurations
+        """Parse specified port configurations.
 
         Args:
-            conf (dict): configuration to parse
-            total_container (int): total container in current environment, used to calculate initial empty
+            conf (dict): Configuration to parse.
+            total_container (int): Total container in current environment, used to calculate initial empty.
 
         Returns:
-            (Dict[str, int], List[PortSetting]): port mapping (name to index), list of port settings
+            (Dict[str, int], List[PortSetting]): Port mapping (name to index), list of port settings.
         """
         # sum of ratio cannot large than 1
         total_ratio = sum([p["initial_container_proportion"] for p in conf.values()])

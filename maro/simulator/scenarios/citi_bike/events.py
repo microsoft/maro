@@ -6,7 +6,7 @@ from enum import Enum
 
 
 class CitiBikeEvents(Enum):
-    """Trip related events"""
+    """Trip related events."""
     # customer needs a bike
     RequireBike = "require_bike"
     # customer returns the bike to the target station

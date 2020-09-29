@@ -75,9 +75,9 @@ class BinaryConverter:
     3. items.
 
     Args:
-        output_file(str): output binary file full path.
-        meta_file(str): path to the meta file (yaml).
-        utc_start_timestamp(int): start timestamp in UTC which will be considered as tick 0,
+        output_file(str): Output binary file full path.
+        meta_file(str): Path to the meta file (yaml).
+        utc_start_timestamp(int): Start timestamp in UTC which will be considered as tick 0,
             used to adjust the data reader pipeline.
 
     """
@@ -117,7 +117,7 @@ class BinaryConverter:
         the order will be same as calling sequence.
 
         Args:
-            csv_file(str): csv to convert.
+            csv_file(str): Csv to convert.
         """
         with open(csv_file, newline='') as csv_fp:
             reader = DictReader(csv_fp)

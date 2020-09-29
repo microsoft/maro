@@ -10,7 +10,14 @@ StationInfo = namedtuple("StationInfo", ["index", "bikes", "capacity", "id"])
 
 
 def get_station_info(station_state_file: str):
-    """get stations information from specified csv file"""
+    """Get stations information from specified csv file.
+
+    Args:
+        station_state_file (str): File path that contains station initial state info.
+
+    Returns:
+        list: List of station information.
+    """
     stations_info = []
     if station_state_file.startswith("~"):
         station_state_file = os.path.expanduser(station_state_file)

@@ -49,13 +49,13 @@ def apply_noise(value: Union[int, float], noise: Union[int, float], rand: SimRan
 
 
 def list_sum_normalize(num_list: List[Union[int, float]]) -> List[float]:
-    """Normalize with sum,
+    """Normalize with sum.
 
     Args:
-        num_list(list): list of number to normalize
+        num_list(list): List of number to normalize.
 
     Returns:
-        list: list of normalized number
+        list: List of normalized number.
     """
     t = sum(num_list)
 
