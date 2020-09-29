@@ -89,4 +89,3 @@ class AbsAgent(ABC):
         """Dump the experience pool to disk."""
         with open(os.path.join(dir_path, self._name)) as fp:
             pickle.dump(self._experience_pool, fp)
-

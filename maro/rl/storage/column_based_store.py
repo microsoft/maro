@@ -90,7 +90,7 @@ class ColumnBasedStore(AbsStore):
             for key, lst in contents.items():
                 self._store[key].extend(lst)
             self._size += added_size
-            return list(range(self._size-added_size, self._size))
+            return list(range(self._size - added_size, self._size))
         else:
             write_indexes = get_update_indexes(self._size, added_size, self._capacity, self._overwrite_type,
                                                overwrite_indexes=overwrite_indexes)
@@ -152,7 +152,7 @@ class ColumnBasedStore(AbsStore):
         indexes = range(self._size)
         for weight_fn, sample_size in samplers:
             weights = np.asarray([weight_fn(self[i]) for i in indexes])
-            indexes = np.random.choice(indexes, size=sample_size, replace=replace, p=weights/np.sum(weights))
+            indexes = np.random.choice(indexes, size=sample_size, replace=replace, p=weights / np.sum(weights))
 
         return indexes, self.get(indexes)
 
@@ -185,7 +185,7 @@ class ColumnBasedStore(AbsStore):
             Sampled indexes and the corresponding objects.
         """
         weights = np.asarray(self._store[key][:self._size] if self._size < self._capacity else self._store[key])
-        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights/np.sum(weights))
+        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
         return indexes, self.get(indexes)
 
     def sample_by_keys(self, keys: Sequence, sizes: Sequence, replace: bool = True):
@@ -205,7 +205,7 @@ class ColumnBasedStore(AbsStore):
         indexes = range(self._size)
         for key, size in zip(keys, sizes):
             weights = np.asarray([self._store[key][i] for i in indexes])
-            indexes = np.random.choice(indexes, size=size, replace=replace, p=weights/np.sum(weights))
+            indexes = np.random.choice(indexes, size=size, replace=replace, p=weights / np.sum(weights))
 
         return indexes, self.get(indexes)
 

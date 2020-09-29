@@ -33,9 +33,10 @@ class AbsAgentManager(ABC):
         mode (AgentMode): An AgentMode enum member that specifies that role of the agent. Some attributes may
                           be None under certain modes.
         agent_id_list (list): List of agent identifiers.
-        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at the
-            end of an episode.
-        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model input.
+        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+            the end of an episode.
+        state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
+            input.
         action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
         explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
@@ -84,10 +85,11 @@ class AbsAgentManager(ABC):
 
         The method consists of 4 steps:
 
-        - The decision event and snapshot list are converted by the state shaper to a model input. The state shaper also finds the target agent ID.
-        - The target agent takes the model input and uses its underlying models to compute an action.
-        - Key information regarding the transition is recorded in the ``_trajectory`` attribute.
-        - The action computed by the model is converted to an environment executable action by the action shaper.
+        1. The decision event and snapshot list are converted by the state shaper to a model input.
+           The state shaper also finds the target agent ID.
+        2. The target agent takes the model input and uses its underlying models to compute an action.
+        3. Key information regarding the transition is recorded in the ``_trajectory`` attribute.
+        4. The action computed by the model is converted to an environment executable action by the action shaper.
 
         Args:
             decision_event: A decision event that prompts an action.

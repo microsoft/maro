@@ -3,7 +3,6 @@
 
 
 import configparser
-from glob import glob
 import io
 import numpy as np
 import os
@@ -14,7 +13,6 @@ import time
 import warnings
 
 from maro import __data_version__
-from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -126,7 +124,8 @@ def deploy(hide_info: bool = True):
     except Exception as e:
 
         # Deployment failed.
-        error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
+        error_list.append(f"An issue occured while deploying meta files for MARO."
+                          f" {e} Please run 'maro meta deploy' to deploy the data files.")
         version_info["MARO_DATA"]["deploy_status"] = "failed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)

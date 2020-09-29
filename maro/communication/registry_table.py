@@ -21,8 +21,8 @@ class Operation(Enum):
 class SuffixTree:
     """The suffix tree uses to decompose the conditional event.
 
-    For the unit conditional event, the ``SuffixTree.value`` is the unit conditional event; 
-    For the conditional event, the ``SuffixTree.value`` is one of the ``Operation``, and the 
+    For the unit conditional event, the ``SuffixTree.value`` is the unit conditional event;
+    For the conditional event, the ``SuffixTree.value`` is one of the ``Operation``, and the
     ``SuffixTree.nodes`` is the list of the unit conditional event.
 
     Args:
@@ -78,8 +78,8 @@ class ConditionalEvent:
             elif event[-1] in operation_or_list:
                 suffix_tree.value = Operation.OR
             else:
-                raise ConditionalEventSyntaxError(f"The last of the conditional event tuple must be "
-                                                  f"one of ['AND', 'OR', '&&', '||]")
+                raise ConditionalEventSyntaxError("The last of the conditional event tuple must be "
+                                                  "one of ['AND', 'OR', '&&', '||]")
 
             for slot in event[:-1]:
                 node = SuffixTree()
@@ -91,7 +91,7 @@ class ConditionalEvent:
                     node.value = slot
                 suffix_tree.nodes.append(node)
         else:
-            raise ConditionalEventSyntaxError(f"Conditional event should be string or tuple.")
+            raise ConditionalEventSyntaxError("Conditional event should be string or tuple.")
 
     def _unit_event_syntax_check(self, unit_event: str):
         """To check unit conditional event expression.

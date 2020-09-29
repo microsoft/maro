@@ -54,6 +54,8 @@ class KStepExperienceShaper(ExperienceShaper):
             agent_exp[KStepExperienceKeys.RETURN.value].appendleft(full_return)
             agent_exp[KStepExperienceKeys.NEXT_STATE.value].appendleft(next_transition["state"])
             agent_exp[KStepExperienceKeys.NEXT_ACTION.value].appendleft(next_transition["action"])
-            agent_exp[KStepExperienceKeys.DISCOUNT.value].appendleft(self._reward_decay ** (min(self._steps, len(trajectory)-1-i)))
+            agent_exp[KStepExperienceKeys.DISCOUNT.value].appendleft(
+                self._reward_decay ** (min(self._steps, len(trajectory) - 1 - i))
+            )
 
         return dict(experiences)

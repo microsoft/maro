@@ -187,7 +187,7 @@ class AzureExecutor:
 
     @staticmethod
     def get_version():
-        command = f"az version"
+        command = "az version"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 

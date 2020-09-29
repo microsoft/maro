@@ -47,10 +47,11 @@ class ZmqDriver(AbsDriver):
     def _setup_sockets(self):
         """Setup three kinds of sockets, and one poller.
 
-        ``unicast_receiver``: The ``zmq.PULL`` socket, use for receiving message from one-to-one communication,
-        ``broadcast_sender``: The ``zmq.PUB`` socket, use for broadcasting message to all subscribers,
-        ``broadcast_receiver``: The ``zmq.SUB`` socket, use for listening message from broadcast.
-        ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and ``zmq.SUB`` socket.
+        - ``unicast_receiver``: The ``zmq.PULL`` socket, use for receiving message from one-to-one communication,
+        - ``broadcast_sender``: The ``zmq.PUB`` socket, use for broadcasting message to all subscribers,
+        - ``broadcast_receiver``: The ``zmq.SUB`` socket, use for listening message from broadcast.
+        - ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and
+          ``zmq.SUB`` socket.
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
@@ -95,7 +96,7 @@ class ZmqDriver(AbsDriver):
 
         Args:
             peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict.
-                The key of dict is the peer's name, while the value of dict is the peer's socket connection address. 
+                The key of dict is the peer's name, while the value of dict is the peer's socket connection address.
                 E.g. Dict{'peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']}.
         """
         for peer_name, address_dict in peers_address_dict.items():

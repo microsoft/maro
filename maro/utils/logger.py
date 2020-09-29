@@ -76,11 +76,9 @@ def msgformat(logfunc):
 
     def _msgformatter(self, msg, *args):
         if args:
-            logfunc(self, "%s %s", isinstance(msg, str)
-                    and msg or repr(msg), repr(args))
+            logfunc(self, "%s %s", isinstance(msg, str) and msg or repr(msg), repr(args))
         else:
-            logfunc(self, "%s", isinstance(msg, str)
-                    and msg or repr(msg))
+            logfunc(self, "%s", isinstance(msg, str) and msg or repr(msg))
 
     return _msgformatter
 
@@ -127,9 +125,9 @@ class Logger(object):
         if not os.path.exists(dump_folder):
             try:
                 os.makedirs(dump_folder)
-            except FileExistsError as _:
-                logging.warning(f"Receive File Exist Error about creating dump folder for internal log. "
-                                f"It may be caused by multi-thread and it won't have any impact on logger dumps.")
+            except FileExistsError:
+                logging.warning("Receive File Exist Error about creating dump folder for internal log. "
+                                "It may be caused by multi-thread and it won't have any impact on logger dumps.")
             except Exception as e:
                 raise e
 

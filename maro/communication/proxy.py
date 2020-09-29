@@ -9,7 +9,7 @@ import json
 import sys
 import signal
 import time
-from typing import List, Tuple, Dict, Union
+from typing import List, Dict, Union
 import uuid
 
 # third party lib
@@ -291,7 +291,7 @@ class Proxy:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
             destination_payload_list ([Tuple(str, object)]): The destination-payload list.
-                The first item of the tuple in list is the message destination, 
+                The first item of the tuple in list is the message destination,
                 and the second item of the tuple in list is the message payload.
             session_id (str): Message's session id. Defaults to None.
 
@@ -308,7 +308,7 @@ class Proxy:
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
             destination_payload_list ([Tuple(str, object)]): The destination-payload list.
-                The first item of the tuple in list is the message's destination, 
+                The first item of the tuple in list is the message's destination,
                 and the second item of the tuple in list is the message's payload.
             session_id (str): Message's session id. Defaults to None.
 

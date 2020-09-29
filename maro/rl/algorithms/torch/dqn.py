@@ -80,5 +80,9 @@ class DQN(AbsAlgorithm):
         return np.abs((current_q_values - target_q_values).detach().numpy())
 
     def _update_target_model(self):
-        for eval_params, target_params in zip(self._model_dict["eval"].parameters(), self._model_dict["target"].parameters()):
-            target_params.data = self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
+        for eval_params, target_params in zip(
+            self._model_dict["eval"].parameters(), self._model_dict["target"].parameters()
+        ):
+            target_params.data = (
+                self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
+            )

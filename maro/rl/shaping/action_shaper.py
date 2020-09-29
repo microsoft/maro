@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from .abs_shaper import AbsShaper
 
 
