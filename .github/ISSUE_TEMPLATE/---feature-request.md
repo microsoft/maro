@@ -2,7 +2,7 @@
 name: "\U0001F4A1 Feature Request"
 about: Suggest an idea for MARO.
 title: "\U0001F4A1 "
-labels: feature request
+labels: "\U0001F4A1 feature request"
 assignees: ArthurJiang
 
 ---

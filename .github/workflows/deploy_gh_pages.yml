@@ -8,13 +8,7 @@ name: deploy_gh_pages
 #     tags:
 #     - "v*.*.*"
 
-on:
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'package version'
-        required: true
-        default: '0.1.1a0'
+on: [ workflow_dispatch ]
 
 jobs:
   build:
