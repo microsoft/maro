@@ -68,4 +68,19 @@ jobs:
         PYTHONPATH: .:./tests
       run: |
         coverage run --rcfile=./tests/.coveragerc
-        coverage report --rcfile=./tests/.coveragerc
+        coverage xml --rcfile=./tests/.coveragerc
+        # coverage report --rcfile=./tests/.coveragerc
+        # pip install pytest-cov
+        # pytest --cov=./ --cov-report=xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        # files: ./coverage1.xml,./coverage2.xml
+        # directory: ./coverage/reports/
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: maro-code-coverage
+        fail_ci_if_error: true
+        path_to_write_report: ./coverage/codecov_report.gz
