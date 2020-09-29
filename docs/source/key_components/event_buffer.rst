@@ -22,18 +22,16 @@ the FIFO rule. Currently, only a single-thread version event buffer is provided.
    # Execute events at a specific tick.
    executed_events = event_buffer.execute(tick)
 
-
 .. image:: ../images/simulator/event_buffer.svg
    :target: ../images/simulator/event_buffer.svg
    :alt: Event Buffer
-
+   :width: 700
 
 Event Category
 --------------
 
 To simplify the implementation of the business logic, MARO provides two kinds of
 basic event types, which can be used to construct various event execution pattern:
-
 
 * **Atom event** is an event without any dependence. An atom event will be
   immediately popped out from the event buffer after execution.
@@ -49,7 +47,6 @@ Event Format
 We provide a general-purpose event format for all the scenarios in MARO. A legal
 event generally contains the following properties:
 
-
 * **tick** (int): The execution tick of this event.
 * **event_type** (int): The type of this event. It is a customized field, the
   default value is 0 (PREDEFINE_EVENT_ACTION).
@@ -64,8 +61,6 @@ event generally contains the following properties:
 * **state** (EventState): The state of this event. Valid values include PENDING,
   EXECUTING and FINISHED. The figure below indicates the state changing of an event:
 
-
 .. image:: ../images/simulator/event_state.svg
    :target: ../images/simulator/event_state.svg
    :alt: Event State
-

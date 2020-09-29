@@ -39,7 +39,7 @@ extensions = ["recommonmark",
               "sphinx.ext.coverage",
               "sphinx.ext.napoleon",
               "sphinx.ext.viewcode",
-              "sphinx_markdown_tables"
+              "sphinx_markdown_tables",
               ]
 
 napoleon_google_docstring = True

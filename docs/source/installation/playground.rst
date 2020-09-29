@@ -16,9 +16,7 @@ Pull from `Docker Hub <https://hub.docker.com/repository/registry-1.docker.io/ar
 Run from Source
 ---------------
 
-
-* 
-  Mac OS / Linux
+* Mac OS / Linux
 
   .. code-block:: sh
 
@@ -31,8 +29,7 @@ Run from Source
      # Jupyter lab with maro -> http://127.0.0.1:40011
      docker run -p 40009:40009 -p 40010:40010 -p 40011:40011 maro/playground:cpu
 
-* 
-  Windows
+* Windows
 
   .. code-block::
 

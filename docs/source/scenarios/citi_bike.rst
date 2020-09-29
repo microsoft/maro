@@ -15,7 +15,6 @@ one-way bike trips based on the public trip data from
    to work or school, run errands, get to appointments or social engagements, and
    more.
 
-
 Since the demand for bikes and empty docks is dynamically changed during a day,
 and the bike flow between two stations are not equal in a same period, some
 stations suffer from severe bike shortages, while some have too much bikes and
@@ -32,7 +31,6 @@ Resource Flow
 In this scenario, the **bike** is the central resource. Two events will trigger
 the movement of the bike:
 
-
 * The first one is the trip requirement, which may cause the bike transfer from
   the source station to the destination station;
 * The second one is the repositioning operation. It is used to rebalance the bike
@@ -43,7 +41,6 @@ Bike Trip
 
 In the citi bike scenario in MARO, the trip generation and the corresponding bike
 flow is defined as follows:
-
 
 * Given a fixed time interval, for each specific source-destination station pair,
   a trip requirement will arise according to a predefined distribution or the real
@@ -71,7 +68,6 @@ in the topology and can be customized based on different requirements.
 
 The target station candidates of the ``Supply`` and ``Demand`` events are selected
 by a predefined multi-layer filter in this scenario:
-
 
 #. The distance between the caller station and the neighboring stations will be
    used to filter and get a specific number of stations;
@@ -118,11 +114,9 @@ In toy topology, the generation of the trip requirements follows a stable patter
 as introduced above. The detailed trip demand pattern are listed as below. And we
 hope that these toy topologies can provide you with some insights about this scenario.
 
-
 .. image:: ../images/scenario/citibike.toys.svg
    :target: ../images/scenario/citibike.toys.svg
    :alt: Citi Bike toy topologies
-
 
 **toy.3s_4t**\ : There are three stations in this topology. Every two minutes,
 there will be a trip requirement from S2 to S3 and a trip requirement from S3 to
@@ -192,6 +186,7 @@ No Repositioning
      - 9,231
      - 0
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -249,6 +244,7 @@ No Repositioning
      - 15,876
      - 0
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -306,6 +302,7 @@ No Repositioning
      - 14,205
      - 0
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -339,7 +336,6 @@ No Repositioning
      - 7,608
      - 0
 
-
 Random Repositioning
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -363,6 +359,7 @@ Random Repositioning
      - 7,513 :math:`\pm`    40
      - 3,242 :math:`\pm`    71
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -420,6 +417,7 @@ Random Repositioning
      - 26,067 :math:`\pm`   234
      - 457,173 :math:`\pm`  6,444
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -477,6 +475,7 @@ Random Repositioning
      - 20,119 :math:`\pm`   110
      - 437,311 :math:`\pm`  5,936
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -509,7 +508,6 @@ Random Repositioning
      - 197,883
      - 11,741 :math:`\pm`   170
      - 349,932 :math:`\pm`  4,375
-
 
 Quick Start
 -----------
@@ -545,7 +543,6 @@ The data ``generate`` command is used to automatically download and build the sp
 predefined scenario and topology data files for the simulation. Currently, there
 are three arguments for the data ``generate`` command:
 
-
 * ``-s``\ : required, used to specify the predefined scenario. Valid scenarios are
   listed in the result of `environment list command <#environment-list-command>`_.
 * ``-t``\ : required, used to specify the predefined topology. Valid topologies are
@@ -580,7 +577,6 @@ The data ``convert`` command is used to convert the CSV data files to binary dat
 files that the simulator needs. Currently, there are three arguments for the data
 ``convert`` command:
 
-
 * ``--meta``\ : required, used to specify the path of the meta file. The source
   columns that to be converted and the data type of each columns should be
   specified in the meta file.
@@ -607,7 +603,6 @@ DecisionEvent
 Once the environment need the agent's response to reposition bikes, it will
 throw an ``DecisionEvent``. In the scenario of Citi Bike, the information of each
 ``DecisionEvent`` is listed as below:
-
 
 * **station_idx** (int): The id of the station/agent that needs to respond to the
   environment.
@@ -640,7 +635,6 @@ Action
 
 Once we get a ``DecisionEvent`` from the environment, we should respond with an
 ``Action``. Valid ``Action`` could be:
-
 
 * ``None``\ , which means do nothing.
 * A valid ``Action`` instance, including:
@@ -748,5 +742,5 @@ random mode, we hope this could help you learn how to use the environment interf
        print(f"ep: {ep}, environment metrics: {env.metrics}")
        env.reset()
 
-Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning>`_
+Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning/interact_with_environment.ipynb>`_
 for a quick experience.
