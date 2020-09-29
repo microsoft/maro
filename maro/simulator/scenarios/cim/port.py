@@ -3,6 +3,7 @@
 
 from maro.backends.frame import node, NodeBase, NodeAttribute
 
+
 @node("ports")
 class Port(NodeBase):
     # The capacity of port for stocking containers.
@@ -51,19 +52,25 @@ class Port(NodeBase):
 
     @property
     def idx(self) -> int:
-        """
-        Index of this port
+        """int: Index of this port.
         """
         return self.index
 
     @property
     def name(self) -> str:
-        """
-        Name of this port
+        """str: Name of this port.
         """
         return self._name
 
     def set_init_state(self, name: str, capacity: int, empty: int):
+        """Set initialize state for port, business engine will use these values to reset
+        port at the end of each episode (reset).
+
+        Args:
+            name (str): Port name.
+            capacity (int): Capacity of this port.
+            empty (int): Default empty number on this port.
+        """
         self._name = name
         self._capacity = capacity
         self._empty = empty
@@ -71,6 +78,12 @@ class Port(NodeBase):
         self.reset()
 
     def reset(self):
+        """Reset port state to initializing.
+
+        Note:
+            Since frame reset will reset all the nodes' attributes to 0, we need to
+            call set_init_state to store correct initial value.
+        """
         self.capacity = self._capacity
         self.empty = self._empty
 
