@@ -36,6 +36,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      ##########################
+      # dependencies           #
+      ##########################
+    - name: Install build dependencies
+      run: | 
+        pip install -r maro/requirements.build.txt
+
+      ##########################
+      # cython                 #
+      ##########################
+    - name: Compile cython files
+      run: |
+        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
+
+      ################################
+      # Build                        #
+      ################################
+    - name: Build maro inplace
+      run: |
+        python setup.py build_ext -i
+
       ################################
       # Run Linter against code base #
       ################################
@@ -43,5 +64,8 @@ jobs:
         uses: github/super-linter@v3
         env:
           VALIDATE_ALL_CODEBASE: false
+          VALIDATE_PYTHON_PYLINT: false # disable pylint, as we have not configure it
+          VALIDATE_PYTHON_BLACK: false # same as above
+          PYTHON_FLAKE8_CONFIG_FILE: tox.ini
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.LINT_TOKEN }}
