@@ -38,12 +38,12 @@ class AbsAgent(ABC):
 
     @property
     def algorithm(self):
-        """Underlying algorithm employed by the agent. """
+        """Underlying algorithm employed by the agent."""
         return self._algorithm
 
     @property
     def experience_pool(self):
-        """Underlying experience pool where the agent stores experiences. """
+        """Underlying experience pool where the agent stores experiences."""
         return self._experience_pool
 
     def choose_action(self, model_state, epsilon: float = .0):
