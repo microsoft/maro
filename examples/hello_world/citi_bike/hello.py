@@ -23,7 +23,7 @@ for ep in range(max_ep):
     while not is_done:
         metrics, decision_evt, is_done = env.step(action)
 
-        # it will be None at the end
+        # It will be None at the end.
         if decision_evt is not None:
             action = Action(decision_evt.station_idx, 0, 10)
 
@@ -41,14 +41,14 @@ for ep in range(max_ep):
     matrix_ss = env.snapshot_list["matrices"]
 
     # Since we may have different snapshot resolution,
-    # so we should use frame_index to retrieve index in snapshots of current tick
+    # so we should use frame_index to retrieve index in snapshots of current tick.
     last_snapshot_index = env.frame_index
 
-    # trip adj
-    # NOTE: we have not clear the trip adj at each tick so it is an accumulative value,
-    # then we can just query last snapshot to calc total trips
+    # NOTE: We have not clear the trip adj at each tick so it is an accumulative value,
+    # then we can just query last snapshot to calc total trips.
     trips_adj = matrix_ss[last_snapshot_index::'trips_adj']
 
+    # Reshape it we need an easy way to access.
     # trips_adj = trips_adj.reshape((-1, len(station_ss)))
 
     print("total trips from trips adj", trips_adj.sum())

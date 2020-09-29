@@ -1,5 +1,5 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action
@@ -36,6 +36,7 @@ for ep in range(2):
         # Drive environment with dummy action (no repositioning)
         metrics, decision_event, is_done = env.step(dummy_action)
 
-    # Query environment business metrics at the end of an episode, it is your optimized object (usually includes multi-target).
+    # Query environment business metrics at the end of an episode,
+    # it is your optimized object (usually includes multi-target).
     print(f"ep: {ep}, environment metrics: {env.metrics}")
     env.reset()
