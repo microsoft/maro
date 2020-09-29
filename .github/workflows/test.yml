@@ -83,4 +83,4 @@ jobs:
         env_vars: OS,PYTHON
         name: maro-code-coverage
         fail_ci_if_error: true
-        path_to_write_report: ./coverage/codecov_report.gz
+        path_to_write_report: ./codecov_report.gz
