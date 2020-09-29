@@ -20,6 +20,7 @@
 [![Commits](https://img.shields.io/github/commits-since/microsoft/maro/latest/master)](https://github.com/microsoft/maro/commits/master)
 [![Quality](https://github.com/microsoft/maro/workflows/quality/badge.svg?branch=master)](https://github.com/microsoft/maro/actions?query=workflow%3Aquality)
 [![Lint](https://github.com/microsoft/maro/workflows/lint/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Alint)
+[![Coverage](https://img.shields.io/codecov/c/github/microsoft/maro)](https://codecov.io/gh/microsoft/maro)
 [![Downloads](https://img.shields.io/pypi/dm/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Docker Pulls](https://img.shields.io/docker/pulls/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro)
 

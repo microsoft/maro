@@ -68,4 +68,15 @@ jobs:
         PYTHONPATH: .:./tests
       run: |
         coverage run --rcfile=./tests/.coveragerc
-        coverage report --rcfile=./tests/.coveragerc
+        coverage xml --rcfile=./tests/.coveragerc
+    - name: Upload coverage to Codecov
+      if: runner.os == 'Linux'
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: maro-code-coverage
+        fail_ci_if_error: true
+        path_to_write_report: ./codecov_report.gz
