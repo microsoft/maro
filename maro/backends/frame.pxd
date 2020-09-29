@@ -22,6 +22,7 @@ cdef class SnapshotList:
     or all the nodes.
 
     When querying, all the slot of specified attribute will be returned.
+
     The querying result is a 1 dim numpy array, and grouped like:
     [[node[attr] for node in nodes] attr for attr in attributes] * len(ticks)
 
@@ -63,6 +64,7 @@ cdef class SnapshotList:
 
 cdef class FrameBase:
     """Base object used to define frame in backend, any frame that need to be hosted in backend should inherit from this.
+
     Usually a frame is composed with serveral nodes (NodeBase), a snapshot list if enabled.
 
     .. code-block:: python
@@ -156,6 +158,7 @@ cdef class FrameNode:
 cdef class NodeBase:
     """Helper class used to define a node with attributes, any node that need to be hosted in backend should
     inherit from this class.
+
     A node is composed with serveral attributes that defined with NodeAttribute class with data type and slot number.
 
     A node must have a name that used to query states in snapshot list, this name is specified via @node decorator.
@@ -171,10 +174,10 @@ cdef class NodeBase:
         @node("my nodes")
         class MyNode(NodeBase):
             # Attribute name, and its data type.
-            # Int attribute with 1 value
+            # Int attribute with 1 value.
             my_int_attr = NodeAttribute("i")
 
-            # A fixed size float array
+            # A fixed size float array.
             my_float_array_attr = NodeAttribute("f", 2)
 
     Each attribute will have a default hook than will trigger an event after the value changed, to recieve this event
@@ -207,6 +210,7 @@ cdef class NodeBase:
             return MyNode
 
     After frame initialzing, we can access these attribute via frame node instance list for this node type.
+
     For attributes which slot number is 1, you can access it as normal python object property.
 
     .. code-block:: python
