@@ -21,8 +21,10 @@ We have prepared a configuration file for flake8 to lint.
 
 ```sh
 
+# install flake8
 pip install flake8
 
+# lint with flake8
 flake8 --config .github/linters/tox.ini
 
 ```
