@@ -4,6 +4,7 @@
 
 from maro.simulator.utils.common import get_available_envs, get_scenarios, get_topologies
 
+
 # maro env list
 def list_available():
     """
@@ -20,6 +21,7 @@ def list_available():
     for env in envs:
         print(f'scenario: {env["scenario"]}, topology: {env["topology"]}')
 
+
 # maro env list
 def list_scenarios(**kwargs):
     """
@@ -30,7 +32,7 @@ def list_scenarios(**kwargs):
         print(scenario)
 
 
-# maro env topologies --name scenario 
+# maro env topologies --name scenario
 def list_topologies(scenario: str, **kwargs):
     """
     Show topologies for specified scenario

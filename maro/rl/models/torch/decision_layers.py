@@ -1,27 +1,23 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import torch
 import torch.nn as nn
 
 
 class MLPDecisionLayers(nn.Module):
-    """
-    Deep Q network.
-        Choose multi-layer full connection with dropout as the basic network architecture.
+    """Deep Q network.
+
+    Choose multi-layer full connection with dropout as the basic network architecture.
+
+    Args:
+        name (str): Network name.
+        input_dim (int): Network input dimension.
+        hidden_dims ([int]): Network hidden layer dimension. The length of ``hidden_dims`` means the
+                            hidden layer number, which requires larger than 1.
+        output_dim (int): Network output dimension.
+        dropout_p (float): Dropout parameter.
     """
     def __init__(self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float):
-        """
-        Init deep Q network.
-
-        Args:
-            name (str): Network name.
-            input_dim (int): Network input dimension.
-            hidden_dims ([int]): Network hidden layer dimension. The length of `hidden_dims` means the
-                                hidden layer number, which requires larger than 1.
-            output_dim (int): Network output dimension.
-            dropout_p (float): Dropout parameter.
-        """
         super().__init__()
         self._name = name
         self._input_dim = input_dim
@@ -51,9 +47,9 @@ class MLPDecisionLayers(nn.Module):
         return self._output_dim
 
     def _build_basic_layer(self, input_dim, output_dim):
-        """
-        Build basic layer.
-            BN -> Linear -> LeakyReLU -> Dropout
+        """Build basic layer.
+
+        BN -> Linear -> LeakyReLU -> Dropout
         """
         return nn.Sequential(nn.BatchNorm1d(input_dim),
                              nn.Linear(input_dim, output_dim),
@@ -61,9 +57,9 @@ class MLPDecisionLayers(nn.Module):
                              nn.Dropout(p=self._dropout_p))
 
     def _build_layers(self, layer_dims: []):
-        """
-        Build multi basic layer.
-            BasicLayer1 -> BasicLayer2 -> ...
+        """Build multi basic layer.
+
+        BasicLayer1 -> BasicLayer2 -> ...
         """
         layers = []
         for input_dim, output_dim in zip(layer_dims, layer_dims[1:]):

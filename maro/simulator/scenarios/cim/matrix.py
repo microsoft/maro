@@ -5,19 +5,20 @@ from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
 
 from maro.backends.frame import node, NodeBase, NodeAttribute
 
+
 def gen_matrix(port_num: int, vessel_num: int):
-    """A node that contains matrix in frame
-    
+    """A node that contains matrix in frame.
+
     Args:
-        port_num (int): number of ports
-        vessel_num (int): number of vessels
+        port_num (int): Number of ports.
+        vessel_num (int): Number of vessels.
 
     Return:
-        type: matrix class definition
+        type: Matrix class definition.
     """
     @node("matrices")
     class GeneralInfoMatrix(NodeBase):
-        """Used to save matrix, and provide matrix accessor"""
+        """Used to save matrix, and provide matrix accessor."""
 
         # distribution of full from port to port
         full_on_ports = NodeAttribute("i", slot_num=port_num * port_num)

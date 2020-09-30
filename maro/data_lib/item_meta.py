@@ -2,21 +2,21 @@
 # Licensed under the MIT license.
 
 import os
-import re
 import random
+import re
 import warnings
-
-from struct import Struct
-from typing import Union, List
 from collections import namedtuple
-from yaml import safe_load, safe_dump, YAMLObject, SafeLoader, SafeDumper
+from struct import Struct
+from typing import List, Union
+
+from maro.data_lib.common import dtype_pack_map
 
 from maro.utils.exception.data_lib_exeption import MetaTimestampNotExist
-from maro.data_lib.common import dtype_convert_map, dtype_pack_map, meta_item_format
+from yaml import SafeDumper, SafeLoader, YAMLObject, safe_dump, safe_load
 
 
 class EntityAttr(YAMLObject):
-    """Entity attribute in yaml"""
+    """Entity attribute in yaml."""
     yaml_tag = u"!MaroAttribute"
     yaml_loader = SafeLoader
     yaml_dumper = SafeDumper
@@ -31,7 +31,7 @@ class EntityAttr(YAMLObject):
 
 
 class Event(YAMLObject):
-    """Event from yaml"""
+    """Event from yaml."""
     yaml_tag = u"!MaroEvent"
     yaml_loader = SafeLoader
     yaml_dumper = SafeDumper
@@ -43,56 +43,61 @@ class Event(YAMLObject):
 
 
 class BinaryMeta:
-    """Meta for binary file"""
+    """Meta for binary file."""
+
     def __init__(self):
         self._item_nt: namedtuple = None
         self._item_struct: Struct = None
 
         self._tzone = None
-        self._event_attr_name = None  # which attribute used as events
+        # which attribute used as events
 
+        self._event_attr_name = None
         # if value cannot matched to any event definition, then treat it as default
         self._default_event_name = None
         self._raw_cols = []
-        self._adjust_attrs = {}  # fields need adjust
-        self._attrs: List[EntityAttr] = []  # EntityAttr
+        # fields need adjust
+        self._adjust_attrs = {}
+        # EntityAttr
+        self._attrs: List[EntityAttr] = []
         self._events: List[Event] = []
 
     @property
     def events(self) -> List[Event]:
-        """Events definition"""
+        """List[Event]: Events definition."""
         return self._events
 
     @property
     def default_event_name(self) -> str:
-        """Default event name, if no value matched"""
+        """str: Default event name, if no value matched."""
         return self._default_event_name
 
     @property
     def event_attr_name(self) -> str:
-        """Event attribute name"""
+        """str: Event attribute name."""
         return self._event_attr_name
 
     @property
     def time_zone(self):
-        """Time zone of this meta, used to correct timestamp"""
+        """Time zone of this meta, used to correct timestamp."""
         return self._tzone
 
     @property
     def item_size(self) -> int:
-        """Item binary size (in bytes)"""
+        """int: Item binary size (in bytes)."""
         return self._item_struct.size
 
     @property
     def columns(self) -> dict:
-        """Columns to extract"""
+        """dict: Columns to extract."""
         return {a.name: a.raw_name for a in self._attrs}
 
     def items(self) -> dict:
+        """dict: Attribute items."""
         return {a.name: a.dtype for a in self._attrs}
 
     def from_file(self, file: str):
-        """Read meta from yaml file"""
+        """Read meta from yaml file."""
         assert os.path.exists(file)
 
         with open(file, "rt") as fp:
@@ -103,7 +108,11 @@ class BinaryMeta:
             self._build_item_struct()
 
     def from_bytes(self, meta_bytes: Union[bytes, bytearray, memoryview]):
-        """Construct meta from bytes"""
+        """Construct meta from bytes.
+
+        Args:
+            meta_bytes (Union[bytes, bytearray, memoryview]): Bytes content of meta.
+        """
         assert meta_bytes is not None
 
         self._events.clear()
@@ -129,13 +138,21 @@ class BinaryMeta:
         self._build_item_struct()
 
     def from_dict(self, meta_dict: dict):
-        """Construct meta from dictionary"""
+        """Construct meta from dictionary.
+
+        Args:
+            meta_dict (dict): Meta dictionary.
+        """
         self._validate(meta_dict)
 
         self._build_item_struct()
 
     def to_bytes(self):
-        """Convert meta into bytes"""
+        """Convert meta into bytes.
+
+        Returns:
+            bytes: Bytes content of current meta.
+        """
         return safe_dump(
             {
                 "events": self._events,
@@ -146,18 +163,41 @@ class BinaryMeta:
         ).encode()
 
     def get_item_values(self, row: dict) -> Union[list, tuple]:
-        """Retrieve value for item """
+        """Retrieve value for item.
+
+        Args:
+            row (dict): A row that from a csv file.
+
+        Returns:
+            Union[list, tuple]: Get value for configured attributes from dict.
+        """
         # NOTE: keep the order
         return (row[col] for col in self._raw_cols)
 
     def item_to_bytes(self, item_values: Union[tuple, list], out_bytes: Union[memoryview, bytearray]) -> int:
-        """Convert item into bytes"""
+        """Convert item into bytes.
+
+        Args:
+            item_values (Union[tuple, list]): Value of attributes used to construct item.
+            out_bytes (Union[memoryview, bytearray]): Item bytes content.
+
+        Returns:
+            int: Result item size.
+        """
         self._item_struct.pack_into(out_bytes, 0, *item_values)
 
         return self.item_size
 
     def item_from_bytes(self, item_bytes: Union[bytes, bytearray, memoryview], adjust_value: bool = False):
-        """Convert bytes into item (namedtuple)"""
+        """Convert bytes into item (namedtuple).
+
+        Args:
+            item_bytes (Union[bytes, bytearray, memoryview]): Item byte content.
+            adjust_value (bool): If need to adjust value for attributes that enabled this feature.
+
+        Returns:
+            namedtuple: Result item tuple.
+        """
         item_tuple = self._item_struct.unpack_from(item_bytes, 0)
 
         if adjust_value:
@@ -165,12 +205,13 @@ class BinaryMeta:
             item_tuple = list(item_tuple)
 
             for index, ratio in self._adjust_attrs.items():
-                item_tuple[index] += random.randrange(int(ratio[0]), int(ratio[1])) * 0.01 * item_tuple[index]  # make it percentage
+                # make it percentage
+                item_tuple[index] += random.randrange(int(ratio[0]), int(ratio[1])) * 0.01 * item_tuple[index]
 
         return self._item_nt._make(item_tuple)
 
     def _build_item_struct(self):
-        """build item struct use field name in meta"""
+        """Build item struct use field name in meta."""
         self._item_nt = namedtuple("Item", [a.name for a in self._attrs])
 
         fmt: str = "<" + "".join([dtype_pack_map[a.dtype]
@@ -235,5 +276,6 @@ class BinaryMeta:
 
             self._events.append(
                 Event(display_name, evt_type_name, value_in_csv))
+
 
 __all__ = ["BinaryMeta"]

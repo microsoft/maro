@@ -264,8 +264,7 @@ class PendingJobAgent(multiprocessing.Process):
         # Init params
         allocation_plan = {}
         if 'metric' not in allocation_details or allocation_details['metric'].lower() not in METRIC_TO_INDEX:
-            raise AllocationFailed(
-                f"Invalid allocation parameter: metric")
+            raise AllocationFailed("Invalid allocation parameter: metric")
         metric_index = METRIC_TO_INDEX[allocation_details['metric'].lower()]
 
         # Init reverse PQ
@@ -331,8 +330,7 @@ class PendingJobAgent(multiprocessing.Process):
         # Init params
         allocation_plan = {}
         if 'metric' not in allocation_details or allocation_details['metric'].lower() not in METRIC_TO_INDEX:
-            raise AllocationFailed(
-                f"Invalid allocation parameter: metric")
+            raise AllocationFailed("Invalid allocation parameter: metric")
         metric_index = METRIC_TO_INDEX[allocation_details['metric'].lower()]
 
         # Init reverse PQ
@@ -643,7 +641,7 @@ if __name__ == "__main__":
                         format='[%(levelname)-7s] - %(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
 
-    with open(os.path.expanduser(f"~/.maro-local/agents/master_agent.config"), 'r') as fr:
+    with open(os.path.expanduser("~/.maro-local/agents/master_agent.config"), 'r') as fr:
         master_agent_config = json.load(fr)
 
     master_agent = MasterAgent(

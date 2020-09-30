@@ -1,29 +1,29 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from math import floor
+from typing import Union
+
 import numpy as np
 
-from math import floor, ceil
-from typing import List, Union
-
-from .utils import apply_noise, order_init_rand, clip
+from .utils import apply_noise, clip, order_init_rand
 
 
 class GlobalOrderProportion:
-    """Helper used to generate order proportion at specified tick range
+    """Helper used to generate order proportion at specified tick range.
     """
 
-    def parse(self, conf: dict, total_container: int, max_tick: int,  start_tick: int = 0) -> np.ndarray:
-        """Parse specified configuration, and generate order proportion
-        
+    def parse(self, conf: dict, total_container: int, max_tick: int, start_tick: int = 0) -> np.ndarray:
+        """Parse specified configuration, and generate order proportion.
+
         Args:
-            conf (dict): configuration to parse
-            total_container (int): total containers in this environment
-            max_tick (int): max tick to generate
-            start_tick (int): start tick to generate
+            conf (dict): Configuration to parse.
+            total_container (int): Total containers in this environment.
+            max_tick (int): Max tick to generate.
+            start_tick (int): Start tick to generate.
 
         Returns:
-            np.ndarray: 1-dim numpy array for specified range
+            np.ndarray: 1-dim numpy array for specified range.
         """
         durations: int = max_tick - start_tick
 
