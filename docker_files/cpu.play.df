@@ -36,7 +36,6 @@ ADD ./examples ./examples
 ADD ./docs ./docs
 ADD ./maro ./maro
 RUN pip install -U -r ./docs/requirements.docs.txt
-RUN cd docs; sphinx-apidoc -f -o ./source/apidoc ../maro/
 RUN cd docs; make html
 RUN rm -rf ./maro
 
