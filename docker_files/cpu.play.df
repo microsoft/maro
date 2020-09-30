@@ -12,8 +12,6 @@ RUN pip install -r ./notebooks/requirements.nb.txt
 RUN jupyter contrib nbextension install --system
 RUN jt -t onedork -fs 95 -altp -tfs 11 -nfs 115 -cellw 88% -T
 
-# Install maro
-RUN pip install pymaro
 
 # Install redis
 RUN wget http://download.redis.io/releases/redis-6.0.6.tar.gz; tar xzf redis-6.0.6.tar.gz; cd redis-6.0.6; make
@@ -35,9 +33,14 @@ ADD ./examples ./examples
 # Add local docs
 ADD ./docs ./docs
 ADD ./maro ./maro
+ADD setup.py setup.py
+ADD ./scripts ./scripts
+RUN bash scripts/install_maro.sh
 RUN pip install -U -r ./docs/requirements.docs.txt
 RUN cd docs; make html
 RUN rm -rf ./maro
+RUN rm setup.py
+RUN rm -rf ./scripts
 
 # Add run cmd
 ADD ./scripts/run_playground.sh ./run.sh
