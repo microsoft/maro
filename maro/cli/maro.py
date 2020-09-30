@@ -15,11 +15,11 @@ from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 MARO_BANNER = """
- __  __    _    ____   ___  
-|  \/  |  / \  |  _ \ / _ \ 
+ __  __    _    ____   ___
+|  \/  |  / \  |  _ \ / _ \
 | |\/| | / _ \ | |_) | | | |
 | |  | |/ ___ \|  _ <| |_| |
-|_|  |_/_/   \_\_| \_ \___/ 
+|_|  |_/_/   \_\_| \_ \___/
 
 Welcome to the MARO CLI
 
@@ -774,8 +774,8 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         required=True,
         nargs="+",
         help="""
-        Path to original csv file(s) used to build, 
-        you can save your files' name into a file and call with prefix @ to read files list from your file, 
+        Path to original csv file(s) used to build,
+        you can save your files' name into a file and call with prefix @ to read files list from your file,
         like 'maro data build --meta meta.yml --output o.bin --file @files.txt'
         or just convert 1 file like 'maro data build --meta meta.yml --output o.bin --file input_file.csv'
         """)

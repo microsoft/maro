@@ -6,17 +6,22 @@ from maro.utils.exception import MAROException
 
 
 class CliException(MAROException):
-    """Exception for General CLI Exception"""
+    """The general CLI Exception."""
 
     def __init__(self, message: str = None, error_code: int = 3000):
         super().__init__(error_code, message)
 
-    def get_message(self):
+    def get_message(self) -> str:
+        """Get the error message of the Exception.
+
+        Returns:
+            str: Error message.
+        """
         return self.strerror
 
 
 class CommandError(CliException):
-    """Error for failed execution of CLI Command"""
+    """Failed execution error of CLI command."""
 
     def __init__(self, cli_command: str, message: str = None):
         super().__init__(error_code=3001, message=message)
@@ -27,14 +32,14 @@ class CommandError(CliException):
 
 
 class ParsingError(CliException):
-    """Error for parsing error"""
+    """Parsing error."""
 
     def __init__(self, message: str = None):
         super().__init__(error_code=3002, message=message)
 
 
 class DeploymentError(CliException):
-    """Error for failed deployment"""
+    """Failed deployment error."""
 
     def __init__(self, message: str = None):
         super().__init__(error_code=3003, message=message)

@@ -6,7 +6,15 @@ import csv
 
 
 def load_adj_from_csv(file: str, skiprows: int = 0):
-    """Read adj information from csv file"""
+    """Read adj information from csv file.
+
+    Args:
+        file (str): Csv file to read.
+        skiprows (int): Row number to skip.
+
+    Returns:
+        list: A 2-dim list that contains all the rows and columns.
+    """
     adj = []
     if file.startswith("~"):
         file = os.path.expanduser(file)

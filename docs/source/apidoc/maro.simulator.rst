@@ -1,28 +1,56 @@
-maro.simulator package
-======================
+Data Model
+================================================================================
 
-Subpackages
------------
+maro.backends.frame
+--------------------------------------------------------------------------------
 
-.. toctree::
-   :maxdepth: 4
-
-   maro.simulator.scenarios
-   maro.simulator.utils
-
-Submodules
-----------
-
-maro.simulator.abs\_core module
--------------------------------
-
-.. automodule:: maro.simulator.abs_core
+.. automodule:: maro.backends.frame
    :members:
    :show-inheritance:
 
-maro.simulator.core module
---------------------------
 
-.. automodule:: maro.simulator.core
+Event Buffer
+================================================================================
+
+maro.event_buffer.event_buffer
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.event_buffer.event_buffer
+   :members:
+   :show-inheritance:
+
+
+Business Engine
+================================================================================
+
+maro.simulator.scenarios.abs_business_engine
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.simulator.scenarios.abs_business_engine
+   :members:
+   :show-inheritance:
+
+
+Utils
+================================================================================
+
+maro.simulator.utils.common
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.simulator.utils.common
+   :members:
+   :show-inheritance:
+
+maro.simulator.utils.event\_bind\_binreader
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.simulator.utils.event_bind_binreader
+   :members:
+   :show-inheritance:
+
+maro.simulator.utils.sim\_random
+--------------------------------------------------------------------------------
+
+.. automodule:: maro.simulator.utils.sim_random
    :members:
    :show-inheritance:

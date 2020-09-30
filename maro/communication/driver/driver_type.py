@@ -5,4 +5,8 @@ from enum import Enum
 
 
 class DriverType(Enum):
-    ZMQ = "zmq_driver"  # The communication driver mode based on ZMQ
+    """Communication driver categories.
+
+    - ZMQ: The communication driver mode based on ``ZMQ``.
+    """
+    ZMQ = "zmq_driver"

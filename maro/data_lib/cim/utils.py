@@ -3,8 +3,7 @@
 
 from typing import List, Union
 
-from maro.simulator.utils.sim_random import random, SimRandom
-
+from maro.simulator.utils.sim_random import SimRandom, random
 
 # we keep 4 random generator to make the result is reproduceable with same seed(s), no matter if agent passed actions
 route_init_rand = random["route_init"]
@@ -12,8 +11,10 @@ order_init_rand = random["order_init"]
 buffer_tick_rand = random["buffer_time"]
 order_num_rand = random["order_number"]
 
+
 def get_buffer_tick_seed():
     return random.get_seed("buffer_time")
+
 
 def get_order_num_seed():
     return random.get_seed("order_number")
@@ -21,7 +22,7 @@ def get_order_num_seed():
 
 def clip(min_val: Union[int, float], max_val: Union[int, float], value: Union[int, float]) -> Union[int, float]:
     """Clip value between specified range
-    
+
     Args:
         min_val (Union[int, float]): min value to clip
         max_val (Union[int, float]): max value to clip
@@ -47,19 +48,19 @@ def apply_noise(value: Union[int, float], noise: Union[int, float], rand: SimRan
     return value + rand.uniform(-noise, noise)
 
 
-def list_sum_normalize(l: List[Union[int, float]]) -> List[float]:
-    """Normalize with sum,
-    
+def list_sum_normalize(num_list: List[Union[int, float]]) -> List[float]:
+    """Normalize with sum.
+
     Args:
-        l(list): list of number to normalize
-    
+        num_list(list): List of number to normalize.
+
     Returns:
-        list: list of normalized number
+        list: List of normalized number.
     """
-    t = sum(l)
+    t = sum(num_list)
 
     # avoid dive zero exception
     if t == 0:
         return 0
 
-    return [d / t for d in l]
+    return [d / t for d in num_list]
