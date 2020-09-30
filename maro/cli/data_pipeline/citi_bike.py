@@ -527,7 +527,7 @@ class WeatherToyPipeline(WeatherPipeline):
         pass
 
     def clean(self):
-        """clean the original data file."""
+        """Clean the original data file."""
         logger.info_green("Cleaning weather data.")
         DataPipeline.clean(self)
         self._new_file_list.append(self._clean_file)
