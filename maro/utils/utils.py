@@ -3,7 +3,6 @@
 
 
 import configparser
-from glob import glob
 import io
 import numpy as np
 import os
@@ -14,29 +13,39 @@ import time
 import warnings
 
 from maro import __data_version__
-from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
 
 
-def clone(obj):
-    """Clone an object"""
+def clone(obj: any) -> any:
+    """Clone an object with pickle dumps and loads.
+
+    Args:
+        obj (any): The object to clone.
+
+    Returns:
+        any: The clone of the object.
+    """
     return loads(dumps(obj))
 
 
 class DottableDict(dict):
-    """A wrapper to dictionary to make possible to key as property"""
+    """A wrapper to dictionary to make possible to key as property."""
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self.__dict__ = self
 
 
-def convert_dottable(natural_dict: dict):
-    """Convert a dictionary to DottableDict
+def convert_dottable(natural_dict: dict) -> DottableDict:
+    """Convert a dictionary to DottableDict.
+
+    Args:
+        natural_dict (dict): Dictionary to convert to DottableDict.
 
     Returns:
-        DottableDict: doctable object
+        DottableDict: Dottable object.
     """
     dottable_dict = DottableDict(natural_dict)
     for k, v in natural_dict.items():
@@ -47,6 +56,11 @@ def convert_dottable(natural_dict: dict):
 
 
 def set_seeds(seed):
+    """Set the seeds of ``Torch``, ``np.random`` and ``random``.
+
+    Args:
+        seed : Value of the seed.
+    """
     try:
         import torch
 
@@ -54,8 +68,8 @@ def set_seeds(seed):
 
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
-    except Exception as e:
-        warnings.warn("Torch not installed.")
+    except Exception:
+        warnings.warn("\"Torch\" not installed.")
 
     np.random.seed(seed)
     random.seed(seed)
@@ -77,11 +91,17 @@ target_source_pairs = [
 ]
 
 
-def deploy(hide_info=True):
+def deploy(hide_info: bool = True):
+    """Deploy the meta files, and lib files of MARO to `~/.maro`.
+
+    Args:
+        hide_info (bool): (optional) If True, will not display any information,\n
+            else info and error logs will be shown.
+    """
     info_list = []
     error_list = []
     try:
-        clean_deployment_folder()
+        _clean_deployment_folder()
 
         # Deployment started.
         os.makedirs(os.path.dirname(version_file_path), exist_ok=True)
@@ -104,12 +124,13 @@ def deploy(hide_info=True):
     except Exception as e:
 
         # Deployment failed.
-        error_list.append(f"An issue occured while deploying meta files for MARO. {e} Please run 'maro meta deploy' to deploy the data files.")
+        error_list.append(f"An issue occured while deploying meta files for MARO."
+                          f" {e} Please run 'maro meta deploy' to deploy the data files.")
         version_info["MARO_DATA"]["deploy_status"] = "failed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)
-        clean_deployment_folder()
-        
+        _clean_deployment_folder()
+
     finally:
         if len(error_list) > 0:
             for error in error_list:
@@ -119,7 +140,12 @@ def deploy(hide_info=True):
                 logger.info_green(info)
 
 
-def check_deployment_status():
+def check_deployment_status() -> bool:
+    """Check if re-deployment is needed.
+
+    Returns:
+        bool: If need to re-deploy then True, else False.
+    """
     ret = False
     skip_deployment = os.environ.get("SKIP_DEPLOYMENT", "FALSE")
     if skip_deployment == "TRUE":
@@ -128,16 +154,16 @@ def check_deployment_status():
         version_info = configparser.ConfigParser()
         version_info.read(version_file_path)
         if "MARO_DATA" in version_info \
-            and "deploy_time" in version_info["MARO_DATA"] \
-            and "version" in version_info["MARO_DATA"] \
-            and "deploy_status" in version_info["MARO_DATA"] \
-            and version_info["MARO_DATA"]["version"] == __data_version__ \
-            and version_info["MARO_DATA"]["deploy_status"] != "failed" :
+                and "deploy_time" in version_info["MARO_DATA"] \
+                and "version" in version_info["MARO_DATA"] \
+                and "deploy_status" in version_info["MARO_DATA"] \
+                and version_info["MARO_DATA"]["version"] == __data_version__ \
+                and version_info["MARO_DATA"]["deploy_status"] != "failed":
             ret = True
     return ret
 
 
-def clean_deployment_folder():
+def _clean_deployment_folder():
     for target_dir, _ in target_source_pairs:
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)

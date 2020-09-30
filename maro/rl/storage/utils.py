@@ -14,7 +14,7 @@ def check_uniformity(arg_num):
             contents = args[arg_num]
             length = len(contents[next(iter(contents))])
             if any(len(lst) != length for lst in contents.values()):
-                raise ValueError(f"all sequences in contents should have the same length")
+                raise ValueError("all sequences in contents should have the same length")
             return func(*args, **kwargs)
         return wrapper
     return decorator
@@ -26,7 +26,7 @@ def normalize(func):
         if weights is not None and not isinstance(weights, np.ndarray):
             weights = np.asarray(weights)
 
-        return func(size, weights/np.sum(weights), replace)
+        return func(size, weights / np.sum(weights), replace)
 
     return wrapper
 
@@ -36,9 +36,9 @@ class OverwriteType(Enum):
     RANDOM = "random"
 
 
-def get_update_indexes(size, added_size, capacity, overwrite_type, overwrite_indexes=None):
+def get_update_indexes(size: int, added_size: int, capacity: int, overwrite_type, overwrite_indexes=None):
     if added_size > capacity:
-        raise ValueError(f"size of added items should not exceed the store capacity.")
+        raise ValueError("size of added items should not exceed the store capacity.")
 
     num_overwrites = size + added_size - capacity
     if num_overwrites < 0:
@@ -57,4 +57,3 @@ def get_update_indexes(size, added_size, capacity, overwrite_type, overwrite_ind
             write_indexes = list(range(size, capacity)) + list(random_indexes)
 
     return write_indexes
-

@@ -6,13 +6,13 @@ from maro.utils.exception import ERROR_CODE
 
 
 class MAROException(Exception):
-    """ 
-    Base exception class for MARO errors in Python.
-    
+    """The base exception class for MARO.
+
     Args:
-    error_code (int): the MARO error code defined in error code.
-        e.g. 1000-1999: for errors of the MARO communication toolkits.
-    msg (str): Description of the error, if None, show the base error information.
+        error_code (int): the predefined MARO error code. You can find the
+            detailed definition in: `maro.utils.exception.error_code.py`.
+        msg (str): Description of the error. Defaults to None, which will
+            show the base error information.
     """
 
     def __init__(self, error_code: int = 1000, msg: str = None):

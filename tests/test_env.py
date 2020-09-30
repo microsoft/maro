@@ -42,7 +42,7 @@ class TestEnv(unittest.TestCase):
         run_to_end(env)
 
         # check if the snapshot number equals with max_tick
-        # NOTE: the snapshot_resolution default is 1, so the number of snapshots is same with max_tick
+        # NOTE: the snapshot_resolution defaults to 1, so the number of snapshots is same with max_tick
         num_of_snapshots = len(env.snapshot_list)
 
         self.assertEqual(max_tick, len(env.snapshot_list), msg=f"number of snapshots ({num_of_snapshots}) should be same "
@@ -57,7 +57,7 @@ class TestEnv(unittest.TestCase):
 
         # check if config is same as we defined
         self.assertDictEqual(env.configs, {"name":"dummy"}, msg="configs should same as defined")
-        
+
         # check node information
         node_info = env.summary["node_detail"]
 

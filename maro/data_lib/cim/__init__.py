@@ -8,4 +8,6 @@ from .cim_data_loader import load_from_folder
 from .entities import Stop, Order
 
 
-__all__ = ['data_from_generator', 'data_from_dumps', 'CimDataContainer', 'dump_from_config', 'load_from_folder', 'Stop', 'Order', 'CimDataContainerWrapper']
+__all__ = [
+    'data_from_generator', 'data_from_dumps', 'CimDataContainer',
+    'dump_from_config', 'load_from_folder', 'Stop', 'Order', 'CimDataContainerWrapper']
