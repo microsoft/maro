@@ -69,6 +69,7 @@ jobs:
           dist/*.gz
           
     - name: Upload asset to a release.
+      if: runner.os == 'macOS' || runner.os == 'Windows' || ( runner.os == 'Linux' && matrix.python-version == '3.6' )
       uses: chaosddp/upload_asset_to_release@v1.0
       with:
         repo: maro
