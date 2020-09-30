@@ -108,7 +108,7 @@ class DataPipeline(ABC):
         os.makedirs(self._build_folder, exist_ok=True)
 
     def build(self):
-        """Build the cleaned data file to binary data file."""            
+        """Build the cleaned data file to binary data file."""
         self._new_file_list.append(self._build_file)
         if os.path.exists(self._clean_file):
             logger.info_green(f"Building binary data from {self._clean_file} to {self._build_file}.")

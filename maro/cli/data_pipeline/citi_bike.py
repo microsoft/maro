@@ -24,7 +24,7 @@ class CitiBikePipeline(DataPipeline):
     """Generate citi_bike data bin and other necessary files for the specified topology from specified source.
 
     They will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-    Folder structure: 
+    Folder structure:
     ~/.maro
             /data/citi_bike/[topology]
                                     /_build bin data file and other necessory files
@@ -245,8 +245,7 @@ class CitiBikePipeline(DataPipeline):
         return trip_data, used_bikes, in_data_station, stations_existed
 
     def _process_current_topo_station_info(
-        self, stations_existed: pd.DataFrame, used_bikes: int, loc_ref: pd.DataFrame
-        ):
+        self, stations_existed: pd.DataFrame, used_bikes: int, loc_ref: pd.DataFrame):
         data_station_init = stations_existed.join(
             self._common_data["full_stations"][["station_id", "capacity"]].set_index("station_id"),
             on="station_id"
@@ -294,7 +293,7 @@ class CitiBikePipeline(DataPipeline):
         station_info = self._process_current_topo_station_info(
             stations_existed=stations_existed, used_bikes=used_bikes, loc_ref=in_data_station
         )
-        with open(self._station_meta_file,  mode="w", encoding="utf-8", newline="") as f:
+        with open(self._station_meta_file, mode="w", encoding="utf-8", newline="") as f:
             station_info.to_csv(f, index=False, header=True)
 
         logger.info_green("Processing station distance data.")
@@ -307,7 +306,7 @@ class WeatherPipeline(DataPipeline):
     """Generate weather data bin for the specified topology from frontierweather.com.
 
     Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-    Folder structure: 
+    Folder structure:
     ~/.maro
             /data/citi_bike/[topology]
                                     /_build bin data file
@@ -415,8 +414,7 @@ class CitiBikeTopology(DataTopology):
     """
 
     def __init__(
-        self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False
-        ):
+        self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
         self._data_pipeline["weather"] = NOAAWeatherPipeline(topology, weather_source, is_temp)
@@ -428,9 +426,10 @@ class CitiBikeTopology(DataTopology):
 
 
 class CitiBikeToyPipeline(DataPipeline):
-    """Generate synthetic business events and station initialization distribution for Citi Bike scenario, from the predefined toy topologies.
+    """Generate synthetic business events and station initialization distribution for Citi Bike scenario,
+    from the predefined toy topologies.
 
-    Folder structure: 
+    Folder structure:
     ~/.maro
             /data/citi_bike/[topology]
                                     /_build bin data file and other necessory files
@@ -453,8 +452,7 @@ class CitiBikeToyPipeline(DataPipeline):
     _meta_file_name = "trips.yml"
 
     def __init__(
-        self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False
-        ):
+        self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False):
         super().__init__("citi_bike", topology, "", is_temp)
         self._start_time = start_time
         self._end_time = end_time
@@ -536,9 +534,9 @@ class CitiBikeToyPipeline(DataPipeline):
     def _gen_distance(self, station_init: pd.DataFrame):
         """Generate distance metrix csv file."""
         distance_adj = pd.DataFrame(
-            0, 
-            index=station_init["station_index"], 
-            columns=station_init["station_index"], 
+            0,
+            index=station_init["station_index"],
+            columns=station_init["station_index"],
             dtype=np.float
         )
         look_up_df = station_init[["latitude", "longitude"]]
@@ -565,7 +563,7 @@ class WeatherToyPipeline(WeatherPipeline):
     """Generate weather data bin for the specified topology from frontierweather.com.
 
     It will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-    Folder structure: 
+    Folder structure:
     ~/.maro
             /data/citi_bike/[topology]
                                     /_build bin data file
@@ -716,7 +714,7 @@ class NOAAWeatherPipeline(WeatherPipeline):
     """Generate weather data bin for the specified topology from ncei.noaa.gov.
 
     Generated files will be generated in ~/.maro/data/citi_bike/[topology]/_build.
-    Folder structure: 
+    Folder structure:
     ~/.maro
             /data/citi_bike/[topology]
                                     /_build bin data file
@@ -774,9 +772,9 @@ class NOAAWeatherPipeline(WeatherPipeline):
 
             data["date"] = org_data["DATE"]
             data["weather"] = org_data.apply(self._weather, axis=1)
-            data["temp"] = (org_data["TMAX"] + org_data["TMIN"])/2
+            data["temp"] = (org_data["TMAX"] + org_data["TMIN"]) / 2
         data.dropna(inplace=True)
-        with open(output_file,  mode="w", encoding="utf-8", newline="") as f:
+        with open(output_file, mode="w", encoding="utf-8", newline="") as f:
             data.to_csv(f, index=False, header=True)
 
     def _gen_fall_back_file(self):
