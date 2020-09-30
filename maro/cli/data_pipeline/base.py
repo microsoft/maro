@@ -15,12 +15,13 @@ logger = CliLogger(name=__name__)
 
 class DataPipeline(ABC):
     """Base class of data pipeline.
+
     Generate scenario/topology specific data for the business engine.
     General workflow:
     Step 1: Download the original data file from the source to download folder.
     Step 2: Generate the clean data in clean folder.
     Step 3: Build a binary data file in build folder.
-    The folder structer is:
+    The folder structure is:
     ~/.maro
             /data/[scenario]/[topology]
                                     /_download original data file
@@ -28,12 +29,11 @@ class DataPipeline(ABC):
                                     /_build bin data file and other necessory files
                             /meta meta files for data pipeline
 
-
     Args:
-        scenario(str): the scenario of the data.
-        topology(str): the topology of the scenario.
-        source(str): the original source of data file.
-        is_temp(bool): (optional) if the data file is temporary.
+        scenario(str): The scenario of the data.
+        topology(str): The topology of the scenario.
+        source(str): The original source of data file.
+        is_temp(bool): (optional) If the data file is temporary.
     """
 
     _download_file_name = ""
@@ -81,7 +81,7 @@ class DataPipeline(ABC):
 
         Args:
             is_force(bool): If forced re-download the data file.
-            fall_back(callable): (optional)Fallback function to execute when download failed.
+            fall_back(callable): (optional) Fallback function to execute when download failed.
         """
         self._new_folder_list.append(self._download_folder)
         os.makedirs(self._download_folder, exist_ok=True)
@@ -136,7 +136,7 @@ class DataPipeline(ABC):
 
 class DataTopology(ABC):
     """Data topology manage multi data pipelines for a specified topology of a research scenario."""
-    
+
     def __init__(self):
         self._data_pipeline = {}
 
@@ -144,7 +144,7 @@ class DataTopology(ABC):
         """Get the build file folders of all data pipelines for the topology.
         
         Returns:
-            dict : dictionary of build folders, keys are data pipeline names, values
+            dict: Dictionary of build folders, keys are data pipeline names, values
                 are paths of the build folders.
         """
         ret = {}
