@@ -6,18 +6,18 @@ from .entities import CimDataCollection
 
 class VesselStopsWrapper:
     """Accessor for vessel stops.
-    
+
     Examples:
 
         .. code-block:: python
 
-            # get a stop detail by vessel and location (stop) index
+            # Get a stop detail by vessel and location (stop) index.
             stop = data_cntr.vessel_stops[vessel_idx, loc_idx]
 
-            # get stop list of a vessel
+            # Get stop list of a vessel.
             stop_list = data_cntr.vessel_stops[vessel_idx]
 
-            # get all stops, NOTE: slice without parameters
+            # Get all stops, NOTE: slice without parameters.
             stops = data_cntr.vessel_stops[:]
     """
 

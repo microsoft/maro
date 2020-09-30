@@ -10,11 +10,10 @@ are dockerized for easy deployment and resource allocation. It provides a unifie
 abstraction/interface for different orchestration framework
 (e.g. `Grass <#grass>`_\ , `Kubernetes <#kubernetes>`_\ ).
 
-
 .. image:: ../images/distributed/orch_overview.svg
    :target: ../images/distributed/orch_overview.svg
    :alt: Orchestration Overview
-
+   :width: 600
 
 Grass
 -----
@@ -24,13 +23,11 @@ confidently applied to small/middle size cluster (< 200 nodes). The design goal
 of Grass is to speed up the distributed algorithm prototype development.
 It has the following advantages:
 
-
 * Fast deployment in a small cluster.
 * Fine-grained resource management.
 * Lightweight, no other dependencies are required.
 
 In the Grass mode:
-
 
 * All VMs will be deployed in the same virtual network for a faster, more stable
   connection and larger bandwidth. Please note that the maximum number of VMs is
@@ -43,11 +40,10 @@ In the Grass mode:
 Check `Grass Cluster Provisioning on Azure <../installation/grass_cluster_provisioning_on_azure.html>`_
 to get how to use it.
 
-
 .. image:: ../images/distributed/orch_grass.svg
    :target: ../images/distributed/orch_grass.svg
    :alt: Orchestration Grass Mode in Azure
-
+   :width: 600
 
 Kubernetes
 ----------
@@ -56,12 +52,10 @@ MARO also supports Kubernetes (k8s) as an orchestration option.
 With this widely used framework, you can easily build up your training cluster
 with hundreds and thousands of nodes. It has the following advantages:
 
-
 * Higher durability.
 * Better scalability.
 
 In the Kubernetes mode:
-
 
 * The dockerized job component runs in Kubernetes pod, and each pod only hosts
   one component.
@@ -71,8 +65,7 @@ In the Kubernetes mode:
 Check `K8S Cluster Provisioning on Azure <../installation/k8s_cluster_provisioning_on_azure.html>`_
 to get how to use it.
 
-
 .. image:: ../images/distributed/orch_k8s.svg
    :target: ../images/distributed/orch_k8s.svg
    :alt: Orchestration K8S Mode in Azure
-
+   :width: 600

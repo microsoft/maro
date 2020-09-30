@@ -50,7 +50,7 @@ Examples:
 
   Push a local image file and load it into cluster
     maro grass image push MyClusterName --image-path ./image.tar
-    
+
   Build an image based on the remote context folder and load it into cluster
     maro grass image push MyClusterName --remote-context-path /image_context --remote-name MyImageName
 """

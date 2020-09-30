@@ -1,10 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 from maro.communication.message import SessionMessage, Message, SessionType, TaskSessionStage, NotificationSessionStage
-from maro.communication.driver.driver_type import DriverType
-from maro.communication.driver.abs_driver import AbsDriver
+from maro.communication.driver import AbsDriver, DriverType
 from maro.communication.driver.zmq_driver import ZmqDriver
 from maro.communication.proxy import Proxy
 from maro.communication.registry_table import RegisterTable

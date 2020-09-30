@@ -12,9 +12,9 @@ def session_id_generator(source: str, destination: str) -> str:
         source (str): Message's source,
         destination (str): Message's destination.
 
-    Return:
+    Returns:
         session_id (str): The unique session id.
-            i.e. "0.source.destination"
+            i.e. "uuid.source.destination"
     """
     unique_id = str(uuid.uuid4())
     session_id = '.'.join([unique_id, source, destination])

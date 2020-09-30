@@ -1,41 +1,42 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import csv
-import numpy as np
+import os
+from typing import List
 
-from typing import List, Dict
+import numpy as np
 from yaml import safe_dump
 
 from .cim_data_generator import CimDataGenerator
 from .entities import CimDataCollection
 
+
 class CimDataDumpUtil:
-    """Utilities to dump cim data from data collection, it will generate following files in specified folder.
+    """Utilities to dump cim data from data collection, it will generate following files in specified folder:
     ports.csv, vessels.csv, stops.csv, routes.csv, order_proportion.csv, global_order_proportion.txt, misc.yml
-    
+
     Args:
-        data_collection (CimDataCollection): data collection to dump
+        data_collection (CimDataCollection): Data collection to dump.
     """
 
     def __init__(self, data_collection: CimDataCollection):
         self._data_collection = data_collection
 
     def dump(self, output_folder: str):
-        """Dump cim data into specified folder
+        """Dump cim data into specified folder.
 
         Args:
-            output_folder (str): folder to save dumped files
+            output_folder (str): Folder to save dumped files.
 
         """
         # mapping for quick accessing
         vessel_idx2name_dict = {idx: name for name, idx in self._data_collection.vessel_mapping.items()}
-        port_idx2name_dict = {idx: name for name,idx in self._data_collection.port_mapping.items()}
-        route_idx2name_dict = {idx: name for name,idx in self._data_collection.route_mapping.items()}
+        port_idx2name_dict = {idx: name for name, idx in self._data_collection.port_mapping.items()}
+        route_idx2name_dict = {idx: name for name, idx in self._data_collection.route_mapping.items()}
 
         # dump files
-        self._dump_stops(output_folder, vessel_idx2name_dict,port_idx2name_dict)
+        self._dump_stops(output_folder, vessel_idx2name_dict, port_idx2name_dict)
         self._dump_ports(output_folder)
         self._dump_vessels(output_folder)
         self._dump_routes(output_folder, route_idx2name_dict)
@@ -63,11 +64,11 @@ class CimDataDumpUtil:
             for vessel_stops in self._data_collection.vessels_stops:
                 for stop in vessel_stops:
                     yield [vessel_idx2name_dict[stop.vessel_idx],
-                                    stop.vessel_idx,
-                                    port_idx2name_dict[stop.port_idx],
-                                    stop.port_idx,
-                                    stop.arrive_tick,
-                                    stop.leave_tick]
+                           stop.vessel_idx,
+                           port_idx2name_dict[stop.port_idx],
+                           stop.port_idx,
+                           stop.arrive_tick,
+                           stop.leave_tick]
 
         self._dump_csv_file(stops_file_path, headers, stop_generator)
 
@@ -79,7 +80,8 @@ class CimDataDumpUtil:
 
         ports_file_path = os.path.join(output_folder, "ports.csv")
         headers = ["index", "name", "capacity", "empty", "order_proportion", "order_proportion_noise",
-                    "empty_return_buffer", "empty_return_buffer_noise", "full_return_buffer", "full_return_buffer_noise"]
+                   "empty_return_buffer", "empty_return_buffer_noise",
+                   "full_return_buffer", "full_return_buffer_noise"]
 
         def port_generator():
             for port in self._data_collection.ports_settings:
@@ -101,12 +103,14 @@ class CimDataDumpUtil:
     def _dump_vessels(self, output_folder: str):
         """
         vessels.csv
-            index, name, capacity, route_name, route_index, start_port_name, start_port_index, sailing_speed, sailing_speed_noise, parking_duration, parking_noise
+            index, name, capacity, route_name, route_index, start_port_name,
+            start_port_index, sailing_speed, sailing_speed_noise, parking_duration, parking_noise
 
         """
         vessels_file_path = os.path.join(output_folder, "vessels.csv")
         headers = ["index", "name", "capacity", "route_name", "route_index", "start_port_name",
-                    "start_port_index", "sailing_speed", "sailing_speed_noise", "parking_duration", "parking_noise", "period", "empty"]
+                   "start_port_index", "sailing_speed", "sailing_speed_noise", "parking_duration",
+                   "parking_noise", "period", "empty"]
 
         route_mapping = self._data_collection.route_mapping
         port_mapping = self._data_collection.port_mapping
@@ -130,7 +134,7 @@ class CimDataDumpUtil:
                     vessel_period[vessel.index],
                     vessel.empty
                 ]
-        
+
         self._dump_csv_file(vessels_file_path, headers, vessel_generator)
 
     def _dump_routes(self, output_folder: str, route_idx2name_dict: dict):
@@ -165,7 +169,7 @@ class CimDataDumpUtil:
 
         proportion_file_path = os.path.join(output_folder, "order_proportion.csv")
         headers = ["source_port_name", "source_port_index", "dest_port_name",
-                    "dest_port_index", "proportion", "proportion_noise"]
+                   "dest_port_index", "proportion", "proportion_noise"]
 
         ports = self._data_collection.ports_settings
 
@@ -180,7 +184,7 @@ class CimDataDumpUtil:
                         prop.base,
                         prop.noise
                     ]
-        
+
         self._dump_csv_file(proportion_file_path, headers, order_prop_generator)
 
     def _dump_misc(self, output_folder: str):
@@ -205,7 +209,7 @@ class CimDataDumpUtil:
 
     def _dump_csv_file(self, file_path: str, headers: List[str], line_generator: callable):
         """helper method to dump csv file
-        
+
         Args:
             file_path(str): path of output csv file
             headers(List[str]): list of header
@@ -221,21 +225,22 @@ class CimDataDumpUtil:
 
 
 def dump_from_config(config_file: str, output_folder: str, max_tick: int):
-    """Dump cim data from config, this will call data generator to generate data , and dump it
-    
-    NOTE: this function will not convert csv files into binary
+    """Dump cim data from config, this will call data generator to generate data , and dump it.
+
+    NOTE:
+        This function will not convert csv files into binary.
 
     Args:
-        config_file (str): configuration path
-        output_folder (str): output folder to save files
-        max_tick(int): max tick to gen
-    """    
+        config_file (str): Configuration path.
+        output_folder (str): Output folder to save files.
+        max_tick(int): Max tick to gen.
+    """
     assert config_file is not None and os.path.exists(config_file)
-    assert output_folder is not None and  os.path.exists(output_folder)
+    assert output_folder is not None and os.path.exists(output_folder)
     assert max_tick is not None and max_tick > 0
 
     generator = CimDataGenerator()
-    
+
     data_collection = generator.gen_data(config_file, max_tick=max_tick, start_tick=0)
 
     dump_util = CimDataDumpUtil(data_collection)

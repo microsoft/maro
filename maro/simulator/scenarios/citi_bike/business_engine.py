@@ -1,56 +1,56 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import time
 import datetime
-import numpy as np
+import os
+from typing import List
+
 import holidays
-
-from csv import DictReader
-from math import ceil, floor
-from typing import List, Union
-
-from yaml import safe_load
+import numpy as np
 from dateutil.relativedelta import relativedelta
-from dateutil.tz import UTC, gettz
-
+from dateutil.tz import gettz
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.utils import chagne_file_path
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
+from maro.simulator.scenarios.helpers import (DocableDict,
+                                              MatrixAttributeAccessor)
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
+from yaml import safe_load
 
-from .common import BikeReturnPayload, BikeTransferPayload, DecisionEvent, Action
+from .adj_loader import load_adj_from_csv
+from .common import (Action, BikeReturnPayload, BikeTransferPayload,
+                     DecisionEvent)
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
 from .station import Station
-from .stations_info import StationInfo, get_station_info
-from .weather_table import WeatherTable
-from .adj_loader import load_adj_from_csv
 from .station_reward import StationReward
+from .stations_info import get_station_info
+from .weather_table import WeatherTable
 
 logger = CliLogger(name=__name__)
 
 metrics_desc = """
-Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick), it contains following keys:
+Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick),
+it contains following keys:
 
-trip_requirements (int): accumulative trips until now 
+trip_requirements (int): Accumulative trips until now.
 
-bike_shortage (int): accumulative shortage until now 
+bike_shortage (int): Accumulative shortage until now.
 
-operation_number (int): accumulative operation cost until now 
-
+operation_number (int): Accumulative operation cost until now.
 """
 
+
 class CitibikeBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots:int, additional_options: dict = {}):
-        super().__init__("citi_bike", event_buffer, topology, start_tick, max_tick, snapshot_resolution, max_snapshots, additional_options)
+    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int,
+                 max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}):
+        super().__init__("citi_bike", event_buffer, topology, start_tick, max_tick,
+                         snapshot_resolution, max_snapshots, additional_options)
 
         # trip binary reader
         self._trip_reader: BinaryReader = None
@@ -59,7 +59,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self.update_config_root_path(__file__)
 
         # holidays for US, as we are using NY data
-        self._us_holidays = holidays.US()  
+        self._us_holidays = holidays.US()
 
         # our stations list used for quick accessing
         self._stations: List[Station] = []
@@ -72,26 +72,27 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     @property
     def frame(self) -> FrameBase:
-        """Current frame"""
+        """FrameBase: Current frame."""
         return self._frame
 
     @property
     def snapshots(self) -> SnapshotList:
-        """Current snapshot list"""
+        """SnapshotList: Current snapshot list."""
         return self._snapshots
 
     @property
-    def configs(self):
+    def configs(self) -> dict:
+        """dict: Current configuration."""
         return self._conf
 
-    def rewards(self, actions) -> Union[float, list] :
-        """Calculate rewards based on actions
+    def rewards(self, actions) -> float:
+        """Calculate rewards based on actions.
 
         Args:
-            actions(list): Action(s) from agent
+            actions(list): Action(s) from agent.
 
         Returns:
-            float: reward based on actions
+            float: Reward based on actions.
         """
         if actions is None:
             return []
@@ -99,7 +100,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         return sum([self._reward.reward(station.index) for station in self._stations])
 
     def step(self, tick: int):
-        """Push business engine to next step"""
+        """Push business engine to next step.
+
+        Args:
+            tick (int): Current tick to process.
+        """
         # if we do not set auto event, then we need to push it manually
         for trip in self._item_picker.items(tick):
             # generate a trip event, to dispatch to related callback to process this requirement
@@ -135,14 +140,15 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # stop current episode if we reach max tick
         return tick + 1 == self._max_tick
 
-    def get_node_mapping(self)->dict:
+    def get_node_mapping(self) -> dict:
+        """dict: Node mapping of current stations."""
         node_mapping = {}
         for station in self._stations:
             node_mapping[station.index] = station.id
         return node_mapping
 
     def reset(self):
-        """Reset after episode"""
+        """Reset internal states for episode."""
         self._total_trips = 0
         self._total_operate_num = 0
         self._total_shortages = 0
@@ -159,23 +165,35 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             station.reset()
 
         self._matrices_node.reset()
-        
+
         self._decision_strategy.reset()
 
         self._last_date = None
 
     def get_agent_idx_list(self) -> List[int]:
+        """Get a list of agent index.
+
+        Returns:
+            list: List of agent index.
+        """
         return [station.index for station in self._stations]
 
     def get_metrics(self) -> dict:
-        """metrics information"""
+        """Get current metrics information.
+
+        Note:
+            Call this method at different time will get different result.
+
+        Returns:
+            dict: Metrics information.
+        """
         total_trips = self._total_trips
         total_shortage = self._total_shortages
 
-        return DocableDict(metrics_desc, 
-                trip_requirements = total_trips, 
-                bike_shortage = total_shortage,
-                operation_number = self._total_operate_num)
+        return DocableDict(metrics_desc,
+                           trip_requirements=total_trips,
+                           bike_shortage=total_shortage,
+                           operation_number=self._total_operate_num)
 
     def __del__(self):
         """Collect resource by order"""
@@ -185,7 +203,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if self._trip_reader:
             # close binary reader first, so that we can clean it correctly
             self._trip_reader.close()
-
 
     def _init(self):
         self._load_configs()
@@ -198,8 +215,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # our weather table used to query weather by date
         weather_data_path = self._conf["weather_data"]
         if weather_data_path.startswith("~"):
-            weather_data_path = os.path.expanduser(weather_data_path) 
-        
+            weather_data_path = os.path.expanduser(weather_data_path)
+
         trip_data_path = self._conf["trip_data"]
         if trip_data_path.startswith("~"):
             trip_data_path = os.path.expanduser(trip_data_path)
@@ -223,13 +240,13 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # filter data with tick range by minute (time_unit='m')
         self._item_picker = self._trip_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="m")
 
-        # we use this to init frame and stations init states
+        # we use this to initializing frame and stations states
         stations_states = get_station_info(self._conf["stations_init_data"])
 
         self._init_frame(len(stations_states))
 
         self._init_stations(stations_states)
-        
+
         self._init_adj_matrix()
 
         # our decision strategy to determine when we need an action
@@ -261,10 +278,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # our distance adj
         # we assuming that our adj is NxN without header
         distance_adj = np.array(load_adj_from_csv(self._conf["distance_adj_data"], skiprows=1))
-        
+
         # we only have one node here
         self._matrices_node = self._frame.matrices[0]
-         
+
         station_num = len(self._stations)
 
         self._distance_adj = distance_adj.reshape(station_num, station_num)
@@ -352,7 +369,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             # durations from csv file is in seconds, convert it into minutes
             return_tick = evt.tick + trip.durations
 
-            bike_return_evt = self._event_buffer.gen_atom_event(return_tick, CitiBikeEvents.ReturnBike, payload=return_payload)
+            bike_return_evt = self._event_buffer.gen_atom_event(return_tick,
+                                                                CitiBikeEvents.ReturnBike, payload=return_payload)
 
             self._event_buffer.insert_event(bike_return_evt)
 
@@ -421,7 +439,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         station.bikes = station_bikes + max_accept_number
 
-
     def _on_action_received(self, evt: Event):
         """callback when we get an action from agent"""
         action: Action = None
@@ -461,7 +478,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if self._topology in citi_bike_process.topologies:
             pid = str(os.getpid())
             logger.warning_yellow(
-                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. If you want to keep the data, please use MARO CLI command 'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
+                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. \
+                If you want to keep the data, please use MARO CLI command \
+                'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first.")
             self._citi_bike_data_pipeline = citi_bike_process.topologies[self._topology]
             self._citi_bike_data_pipeline.download()
             self._citi_bike_data_pipeline.clean()
@@ -474,4 +493,5 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             self._conf["stations_init_data"] = chagne_file_path(self._conf["stations_init_data"], trip_folder)
             self._conf["distance_adj_data"] = chagne_file_path(self._conf["distance_adj_data"], trip_folder)
         else:
-            raise CommandError("generate", f"Can not generate data files for scenario: citi_bike topology: {self._topology}")
+            raise CommandError(
+                "generate", f"Can not generate data files for scenario: citi_bike topology: {self._topology}")
