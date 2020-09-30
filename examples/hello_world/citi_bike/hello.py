@@ -1,7 +1,6 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
-from random import randint
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent
 
@@ -10,7 +9,8 @@ start_tick = 0
 durations = 100
 max_ep = 2
 
-env = Env(scenario="citi_bike", topology="toy.4s_4t", start_tick=start_tick, durations=durations, snapshot_resolution=60)
+env = Env(scenario="citi_bike", topology="toy.4s_4t", start_tick=start_tick,
+          durations=durations, snapshot_resolution=60)
 
 print(env.summary)
 
@@ -23,12 +23,11 @@ for ep in range(max_ep):
     while not is_done:
         metrics, decision_evt, is_done = env.step(action)
 
-        if decision_evt is not None: # it will be None at the end
+        # It will be None at the end.
+        if decision_evt is not None:
             action = Action(decision_evt.station_idx, 0, 10)
 
-            # print(decision_evt.action_scope)
-
-    station_ss=env.snapshot_list['stations']
+    station_ss = env.snapshot_list['stations']
     shortage_states = station_ss[::'shortage']
     print("total shortage", shortage_states.sum())
 
@@ -41,14 +40,15 @@ for ep in range(max_ep):
 
     matrix_ss = env.snapshot_list["matrices"]
 
-    # since we may have different snapshot resolution, so we should use frame_index to retrieve index in snapshots of current tick
+    # Since we may have different snapshot resolution,
+    # so we should use frame_index to retrieve index in snapshots of current tick.
     last_snapshot_index = env.frame_index
 
-    # trip adj
-    # NOTE: we have not clear the trip adj at each tick so it is an accumulative value,
-    # then we can just query last snapshot to calc total trips
+    # NOTE: We have not clear the trip adj at each tick so it is an accumulative value,
+    # then we can just query last snapshot to calc total trips.
     trips_adj = matrix_ss[last_snapshot_index::'trips_adj']
 
+    # Reshape it we need an easy way to access.
     # trips_adj = trips_adj.reshape((-1, len(station_ss)))
 
     print("total trips from trips adj", trips_adj.sum())

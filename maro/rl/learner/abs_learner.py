@@ -5,18 +5,20 @@ from abc import ABC, abstractmethod
 
 
 class AbsLearner(ABC):
+    """Abstract learner class to control the policy learning process."""
     def __init__(self):
         pass
 
     @abstractmethod
     def train(self, total_episodes):
-        """
-        Main loop for collecting experiences and performance from the actor and using them to optimize models
+        """The outermost training loop logic is implemented here.
+
         Args:
-            total_episodes (int): number of episodes for the main training loop
+            total_episodes (int): number of episodes to be run.
         """
         pass
 
     @abstractmethod
     def test(self):
+        """Test policy performance."""
         pass

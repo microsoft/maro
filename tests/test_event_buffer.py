@@ -14,14 +14,14 @@ class TestEventBuffer(unittest.TestCase):
         evt = self.eb.gen_atom_event(1, 1, (0, 0))
 
         # fields should be same as specified
-        self.assertEqual(evt.tag, EventCategory.ATOM)
+        self.assertEqual(evt.category, EventCategory.ATOM)
         self.assertEqual(evt.tick, 1)
         self.assertEqual(evt.event_type , 1)
         self.assertEqual(evt.payload, (0, 0))
 
         evt = self.eb.gen_cascade_event(2, 2, (1, 1, 1))
 
-        self.assertEqual(evt.tag, EventCategory.CASCADE)
+        self.assertEqual(evt.category, EventCategory.CASCADE)
         self.assertEqual(evt.tick, 2)
         self.assertEqual(evt.event_type , 2)
         self.assertEqual(evt.payload, (1, 1, 1))

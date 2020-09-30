@@ -3,14 +3,14 @@
 
 import os
 import shutil
-import tempfile
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from maro.cli.data_pipeline.utils import convert, download_file, StaticParameter, generate_name_with_uuid
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
+
 
 class DataPipeline(ABC):
     _download_file_name = ""
@@ -39,7 +39,7 @@ class DataPipeline(ABC):
 
 
         Args:
-            scenario(str): the scenario of the data 
+            scenario(str): the scenario of the data
             topology(str): the topology of the scenario
             source(str): the original source of data file
             is_temp(bool): (optional) if the data file is temporary
@@ -62,8 +62,6 @@ class DataPipeline(ABC):
             self._download_folder = os.path.join(self._download_folder, tmpdir)
             self._clean_folder = os.path.join(self._clean_folder, tmpdir)
             self._build_folder = os.path.join(self._build_folder, tmpdir)
-            
-            
 
         self._download_file = os.path.join(self._download_folder, self._download_file_name)
         self._clean_file = os.path.join(self._clean_folder, self._clean_file_name)
@@ -88,7 +86,6 @@ class DataPipeline(ABC):
             logger.info_green(f"Downloading data from {self._source} to {self._download_file}")
             download_file(source=self._source, destination=self._download_file)
 
-
     def clean(self):
         """clean the original data file"""
         self._new_folder_list.append(self._clean_folder)
@@ -97,7 +94,7 @@ class DataPipeline(ABC):
         os.makedirs(self._build_folder, exist_ok=True)
 
     def build(self):
-        """build the cleaned data file to binary data file"""            
+        """build the cleaned data file to binary data file"""
         self._new_file_list.append(self._build_file)
         if os.path.exists(self._clean_file):
             logger.info_green(f"Building binary data from {self._clean_file} to {self._build_file}")

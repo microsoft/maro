@@ -17,17 +17,14 @@ Resource Flow
 In this scenario, the **container** is the central resource. Two events will
 trigger the movement of the container:
 
-
 * The first one is the order, which will lead to the transportation of goods from
   the source port to the destination port.
 * The second one is the repositioning operation. It is used to rebalance the
   container distribution worldwide.
 
-
 .. image:: ../images/scenario/cim.container_flow.svg
    :target: ../images/scenario/cim.container_flow.svg
    :alt: The Life Cycle of the Container
-
 
 Order
 ^^^^^
@@ -42,7 +39,6 @@ customized based on different requirements.
 
 An order will trigger a life cycle of a container, as shown in the figure above,
 a life cycle is defined as follows:
-
 
 * Once an order is generated, an empty container of the corresponding export port
   (source port) will be released to the shipper.
@@ -62,7 +58,6 @@ Container Repositioning
 As mentioned above, to rebalance the container distribution, the agent in each
 port will decide how to reposition the empty containers every time a vessel
 arrives at the port. The decision consists of two parts:
-
 
 * Whether to take a ``discharge`` operation or a ``load`` operation;
 * The number of containers to discharge/load.
@@ -95,11 +90,9 @@ problem.
 Toy Topologies
 ^^^^^^^^^^^^^^
 
-
 .. image:: ../images/scenario/cim.toys.svg
    :target: ../images/scenario/cim.toys.svg
    :alt: CIM toy topologies
-
 
 *(In these topologies, the solid lines indicate the service route (voyage) among
 ports, while the dashed lines indicate the container flow triggered by orders.)*
@@ -143,11 +136,9 @@ ports no longer have a simple supply/demand feature. The cooperation among ports
 is much more complex and it is difficult to find an efficient repositioning policy
 manually.
 
-
 .. image:: ../images/scenario/cim.global_trade.svg
    :target: ../images/scenario/cim.global_trade.svg
    :alt: global_trade.22p
-
 
 *(To make it clearer, the figure above only shows the service routes among ports.)*
 
@@ -205,6 +196,7 @@ No Repositioning
      - 2,191,716
      - 0
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -250,6 +242,7 @@ No Repositioning
      - 2,141,716
      - 0
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -295,6 +288,7 @@ No Repositioning
      - 2,088,716
      - 0
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -339,7 +333,6 @@ No Repositioning
      - 2,241,716
      - 1,161,714
      - 0
-
 
 Random Repositioning
 ~~~~~~~~~~~~~~~~~~~~
@@ -388,6 +381,7 @@ Random Repositioning
      - 1,603,063 :math:`\pm` 109,149
      - 2,518,920 :math:`\pm` 193,200
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -433,6 +427,7 @@ Random Repositioning
      - 1,763,950 :math:`\pm`  73,935
      - 1,858,420 :math:`\pm`  60,680
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -478,6 +473,7 @@ Random Repositioning
      - 1,761,283 :math:`\pm` 22,338
      - 1,336,540 :math:`\pm`  30,020
 
+|
 
 .. list-table::
    :header-rows: 1
@@ -523,7 +519,6 @@ Random Repositioning
      - 1,154,184 :math:`\pm`  7,043
      - 270,960 :math:`\pm`   2,240
 
-
 Quick Start
 -----------
 
@@ -549,7 +544,6 @@ Once the environment need the agent's response to promote the simulation, it wil
 throw an ``DecisionEvent``. In the scenario of CIM, the information of each
 ``DecisionEvent`` is listed as below:
 
-
 * **tick** (int): The corresponding tick.
 * **port_idx** (int): The id of the port/agent that needs to respond to the
   environment.
@@ -571,7 +565,6 @@ Action
 
 Once we get a ``DecisionEvent`` from the environment, we should respond with an
 ``Action``. Valid ``Action`` could be:
-
 
 * ``None``\ , which means do nothing.
 * A valid ``Action`` instance, including:
@@ -646,5 +639,5 @@ random mode, we hope this could help you learn how to use the environment interf
        print(f"ep: {ep}, environment metrics: {env.metrics}")
        env.reset()
 
-Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management>`_
+Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.

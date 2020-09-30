@@ -14,22 +14,25 @@ from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDic
 
 from .common import (ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload)
 from .frame_builder import gen_cim_frame
-from maro.data_lib.cim import data_from_generator, data_from_dumps, CimDataContainer, Stop, Order, CimDataContainerWrapper
+from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
 
 
 metrics_desc = """
-CIM metrics used provide statistics information until now (may be in the middle of current tick), it contains following keys:
+CIM metrics used provide statistics information until now (may be in the middle of current tick),
+ it contains following keys:
 
-order_requirements (int): accumulative orders until now
-container_shortage (int): accumulative shortage until now
-operation_number (int): total empty transfer (both load and discharge) cost, the cost factors can be configured in configuration file at section "transfer_cost_factors"
+order_requirements (int): Accumulative orders until now.
+container_shortage (int): Accumulative shortage until now.
+operation_number (int): Total empty transfer (both load and discharge) cost,
+    the cost factors can be configured in configuration file at section "transfer_cost_factors".
 """
 
 
 class CimBusinessEngine(AbsBusinessEngine):
-    """Cim business engine, used simulate CIM related problem"""
+    """Cim business engine, used simulate CIM related problem."""
 
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
+    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int,
+                 snapshot_resolution: int, max_snapshots: int, additional_options: dict = None):
         super().__init__("cim", event_buffer, topology, start_tick, max_tick,
                          snapshot_resolution, max_snapshots, additional_options)
 
@@ -73,31 +76,27 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     @property
     def configs(self):
-        """
-        Configurations of CIM business engine
+        """dict: Configurations of CIM business engine.
         """
         return self._config
 
     @property
     def frame(self) -> FrameBase:
-        """
-        Frame of current business engine
+        """FrameBase: Frame of current business engine.
         """
         return self._frame
 
     @property
     def snapshots(self) -> SnapshotList:
-        """
-        Snapshot list of current frame
+        """SnapshotList: Snapshot list of current frame.
         """
         return self._snapshots
 
     def step(self, tick: int):
-        """
-        Called at each tick to generate orders and arrival events
+        """Called at each tick to generate orders and arrival events.
 
         Args:
-            tick (int): Tick to generate orders
+            tick (int): Tick to generate orders.
         """
 
         # At each tick:
@@ -172,11 +171,10 @@ class CimBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
-        """
-        Post-process after each step
+        """Post-process after each step.
 
         Args:
-            tick (int): tick to process
+            tick (int): Tick to process.
         """
         if (tick + 1) % self._snapshot_resolution == 0:
             # update acc_fulfillment before take snapshot
@@ -197,14 +195,13 @@ class CimBusinessEngine(AbsBusinessEngine):
         return tick + 1 == self._max_tick
 
     def rewards(self, actions: list):
-        """
-        Reward base on actions
+        """Reward base on actions.
 
         Args:
-            Actions list(action): Action list from agent: {vessel_id: empty_number_to_move}
+            Actions list(action): Action list from agent: {vessel_id: empty_number_to_move}.
 
         Returns:
-            Corresponding reward list
+            list: Corresponding reward list.
         """
         if actions is None:
             return []
@@ -216,8 +213,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         return [rewards[action.port_idx] for action in actions]
 
     def reset(self):
-        """
-        Reset the business engine, it will reset frame value
+        """Reset the business engine, it will reset frame value.
         """
 
         self._snapshots.reset()
@@ -227,22 +223,21 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._reset_nodes()
 
         self._data_cntr.reset()
-        
+
         # insert departure event again
         self._load_departure_events()
 
         self._total_operate_num = 0
 
     def action_scope(self, port_idx: int, vessel_idx: int) -> ActionScope:
-        """
-        Get the action scope of specified agent
+        """Get the action scope of specified agent.
 
         Args:
-            port_idx (int): Index of specified agent
-            vessel_idx (int): Index of specified vessel to take the action
+            port_idx (int): Index of specified agent.
+            vessel_idx (int): Index of specified vessel to take the action.
 
         Returns:
-            ActionScope: contains load and discharge scope
+            ActionScope: Contains load and discharge scope.
         """
         port = self._ports[port_idx]
         vessel = self._vessels[vessel_idx]
@@ -250,39 +245,34 @@ class CimBusinessEngine(AbsBusinessEngine):
         return ActionScope(load=min(port.empty, vessel.remaining_space), discharge=vessel.empty)
 
     def early_discharge(self, vessel_idx: int) -> int:
-        """
-        Get the early discharge number of specified vessel
+        """Get the early discharge number of specified vessel.
 
         Args:
-            vessel_idx (int): Index of specified vessel
+            vessel_idx (int): Index of specified vessel.
         """
         return self._vessels[vessel_idx].early_discharge
 
     def get_metrics(self) -> DocableDict:
         """Get metrics information for cim scenario.
-        
+
         Args:
-            dict: a dict that contains "perf", "total_shortage" and "total_cost", and can use help method to show help docs
+            dict: A dict that contains "perf", "total_shortage" and "total_cost",
+                and can use help method to show help docs.
         """
         total_shortage = sum([p.acc_shortage for p in self._ports])
         total_booking = sum([p.acc_booking for p in self._ports])
 
         return DocableDict(metrics_desc,
-            order_requirements = total_booking,
-            container_shortage = total_shortage,
-            operation_number = self._total_operate_num
-        )
+                           order_requirements=total_booking,
+                           container_shortage=total_shortage,
+                           operation_number=self._total_operate_num
+                           )
 
     def get_node_mapping(self) -> dict:
-        """
-        Get node name mappings related with this environment
+        """Get node name mappings related with this environment.
 
         Returns:
-            Node name to index mapping dictionary
-            {
-                "static": {name: index}
-                "dynamic": {name: index}
-            }
+            dict: Node name to index mapping dictionary.
         """
         return {
             "ports": self._data_cntr.port_mapping,
@@ -290,16 +280,15 @@ class CimBusinessEngine(AbsBusinessEngine):
         }
 
     def get_agent_idx_list(self) -> list:
-        """
-        Get port index list related with this environment
+        """Get port index list related with this environment.
 
-        Returns: 
-            A list of port index
+        Returns:
+            list: A list of port index.
         """
         return [i for i in range(self._data_cntr.port_number)]
 
     def _init_nodes(self):
-        # initial ports 
+        # initial ports
         for port_settings in self._data_cntr.ports:
             port = self._ports[port_settings.index]
             port.set_init_state(port_settings.name, port_settings.capacity, port_settings.empty)
@@ -308,13 +297,13 @@ class CimBusinessEngine(AbsBusinessEngine):
         for vessel_setting in self._data_cntr.vessels:
             vessel = self._vessels[vessel_setting.index]
 
-            vessel.set_init_state(vessel_setting.name, 
-                    self._data_cntr.container_volume, 
-                    vessel_setting.capacity, 
-                    self._data_cntr.route_mapping[vessel_setting.route_name],
-                    vessel_setting.empty)
+            vessel.set_init_state(vessel_setting.name,
+                                  self._data_cntr.container_volume,
+                                  vessel_setting.capacity,
+                                  self._data_cntr.route_mapping[vessel_setting.route_name],
+                                  vessel_setting.empty)
 
-        # init vessel plans 
+        # init vessel plans
         self._vessel_plans[:] = -1
 
     def _reset_nodes(self):
