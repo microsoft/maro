@@ -204,11 +204,14 @@ policies.
     learner.train(total_episodes=config.general.total_training_episodes)
 
 
-Main Loop with Actor and Learner (Multi-process)
-------------------------------------------------
+Main Loop with Actor and Learner (Distributed / Multi-process)
+--------------------------------------------------------------
 
-The distributed/multi-process workflow of a learning policy's interaction with a MARO environment usually involves
-launching a learner process and an actor process separately.
+We demonstrate a single-learner and multi-actor topology where the learner drives the program by telling remote actors
+to perform roll-out tasks and using the results they sent back to improve the policies. The workflow usually involves
+launching a learner process and an actor process separately. Because training occurs on the learner side and inference
+occurs on the actor side, we need to create appropriate agent managers on both sides.
+
 On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
 creating an environment and an agent manager on the actor side is similar to that for the single-host version,
 except that it is necessary to set the AgentMode to INFERENCE. As in the single-process version, the environment and the
