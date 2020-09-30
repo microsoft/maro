@@ -16,11 +16,11 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node, copy_files_from_node, sync_mkdir, copy_and_rename
 from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.utils.details import load_cluster_details, save_cluster_details, load_job_details, save_job_details, \
-    load_schedule_details, save_schedule_details
+from maro.cli.utils.details import (load_cluster_details, save_cluster_details, load_job_details, save_job_details,
+                                    load_schedule_details, save_schedule_details)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_node_name, \
-    get_valid_file_name
+from maro.cli.utils.naming import (generate_cluster_id, generate_job_id, generate_component_id, generate_node_name,
+                                   get_valid_file_name)
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
