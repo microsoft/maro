@@ -43,5 +43,10 @@ jobs:
         uses: github/super-linter@v3
         env:
           VALIDATE_ALL_CODEBASE: false
+          VALIDATE_PYTHON_PYLINT: false # disable pylint, as we have not configure it
+          VALIDATE_PYTHON_BLACK: false # same as above
+          PYTHON_FLAKE8_CONFIG_FILE: tox.ini
+          FILTER_REGEX_INCLUDE: maro/.*
+          FILTER_REGEX_EXCLUDE: tests/.*
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.LINT_TOKEN }}
