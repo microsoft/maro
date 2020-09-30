@@ -1,11 +1,13 @@
 Example Scenario: Bike Repositioning (Citi Bike)
 ================================================
 
+In this example we demonstrate using a simple greedy policy for `Citi Bike <https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html>`_,
+a real-world bike repositioning scenario. 
+
 Greedy Policy
 -------------
 
-In this example we demonstrate using a simple greedy policy for `Citi Bike <https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html>`_,
-a real-world bike repositioning scenario. Our greedy policy is simple: if the event type is supply, the policy will make
+Our greedy policy is simple: if the event type is supply, the policy will make
 the current station send as many bikes as possible to one of k stations with the most empty docks. If the event type is
 demand, the policy will make the current station request as many bikes as possible from one of k stations with the most
 bikes. We use a heap data structure to find the top k supply/demand candidates from the action scope associated with
