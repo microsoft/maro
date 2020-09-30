@@ -68,11 +68,19 @@ jobs:
           dist/*.whl
           dist/*.gz
           
-    - name: Upload asset to a release.
+    - name: Publish wheels to PyPI
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: (runner.os == 'Linux' && matrix.python-version == '3.6') || (runner.os == 'Windows' || runner.os == 'macOS')
+      run: |
+        twine upload --verbose dist/*.whl
+          
+    - name: Upload packages to latest release.
       if: runner.os == 'macOS' || runner.os == 'Windows' || ( runner.os == 'Linux' && matrix.python-version == '3.6' )
       uses: chaosddp/upload_asset_to_release@v1.0
       with:
         repo: maro
-        owner: chaosddp
+        owner: microsoft
         token: ${{ secrets.GITHUB_TOKEN }}
         asset: dist/*.*
