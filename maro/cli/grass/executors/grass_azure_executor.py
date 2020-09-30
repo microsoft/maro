@@ -75,7 +75,7 @@ class GrassAzureExecutor:
         )
 
     def create(self):
-        logger.info(f"Creating cluster")
+        logger.info("Creating cluster")
 
         # Start creating
         try:
@@ -130,7 +130,7 @@ class GrassAzureExecutor:
             logger.info_green(f"Resource group: {resource_group} is created")
 
     def _create_master(self):
-        logger.info(f"Creating master VM")
+        logger.info("Creating master VM")
 
         # Load details
         cluster_details = self.cluster_details
@@ -179,10 +179,10 @@ class GrassAzureExecutor:
             sync=False
         )
 
-        logger.info_green(f"Master VM is created")
+        logger.info_green("Master VM is created")
 
     def _init_master(self):
-        logger.info(f"Initializing master node")
+        logger.info("Initializing master node")
 
         # Load details
         cluster_details = self.cluster_details
@@ -237,7 +237,7 @@ class GrassAzureExecutor:
         )
         self.grass_executor.remote_set_master_details(master_details=cluster_details['master'])
 
-        logger.info_green(f"Master node is initialized")
+        logger.info_green("Master node is initialized")
 
     @staticmethod
     def _create_deployment_parameters(node_name: str, cluster_details: dict, node_size: str, export_dir: str):
@@ -376,7 +376,7 @@ class GrassAzureExecutor:
                 )
         else:
             logger.warning_yellow(
-                f"Unable to scale down." +
+                f"Unable to scale down."
                 f" Only {len(deletable_nodes)} are deletable, but need to delete {num} to meet the replica"
             )
 
@@ -1037,7 +1037,7 @@ class GrassAzureExecutor:
         self.grass_executor.remote_clean(parallels=GlobalParams.PARALLELS)
 
     # maro grass status
-    
+
     def status(self, resource_name: str):
         if resource_name == "master":
             return_status = self.grass_executor.remote_get_master_details()

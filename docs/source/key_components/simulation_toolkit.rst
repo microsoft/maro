@@ -15,7 +15,6 @@ Overview
 
 The key features of MARO simulation toolkit:
 
-
 * Event-driven, which is friendly to business logging data, and more in line
   with real-world scenarios;
 * High execution performance;
@@ -39,11 +38,10 @@ pluggable `Business Engine <./business_engine.html>`_ based on the
 `Event Buffer <./event_buffer.html>`_ supporting. The following figure illustrates
 the overall architecture of the MARO simulation system.
 
-
 .. image:: ../images/simulator/overview.svg
    :target: ../images/simulator/overview.svg
    :alt: Simulation System Overall
-
+   :width: 600
 
 Environment
 -----------
@@ -61,11 +59,9 @@ and how to conveniently query data on the levels of spatial, temporal, and
 intra-node (resource holder). The following shows a typical environment interaction
 workflow and code snippet.
 
-
 .. image:: ../images/simulator/interaction_workflow.svg
    :target: ../images/simulator/interaction_workflow.svg
    :alt: Agent(s)/Environment Interaction Workflow
-
 
 .. code-block:: python
 

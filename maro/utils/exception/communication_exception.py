@@ -1,65 +1,65 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license. 
+# Licensed under the MIT license.
 
 from maro.utils.exception import MAROException
 
 
 class RedisConnectionError(MAROException):
-    """ Failure to connect to redis, occurs in the proxy. """
+    """Failure to connect to redis, occurs in the proxy."""
     def __init__(self, msg: str = None):
         super().__init__(1001, msg)
 
 
 class PeersMissError(MAROException):
-    """ Proxy do not have any expected peers. """
+    """Proxy do not have any expected peers."""
     def __init__(self, msg: str = None):
         super().__init__(1002, msg)
 
 
 class InformationUncompletedError(MAROException):
-    """ No enough information from the Redis. """
+    """No enough information from the Redis."""
     def __init__(self, msg: str = None):
         super().__init__(1003, msg)
 
 
 class PeersConnectionError(MAROException):
-    """ Peers connection error, occurs in the driver. """
+    """Peers connection error, occurs in the driver."""
     def __init__(self, msg: str = None):
         super().__init__(1004, msg)
 
 
 class DriverSendError(MAROException):
-    """ Failure to send message in the driver. """
+    """Failure to send message in the driver."""
     def __init__(self, msg: str = None):
         super().__init__(1005, msg)
 
 
 class DriverReceiveError(MAROException):
-    """ Failure to receive message in the driver. """
+    """Failure to receive message in the driver."""
     def __init__(self, msg: str = None):
         super().__init__(1006, msg)
 
 
 class MessageSessionTypeError(MAROException):
-    """ The unrecognized session type, occurs in the SessionMessage. """
+    """The unrecognized session type, occurs in the ``SessionMessage``."""
     def __init__(self, msg: str = None):
         super().__init__(1007, msg)
 
 
 class ConditionalEventSyntaxError(MAROException):
-    """ The syntax error of a conditional event. """
+    """The syntax error of a conditional event."""
     def __init__(self, msg: str = None):
         super().__init__(1008, msg)
 
 
 class DriverTypeError(MAROException):
-    """ The unrecognized driver type, occurs in the proxy. """
+    """The unrecognized driver type, occurs in the proxy."""
     def __init__(self, msg: str = None):
         super().__init__(1009, msg)
 
 
 class SocketTypeError(MAROException):
-    """ The unrecognized socket type, occurs in the driver. """
+    """The unrecognized socket type, occurs in the driver."""
     def __init__(self, msg: str = None):
         super().__init__(1010, msg)
 

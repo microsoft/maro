@@ -12,17 +12,17 @@ from maro.utils import clone
 
 
 class DQNHyperParams:
+    """DQN hyper-parameters.
+
+    Args:
+        num_actions (int): number of possible actions
+        reward_decay (float): reward decay as defined in standard RL terminology
+        num_training_rounds_per_target_replacement (int): number of training frequency of target model replacement
+        tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
+    """
     __slots__ = ["num_actions", "reward_decay", "num_training_rounds_per_target_replacement", "tau"]
     def __init__(self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int,
                  tau: float = 1.0):
-        """
-        DQN hyper-parameters.
-        Args:
-            num_actions (int): number of possible actions
-            reward_decay (float): reward decay as defined in standard RL terminology
-            num_training_rounds_per_target_replacement (int): number of training frequency of target model replacement
-            tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
-        """
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.num_training_rounds_per_target_replacement = num_training_rounds_per_target_replacement
@@ -30,18 +30,19 @@ class DQNHyperParams:
 
 
 class DQN(AbsAlgorithm):
+    """The Deep-Q-Networks algorithm.
+
+    The model_dict must contain the key `eval`. Optionally a model corresponding to the key `target` can be
+    provided. If the key `target` is absent or model_dict[`target`] is None, the target model will be a deep
+    copy of the provided eval model.
+    """
     def __init__(self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict,
                  hyper_params: DQNHyperParams):
-        """
-        DQN algorithm. The model_dict must contain the key "eval". Optionally a model corresponding to
-        the key "target" can be provided. If the key "target" is absent or model_dict["target"] is None,
-        the target model will be a deep copy of the provided eval model.
-        """
         if model_dict.get("target", None) is None:
             model_dict["target"] = clone(model_dict["eval"])
         super().__init__(model_dict, optimizer_opt, loss_func_dict, hyper_params)
         self._train_cnt = 0
-        self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         if epsilon is None or np.random.rand() > epsilon:
@@ -79,5 +80,9 @@ class DQN(AbsAlgorithm):
         return np.abs((current_q_values - target_q_values).detach().numpy())
 
     def _update_target_model(self):
-        for eval_params, target_params in zip(self._model_dict["eval"].parameters(), self._model_dict["target"].parameters()):
-            target_params.data = self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
+        for eval_params, target_params in zip(
+            self._model_dict["eval"].parameters(), self._model_dict["target"].parameters()
+        ):
+            target_params.data = (
+                self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
+            )

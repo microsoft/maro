@@ -1,22 +1,25 @@
-MARO Package
-============
-
-Subpackages
------------
+Simulation Toolkit
+================================================================================
 
 .. toctree::
    :maxdepth: 4
 
-   maro.backends
-   maro.event_buffer
-   maro.data_lib
    maro.simulator
+
+
+RL Toolkit
+================================================================================
+
+.. toctree::
+   :maxdepth: 4
+
+   maro.rl
+
+
+Utils
+================================================================================
+
+.. toctree::
+   :maxdepth: 4
+
    maro.utils
-
-Module Contents
----------------
-
-.. automodule:: maro
-   :members:
-   :undoc-members:
-   :show-inheritance:

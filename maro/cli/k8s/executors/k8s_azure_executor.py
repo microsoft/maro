@@ -61,7 +61,7 @@ class K8sAzureExecutor:
         )
 
     def create(self):
-        logger.info(f"Creating cluster")
+        logger.info("Creating cluster")
 
         # Start creating
         try:
@@ -117,7 +117,7 @@ class K8sAzureExecutor:
             logger.info_green(f"Resource group: {resource_group} is created")
 
     def _create_k8s_cluster(self):
-        logger.info(f"Creating k8s cluster")
+        logger.info("Creating k8s cluster")
 
         # Load details
         cluster_details = self.cluster_details
@@ -155,7 +155,7 @@ class K8sAzureExecutor:
 
         with open(os.path.expanduser(f"{GlobalPaths.MARO_K8S_LIB}/azure/k8s-create-parameters.json"), 'r') as f:
             base_parameters = json.load(f)
-        with open(export_dir + f"/aks_cluster.json", 'w') as fw:
+        with open(export_dir + "/aks_cluster.json", 'w') as fw:
             parameters = base_parameters['parameters']
             parameters['location']['value'] = location
             parameters['adminUsername']['value'] = admin_username
@@ -199,7 +199,7 @@ class K8sAzureExecutor:
     @staticmethod
     def _init_nvidia_plugin():
         # Create plugin namespace
-        command = f"kubectl create namespace gpu-resources"
+        command = "kubectl create namespace gpu-resources"
         _ = SubProcess.run(command)
 
         # Apply k8s config
@@ -217,7 +217,7 @@ class K8sAzureExecutor:
         # Fill redis k8s config and saves
         with open(os.path.expanduser(f"{GlobalPaths.MARO_K8S_LIB}/k8s_configs/redis.yml"), 'r') as fr:
             base_config = yaml.safe_load(fr)
-        with open(export_dir + f"/redis.yml", 'w') as fw:
+        with open(export_dir + "/redis.yml", 'w') as fw:
             azure_file_config = base_config['spec']['template']['spec']['volumes'][0]['azureFile']
             azure_file_config['secretName'] = f"{cluster_id}-k8s-secret"
             azure_file_config['shareName'] = f"{cluster_id}-fs"

@@ -1,13 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from glob import glob
 import io
 import os
 from setuptools import setup, find_packages, Extension
-from setuptools.command.install import install
-from setuptools.command.develop import develop
-import sys
 
 # Set environment variable to skip deployment process of MARO
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
@@ -38,7 +34,7 @@ include_dirs = []
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
-        sources = [f"{BASE_SRC_PATH}/backend.c"])
+        sources=[f"{BASE_SRC_PATH}/backend.c"])
 )
 
 if FRAME_BACKEND == "NUMPY":
@@ -49,9 +45,9 @@ if FRAME_BACKEND == "NUMPY":
     extensions.append(
         Extension(
             f"{BASE_MODULE_NAME}.np_backend",
-            sources = [f"{BASE_SRC_PATH}/np_backend.c"],
+            sources=[f"{BASE_SRC_PATH}/np_backend.c"],
             define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-            include_dirs = include_dirs)
+            include_dirs=include_dirs)
     )
 else:
     # raw implementation
@@ -59,14 +55,14 @@ else:
     extensions.append(
         Extension(
             f"{BASE_MODULE_NAME}.raw_backend",
-            sources = [f"{BASE_SRC_PATH}/raw_backend.c"])
+            sources=[f"{BASE_SRC_PATH}/raw_backend.c"])
     )
 
 # frame
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.frame",
-        sources = [f"{BASE_SRC_PATH}/frame.c"],
+        sources=[f"{BASE_SRC_PATH}/frame.c"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         include_dirs=include_dirs)
 )
@@ -90,7 +86,13 @@ setup(
     },
     license="MIT License",
     platforms=["Windows", "Linux", "macOS"],
-    keywords=["citi-bike", "inventory-management", "operations-research", "reinforcement-learning", "resource-optimization", "simulator"],
+    keywords=[
+        "citi-bike",
+        "inventory-management",
+        "operations-research",
+        "reinforcement-learning",
+        "resource-optimization",
+        "simulator"],
     classifiers=[
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
@@ -103,7 +105,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence"    ],
+        "Topic :: Scientific/Engineering :: Artificial Intelligence"],
     python_requires=">=3.6,<3.8",
     setup_requires=[
         "numpy==1.19.1",

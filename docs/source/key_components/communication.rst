@@ -16,11 +16,9 @@ the underlying driver is pluggable based on the real requirements.
 Currently, we use `ZeroMQ <https://zeromq.org/>`_ as the default choice.
 Proxy also provides support for peer discovering based on `Redis <https://redis.io/>`_.
 
-
 .. image:: ../images/distributed/proxy.svg
    :target: ../images/distributed/proxy.svg
    :alt: Proxy
-
 
 Message
 ^^^^^^^
@@ -28,7 +26,6 @@ Message
 Message is designed for general purpose,
 it is used to package the communication content between components.
 The main attributes of a message instance include:
-
 
 * ``tag``\ : A customized attribute, it can be used to implement the auto-dispatching logic
   with a `conditional event register table <#conditional-event-register-table>`_.
@@ -52,7 +49,6 @@ Session Message
 ^^^^^^^^^^^^^^^
 
 We provide two kinds of predefined session types for common distributed scenarios:
-
 
 * **Task Session**\ : It is used to describe a computing task sent from master to worker.
   Three stages are included:
@@ -92,7 +88,6 @@ both blocking and non-blocking cases. These primitives are decoupled from
 the underlying implementation of the communication driver (protocol).
 The main primitives are listed below:
 
-
 * ``send``\ : Unicast. It is a blocking, one-to-one sending mode.
   It will watch and collect the reply message from the remote peer.
 * ``isend``\ : The non-blocking version of the ``send``.
@@ -119,17 +114,14 @@ By registering the ``conditional event`` and related ``handler function`` to
 the register table, the handler function will be automatically executed
 with the received messages when the event conditions are met.
 
-
 .. image:: ../images/distributed/register_table.register.svg
    :target: ../images/distributed/register_table.register.svg
    :alt: Register Table
-
 
 ``Conditional event`` is used to declare the required message group for
 auto-triggering the related handler function.
 The unit event is the minimal component in the conditional event,
 it follows a three-stage format: `source`:`tag`:\ ``amount``.
-
 
 * ``source``\ : It is used to declare the required message source.
   The longest-prefix matching is supported.
@@ -145,44 +137,41 @@ it follows a three-stage format: `source`:`tag`:\ ``amount``.
 
   * ``%`` is used to represent the relative percentages, such as 60%, 10%, etc.
 
-.. code-block:: python
+  .. code-block:: python
 
-   unit_event_abs = "worker:update:10"
+    unit_event_abs = "worker:update:10"
 
-   unit_event_rel = "worker:update:60%"
+    unit_event_rel = "worker:update:60%"
 
 To support more complex business logic,
 we provide two operations: ``AND`` and ``OR`` to combine unit events up:
-
 
 * ``AND``\ : Valid for multiple unit events and combined unit events.
   The combined event condition is met if all the conditions of the sub-events are met.
 * ``OR``\ : Valid for multiple unit events and combined unit events.
   The combined event condition is met if any sub-event meets the condition.
 
-.. code-block:: python
+  .. code-block:: python
 
-   combined_event_and = ("worker_01:update:2",
-                         "worker_02:update:3",
-                         "AND")
+    combined_event_and = ("worker_01:update:2",
+                          "worker_02:update:3",
+                          "AND")
 
-   combined_event_or = ("worker_03:update:1",
-                        "worker_04:update:5",
-                        "OR")
+    combined_event_or = ("worker_03:update:1",
+                          "worker_04:update:5",
+                          "OR")
 
-   combined_event_mix = (("worker_01:update:2", "worker_02:update:3", "AND"),
-                         "worker_03:update:1",
-                         "OR")
+    combined_event_mix = (("worker_01:update:2", "worker_02:update:3", "AND"),
+                          "worker_03:update:1",
+                          "OR")
 
 ``Handler function`` is a user-defined callback function that is bind to
 a specific conditional event. When the condition of the event is met,
 the related messages will be sent to the handler function for its execution.
 
-
 .. image:: ../images/distributed/register_table.trigger.svg
    :target: ../images/distributed/register_table.trigger.svg
    :alt: Register Table
-
 
 .. code-block:: python
 

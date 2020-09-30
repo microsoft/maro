@@ -20,7 +20,8 @@ import sys
 from recommonmark.parser import CommonMarkParser
 sys.path.insert(0, os.path.abspath("../.."))
 
-os.environ["APIDOC_GEN"] = os.environ.get("APIDOC_GEN") or "True"
+
+os.environ["APIDOC_GEN"] = os.environ.get("APIDOC_GEN", "True")
 # -- Project information -----------------------------------------------------
 
 project = "maro"
@@ -39,7 +40,7 @@ extensions = ["recommonmark",
               "sphinx.ext.coverage",
               "sphinx.ext.napoleon",
               "sphinx.ext.viewcode",
-              "sphinx_markdown_tables"
+              "sphinx_markdown_tables",
               ]
 
 napoleon_google_docstring = True
