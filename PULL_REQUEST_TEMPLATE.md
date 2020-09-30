@@ -2,13 +2,14 @@
 
 <!--Please add a summary of the change here.
 Please also add other related information/contexts/dependencies here.
---> 
+-->
 
-## Linked issue(s):
+## Linked issue(s)
+
 <!--Please add the related issue link(s) below.-->
 - [issue_number](issue_link)
 
-## Type of Change:
+## Type of Change
 
 - [ ] Non-breaking bug fix
 - [ ] Breaking bug fix
@@ -17,13 +18,13 @@ Please also add other related information/contexts/dependencies here.
 - [ ] Doc update
 - [ ] Docker update
 
-## Related Component:
+## Related Component
 
 - [ ] Simulation toolkit
 - [ ] RL toolkit
 - [ ] Distributed toolkit
 
-## Has Been Tested:
+## Has Been Tested
 
 - OS:
   - [ ] Windows
@@ -34,12 +35,12 @@ Please also add other related information/contexts/dependencies here.
   - [ ] 3.7
 - Key information snapshot(s):
   
-## Needs Follow Up Actions:
+## Needs Follow Up Actions
 
 - [ ] New release package
 - [ ] New docker image
 
-## Checklist:
+## Checklist
 
 - [ ] Add/update the related comments
 - [ ] Add/update the related tests
