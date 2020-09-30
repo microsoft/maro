@@ -137,9 +137,9 @@ class DataTopology(ABC):
     def __init__(self):
         self._data_pipeline = {}
 
-    def get_build_folders(self)-> dict:
+    def get_build_folders(self) -> dict:
         """Get the build file folders of all data pipelines for the topology.
-        
+
         Returns:
             dict: Dictionary of build folders, keys are data pipeline names, values
                 are paths of the build folders.
@@ -164,7 +164,7 @@ class DataTopology(ABC):
             self._data_pipeline[pipeline].clean()
 
     def build(self):
-        """Build the cleaned data files of all data pipelines to binary data file.""" 
+        """Build the cleaned data files of all data pipelines to binary data file."""
         for pipeline in self._data_pipeline:
             self._data_pipeline[pipeline].build()
 

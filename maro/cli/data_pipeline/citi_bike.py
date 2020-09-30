@@ -245,7 +245,7 @@ class CitiBikePipeline(DataPipeline):
         return trip_data, used_bikes, in_data_station, stations_existed
 
     def _process_current_topo_station_info(
-        self, stations_existed: pd.DataFrame, used_bikes: int, loc_ref: pd.DataFrame):
+            self, stations_existed: pd.DataFrame, used_bikes: int, loc_ref: pd.DataFrame):
         data_station_init = stations_existed.join(
             self._common_data["full_stations"][["station_id", "capacity"]].set_index("station_id"),
             on="station_id"
@@ -414,7 +414,7 @@ class CitiBikeTopology(DataTopology):
     """
 
     def __init__(
-        self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
+            self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
         self._data_pipeline["weather"] = NOAAWeatherPipeline(topology, weather_source, is_temp)
@@ -452,7 +452,7 @@ class CitiBikeToyPipeline(DataPipeline):
     _meta_file_name = "trips.yml"
 
     def __init__(
-        self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False):
+            self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False):
         super().__init__("citi_bike", topology, "", is_temp)
         self._start_time = start_time
         self._end_time = end_time
