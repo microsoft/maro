@@ -76,11 +76,18 @@ jobs:
     #   run: |
     #     twine upload --verbose dist/*.whl
 
-    - name: Upload packages to release
-      uses: chaosddp/upload_asset_to_release@v0.1
-      with:
-        repo: maro
-        owner: chaosddp
-        # tag_name: v0.05
-        token: ${{ secrets.GITHUB_TOKEN }}
-        asset: "dist/*.whl"
+  - name: Upload asset to a release.
+    # You may pin to the exact commit or the version.
+    # uses: chaosddp/upload_asset_to_release@ec2ec654dd1afb7bfce1d42545dc8eafedab994c
+    uses: chaosddp/upload_asset_to_release@v0.1
+    with:
+      # Name of target repo.
+      repo: maro
+      # Owner of target repo.
+      owner: chaosddp
+      # tag_name of release, leave it empty if upload to latest one.
+      # tag_name: # optional
+      # Access token to access Github api.
+      token: ${{ secrets.GITHUB_TOKEN }}
+      # Asset to upload, can accept a glob pattern to specified multiple files.
+      asset: dist/*.*
