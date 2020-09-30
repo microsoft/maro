@@ -1,22 +1,24 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List, Dict, Union
+from typing import Dict, List
+
 from .entities import VesselSetting
 
+
 class VesselsParser:
-    """Parser used to parse vessel configurations
+    """Parser used to parse vessel configurations.
     """
 
     def parse(self, conf: dict) -> (Dict[str, int], List[VesselSetting]):
         """Parse specified vessel configurations.
-        
+
         Args:
-            conf(dict): configurations to parse
+            conf(dict): Configurations to parse.
 
         Returns:
-            (Dict[str, int], List[VesselSetting]): vessel mappings (name to index), and settings list for all vessels
-        
+            (Dict[str, int], List[VesselSetting]): Vessel mappings (name to index), and settings list for all vessels.
+
         """
         mapping: Dict[str, int] = {}
         vessels: List[VesselSetting] = []
@@ -31,16 +33,17 @@ class VesselsParser:
             route = vessel_node["route"]
 
             vessels.append(VesselSetting(
-                index, 
+                index,
                 vessel_name,
                 vessel_node["capacity"],
-                route["route_name"], 
+                route["route_name"],
                 route["initial_port_name"],
-                sailing["speed"], 
-                sailing["noise"], 
-                parking["duration"], 
+                sailing["speed"],
+                sailing["noise"],
+                parking["duration"],
                 parking["noise"],
-                vessel_node.get("empty", 0))) # default no empty 
+                # default no empty
+                vessel_node.get("empty", 0)))
 
             index += 1
 

@@ -19,17 +19,15 @@ class KStepExperienceKeys(Enum):
 
 
 class KStepExperienceShaper(ExperienceShaper):
-    def __init__(self, reward_func: Callable, reward_decay: float, steps: int, is_per_agent: bool = True):
-        """
-        An experience shaper that generates K-step returns as well as the full return for each transition
-        along a trajectory.
+    """Experience shaper to generate K-step and full returns for each transition along a trajectory.
 
-        Args:
-            reward_func: a function used to compute immediate rewards from metrics given by the env.
-            reward_decay: decay factor used to evaluate multi-step returns.
-            steps: number of time steps used in computing returns
-            is_per_agent: if True, the generated experiences will be bucketed by agent ID.
-        """
+    Args:
+        reward_func (Callable): a function used to compute immediate rewards from metrics given by the env.
+        reward_decay (float): decay factor used to evaluate multi-step returns.
+        steps (int): number of time steps used in computing returns
+        is_per_agent (bool): if True, the generated experiences will be bucketed by agent ID.
+    """
+    def __init__(self, reward_func: Callable, reward_decay: float, steps: int, is_per_agent: bool = True):
         super().__init__(reward_func)
         self._reward_decay = reward_decay
         self._steps = steps
@@ -56,6 +54,8 @@ class KStepExperienceShaper(ExperienceShaper):
             agent_exp[KStepExperienceKeys.RETURN.value].appendleft(full_return)
             agent_exp[KStepExperienceKeys.NEXT_STATE.value].appendleft(next_transition["state"])
             agent_exp[KStepExperienceKeys.NEXT_ACTION.value].appendleft(next_transition["action"])
-            agent_exp[KStepExperienceKeys.DISCOUNT.value].appendleft(self._reward_decay ** (min(self._steps, len(trajectory)-1-i)))
+            agent_exp[KStepExperienceKeys.DISCOUNT.value].appendleft(
+                self._reward_decay ** (min(self._steps, len(trajectory) - 1 - i))
+            )
 
         return dict(experiences)

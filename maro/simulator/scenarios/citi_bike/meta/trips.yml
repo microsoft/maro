@@ -21,8 +21,8 @@ entity:
   timestamp:
     column: 'start_time'
     dtype: 'i8'
-    # used to specified time zone in source file, converter will convert it into UTC,
-    # default is UTC if not specified:
+    # Used to specified time zone in source file, converter will convert it into UTC,
+    # Defaults to UTC if not specified:
     # name : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
     tzone: "America/New_York" 
   durations: 

@@ -3,15 +3,15 @@
 
 import os
 import shutil
-import tempfile
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from maro.cli.data_pipeline.utils import convert, download_file, StaticParameter, generate_name_with_uuid
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
+
 
 class DataPipeline(ABC):
     """Base class of data pipeline.
@@ -63,8 +63,6 @@ class DataPipeline(ABC):
             self._download_folder = os.path.join(self._download_folder, tmpdir)
             self._clean_folder = os.path.join(self._clean_folder, tmpdir)
             self._build_folder = os.path.join(self._build_folder, tmpdir)
-            
-            
 
         self._download_file = os.path.join(self._download_folder, self._download_file_name)
         self._clean_file = os.path.join(self._clean_folder, self._clean_file_name)
@@ -101,7 +99,6 @@ class DataPipeline(ABC):
                     fall_back()
                 else:
                     raise CommandError("generate", f"Download error: {e}.")
-
 
     def clean(self):
         """Clean the original data file."""

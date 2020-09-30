@@ -19,10 +19,12 @@
 [![Releases](https://img.shields.io/github/release-date-pre/microsoft/maro)](https://github.com/microsoft/maro/releases)
 [![Commits](https://img.shields.io/github/commits-since/microsoft/maro/latest/master)](https://github.com/microsoft/maro/commits/master)
 [![Quality](https://github.com/microsoft/maro/workflows/quality/badge.svg?branch=master)](https://github.com/microsoft/maro/actions?query=workflow%3Aquality)
+[![Lint](https://github.com/microsoft/maro/workflows/lint/badge.svg)](https://github.com/microsoft/maro/actions?query=workflow%3Alint)
+[![Coverage](https://img.shields.io/codecov/c/github/microsoft/maro)](https://codecov.io/gh/microsoft/maro)
 [![Downloads](https://img.shields.io/pypi/dm/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Docker Pulls](https://img.shields.io/docker/pulls/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro)
 
-# ![MARO LOGO](./docs/source/images/logo.svg)
+# [![MARO LOGO](./docs/source/images/logo.svg)](https://maro.readthedocs.io/en/latest/)
 
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization. It can be

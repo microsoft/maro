@@ -1,3 +1,5 @@
+
+
 import os
 import yaml
 import math
@@ -38,7 +40,8 @@ def save_new_topology(src: str):
     def change_vessel_capacity(level):
         for vessel in src_dict["vessels"].values():
             route_proportion = route_proportions[vessel['route']['route_name']]
-            vessel["capacity"] = int(AVG_ORDER_RATIO * route_proportion * SAILING_TIME * total_containers * VESSEL_CAPACITY_REDUNDANCY_RATIOS[level])
+            vessel["capacity"] = int(AVG_ORDER_RATIO * route_proportion * SAILING_TIME *
+                                     total_containers * VESSEL_CAPACITY_REDUNDANCY_RATIOS[level])
 
     src_dict['container_usage_proportion']['period'] = PERIOD
     src_dict['container_usage_proportion']['sample_nodes'] = [[0, AVG_ORDER_RATIO], [PERIOD - 1, AVG_ORDER_RATIO]]
@@ -64,7 +67,8 @@ def save_new_topology(src: str):
         vessel["capacity"] += int(vessel["capacity"] * VESSEL_CAPACITY_DELTA_RATIO * (i % 3 - 1))
     save_new_level(2, src_dict)
 
-    sine_distribution = [[i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA * math.cos(i / (PERIOD//2) * math.pi)] for i in range(PERIOD)]
+    sine_distribution = [[i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA *
+                          math.cos(i / (PERIOD // 2) * math.pi)] for i in range(PERIOD)]
     src_dict['container_usage_proportion']['sample_nodes'] = sine_distribution
     save_new_level(3, src_dict)
 
@@ -97,9 +101,11 @@ def save_new_topology(src: str):
         vessel["sailing"]["speed"] = int(vessel["sailing"]["speed"] * (10 - i % 3) / 10)
     save_new_level(7, src_dict)
 
-    sine_fluctuate = [[i, abs(math.cos(i / (PERIOD//8) * math.pi))] for i in range(PERIOD//4)]
+    sine_fluctuate = [[i, abs(math.cos(i / (PERIOD // 8) * math.pi))] for i in range(PERIOD // 4)]
     valley = AVG_ORDER_RATIO - ORDER_RATIO_DELTA
-    multi_sine_distribution = [[i, sine_fluctuate[i % (PERIOD//4)][1] * (sine_distribution[i][1] - valley) * math.pi / 2 + valley]
+    sine_fluc = sine_fluctuate
+    sine_dist = sine_distribution
+    multi_sine_distribution = [[i, sine_fluc[i % (PERIOD // 4)][1] * (sine_dist[i][1] - valley) * math.pi / 2 + valley]
                                for i in range(PERIOD)]
     src_dict['container_usage_proportion']['sample_nodes'] = multi_sine_distribution
     save_new_level(8, src_dict)

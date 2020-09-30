@@ -46,12 +46,18 @@ def load_job_details(cluster_name: str, job_name: str, sync: bool = False) -> di
 
 
 def save_schedule_details(cluster_name: str, schedule_name: str, schedule_details: dict, sync: bool = True) -> None:
-    with open(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}/schedules/{schedule_name}/details.yml"), 'w') as fw:
+    with open(
+        os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}/schedules/{schedule_name}/details.yml"),
+        'w'
+    ) as fw:
         yaml.safe_dump(schedule_details, fw)
 
 
 def load_schedule_details(cluster_name: str, schedule_name: str, sync: bool = False) -> dict:
-    with open(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}/schedules/{schedule_name}/details.yml"), 'r') as fr:
+    with open(
+        os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}/schedules/{schedule_name}/details.yml"),
+        'r'
+    ) as fr:
         details = yaml.safe_load(fr)
     return details
 

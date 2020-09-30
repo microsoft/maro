@@ -1,11 +1,9 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 import json
 import numpy as np
 import os
-import shutil
-import sys
 import urllib.request
 import uuid
 
@@ -23,10 +21,10 @@ def convert(meta: str, file: list, output: str, start_timestamp: int = None, **k
     output_file = output
 
     if not os.path.exists(meta_file):
-        raise CommandError("convert", f"meta file not exist.\n")
+        raise CommandError("convert", "meta file not exist.\n")
 
     if not all([os.path.exists(f) for f in csv_files]):
-        raise CommandError("convert", f"some source file not exist.\n")
+        raise CommandError("convert", "some source file not exist.\n")
 
     converter = BinaryConverter(output_file, meta_file, start_timestamp)
 
@@ -42,7 +40,7 @@ def download_file(source: str, destination: str):
     os.makedirs(tmpdir, exist_ok=True)
     os.makedirs(os.path.dirname(destination), exist_ok=True)
 
-    source_data = urllib.request.urlopen(source) 
+    source_data = urllib.request.urlopen(source)
     res_data = source_data.read()
     with open(temp_file_name, "wb") as f:
         f.write(res_data)
