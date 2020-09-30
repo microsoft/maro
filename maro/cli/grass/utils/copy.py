@@ -5,6 +5,7 @@
 import os
 import shutil
 
+from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
@@ -12,7 +13,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, node_ip_address: str):
+def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, node_ip_address: str) -> None:
     """Copy local files to node, automatically create folder if not exist
 
     Args:
@@ -21,12 +22,19 @@ def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, no
         admin_username (str)
         node_ip_address (str)
     """
-    copy_scripts = f"rsync -e 'ssh -o StrictHostKeyChecking=no' " \
-                   f"-az {local_path} {admin_username}@{node_ip_address}:{remote_dir}"
-    _ = SubProcess.run(copy_scripts)
+    source_path = get_reformatted_source_path(local_path)
+    basename = os.path.basename(source_path)
+    folder_name = os.path.dirname(source_path)
+    target_dir = get_reformatted_target_dir(remote_dir)
+
+    mkdir_script = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {target_dir}'"
+    _ = SubProcess.run(mkdir_script)
+    copy_script = f"tar czf - -C {folder_name} {basename} | " \
+                  f"ssh {admin_username}@{node_ip_address} 'tar xzf - -C {target_dir}'"
+    _ = SubProcess.run(copy_script)
 
 
-def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, node_ip_address: str):
+def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, node_ip_address: str) -> None:
     """Copy node files to local, automatically create folder if not exist
 
     Args:
@@ -35,9 +43,16 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
         admin_username (str)
         node_ip_address (str)
     """
-    copy_scripts = f"rsync -e 'ssh -o StrictHostKeyChecking=no' " \
-                   f"-az {admin_username}@{node_ip_address}:{remote_path} {local_dir}"
-    _ = SubProcess.run(copy_scripts)
+    source_path = get_reformatted_source_path(remote_path)
+    basename = os.path.basename(source_path)
+    folder_name = os.path.dirname(source_path)
+    target_dir = get_reformatted_target_dir(local_dir)
+
+    mkdir_script = f"mkdir -p {target_dir}"
+    _ = SubProcess.run(mkdir_script)
+    copy_script = f"ssh {admin_username}@{node_ip_address} 'tar czf - -C {folder_name} {basename}' | " \
+                  f"tar xzf - -C {target_dir}"
+    _ = SubProcess.run(copy_script)
 
 
 def sync_mkdir(remote_path: str, admin_username: str, node_ip_address: str):

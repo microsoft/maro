@@ -209,13 +209,13 @@ class GrassAzureExecutor:
 
         # Copy required files
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/*",
-            remote_dir=GlobalPaths.MARO_GRASS_LIB,
+            local_path=GlobalPaths.MARO_GRASS_LIB,
+            remote_dir=GlobalPaths.MARO_LIB,
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/*",
-            remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            remote_dir=GlobalPaths.MARO_CLUSTERS,
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
 
@@ -505,7 +505,7 @@ class GrassAzureExecutor:
             admin_username=admin_username, node_ip_address=node_public_ip_address)
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
-            remote_dir="~/details.yml",
+            remote_dir="~/",
             admin_username=admin_username, node_ip_address=node_public_ip_address)
 
         # Remote init node
