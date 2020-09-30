@@ -7,7 +7,7 @@ formalized as a multi-agent reinforcement learning problem, where each port acts
 actions independently, e.g., loading containers to vessels or discharging containers from vessels.
 
 State Shaper
------------------
+------------
 
 `State shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ converts the environment
 observation to the model input state which includes temporal and spatial information. For this scenario, the model input
@@ -32,7 +32,7 @@ remaining space on vessel.
 
 
 Action Shaper
------------------
+-------------
 
 `Action shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ is used to convert an
 agent's model output to an environment executable action. For this specific scenario, the output is a discrete index
@@ -205,10 +205,10 @@ policies.
 
 
 Main Loop with Actor and Learner (Multi-process)
--------------------------------------------------
+------------------------------------------------
 
-The distributed/multi-process workflow of a learning policy's interaction with a MARO environment
-usually involves launching a learner process and an actor process separately.
+The distributed/multi-process workflow of a learning policy's interaction with a MARO environment usually involves
+launching a learner process and an actor process separately.
 On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
 creating an environment and an agent manager on the actor side is similar to that for the single-host version,
 except that it is necessary to set the AgentMode to INFERENCE. As in the single-process version, the environment and the
