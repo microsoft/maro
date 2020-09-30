@@ -34,10 +34,10 @@ class CitiBikePipeline(DataPipeline):
             /temp download temp files
 
     Args:
-        topology(str): Topology name of the data files
-        source(str): Source url of original data file
-        station_info(str): Source url of station info file
-        is_temp(bool): (optional) If the data file is temporary
+        topology(str): Topology name of the data files.
+        source(str): Source url of original data file.
+        station_info(str): Source url of station info file.
+        is_temp(bool): (optional) If the data file is temporary.
     """
 
     _download_file_name = "trips.zip"
@@ -293,7 +293,7 @@ class CitiBikePipeline(DataPipeline):
         logger.info_green("Processing station info data.")
         station_info = self._process_current_topo_station_info(
             stations_existed=stations_existed, used_bikes=used_bikes, loc_ref=in_data_station
-            )
+        )
         with open(self._station_meta_file,  mode="w", encoding="utf-8", newline="") as f:
             station_info.to_csv(f, index=False, header=True)
 
@@ -317,9 +317,9 @@ class WeatherPipeline(DataPipeline):
             /temp download temp file
 
     Args:
-        topology(str): Topology name of the data file
-        source(str): Source url of original data file
-        is_temp(bool): (optional) If the data file is temporary
+        topology(str): Topology name of the data file.
+        source(str): Source url of original data file.
+        is_temp(bool): (optional) If the data file is temporary.
     """
 
     _last_day_temp = None  # used to fill the temp for days which have no temp info
@@ -407,14 +407,16 @@ class CitiBikeTopology(DataTopology):
     """Data topology for a predefined topology of citi_bike scenario.
 
     Args:
-        topology(str): Topology name of the data file
-        trip_source(str): Original source url of citi_bike data 
-        station_info(str): Current status station info of the stations
-        weather_source(str): Original source url of weather data
-        is_temp(bool): (optional) If the data file is temporary
+        topology(str): Topology name of the data file.
+        trip_source(str): Original source url of citi_bike data.
+        station_info(str): Current status station info of the stations.
+        weather_source(str): Original source url of weather data.
+        is_temp(bool): (optional) If the data file is temporary.
     """
 
-    def __init__(self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False):
+    def __init__(
+        self, topology: str, trip_source: str, station_info: str, weather_source: str, is_temp: bool = False
+        ):
         super().__init__()
         self._data_pipeline["trip"] = CitiBikePipeline(topology, trip_source, station_info, is_temp)
         self._data_pipeline["weather"] = NOAAWeatherPipeline(topology, weather_source, is_temp)
@@ -434,12 +436,12 @@ class CitiBikeToyPipeline(DataPipeline):
                                     /_build bin data file and other necessory files
 
     Args:
-        start_time(str): Start time of the toy data 
-        end_time(str): End time of the toy data
-        stations(list): List of stations info
-        trips(list): List of trips probability
-        topology(str): Topology name of the data files
-        is_temp(bool): (optional) If the data file is temporary
+        start_time(str): Start time of the toy data.
+        end_time(str): End time of the toy data.
+        stations(list): List of stations info.
+        trips(list): List of trips probability.
+        topology(str): Topology name of the data files.
+        is_temp(bool): (optional) If the data file is temporary.
     """
 
     _clean_file_name = "trips.csv"
@@ -538,7 +540,7 @@ class CitiBikeToyPipeline(DataPipeline):
             index=station_init["station_index"], 
             columns=station_init["station_index"], 
             dtype=np.float
-            )
+        )
         look_up_df = station_init[["latitude", "longitude"]]
         distance_df = distance_adj.apply(lambda x: pd.DataFrame(x).apply(lambda y: geopy.distance.distance(
             (look_up_df.at[x.name, "latitude"], look_up_df.at[x.name, "longitude"]),
