@@ -1,6 +1,3 @@
-# Step 1: build maro 
-FROM quay.io/pypa/manylinux2010_x86_64 as ext_build
-
 FROM python:3.6
 
 WORKDIR /maro_playground
