@@ -22,6 +22,7 @@ RUN apt-get install -y jq
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || echo hi
 RUN chsh -s `which zsh` && wget https://raw.githubusercontent.com/ArthurJiang/config/master/.zshrc -O ~/.zshrc
 RUN apt-get install -y npm
+RUN rm -rf /var/lib/apt/lists/*
 RUN npm install -g redis-commander
 
 # Add examples
@@ -53,6 +54,11 @@ RUN rm ./docs/make.bat
 RUN rm ./docs/Makefile
 RUN rm ./docs/README.md
 RUN rm ./docs/requirements.docs.txt
+RUN rm -rf ./build
+RUN rm -rf ./pymaro.egg-info
 
-# start service
+# Install maro
+RUN pip install pymaro
+
+# Start service
 CMD ["/bin/bash", "./run.sh"]
