@@ -31,7 +31,16 @@ def record_speed(func):
     return with_record_speed
 
 
+@unittest.skipUnless(os.environ.get("test_with_cli", False), "Require cli prerequisites.")
 class TestK8sCopy(unittest.TestCase):
+    """Tests for K8s Copy.
+
+    Tests should be executed in specific order,
+    and the order in which the various tests will be run is determined by sorting the test method names with
+    respect to the built-in ordering for strings.
+    Therefore, we use test_X (X is a digit) as prefix to specify the order of the tests.
+    Ref: https://docs.python.org/3.7/library/unittest.html#organizing-test-code
+    """
     cluster_name = None
     test_id = None
 
@@ -45,8 +54,8 @@ class TestK8sCopy(unittest.TestCase):
         cls.file_path = os.path.abspath(__file__)
         cls.dir_path = os.path.dirname(cls.file_path)
         cls.deployment_template_path = os.path.normpath(
-            os.path.join(cls.dir_path, "../templates/test-k8s-azure-create.yml"))
-        cls.deployment_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test-k8s-azure-create.yml")
+            os.path.join(cls.dir_path, "../templates/test_k8s_azure_create.yml"))
+        cls.deployment_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_k8s_azure_create.yml")
         cls.config_path = os.path.normpath(os.path.join(cls.dir_path, "../config.yml"))
 
         # Load config and save deployment
