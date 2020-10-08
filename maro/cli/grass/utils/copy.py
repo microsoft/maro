@@ -56,7 +56,7 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
 
 
 def sync_mkdir(remote_path: str, admin_username: str, node_ip_address: str):
-    """mkdir synchronously at local and remote.
+    """Mkdir synchronously at local and remote.
 
     Args:
         remote_path (str): path of the remote file
@@ -77,9 +77,6 @@ def copy_and_rename(source_path: str, target_dir: str, new_name: str = None):
         source_path (str): path of the source
         target_dir (str): dir of the target
         new_name (str): name of the new file, if None, will not do rename
-
-    Raises:
-        CliException:
     """
     source_path = os.path.expanduser(source_path)
     target_dir = os.path.expanduser(target_dir)
