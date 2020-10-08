@@ -1,0 +1,15 @@
+name: test_maro_k8s_cluster
+mode: k8s
+
+cloud:
+  infra: azure
+  location: japaneast
+  resource_group: test_maro_k8s
+  subscription: ""
+
+user:
+  admin_public_key: ""
+  admin_username: marotest
+
+master:
+  node_size: Standard_D2s_v3

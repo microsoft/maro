@@ -1,0 +1,15 @@
+name: test_maro_grass_cluster
+mode: grass
+
+cloud:
+  infra: azure
+  location: japaneast
+  resource_group: test_maro_grass
+  subscription: ""
+
+user:
+  admin_public_key: ""
+  admin_username: marotest
+
+master:
+  node_size: Standard_D2s_v3
