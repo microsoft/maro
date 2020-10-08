@@ -4,7 +4,7 @@
 Please also add other related information/contexts/dependencies here.
 -->
 
-## Linked issue(s)
+## Linked issue(s)/Pull request(s)
 
 <!--Please add the related issue link(s) below.-->
 - [issue_number](issue_link)
