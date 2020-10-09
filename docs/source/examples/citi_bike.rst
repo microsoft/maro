@@ -19,8 +19,10 @@ each decision event.
         ...
         def choose_action(self, decision_event: DecisionEvent):
             if decision_event.type == DecisionType.Supply:
-                # find k target stations with the most empty slots, randomly choose one of them and send as many bikes to
-                # it as allowed by the action scope
+                """
+                Find k target stations with the most empty slots, randomly choose one of them and send as many bikes to
+                it as allowed by the action scope
+                """
                 top_k_demands = []
                 for demand_candidate, available_docks in decision_event.action_scope.items():
                     if demand_candidate == decision_event.station_idx:
@@ -33,8 +35,10 @@ each decision event.
                 max_reposition, target_station_idx = random.choice(top_k_demands)
                 action = Action(decision_event.station_idx, target_station_idx, max_reposition)
             else:
-                # find k source stations with the most bikes, randomly choose one of them and request as many bikes from
-                # it as allowed by the action scope
+                """
+                Find k source stations with the most bikes, randomly choose one of them and request as many bikes from
+                it as allowed by the action scope.
+                """
                 top_k_supplies = []
                 for supply_candidate, available_bikes in decision_event.action_scope.items():
                     if supply_candidate == decision_event.station_idx:

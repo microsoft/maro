@@ -1,21 +1,21 @@
 Example Scenario: Container Inventory Management
 ================================================
 
-This example demonstrates how to use MARO's reinforcement learning (RL) toolkit to solve the `container inventory
-management <https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html>`_ (CIM) problem. It is
-formalized as a multi-agent reinforcement learning problem, where each port acts as a decision agent. The agents take
-actions independently, e.g., loading containers to vessels or discharging containers from vessels.
+This example demonstrates how to use MARO's reinforcement learning (RL) toolkit to solve the
+`container inventory management <https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html>`_
+(CIM) problem. It is formalized as a multi-agent reinforcement learning problem, where each port acts as a decision agent.
+The agents take actions independently, e.g., loading containers to vessels or discharging containers from vessels.
 
 State Shaper
 ------------
 
-`State shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ converts the environment
-observation to the model input state which includes temporal and spatial information. For this scenario, the model input
-state includes:
+`State shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_
+converts the environment observation to the model input state which includes temporal and spatial information. For this
+scenario, the model input state includes:
 
-- Temporal information, it includes the past week's information of ports and vessels, such as shortage on port and
+- Temporal information, including the past week's information of ports and vessels, such as shortage on port and
 remaining space on vessel.
-- Spatial information, it includes the related downstream port features.
+- Spatial information, including related downstream port features.
 
 .. code-block:: python
 
@@ -23,7 +23,7 @@ remaining space on vessel.
         ...
         def __call__(self, decision_event, snapshot_list):
             tick, port_idx, vessel_idx = decision_event.tick, decision_event.port_idx, decision_event.vessel_idx
-            ticks = [tick - rt for rt in range(self._look_back-1)]
+            ticks = [tick - rt for rt in range(self._look_back - 1)]
             future_port_idx_list = snapshot_list["vessels"][tick: vessel_idx: 'future_stop_list'].astype('int')
             port_features = snapshot_list["ports"][ticks: [port_idx] + list(future_port_idx_list): self._port_attributes]
             vessel_features = snapshot_list["vessels"][tick: vessel_idx: self._vessel_attributes]
@@ -34,10 +34,10 @@ remaining space on vessel.
 Action Shaper
 -------------
 
-`Action shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ is used to convert an
-agent's model output to an environment executable action. For this specific scenario, the output is a discrete index
-that corresponds to a percentage indicating the fraction of containers to be loaded to or discharged from the arriving
-vessel.
+`Action shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_
+is used to convert an agent's model output to an environment executable action. For this specific scenario, the output
+is a discrete index that corresponds to a percentage indicating the fraction of containers to be loaded to or discharged
+from the arriving vessel.
 
 .. code-block:: python
 
@@ -67,9 +67,9 @@ vessel.
 Experience Shaper
 -----------------
 
-`Experience shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ is used to convert
-an episode trajectory to trainable experiences for RL agents. For this specific scenario, the reward is a linear
-combination of fulfillment and shortage in a limited time window.
+`Experience shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_
+is used to convert an episode trajectory to trainable experiences for RL agents. For this specific scenario, the reward
+is a linear combination of fulfillment and shortage in a limited time window.
 
 .. code-block:: python
 
@@ -109,9 +109,10 @@ combination of fulfillment and shortage in a limited time window.
 Agent
 -----
 
-An `agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_ is a combination of (RL)
-algorithm, experience pool, and a set of parameters that governs the training loop. For this scenario, the agent is the
-abstraction of a port. We choose DQN as our underlying learning algorithm with a TD-error-based sampling mechanism.
+`Agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_
+is a combination of (RL) algorithm, experience pool, and a set of parameters that governs the training loop. For this
+scenario, the agent is the abstraction of a port. We choose DQN as our underlying learning algorithm with a
+TD-error-based sampling mechanism.
 
 .. code-block:: python
     class CIMAgent(AbsAgent):
@@ -132,8 +133,8 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
 Agent Manager
 -------------
 
-`Agent manager <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent-manager>`_ is an agent
-assembler and isolates the complexities of the environment and algorithm. For this scenario, It will load the DQN
+`Agent manager <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent-manager>`_
+is an agent assembler and isolates the complexities of the environment and algorithm. For this scenario, It will load the DQN
 algorithm and an experience pool for each agent.
 
 .. code-block:: python
@@ -167,9 +168,9 @@ This single-process workflow of a learning policy's interaction with a MARO envi
 - Define scenario-specific components, e.g. shapers.
 - Create an agent manager, which assembles underlying agents.
 - Create an `actor <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ and a
-`learner <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ to start the
-training process in which the agent manager interacts with the environment for collecting experiences and updating
-policies.
+`learner <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_
+to start the training process in which the agent manager interacts with the environment for collecting experiences and
+updating policies.
 
 .. code-block::python
 
@@ -177,12 +178,7 @@ policies.
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    if config.experience_shaping.type == "truncated":
-        experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
-    else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
-                                                  **config.experience_shaping.k_step)
-
+    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},
                           "with_cache": config.exploration.with_cache
@@ -214,10 +210,10 @@ occurs on the actor side, we need to create appropriate agent managers on both s
 
 On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
 creating an environment and an agent manager on the actor side is similar to that for the single-host version,
-except that it is necessary to set the AgentMode to INFERENCE. As in the single-process version, the environment and the
-agent manager are wrapped in a SimpleActor instance. To make the actor a distributed worker, we need to further wrap it
-in an ActorWorker instance. Finally, we launch the worker and it starts to listen to roll-out requests from the learner.
-The following code snippet shows the creation of an actor worker with a simple (local) actor wrapped inside.
+except that it is necessary to set the AgentMode to AgentMode.INFERENCE. As in the single-process version, the environment
+and the agent manager are wrapped in a SimpleActor instance. To make the actor a distributed worker, we need to further
+wrap it in an ActorWorker instance. Finally, we launch the worker and it starts to listen to roll-out requests from the
+learner. The following code snippet shows the creation of an actor worker with a simple (local) actor wrapped inside.
 
 .. code-block:: python
 
@@ -236,8 +232,8 @@ The following code snippet shows the creation of an actor worker with a simple (
                                proxy_params=proxy_params)
     actor_worker.launch()
 
-On the learner side, an agent manager in TRAIN mode is required. However, it is not necessary to create shapers for an
-agent manager in TRAIN mode (although a state shaper is created in this example so that the model input dimension can
+On the learner side, an agent manager in AgentMode.TRAIN mode is required. However, it is not necessary to create shapers for an
+agent manager in AgentMode.TRAIN mode (although a state shaper is created in this example so that the model input dimension can
 be readily accessed). Instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
 serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
 processes and receiving results. Calling the train method executes the usual training loop except that the actual
