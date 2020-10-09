@@ -3,15 +3,15 @@ Example Scenario: Container Inventory Management
 
 This example demonstrates how to use MARO's reinforcement learning (RL) toolkit to solve the
 `container inventory management <https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html>`_
-(CIM) problem. It is formalized as a multi-agent reinforcement learning problem, where each port acts as a decision agent.
-The agents take actions independently, e.g., loading containers to vessels or discharging containers from vessels.
+(CIM) problem. It is formalized as a multi-agent reinforcement learning problem, where each port acts as a decision
+agent. The agents take actions independently, e.g., loading containers to vessels or discharging containers from vessels.
 
 State Shaper
 ------------
 
-`State shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_
-converts the environment observation to the model input state which includes temporal and spatial information. For this
-scenario, the model input state includes:
+`State shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ converts the environment
+observation to the model input state which includes temporal and spatial information. For this scenario, the model input
+state includes:
 
 - Temporal information, including the past week's information of ports and vessels, such as shortage on port and
 remaining space on vessel.
@@ -24,9 +24,9 @@ remaining space on vessel.
         def __call__(self, decision_event, snapshot_list):
             tick, port_idx, vessel_idx = decision_event.tick, decision_event.port_idx, decision_event.vessel_idx
             ticks = [tick - rt for rt in range(self._look_back - 1)]
-            future_port_idx_list = snapshot_list["vessels"][tick: vessel_idx: 'future_stop_list'].astype('int')
+            future_port_idx_list = snapshot_list["vessels"][tick : vessel_idx : 'future_stop_list'].astype('int')
             port_features = snapshot_list["ports"][ticks: [port_idx] + list(future_port_idx_list): self._port_attributes]
-            vessel_features = snapshot_list["vessels"][tick: vessel_idx: self._vessel_attributes]
+            vessel_features = snapshot_list["vessels"][tick : vessel_idx : self._vessel_attributes]
             state = np.concatenate((port_features, vessel_features))
             return str(port_idx), state
 
@@ -34,10 +34,10 @@ remaining space on vessel.
 Action Shaper
 -------------
 
-`Action shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_
-is used to convert an agent's model output to an environment executable action. For this specific scenario, the output
-is a discrete index that corresponds to a percentage indicating the fraction of containers to be loaded to or discharged
-from the arriving vessel.
+`Action shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ is used to convert an
+agent's model output to an environment executable action. For this specific scenario, the action space consists of
+integers from -10 to 10, with -10 indicating loading 100% of the containers in the current inventory to the vessel and
+10 indicating discharging 100% of the containers on the vessel to the port.
 
 .. code-block:: python
 
@@ -67,9 +67,9 @@ from the arriving vessel.
 Experience Shaper
 -----------------
 
-`Experience shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_
-is used to convert an episode trajectory to trainable experiences for RL agents. For this specific scenario, the reward
-is a linear combination of fulfillment and shortage in a limited time window.
+`Experience shaper <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#shapers>`_ is used to convert
+an episode trajectory to trainable experiences for RL agents. For this specific scenario, the reward is a linear
+combination of fulfillment and shortage in a limited time window.
 
 .. code-block:: python
 
@@ -86,7 +86,7 @@ is a linear combination of fulfillment and shortage in a limited time window.
                 experiences["state"].append(transition["state"])
                 experiences["action"].append(transition["action"])
                 experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-                experiences["next_state"].append(trajectory[i+1]["state"])
+                experiences["next_state"].append(trajectory[i + 1]["state"])
 
             return experiences_by_agent
 
@@ -99,7 +99,7 @@ is a linear combination of fulfillment and shortage in a limited time window.
             future_fulfillment = snapshot_list["ports"][ticks::"fulfillment"]
             future_shortage = snapshot_list["ports"][ticks::"shortage"]
             decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
-                          for _ in range(future_fulfillment.shape[0]//(end_tick-start_tick))]
+                          for _ in range(future_fulfillment.shape[0] // (end_tick - start_tick))]
 
             tot_fulfillment = np.dot(future_fulfillment, decay_list)
             tot_shortage = np.dot(future_shortage, decay_list)
@@ -109,10 +109,9 @@ is a linear combination of fulfillment and shortage in a limited time window.
 Agent
 -----
 
-`Agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_
-is a combination of (RL) algorithm, experience pool, and a set of parameters that governs the training loop. For this
-scenario, the agent is the abstraction of a port. We choose DQN as our underlying learning algorithm with a
-TD-error-based sampling mechanism.
+`Agent <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent>`_ is a combination of (RL)
+algorithm, experience pool, and a set of parameters that governs the training loop. For this scenario, the agent is the
+abstraction of a port. We choose DQN as our underlying learning algorithm with a TD-error-based sampling mechanism.
 
 .. code-block:: python
     class CIMAgent(AbsAgent):
@@ -134,8 +133,8 @@ Agent Manager
 -------------
 
 `Agent manager <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent-manager>`_
-is an agent assembler and isolates the complexities of the environment and algorithm. For this scenario, It will load the DQN
-algorithm and an experience pool for each agent.
+is an agent assembler and isolates the complexities of the environment and algorithm. For this scenario, It will load
+the DQN algorithm and an experience pool for each agent.
 
 .. code-block:: python
 
@@ -164,13 +163,13 @@ Main Loop with Actor and Learner (Single Process)
 -------------------------------------------------
 
 This single-process workflow of a learning policy's interaction with a MARO environment is comprised of:
-- Initialize an environment with specific scenario and topology parameters.
-- Define scenario-specific components, e.g. shapers.
-- Create an agent manager, which assembles underlying agents.
-- Create an `actor <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ and a
-`learner <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_
-to start the training process in which the agent manager interacts with the environment for collecting experiences and
-updating policies.
+- Initializing an environment with specific scenario and topology parameters.
+- Defining scenario-specific components, e.g. shapers.
+- Creating an agent manager, which assembles underlying agents.
+- Creating an `actor <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ and a
+`learner <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#learner-and-actor>`_ to start the
+training process in which the agent manager interacts with the environment for collecting experiences and updating
+policies.
 
 .. code-block::python
 
