@@ -47,15 +47,15 @@ class TestProxy(unittest.TestCase):
         # prepare proxies
         cls.workers = []
         proxy_type_list = ["master"] + ["worker"]*5
-        executor = ThreadPoolExecutor(max_workers=6)
-        all_task = [executor.submit(proxy_generator, (proxy_type)) for proxy_type in proxy_type_list]
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            all_task = [executor.submit(proxy_generator, (proxy_type)) for proxy_type in proxy_type_list]
 
-        for task in as_completed(all_task):
-            r = task.result()
-            if "master" in r.component_name:
-                cls.master = r
-            else:
-                cls.workers.append(r)
+            for task in as_completed(all_task):
+                r = task.result()
+                if "master" in r.component_name:
+                    cls.master = r
+                else:
+                    cls.workers.append(r)
 
     @classmethod
     def tearDownClass(cls) -> None:

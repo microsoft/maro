@@ -25,7 +25,7 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 self.local_instance = cls(*args, **kwargs)
                 self.proxy = proxy
                 self._handler_function = {}
-                self._registry_table = RegisterTable(self.proxy.get_peers())
+                self._registry_table = RegisterTable(self.proxy.get_peers)
                 # Use functools.partial to freeze handling function's local_instance and proxy
                 # arguments to self.local_instance and self.proxy.
                 for constraint, handler_fn in handler_dict.items():
