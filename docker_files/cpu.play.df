@@ -1,6 +1,3 @@
-# Step 1: build maro 
-FROM quay.io/pypa/manylinux2010_x86_64 as ext_build
-
 FROM python:3.6
 
 WORKDIR /maro_playground
@@ -12,8 +9,6 @@ RUN pip install -r ./notebooks/requirements.nb.txt
 RUN jupyter contrib nbextension install --system
 RUN jt -t onedork -fs 95 -altp -tfs 11 -nfs 115 -cellw 88% -T
 
-# Install maro
-RUN pip install pymaro
 
 # Install redis
 RUN wget http://download.redis.io/releases/redis-6.0.6.tar.gz; tar xzf redis-6.0.6.tar.gz; cd redis-6.0.6; make
@@ -27,6 +22,7 @@ RUN apt-get install -y jq
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || echo hi
 RUN chsh -s `which zsh` && wget https://raw.githubusercontent.com/ArthurJiang/config/master/.zshrc -O ~/.zshrc
 RUN apt-get install -y npm
+RUN rm -rf /var/lib/apt/lists/*
 RUN npm install -g redis-commander
 
 # Add examples
@@ -35,10 +31,14 @@ ADD ./examples ./examples
 # Add local docs
 ADD ./docs ./docs
 ADD ./maro ./maro
+ADD setup.py setup.py
+ADD ./scripts ./scripts
+RUN bash scripts/install_maro.sh
 RUN pip install -U -r ./docs/requirements.docs.txt
-RUN cd docs; sphinx-apidoc -f -o ./source/apidoc ../maro/
 RUN cd docs; make html
 RUN rm -rf ./maro
+RUN rm setup.py
+RUN rm -rf ./scripts
 
 # Add run cmd
 ADD ./scripts/run_playground.sh ./run.sh
@@ -54,6 +54,11 @@ RUN rm ./docs/make.bat
 RUN rm ./docs/Makefile
 RUN rm ./docs/README.md
 RUN rm ./docs/requirements.docs.txt
+RUN rm -rf ./build
+RUN rm -rf ./pymaro.egg-info
 
-# start service
+# Install maro
+RUN pip install pymaro
+
+# Start service
 CMD ["/bin/bash", "./run.sh"]

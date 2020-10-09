@@ -248,7 +248,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     from maro.cli.grass.data import push_data
     parser_data_push = parser_data_subparsers.add_parser(
         'push',
-        help='Push local data to the cluster data storage',
+        help='Push the local data to the remote directory',
         examples=CliExamples.MARO_GRASS_DATA_PUSH,
         parents=[global_parser]
     )
@@ -264,7 +264,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     from maro.cli.grass.data import pull_data
     parser_data_pull = parser_data_subparsers.add_parser(
         'pull',
-        help='Pull data in the cluster data storage to local',
+        help='Pull the remote data to the local directory',
         examples=CliExamples.MARO_GRASS_DATA_PULL,
         parents=[global_parser]
     )
@@ -598,7 +598,7 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     from maro.cli.k8s.data import push_data
     parser_data_push = parser_data_subparsers.add_parser(
         'push',
-        help='Push local data to the cluster data storage',
+        help='Push the local data to the remote directory',
         examples=CliExamples.MARO_K8S_DATA_PUSH,
         parents=[global_parser]
     )
@@ -614,7 +614,7 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     from maro.cli.k8s.data import pull_data
     parser_data_pull = parser_data_subparsers.add_parser(
         'pull',
-        help='Pull data in the cluster data storage to local',
+        help='Pull the remote data to the local directory',
         examples=CliExamples.MARO_K8S_DATA_PULL,
         parents=[global_parser]
     )

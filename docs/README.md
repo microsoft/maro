@@ -16,12 +16,6 @@ make html
 ./make.bat html
 ```
 
-## Generate API docs
-
-```sh
-sphinx-apidoc -f -o ./source/apidoc ../maro/
-```
-
 ## Local host
 
 ```sh
