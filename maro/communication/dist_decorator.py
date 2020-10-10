@@ -28,9 +28,9 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                 self._registry_table = RegisterTable(self.proxy.get_peers)
                 # Use functools.partial to freeze handling function's local_instance and proxy
                 # arguments to self.local_instance and self.proxy.
-                for constraint, handler_fn in handler_dict.items():
-                    self._handler_function[handler_fn] = partial(handler_fn, self.local_instance, self.proxy)
-                    self._registry_table.register_event_handler(constraint, handler_fn)
+                for constraint, handler_fun in handler_dict.items():
+                    self._handler_function[handler_fun] = partial(handler_fun, self.local_instance, self.proxy)
+                    self._registry_table.register_event_handler(constraint, handler_fun)
 
             def __getattr__(self, name):
                 if name in self.__dict__:
@@ -44,8 +44,8 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
                     self._registry_table.push(msg)
                     triggered_event = self._registry_table.get()
 
-                    for handler_fn, msg_lst in triggered_event:
-                        self._handler_function[handler_fn](msg_lst)
+                    for handler_fun, msg_lst in triggered_event:
+                        self._handler_function[handler_fun](msg_lst)
 
         return Wrapper
 
