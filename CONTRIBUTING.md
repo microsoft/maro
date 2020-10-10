@@ -15,16 +15,26 @@ MARO is newborn for Reinforcement learning as a Service (RaaS) in the resource o
 
 # Note
 
+## Check Style
+
 Please make sure lint your code, and pass the code checking before pull request. 
 
 We have prepared a configuration file for flake8 to lint.
 
 ```sh
 
-# install flake8
+# Install flake8.
 pip install flake8
 
-# lint with flake8
+# Lint with flake8.
 flake8 --config .github/linters/tox.ini
 
+```
+
+## [Update Change Log](https://github.com/github-changelog-generator/github-changelog-generator#installation) (if needed)
+
+```sh
+# Use --token, when accessing limitation happens.
+# -t, --token [TOKEN]              To make more than 50 requests per hour your GitHub token is required. You can generate it at: https://github.com/settings/tokens/new
+github_changelog_generator -u microsoft -p maro --max-issues 5
 ```
