@@ -3,31 +3,13 @@
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
-import redis
 import subprocess
 import sys
-import time
 import threading
 import unittest
 
 from maro.communication import Proxy, SessionMessage, dist
-from utils import get_random_port
-
-
-def proxy_generator(component_type, redis_port):
-    if component_type == "receiver":
-        proxy = Proxy(group_name="proxy_unit_test",
-                      component_type="receiver",
-                      expected_peers={"sender": 1},
-                      redis_address=("localhost", redis_port),
-                      log_enable=False)
-    elif component_type == "sender":
-        proxy = Proxy(group_name="proxy_unit_test",
-                      component_type="sender",
-                      expected_peers={"receiver": 1},
-                      redis_address=("localhost", redis_port),
-                      log_enable=False)
-    return proxy
+from utils import get_random_port, proxy_generator
 
 
 def handler_function(that, proxy, message):
@@ -52,14 +34,14 @@ class TestDecorator(unittest.TestCase):
     def setUpClass(cls):
         print(f"The dist decorator unit test start!")
         # Prepare Redis.
-        random_port = get_random_port()
-        cls.redis_process = subprocess.Popen(["redis-server", "--port", str(random_port), "--daemonize yes"])
+        redis_port = get_random_port()
+        cls.redis_process = subprocess.Popen(["redis-server", "--port", str(redis_port), "--daemonize yes"])
         cls.redis_process.wait()
 
         # Prepare proxy.
         proxy_type_list = ["receiver", "sender"]
         with ThreadPoolExecutor(max_workers=2) as executor:
-            all_task = [executor.submit(proxy_generator, proxy_type, random_port) for proxy_type in proxy_type_list]
+            all_task = [executor.submit(proxy_generator, proxy_type, redis_port) for proxy_type in proxy_type_list]
 
             for task in as_completed(all_task):
                 result = task.result()
@@ -87,7 +69,7 @@ class TestDecorator(unittest.TestCase):
                                  payload={"counter": 0})
         replied_message = self.sender_proxy.send(message)
 
-        self.assertEqual(1, replied_message[0].payload["counter"])
+        self.assertEqual(message.payload["counter"]+1, replied_message[0].payload["counter"])
 
 
 if __name__ == "__main__":
