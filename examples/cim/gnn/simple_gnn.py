@@ -129,7 +129,9 @@ class SimpleGATLayer(nn.Module):
         dest_emb = self.att_norm(dest_emb)
         return dest_emb.reshape(batch, d_cnt, self.hidden_size)
 
-class SimpleGAT(nn.Module):
+
+
+class SimpleTransformer(nn.Module):
     """Graph attention network with multiple graph in the CIM scenario.
     
     This module aggregates information in the port-to-port graph, port-to-vessel graph and vessel-to-port graph. The 
@@ -265,7 +267,7 @@ class SharedAC(nn.Module):
         self.trans_layer_v = TransformerEncoder(v_encoder_layer, num_layers=3)
         
         self.gnn_output_size = 32*scale
-        self.trans_gat = SimpleGAT(
+        self.trans_gat = SimpleTransformer(
             p_dim=self.pre_dim_p,
             v_dim=self.pre_dim_v,
             output_size=self.gnn_output_size//2,
