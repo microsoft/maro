@@ -22,14 +22,14 @@ class Env(AbsEnv):
     Args:
         scenario (str): Scenario name under maro/simulator/scenarios folder.
         topology (str): Topology name under specified scenario folder.
-            If this points to an existing folder, the corresponding topology will be used for the built-in scenario.
+            If it points to an existing folder, the corresponding topology will be used for the built-in scenario.
         start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
         durations (int): Duration ticks of this environment from start_tick.
         snapshot_resolution (int): How many ticks will take a snapshot.
         max_snapshots(int): Max in-memory snapshot number.
-            When taking a snapshot, if it reaches this limitation, oldest one will be overwrote.
+            When the number of dumped snapshots reached the limitation, oldest one will be overwrote by new one.
             None means keeping all snapshots in memory. Defaults to None.
-        business_engine_cls : Class of business engine. If specified, use it to construct the be instance,
+        business_engine_cls: Class of business engine. If specified, use it to construct the be instance,
             or search internally by scenario.
         options (dict): Additional parameters passed to business engine.
     """
