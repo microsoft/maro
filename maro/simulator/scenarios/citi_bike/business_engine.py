@@ -15,15 +15,13 @@ from maro.cli.data_pipeline.utils import chagne_file_path
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import (DocableDict,
-                                              MatrixAttributeAccessor)
+from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 from yaml import safe_load
 
 from .adj_loader import load_adj_from_csv
-from .common import (Action, BikeReturnPayload, BikeTransferPayload,
-                     DecisionEvent)
+from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
@@ -34,8 +32,8 @@ from .weather_table import WeatherTable
 logger = CliLogger(name=__name__)
 
 metrics_desc = """
-Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick),
-it contains following keys:
+Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick).
+It contains following keys:
 
 trip_requirements (int): Accumulative trips until now.
 
@@ -46,10 +44,14 @@ operation_number (int): Accumulative operation cost until now.
 
 
 class CitibikeBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int,
-                 max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}):
-        super().__init__("citi_bike", event_buffer, topology, start_tick, max_tick,
-                         snapshot_resolution, max_snapshots, additional_options)
+    def __init__(
+        self, event_buffer: EventBuffer, topology: str, start_tick: int,
+        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
+    ):
+        super().__init__(
+            "citi_bike", event_buffer, topology, start_tick, max_tick,
+            snapshot_resolution, max_snapshots, additional_options
+        )
 
         # trip binary reader
         self._trip_reader: BinaryReader = None
@@ -175,10 +177,12 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         total_trips = self._total_trips
         total_shortage = self._total_shortages
 
-        return DocableDict(metrics_desc,
-                           trip_requirements=total_trips,
-                           bike_shortage=total_shortage,
-                           operation_number=self._total_operate_num)
+        return DocableDict(
+            metrics_desc,
+            trip_requirements=total_trips,
+            bike_shortage=total_shortage,
+            operation_number=self._total_operate_num
+        )
 
     def __del__(self):
         """Collect resource by order"""
@@ -391,9 +395,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         if len(stations_need_decision) > 0:
             # generate a decision event
             for station_idx, decision_type in stations_need_decision:
-                decision_payload = DecisionEvent(station_idx, evt.tick,
-                                                 self.frame_index(evt.tick),
-                                                 self._decision_strategy.action_scope, decision_type)
+                decision_payload = DecisionEvent(
+                    station_idx, evt.tick,
+                    self.frame_index(evt.tick),
+                    self._decision_strategy.action_scope, decision_type
+                )
 
                 decision_evt = self._event_buffer.gen_cascade_event(evt.tick, DECISION_EVENT, decision_payload)
 
@@ -449,8 +455,9 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
                 payload = BikeTransferPayload(from_station_idx, to_station_idx, executed_number)
 
                 transfer_time = self._decision_strategy.transfer_time
-                transfer_evt = self._event_buffer.gen_atom_event(evt.tick + transfer_time,
-                                                                 CitiBikeEvents.DeliverBike, payload)
+                transfer_evt = self._event_buffer.gen_atom_event(
+                    evt.tick + transfer_time, CitiBikeEvents.DeliverBike, payload
+                )
 
                 self._event_buffer.insert_event(transfer_evt)
 

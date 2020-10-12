@@ -34,13 +34,17 @@ class Env(AbsEnv):
         options (dict): Additional parameters passed to business engine.
     """
 
-    def __init__(self, scenario: str = None, topology: str = None,
-                 start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
-                 decision_mode: DecisionMode = DecisionMode.Sequential,
-                 business_engine_cls: type = None,
-                 options: dict = {}):
-        super().__init__(scenario, topology, start_tick, durations,
-                         snapshot_resolution, max_snapshots, decision_mode, business_engine_cls, options)
+    def __init__(
+        self, scenario: str = None, topology: str = None,
+        start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
+        decision_mode: DecisionMode = DecisionMode.Sequential,
+        business_engine_cls: type = None,
+        options: dict = {}
+    ):
+        super().__init__(
+            scenario, topology, start_tick, durations,
+            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls, options
+        )
 
         self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
             else business_engine_cls.__name__
@@ -198,13 +202,15 @@ class Env(AbsEnv):
             if business_class is None:
                 raise BusinessEngineNotFoundError()
 
-        self._business_engine = business_class(event_buffer=self._event_buffer,
-                                               topology=self._topology,
-                                               start_tick=self._start_tick,
-                                               max_tick=max_tick,
-                                               snapshot_resolution=self._snapshot_resolution,
-                                               max_snapshots=self._max_snapshots,
-                                               additional_options=self._additional_options)
+        self._business_engine = business_class(
+            event_buffer=self._event_buffer,
+            topology=self._topology,
+            start_tick=self._start_tick,
+            max_tick=max_tick,
+            snapshot_resolution=self._snapshot_resolution,
+            max_snapshots=self._max_snapshots,
+            additional_options=self._additional_options
+        )
 
     def _simulate(self):
         """This is the generator to wrap each episode process."""

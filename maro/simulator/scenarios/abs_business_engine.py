@@ -4,7 +4,7 @@
 import os
 from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import Union
 
 from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
@@ -35,9 +35,11 @@ class AbsBusinessEngine(ABC):
         addition_options (dict): Additional options for this business engine from outside.
     """
 
-    def __init__(self, scenario_name: str, event_buffer: EventBuffer, topology: str,
-                 start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
-                 additional_options: dict = None):
+    def __init__(
+        self, scenario_name: str, event_buffer: EventBuffer, topology: str,
+        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
+        additional_options: dict = None
+    ):
         self._scenario_name = scenario_name
         self._topology = topology
         self._event_buffer = event_buffer
