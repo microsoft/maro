@@ -34,11 +34,13 @@ class AbsEnv(ABC):
             options (dict): Additional parameters passed to business engine.
     """
 
-    def __init__(self, scenario: str, topology: str,
-                 start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
-                 decision_mode: DecisionMode,
-                 business_engine_cls: type,
-                 options: dict):
+    def __init__(
+        self, scenario: str, topology: str,
+        start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
+        decision_mode: DecisionMode,
+        business_engine_cls: type,
+        options: dict
+    ):
         self._tick = start_tick
         self._scenario = scenario
         self._topology = topology
