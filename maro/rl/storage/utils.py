@@ -3,6 +3,7 @@
 
 from enum import Enum
 from functools import wraps
+from typing import Sequence
 
 import numpy as np
 
@@ -12,9 +13,11 @@ def check_uniformity(arg_num):
         @wraps(func)
         def wrapper(*args, **kwargs):
             contents = args[arg_num]
+            if all(not isinstance(val, list) for val in contents.values()):
+                return func(*args, **kwargs)
             length = len(contents[next(iter(contents))])
-            if any(len(lst) != length for lst in contents.values()):
-                raise ValueError("all sequences in contents should have the same length")
+            if any(not isinstance(val, list) or len(val) != length for val in contents.values()):
+                raise ValueError("values of contents should consist of lists of the same length")
             return func(*args, **kwargs)
         return wrapper
     return decorator

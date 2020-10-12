@@ -7,7 +7,7 @@ import pickle
 
 import torch
 
-from maro.rl.algorithms.torch.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.storage.abs_store import AbsStore
 
 
@@ -70,20 +70,33 @@ class AbsAgent(ABC):
         """Store new experiences in the experience pool."""
         self._experience_pool.put(experiences)
 
-    def load_model_dict(self, model_dict: dict):
+    def load_trainable_models(self, *models, **model_dict):
         """Load models from memory."""
-        self._algorithm.model_dict = model_dict
+        self._algorithm.load_trainable_models(*models, **model_dict)
 
-    def load_model_dict_from_file(self, file_path):
-        """Load models from a disk file."""
-        model_dict = torch.load(file_path)
-        for model_key, state_dict in model_dict.items():
-            self._algorithm.model_dict[model_key].load_state_dict(state_dict)
+    def dump_trainable_models(self):
+        """Return the algorithm's trainable models."""
+        return self._algorithm.dump_trainable_models()
 
-    def dump_model_dict(self, dir_path: str):
-        """Dump models to disk."""
-        torch.save({model_key: model.state_dict() for model_key, model in self._algorithm.model_dict.items()},
-                   os.path.join(dir_path, self._name))
+    def load_trainable_models_from_file(self, dir_path: str):
+        """Load trainable models from disk.
+
+        Load trainable models from the specified directory. The model file is always prefixed with the agent's name.
+
+        Args:
+            dir_path (str): path to the directory where the models are saved.
+        """
+        self._algorithm.load_trainable_models_from_file(os.path.join(dir_path, self._name))
+
+    def dump_trainable_models_to_file(self, dir_path: str):
+        """Dump the algorithm's trainable models to disk.
+
+        Dump trainable models to the specified directory. The model file is always prefixed with the agent's name.
+
+        Args:
+            dir_path (str): path to the directory where the models are saved.
+        """
+        self._algorithm.dump_trainable_models_to_file(os.path.join(dir_path, self._name))
 
     def dump_experience_store(self, dir_path: str):
         """Dump the experience pool to disk."""

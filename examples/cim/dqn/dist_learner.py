@@ -31,6 +31,6 @@ if __name__ == "__main__":
     learner = SimpleLearner(trainable_agents=agent_manager,
                             actor=ActorProxy(proxy_params=proxy_params),
                             logger=Logger("distributed_cim_learner", auto_timestamp=False))
-    learner.train(total_episodes=config.general.total_training_episodes)
+    learner.train(total_episodes=config.general.total_training_episodes,
+                  model_dump_dir=os.path.join(os.getcwd(), "models"))
     learner.test()
-    learner.dump_models(os.path.join(os.getcwd(), "models"))

@@ -75,7 +75,7 @@ class ColumnBasedStore(AbsStore):
         """Put new contents in the store.
 
         Args:
-            contents (Sequence): Item object list.
+            contents (dict): Item object list.
             overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
                 used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
@@ -87,8 +87,11 @@ class ColumnBasedStore(AbsStore):
             raise ValueError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
         added_size = len(contents[next(iter(contents))])
         if self._capacity < 0:
-            for key, lst in contents.items():
-                self._store[key].extend(lst)
+            for key, val in contents.items():
+                if not isinstance(val, list) and not isinstance(val, np.ndarray):
+                    self._store[key].append(val)
+                else:
+                    self._store[key].extend(val)
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:

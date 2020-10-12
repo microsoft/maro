@@ -9,6 +9,7 @@ from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.explorer.abs_explorer import AbsExplorer
+from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.utils.exception.rl_toolkit_exception import UnsupportedAgentModeError, MissingShaperError, WrongAgentModeError
 
 
@@ -68,7 +69,8 @@ class AbsAgentManager(ABC):
         self._explorer = explorer
 
         self._agent_id_list = agent_id_list
-        self._trajectory = []
+        self._current_transition = {}
+        self._trajectory = ColumnBasedStore()
 
         self._agent_dict = {}
         self._assemble(self._agent_dict)
@@ -102,11 +104,11 @@ class AbsAgentManager(ABC):
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         model_action = self._agent_dict[agent_id].choose_action(
             model_state, self._explorer.epsilon[agent_id] if self._explorer else None)
-        self._trajectory.append({"state": model_state,
-                                 "action": model_action,
-                                 "reward": None,
-                                 "agent_id": agent_id,
-                                 "event": decision_event})
+        self._current_transition = {"state": model_state,
+                                    "action": model_action,
+                                    "reward": None,
+                                    "agent_id": agent_id,
+                                    "event": decision_event}
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
@@ -115,7 +117,8 @@ class AbsAgentManager(ABC):
         Args:
             metrics: business metrics provided by the environment after an action has been executed.
         """
-        self._trajectory[-1]["metrics"] = metrics
+        self._current_transition["metrics"] = metrics
+        self._trajectory.put(self._current_transition)
 
     def post_process(self, snapshot_list):
         """This method processes the latest trajectory into experiences.
@@ -125,6 +128,7 @@ class AbsAgentManager(ABC):
         """
         experiences = self._experience_shaper(self._trajectory, snapshot_list)
         self._trajectory.clear()
+        self._current_transition = {}
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()
@@ -159,31 +163,31 @@ class AbsAgentManager(ABC):
         for agent in self._agent_dict.values():
             agent.train()
 
-    def load_models(self, agent_model_dict):
+    def load_trainable_models(self, agent_model_dict):
         """Load models from memory for each agent."""
-        for agent_id, model_dict in agent_model_dict.items():
-            self._agent_dict[agent_id].load_model_dict(model_dict)
+        for agent_id, models in agent_model_dict.items():
+            self._agent_dict[agent_id].load_trainable_models(models)
 
-    def load_models_from_files(self, file_path_dict):
+    def dump_trainable_models(self):
+        """Get agents' underlying models.
+
+        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
+        """
+        return {agent_id: agent.dump_trainable_models() for agent_id, agent in self._agent_dict.items()}
+
+    def load_trainable_models_from_files(self, dir_path):
         """Load models from disk for each agent."""
-        for agent_id, file_path in file_path_dict.items():
-            self._agent_dict[agent_id].load_model_dict_from(file_path)
+        for agent in self._agent_dict.values():
+            agent.load_trainable_models_from_file(dir_path)
 
-    def dump_models(self, dir_path: str):
+    def dump_trainable_models_to_files(self, dir_path: str):
         """Dump agents' models to disk.
 
         Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
         """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self._agent_dict.values():
-            agent.dump_model_dict(dir_path)
-
-    def get_models(self):
-        """Get agents' underlying models.
-
-        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
-        """
-        return {agent_id: agent.algorithm.model_dict for agent_id, agent in self._agent_dict.items()}
+            agent.dump_trainable_models(dir_path)
 
     @property
     def name(self):

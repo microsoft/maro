@@ -7,7 +7,7 @@ from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentMode
-from maro.rl.algorithms.torch.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.torch.dqn import DQN, DQNHyperParams
 from maro.rl.models.torch.mlp_representation import MLPRepresentation
 from maro.rl.models.torch.decision_layers import MLPDecisionLayers
