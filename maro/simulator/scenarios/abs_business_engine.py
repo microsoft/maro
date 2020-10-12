@@ -4,7 +4,6 @@
 import os
 from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import Union
 
 from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
