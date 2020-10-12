@@ -19,11 +19,11 @@ class TestDriver(unittest.TestCase):
     def setUpClass(cls) -> None:
         print(f"The ZMQ driver unit test start!")
         cls.peer_list = ["receiver_1", "receiver_2", "receiver_3"]
-        # send driver
+        # Initial send driver.
         cls.sender = ZmqDriver()
         sender_address = cls.sender.address
 
-        # receive drivers
+        # Initial receive drivers.
         cls.receivers = {}
         receiver_addresses = {}
         for peer in cls.peer_list:
