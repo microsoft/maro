@@ -259,8 +259,6 @@ class Env(AbsEnv):
                 pending_events[0].state = EventState.EXECUTING
                 pending_events[0].immediate_event_list.append(action_event)
 
-                # TODO: support get reward after action complete here, via using event_buffer.execute.
-
                 if self._decision_mode == DecisionMode.Joint:
                     # For joint event, we will disable following cascade event.
 

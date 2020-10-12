@@ -28,7 +28,6 @@ from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
 from .station import Station
-from .station_reward import StationReward
 from .stations_info import get_station_info
 from .weather_table import WeatherTable
 
@@ -84,20 +83,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def configs(self) -> dict:
         """dict: Current configuration."""
         return self._conf
-
-    def rewards(self, actions) -> float:
-        """Calculate rewards based on actions.
-
-        Args:
-            actions(list): Action(s) from agent.
-
-        Returns:
-            float: Reward based on actions.
-        """
-        if actions is None:
-            return []
-
-        return sum([self._reward.reward(station.index) for station in self._stations])
 
     def step(self, tick: int):
         """Push business engine to next step.
@@ -252,8 +237,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # our decision strategy to determine when we need an action
         self._decision_strategy = BikeDecisionStrategy(
             self._stations, self._distance_adj, self._snapshots, self._conf["decision"])
-
-        self._reward = StationReward(self._stations, self._conf["reward"])
 
     def _load_configs(self):
         """Load configurations"""

@@ -194,24 +194,6 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         return tick + 1 == self._max_tick
 
-    def rewards(self, actions: list):
-        """Reward base on actions.
-
-        Args:
-            Actions list(action): Action list from agent: {vessel_id: empty_number_to_move}.
-
-        Returns:
-            list: Corresponding reward list.
-        """
-        if actions is None:
-            return []
-
-        self_rewards = [(port.booking - port.shortage) * 0.05 for port in self._ports]
-        average_reward = sum(self_rewards) / self._data_cntr.port_number
-        rewards = [self_reward * 0.5 + average_reward * 0.5 for self_reward in self_rewards]
-
-        return [rewards[action.port_idx] for action in actions]
-
     def reset(self):
         """Reset the business engine, it will reset frame value.
         """

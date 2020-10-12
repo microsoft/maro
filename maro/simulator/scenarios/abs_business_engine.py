@@ -137,17 +137,6 @@ class AbsBusinessEngine(ABC):
         """dict: Configurations of this business engine."""
         pass
 
-    def rewards(self, actions: Union[list, object]) -> Union[float, List[float]]:
-        """Calculate rewards based on actions, the value is based on scenario.
-
-        Args:
-            actions(list): Action(s) from agent.
-
-        Returns:
-            Union[float, List[float]]: Reward(s) based on actions.
-        """
-        return []
-
     @abstractmethod
     def reset(self):
         """Reset states business engine."""
