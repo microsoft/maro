@@ -367,10 +367,9 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     def _on_order_generated(self, evt: Event):
         """When there is an order generated, we should do:
-        1. Generate a LADEN_RETURN event by configured buffer time.
-           a. If the configured buffer time is 0, then insert the event to immediate_event_list to process it ASAP.
-           b. Or insert the event to event buffer directly.
-
+        1. Generate a LADEN_RETURN event by configured buffer time: \
+        The event will be inserted to the immediate_event_list ASAP if the configured buffer time is 0, \
+        else the event will be inserted to the event buffer directly.
         2. Update port state: on_shipper +, empty -.
 
         Args:
@@ -412,10 +411,11 @@ class CimBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(laden_return_evt)
 
     def _on_full_return(self, evt: Event):
-        """The full is ready to be loaded now.
-        1. move it from on_shipper to full (update state: on_shipper -> full),
-           and append it to the port pending list.
+        """Handler to process the event that full containers are returned from shipper.
 
+        Once the full containers are returned, the containers are ready to be loaded. The workflow is:
+        1. First move the container from on_shipper to full (update state: on_shipper -> full).
+        2. Then append the container to the port pending list.
         """
         # The payload is a tuple (src_port_idx, dest_port_idx, quantity).
         full_rtn_payload = evt.payload
@@ -435,8 +435,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         """Handler to process event that a vessel need to load full containers from current port.
 
         When there is a vessel arrive at a port:
-        1. Discharge full (we ignore this action here, as we will generate a discharge event after
-           a vessel have loaded any full).
+        1. Discharge full (we ignore this action here, as we will generate a discharge event \
+        after a vessel have loaded any full).
         2. Load full by destination id, and generate discharge event.
         3. Update vessel.state to PARKING.
         4. Fill future stop list.

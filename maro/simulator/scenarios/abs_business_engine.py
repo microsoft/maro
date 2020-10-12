@@ -20,9 +20,9 @@ class AbsBusinessEngine(ABC):
     The core part of business engine is the step and post_step methods:
 
     1. step: Will be called one time at each tick.
-    2. post_step: Will be called at the end of each tick after all the events being processed,
-       simulator use the return value of this method (bool), to decide if it should stop simulation.
-       This is also a good place to check business final state of current tick if you follow event-driven pattern.
+    2. post_step: Will be called at the end of each tick after all the events being processed, \
+    simulator use the return value of this method (bool), to decide if it should stop simulation. \
+    This is also a good place to check business final state of current tick if you follow event-driven pattern.
 
     Args:
         event_buffer (EventBuffer): Used to process events.
