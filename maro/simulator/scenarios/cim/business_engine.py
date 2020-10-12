@@ -12,14 +12,14 @@ from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
 
-from .common import (ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload)
+from .common import ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload
 from .frame_builder import gen_cim_frame
 from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
 
 
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick),
- it contains following keys:
+it contains following keys:
 
 order_requirements (int): Accumulative orders until now.
 container_shortage (int): Accumulative shortage until now.
