@@ -27,7 +27,7 @@ indent_style = tab
 
 # Placeholder files
 [*.gitkeep]
-insert_final_newline = none
+insert_final_newline = ignore
 
 # Others
 [{*.csv, .gitignore, .dockerignore, *.md, *.rst, *.in, *.txt, *.ipynb, *.ico, *.svg, LICENSE, *.toml, *.df, *.ini}]
