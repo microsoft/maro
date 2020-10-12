@@ -46,12 +46,12 @@ class TestProxy(unittest.TestCase):
             cls.redis_process.kill()
 
     def test_send(self):
-        for worker_proxy in self.worker_proxies:
+        for worker_proxy in TestProxy.worker_proxies:
             send_msg = SessionMessage(tag="unit_test",
-                                      source=self.master_proxy.component_name,
+                                      source=TestProxy.master_proxy.component_name,
                                       destination=worker_proxy.component_name,
                                       payload="hello_world!")
-            self.master_proxy.isend(send_msg)
+            TestProxy.master_proxy.isend(send_msg)
 
             for receive_message in worker_proxy.receive(is_continuous=False):
                 self.assertEqual(send_msg.payload, receive_message.payload)
@@ -59,41 +59,41 @@ class TestProxy(unittest.TestCase):
     def test_scatter(self):
         scatter_payload = ["worker_1", "worker_2", "worker_3", "worker_4", "worker_5"]
         destination_payload_list = [(worker_proxy.component_name, scatter_payload[i])
-                                    for i, worker_proxy in enumerate(self.worker_proxies)]
+                                    for i, worker_proxy in enumerate(TestProxy.worker_proxies)]
 
-        self.master_proxy.iscatter(tag="unit_test",
-                                   session_type=SessionType.NOTIFICATION,
-                                   destination_payload_list=destination_payload_list)
+        TestProxy.master_proxy.iscatter(tag="unit_test",
+                                        session_type=SessionType.NOTIFICATION,
+                                        destination_payload_list=destination_payload_list)
 
-        for i, worker_proxy in enumerate(self.worker_proxies):
+        for i, worker_proxy in enumerate(TestProxy.worker_proxies):
             for msg in worker_proxy.receive(is_continuous=False):
                 self.assertEqual(scatter_payload[i], msg.payload)
 
     def test_broadcast(self):
-        with ThreadPoolExecutor(max_workers=len(self.worker_proxies)) as executor:
-            all_tasks = [executor.submit(message_receive, worker_proxy) for worker_proxy in self.worker_proxies]
+        with ThreadPoolExecutor(max_workers=len(TestProxy.worker_proxies)) as executor:
+            all_tasks = [executor.submit(message_receive, worker_proxy) for worker_proxy in TestProxy.worker_proxies]
 
             payload = ["broadcast_unit_test"]
-            self.master_proxy.ibroadcast(tag="unit_test",
-                                         session_type=SessionType.NOTIFICATION,
-                                         payload=payload)
+            TestProxy.master_proxy.ibroadcast(tag="unit_test",
+                                              session_type=SessionType.NOTIFICATION,
+                                              payload=payload)
 
-            for task in as_completed(all_tasks):
+            for task in all_tasks:
                 result = task.result()
                 self.assertEqual(result, payload)
 
     def test_reply(self):
-        for worker_proxy in self.worker_proxies:
+        for worker_proxy in TestProxy.worker_proxies:
             send_msg = SessionMessage(tag="unit_test",
-                                      source=self.master_proxy.component_name,
+                                      source=TestProxy.master_proxy.component_name,
                                       destination=worker_proxy.component_name,
                                       payload="hello ")
-            session_id_list = self.master_proxy.isend(send_msg)
+            session_id_list = TestProxy.master_proxy.isend(send_msg)
 
             for receive_message in worker_proxy.receive(is_continuous=False):
                 worker_proxy.reply(received_message=receive_message, tag="unit_test", payload="world!")
 
-            replied_msg_list = self.master_proxy.receive_by_id(session_id_list)
+            replied_msg_list = TestProxy.master_proxy.receive_by_id(session_id_list)
             self.assertEqual(send_msg.payload + replied_msg_list[0].payload, "hello world!")
 
 

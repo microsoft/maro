@@ -40,12 +40,12 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
 
             def launch(self):
                 """Universal entry point for running a ``cls`` instance in distributed mode."""
-                for msg in self.proxy.receive():
-                    self._registry_table.push(msg)
+                for message in self.proxy.receive():
+                    self._registry_table.push(message)
                     triggered_event = self._registry_table.get()
 
-                    for handler_fun, msg_lst in triggered_event:
-                        self._handler_function[handler_fun](msg_lst)
+                    for handler_fun, message_list in triggered_event:
+                        self._handler_function[handler_fun](message_list)
 
         return Wrapper
 
