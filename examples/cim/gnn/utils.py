@@ -13,9 +13,8 @@ from maro.simulator import Env
 from maro.utils import convert_dottable, clone
 
 def compute_v2p_degree_matrix(env):
-    '''
-    this function compute the adjacent matrix 
-    '''
+    """This function compute the adjacent matrix 
+    """
     topo_config = env.configs
     static_dict = env.summary['node_mapping']['ports']
     dynamic_dict = env.summary['node_mapping']['vessels']
@@ -37,11 +36,15 @@ def from_numpy(device, *np_values):
     return [torch.from_numpy(v).to(device) for v in np_values]
 
 def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
-    '''
-    v: (seq_len, batch, v_cnt, v_dim)
-    vo: (batch, v_cnt, p_cnt)
-    vedge: (batch, v_cnt, p_cnt, e_dim)
-    '''
+    """Union multiple graph in CIM.
+
+    Args:
+        v: Numpy array of shape (seq_len, batch, v_cnt, v_dim).
+        vo: Numpy array of shape (batch, v_cnt, p_cnt).
+        vedge: Numpy array of shape (batch, v_cnt, p_cnt, e_dim).
+    Returns:
+        result (dict): The dictionary that describes the graph.
+    """
 
     seq_len, batch, v_cnt, v_dim = v.shape
     _, _, p_cnt, p_dim = p.shape
@@ -152,14 +155,14 @@ def random_shortage(env, tick, action_dim=21):
     r, pa, is_done = env.step(None)
     node_cnt = len(env.summary['node_mapping']['ports'])
     while not is_done:
-        '''
+        """
         load, discharge = pa.action_scope.load, pa.action_scope.discharge
         action_idx = np.random.randint(action_dim) - zero_idx
         if action_idx < 0:
             actual_action = int(1.0*action_idx/zero_idx*load)
         else:
             actual_action = int(1.0*action_idx/zero_idx*discharge)
-        '''
+        """
         # print(action_idx, -load, actual_action, discharge)
         action = Action(pa.vessel_idx, pa.port_idx, 0)
         r, pa, is_done = env.step(action)

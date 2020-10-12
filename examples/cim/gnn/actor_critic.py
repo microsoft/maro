@@ -1,27 +1,27 @@
 import os
+
 import torch
 from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
 from maro.rl import AbsAlgorithm
-
 from examples.cim.gnn.utils import gnn_union
 
 class ActorCritic(AbsAlgorithm):
-    '''
+    """Actor-Critic algorithm in CIM problem.
 
-    Actor-Critic algorithm in CIM problem.
+    The vanilla ac algorithm.
 
     Args:
-        model (nn.Module): A actor-critic module outputing both the policy network and the value network
+        model (nn.Module): A actor-critic module outputing both the policy network and the value network.
         device (torch.device): A PyTorch device instance where the module is computed on.
         p2p_adj (numpy.array): The static port-to-port adjencency matrix.
         td_steps (int): The value 'n' in the n-step TD algorithm.
         gamma (float): The time decay.
         learning_rate (float): The learning rate for the module.
         entropy_factor (float): The weight of the policy's entropy to boost exploration.
-    '''
+    """
 
     def __init__(self, model: nn.Module,
                  device: torch.device,
@@ -37,11 +37,13 @@ class ActorCritic(AbsAlgorithm):
         self._device = device
         self._tot_batchs = 0
         self._p2p_adj = p2p_adj
-        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})}, loss_func_dict={},
+        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})}, 
+                         loss_func_dict={},
                          hyper_params=None)
 
     def choose_action(self, state: dict, p_idx: int, v_idx: int):
-        '''
+        """Get action from the AC model.
+
         Args:
             state (dict): A dictionary containing the input to the module. For example:
                 {
@@ -68,8 +70,8 @@ class ActorCritic(AbsAlgorithm):
             v_idx (int): The identity of the vessel doing the action.
         
         Returns:
-            model_action (numpy.int64): The action returned from the module
-        '''
+            model_action (numpy.int64): The action returned from the module.
+        """
         with torch.no_grad():
             prob, _ = self._model_dict["a&c"](state, a=True, p_idx=p_idx, v_idx=v_idx)
             distribution = Categorical(prob)
@@ -77,7 +79,8 @@ class ActorCritic(AbsAlgorithm):
             return model_action
 
     def train(self, batch, p_idx, v_idx):
-        '''
+        """Model training.
+
         Args:
             batch (dict): The dictionary of a batch of experience. For example:
                 {
@@ -95,7 +98,7 @@ class ActorCritic(AbsAlgorithm):
             e_loss (float): entropy loss.
             tot_norm (float): the L2 norm of the gradient.
 
-        '''
+        """
         self._tot_batchs += 1
         item_a_loss, item_c_loss, item_e_loss = 0, 0, 0
         obs_batch = batch['s']

@@ -83,3 +83,9 @@ class SimpleAgentManger(AbsAgentManager):
     def store_experiences(self, experiences):
         for code, exp_list in experiences.items():
             self._agent_dict[code].store_experiences(exp_list)
+
+    def save_model(self, pth, id):
+        self._algorithm.save_model(pth, id)
+
+    def load_model(self, pth):
+        self._algorithm.load_model(pth)

@@ -5,7 +5,7 @@ from maro.rl import AbsStore
 
 
 def get_item(data_dict, key_tuple):
-    '''Helper function to get the value in a hierarchical dictionary given the key path.
+    """Helper function to get the value in a hierarchical dictionary given the key path.
     
     Args:
         data_dict (dict): The data structure. For example:
@@ -20,15 +20,15 @@ def get_item(data_dict, key_tuple):
 
         key_tuple (tuple): The key path to the target field. For example, given the data_dict above, the key_tuple 
             ('a', 'c', 'd') should return 2.
-    '''
+    """
     for key in key_tuple:
         data_dict = data_dict[key]
     return data_dict
 
 
 def set_item(data_dict, key_tuple, data):
-    '''The setter function corresponding to the get_item function.
-    '''
+    """The setter function corresponding to the get_item function.
+    """
     for i, key in enumerate(key_tuple):
         if key not in data_dict:
             data_dict[key] = {}

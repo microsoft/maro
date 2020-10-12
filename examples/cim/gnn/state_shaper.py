@@ -87,9 +87,9 @@ class GNNStateShaper(StateShaper):
         return self._p2p_embedding
 
     def sort(self, arrival_time, attr=None):
-        '''
+        """
         given the arrival time matrix, this function sort the matrix and return the index matrix in the order of arrival time
-        '''
+        """
         n, m = arrival_time.shape
         if self._feature_config.attention_order == 'ramdom':
             arrival_time = arrival_time + np.random.randint(self._max_tick, size=arrival_time.shape)
@@ -105,7 +105,7 @@ class GNNStateShaper(StateShaper):
         else:
             return at_index, attr
 
-    '''
+    """
     def arg_idx(self, arrival_time, p_or_v):
         if self._feature_config.attention_order == 'temporal':
             return self.sort(arrival_time)
@@ -114,7 +114,7 @@ class GNNStateShaper(StateShaper):
         else:
             # randomize the arrival time
             return self.sort(arrival_time + np.random.randint(self._max_tick, size=arrival_time.shape))
-    '''
+    """
 
     def end_ep_callback(self, snapshot_list):
         if self._only_demo:
@@ -128,9 +128,9 @@ class GNNStateShaper(StateShaper):
         self.last_tick = -1
 
     def _sync_raw_features(self, snapshot_list, tick_range, static_code=None, dynamic_code=None):
-        '''
+        """
         this function update the state_dict from snapshot_list in the given tick_range
-        '''
+        """
         if len(tick_range) == 0:
             # this occurs when two actions happen at the same tick
             return

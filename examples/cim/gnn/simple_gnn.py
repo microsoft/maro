@@ -11,12 +11,12 @@ from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.normalization import LayerNorm
 
 class PositionalEncoder(nn.Module):
-    '''
+    """
     The positional encoding used in transformer to get the sequential information.
     
     The code is based on the PyTorch version in web 
     https://pytorch.org/tutorials/beginner/transformer_tutorial.html?highlight=positionalencoding
-    '''
+    """
 
     def __init__(self, d_model, max_seq_len = 80):
         super().__init__()

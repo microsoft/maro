@@ -1,28 +1,27 @@
-import time, os, pickle, math
-import multiprocessing
-import numpy as np
 import ctypes
-import torch
+from collections import defaultdict, OrderedDict
+import multiprocessing
 from multiprocessing import Process, Pipe, Event, Manager
+import numpy as np
+import time, os, pickle
+
+import torch
 
 from maro.rl import AbsActor
+from maro.simulator import Env
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
+from maro.utils import Logger, LogFormat, convert_dottable
+from examples.cim.gnn.actor_critic import ActorCritic
 from examples.cim.gnn.action_shaper import DiscreteActionShaper
 from examples.cim.gnn.utils import fix_seed, gnn_union
 from examples.cim.gnn.experience_shaper import ExperienceShaper
 from examples.cim.gnn.state_shaper import GNNStateShaper
-from collections import defaultdict, OrderedDict
-from examples.cim.gnn.actor_critic import ActorCritic
-from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, DecisionEvent
-from maro.utils import Logger, LogFormat, convert_dottable
 from examples.cim.gnn.shared_structure import SharedStructure
 from examples.cim.gnn.utils import decision_cnt_analysis, compute_v2p_degree_matrix
-import random
 
 
 def organize_exp_list(experience_collections:dict, idx_mapping:dict):
-    '''
-    The function assemble the experience from multiple processes into a dictionary.
+    """The function assemble the experience from multiple processes into a dictionary.
 
     Args:
          experience_collections (dict): It stores the experience in all agents. The structure is the same as what is 
@@ -49,7 +48,7 @@ def organize_exp_list(experience_collections:dict, idx_mapping:dict):
 
          idx_mapping (dict): The key is the name of each agent and the value is the starting index, e.g., b_x, of the 
             storage space where the experience of the agent is stored.
-    '''
+    """
     result = {}
     tmpi = 0
     for code, idx in idx_mapping.items():
@@ -73,8 +72,8 @@ def organize_exp_list(experience_collections:dict, idx_mapping:dict):
     return result
 
 def organize_obs(obs, idx, exp_len):
-    '''Helper function to transform the observation from multiple processes to a unified dictionary.
-    '''
+    """Helper function to transform the observation from multiple processes to a unified dictionary.
+    """
     tick_buffer, _, para_cnt, v_cnt, v_dim = obs['v'].shape
     _, _, _, p_cnt, p_dim = obs['p'].shape
     batch = exp_len * para_cnt
@@ -103,7 +102,7 @@ def organize_obs(obs, idx, exp_len):
 
 
 def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_output):
-    '''The A2C worker function to collect experience.
+    """The A2C worker function to collect experience.
 
     Args:
         index (int): The process index counted from 0.
@@ -115,7 +114,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         action_io (SharedStructure): The shared memory to hold the state information that the main process uses to 
             generate an action.
         exp_output (SharedStructure): The shared memory to transfer the experience list to the main process.
-    '''
+    """
     env = Env(**config.env.param)
     fix_seed(env, config.env.seed)
     static_code_list, dynamic_code_list = list(env.summary['node_mapping']['ports'].values()), \
@@ -177,13 +176,13 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
     print('the end')
 
 def compute_shortage(snapshot_list, max_tick, static_code_list):
-    '''Helper function to compute the shortage after a episode end.
-    '''
+    """Helper function to compute the shortage after a episode end.
+    """
     return np.sum(snapshot_list["ports"][max_tick-1: static_code_list: "acc_shortage"])
 
 class ParallelActor(AbsActor):
     def __init__(self, config, demo_env, gnn_state_shaper, agent_manager, logger):
-        '''A2C rollout class
+        """A2C rollout class.
 
         This implements the synchronized A2C structure. Multiple processes are created to simulate and collect 
         experience where only CPU is needed and whenever an action is required, they notify the main process and the 
@@ -198,7 +197,7 @@ class ParallelActor(AbsActor):
             agent_manager (AbsAgentManger): The agent manager instance to do the action inference in batch.
             logger: The logger instance to log information during the rollout.
 
-        '''
+        """
         super().__init__(demo_env, agent_manager)
         multiprocessing.set_start_method('spawn', True)
         self._logger = logger
@@ -215,8 +214,10 @@ class ParallelActor(AbsActor):
         tick_buffer = config.model.tick_buffer
         action_dim = config.model.action_dim
 
-        v_dim, vedge_dim, v_cnt = self._gnn_state_shaper.get_input_dim('v'), self._gnn_state_shaper.get_input_dim('vedge'), len(self._dynamic_node_mapping)
-        p_dim, pedge_dim, p_cnt = self._gnn_state_shaper.get_input_dim('p'), self._gnn_state_shaper.get_input_dim('pedge'), len(self._static_node_mapping)
+        v_dim, vedge_dim, v_cnt = self._gnn_state_shaper.get_input_dim('v'), \
+                                    self._gnn_state_shaper.get_input_dim('vedge'), len(self._dynamic_node_mapping)
+        p_dim, pedge_dim, p_cnt = self._gnn_state_shaper.get_input_dim('p'), \
+                                    self._gnn_state_shaper.get_input_dim('pedge'), len(self._static_node_mapping)
 
         self.pipes = [Pipe() for i in range(self.parallel_cnt)]
 
@@ -288,11 +289,11 @@ class ParallelActor(AbsActor):
         self._roll_out_cnt = 0
 
     def roll_out(self):
-        '''Rollout using current policy in the AgentManager.
+        """Rollout using current policy in the AgentManager.
 
         Returns:
             result (dict): The key is the agent code, the value is the experience list stored in numpy.array.
-        '''
+        """
 
         # compute the time used for state preparation in the child process.
         t_state = 0
@@ -316,7 +317,8 @@ class ParallelActor(AbsActor):
             t = time.time()
             graph = gnn_union(self.action_io_np['p'], self.action_io_np['po'], self.action_io_np['pedge'],
                                       self.action_io_np['v'], self.action_io_np['vo'], self.action_io_np['vedge'], 
-                                      self._gnn_state_shaper.p2p_static_graph, self.action_io_np['ppedge'], self.action_io_np['mask'], self.device)
+                                      self._gnn_state_shaper.p2p_static_graph, self.action_io_np['ppedge'], 
+                                      self.action_io_np['mask'], self.device)
             t_state += time.time() - t
 
             # print(self.action_io_np['pid'])
@@ -324,7 +326,8 @@ class ParallelActor(AbsActor):
             assert(np.min(self.action_io_np['vid']) == np.max(self.action_io_np['vid']))
 
             t = time.time()
-            actions = self._inference_agents.choose_action(agent_id = (self.action_io_np['pid'][0], self.action_io_np['vid'][0]), state=graph)
+            actions = self._inference_agents.choose_action(agent_id = (self.action_io_np['pid'][0], 
+                                                            self.action_io_np['vid'][0]), state=graph)
             t_action += time.time() - t
 
             for i, p in enumerate(self.pipes):
@@ -359,13 +362,8 @@ class ParallelActor(AbsActor):
         return result
 
     def exit(self):
-        '''Terminate the child processes.
-        '''
+        """Terminate the child processes.
+        """
         for p in self.pipes:
             p[0].send('close')
 
-    def save_model(self, pth, id):
-        self._algorithm.save_model(pth, id)
-
-    def load_model(self, pth):
-        self._algorithm.load_model(pth)

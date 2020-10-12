@@ -13,7 +13,7 @@ class GNNLearner(AbsLearner):
     Args:
         actor (AbsActor): The actor instance to collect experience.
         trainable_agents (AbsAgentManager): The agent manager for training RL models.
-        logger (Logger)
+        logger (Logger): The logger to save/print the message.
     """
 
     def __init__(self, actor: ParallelActor, trainable_agents:SimpleAgentManger, logger=DummyLogger()):
@@ -44,7 +44,7 @@ class GNNLearner(AbsLearner):
                 training_time += time.time() - tick
 
             if log_pth is not None and (i+1) % training_config.model_save_freq == 0:
-                self._actor.save_model(os.path.join(log_pth, 'models'), i+1)
+                self._trainable_agents.save_model(os.path.join(log_pth, 'models'), i+1)
 
             self._logger.debug('total rollout_time: %d' % int(rollout_time))
             self._logger.debug('train_time: %d' % int(training_time))
