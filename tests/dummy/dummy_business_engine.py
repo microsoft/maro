@@ -30,7 +30,7 @@ class DummyEngine(AbsBusinessEngine):
 
     def step(self, tick: int):
         for dummy_node in self._dummy_list:
-            dummy_node.val = tick 
+            dummy_node.val = tick
 
     def post_step(self, tick:int):
         if (tick+1) % self._snapshot_resolution == 0:
@@ -42,9 +42,6 @@ class DummyEngine(AbsBusinessEngine):
                 return True
 
         return tick+1 == self._max_tick
-
-    def rewards(self, actions):
-        return "dummy_rewards"
 
     def reset(self):
         self._frame.reset()
