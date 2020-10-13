@@ -14,7 +14,6 @@ class KStepExperienceKeys(Enum):
     STATE = "state"
     ACTION = "action"
     REWARD = "reward"
-    RETURN = "return"
     NEXT_STATE = "next_state"
     NEXT_ACTION = "next_action"
     DISCOUNT = "discount"
@@ -37,12 +36,11 @@ class KStepExperienceShaper(ExperienceShaper):
 
     def __call__(self, trajectory, snapshot_list):
         length = len(trajectory)
-        agent_ids = np.asarray(trajectory.get_by_key["agent_id"])[:-1]
+        agent_ids = np.asarray(trajectory.get_by_key["agent_id"])
         states = np.asarray(trajectory.get_by_key["state"])
         actions = np.asarray(trajectory.get_by_key["action"])
-        reward_array = np.fromiter(map(self._reward_func, trajectory.get_by_key("metrics")[:-1]), dtype=np.float32)
+        reward_array = np.fromiter(map(self._reward_func, trajectory.get_by_key("metrics")), dtype=np.float32)
         reward_sums = get_k_step_discounted_sums(reward_array, self._reward_decay, k=self._steps)[:-1]
-        returns = get_k_step_discounted_sums(reward_array, self._reward_decay)[:-1]
         discounts = np.array([self._reward_decay ** min(self._steps, length-i-1) for i in range(length-1)])
         next_states = np.pad(states[self._steps:], (0, length-self._steps-1), mode="edge")
         next_actions = np.pad(actions[self._steps:], (0, length-self._steps-1), mode="edge")
@@ -53,7 +51,6 @@ class KStepExperienceShaper(ExperienceShaper):
             return {agent_id: {KStepExperienceKeys.STATE.value: states[agent_ids == agent_id],
                                KStepExperienceKeys.ACTION.value: actions[agent_ids == agent_id],
                                KStepExperienceKeys.REWARD.value: reward_sums[agent_ids == agent_id],
-                               KStepExperienceKeys.RETURN.value: returns[agent_ids == agent_id],
                                KStepExperienceKeys.NEXT_STATE.value: next_states[agent_ids == agent_id],
                                KStepExperienceKeys.NEXT_ACTION.value: next_actions[agent_ids == agent_id],
                                KStepExperienceKeys.DISCOUNT.value: discounts[agent_ids == agent_id]}
@@ -62,7 +59,6 @@ class KStepExperienceShaper(ExperienceShaper):
             return {KStepExperienceKeys.STATE.value: states,
                     KStepExperienceKeys.ACTION.value: actions,
                     KStepExperienceKeys.REWARD.value: reward_sums,
-                    KStepExperienceKeys.RETURN.value: returns,
                     KStepExperienceKeys.NEXT_STATE.value: next_states,
                     KStepExperienceKeys.NEXT_ACTION.value: next_actions,
                     KStepExperienceKeys.DISCOUNT.value: discounts}

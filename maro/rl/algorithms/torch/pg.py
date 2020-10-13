@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.utils.trajectory_utils import get_k_step_discounted_sums, get_lambda_returns
 
 
 class PolicyGradientHyperParameters:
@@ -15,12 +16,18 @@ class PolicyGradientHyperParameters:
     Args:
         num_actions (int): number of possible actions
         reward_decay (float): reward decay as defined in standard RL terminology
+        k (int): number of time steps used in computing bootstrapped return estimates.
+        lmda (float): lambda coefficient used in computing lambda returns. If it is not None, ``k`` will be used as
+            the roll-out horizon in computing truncated lambda returns. Otherwise, ``k`` will be used as usual in
+            computing multi-step bootstrapped return estimates. Defaults to None.
     """
-    __slots__ = ["num_actions", "reward_decay"]
+    __slots__ = ["num_actions", "reward_decay", "k", "lmda"]
 
-    def __init__(self, num_actions: int, reward_decay: float):
+    def __init__(self, num_actions: int, reward_decay: float, k: int = 1, lmda: float = None):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
+        self.k = k
+        self.lmda = lmda
 
 
 class PolicyGradient(AbsAlgorithm):
@@ -31,9 +38,10 @@ class PolicyGradient(AbsAlgorithm):
                  hyper_params: PolicyGradientHyperParameters, value_model: nn.Module = None,
                  value_optimizer_cls=None, value_optimizer_params=None, value_loss_func=None):
         super().__init__()
-        self._policy_model = policy_model
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._policy_model = policy_model.to(self._device)
         self._policy_optimizer = policy_optimizer_cls(self._policy_model.parameters(), **policy_optimizer_params)
-        self._value_model = value_model
+        self._value_model = value_model.to(self._device)
         if self._value_model is not None:
             assert value_optimizer_cls is not None and value_optimizer_params is not None, \
                 "value_optimizer_cls and value_optimizer_params should not be None if value model is not None"
@@ -42,7 +50,6 @@ class PolicyGradient(AbsAlgorithm):
             self._value_optimizer = None
         self._value_loss_func = value_loss_func
         self._hyper_params = hyper_params
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     @property
     def model(self):
@@ -53,11 +60,17 @@ class PolicyGradient(AbsAlgorithm):
         action_dist = F.softmax(self._policy_model(state), dim=1).squeeze()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist.numpy())
 
-    def train(self, states, actions, returns):
-        states = torch.from_numpy(states).to(self._device)   # (N, state_dim)
-        actions = torch.from_numpy(actions).to(self._device)   # (N,)
-        returns = torch.from_numpy(returns).to(self._device)   # (N,)
+    def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
+        states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
+        state_values = self._value_model(states)
+        if self._hyper_params.lmda is None:
+            returns = get_k_step_discounted_sums(reward_sequence, self._hyper_params.reward_decay,
+                                                 self._hyper_params.k, values=state_values)
+        else:
+            returns = get_lambda_returns(reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lmda,
+                                         state_values, self._hyper_params.k)
         # policy model training
+        actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
         action_dist = F.softmax(self._policy_model(states), dim=1)   # (N, num_actions)
         action_prob = action_dist.gather(1, actions.unsqueeze(1))   # (N, 1)
         log_action_prob = torch.log(action_prob).squeeze()   # (N,)
@@ -72,9 +85,9 @@ class PolicyGradient(AbsAlgorithm):
             value_loss.backward()
             self._value_optimizer.step()
 
-    def load_trainable_models(self, policy_model, value_model):
-        self._policy_model = policy_model
-        self._value_model = value_model
+    def load_trainable_models(self, model_dict):
+        self._policy_model = model_dict["policy"]
+        self._value_model = model_dict["value"]
 
     def dump_trainable_models(self):
         return {"policy": self._policy_model, "value": self._value_model}

@@ -6,7 +6,7 @@ from functools import reduce
 import numpy as np
 
 
-def get_k_step_discounted_sums(rewards: np.ndrewardsay, discount: float, k: int = -1, values: np.ndrewardsay = None):
+def get_k_step_discounted_sums(rewards: np.ndarray, discount: float, k: int = -1, values: np.ndarray = None):
     assert values is None or len(rewards) == len(values), "rewards and values should have the same length"
     if values is not None:
         rewards[-1] = values[-1]
@@ -17,28 +17,28 @@ def get_k_step_discounted_sums(rewards: np.ndrewardsay, discount: float, k: int 
                   np.pad(values[k:], (0, k)) if values is not None else np.zeros(len(rewards)))
 
 
-def get_lambda_returns(rewards: np.ndrewardsay, discount: float, lda: float, values: np.ndrewardsay = None,
+def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, values: np.ndarray = None,
                        horizon: int = -1):
     if horizon < 0:
         horizon = len(rewards) - 1
 
     horizon = min(horizon, len(rewards) - 1)
-    pre_truncate = reduce(lambda x, y: x*lda + y,
+    pre_truncate = reduce(lambda x, y: x*lmda + y,
                           [get_k_step_discounted_sums(rewards, discount, k=k, values=values)
                            for k in range(horizon-1, 0, -1)])
 
-    post_truncate = get_k_step_discounted_sums(rewards, discount, k=horizon, values=values) * lda**(horizon-1)
-    return (1 - lda) * pre_truncate + post_truncate
+    post_truncate = get_k_step_discounted_sums(rewards, discount, k=horizon, values=values) * lmda**(horizon-1)
+    return (1 - lmda) * pre_truncate + post_truncate
 
 
-b = np.asrewardsay([4, 7, 1, 3, 6])
-rw = np.asrewardsay([3, 2, 4, 1, 5])
+b = np.asarray([4, 7, 1, 3, 6])
+rw = np.asarray([3, 2, 4, 1, 5])
 ld = 0.6
 gamma = 0.8
 steps = 4
 hrz = 3
 
-print(get_lambda_returns(rw, gamma, ld, values=b, horizon=hrz))
+print(get_k_step_discounted_sums(rw, gamma, k=3))
 
 """
 2-step: [5.24 7.12 8.64 5.8  6.  ]

@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 import os
+from typing import Callable
 
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
@@ -49,7 +50,9 @@ class AbsAgentManager(ABC):
                  state_shaper: StateShaper = None,
                  action_shaper: ActionShaper = None,
                  experience_shaper: ExperienceShaper = None,
-                 explorer: AbsExplorer = None):
+                 explorer: AbsExplorer = None,
+                 on_event_callback: Callable = None,
+                 on_feedback_call_back: Callable = None):
         self._name = name
         if mode not in AgentMode:
             raise UnsupportedAgentModeError(msg='mode must be "train", "inference" or "train_inference"')
@@ -69,8 +72,11 @@ class AbsAgentManager(ABC):
         self._explorer = explorer
 
         self._agent_id_list = agent_id_list
-        self._current_transition = {}
+        self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
+
+        self._on_event_callback = on_event_callback
+        self._on_feedback_callback = on_feedback_call_back
 
         self._agent_dict = {}
         self._assemble(self._agent_dict)
@@ -82,16 +88,11 @@ class AbsAgentManager(ABC):
         """Assembles agents and fill the ``agent_dict`` with them."""
         return NotImplemented
 
+    @abstractmethod
     def choose_action(self, decision_event, snapshot_list):
-        """This is the interface for interacting with the environment.
+        """Generate an environment executable action given the current decision event and snapshot list.
 
-        The method consists of 4 steps:
-
-        1. The decision event and snapshot list are converted by the state shaper to a model input.
-           The state shaper also finds the target agent ID.
-        2. The target agent takes the model input and uses its underlying models to compute an action.
-        3. Key information regarding the transition is recorded in the ``_trajectory`` attribute.
-        4. The action computed by the model is converted to an environment executable action by the action shaper.
+        Key information can be recorded in the ``_transition_cache`` attribute for experience shaping.
 
         Args:
             decision_event: A decision event that prompts an action.
@@ -100,16 +101,7 @@ class AbsAgentManager(ABC):
         Returns:
             An action object that can be passed directly to an environment's ``step`` method.
         """
-        self._assert_inference_mode()
-        agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        model_action = self._agent_dict[agent_id].choose_action(
-            model_state, self._explorer.epsilon[agent_id] if self._explorer else None)
-        self._current_transition = {"state": model_state,
-                                    "action": model_action,
-                                    "reward": None,
-                                    "agent_id": agent_id,
-                                    "event": decision_event}
-        return self._action_shaper(model_action, decision_event, snapshot_list)
+        return NotImplementedError
 
     def on_env_feedback(self, metrics):
         """This method records the environment-generated metrics as part of the latest transition in the trajectory.
@@ -117,8 +109,8 @@ class AbsAgentManager(ABC):
         Args:
             metrics: business metrics provided by the environment after an action has been executed.
         """
-        self._current_transition["metrics"] = metrics
-        self._trajectory.put(self._current_transition)
+        self._transition_cache["metrics"] = metrics
+        self._trajectory.put(self._transition_cache)
 
     def post_process(self, snapshot_list):
         """This method processes the latest trajectory into experiences.
@@ -128,7 +120,7 @@ class AbsAgentManager(ABC):
         """
         experiences = self._experience_shaper(self._trajectory, snapshot_list)
         self._trajectory.clear()
-        self._current_transition = {}
+        self._transition_cache = {}
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()

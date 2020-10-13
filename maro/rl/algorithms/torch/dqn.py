@@ -55,16 +55,15 @@ class DQN(AbsAlgorithm):
             self._eval_model.eval()
             with torch.no_grad():
                 q_values = self._eval_model(state)
-            best_action_idx = q_values.argmax(dim=1).item()
-            return best_action_idx
+            return q_values.argmax(dim=1).item()
 
         return np.random.choice(self._hyper_params.num_actions)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)
-        actions = torch.from_numpy(actions).to(self._device)
+        states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
+        actions = torch.from_numpy(actions).to(self._device)  # (N,)
         rewards = torch.from_numpy(rewards).to(self._device)   # (N,)
-        next_states = torch.from_numpy(next_states).to(self._device)
+        next_states = torch.from_numpy(next_states).to(self._device)  # (N, state_dim)
         if len(actions.shape) == 1:
             actions = actions.unsqueeze(1)   # (N, 1)
         current_q_values = self._eval_model(states).gather(1, actions).squeeze(1)   # (N,)
