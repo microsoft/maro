@@ -52,7 +52,7 @@ class Env(AbsEnv):
 
         self._event_buffer = EventBuffer()
 
-        # Generator to push the simulator moving on.
+        # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
 
         # Initialize the business engine.
@@ -129,7 +129,10 @@ class Env(AbsEnv):
 
     @property
     def snapshot_list(self) -> SnapshotList:
-        """SnapshotList: A snapshot list containing all the snapshots of frame at each tick."""
+        """SnapshotList: A snapshot list containing all the snapshots of frame at each dump point.
+
+        NOTE: Due to different environment configurations, the resolution of the snapshot may be different.
+        """
         return self._business_engine.snapshots
 
     @property
@@ -177,7 +180,7 @@ class Env(AbsEnv):
 
         NOTE:
         1. For built-in scenarios, they will always under "maro/simulator/scenarios" folder.
-        2. For external scenarios, we access the business engine class to create instance.
+        2. For external scenarios, the business engine instance is built with the loaded business engine class.
         """
         max_tick = self._start_tick + self._durations
 
@@ -222,7 +225,7 @@ class Env(AbsEnv):
             self._business_engine.step(self._tick)
 
             while True:
-                # We keep process all the events, until no more any events.
+                # Keep processing events, until no more events in this tick.
                 pending_events = self._event_buffer.execute(self._tick)
 
                 # Processing pending events.
@@ -282,7 +285,7 @@ class Env(AbsEnv):
                         for i in range(1, pending_event_length):
                             pending_events[i].state = EventState.FINISHED
 
-            # Check if we should end the simulation.
+            # Check the end tick of the simulation to decide if we should end the simulation.
             is_end_tick = self._business_engine.post_step(self._tick)
 
             if is_end_tick:

@@ -326,7 +326,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.insert_event(dep_evt)
 
     def _init_frame(self):
-        """Initialize the frame basing on data generator."""
+        """Initialize the frame based on data generator."""
         port_num = self._data_cntr.port_number
         vessel_num = self._data_cntr.vessel_number
         stop_num = (self._data_cntr.past_stop_number, self._data_cntr.future_stop_number)
@@ -411,7 +411,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(laden_return_evt)
 
     def _on_full_return(self, evt: Event):
-        """Handler to process the event that full containers are returned from shipper.
+        """Handler for processing the event that full containers are returned from shipper.
 
         Once the full containers are returned, the containers are ready to be loaded. The workflow is:
         1. First move the container from on_shipper to full (update state: on_shipper -> full).
@@ -432,7 +432,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._set_pending_full(src_port_idx, dest_port_idx, pending_full_number + qty)
 
     def _on_full_load(self, evt: Event):
-        """Handler to process event that a vessel need to load full containers from current port.
+        """Handler for processing event that a vessel need to load full containers from current port.
 
         When there is a vessel arrive at a port:
         1. Discharge full (we ignore this action here, as we will generate a discharge event \
@@ -501,7 +501,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             vessel.early_discharge = early_discharge_number
 
     def _on_departure(self, evt: Event):
-        """Handler to process event when there is a vessel leaving from port.
+        """Handler for processing event when there is a vessel leaving from port.
 
         When the vessel departing from port:
         1. Update location to next stop.
@@ -518,7 +518,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         vessel.next_loc_idx += 1
 
     def _on_discharge(self, evt: Event):
-        """Handler to process event the there are some full need to be discharged.
+        """Handler for processing event the there are some full need to be discharged.
 
 
         1. Discharge specified qty of full from vessel into port.on_consignee.
@@ -552,7 +552,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(mt_return_evt)
 
     def _on_empty_return(self, evt: Event):
-        """Handler to process event when there are some empty container return to port.
+        """Handler for processing event when there are some empty container return to port.
 
         Args:
             evt (Event Object): Empty-return event object.
@@ -564,7 +564,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         port.empty += qty
 
     def _on_action_received(self, evt: Event):
-        """Handler to process actions from agent.
+        """Handler for processing actions from agent.
 
         Args:
             evt (Event Object): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
