@@ -11,7 +11,8 @@ Prerequisites
 * `Install the Azure CLI and login <https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest>`_
 * `Install and set up kubectl <https://kubernetes.io/docs/tasks/tools/install-kubectl/>`_
 * `Install docker <https://docs.docker.com/engine/install/>`_ and
-  `Configure docker to make sure it can be managed as a non-root user <https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user>`_
+  `Configure docker to make sure it can be managed as a non-root user
+  <https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user>`_
 * `Download AzCopy <https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10>`_,
   then add the directory location of the AzCopy executable to your system path
 
