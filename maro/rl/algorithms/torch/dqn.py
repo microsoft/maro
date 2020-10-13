@@ -10,7 +10,7 @@ from maro.utils import clone
 
 
 class DQNHyperParams:
-    """DQN hyper-parameters.
+    """Hyper-parameter set for the DQN algorithm.
 
     Args:
         num_actions (int): number of possible actions
