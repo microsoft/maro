@@ -91,6 +91,14 @@ Contents
     scenarios/container_inventory_management.rst
     scenarios/citi_bike.rst
 
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Examples
+
+    examples/multi_agent_dqn_cim.rst
+    examples/greedy_policy_citi_bike.rst
+
 .. toctree::
     :maxdepth: 2
     :caption: Key Components
