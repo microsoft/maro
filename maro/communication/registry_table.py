@@ -51,12 +51,12 @@ class ConditionalEvent:
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
             E.g. "actor:rollout:1" or ("learner:rollout:1", "learner:update:1", "AND").
-        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
+        peers (callable): The callable function which returns the newest peer's name dict from proxy.
     """
 
-    def __init__(self, event: Union[str, Tuple], get_peers: callable):
+    def __init__(self, event: Union[str, Tuple], peers: callable):
         self._event = event
-        self._get_peers = get_peers
+        self._peers = peers
         self._suffix_tree = SuffixTree()
         self._unit_event_message_dict = {}
 
@@ -117,7 +117,8 @@ class ConditionalEvent:
     def _get_request_message_number(self, unit_event: str) -> int:
         """To get the number of request messages by the given unit event."""
         component_type, _, number = unit_event.split(":")
-        peers_number = len(self._get_peers(component_type))
+        peers_number = len(self._peers[component_type]) if component_type != "*" else \
+            len(list(itertools.chain.from_iterable(self._peers.values())))
 
         if peers_number == 0:
             raise PeersMissError(f"There is no target component in peer list! Required peer type {component_type}.")

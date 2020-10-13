@@ -195,23 +195,6 @@ class Proxy:
         """Dict: The ``Dict`` of all connected peers' names, stored by peer type."""
         return self._onboard_peers_name_dict
 
-    def get_peers(self, component_type: str = "*") -> List[str]:
-        """Return peers' name list depending on the component type.
-
-        Args:
-            component_type (str): The peers' type, if ``*``, return all peers' name in the proxy. Defaults to ``*``.
-
-        Returns:
-            List[str]: List of peers' name.
-        """
-        if component_type == "*":
-            return list(itertools.chain.from_iterable(self._onboard_peers_name_dict.values()))
-
-        if component_type not in self._onboard_peers_name_dict.keys():
-            raise PeersMissError(f"{component_type} not in current peers list!")
-
-        return self._onboard_peers_name_dict[component_type]
-
     def receive(self, is_continuous: bool = True):
         """Receive messages from communication driver.
 
@@ -330,7 +313,8 @@ class Proxy:
         broadcast_status = self._driver.broadcast(message)
 
         if not broadcast_status:
-            return [message.session_id] * len(self.get_peers())
+            return [message.session_id] * \
+                   len(list(itertools.chain.from_iterable(self._onboard_peers_name_dict.values())))
         elif broadcast_status and self._is_enable_fault_tolerant:
             self._logger.warn(f"{self._name} failure to broadcast message to any peers, as {str(broadcast_status)}")
         else:
