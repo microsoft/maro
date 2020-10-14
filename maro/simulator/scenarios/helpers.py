@@ -3,21 +3,21 @@
 
 import sys
 import warnings
-
 from datetime import datetime
-from dateutil.tz import UTC
+
 from dateutil.relativedelta import relativedelta
-from maro.backends.frame import node, NodeBase, NodeAttribute
+from dateutil.tz import UTC
+from maro.backends.frame import NodeBase
 
 timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
 
+
 def utc_timestamp_to_timezone(timestamp: int, timezone):
-    """Convert utc timestamp into specified tiemzone datetime
-    
+    """Convert utc timestamp into specified tiemzone datetime.
+
     Args:
-        timestamp(int): UTC timestamp to convert
-        timezone: target timezone
-    
+        timestamp(int): UTC timestamp to convert.
+        timezone: Target timezone.
     """
     if sys.platform == "win32":
         # windows do not support negative timestamp, use this to support it
@@ -27,12 +27,13 @@ def utc_timestamp_to_timezone(timestamp: int, timezone):
 
 
 class DocableDict:
-    """A thin wrapper that provide a read-only dictionary with customized doc
-    
+    """A thin wrapper that provide a read-only dictionary with customized doc.
+
     Args:
-        doc (str): customized doc of the dict
-        kwargs (dict): dictionary items to store
+        doc (str): Customized doc of the dict.
+        kwargs (dict): Dictionary items to store.
     """
+
     def __init__(self, doc: str, **kwargs):
         self._original_dict = kwargs
         DocableDict.__doc__ = doc
@@ -63,15 +64,15 @@ class DocableDict:
 
 
 class MatrixAttributeAccessor:
-    """Wrapper for each attribute with matrix like interface
-
+    """Wrapper for each attribute with matrix like interface.
 
     Args:
-        node(NodeBase): node instance the attribute belongs to
-        attribute(str): attribute name to wrap
-        row_num(int): result matrix row number
-        col_num(int): result matrix column number
+        node(NodeBase): Node instance the attribute belongs to.
+        attribute(str): Attribute name to wrap.
+        row_num(int): Result matrix row number.
+        col_num(int): Result matrix column number.
     """
+
     def __init__(self, node: NodeBase, attribute: str, row_num: int, col_num: int):
         self._node = node
         self._attr = None
@@ -80,13 +81,13 @@ class MatrixAttributeAccessor:
         self._col_num = col_num
 
     @property
-    def columns(self):
-        """Get column number"""
+    def columns(self) -> int:
+        """int: Column number."""
         return self._col_num
 
     @property
-    def rows(self):
-        """Get row number"""
+    def rows(self) -> int:
+        """int: Row number."""
         return self._row_num
 
     def _ensure_attr(self):
@@ -109,7 +110,7 @@ class MatrixAttributeAccessor:
         elif key_type == slice:
             return self._attr[:]
 
-    def __setitem__(self, key: tuple, value:int):
+    def __setitem__(self, key: tuple, value: int):
         key_type = type(key)
 
         self._ensure_attr()
@@ -123,15 +124,29 @@ class MatrixAttributeAccessor:
             # slice will ignore all parameters, and set values for all slots
             self._attr[:] = value
 
-    def get_row(self, row_idx: int):
-        """Get values of a row"""
+    def get_row(self, row_idx: int) -> list:
+        """Get values of a row.
+
+        Args:
+            row_idx (int): Index of target row.
+
+        Returns:
+            list: List of value for that row.
+        """
         self._ensure_attr()
 
         start = self._col_num * row_idx
         return self._attr[start: start + self._col_num]
 
     def get_column(self, column_idx: int):
-        """Get values of a column"""
+        """Get values of a column.
+
+        Args:
+            column_idx (int): Index of target column.
+
+        Returns:
+            list: List of value for that column.
+        """
         self._ensure_attr()
 
         rows = [r * self._col_num + column_idx for r in range(self._row_num)]

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 import socket
 from typing import Dict
 
@@ -21,13 +22,15 @@ RECEIVE_TIMEOUT = default_parameters.driver.zmq.receive_timeout
 
 
 class ZmqDriver(AbsDriver):
-    """The communication driver based on ZMQ.
-    
+    """The communication driver based on ``ZMQ``.
+
     Args:
-        protocol (str): underlying transport-layer protocol for transferring messages,
-        send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite),
-        receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite),
-        logger: logger instance or DummyLogger.
+        protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
+        send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
+            Defaults to -1.
+        receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
+            Defaults to -1.
+        logger: The logger instance or DummyLogger. Defaults to DummyLogger().
     """
 
     def __init__(self, protocol: str = PROTOCOL, send_timeout: int = SEND_TIMEOUT,
@@ -42,13 +45,13 @@ class ZmqDriver(AbsDriver):
         self._setup_sockets()
 
     def _setup_sockets(self):
-        """
-        Setup three kinds of sockets, and one poller.
-            unicast_receiver: the zmq.PULL socket, use for receiving message from one-to-one communication,
-            broadcast_sender: the zmq.PUB socket, use for broadcasting message to all subscribers,
-            broadcast_receiver: the zmq.SUB socket, use for listening message from broadcast.
+        """Setup three kinds of sockets, and one poller.
 
-            poller: the zmq output multiplexing, use for receiving message from zmq.PULL socket and zmq.SUB socket.
+        - ``unicast_receiver``: The ``zmq.PULL`` socket, use for receiving message from one-to-one communication,
+        - ``broadcast_sender``: The ``zmq.PUB`` socket, use for broadcasting message to all subscribers,
+        - ``broadcast_receiver``: The ``zmq.SUB`` socket, use for listening message from broadcast.
+        - ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and
+          ``zmq.SUB`` socket.
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
@@ -65,7 +68,7 @@ class ZmqDriver(AbsDriver):
         broadcast_receiver_port = self._broadcast_receiver.bind_to_random_port(f"{self._protocol}://*")
         self._logger.debug(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
 
-        # record own sockets' address
+        # Record own sockets' address.
         self._address = {zmq.PULL: f"{self._protocol}://{self._ip_address}:{unicast_receiver_port}",
                          zmq.SUB: f"{self._protocol}://{self._ip_address}:{broadcast_receiver_port}"}
 
@@ -75,22 +78,26 @@ class ZmqDriver(AbsDriver):
 
     @property
     def address(self) -> Dict[int, str]:
-        """ 
-        address Dict[int, str]: own sockets' address.
-            i.e. Dict[zmq.PULL, 'tcp://0.0.0.0:1234']
+        """
+        Returns:
+            Dict[int, str]: The sockets' address Dict of ``zmq.PULL`` socket and ``zmq.SUB`` socket.
+            The key of dict is the socket's type, while the value of dict is socket's ip address,
+            which forms by protocol+ip+port.
+
+        Example:
+            Dict{zmq.PULL: "tcp://0.0.0.0:1234", zmq.SUB: "tcp://0.0.0.0:1235"}
         """
         return self._address
 
     def connect(self, peers_address_dict: Dict[str, Dict[str, str]]):
-        """
-        Build a connection with all peers in peers socket address, and set up unicast sender which is zmq.PUSH socket
-        for each peer.
-        
+        """Build a connection with all peers in peers socket address.
+
+        Set up the unicast sender which is ``zmq.PUSH`` socket and the broadcast sender which is ``zmq.PUB`` socket.
+
         Args:
-            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict,
-                the key of dict is the peer's name, 
-                the value of dict is the peer's socket connection address stored in dict.
-            i.e. Dict['peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']].
+            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict.
+                The key of dict is the peer's name, while the value of dict is the peer's socket connection address.
+                E.g. Dict{'peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']}.
         """
         for peer_name, address_dict in peers_address_dict.items():
             for socket_type, address in address_dict.items():
@@ -109,11 +116,13 @@ class ZmqDriver(AbsDriver):
                     raise PeersConnectionError(f"Driver cannot connect to {peer_name}! Due to {str(e)}")
 
     def receive(self, is_continuous: bool = True):
-        """
-        Receive message from zmq.POLLER.
+        """Receive message from ``zmq.POLLER``.
 
         Args:
-            is_continuous (bool): Continuously receive message or not. Default is True.
+            is_continuous (bool): Continuously receive message or not. Defaults to True.
+
+        Yields:
+            recv_message (Message): The received message from the poller.
         """
         while True:
             try:
@@ -134,11 +143,10 @@ class ZmqDriver(AbsDriver):
                 break
 
     def send(self, message: Message):
-        """
-        Send message.
+        """Send message.
 
         Args:
-            message (class): message to be sent.
+            message (class): Message to be sent.
         """
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
@@ -147,11 +155,10 @@ class ZmqDriver(AbsDriver):
             return DriverSendError(f"Failure to send message caused by: {e}")
 
     def broadcast(self, message: Message):
-        """
-        Broadcast message.
+        """Broadcast message.
 
         Args:
-            message(class): message to be sent.
+            message(class): Message to be sent.
         """
         try:
             self._broadcast_sender.send_pyobj(message)

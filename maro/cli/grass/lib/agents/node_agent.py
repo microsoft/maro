@@ -163,7 +163,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
 
 if __name__ == "__main__":
     # FIXME: what about get it from argparse
-    with open(os.path.expanduser(f"~/.maro-local/agents/node_agent.config"), 'r') as fr:
+    with open(os.path.expanduser("~/.maro-local/agents/node_agent.config"), 'r') as fr:
         node_agent_config = json.load(fr)
 
     node_agent = NodeAgent(

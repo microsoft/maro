@@ -1,0 +1,82 @@
+
+name: test
+
+on:
+  push:
+    branches: [ master, v0.1 ]
+  pull_request:
+    branches: [ master, v0.1 ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+        matrix:
+          os: [ubuntu-16.04, ubuntu-18.04, windows-latest, macos-latest]
+          python-version: [3.6, 3.7]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install build dependencies
+      run: | 
+        pip install -r maro/requirements.build.txt
+    
+    - name: Compile cython files
+      run: |
+        cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
+
+    - name: Build maro inplace
+      run: |
+        python setup.py build_ext -i
+
+    - name: Install torch on Windows
+      if: runner.os == 'Windows'
+      run: |
+        pip install torch===1.6.0 torchvision===0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+
+    - name: Install test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r tests/requirements.test.txt
+        pip install flake8
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings.
+        flake8 . --count --exit-zero --max-complexity=10 --statistics
+        
+    - name: test on windows
+      if: runner.os == 'Windows'
+      env: 
+        PYTHONPATH: .;./tests
+      run: |
+        coverage run --rcfile=./tests/.coveragerc
+        coverage report --rcfile=./tests/.coveragerc
+
+    - name: test on linux and macos
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      env:
+        PYTHONPATH: .:./tests
+      run: |
+        coverage run --rcfile=./tests/.coveragerc
+        coverage xml --rcfile=./tests/.coveragerc
+    - name: Upload coverage to Codecov
+      if: runner.os == 'Linux'
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: maro-code-coverage
+        fail_ci_if_error: true
+        path_to_write_report: ./codecov_report.gz

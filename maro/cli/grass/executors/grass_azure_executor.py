@@ -16,11 +16,11 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node, copy_files_from_node, sync_mkdir, copy_and_rename
 from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.utils.details import load_cluster_details, save_cluster_details, load_job_details, save_job_details, \
-    load_schedule_details, save_schedule_details
+from maro.cli.utils.details import (load_cluster_details, save_cluster_details, load_job_details, save_job_details,
+                                    load_schedule_details, save_schedule_details)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_node_name, \
-    get_valid_file_name
+from maro.cli.utils.naming import (generate_cluster_id, generate_job_id, generate_component_id, generate_node_name,
+                                   get_valid_file_name)
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
@@ -75,7 +75,7 @@ class GrassAzureExecutor:
         )
 
     def create(self):
-        logger.info(f"Creating cluster")
+        logger.info("Creating cluster")
 
         # Start creating
         try:
@@ -130,7 +130,7 @@ class GrassAzureExecutor:
             logger.info_green(f"Resource group: {resource_group} is created")
 
     def _create_master(self):
-        logger.info(f"Creating master VM")
+        logger.info("Creating master VM")
 
         # Load details
         cluster_details = self.cluster_details
@@ -179,10 +179,10 @@ class GrassAzureExecutor:
             sync=False
         )
 
-        logger.info_green(f"Master VM is created")
+        logger.info_green("Master VM is created")
 
     def _init_master(self):
-        logger.info(f"Initializing master node")
+        logger.info("Initializing master node")
 
         # Load details
         cluster_details = self.cluster_details
@@ -209,13 +209,13 @@ class GrassAzureExecutor:
 
         # Copy required files
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/*",
-            remote_dir=GlobalPaths.MARO_GRASS_LIB,
+            local_path=GlobalPaths.MARO_GRASS_LIB,
+            remote_dir=GlobalPaths.MARO_LIB,
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/*",
-            remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            remote_dir=GlobalPaths.MARO_CLUSTERS,
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
 
@@ -237,7 +237,7 @@ class GrassAzureExecutor:
         )
         self.grass_executor.remote_set_master_details(master_details=cluster_details['master'])
 
-        logger.info_green(f"Master node is initialized")
+        logger.info_green("Master node is initialized")
 
     @staticmethod
     def _create_deployment_parameters(node_name: str, cluster_details: dict, node_size: str, export_dir: str):
@@ -376,7 +376,7 @@ class GrassAzureExecutor:
                 )
         else:
             logger.warning_yellow(
-                f"Unable to scale down." +
+                f"Unable to scale down."
                 f" Only {len(deletable_nodes)} are deletable, but need to delete {num} to meet the replica"
             )
 
@@ -505,7 +505,7 @@ class GrassAzureExecutor:
             admin_username=admin_username, node_ip_address=node_public_ip_address)
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
-            remote_dir="~/details.yml",
+            remote_dir="~/",
             admin_username=admin_username, node_ip_address=node_public_ip_address)
 
         # Remote init node
@@ -1037,7 +1037,7 @@ class GrassAzureExecutor:
         self.grass_executor.remote_clean(parallels=GlobalParams.PARALLELS)
 
     # maro grass status
-    
+
     def status(self, resource_name: str):
         if resource_name == "master":
             return_status = self.grass_executor.remote_get_master_details()

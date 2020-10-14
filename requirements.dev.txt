@@ -30,3 +30,4 @@ sphinx
 recommonmark
 sphinx_rtd_theme
 jinja2
+flake8

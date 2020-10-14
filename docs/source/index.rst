@@ -1,19 +1,25 @@
+What is MARO?
+===============
+
 .. figure:: ./images/logo.svg
     :width: 666px
     :align: center
     :alt: MARO
+    :target: https://github.com/microsoft/maro
 
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization. It can be
 applied to many important industrial domains, such as container inventory
 management in logistics, bike repositioning in transportation, virtual machine
-provisioning in data centers, and asset management in finance. Besides RL, it
+provisioning in data centers, and asset management in finance. Besides
+`Reinforcement Learning <https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf>`_ (RL), it
 also supports other planning/decision mechanisms, such as
 `Operations Research <https://en.wikipedia.org/wiki/Operations_research>`_.
 
 Key Components
-====================
-.. image:: ./images/maro_overview.svg
+---------------
+
+.. figure:: ./images/maro_overview.svg
    :width: 1000px
 
 - Simulation toolkit: it provides some predefined scenarios, and the reusable wheels for building new scenarios.
@@ -21,7 +27,8 @@ Key Components
 - Distributed toolkit: it provides distributed communication components, interface of user-defined functions for message auto-handling, cluster provision, and job orchestration.
 
 Quick Start
-====================
+-------------
+
 .. code-block:: python
 
     from maro.simulator import Env
@@ -66,35 +73,44 @@ Quick Start
         env.reset()
 
 Contents
-====================
+----------
+
 .. toctree::
     :maxdepth: 2
     :caption: Installation
 
-    installation/pip_install.md
-    installation/playground.md
-    installation/grass_cluster_provisioning_on_azure.md
-    installation/k8s_cluster_provisioning_on_azure.md
+    installation/pip_install.rst
+    installation/playground.rst
+    installation/grass_cluster_provisioning_on_azure.rst
+    installation/k8s_cluster_provisioning_on_azure.rst
 
 .. toctree::
     :maxdepth: 2
     :caption: Scenarios
 
-    scenarios/container_inventory_management.md
-    scenarios/citi_bike.md
+    scenarios/container_inventory_management.rst
+    scenarios/citi_bike.rst
+
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Examples
+
+    examples/multi_agent_dqn_cim.rst
+    examples/greedy_policy_citi_bike.rst
 
 .. toctree::
     :maxdepth: 2
     :caption: Key Components
 
-    key_components/simulation_toolkit.md
-    key_components/data_model.md
-    key_components/event_buffer.md
-    key_components/business_engine.md
-    key_components/rl_toolkit.md
-    key_components/distributed_toolkit.md
-    key_components/communication.md
-    key_components/orchestration.md
+    key_components/simulation_toolkit.rst
+    key_components/data_model.rst
+    key_components/event_buffer.rst
+    key_components/business_engine.rst
+    key_components/rl_toolkit.rst
+    key_components/distributed_toolkit.rst
+    key_components/communication.rst
+    key_components/orchestration.rst
 
 .. toctree::
     :maxdepth: 2

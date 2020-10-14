@@ -1,6 +1,3 @@
-This file contains instructions on how to use MARO on the Container Inventory
-Management (CIM) scenario.
-
 # Overview
 
 The CIM problem is one of the quintessential use cases of MARO. The example can

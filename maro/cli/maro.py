@@ -15,11 +15,11 @@ from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 MARO_BANNER = """
- __  __    _    ____   ___  
-|  \/  |  / \  |  _ \ / _ \ 
+ __  __    _    ____   ___
+|  \/  |  / \  |  _ \ / _ \
 | |\/| | / _ \ | |_) | | | |
 | |  | |/ ___ \|  _ <| |_| |
-|_|  |_/_/   \_\_| \_ \___/ 
+|_|  |_/_/   \_\_| \_ \___/
 
 Welcome to the MARO CLI
 
@@ -248,7 +248,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     from maro.cli.grass.data import push_data
     parser_data_push = parser_data_subparsers.add_parser(
         'push',
-        help='Push local data to the cluster data storage',
+        help='Push the local data to the remote directory',
         examples=CliExamples.MARO_GRASS_DATA_PUSH,
         parents=[global_parser]
     )
@@ -264,7 +264,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     from maro.cli.grass.data import pull_data
     parser_data_pull = parser_data_subparsers.add_parser(
         'pull',
-        help='Pull data in the cluster data storage to local',
+        help='Pull the remote data to the local directory',
         examples=CliExamples.MARO_GRASS_DATA_PULL,
         parents=[global_parser]
     )
@@ -598,7 +598,7 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     from maro.cli.k8s.data import push_data
     parser_data_push = parser_data_subparsers.add_parser(
         'push',
-        help='Push local data to the cluster data storage',
+        help='Push the local data to the remote directory',
         examples=CliExamples.MARO_K8S_DATA_PUSH,
         parents=[global_parser]
     )
@@ -614,7 +614,7 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     from maro.cli.k8s.data import pull_data
     parser_data_pull = parser_data_subparsers.add_parser(
         'pull',
-        help='Pull data in the cluster data storage to local',
+        help='Pull the remote data to the local directory',
         examples=CliExamples.MARO_K8S_DATA_PULL,
         parents=[global_parser]
     )
@@ -774,8 +774,8 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         required=True,
         nargs="+",
         help="""
-        Path to original csv file(s) used to build, 
-        you can save your files' name into a file and call with prefix @ to read files list from your file, 
+        Path to original csv file(s) used to build,
+        you can save your files' name into a file and call with prefix @ to read files list from your file,
         like 'maro data build --meta meta.yml --output o.bin --file @files.txt'
         or just convert 1 file like 'maro data build --meta meta.yml --output o.bin --file input_file.csv'
         """)

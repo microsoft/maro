@@ -9,8 +9,9 @@ from shutil import rmtree
 
 import yaml
 
-from maro.cli.utils.details import load_cluster_details, save_cluster_details, load_job_details, save_job_details, \
-    load_schedule_details, save_schedule_details
+from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
+from maro.cli.utils.details import (load_cluster_details, save_cluster_details, load_job_details, save_job_details,
+                                    load_schedule_details, save_schedule_details)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_name_with_md5
 from maro.cli.utils.params import GlobalPaths
@@ -61,7 +62,7 @@ class K8sAzureExecutor:
         )
 
     def create(self):
-        logger.info(f"Creating cluster")
+        logger.info("Creating cluster")
 
         # Start creating
         try:
@@ -117,7 +118,7 @@ class K8sAzureExecutor:
             logger.info_green(f"Resource group: {resource_group} is created")
 
     def _create_k8s_cluster(self):
-        logger.info(f"Creating k8s cluster")
+        logger.info("Creating k8s cluster")
 
         # Load details
         cluster_details = self.cluster_details
@@ -155,7 +156,7 @@ class K8sAzureExecutor:
 
         with open(os.path.expanduser(f"{GlobalPaths.MARO_K8S_LIB}/azure/k8s-create-parameters.json"), 'r') as f:
             base_parameters = json.load(f)
-        with open(export_dir + f"/aks_cluster.json", 'w') as fw:
+        with open(export_dir + "/aks_cluster.json", 'w') as fw:
             parameters = base_parameters['parameters']
             parameters['location']['value'] = location
             parameters['adminUsername']['value'] = admin_username
@@ -199,7 +200,7 @@ class K8sAzureExecutor:
     @staticmethod
     def _init_nvidia_plugin():
         # Create plugin namespace
-        command = f"kubectl create namespace gpu-resources"
+        command = "kubectl create namespace gpu-resources"
         _ = SubProcess.run(command)
 
         # Apply k8s config
@@ -217,7 +218,7 @@ class K8sAzureExecutor:
         # Fill redis k8s config and saves
         with open(os.path.expanduser(f"{GlobalPaths.MARO_K8S_LIB}/k8s_configs/redis.yml"), 'r') as fr:
             base_config = yaml.safe_load(fr)
-        with open(export_dir + f"/redis.yml", 'w') as fw:
+        with open(export_dir + "/redis.yml", 'w') as fw:
             azure_file_config = base_config['spec']['template']['spec']['volumes'][0]['azureFile']
             azure_file_config['secretName'] = f"{cluster_id}-k8s-secret"
             azure_file_config['shareName'] = f"{cluster_id}-fs"
@@ -435,9 +436,13 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
+        source_path = get_reformatted_source_path(local_path)
+        target_dir = get_reformatted_target_dir(remote_dir)
+        if not target_dir.startswith("/"):
+            raise CliException("Invalid remote path")
         copy_command = f'azcopy copy ' \
-                       f'"{local_path}" ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_dir}?{sas}" ' \
+                       f'"{source_path}" ' \
+                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{target_dir}?{sas}" ' \
                        f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
@@ -450,9 +455,15 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
+        source_path = get_reformatted_source_path(remote_path)
+        target_dir = get_reformatted_target_dir(local_dir)
+        mkdir_script = f"mkdir -p {target_dir}"
+        _ = SubProcess.run(mkdir_script)
+        if not source_path.startswith("/"):
+            raise CliException("Invalid remote path")
         copy_command = f'azcopy copy ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
-                       f'"{local_dir}" ' \
+                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}" ' \
+                       f'"{os.path.expanduser(target_dir)}" ' \
                        f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
@@ -707,9 +718,7 @@ class K8sAzureExecutor:
         job_id = job_details['id']
 
         # Get pods details
-        command = "kubectl get pods -o json"
-        return_str = SubProcess.run(command)
-        pods_details = json.loads(return_str)['items']
+        pods_details = self.get_pods_details()
 
         # Export logs
         for pod_details in pods_details:
@@ -815,9 +824,7 @@ class K8sAzureExecutor:
         return_status = {}
 
         # Get pods details
-        command = "kubectl get pods -o json"
-        return_str = SubProcess.run(command)
-        pods_details = json.loads(return_str)['items']
+        pods_details = self.get_pods_details()
 
         for pod_details in pods_details:
             if pod_details['metadata']['labels']['app'] == 'maro-redis':
@@ -866,3 +873,10 @@ class K8sAzureExecutor:
         config_dict = yaml.safe_load(config_str)
         if config_dict['current-context'] != f"{cluster_id}-aks":
             self._load_k8s_context()
+
+    @staticmethod
+    def get_pods_details():
+        # Get pods details
+        command = "kubectl get pods -o json"
+        return_str = SubProcess.run(command)
+        return json.loads(return_str)['items']

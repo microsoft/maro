@@ -1,21 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from math import ceil, floor
+from math import ceil
+
 from .entities import CimDataCollection, Stop
 
 
 class VesselFutureStopsPrediction:
     """Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.
-    
-    
+
     Examples:
 
         .. code-block:: python
 
-            # get future stops of vessel 0
+            # Get future stops of vessel 0.
             stops = data_cntr.vessel_future_stops[0]
     """
+
     def __init__(self, data: CimDataCollection):
         self._vessels = data.vessels_settings
         self._stops = data.vessels_stops
@@ -25,7 +26,7 @@ class VesselFutureStopsPrediction:
         self._stop_number = data.future_stop_number
 
     def __getitem__(self, key):
-        """Used to support querying future stops by vessel index, last location index, next location index"""
+        """Used to support querying future stops by vessel index, last location index, next location index."""
         assert type(key) == tuple or type(key) == list
         assert len(key) == 3
 
@@ -46,8 +47,7 @@ class VesselFutureStopsPrediction:
         return self._predict_future_stops(vessel_idx, last_port_idx, last_port_arrive_tick, self._stop_number)
 
     def _predict_future_stops(self, vessel_idx: int, last_port_idx: int, last_port_arrive_tick: int, stop_number: int):
-        """
-        Do predict future stops
+        """Do predict future stops.
         """
         vessel = self._vessels[vessel_idx]
         speed = vessel.sailing_speed
@@ -63,7 +63,7 @@ class VesselFutureStopsPrediction:
             if self._port_mapping[route_point.port_name] == last_port_idx:
                 last_loc_idx = loc_idx
                 break
-        
+
         # return if not in current route
         if last_loc_idx < 0:
             return []
@@ -75,7 +75,7 @@ class VesselFutureStopsPrediction:
         for loc_idx in range(last_loc_idx + 1, last_loc_idx + stop_number + 1):
             route_info = route_points[loc_idx % route_length]
             port_idx, distance = self._port_mapping[route_info.port_name], route_info.distance
-            
+
             # NO noise for speed
             arrive_tick += duration + ceil(distance / speed)
 
