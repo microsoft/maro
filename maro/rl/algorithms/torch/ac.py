@@ -93,7 +93,7 @@ class ActorCritic(AbsAlgorithm):
                                          k=self._hyper_params.k, values=state_values_numpy)
         else:
             returns = get_lambda_returns(reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lmda,
-                                         values=state_values_numpy, truncate_steps=self._hyper_params.k)
+                                         k=self._hyper_params.k, values=state_values_numpy)
         # policy model training
         actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
         action_dist = F.softmax(self._policy_model(states), dim=1)   # (N, num_actions)

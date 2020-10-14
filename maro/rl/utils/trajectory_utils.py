@@ -30,24 +30,23 @@ def get_k_step_returns(rewards: np.ndarray, discount: float, k: int = -1, values
                   np.pad(values[k:], (0, k)) if values is not None else np.zeros(len(rewards)))
 
 
-def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, values: np.ndarray = None,
-                       truncate_steps: int = -1):
-    """Compute lambda returns given reward and value sequences and a truncate_steps.
+def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, k: int = -1, values: np.ndarray = None):
+    """Compute lambda returns given reward and value sequences and a k.
     Args:
         rewards (np.ndarray): reward sequence from a trajectory.
         discount (float): reward discount as in standard RL.
         lmda (float): the lambda coefficient involved in computing lambda returns.
+        k (int): number of steps where the lambda return series is truncated. If it is -1, no truncating is done and
+            the lambda return is carried out to the end of the sequence. Defaults to -1.
         values (np.ndarray): sequence of values for the traversed states in a trajectory. If it is None, the state
             immediately after the final state in the given sequence is assumed to be terminal with value zero.
             Defaults to None.
-        truncate_steps (int): number of steps where the lambda return series is truncated. If it is -1, no truncating
-            is done and the lambda return is carried out to the end of the sequence. Defaults to -1.
 
     Returns:
         An ndarray containing the lambda returns for each time step.
     """
-    if truncate_steps < 0:
-        truncate_steps = len(rewards) - 1
+    if k < 0:
+        k = len(rewards) - 1
 
     # If lambda is zero, lambda return reduces to one-step return
     if lmda == .0:
@@ -55,14 +54,14 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, values
 
     # If lambda is one, lambda return reduces to maximum-step return
     if lmda == 1.0:
-        return get_k_step_returns(rewards, discount, k=truncate_steps, values=values)
+        return get_k_step_returns(rewards, discount, k=k, values=values)
 
-    truncate_steps = min(truncate_steps, len(rewards) - 1)
+    k = min(k, len(rewards) - 1)
     pre_truncate = reduce(lambda x, y: x*lmda + y,
                           [get_k_step_returns(rewards, discount, k=k, values=values)
-                           for k in range(truncate_steps-1, 0, -1)])
+                           for k in range(k-1, 0, -1)])
 
-    post_truncate = get_k_step_returns(rewards, discount, k=truncate_steps, values=values) * lmda**(truncate_steps-1)
+    post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lmda**(k-1)
     return (1 - lmda) * pre_truncate + post_truncate
 
 
@@ -71,9 +70,9 @@ vals = np.asarray([4, 7, 1, 3, 6])
 ld = 0.6
 discount = 0.8
 k = 4
-truncate_steps = 3
+
 
 print(get_k_step_returns(rw, discount, k=k, values=vals))
-print(get_lambda_returns(rw, discount, ld, values=vals, truncate_steps=truncate_steps))
+print(get_lambda_returns(rw, discount, ld, k=k, values=vals))
 
 

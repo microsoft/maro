@@ -15,18 +15,16 @@ class TestUnboundedStore(unittest.TestCase):
         self.lmda = 0.6
         self.discount = 0.8
         self.k = 4
-        self.truncate_steps = 3
 
     def test_k_step_return(self):
         returns = get_k_step_returns(self.rewards, self.discount, k=self.k, values=self.values)
         expected = np.asarray([10.1296, 8.912, 8.64, 5.8, 6.0])
-        self.assertTrue(np.array_equal(returns, expected), msg=f"expected {expected}, got {returns}")
+        np.testing.assert_allclose(returns, expected, rtol=1e-4)
 
     def test_lambda_return(self):
-        returns = get_lambda_returns(self.rewards, self.discount, self.lmda, values=None,
-                                     truncate_steps=self.truncate_steps)
-        expected = np.asarray([7.82816, 6.03712, 7.744, 5.8, 6.0])
-        self.assertTrue(np.array_equal(returns, expected), msg=f"expected {expected}, got {returns}")
+        returns = get_lambda_returns(self.rewards, self.discount, self.lmda, k=self.k, values=self.values)
+        expected = np.asarray([8.1378176, 6.03712, 7.744, 5.8, 6.0])
+        np.testing.assert_allclose(returns, expected, rtol=1e-4)
 
 
 if __name__ == "__main__":
