@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from typing import Callable, Iterable, Sequence, Union
+from typing import Callable, Iterable, Union
 from .abs_shaper import AbsShaper
 
 

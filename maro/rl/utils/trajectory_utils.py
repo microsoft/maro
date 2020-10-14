@@ -52,7 +52,7 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, k: int
     if lmda == .0:
         return get_k_step_returns(rewards, discount, k=1, values=values)
 
-    # If lambda is one, lambda return reduces to maximum-step return
+    # If lambda is one, lambda return reduces to k-step return
     if lmda == 1.0:
         return get_k_step_returns(rewards, discount, k=k, values=values)
 
@@ -63,4 +63,3 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, k: int
 
     post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lmda**(k-1)
     return (1 - lmda) * pre_truncate + post_truncate
-
