@@ -4,7 +4,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.utils.trajectory_utils import get_k_step_returns
@@ -50,7 +49,7 @@ class PolicyGradient(AbsAlgorithm):
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        action_dist = F.softmax(self._policy_model(state), dim=1).squeeze()  # (num_actions,)
+        action_dist = self._policy_model(state).squeeze()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist.numpy())
 
     def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):

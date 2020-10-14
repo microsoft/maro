@@ -19,16 +19,16 @@ class ActorCriticHyperParameters:
         reward_decay (float): reward decay as defined in standard RL terminology
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
-        lmda (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+        lamb (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
-    __slots__ = ["num_actions", "reward_decay", "k", "lmda"]
+    __slots__ = ["num_actions", "reward_decay", "k", "lamb"]
 
-    def __init__(self, num_actions: int, reward_decay: float, k: int = -1, lmda: float = 1.0):
+    def __init__(self, num_actions: int, reward_decay: float, k: int = -1, lamb: float = 1.0):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.k = k
-        self.lmda = lmda
+        self.lamb = lamb
 
 
 class ActorCritic(AbsAlgorithm):
@@ -78,15 +78,17 @@ class ActorCritic(AbsAlgorithm):
         states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
         state_values = self._value_model(states)
         state_values_numpy = state_values.numpy()
-        returns = get_lambda_returns(reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lmda,
+        returns = get_lambda_returns(reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
                                      k=self._hyper_params.k, values=state_values_numpy)
+        advantages = returns - state_values
         # policy model training
         actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
         action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
-        policy_loss = -(torch.log(action_prob) * returns).mean()
+        policy_loss = -(torch.log(action_prob) * advantages).mean()
         self._policy_optimizer.zero_grad()
         policy_loss.backward()
         self._policy_optimizer.step()
+
         # value model training
         value_loss = self._value_loss_func(state_values, returns)
         self._value_optimizer.zero_grad()
@@ -147,13 +149,14 @@ class ActorCriticWithSharedLayers(AbsAlgorithm):
 
     def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
         states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
-        state_values, action_dist = self._policy_value_model(states)
+        state_values, action_distribution = self._policy_value_model(states)
         state_values_numpy = state_values.numpy()
-        returns = get_lambda_returns(reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lmda,
+        returns = get_lambda_returns(reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
                                      k=self._hyper_params.k, values=state_values_numpy)
+        advantages = returns - state_values
         actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
-        action_prob = action_dist.gather(1, actions.unsqueeze(1)).squeeze()   # (N,)
-        policy_loss = -(torch.log(action_prob) * returns).mean()
+        action_prob = action_distribution.gather(1, actions.unsqueeze(1)).squeeze()   # (N,)
+        policy_loss = -(torch.log(action_prob) * advantages).mean()
         value_loss = self._value_loss_func(state_values, returns)
         loss = policy_loss + value_loss
         self._optimizer.zero_grad()

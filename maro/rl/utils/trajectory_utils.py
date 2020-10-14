@@ -30,12 +30,12 @@ def get_k_step_returns(rewards: np.ndarray, discount: float, k: int = -1, values
                   np.pad(values[k:], (0, k)) if values is not None else np.zeros(len(rewards)))
 
 
-def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, k: int = -1, values: np.ndarray = None):
+def get_lambda_returns(rewards: np.ndarray, discount: float, lam: float, k: int = -1, values: np.ndarray = None):
     """Compute lambda returns given reward and value sequences and a k.
     Args:
         rewards (np.ndarray): reward sequence from a trajectory.
         discount (float): reward discount as in standard RL.
-        lmda (float): the lambda coefficient involved in computing lambda returns.
+        lam (float): the lambda coefficient involved in computing lambda returns.
         k (int): number of steps where the lambda return series is truncated. If it is -1, no truncating is done and
             the lambda return is carried out to the end of the sequence. Defaults to -1.
         values (np.ndarray): sequence of values for the traversed states in a trajectory. If it is None, the state
@@ -49,17 +49,17 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, k: int
         k = len(rewards) - 1
 
     # If lambda is zero, lambda return reduces to one-step return
-    if lmda == .0:
+    if lam == .0:
         return get_k_step_returns(rewards, discount, k=1, values=values)
 
     # If lambda is one, lambda return reduces to k-step return
-    if lmda == 1.0:
+    if lam == 1.0:
         return get_k_step_returns(rewards, discount, k=k, values=values)
 
     k = min(k, len(rewards) - 1)
-    pre_truncate = reduce(lambda x, y: x*lmda + y,
+    pre_truncate = reduce(lambda x, y: x*lam + y,
                           [get_k_step_returns(rewards, discount, k=k, values=values)
                            for k in range(k-1, 0, -1)])
 
-    post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lmda**(k-1)
-    return (1 - lmda) * pre_truncate + post_truncate
+    post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lam**(k-1)
+    return (1 - lam) * pre_truncate + post_truncate
