@@ -64,15 +64,3 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, k: int
     post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lmda**(k-1)
     return (1 - lmda) * pre_truncate + post_truncate
 
-
-rw = np.asarray([3, 2, 4, 1, 5])
-vals = np.asarray([4, 7, 1, 3, 6])
-ld = 0.6
-discount = 0.8
-k = 4
-
-
-print(get_k_step_returns(rw, discount, k=k, values=vals))
-print(get_lambda_returns(rw, discount, ld, k=k, values=vals))
-
-

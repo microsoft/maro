@@ -8,7 +8,7 @@ import numpy as np
 from maro.rl.utils.trajectory_utils import get_k_step_returns, get_lambda_returns
 
 
-class TestUnboundedStore(unittest.TestCase):
+class TestTrajectoryUtils(unittest.TestCase):
     def setUp(self) -> None:
         self.rewards = np.asarray([3, 2, 4, 1, 5])
         self.values = np.asarray([4, 7, 1, 3, 6])
