@@ -33,7 +33,7 @@ class AbsAgentManager(ABC):
     Args:
         name (str): Name of agent manager.
         mode (AgentMode): An AgentMode enum member that specifies that role of the agent. Some attributes may
-                          be None under certain modes.
+            be None under certain modes.
         agent_id_list (list): List of agent identifiers.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
@@ -50,9 +50,7 @@ class AbsAgentManager(ABC):
                  state_shaper: StateShaper = None,
                  action_shaper: ActionShaper = None,
                  experience_shaper: ExperienceShaper = None,
-                 explorer: AbsExplorer = None,
-                 on_event_callback: Callable = None,
-                 on_feedback_call_back: Callable = None):
+                 explorer: AbsExplorer = None):
         self._name = name
         if mode not in AgentMode:
             raise UnsupportedAgentModeError(msg='mode must be "train", "inference" or "train_inference"')
@@ -74,9 +72,6 @@ class AbsAgentManager(ABC):
         self._agent_id_list = agent_id_list
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
-
-        self._on_event_callback = on_event_callback
-        self._on_feedback_callback = on_feedback_call_back
 
         self._agent_dict = {}
         self._assemble(self._agent_dict)

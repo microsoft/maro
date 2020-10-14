@@ -49,6 +49,14 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, values
     if truncate_steps < 0:
         truncate_steps = len(rewards) - 1
 
+    # If lambda is zero, lambda return reduces to one-step return
+    if lmda == .0:
+        return get_k_step_returns(rewards, discount, k=1, values=values)
+
+    # If lambda is one, lambda return reduces to maximum-step return
+    if lmda == 1.0:
+        return get_k_step_returns(rewards, discount, k=truncate_steps, values=values)
+
     truncate_steps = min(truncate_steps, len(rewards) - 1)
     pre_truncate = reduce(lambda x, y: x*lmda + y,
                           [get_k_step_returns(rewards, discount, k=k, values=values)
@@ -58,18 +66,14 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lmda: float, values
     return (1 - lmda) * pre_truncate + post_truncate
 
 
-b = np.asarray([4, 7, 1, 3, 6])
 rw = np.asarray([3, 2, 4, 1, 5])
+vals = np.asarray([4, 7, 1, 3, 6])
 ld = 0.6
-gamma = 0.8
-steps = 4
-hrz = 3
+discount = 0.8
+k = 4
+truncate_steps = 3
 
-print(get_lambda_returns(rw, gamma, ld, values=None, truncate_steps=3))
+print(get_k_step_returns(rw, discount, k=k, values=vals))
+print(get_lambda_returns(rw, discount, ld, values=vals, truncate_steps=truncate_steps))
 
-"""
-2-step: [5.24 7.12 8.64 5.8  6.  ]
-1-step: [8.6 2.8 6.4 5.8 6. ]
-3-step: [8.696 8.912 8.64  5.8   6.   ]
-[7.82816 6.03712 7.744   5.8     6.     ]
-"""
+

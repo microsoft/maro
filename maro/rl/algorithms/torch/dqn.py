@@ -30,20 +30,28 @@ class DQNHyperParams:
 class DQN(AbsAlgorithm):
     """The Deep-Q-Networks algorithm.
 
-    The model must contain the key `eval`. Optionally a model corresponding to the key `target` can be
-    provided. If the key `target` is absent or model[`target`] is None, the target model will be a deep
-    copy of the provided eval model.
+    See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
+
+    Args:
+        eval_model (nn.Module): trainable Q-value model for computing actions given states.
+        optimizer_cls: torch optimizer class for the eval model.
+        optimizer_params: parameters required for the eval optimizer class.
+        loss_func (Callable): loss function for the value model.
+        hyper_params: hyper-parameter set for the DQN algorithm.
+        target_model (nn.Module): Q-value model to train the ``eval_model`` against and to be updated periodically. If
+            it is None, the target model will be initialized as a deep copy of the eval model.
     """
     def __init__(self, eval_model: nn.Module, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
                  target_model: nn.Module = None):
         super().__init__()
-        self._eval_model = eval_model
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._eval_model = eval_model.to(self._device)
         self._target_model = clone(eval_model) if target_model is None else target_model
+        self._target_model = self._target_model.to(self._device)
         self._optimizer = optimizer_cls(self._eval_model.parameters(), **optimizer_params)
         self._loss_func = loss_func
         self._hyper_params = hyper_params
         self._train_cnt = 0
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     @property
     def eval_model(self):

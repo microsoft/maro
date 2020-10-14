@@ -20,13 +20,12 @@ class ActorCriticHyperParameters:
         reward_decay (float): reward decay as defined in standard RL terminology
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
-        lmda (float): lambda coefficient used in computing lambda returns. If it is not None, ``k`` will be used as
-            the roll-out horizon in computing truncated lambda returns. Otherwise, ``k`` will be used as usual in
-            computing returns or multi-step bootstrapped return estimates. Defaults to None.
+        lmda (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+            k-step return is computed.
     """
     __slots__ = ["num_actions", "reward_decay", "k", "lmda"]
 
-    def __init__(self, num_actions: int, reward_decay: float, k: int = -1, lmda: float = None):
+    def __init__(self, num_actions: int, reward_decay: float, k: int = -1, lmda: float = 1.0):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.k = k
@@ -36,18 +35,16 @@ class ActorCriticHyperParameters:
 class ActorCritic(AbsAlgorithm):
     """Actor Critic algorithm.
 
-    The Actor-Critic algorithm base on the policy gradient theorem and with REINFORCE and REINFORCE with baseline as
-    special cases.
+    The Actor-Critic algorithm base on the policy gradient theorem. If no value model is provided and hyper-parameter
+    ``k`` is -1, the algorithm reduces to REINFORCE.
 
     Args:
         policy_model (nn.Module): model for generating actions given states.
         policy_optimizer_cls: torch optimizer class for the policy model.
         policy_optimizer_params: parameters required for the policy optimizer class.
         hyper_params: hyper-parameter set for the AC algorithm.
-        value_model (nn.Module): model for estimating state values. If None, the sequences passed to ``train()`` are
-            assumed to end with a terminal state with value zero. If this and the lmda hyper-parameter are both None,
-            the returns computed in ``train`` are actual full returns and the algorithm reduces to REINFORCE. Defaults
-            to None.
+        value_model (nn.Module): model for estimating state values. If this is None, the sequences passed to ``train()``
+            are assumed to end with a terminal state with value zero. Defaults to None.
         value_optimizer_cls: torch optimizer class for the value model. Defaults to None.
         value_optimizer_params: parameters required for the value optimizer class. Defaults to None.
         value_loss_func (Callable): loss function for the value model.
@@ -66,6 +63,9 @@ class ActorCritic(AbsAlgorithm):
                 "value_optimizer_cls and value_optimizer_params should not be None if value model is not None"
             self._value_optimizer = value_optimizer_cls(self._value_model.parameters(), **value_optimizer_params)
         else:
+            assert hyper_params.k == -1 and hyper_params.lmda == 1.0, \
+                "if not value model is provided, hyper-parameters k and lmda must be set to defaults of -1 and 1.0, " \
+                "respectively. "
             self._value_optimizer = None
         self._value_loss_func = value_loss_func
         self._hyper_params = hyper_params
