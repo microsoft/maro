@@ -7,6 +7,8 @@ from maro.utils import convert_dottable
 proxy = convert_dottable({
     "fault_tolerant": False,
     "delay_for_slow_joiner": 3,
+    "peers_update_frequency": 10,   # unit is second.
+    "dynamic_peer": False,
     "redis": {
         "host": "localhost",
         "port": 6379,

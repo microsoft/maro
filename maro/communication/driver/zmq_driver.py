@@ -13,7 +13,7 @@ from maro.communication import AbsDriver, Message
 from maro.communication.utils import default_parameters
 from maro.utils import DummyLogger
 from maro.utils.exception.communication_exception import PeersConnectionError, DriverReceiveError, DriverSendError, \
-    SocketTypeError
+    SocketTypeError, PeersDisconnectionError
 
 
 PROTOCOL = default_parameters.driver.zmq.protocol
@@ -114,6 +114,22 @@ class ZmqDriver(AbsDriver):
                         raise SocketTypeError(f"Unrecognized socket type {socket_type}.")
                 except Exception as e:
                     raise PeersConnectionError(f"Driver cannot connect to {peer_name}! Due to {str(e)}")
+
+    def disconnect(self, peers_address_dict: Dict[str, Dict[str, str]]):
+        for peer_name, address_dict in peers_address_dict.items():
+            for socket_type, address in address_dict.items():
+                try:
+                    if int(socket_type) == zmq.PULL:
+                        self._unicast_sender_dict[peer_name].disconnect(address)
+                        del self._unicast_sender_dict[peer_name]
+                    elif int(socket_type) == zmq.SUB:
+                        pass
+                    else:
+                        raise SocketTypeError(f"Unrecognized socket type {socket_type}.")
+                except Exception as e:
+                    raise PeersDisconnectionError(f"Driver cannot disconnect to {peer_name}! Due to {str(e)}")
+
+            self._logger.warn(f"Disconnected with {peer_name}.")
 
     def receive(self, is_continuous: bool = True):
         """Receive message from ``zmq.POLLER``.

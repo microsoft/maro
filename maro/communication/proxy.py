@@ -6,10 +6,11 @@ from collections import defaultdict, namedtuple
 from enum import Enum
 import itertools
 import json
+import os
 import sys
 import signal
 import time
-from typing import List, Dict, Union
+from typing import List, Tuple, Dict, Union
 import uuid
 
 # third party lib
@@ -18,7 +19,7 @@ import redis
 # private lib
 from maro.communication import DriverType, ZmqDriver
 from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
-from maro.communication.utils import default_parameters
+from maro.communication.utils import default_parameters, peers_checker
 from maro.utils import InternalLogger, DummyLogger
 from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
     InformationUncompletedError
@@ -31,6 +32,8 @@ MAX_RETRIES = default_parameters.proxy.redis.max_retries
 BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
 FAULT_TOLERANT = default_parameters.proxy.fault_tolerant
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
+PEER_UPDATE_FREQUENCY = default_parameters.proxy.peers_update_frequency
+DYNAMIC_PEER = default_parameters.proxy.dynamic_peer        # only enable at real k8s cluster or grass cluster 
 
 
 class Proxy:
@@ -57,13 +60,17 @@ class Proxy:
     def __init__(self, group_name: str, component_type: str, expected_peers: dict,
                  driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
                  redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
-                 base_retry_interval: float = BASE_RETRY_INTERVAL,
-                 fault_tolerant: bool = FAULT_TOLERANT, log_enable: bool = True):
+                 base_retry_interval: float = BASE_RETRY_INTERVAL, peer_update_frequency: int = PEER_UPDATE_FREQUENCY, 
+                 fault_tolerant: bool = FAULT_TOLERANT, dynamic_peer: bool = DYNAMIC_PEER, 
+                 log_enable: bool = True):
         self._group_name = group_name
         self._component_type = component_type
         self._redis_hash_name = f"{self._group_name}:{self._component_type}"
-        unique_id = str(uuid.uuid1()).replace("-", "")
-        self._name = f"{self._component_type}_proxy_{unique_id}"
+        if os.getenv("component_name"):
+            self._name = os.getenv("component_name")
+        else:
+            unique_id = str(uuid.uuid1()).replace("-", "")
+            self._name = f"{self._component_type}_proxy_{unique_id}"
         self._driver_type = driver_type
         self._driver_parameters = driver_parameters
         self._max_retries = max_retries
@@ -82,15 +89,27 @@ class Proxy:
         for peer_type, number in expected_peers.items():
             self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
                                                           expected_number=number)
+        self._peers_socket_dict = defaultdict(dict)
+
         # Record connected peers' name.
         self._onboard_peers_name_dict = {}
+        
         # Temporary store the message.
         self._message_cache = defaultdict(list)
+
+        # Parameters for dynamic peers
+        self._is_dynamic_peer = dynamic_peer
+        self._peer_update_frequency = peer_update_frequency
+        # variable for dynamic peers
+        self._exited_peer_dict = defaultdict(list)
+        self._message_cache_for_exited_peers = defaultdict(list)
 
         self._join()
 
     def _signal_handler(self, signum, frame):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
+        if self._is_dynamic_peer:
+            self._redis_connection.hdel("component-container-mapping", self._name)
         self._logger.critical(f"{self._name} received Signal: {signum} at frame: {frame}")
         sys.exit(signum)
 
@@ -107,8 +126,15 @@ class Proxy:
         # TODO: Handle slow joiner for PUB/SUB.
         time.sleep(DELAY_FOR_SLOW_JOINER)
 
+        # Build component-container-mapping for dynamic component in k8s/grass cluster
+        if self._is_dynamic_peer:
+            container_id = os.getenv("container_id")
+            self._redis_connection.hset("component-container-mapping", self._name, json.dumps(container_id))
+
     def __del__(self):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
+        if self._is_dynamic_peer:
+            self._redis_connection.hdel("component-container-mapping", self._name)
 
     def _register_redis(self):
         """Self-registration on Redis and driver initialization.
@@ -165,20 +191,21 @@ class Proxy:
 
             self._onboard_peers_name_dict[peer_type] = expected_peers_name
 
+        self._onboard_peers_lifetime = time.time()
+
     def _build_connection(self):
-        """Grabbing all peers' address from Redis, and connect all peers in driver."""
-        peers_socket_dict = {}
+        """Grabbing all peers' address from Redis, and connect all peers in driver. """
         for peer_type, name_list in self._onboard_peers_name_dict.items():
             try:
                 peers_socket_value = self._redis_connection.hmget(self._peers_info_dict[peer_type].hash_table_name,
                                                                   name_list)
                 for idx, peer_name in enumerate(name_list):
-                    peers_socket_dict[peer_name] = json.loads(peers_socket_value[idx])
+                    self._peers_socket_dict[peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
             except Exception as e:
                 raise InformationUncompletedError(f"{self._name} failed to get {name_list}\'s address. Due to {str(e)}")
 
-        self._driver.connect(peers_socket_dict)
+        self._driver.connect(self._peers_socket_dict)
 
     @property
     def group_name(self) -> str:
@@ -254,16 +281,10 @@ class Proxy:
                                      session_id=session_id,
                                      payload=payload,
                                      session_type=session_type)
-            sending_status = self._driver.send(message)
+            session_id_list.append(self.isend(message))
 
-            if not sending_status:
-                session_id_list.append(message.session_id)
-            elif sending_status and self._is_enable_fault_tolerant:
-                self._logger.warn(
-                    f"{self._name} failure to send message to {message.destination}, as {str(sending_status)}")
-            else:
-                raise sending_status
-
+        # Flatten.
+        session_id_list = list(itertools.chain.from_iterable(session_id_list))
         return session_id_list
 
     def scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
@@ -300,6 +321,7 @@ class Proxy:
         """
         return self._scatter(tag, session_type, destination_payload_list, session_id)
 
+    @peers_checker
     def _broadcast(self, tag: Union[str, Enum], session_type: SessionType,
                    session_id: str = None, payload=None) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
@@ -315,7 +337,7 @@ class Proxy:
         if not broadcast_status:
             return [message.session_id] * \
                    len(list(itertools.chain.from_iterable(self._onboard_peers_name_dict.values())))
-        elif broadcast_status and self._is_enable_fault_tolerant:
+        elif broadcast_status and self._is_dynamic_peer:
             self._logger.warn(f"{self._name} failure to broadcast message to any peers, as {str(broadcast_status)}")
         else:
             raise broadcast_status
@@ -350,6 +372,7 @@ class Proxy:
         """
         return self._broadcast(tag, session_type, session_id, payload)
 
+    @peers_checker
     def isend(self, message: Message) -> List[str]:
         """Send a message to a remote peer.
 
@@ -363,12 +386,13 @@ class Proxy:
 
         if not sending_status:
             return [message.session_id]
-        elif sending_status and self._is_enable_fault_tolerant:
+        elif sending_status and self._is_dynamic_peer:
             self._logger.warn(
                 f"{self._name} failure to send message to {message.destination}, as {str(sending_status)}")
         else:
             raise sending_status
 
+    @peers_checker
     def send(self, message: Message) -> List[Message]:
         """Send a message to a remote peer.
 
@@ -382,7 +406,7 @@ class Proxy:
 
         if not sending_status:
             return self.receive_by_id([message.session_id])
-        elif sending_status and self._is_enable_fault_tolerant:
+        elif sending_status and self._is_dynamic_peer:
             self._logger.warn(
                 f"{self._name} failure to send message to {message.destination}, as {str(sending_status)}")
         else:
@@ -434,3 +458,36 @@ class Proxy:
                                          payload=payload if payload else received_message.payload,
                                          session_stage=received_message.session_stage)
         return self.isend(forward_message)
+    
+    def _check_peers_update(self):
+        for peer_type, on_board_peer_name_list in self._onboard_peers_name_dict.items():
+            on_redis_peers_dict = json.loads(
+                self._redis_connection.hgetall(self._peers_info_dict[peer_type].hash_table_name))
+            on_board_peers_dict = {onboard_peer_name: self._peers_socket_dict[onboard_peer_name] for onboard_peer_name in on_board_peer_name_list}
+            
+            if on_board_peers_dict != on_redis_peers_dict:
+                self._exited_peer_dict[peer_type] = []
+                for peer_name, socket_info in on_redis_peers_dict:
+                    # New peer joined.
+                    if peer_name not in on_board_peers_dict.keys():
+                        self._driver.connect({peer_name: peers_socket_value})
+                        self._peers_socket_dict[peer_name] = peers_socket_value
+                        # TODO: sending messages to rejoin peers. How to handler reply.
+                        if peer_name in self._message_cache_for_exited_peers.keys():
+                            self._send_message_cache()
+                    else:
+                        # Old peer restarted.
+                        if socket_info != on_board_peers_dict[peer_name]:
+                            self._driver.disconnect({peer_name: on_board_peers_dict[peer_name]})
+                            self._driver.connect({peer_name: socket_info})
+                            self._peers_socket_dict[peer_name] = socket_info
+
+                # Onboard peer exited.
+                exited_peers = [peer_name for peer_name in on_board_peers_dict.keys() if peer_name not in on_redis_peers_dict.keys()]
+                for exited_peer in exited_peers:
+                    self._driver.disconnect({exited_peer: on_board_peers_dict[exited_peer]})
+                    del self._peers_socket_dict[exited_peer]
+                    self._exited_peer_dict[peer_type].append(exited_peer)
+
+                # update peer dict
+                self._onboard_peers_name_dict[peer_type] = list(on_redis_peers_dict.keys())

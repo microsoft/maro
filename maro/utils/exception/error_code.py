@@ -15,6 +15,8 @@ ERROR_CODE = {
     1007: "Message Session Type Error",
     1008: "Conditional Event Syntax Error",
     1009: "Driver Type Error",
+    1010: "Socket Type Error",
+    1011: "Peers Disconnection Error",
 
     # data lib
     2000: "Meta does not contain timestamp field",
