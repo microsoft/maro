@@ -16,8 +16,8 @@ if __name__ == "__main__":
     config = load_config(config_pth)
 
     # generate log path.
-    date_str = f"{datetime.datetime.now().strftime("%Y%m%d")}"
-    time_str = f"{datetime.datetime.now().strftime("%H%M%S.%f")}"
+    date_str = datetime.datetime.now().strftime("%Y%m%d")
+    time_str = datetime.datetime.now().strftime("%H%M%S.%f")
     subfolder_name = "%s_%s"%(config.env.param.topology, time_str)
 
     # log path.
