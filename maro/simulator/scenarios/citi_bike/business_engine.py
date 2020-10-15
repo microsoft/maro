@@ -136,16 +136,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     def get_event_payload_detail(self) -> dict:
         """dict: Event payload details of current scenario."""
-        trip_keys = []
-        with open(f"/home/{getpass.getuser()}/.maro/data/citi_bike/meta/trips.yml", "r") as fp:
-            conf = safe_load(fp)
-            trip_keys = list(conf["entity"].keys())
-
         return {
-            CitiBikeEvents.RequireBike.name: trip_keys,
-            CitiBikeEvents.ReturnBike.name: BikeReturnPayload.key_list,
-            CitiBikeEvents.RebalanceBike.name: DecisionEvent.key_list,
-            CitiBikeEvents.DeliverBike.name: BikeTransferPayload.key_list
+            CitiBikeEvents.RequireBike.name: list(self._trip_reader.meta.columns.keys()),
+            CitiBikeEvents.ReturnBike.name: BikeReturnPayload.summary_key,
+            CitiBikeEvents.RebalanceBike.name: DecisionEvent.summary_key,
+            CitiBikeEvents.DeliverBike.name: BikeTransferPayload.summary_key
         }
 
     def reset(self):
