@@ -106,5 +106,7 @@ class Order:
         self.dest_port_idx = dest_port_idx
 
     def __repr__(self):
-        return f"Order {{tick:{self.tick}, source port: {self.src_port_idx}, dest port: \
-         {self.dest_port_idx} quantity: {self.quantity}}}"
+        return (
+            f"Order {{tick:{self.tick}, source port: {self.src_port_idx}, "
+            f"dest port: {self.dest_port_idx} quantity: {self.quantity}}}"
+        )

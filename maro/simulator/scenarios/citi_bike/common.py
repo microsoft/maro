@@ -59,8 +59,9 @@ class DecisionEvent:
 
     key_list = ["station_idx", "tick", "frame_index", "type", "action_scope"]
 
-    def __init__(self, station_idx: int, tick: int,
-                 frame_index: int, action_scope_func: callable, decision_type: DecisionType):
+    def __init__(
+        self, station_idx: int, tick: int, frame_index: int, action_scope_func: callable, decision_type: DecisionType
+    ):
         self.station_idx = station_idx
         self.tick = tick
         self.frame_index = frame_index

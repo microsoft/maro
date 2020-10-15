@@ -126,8 +126,10 @@ class DecisionEvent:
     """
     key_list = ["tick", "port_idx", "vessel_idx", "snapshot_list", "action_scope", "early_discharge"]
 
-    def __init__(self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
-                 action_scope_func, early_discharge_func):
+    def __init__(
+        self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
+        action_scope_func, early_discharge_func
+    ):
         self.tick = tick
         self.port_idx = port_idx
         self.vessel_idx = vessel_idx
