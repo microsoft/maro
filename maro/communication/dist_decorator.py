@@ -17,6 +17,7 @@ def dist(proxy: Proxy, handler_dict: {object: Callable}):
     def dist_decorator(cls):
         class Wrapper:
             """A wrapper class for ``cls``, the class to be decorated.
+
             It contains a reference to the ``proxy`` and a ``message handler`` lookup table and defines a launch method
             as the universal entry point for running a ``cls`` instance in distributed mode.
             """

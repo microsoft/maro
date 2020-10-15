@@ -16,9 +16,9 @@ def peers_checker(func):
                 peer_name = message.destination
                 peer_type = peer_name.split("_proxy_")[0]
 
-                if peer_name in self._exited_peer_dict[peer_type]:            
-                    self._message_cache_for_exited_peers[peer_name].append(value)
-        
+                if peer_name in self._exited_peer_dict[peer_type]:
+                    self._message_cache_for_exited_peers[peer_name].append(message)
+
         return func(self, *args, **kwargs)
-    
+
     return wrapper

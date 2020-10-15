@@ -33,7 +33,7 @@ BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
 FAULT_TOLERANT = default_parameters.proxy.fault_tolerant
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 PEER_UPDATE_FREQUENCY = default_parameters.proxy.peers_update_frequency
-DYNAMIC_PEER = default_parameters.proxy.dynamic_peer        # only enable at real k8s cluster or grass cluster 
+DYNAMIC_PEER = default_parameters.proxy.dynamic_peer        # only enable at real k8s cluster or grass cluster
 
 
 class Proxy:
@@ -60,8 +60,8 @@ class Proxy:
     def __init__(self, group_name: str, component_type: str, expected_peers: dict,
                  driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
                  redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
-                 base_retry_interval: float = BASE_RETRY_INTERVAL, peer_update_frequency: int = PEER_UPDATE_FREQUENCY, 
-                 fault_tolerant: bool = FAULT_TOLERANT, dynamic_peer: bool = DYNAMIC_PEER, 
+                 base_retry_interval: float = BASE_RETRY_INTERVAL, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
+                 fault_tolerant: bool = FAULT_TOLERANT, dynamic_peer: bool = DYNAMIC_PEER,
                  log_enable: bool = True):
         self._group_name = group_name
         self._component_type = component_type
@@ -93,7 +93,7 @@ class Proxy:
 
         # Record connected peers' name.
         self._onboard_peers_name_dict = {}
-        
+
         # Temporary store the message.
         self._message_cache = defaultdict(list)
 
@@ -458,20 +458,21 @@ class Proxy:
                                          payload=payload if payload else received_message.payload,
                                          session_stage=received_message.session_stage)
         return self.isend(forward_message)
-    
+
     def _check_peers_update(self):
         for peer_type, on_board_peer_name_list in self._onboard_peers_name_dict.items():
             on_redis_peers_dict = json.loads(
                 self._redis_connection.hgetall(self._peers_info_dict[peer_type].hash_table_name))
-            on_board_peers_dict = {onboard_peer_name: self._peers_socket_dict[onboard_peer_name] for onboard_peer_name in on_board_peer_name_list}
-            
+            on_board_peers_dict = {onboard_peer_name: self._peers_socket_dict[onboard_peer_name]
+                                   for onboard_peer_name in on_board_peer_name_list}
+
             if on_board_peers_dict != on_redis_peers_dict:
                 self._exited_peer_dict[peer_type] = []
                 for peer_name, socket_info in on_redis_peers_dict:
                     # New peer joined.
                     if peer_name not in on_board_peers_dict.keys():
-                        self._driver.connect({peer_name: peers_socket_value})
-                        self._peers_socket_dict[peer_name] = peers_socket_value
+                        self._driver.connect({peer_name: socket_info})
+                        self._peers_socket_dict[peer_name] = socket_info
                         # TODO: sending messages to rejoin peers. How to handler reply.
                         if peer_name in self._message_cache_for_exited_peers.keys():
                             self._send_message_cache()
@@ -483,7 +484,8 @@ class Proxy:
                             self._peers_socket_dict[peer_name] = socket_info
 
                 # Onboard peer exited.
-                exited_peers = [peer_name for peer_name in on_board_peers_dict.keys() if peer_name not in on_redis_peers_dict.keys()]
+                exited_peers = [peer_name for peer_name in on_board_peers_dict.keys()
+                                if peer_name not in on_redis_peers_dict.keys()]
                 for exited_peer in exited_peers:
                     self._driver.disconnect({exited_peer: on_board_peers_dict[exited_peer]})
                     del self._peers_socket_dict[exited_peer]
