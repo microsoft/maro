@@ -1,6 +1,5 @@
 import ast
 import io
-import math
 import numpy as np
 import random
 import os
@@ -10,7 +9,6 @@ import yaml
 from collections import defaultdict, OrderedDict
 
 import torch
-from torch.optim.lr_scheduler import LambdaLR
 
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action
@@ -33,12 +31,6 @@ def compute_v2p_degree_matrix(env):
     return adj_matrix
 
 
-def warm_up_lr(opt, warmup_steps):
-    warm_up = lambda ep: math.pow(warmup_steps, 0.5) * min(math.pow(ep + 1, -0.5), math.pow(warmup_steps, -1.5) *
-                            (ep + 1))
-    return LambdaLR(opt, warm_up)
-
-
 def from_numpy(device, *np_values):
     return [torch.from_numpy(v).to(device) for v in np_values]
 
@@ -57,8 +49,8 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     seq_len, batch, v_cnt, v_dim = v.shape
     _, _, p_cnt, p_dim = p.shape
 
-    p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = from_numpy(device, p, po, pedge,
-                                                                    v, vo, vedge, p2p, ppedge, seq_mask)
+    p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = from_numpy(
+        device, p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask)
 
     batch_range = torch.arange(batch, dtype=torch.long).to(device)
     # vadj.shape: (batch*v_cnt, p_cnt*)
@@ -161,8 +153,8 @@ def decision_cnt_analysis(env, pv=False, buffer_size=8):
 
 
 def random_shortage(env, tick, action_dim=21):
-    zero_idx = action_dim // 2
-    r, pa, is_done = env.step(None)
+    # zero_idx = action_dim // 2
+    _, pa, is_done = env.step(None)
     node_cnt = len(env.summary["node_mapping"]["ports"])
     while not is_done:
         """
@@ -179,12 +171,12 @@ def random_shortage(env, tick, action_dim=21):
     shs = env.snapshot_list["ports"][tick - 1:list(range(node_cnt)):"acc_shortage"]
     fus = env.snapshot_list["ports"][tick - 1:list(range(node_cnt)):"acc_fulfillment"]
     env.reset()
-    return fus - shs, np.sum(shs+fus)
+    return fus - shs, np.sum(shs + fus)
 
 
 def return_scaler(env, tick, gamma, action_dim=21):
     R, tot_amount = random_shortage(env, tick, action_dim)
-    Rs_mean = np.mean(R) / tick / (1-gamma)
+    Rs_mean = np.mean(R) / tick / (1 - gamma)
     return abs(1.0 / Rs_mean), tot_amount
 
 
@@ -232,8 +224,8 @@ def fix_seed(env, seed):
 
 def zero_play(**args):
     env = Env(**args)
-    static_mapping = env.node_name_mapping["static"]
-    r, pa, is_done = env.step(None)
+    # static_mapping = env.node_name_mapping["static"]
+    _, pa, is_done = env.step(None)
     while not is_done:
         action = Action(pa.vessel_idx, pa.port_idx, 0)
         r, pa, is_done = env.step(action)
@@ -244,10 +236,10 @@ def regularize_config(config):
     def parse_value(v):
         try:
             return int(v)
-        except:
+        except ValueError:
             try:
                 return float(v)
-            except:
+            except ValueError:
                 if v == "false" or v == "False":
                     return False
                 elif v == "true" or v == "True":

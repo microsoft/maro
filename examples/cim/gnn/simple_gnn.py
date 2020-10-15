@@ -82,7 +82,7 @@ class SimpleGATLayer(nn.Module):
 
         self.zero_padding_template = torch.zeros((1, src_dim), dtype=torch.float)
 
-    def forward(self, src: Tensor, dest: Tensor, adj: Tensor, mask: Tensor, edges: Tensor=None):
+    def forward(self, src: Tensor, dest: Tensor, adj: Tensor, mask: Tensor, edges: Tensor = None):
         """Information aggregation from the source nodes to the destination nodes.
 
         Args:
@@ -122,8 +122,9 @@ class SimpleGATLayer(nn.Module):
         if edges is not None:
             src_embedding = torch.cat((src_embedding, edges), axis=2)
 
-        src_input = self.src_pre_layer(src_embedding.reshape(-1, src_dim + self.edge_dim)). \
-                                        reshape(*src_embedding.shape[:2], self.hidden_size)
+        src_input = self.src_pre_layer(
+            src_embedding.reshape(-1, src_dim + self.edge_dim)). \
+            reshape(*src_embedding.shape[:2], self.hidden_size)
         dest_input = self.dest_pre_layer(dest.reshape(-1, dest_dim)).reshape(1, batch * d_cnt, self.hidden_size)
         dest_emb, _ = self.att(dest_input, src_input, src_input, key_padding_mask=mask)
 
@@ -157,15 +158,17 @@ class SimpleTransformer(nn.Module):
                 pl.append(SimpleGATLayer(v_dim, p_dim, edge_dim["v"], self.hidden_size, nhead=4))
                 vl.append(SimpleGATLayer(p_dim, v_dim, edge_dim["v"], self.hidden_size, nhead=4))
                 # p2p links
-                ppl.append(SimpleGATLayer(p_dim, p_dim, edge_dim["p"], self.hidden_size, nhead=4,
-                                            position_encoding=False))
+                ppl.append(
+                    SimpleGATLayer(
+                        p_dim, p_dim, edge_dim["p"], self.hidden_size, nhead=4, position_encoding=False)
+                )
             else:
                 pl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4))
                 if i != layer_num - 1:
                     # p2v conv is not necessary at the last layer, for we only use port features
                     vl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4))
-                ppl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4,
-                                            position_encoding=False))
+                ppl.append(SimpleGATLayer(
+                    self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4, position_encoding=False))
         self.p_layers = nn.ModuleList(pl)
         self.v_layers = nn.ModuleList(vl)
         self.pp_layers = nn.ModuleList(ppl)
@@ -187,10 +190,10 @@ class SimpleTransformer(nn.Module):
             # only feed edge info in the first layer
             p = self.p_layers[i](pre_v, pre_p, adj=pe["adj"], edges=pe["edge"] if i == 0 else None, mask=pe["mask"])
             if i != self.layer_num - 1:
-                v = self.v_layers[i](pre_p, pre_v, adj=ve["adj"], edges=ve["edge"] if i == 0 else None,
-                                    mask=ve["mask"])
-            pp = self.pp_layers[i](pre_pp, pre_pp, adj=ppe["adj"],
-                                    edges=ppe["edge"] if i == 0 else None, mask=ppe["mask"])
+                v = self.v_layers[i](
+                    pre_p, pre_v, adj=ve["adj"], edges=ve["edge"] if i == 0 else None, mask=ve["mask"])
+            pp = self.pp_layers[i](
+                pre_pp, pre_pp, adj=ppe["adj"], edges=ppe["edge"] if i == 0 else None, mask=ppe["mask"])
             pre_p, pre_v, pre_pp = p, v, pp
         p = torch.cat((p, pp), axis=2)
         return p, v
@@ -252,8 +255,9 @@ class SharedAC(nn.Module):
     as a critic layer, which are the two MLPs with residual connections.
     """
 
-    def __init__(self, input_dim_p, edge_dim_p, input_dim_v, edge_dim_v, tick_buffer, action_dim, a=True, c=True,
-                    scale=4, ac_head="res"):
+    def __init__(
+            self, input_dim_p, edge_dim_p, input_dim_v, edge_dim_v, tick_buffer, action_dim, a=True, c=True,
+            scale=4, ac_head="res"):
         super().__init__()
         assert(a or c)
         self.a, self.c = a, c
@@ -262,14 +266,16 @@ class SharedAC(nn.Module):
         self.tick_buffer = tick_buffer
 
         self.pre_dim_v, self.pre_dim_p = 8 * scale, 16 * scale
-        self.p_pre_layer = nn.Sequential(nn.Linear(input_dim_p, self.pre_dim_p), GeLU(),
-                                            PositionalEncoder(d_model=self.pre_dim_p, max_seq_len=tick_buffer))
-        self.v_pre_layer = nn.Sequential(nn.Linear(input_dim_v, self.pre_dim_v), GeLU(),
-                                            PositionalEncoder(d_model=self.pre_dim_v, max_seq_len=tick_buffer))
-        p_encoder_layer = TransformerEncoderLayer(d_model=self.pre_dim_p, nhead=4, activation="gelu",
-                                            dim_feedforward=self.pre_dim_p * 4)
-        v_encoder_layer = TransformerEncoderLayer(d_model=self.pre_dim_v, nhead=2, activation="gelu",
-                                            dim_feedforward=self.pre_dim_v * 4)
+        self.p_pre_layer = nn.Sequential(
+            nn.Linear(input_dim_p, self.pre_dim_p), GeLU(), PositionalEncoder(
+                d_model=self.pre_dim_p, max_seq_len=tick_buffer))
+        self.v_pre_layer = nn.Sequential(
+            nn.Linear(input_dim_v, self.pre_dim_v), GeLU(), PositionalEncoder(
+                d_model=self.pre_dim_v, max_seq_len=tick_buffer))
+        p_encoder_layer = TransformerEncoderLayer(
+            d_model=self.pre_dim_p, nhead=4, activation="gelu", dim_feedforward=self.pre_dim_p * 4)
+        v_encoder_layer = TransformerEncoderLayer(
+            d_model=self.pre_dim_v, nhead=2, activation="gelu", dim_feedforward=self.pre_dim_v * 4)
         # self.trans_layer_p = TransformerEncoder(p_encoder_layer, num_layers=3, norm=Norm(self.pre_dim_p))
         # self.trans_layer_v = TransformerEncoder(v_encoder_layer, num_layers=3, norm=Norm(self.pre_dim_v))
         self.trans_layer_p = TransformerEncoder(p_encoder_layer, num_layers=3)
@@ -289,10 +295,10 @@ class SharedAC(nn.Module):
         if a:
             self.policy_hidden_size = 16 * scale
             self.a_input = 3 * self.gnn_output_size // 2
-            self.actor = nn.Sequential(Header(self.a_input, self.policy_hidden_size, action_dim, ac_head),
-                                        nn.Softmax(dim=-1))
+            self.actor = nn.Sequential(
+                Header(self.a_input, self.policy_hidden_size, action_dim, ac_head), nn.Softmax(dim=-1))
         if c:
-            self.value_hidden_size = 16*scale
+            self.value_hidden_size = 16 * scale
             self.c_input = self.gnn_output_size
             self.critic = Header(self.c_input, self.value_hidden_size, 1, ac_head)
 
@@ -331,7 +337,7 @@ class SharedAC(nn.Module):
         if a and self.a:
             ap = emb_p.reshape(bsize, p_cnt, self.gnn_output_size)
             ap = ap[:, p_idx, :]
-            av = emb_v.reshape(bsize, v_cnt, self.gnn_output_size//2)
+            av = emb_v.reshape(bsize, v_cnt, self.gnn_output_size // 2)
             av = av[:, v_idx, :]
             emb_a = torch.cat((ap, av), axis=1)
             a_rtn = self.actor(emb_a)

@@ -71,8 +71,10 @@ class NumpyStore(AbsStore):
         """
         super().__init__()
         self.domain_type_dict = dict(domain_type_dict)
-        self.store = {key: np.zeros(shape=(capacity, *shape) if batch_first else (shape[0], capacity, *shape[1:]),
-                        dtype=data_type) for key, (shape, data_type, batch_first) in domain_type_dict.items()}
+        self.store = {
+            key: np.zeros(
+                shape=(capacity, *shape) if batch_first else (shape[0], capacity, *shape[1:]), dtype=data_type)
+            for key, (shape, data_type, batch_first) in domain_type_dict.items()}
         self.batch_first_store = {key: batch_first for key, (_, _, batch_first) in domain_type_dict.items()}
 
         self.cnt = 0

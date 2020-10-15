@@ -37,6 +37,3 @@ class DiscreteActionShaper(ActionShaper):
         env_action = int(env_action)
 
         return env_action
-
-
-

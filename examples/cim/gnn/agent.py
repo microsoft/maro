@@ -1,4 +1,3 @@
-import time
 from collections import defaultdict
 
 import numpy as np
@@ -15,14 +14,14 @@ class TrainableAgent(AbsAgent):
 
     def train(self, training_config):
         loss_dict = defaultdict(list)
-        loss_rt = defaultdict(float)
+        # loss_rt = defaultdict(float)
         # for code, exp_pool in experience_pool_dict.items():
         for j in range(training_config.shuffle_time):
             shuffler = Shuffler(self._experience_pool, batch_size=training_config.batch_size)
             while shuffler.has_next():
                 batch = shuffler.next()
-                actor_loss, critic_loss, entropy_loss, tot_loss = self._algorithm.train(batch, self._name[0],
-                        self._name[1])
+                actor_loss, critic_loss, entropy_loss, tot_loss = self._algorithm.train(
+                    batch, self._name[0], self._name[1])
                 loss_dict["actor"].append(actor_loss)
                 loss_dict["critic"].append(critic_loss)
                 loss_dict["entropy"].append(entropy_loss)
@@ -32,11 +31,9 @@ class TrainableAgent(AbsAgent):
         c_loss = np.mean(loss_dict["critic"])
         e_loss = np.mean(loss_dict["entropy"])
         tot_loss = np.mean(loss_dict["tot"])
-        self._logger.debug("code: %s \t actor: %f \t critic: %f \t entropy: %f \t tot: %f"%(str(self._name),
-                                                                                            float(a_loss),
-                                                                                            float(c_loss),
-                                                                                            float(e_loss),
-                                                                                            float(tot_loss)))
+        self._logger.debug(
+            "code: %s \t actor: %f \t critic: %f \t entropy: %f \t tot: %f" % (
+                str(self._name), float(a_loss), float(c_loss), float(e_loss), float(tot_loss)))
 
         self._experience_pool.clear()
         return loss_dict

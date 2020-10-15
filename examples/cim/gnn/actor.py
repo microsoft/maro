@@ -70,6 +70,7 @@ def organize_exp_list(experience_collections: dict, idx_mapping: dict):
         tmpi += 1
     return result
 
+
 def organize_obs(obs, idx, exp_len):
     """Helper function to transform the observation from multiple processes to a unified dictionary. """
     tick_buffer, _, para_cnt, v_cnt, v_dim = obs["v"].shape
@@ -118,18 +119,19 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         list(env.summary["node_mapping"]["vessels"].values())
     # create gnn_state_shaper without consuming any resources
 
-    gnn_state_shaper = GNNStateShaper(static_code_list, dynamic_code_list, config.env.param.durations,
-                                        config.model.feature, tick_buffer=config.model.tick_buffer,
-                                        max_value=env.configs["total_containers"])
+    gnn_state_shaper = GNNStateShaper(
+        static_code_list, dynamic_code_list, config.env.param.durations, config.model.feature,
+        tick_buffer=config.model.tick_buffer, max_value=env.configs["total_containers"])
     gnn_state_shaper.compute_static_graph_structure(env)
 
     action_io_np = action_io.structuralize()
 
     action_shaper = DiscreteActionShaper(config.model.action_dim)
-    exp_shaper = ExperienceShaper(static_code_list, dynamic_code_list, config.env.param.durations, gnn_state_shaper,
-                                    scale_factor=config.env.return_scaler, time_slot=config.training.td_steps,
-                                    discount_factor=config.training.gamma, idx=index,
-                                    shared_storage=exp_output.structuralize(), exp_idx_mapping=exp_idx_mapping)
+    exp_shaper = ExperienceShaper(
+        static_code_list, dynamic_code_list, config.env.param.durations, gnn_state_shaper,
+        scale_factor=config.env.return_scaler, time_slot=config.training.td_steps,
+        discount_factor=config.training.gamma, idx=index, shared_storage=exp_output.structuralize(),
+        exp_idx_mapping=exp_idx_mapping)
 
     i = 0
     while pipe.recv() == "reset":
@@ -154,7 +156,8 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             model_action = pipe.recv()
             env_action = action_shaper(decision_event, model_action)
             exp_shaper.record(pending_action=decision_event, model_action=model_action, model_input=model_input)
-            logs.append([index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action,
+            logs.append([
+                index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action,
                 env_action, decision_event.action_scope.load, decision_event.action_scope.discharge])
             action = Action(decision_event.vessel_idx, decision_event.port_idx, env_action)
             r, decision_event, is_done = env.step(action)
@@ -205,10 +208,10 @@ class ParallelActor(AbsActor):
         self.device = torch.device(config.training.device)
 
         self.parallel_cnt = config.training.parallel_cnt
-        self.log_header = ["sh_%d"%i for i in range(self.parallel_cnt)]
+        self.log_header = ["sh_%d" % i for i in range(self.parallel_cnt)]
 
         tick_buffer = config.model.tick_buffer
-        action_dim = config.model.action_dim
+        # action_dim = config.model.action_dim
 
         v_dim, vedge_dim, v_cnt = self._gnn_state_shaper.get_input_dim("v"), \
             self._gnn_state_shaper.get_input_dim("vedge"), len(self._dynamic_node_mapping)
@@ -271,9 +274,12 @@ class ParallelActor(AbsActor):
             self.exp_idx_mapping[key] = acc_c
             acc_c += c
 
-        self.workers = [Process(
-            target=single_player_worker, args=(i, config, self.exp_idx_mapping, self.pipes[i][1],
-                self.action_io, self.exp_output)) for i in range(self.parallel_cnt)]
+        self.workers = [
+            Process(
+                target=single_player_worker,
+                args=(i, config, self.exp_idx_mapping, self.pipes[i][1], self.action_io, self.exp_output)
+            ) for i in range(self.parallel_cnt)
+        ]
         for w in self.workers:
             w.start()
 
@@ -309,18 +315,21 @@ class ParallelActor(AbsActor):
             step_i += 1
 
             t = time.time()
-            graph = gnn_union(self.action_io_np["p"], self.action_io_np["po"], self.action_io_np["pedge"],
+            graph = gnn_union(
+                self.action_io_np["p"], self.action_io_np["po"], self.action_io_np["pedge"],
                 self.action_io_np["v"], self.action_io_np["vo"], self.action_io_np["vedge"],
                 self._gnn_state_shaper.p2p_static_graph, self.action_io_np["ppedge"],
-                self.action_io_np["mask"], self.device)
+                self.action_io_np["mask"], self.device
+            )
             t_state += time.time() - t
 
             assert(np.min(self.action_io_np["pid"]) == np.max(self.action_io_np["pid"]))
             assert(np.min(self.action_io_np["vid"]) == np.max(self.action_io_np["vid"]))
 
             t = time.time()
-            actions = self._inference_agents.choose_action(agent_id=(self.action_io_np["pid"][0],
-                self.action_io_np["vid"][0]), state=graph)
+            actions = self._inference_agents.choose_action(
+                agent_id=(self.action_io_np["pid"][0], self.action_io_np["vid"][0]), state=graph
+            )
             t_action += time.time() - t
 
             for i, p in enumerate(self.pipes):
@@ -336,14 +345,14 @@ class ParallelActor(AbsActor):
 
         self._logger.debug(dict(zip(self.log_header, self.action_io_np["sh"])))
 
-        with open(os.path.join(self.config.log.path, "logs_%d"%self._roll_out_cnt), "wb") as fp:
+        with open(os.path.join(self.config.log.path, "logs_%d" % self._roll_out_cnt), "wb") as fp:
             pickle.dump(logs, fp)
 
         self._logger.info("organize exp_dict")
         result = organize_exp_list(self.exp_output_np, self.exp_idx_mapping)
 
         if self.config.log.exp.enable and self._roll_out_cnt % self.config.log.exp.freq == 0:
-            with open(os.path.join(self.config.log.path, "exp_%d"%self._roll_out_cnt), "wb") as fp:
+            with open(os.path.join(self.config.log.path, "exp_%d" % self._roll_out_cnt), "wb") as fp:
                 pickle.dump(result, fp)
 
         self._logger.debug("play time: %d" % int(self._roll_out_time))
@@ -354,5 +363,3 @@ class ParallelActor(AbsActor):
         """Terminate the child processes. """
         for p in self.pipes:
             p[0].send("close")
-
-

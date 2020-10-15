@@ -4,7 +4,8 @@ import numpy as np
 
 
 class ExperienceShaper:
-    def __init__(self, static_list, dynamic_list, max_tick, gnn_state_shaper, scale_factor=0.0001, time_slot=100,
+    def __init__(
+            self, static_list, dynamic_list, max_tick, gnn_state_shaper, scale_factor=0.0001, time_slot=100,
             discount_factor=0.97, idx=-1, shared_storage=None, exp_idx_mapping=None):
         self._static_list = list(static_list)
         self._dynamic_list = list(dynamic_list)

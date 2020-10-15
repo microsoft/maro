@@ -24,13 +24,9 @@ class ActorCritic(AbsAlgorithm):
         entropy_factor (float): The weight of the policy"s entropy to boost exploration.
     """
 
-    def __init__(self, model: nn.Module,
-                 device: torch.device,
-                    p2p_adj=None,
-                    td_steps=100,
-                    gamma=0.97,
-                    learning_rate=0.0003,
-                    entropy_factor=0.1):
+    def __init__(
+            self, model: nn.Module, device: torch.device, p2p_adj=None, td_steps=100, gamma=0.97, learning_rate=0.0003,
+            entropy_factor=0.1):
         self._gamma = gamma
         self._td_steps = td_steps
         self._value_discount = gamma**100
@@ -38,9 +34,9 @@ class ActorCritic(AbsAlgorithm):
         self._device = device
         self._tot_batchs = 0
         self._p2p_adj = p2p_adj
-        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})},
-                         loss_func_dict={},
-                         hyper_params=None)
+        super().__init__(
+            model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})},
+            loss_func_dict={}, hyper_params=None)
 
     def choose_action(self, state: dict, p_idx: int, v_idx: int):
         """Get action from the AC model.
@@ -107,15 +103,15 @@ class ActorCritic(AbsAlgorithm):
         return_batch = batch["R"]
         next_obs_batch = batch["s_"]
 
-        obs_batch = gnn_union(obs_batch["p"], obs_batch["po"], obs_batch["pedge"], obs_batch["v"],
-                                        obs_batch["vo"], obs_batch["vedge"], self._p2p_adj, obs_batch["ppedge"],
-                                        obs_batch["mask"], self._device)
+        obs_batch = gnn_union(
+            obs_batch["p"], obs_batch["po"], obs_batch["pedge"], obs_batch["v"], obs_batch["vo"], obs_batch["vedge"],
+            self._p2p_adj, obs_batch["ppedge"], obs_batch["mask"], self._device)
         action_batch = torch.from_numpy(action_batch).long().to(self._device)
         return_batch = torch.from_numpy(return_batch).float().to(self._device)
-        next_obs_batch = gnn_union(next_obs_batch["p"], next_obs_batch["po"], next_obs_batch["pedge"],
-                                        next_obs_batch["v"], next_obs_batch["vo"], next_obs_batch["vedge"],
-                                        self._p2p_adj, next_obs_batch["ppedge"], next_obs_batch["mask"],
-                                        self._device)
+        next_obs_batch = gnn_union(
+            next_obs_batch["p"], next_obs_batch["po"], next_obs_batch["pedge"], next_obs_batch["v"],
+            next_obs_batch["vo"], next_obs_batch["vedge"], self._p2p_adj, next_obs_batch["ppedge"],
+            next_obs_batch["mask"], self._device)
 
         # train actor network
         # self._actor_optimizer.zero_grad()

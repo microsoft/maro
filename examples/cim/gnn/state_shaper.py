@@ -18,8 +18,9 @@ class GNNStateShaper(StateShaper):
             shaping(False).
     """
 
-    def __init__(self, port_code_list, vessel_code_list, max_tick, feature_config, max_value=100000,
-                    tick_buffer=20, only_demo=False):
+    def __init__(
+            self, port_code_list, vessel_code_list, max_tick, feature_config, max_value=100000, tick_buffer=20,
+            only_demo=False):
         # collect and encode all ports
         self.port_code_list = list(port_code_list)
         self.port_cnt = len(self.port_code_list)
@@ -40,10 +41,9 @@ class GNNStateShaper(StateShaper):
         self.vessel_one_hot_coding = np.expand_dims(one_hot_coding[self.port_cnt:], axis=0)
         self.last_tick = -1
 
-        self.port_features = ["empty", "full", "capacity",
-                                "on_shipper",
-                                "on_consignee", "booking", "acc_booking", "shortage", "acc_shortage",
-                                "fulfillment", "acc_fulfillment"]
+        self.port_features = [
+            "empty", "full", "capacity", "on_shipper", "on_consignee", "booking", "acc_booking", "shortage",
+            "acc_shortage", "fulfillment", "acc_fulfillment"]
         self.vessel_features = ["empty", "full", "capacity", "remaining_space"]
 
         self._max_tick = max_tick
@@ -138,10 +138,10 @@ class GNNStateShaper(StateShaper):
 
         # one dim features.
         port_naive_feature = snapshot_list["ports"][tick_range: self.port_code_list: self.port_features] \
-                                .reshape(len(tick_range), self.port_cnt, -1)
+            .reshape(len(tick_range), self.port_cnt, -1)
         # number of laden from source to destination.
-        full_on_port = snapshot_list["matrices"][tick_range::"full_on_ports"].reshape(len(tick_range), self.port_cnt,
-                                                                                        self.port_cnt)
+        full_on_port = snapshot_list["matrices"][tick_range::"full_on_ports"].reshape(
+            len(tick_range), self.port_cnt, self.port_cnt)
         # normalize features to a small range.
         # port_state_mat = self.normalize(np.concatenate([port_naive_feature, full_on_port], axis=2))
         port_state_mat = self.normalize(port_naive_feature)
@@ -156,21 +156,21 @@ class GNNStateShaper(StateShaper):
         self._state_dict["p"][tick_range] = port_state_mat
 
         vessel_naive_feature = snapshot_list["vessels"][tick_range:self.vessel_code_list: self.vessel_features] \
-                                    .reshape(len(tick_range), self.vessel_cnt, -1)
-        full_on_vessel = snapshot_list["matrices"][tick_range::"full_on_vessels"].reshape(len(tick_range),
-                                                                                        self.vessel_cnt, self.port_cnt)
+            .reshape(len(tick_range), self.vessel_cnt, -1)
+        full_on_vessel = snapshot_list["matrices"][tick_range::"full_on_vessels"].reshape(
+            len(tick_range), self.vessel_cnt, self.port_cnt)
 
         # vessel_state_mat = self.normalize(np.concatenate([vessel_naive_feature, full_on_vessel], axis=2))
         vessel_state_mat = self.normalize(vessel_naive_feature)
         if self._feature_config.onehot_identity:
-            vessel_state_mat = np.concatenate([vessel_state_mat, np.repeat(self.vessel_one_hot_coding, len(tick_range),
-                                                axis=0)], axis=2)
+            vessel_state_mat = np.concatenate(
+                [vessel_state_mat, np.repeat(self.vessel_one_hot_coding, len(tick_range), axis=0)], axis=2)
         self._state_dict["v"][tick_range] = vessel_state_mat
 
         # last_arrival_time.shape: vessel_cnt * port_cnt
         # -1 means one vessel never stops at the port
-        vessel_arrival_time = snapshot_list["matrices"][tick_range[-1]:: "vessel_plans"].reshape(self.vessel_cnt,
-                                                                                                    self.port_cnt)
+        vessel_arrival_time = snapshot_list["matrices"][tick_range[-1]:: "vessel_plans"].reshape(
+            self.vessel_cnt, self.port_cnt)
         # use infinity time to identify vessels never arrive at the port
         last_arrival_time = vessel_arrival_time + 1
         last_arrival_time[last_arrival_time == 0] = self.max_arrival_time

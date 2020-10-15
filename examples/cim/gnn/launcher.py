@@ -33,8 +33,8 @@ if __name__ == "__main__":
     simulation_logger.info(config.env.exp_per_ep)
 
     # add some buffer to prevent overlapping
-    config.env.return_scaler, tot_order_amount = return_scaler(demo_env, tick=config.env.param.durations,
-                                                                gamma=config.training.gamma)
+    config.env.return_scaler, tot_order_amount = return_scaler(
+        demo_env, tick=config.env.param.durations, gamma=config.training.gamma)
     simulation_logger.info("Return value will be scaled down by the factor %f" % config.env.return_scaler)
 
     save_config(config, os.path.join(config.log.path, "config.yml"))
@@ -45,16 +45,17 @@ if __name__ == "__main__":
 
     # create a mock gnn_state_shaper.
     static_code_list, dynamic_code_list = list(port_mapping.values()), list(vessel_mapping.values())
-    gnn_state_shaper = GNNStateShaper(static_code_list, dynamic_code_list, config.env.param.durations,
-                                        config.model.feature, tick_buffer=config.model.tick_buffer, only_demo=True,
-                                        max_value=demo_env.configs["total_containers"])
+    gnn_state_shaper = GNNStateShaper(
+        static_code_list, dynamic_code_list, config.env.param.durations, config.model.feature,
+        tick_buffer=config.model.tick_buffer, only_demo=True, max_value=demo_env.configs["total_containers"])
     gnn_state_shaper.compute_static_graph_structure(demo_env)
 
     # create and assemble agent_manager
     agent_id_list = list(config.env.exp_per_ep.keys())
     training_logger = Logger(tag="training", dump_folder=config.log.path, dump_mode="w", auto_timestamp=False)
-    agent_manager = SimpleAgentManger("CIM-GNN-manager", agent_id_list, static_code_list, dynamic_code_list, demo_env,
-                                        gnn_state_shaper, training_logger)
+    agent_manager = SimpleAgentManger(
+        "CIM-GNN-manager", agent_id_list, static_code_list, dynamic_code_list, demo_env, gnn_state_shaper,
+        training_logger)
     agent_manager.assemble(config)
 
     """
