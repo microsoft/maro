@@ -437,7 +437,8 @@ class GrassAzureExecutor:
                 'cpu': node_size_to_spec[node_size]['numberOfCores'],
                 'memory': node_size_to_spec[node_size]['memoryInMb'],
                 'gpu': gpu_nums
-            }
+            },
+            'containers': {}
         }
         self.grass_executor.remote_set_node_details(
             node_name=node_name,
@@ -716,8 +717,8 @@ class GrassAzureExecutor:
                 export_path=os.path.expanduser(image_path)
             )
             if self._check_checksum_validity(
-                    local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, image_name)
+                local_file_path=os.path.expanduser(image_path),
+                remote_file_path=os.path.join(images_dir, image_name)
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
@@ -738,8 +739,8 @@ class GrassAzureExecutor:
                 target_dir=image_path
             )
             if self._check_checksum_validity(
-                    local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, new_file_name)
+                local_file_path=os.path.expanduser(image_path),
+                remote_file_path=os.path.join(images_dir, new_file_name)
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
