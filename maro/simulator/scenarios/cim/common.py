@@ -38,6 +38,8 @@ class VesselStatePayload:
         port_idx (int): Which port the vessel at.
         vessel_idx (int): Which vessel's state changed.
     """
+    key_list = ["port_idx", "vessel_idx"]
+
     def __init__(self, port_idx: int, vessel_idx: int):
 
         self.port_idx = port_idx
@@ -56,6 +58,8 @@ class VesselDischargePayload:
         port_idx (int): Which port will receive the discharged containers.
         quantity (int): How many containers will be discharged.
     """
+    key_list = ["vessel_idx", "port_idx", "from_port_idx", "quantity"]
+
     def __init__(self, vessel_idx: int, from_port_idx: int, port_idx: int, quantity: int):
         self.vessel_idx = vessel_idx
         self.from_port_idx = from_port_idx
@@ -74,6 +78,7 @@ class Action:
         port_idx (int): Which port will take action.
         quantity (int): How many containers can be moved from vessel to port (negative in reverse).
     """
+    key_list = ["port_idx", "vessel_idx", "quantity"]
 
     def __init__(self, vessel_idx: int, port_idx: int, quantity: int):
         self.vessel_idx = vessel_idx
@@ -119,6 +124,8 @@ class DecisionEvent:
         early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
             use function here to make it getting the value as late as possible.
     """
+    key_list = ["tick", "port_idx", "vessel_idx", "snapshot_list", "action_scope", "early_discharge"]
+
     def __init__(self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
                  action_scope_func, early_discharge_func):
         self.tick = tick

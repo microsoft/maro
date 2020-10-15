@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import datetime
+import getpass
 import os
 from typing import List
 
@@ -9,6 +10,8 @@ import holidays
 import numpy as np
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
+from yaml import safe_load
+
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.utils import chagne_file_path
@@ -18,7 +21,6 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
-from yaml import safe_load
 
 from .adj_loader import load_adj_from_csv
 from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent
@@ -131,6 +133,20 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         for station in self._stations:
             node_mapping[station.index] = station.id
         return node_mapping
+
+    def get_event_payload_detail(self) -> dict:
+        """dict: Event payload details of current scenario."""
+        trip_keys = []
+        with open(f"/home/{getpass.getuser()}/.maro/data/citi_bike/meta/trips.yml", "r") as fp:
+            conf = safe_load(fp)
+            trip_keys = list(conf["entity"].keys())
+
+        return {
+            CitiBikeEvents.RequireBike.name: trip_keys,
+            CitiBikeEvents.ReturnBike.name: BikeReturnPayload.key_list,
+            CitiBikeEvents.RebalanceBike.name: DecisionEvent.key_list,
+            CitiBikeEvents.DeliverBike.name: BikeTransferPayload.key_list
+        }
 
     def reset(self):
         """Reset internal states for episode."""

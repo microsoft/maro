@@ -88,6 +88,7 @@ class Order:
     """
     Used to hold order information, this is for order generation.
     """
+    key_list = ["tick", "src_port_idx", "dest_port_idx", "quantity"]
 
     def __init__(self, tick: int, src_port_idx: int, dest_port_idx: int, quantity: int):
         """

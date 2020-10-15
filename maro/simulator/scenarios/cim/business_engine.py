@@ -12,7 +12,7 @@ from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
 
-from .common import ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload
+from .common import Action, ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload
 from .frame_builder import gen_cim_frame
 from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
 
@@ -260,6 +260,23 @@ class CimBusinessEngine(AbsBusinessEngine):
         return {
             "ports": self._data_cntr.port_mapping,
             "vessels": self._data_cntr.vessel_mapping
+        }
+
+    def get_event_payload_detail(self) -> dict:
+        """dict: Event payload details of current scenario."""
+        return {
+            CimEventType.ORDER.name: Order.key_list,
+            CimEventType.RELEASE_EMPTY.name: [],    # Never used.
+            CimEventType.RETURN_FULL.name: [],      # Tuple only: (order.src_port_idx, order.dest_port_idx, execute_qty)
+            CimEventType.VESSEL_ARRIVAL.name: VesselStatePayload.key_list,
+            CimEventType.LOAD_FULL.name: VesselStatePayload.key_list,
+            CimEventType.DISCHARGE_FULL.name: VesselDischargePayload.key_list,
+            CimEventType.PENDING_DECISION.name: DecisionEvent.key_list,
+            CimEventType.LOAD_EMPTY.name: Action.key_list,       # From DECISION_EVENT
+            CimEventType.DISCHARGE_EMPTY.name: Action.key_list,  # From DECISION_EVENT
+            CimEventType.VESSEL_DEPARTURE.name: VesselStatePayload.key_list,
+            CimEventType.RELEASE_FULL.name: [],     # Never used.
+            CimEventType.RETURN_EMPTY.name: []      # Tuple only: (discharge_qty, port.idx)
         }
 
     def get_agent_idx_list(self) -> list:

@@ -13,7 +13,7 @@ events:
     display_name: "rebalance_bike"
   DeliverBike:
     display_name: "deliver_bike"
-    
+
   "_default": "RequireBike" # default event type if not event type in column, such as citi_bike scenario, all the rows are trip_requirement, so we do not need to specified event column
 # entity used to specified which columns need to be extracted into binary, and its data type
 # current supported data types are: i, i2, i4, i8, f, d
@@ -24,14 +24,14 @@ entity:
     # Used to specified time zone in source file, converter will convert it into UTC,
     # Defaults to UTC if not specified:
     # name : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    tzone: "America/New_York" 
-  durations: 
+    tzone: "America/New_York"
+  durations:
     column: 'duration'
     dtype: 'i'
-  src_station: 
+  src_station:
     column: 'start_station_index'
     dtype: 'i'
-  dest_station: 
+  dest_station:
     column: 'end_station_index'
     dtype: 'i'
     slot: 1
