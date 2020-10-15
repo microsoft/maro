@@ -8,13 +8,12 @@ from collections import defaultdict, OrderedDict
 import torch
 from torch.optim.lr_scheduler import LambdaLR
 
-from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 from maro.simulator import Env
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
 from maro.utils import convert_dottable, clone
 
 def compute_v2p_degree_matrix(env):
-    """This function compute the adjacent matrix
-    """
+    """This function compute the adjacent matrix. """
     topo_config = env.configs
     static_dict = env.summary["node_mapping"]["ports"]
     dynamic_dict = env.summary["node_mapping"]["vessels"]
@@ -121,8 +120,7 @@ def flatten_embedding(embedding, batch_range, edge=None):
         return ret, edge
 
 def log2json(file_path):
-    """load the log file as a json list.
-    """
+    """load the log file as a json list. """
 
     with open(file_path, "r") as fp:
         lines = fp.read().splitlines()

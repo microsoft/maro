@@ -1,6 +1,7 @@
 import numpy as np
+
 from maro.rl.shaping.state_shaper import StateShaper
-from .utils import compute_v2p_degree_matrix
+from examples.cim.gnn.utils import compute_v2p_degree_matrix
 
 class GNNStateShaper(StateShaper):
     """State shaper to extract graph information.
@@ -88,7 +89,8 @@ class GNNStateShaper(StateShaper):
 
     def sort(self, arrival_time, attr=None):
         """
-        given the arrival time matrix, this function sort the matrix and return the index matrix in the order of arrival time
+        Given the arrival time matrix, this function sort the matrix and return the index matrix in the order of
+        arrival time
         """
         n, m = arrival_time.shape
         if self._feature_config.attention_order == "ramdom":
@@ -128,27 +130,26 @@ class GNNStateShaper(StateShaper):
         self.last_tick = -1
 
     def _sync_raw_features(self, snapshot_list, tick_range, static_code=None, dynamic_code=None):
-        """
-        this function update the state_dict from snapshot_list in the given tick_range
-        """
+        """This function update the state_dict from snapshot_list in the given tick_range. """
         if len(tick_range) == 0:
-            # this occurs when two actions happen at the same tick
+            # this occurs when two actions happen at the same tick.
             return
 
-        # one dim features
+        # one dim features.
         port_naive_feature = snapshot_list["ports"][tick_range: self.port_code_list: self.port_features] \
                                 .reshape(len(tick_range), self.port_cnt, -1)
-        # number of laden from source to destination
-        full_on_port = snapshot_list["matrices"][tick_range::"full_on_ports"].reshape(len(tick_range), self.port_cnt, self.port_cnt)
-        # normalize features to a small range
+        # number of laden from source to destination.
+        full_on_port = snapshot_list["matrices"][tick_range::"full_on_ports"].reshape(len(tick_range), self.port_cnt,
+                                                                                        self.port_cnt)
+        # normalize features to a small range.
         # port_state_mat = self.normalize(np.concatenate([port_naive_feature, full_on_port], axis=2))
         port_state_mat = self.normalize(port_naive_feature)
 
         if self._feature_config.onehot_identity:
-            # add onehot vector to identify port and vessel
+            # add onehot vector to identify port and vessel.
             port_onehot = np.repeat(self.port_one_hot_coding, len(tick_range), axis=0)
             if static_code is not None and dynamic_code is not None:
-                # identify the decision vessel at the decision port
+                # identify the decision vessel at the decision port.
                 # print(dynamic_code, self.node_code_inv_dict_v[dynamic_code])
                 port_onehot[-1, self.port_code_inv_dict[static_code], self.node_code_inv_dict_v[dynamic_code]] = -1
             port_state_mat = np.concatenate([port_state_mat, port_onehot], axis=2)
@@ -156,7 +157,8 @@ class GNNStateShaper(StateShaper):
 
         vessel_naive_feature = snapshot_list["vessels"][tick_range:self.vessel_code_list: self.vessel_features] \
                                     .reshape(len(tick_range), self.vessel_cnt, -1)
-        full_on_vessel = snapshot_list["matrices"][tick_range::"full_on_vessels"].reshape(len(tick_range), self.vessel_cnt, self.port_cnt)
+        full_on_vessel = snapshot_list["matrices"][tick_range::"full_on_vessels"].reshape(len(tick_range),
+                                                                                        self.vessel_cnt, self.port_cnt)
 
         # vessel_state_mat = self.normalize(np.concatenate([vessel_naive_feature, full_on_vessel], axis=2))
         vessel_state_mat = self.normalize(vessel_naive_feature)
@@ -191,7 +193,7 @@ class GNNStateShaper(StateShaper):
         assert((action_info is not None and snapshot_list is not None) or tick is not None)
 
         if action_info is not None and snapshot_list is not None:
-            # update the state dict
+            # update the state dict.
             static_code = action_info.port_idx
             dynamic_code = action_info.vessel_idx
             if self.last_tick == action_info.tick:
@@ -204,7 +206,7 @@ class GNNStateShaper(StateShaper):
             self._sync_raw_features(snapshot_list, tick_range, static_code, dynamic_code)
             tick = action_info.tick
 
-        # state_tick_range is inverse order
+        # state_tick_range is inverse order.
         state_tick_range = np.arange(tick, max(-1, tick-self._tick_buffer), -1)
         # print(state_tick_range)
         v = np.zeros((self._tick_buffer, self.vessel_cnt, self.get_input_dim("v")))
@@ -212,7 +214,7 @@ class GNNStateShaper(StateShaper):
         p = np.zeros((self._tick_buffer, self.port_cnt, self.get_input_dim("p")))
         p[:len(state_tick_range)] = self._state_dict["p"][state_tick_range]
 
-        # true means padding
+        # true means padding.
         mask = np.ones(self._tick_buffer, dtype=np.bool)
         mask[:len(state_tick_range)] = False
         ret = {

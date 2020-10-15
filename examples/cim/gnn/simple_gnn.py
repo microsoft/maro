@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.nn import functional as F
-# lib for transformer
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.nn.modules.activation import MultiheadAttention
 from torch.nn.modules.dropout import Dropout
@@ -28,8 +27,8 @@ class PositionalEncoder(nn.Module):
         self.pe = torch.zeros(max_seq_len, d_model)
         for pos in range(max_seq_len):
             for i in range(0, d_model, 2):
-                self.pe[pos, i] = math.sin(pos / (10000 ** ((2 * i)/d_model)))
-                self.pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1))/d_model)))
+                self.pe[pos, i] = math.sin(pos / (10000 ** ((2 * i) / d_model)))
+                self.pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1)) / d_model)))
 
         self.pe = self.pe.unsqueeze(1)/self.d_model
 
@@ -66,7 +65,7 @@ class SimpleGATLayer(nn.Module):
         self.hidden_size = hidden_size
         self.nhead = nhead
         src_layers = []
-        src_layers.append(nn.Linear(src_dim+edge_dim, hidden_size))
+        src_layers.append(nn.Linear(src_dim + edge_dim, hidden_size))
         src_layers.append(GeLU())
         self.src_pre_layer = nn.Sequential(*src_layers)
 
@@ -185,14 +184,14 @@ class SimpleTransformer(nn.Module):
             p = self.p_layers[i](pre_v, pre_p, adj=pe["adj"], edges=pe["edge"] if i==0 else None, mask=pe["mask"])
             if i != self.layer_num - 1:
                 v = self.v_layers[i](pre_p, pre_v, adj=ve["adj"], edges=ve["edge"] if i==0 else None, mask=ve["mask"])
-            pp = self.pp_layers[i](pre_pp, pre_pp, adj=ppe["adj"], edges=ppe["edge"] if i==0 else None, mask=ppe["mask"])
+            pp = self.pp_layers[i](pre_pp, pre_pp, adj=ppe["adj"],
+                                    edges=ppe["edge"] if i==0 else None, mask=ppe["mask"])
             pre_p, pre_v, pre_pp = p, v, pp
         p = torch.cat((p, pp), axis=2)
         return p, v
 
 class GeLU(nn.Module):
-    """Simple gelu wrapper as a independent module.
-    """
+    """Simple gelu wrapper as a independent module. """
     def __init__(self):
         super().__init__()
 

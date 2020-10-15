@@ -1,4 +1,5 @@
 import multiprocessing
+
 import numpy as np
 
 def init_shared_memory(data_structure):

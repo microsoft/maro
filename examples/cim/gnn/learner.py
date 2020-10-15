@@ -1,11 +1,10 @@
 import time
 import os
 
-from maro.rl import AbsLearner
-from maro.utils import DummyLogger
-
 from examples.cim.gnn.agent_manager import SimpleAgentManger
 from examples.cim.gnn.actor import ParallelActor
+from maro.rl import AbsLearner
+from maro.utils import DummyLogger
 
 class GNNLearner(AbsLearner):
     """Learner class for the training pipeline and the specialized logging in GNN solution for CIM problem.

@@ -1,9 +1,11 @@
-from maro.rl import AbsAgent
-from maro.utils import DummyLogger
 import time
 from collections import defaultdict
-from examples.cim.gnn.numpy_store import Shuffler
+
 import numpy as np
+
+from examples.cim.gnn.numpy_store import Shuffler
+from maro.rl import AbsAgent
+from maro.utils import DummyLogger
 
 class TrainableAgent(AbsAgent):
     def __init__(self, name, algorithm, experience_pool, logger=DummyLogger()):

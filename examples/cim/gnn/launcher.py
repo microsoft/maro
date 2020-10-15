@@ -1,14 +1,13 @@
 import os
 import datetime
 
-from maro.simulator import Env
-from maro.utils import Logger
-
 from examples.cim.gnn.actor import ParallelActor
 from examples.cim.gnn.learner import GNNLearner
 from examples.cim.gnn.state_shaper import GNNStateShaper
 from examples.cim.gnn.utils import decision_cnt_analysis, load_config, save_config, save_code, return_scaler
 from examples.cim.gnn.agent_manager import SimpleAgentManger
+from maro.simulator import Env
+from maro.utils import Logger
 
 
 if __name__ == "__main__":
@@ -58,8 +57,11 @@ if __name__ == "__main__":
                                         gnn_state_shaper, training_logger)
     agent_manager.assemble(config)
 
+    """
+    # currently not support loading model
     if os.path.exists(config.model.path):
         agent_manager.load_models_from(config.model.path)
+    """
 
     # create the rollout actor to collect experience.
     actor = ParallelActor(config, demo_env, gnn_state_shaper, agent_manager, logger=simulation_logger)

@@ -174,8 +174,7 @@ class Shuffler:
         self._batch_size = batch_size
 
     def next(self):
-        """Uniformly sampling out a batch in the store.
-        """
+        """Uniformly sampling out a batch in the store. """
         if self._start >= len(self._store):
             return None
         end = min(self._start + self._batch_size, len(self._store))
@@ -184,6 +183,5 @@ class Shuffler:
         return rst
 
     def has_next(self):
-        """Check if any experience is not visited.
-        """
+        """Check if any experience is not visited. """
         return self._start < len(self._store)

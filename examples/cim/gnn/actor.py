@@ -1,24 +1,23 @@
 import ctypes
 import multiprocessing
-import numpy as np
 import time, os, pickle
 from collections import defaultdict, OrderedDict
 from multiprocessing import Process, Pipe, Event, Manager
 
+import numpy as np
 import torch
-
-from maro.rl import AbsActor
-from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, DecisionEvent
-from maro.utils import Logger, LogFormat, convert_dottable
 
 from examples.cim.gnn.actor_critic import ActorCritic
 from examples.cim.gnn.action_shaper import DiscreteActionShaper
+from examples.cim.gnn.utils import decision_cnt_analysis, compute_v2p_degree_matrix
 from examples.cim.gnn.utils import fix_seed, gnn_union
 from examples.cim.gnn.experience_shaper import ExperienceShaper
 from examples.cim.gnn.state_shaper import GNNStateShaper
 from examples.cim.gnn.shared_structure import SharedStructure
-from examples.cim.gnn.utils import decision_cnt_analysis, compute_v2p_degree_matrix
+from maro.rl import AbsActor
+from maro.simulator import Env
+from maro.simulator.scenarios.cim.common import Action, DecisionEvent
+from maro.utils import Logger, LogFormat, convert_dottable
 
 
 def organize_exp_list(experience_collections:dict, idx_mapping:dict):
@@ -73,8 +72,7 @@ def organize_exp_list(experience_collections:dict, idx_mapping:dict):
     return result
 
 def organize_obs(obs, idx, exp_len):
-    """Helper function to transform the observation from multiple processes to a unified dictionary.
-    """
+    """Helper function to transform the observation from multiple processes to a unified dictionary. """
     tick_buffer, _, para_cnt, v_cnt, v_dim = obs["v"].shape
     _, _, _, p_cnt, p_dim = obs["p"].shape
     batch = exp_len * para_cnt
@@ -138,12 +136,12 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
     i = 0
     while pipe.recv() == "reset":
         env.reset()
-        r, pa, is_done = env.step(None)
-        j = 0
+        r, decision_event, is_done = env.step(None)
 
+        j = 0
         logs = []
         while not is_done:
-            model_input = gnn_state_shaper(pa, env.snapshot_list)
+            model_input = gnn_state_shaper(decision_event, env.snapshot_list)
             action_io_np["v"][:, index] = model_input["v"]
             action_io_np["p"][:, index] = model_input["p"]
             action_io_np["vo"][index] = model_input["vo"]
@@ -152,16 +150,16 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             action_io_np["pedge"][index] = model_input["pedge"]
             action_io_np["ppedge"][index] = model_input["ppedge"]
             action_io_np["mask"][index] = model_input["mask"]
-            action_io_np["pid"][index] = pa.port_idx
-            action_io_np["vid"][index] = pa.vessel_idx
+            action_io_np["pid"][index] = decision_event.port_idx
+            action_io_np["vid"][index] = decision_event.vessel_idx
             pipe.send("features")
             model_action = pipe.recv()
-            env_action = action_shaper(pa, model_action)
-            exp_shaper.record(pending_action=pa, model_action=model_action, model_input=model_input)
-            logs.append([index, pa.tick, pa.port_idx, pa.vessel_idx, model_action, env_action, pa.action_scope.load,
-                            pa.action_scope.discharge])
-            action = Action(pa.vessel_idx, pa.port_idx, env_action)
-            r, pa, is_done = env.step(action)
+            env_action = action_shaper(decision_event, model_action)
+            exp_shaper.record(pending_action=decision_event, model_action=model_action, model_input=model_input)
+            logs.append([index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action, env_action, decision_event.action_scope.load,
+                            decision_event.action_scope.discharge])
+            action = Action(decision_event.vessel_idx, decision_event.port_idx, env_action)
+            r, decision_event, is_done = env.step(action)
             j += 1
         action_io_np["sh"][index] = compute_shortage(env.snapshot_list, config.env.param.durations, static_code_list)
         # print("one ep done!")
@@ -363,8 +361,7 @@ class ParallelActor(AbsActor):
         return result
 
     def exit(self):
-        """Terminate the child processes.
-        """
+        """Terminate the child processes. """
         for p in self.pipes:
             p[0].send("close")
 
