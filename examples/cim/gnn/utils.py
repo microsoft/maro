@@ -161,7 +161,6 @@ def random_shortage(env, tick, action_dim=21):
         else:
             actual_action = int(1.0*action_idx/zero_idx*discharge)
         """
-        # print(action_idx, -load, actual_action, discharge)
         action = Action(pa.vessel_idx, pa.port_idx, 0)
         r, pa, is_done = env.step(action)
 

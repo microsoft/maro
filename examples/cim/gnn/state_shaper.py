@@ -150,7 +150,6 @@ class GNNStateShaper(StateShaper):
             port_onehot = np.repeat(self.port_one_hot_coding, len(tick_range), axis=0)
             if static_code is not None and dynamic_code is not None:
                 # identify the decision vessel at the decision port.
-                # print(dynamic_code, self.node_code_inv_dict_v[dynamic_code])
                 port_onehot[-1, self.port_code_inv_dict[static_code], self.node_code_inv_dict_v[dynamic_code]] = -1
             port_state_mat = np.concatenate([port_state_mat, port_onehot], axis=2)
         self._state_dict["p"][tick_range] = port_state_mat
@@ -202,13 +201,11 @@ class GNNStateShaper(StateShaper):
                 tick_range = list(range(self.last_tick+1, action_info.tick+1, 1))
 
             self.last_tick = action_info.tick
-            # print(static_code, dynamic_code)
             self._sync_raw_features(snapshot_list, tick_range, static_code, dynamic_code)
             tick = action_info.tick
 
         # state_tick_range is inverse order.
         state_tick_range = np.arange(tick, max(-1, tick-self._tick_buffer), -1)
-        # print(state_tick_range)
         v = np.zeros((self._tick_buffer, self.vessel_cnt, self.get_input_dim("v")))
         v[:len(state_tick_range)] = self._state_dict["v"][state_tick_range]
         p = np.zeros((self._tick_buffer, self.port_cnt, self.get_input_dim("p")))

@@ -162,7 +162,6 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             r, decision_event, is_done = env.step(action)
             j += 1
         action_io_np["sh"][index] = compute_shortage(env.snapshot_list, config.env.param.durations, static_code_list)
-        # print("one ep done!")
         i += 1
         pipe.send("done")
         gnn_state_shaper.end_ep_callback(env.snapshot_list)
@@ -310,7 +309,6 @@ class ParallelActor(AbsActor):
             if signals[0] == "done":
                 break
 
-            # print("step: %d"%step_i)
             step_i += 1
 
             t = time.time()
@@ -320,7 +318,6 @@ class ParallelActor(AbsActor):
                                       self.action_io_np["mask"], self.device)
             t_state += time.time() - t
 
-            # print(self.action_io_np["pid"])
             assert(np.min(self.action_io_np["pid"]) == np.max(self.action_io_np["pid"]))
             assert(np.min(self.action_io_np["vid"]) == np.max(self.action_io_np["vid"]))
 
@@ -333,7 +330,6 @@ class ParallelActor(AbsActor):
                 p[0].send(actions[i])
 
         self._roll_out_time += time.time() - tick
-        # print(self.exp_output_np["len"])
         tick = time.time()
         self._logger.info("receiving exp")
         logs = [p[0].recv() for p in self.pipes]
@@ -343,11 +339,9 @@ class ParallelActor(AbsActor):
 
 
         self._logger.debug(dict(zip(self.log_header, self.action_io_np["sh"])))
-        # print(loged_dict)
 
         with open(os.path.join(self.config.log.path, "logs_%d"%self._roll_out_cnt), "wb") as fp:
             pickle.dump(logs, fp)
-
 
         self._logger.info("organize exp_dict")
         result = organize_exp_list(self.exp_output_np, self.exp_idx_mapping)
