@@ -6,6 +6,7 @@ from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
 from maro.rl import AbsAlgorithm
+
 from examples.cim.gnn.utils import gnn_union
 
 class ActorCritic(AbsAlgorithm):
@@ -17,18 +18,18 @@ class ActorCritic(AbsAlgorithm):
         model (nn.Module): A actor-critic module outputing both the policy network and the value network.
         device (torch.device): A PyTorch device instance where the module is computed on.
         p2p_adj (numpy.array): The static port-to-port adjencency matrix.
-        td_steps (int): The value 'n' in the n-step TD algorithm.
+        td_steps (int): The value "n" in the n-step TD algorithm.
         gamma (float): The time decay.
         learning_rate (float): The learning rate for the module.
-        entropy_factor (float): The weight of the policy's entropy to boost exploration.
+        entropy_factor (float): The weight of the policy"s entropy to boost exploration.
     """
 
     def __init__(self, model: nn.Module,
                  device: torch.device,
-                    p2p_adj=None, 
-                    td_steps=100, 
-                    gamma=0.97, 
-                    learning_rate=0.0003, 
+                    p2p_adj=None,
+                    td_steps=100,
+                    gamma=0.97,
+                    learning_rate=0.0003,
                     entropy_factor=0.1):
         self._gamma = gamma
         self._td_steps = td_steps
@@ -37,7 +38,7 @@ class ActorCritic(AbsAlgorithm):
         self._device = device
         self._tot_batchs = 0
         self._p2p_adj = p2p_adj
-        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})}, 
+        super().__init__(model_dict={"a&c": model}, optimizer_opt={"a&c": (torch.optim.Adam, {"lr": learning_rate})},
                          loss_func_dict={},
                          hyper_params=None)
 
@@ -47,28 +48,28 @@ class ActorCritic(AbsAlgorithm):
         Args:
             state (dict): A dictionary containing the input to the module. For example:
                 {
-                    'v': v,
-                    'p': p,
-                    'pe': {
-                        'edge': pedge,
-                        'adj': padj,
-                        'mask': pmask,
+                    "v": v,
+                    "p": p,
+                    "pe": {
+                        "edge": pedge,
+                        "adj": padj,
+                        "mask": pmask,
                     },
-                    've': {
-                        'edge': vedge,
-                        'adj': vadj,
-                        'mask': vmask,
+                    "ve": {
+                        "edge": vedge,
+                        "adj": vadj,
+                        "mask": vmask,
                     },
-                    'ppe': {
-                        'edge': ppedge,
-                        'adj': p2p_adj,
-                        'mask': p2p_mask,
+                    "ppe": {
+                        "edge": ppedge,
+                        "adj": p2p_adj,
+                        "mask": p2p_mask,
                     },
-                    'mask': seq_mask,
+                    "mask": seq_mask,
                 }
             p_idx (int): The identity of the port doing the action.
             v_idx (int): The identity of the vessel doing the action.
-        
+
         Returns:
             model_action (numpy.int64): The action returned from the module.
         """
@@ -84,14 +85,14 @@ class ActorCritic(AbsAlgorithm):
         Args:
             batch (dict): The dictionary of a batch of experience. For example:
                 {
-                    's': the dictionary of state,
-                    'a': model actions in numpy array,
-                    'R': the n-step accumulated reward,
-                    's'': the dictionary of the next state,
+                    "s": the dictionary of state,
+                    "a": model actions in numpy array,
+                    "R": the n-step accumulated reward,
+                    "s"": the dictionary of the next state,
                 }
             p_idx (int): The identity of the port doing the action.
             v_idx (int): The identity of the vessel doing the action.
-        
+
         Returns:
             a_loss (float): action loss.
             c_loss (float): critic loss.
@@ -101,19 +102,19 @@ class ActorCritic(AbsAlgorithm):
         """
         self._tot_batchs += 1
         item_a_loss, item_c_loss, item_e_loss = 0, 0, 0
-        obs_batch = batch['s']
-        action_batch = batch['a']
-        return_batch = batch['R']
-        next_obs_batch = batch['s_']
+        obs_batch = batch["s"]
+        action_batch = batch["a"]
+        return_batch = batch["R"]
+        next_obs_batch = batch["s_"]
 
-        obs_batch = gnn_union(obs_batch['p'], obs_batch['po'], obs_batch['pedge'], obs_batch['v'], 
-                                        obs_batch['vo'], obs_batch['vedge'], self._p2p_adj, obs_batch['ppedge'], 
-                                        obs_batch['mask'], self._device)
+        obs_batch = gnn_union(obs_batch["p"], obs_batch["po"], obs_batch["pedge"], obs_batch["v"],
+                                        obs_batch["vo"], obs_batch["vedge"], self._p2p_adj, obs_batch["ppedge"],
+                                        obs_batch["mask"], self._device)
         action_batch = torch.from_numpy(action_batch).long().to(self._device)
         return_batch = torch.from_numpy(return_batch).float().to(self._device)
-        next_obs_batch = gnn_union(next_obs_batch['p'], next_obs_batch['po'], next_obs_batch['pedge'], 
-                                        next_obs_batch['v'], next_obs_batch['vo'], next_obs_batch['vedge'],
-                                        self._p2p_adj, next_obs_batch['ppedge'], next_obs_batch['mask'], 
+        next_obs_batch = gnn_union(next_obs_batch["p"], next_obs_batch["po"], next_obs_batch["pedge"],
+                                        next_obs_batch["v"], next_obs_batch["vo"], next_obs_batch["vedge"],
+                                        self._p2p_adj, next_obs_batch["ppedge"], next_obs_batch["mask"],
                                         self._device)
 
         # train actor network
@@ -140,7 +141,7 @@ class ActorCritic(AbsAlgorithm):
 
         # actor_loss.backward(retain_graph=True)
         # self._actor_optimizer["a&c"].step()
-        
+
         item_a_loss = actor_loss.item()
         item_e_loss = entropy_loss.mean().item()
 
@@ -163,14 +164,14 @@ class ActorCritic(AbsAlgorithm):
         return self._model_dict["a&c"].state_dict()
 
     def _get_save_idx(self, fp_str):
-        return int(fp_str.split('.')[0].split('_')[0])
+        return int(fp_str.split(".")[0].split("_")[0])
 
     def save_model(self, pth, id):
         if not os.path.exists(pth):
             os.makedirs(pth)
-        pth = os.path.join(pth, '%d_ac.pkl'%id)
+        pth = os.path.join(pth, "%d_ac.pkl"%id)
         torch.save(self._model_dict["a&c"].state_dict(), pth)
-    
+
     def _set_gnn_weights(self, weights):
         for key in weights:
             if key in self._model_dict["a&c"].state_dict().keys():
@@ -179,12 +180,12 @@ class ActorCritic(AbsAlgorithm):
     def load_model(self, folder_pth, idx=-1):
         if idx == -1:
             fps = os.listdir(folder_pth)
-            fps = [f for f in fps if 'ac' in f]
+            fps = [f for f in fps if "ac" in f]
             fps.sort(key=self._get_save_idx)
             ac_pth = fps[-1]
         else:
-            ac_pth = '%d_ac.pkl'%idx
+            ac_pth = "%d_ac.pkl"%idx
         pth = os.path.join(folder_pth, ac_pth)
-        with open(pth, 'rb') as fp:
+        with open(pth, "rb") as fp:
             weights = torch.load(fp, map_location=self._device)
         self._set_gnn_weights(weights)

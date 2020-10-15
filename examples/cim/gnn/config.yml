@@ -3,12 +3,12 @@ env:
   param:
     durations: 750
     scenario: "cim"
-    topology: 'global_trade.22p_l0.1'
+    topology: "global_trade.22p_l0.1"
     # topology: "toy.4p_ssdd_l0.0"
 training:
   enable: True
   parallel_cnt: 24
-  device: 'cuda:0'
+  device: "cuda:0"
   batch_size: 150
   shuffle_time: 1
   rollout_cnt: 1000
@@ -19,19 +19,18 @@ training:
   td_steps: 100
   entropy_loss_enable: True
 model:
-  # path: '/data/log/20200119/demo_6p'
-  path: '/dcdata/log/test'
+  path: "./"
   tick_buffer: 20
   hidden_size: 32
   graph_output_dim: 32
   action_dim: 21
   feature:
-    # temporal or random, if temporal, the edges in the graph are listed in the order of event time, else in a 
+    # temporal or random, if temporal, the edges in the graph are listed in the order of event time, else in a
     # random order.
-    attention_order: temporal 
+    attention_order: temporal
     onehot_identity: False
 log:
-  path: /dcdata/log/
+  path: "./"
   # be careful to turn this on
   snapshot: True
   exp:

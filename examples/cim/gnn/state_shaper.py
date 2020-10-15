@@ -12,11 +12,11 @@ class GNNStateShaper(StateShaper):
         feature_config (dict): The dottable dict that stores the configuration of the observation feature.
         max_value (int): The norm scale. All the feature are simply divided by this number.
         tick_buffer (int): The value n in n-step TD.
-        only_demo (bool): Define if the shaper instance is used only for shape demonstration(True) or runtime 
+        only_demo (bool): Define if the shaper instance is used only for shape demonstration(True) or runtime
             shaping(False).
     """
 
-    def __init__(self, port_code_list, vessel_code_list, max_tick, feature_config, max_value=100000, 
+    def __init__(self, port_code_list, vessel_code_list, max_tick, feature_config, max_value=100000,
                     tick_buffer=20, only_demo=False):
         # collect and encode all ports
         self.port_code_list = list(port_code_list)
@@ -38,11 +38,11 @@ class GNNStateShaper(StateShaper):
         self.vessel_one_hot_coding = np.expand_dims(one_hot_coding[self.port_cnt:], axis=0)
         self.last_tick = -1
 
-        self.port_features = ['empty', 'full', 'capacity', 
-                                'on_shipper', 
-                                'on_consignee', 'booking', 'acc_booking', 'shortage', 'acc_shortage', 
-                                'fulfillment', 'acc_fulfillment']
-        self.vessel_features = ['empty', 'full', 'capacity', 'remaining_space']
+        self.port_features = ["empty", "full", "capacity",
+                                "on_shipper",
+                                "on_consignee", "booking", "acc_booking", "shortage", "acc_shortage",
+                                "fulfillment", "acc_fulfillment"]
+        self.vessel_features = ["empty", "full", "capacity", "remaining_space"]
 
         self._max_tick = max_tick
         self._tick_buffer = tick_buffer
@@ -54,29 +54,29 @@ class GNNStateShaper(StateShaper):
 
         self._only_demo = only_demo
         self._feature_config = feature_config
-        self._normalize = True 
+        self._normalize = True
         self._norm_scale = 2.0/max_value
         if not only_demo:
             self._state_dict = {
-                # last 'tick' is used for embedding, all zero and never be modified.
-                'v': np.zeros((self._max_tick+1, self.vessel_cnt, self.get_input_dim('v'))),
-                'p': np.zeros((self._max_tick+1, self.port_cnt, self.get_input_dim('p'))),
-                'vo': np.zeros((self._max_tick+1, self.vessel_cnt, self.port_cnt), dtype=np.int),
-                'po': np.zeros((self._max_tick+1, self.port_cnt, self.vessel_cnt), dtype=np.int),
-                'vedge': np.zeros((self._max_tick+1, self.vessel_cnt, self.port_cnt, self.get_input_dim('vedge'))),
-                'pedge': np.zeros((self._max_tick+1, self.port_cnt, self.vessel_cnt, self.get_input_dim('vedge'))),
-                'ppedge': np.zeros((self._max_tick+1, self.port_cnt, self.port_cnt, self.get_input_dim('pedge'))),
+                # last "tick" is used for embedding, all zero and never be modified.
+                "v": np.zeros((self._max_tick+1, self.vessel_cnt, self.get_input_dim("v"))),
+                "p": np.zeros((self._max_tick+1, self.port_cnt, self.get_input_dim("p"))),
+                "vo": np.zeros((self._max_tick+1, self.vessel_cnt, self.port_cnt), dtype=np.int),
+                "po": np.zeros((self._max_tick+1, self.port_cnt, self.vessel_cnt), dtype=np.int),
+                "vedge": np.zeros((self._max_tick+1, self.vessel_cnt, self.port_cnt, self.get_input_dim("vedge"))),
+                "pedge": np.zeros((self._max_tick+1, self.port_cnt, self.vessel_cnt, self.get_input_dim("vedge"))),
+                "ppedge": np.zeros((self._max_tick+1, self.port_cnt, self.port_cnt, self.get_input_dim("pedge"))),
             }
 
             # fixed order: in the order of degree
-            
+
     def compute_static_graph_structure(self, env):
         v2p_adj_matrix = compute_v2p_degree_matrix(env)
         p2p_adj_matrix = np.dot(v2p_adj_matrix.T, v2p_adj_matrix)
         p2p_adj_matrix[p2p_adj_matrix==0] = self.max_arrival_time
         np.fill_diagonal(p2p_adj_matrix, self.max_arrival_time)
         self._p2p_embedding = self.sort(p2p_adj_matrix)
-        
+
         v2p_adj_matrix = -v2p_adj_matrix
         v2p_adj_matrix[v2p_adj_matrix == 0] = self.max_arrival_time
         self._fixed_v_order = self.sort(v2p_adj_matrix)
@@ -91,7 +91,7 @@ class GNNStateShaper(StateShaper):
         given the arrival time matrix, this function sort the matrix and return the index matrix in the order of arrival time
         """
         n, m = arrival_time.shape
-        if self._feature_config.attention_order == 'ramdom':
+        if self._feature_config.attention_order == "ramdom":
             arrival_time = arrival_time + np.random.randint(self._max_tick, size=arrival_time.shape)
         at_index = np.argsort(arrival_time, axis=1)
         if attr is not None:
@@ -107,9 +107,9 @@ class GNNStateShaper(StateShaper):
 
     """
     def arg_idx(self, arrival_time, p_or_v):
-        if self._feature_config.attention_order == 'temporal':
+        if self._feature_config.attention_order == "temporal":
             return self.sort(arrival_time)
-        elif self._feature_config.attention_order == 'meta_path_cnt':
+        elif self._feature_config.attention_order == "meta_path_cnt":
             return self._fixed_p_order if p_or_v else self._fixed_v_order
         else:
             # randomize the arrival time
@@ -121,10 +121,10 @@ class GNNStateShaper(StateShaper):
             return
         tick_range = np.arange(start=self.last_tick, stop=self._max_tick)
         self._sync_raw_features(snapshot_list, list(tick_range))
-        
+
         port_features = snapshot_list["ports"][list(range(self._max_tick)):self.port_code_list: self.port_features] \
                             .reshape(self._max_tick, self.port_cnt, -1)
-        # pkl.dump(port_features, open('/data/log/replay/snapshot.pkl', 'wb'))
+        # pkl.dump(port_features, open("/data/log/replay/snapshot.pkl", "wb"))
         self.last_tick = -1
 
     def _sync_raw_features(self, snapshot_list, tick_range, static_code=None, dynamic_code=None):
@@ -143,7 +143,7 @@ class GNNStateShaper(StateShaper):
         # normalize features to a small range
         # port_state_mat = self.normalize(np.concatenate([port_naive_feature, full_on_port], axis=2))
         port_state_mat = self.normalize(port_naive_feature)
-        
+
         if self._feature_config.onehot_identity:
             # add onehot vector to identify port and vessel
             port_onehot = np.repeat(self.port_one_hot_coding, len(tick_range), axis=0)
@@ -152,17 +152,17 @@ class GNNStateShaper(StateShaper):
                 # print(dynamic_code, self.node_code_inv_dict_v[dynamic_code])
                 port_onehot[-1, self.port_code_inv_dict[static_code], self.node_code_inv_dict_v[dynamic_code]] = -1
             port_state_mat = np.concatenate([port_state_mat, port_onehot], axis=2)
-        self._state_dict['p'][tick_range] = port_state_mat
+        self._state_dict["p"][tick_range] = port_state_mat
 
         vessel_naive_feature = snapshot_list["vessels"][tick_range:self.vessel_code_list: self.vessel_features] \
                                     .reshape(len(tick_range), self.vessel_cnt, -1)
         full_on_vessel = snapshot_list["matrices"][tick_range::"full_on_vessels"].reshape(len(tick_range), self.vessel_cnt, self.port_cnt)
 
-        # vessel_state_mat = self.normalize(np.concatenate([vessel_naive_feature, full_on_vessel], axis=2)) 
+        # vessel_state_mat = self.normalize(np.concatenate([vessel_naive_feature, full_on_vessel], axis=2))
         vessel_state_mat = self.normalize(vessel_naive_feature)
         if self._feature_config.onehot_identity:
             vessel_state_mat = np.concatenate([vessel_state_mat, np.repeat(self.vessel_one_hot_coding, len(tick_range), axis=0)], axis=2)
-        self._state_dict['v'][tick_range] = vessel_state_mat
+        self._state_dict["v"][tick_range] = vessel_state_mat
 
         # last_arrival_time.shape: vessel_cnt * port_cnt
         # -1 means one vessel never stops at the port
@@ -178,21 +178,21 @@ class GNNStateShaper(StateShaper):
         vedge_raw = self.normalize(np.stack((full_on_vessel[-1], last_arrival_time), axis=-1))
         vo, vedge = self.sort(last_arrival_time, attr=vedge_raw)
         po, pedge = self.sort(last_arrival_time.T, attr=vedge_raw.transpose((1,0,2)))
-        self._state_dict['vo'][tick_range] = np.expand_dims(vo, axis=0)
-        self._state_dict['vedge'][tick_range] = np.expand_dims(vedge, axis=0)
-        self._state_dict['po'][tick_range] = np.expand_dims(po, axis=0)
-        self._state_dict['pedge'][tick_range] = np.expand_dims(pedge, axis=0)
-        self._state_dict['ppedge'][tick_range] = self.normalize(full_on_port[-1]).reshape(1, *full_on_port[-1].shape, 1)
+        self._state_dict["vo"][tick_range] = np.expand_dims(vo, axis=0)
+        self._state_dict["vedge"][tick_range] = np.expand_dims(vedge, axis=0)
+        self._state_dict["po"][tick_range] = np.expand_dims(po, axis=0)
+        self._state_dict["pedge"][tick_range] = np.expand_dims(pedge, axis=0)
+        self._state_dict["ppedge"][tick_range] = self.normalize(full_on_port[-1]).reshape(1, *full_on_port[-1].shape, 1)
 
 
     def __call__(self, action_info=None, snapshot_list=None, tick=None):
         if self._only_demo:
             return
         assert((action_info is not None and snapshot_list is not None) or tick is not None)
-        
+
         if action_info is not None and snapshot_list is not None:
             # update the state dict
-            static_code = action_info.port_idx     
+            static_code = action_info.port_idx
             dynamic_code = action_info.vessel_idx
             if self.last_tick == action_info.tick:
                 tick_range = [action_info.tick]
@@ -207,27 +207,27 @@ class GNNStateShaper(StateShaper):
         # state_tick_range is inverse order
         state_tick_range = np.arange(tick, max(-1, tick-self._tick_buffer), -1)
         # print(state_tick_range)
-        v = np.zeros((self._tick_buffer, self.vessel_cnt, self.get_input_dim('v')))
-        v[:len(state_tick_range)] = self._state_dict['v'][state_tick_range]
-        p = np.zeros((self._tick_buffer, self.port_cnt, self.get_input_dim('p')))
-        p[:len(state_tick_range)] = self._state_dict['p'][state_tick_range]
+        v = np.zeros((self._tick_buffer, self.vessel_cnt, self.get_input_dim("v")))
+        v[:len(state_tick_range)] = self._state_dict["v"][state_tick_range]
+        p = np.zeros((self._tick_buffer, self.port_cnt, self.get_input_dim("p")))
+        p[:len(state_tick_range)] = self._state_dict["p"][state_tick_range]
 
         # true means padding
         mask = np.ones(self._tick_buffer, dtype=np.bool)
         mask[:len(state_tick_range)] = False
         ret = {
-            'tick': state_tick_range,
-            'v': v,
-            'p': p, 
-            'vo': self._state_dict['vo'][tick],
-            'po': self._state_dict['po'][tick], 
-            'vedge': self._state_dict['vedge'][tick],
-            'pedge': self._state_dict['pedge'][tick],
-            'ppedge': self._state_dict['ppedge'][tick],
-            'mask': mask,
-            'len': len(state_tick_range),
+            "tick": state_tick_range,
+            "v": v,
+            "p": p,
+            "vo": self._state_dict["vo"][tick],
+            "po": self._state_dict["po"][tick],
+            "vedge": self._state_dict["vedge"][tick],
+            "pedge": self._state_dict["pedge"][tick],
+            "ppedge": self._state_dict["ppedge"][tick],
+            "mask": mask,
+            "len": len(state_tick_range),
         }
-        
+
         return ret
 
     def normalize(self, feature):
@@ -236,15 +236,15 @@ class GNNStateShaper(StateShaper):
         return feature*self._norm_scale
 
     def get_input_dim(self, agent_code):
-        if agent_code in self.port_code_inv_dict or agent_code == 'p':
+        if agent_code in self.port_code_inv_dict or agent_code == "p":
             return len(self.port_features) + (self.node_cnt if self._feature_config.onehot_identity else 0)
-        elif agent_code in self.vessel_code_inv_dict or agent_code == 'v':
+        elif agent_code in self.vessel_code_inv_dict or agent_code == "v":
             return len(self.vessel_features) + (self.node_cnt if self._feature_config.onehot_identity else 0)
-        elif agent_code == 'vedge':
+        elif agent_code == "vedge":
         # v-p edge: (arrival_time, laden to destination)
             return 2
-        elif agent_code == 'pedge':
+        elif agent_code == "pedge":
         # p-p edge: (laden to destination, )
             return 1
         else:
-            raise ValueError('agent not exist!')
+            raise ValueError("agent not exist!")

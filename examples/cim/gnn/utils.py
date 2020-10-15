@@ -13,19 +13,19 @@ from maro.simulator import Env
 from maro.utils import convert_dottable, clone
 
 def compute_v2p_degree_matrix(env):
-    """This function compute the adjacent matrix 
+    """This function compute the adjacent matrix
     """
     topo_config = env.configs
-    static_dict = env.summary['node_mapping']['ports']
-    dynamic_dict = env.summary['node_mapping']['vessels']
+    static_dict = env.summary["node_mapping"]["ports"]
+    dynamic_dict = env.summary["node_mapping"]["vessels"]
     adj_matrix = np.zeros((len(dynamic_dict), len(static_dict)), dtype=np.int)
-    for v, vinfo in topo_config['vessels'].items():
-        route_name = vinfo['route']['route_name']
-        route = topo_config['routes'][route_name]
+    for v, vinfo in topo_config["vessels"].items():
+        route_name = vinfo["route"]["route_name"]
+        route = topo_config["routes"][route_name]
         vid = dynamic_dict[v]
         for p in route:
-            adj_matrix[vid][static_dict[p['port_name']]] += 1
-    
+            adj_matrix[vid][static_dict[p["port_name"]]] += 1
+
     return adj_matrix
 
 def warm_up_lr(opt, warmup_steps):
@@ -49,7 +49,7 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     seq_len, batch, v_cnt, v_dim = v.shape
     _, _, p_cnt, p_dim = p.shape
 
-    p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = from_numpy(device, p, po, pedge, 
+    p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask = from_numpy(device, p, po, pedge,
                                                                     v, vo, vedge, p2p, ppedge, seq_mask)
 
     batch_range = torch.arange(batch, dtype=torch.long).to(device)
@@ -68,7 +68,7 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     padj = padj.transpose(0, 1)
     pedge = pedge.transpose(0, 1)
     # pedge = pedge.reshape(-1, *pedge.shape[-2:]).transpose(0, 1)[:padj.shape[0]]
-    
+
     p2p_adj = p2p.repeat(batch, 1, 1)
     # p2p_adj.shape: (batch*p_cnt, p_cnt*)
     p2p_adj, ppedge = flatten_embedding(p2p_adj, batch_range, ppedge)
@@ -79,24 +79,24 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     ppedge = ppedge.transpose(0, 1)
 
     return {
-        'v': v,
-        'p': p,
-        'pe': {
-            'edge': pedge,
-            'adj': padj,
-            'mask': pmask,
+        "v": v,
+        "p": p,
+        "pe": {
+            "edge": pedge,
+            "adj": padj,
+            "mask": pmask,
         },
-        've': {
-            'edge': vedge,
-            'adj': vadj,
-            'mask': vmask,
+        "ve": {
+            "edge": vedge,
+            "adj": vadj,
+            "mask": vmask,
         },
-        'ppe': {
-            'edge': ppedge,
-            'adj': p2p_adj,
-            'mask': p2p_mask,
+        "ppe": {
+            "edge": ppedge,
+            "adj": p2p_adj,
+            "mask": p2p_mask,
         },
-        'mask': seq_mask,
+        "mask": seq_mask,
     }
 
 
@@ -124,14 +124,14 @@ def log2json(file_path):
     """load the log file as a json list.
     """
 
-    with open(file_path, 'r') as fp:
+    with open(file_path, "r") as fp:
         lines = fp.read().splitlines()
-        json_list = '[' + ','.join(lines) + ']'
+        json_list = "[" + ",".join(lines) + "]"
         return ast.literal_eval(json_list)
 
 def decision_cnt_analysis(env, pv=False, buffer_size=8):
     if not pv:
-        decision_cnt = [buffer_size] * len(env.node_name_mapping['static'])
+        decision_cnt = [buffer_size] * len(env.node_name_mapping["static"])
         r, pa, is_done = env.step(None)
         while not is_done:
             decision_cnt[pa.port_idx] += 1
@@ -153,7 +153,7 @@ def decision_cnt_analysis(env, pv=False, buffer_size=8):
 def random_shortage(env, tick, action_dim=21):
     zero_idx = action_dim//2
     r, pa, is_done = env.step(None)
-    node_cnt = len(env.summary['node_mapping']['ports'])
+    node_cnt = len(env.summary["node_mapping"]["ports"])
     while not is_done:
         """
         load, discharge = pa.action_scope.load, pa.action_scope.discharge
@@ -166,9 +166,9 @@ def random_shortage(env, tick, action_dim=21):
         # print(action_idx, -load, actual_action, discharge)
         action = Action(pa.vessel_idx, pa.port_idx, 0)
         r, pa, is_done = env.step(action)
-    
-    shs = env.snapshot_list['ports'][tick-1:list(range(node_cnt)):'acc_shortage']
-    fus = env.snapshot_list['ports'][tick-1:list(range(node_cnt)):'acc_fulfillment']
+
+    shs = env.snapshot_list["ports"][tick-1:list(range(node_cnt)):"acc_shortage"]
+    fus = env.snapshot_list["ports"][tick-1:list(range(node_cnt)):"acc_fulfillment"]
     env.reset()
     return fus - shs, np.sum(shs+fus)
 
@@ -176,13 +176,13 @@ def return_scaler(env, tick, gamma, action_dim=21):
     R, tot_amount = random_shortage(env, tick, action_dim)
     Rs_mean = np.mean(R)/tick/(1-gamma)
     return abs(1.0/Rs_mean), tot_amount
-    
+
 
 def load_config(config_pth):
-    with io.open(config_pth, 'r') as in_file:
+    with io.open(config_pth, "r") as in_file:
         raw_config = yaml.safe_load(in_file)
         config = convert_dottable(raw_config)
-    
+
     if config.env.seed < 0:
         config.env.seed = random.randint(0, 99999)
 
@@ -190,11 +190,11 @@ def load_config(config_pth):
     return config
 
 def save_config(config, config_pth):
-    with open(config_pth, 'w') as fp:
+    with open(config_pth, "w") as fp:
         config = dottable2dict(config)
-        config['env']['exp_per_ep'] = ['%d, %d, %d'%(k[0], k[1],d) for k, d in config['env']['exp_per_ep'].items()]
+        config["env"]["exp_per_ep"] = ["%d, %d, %d"%(k[0], k[1],d) for k, d in config["env"]["exp_per_ep"].items()]
         yaml.safe_dump(config, fp)
-    
+
 def dottable2dict(config):
     if isinstance(config, float):
         return str(config)
@@ -206,19 +206,19 @@ def dottable2dict(config):
     return rt
 
 def save_code(folder, save_pth):
-    save_path = os.path.join(save_pth,'code')
+    save_path = os.path.join(save_pth,"code")
     code_pth = os.path.join(os.getcwd(),folder)
     shutil.copytree(code_pth,save_path)
 
 
 def fix_seed(env, seed):
     env.set_seed(seed)
-    np.random.seed(seed)        
+    np.random.seed(seed)
     random.seed(seed)
 
 def zero_play(**args):
     env = Env(**args)
-    static_mapping = env.node_name_mapping['static']
+    static_mapping = env.node_name_mapping["static"]
     r, pa, is_done = env.step(None)
     while not is_done:
         action = Action(pa.vessel_idx, pa.port_idx, 0)
@@ -234,31 +234,31 @@ def regularize_config(config):
             try:
                 return float(v)
             except:
-                if v == 'false' or v == 'False':
+                if v == "false" or v == "False":
                     return False
-                elif v == 'true' or v == 'True':
+                elif v == "true" or v == "True":
                     return True
                 else:
                     return v
 
     def set_attr(config, attrs, value):
         if len(attrs) == 1:
-            config[attrs[0]] = value 
+            config[attrs[0]] = value
         else:
             set_attr(config[attrs[0]], attrs[1:], value)
 
     all_args = sys.argv[1:]
     for i in range(len(all_args)//2):
         name = all_args[i*2]
-        attrs = name[2:].split('.')
+        attrs = name[2:].split(".")
         value = parse_value(all_args[i*2+1])
-        set_attr(config, attrs, value)    
+        set_attr(config, attrs, value)
 
 def analysis_speed(env):
     speed_dict = defaultdict(int)
     eq_speed = 0
-    for ves in env.configs['vessels'].values():
-        speed_dict[ves['sailing']['speed']] += 1
+    for ves in env.configs["vessels"].values():
+        speed_dict[ves["sailing"]["speed"]] += 1
     for sp, cnt in speed_dict.items():
         eq_speed += 1.0*cnt/sp
     eq_speed = 1.0/eq_speed

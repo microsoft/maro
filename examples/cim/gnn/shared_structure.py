@@ -4,9 +4,9 @@ import numpy as np
 def init_shared_memory(data_structure):
     # data_structure should be a dict like:
     # {
-    #   'a': (shape, type),
-    #   'b': {
-    #           'b1': (shape, type),
+    #   "a": (shape, type),
+    #   "b": {
+    #           "b1": (shape, type),
     #       }
     # }
     if isinstance(data_structure, tuple):

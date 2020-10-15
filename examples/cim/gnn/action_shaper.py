@@ -1,4 +1,3 @@
-import math
 from maro.rl import ActionShaper
 
 class DiscreteActionShaper(ActionShaper):
@@ -12,8 +11,8 @@ class DiscreteActionShaper(ActionShaper):
     def __call__(self, pending_action, model_action):
         """Shaping the action in [-1,1] range to the actual repositioning function.
 
-        This function maps integer model action within the range of [-A, A] to actual action. We define negative actual 
-        action as discharge resource from vessel to port and positive action as upload from port to vessel, so the 
+        This function maps integer model action within the range of [-A, A] to actual action. We define negative actual
+        action as discharge resource from vessel to port and positive action as upload from port to vessel, so the
         upper bound and lower bound of actual action are the resource in dynamic and static node respectively.
 
         Args:
@@ -26,15 +25,15 @@ class DiscreteActionShaper(ActionShaper):
         model_action -= self._zero_action
 
         action_scope = pending_action.action_scope
-        
+
         if model_action < 0:
-            # Discharge resource from dynamic node
-            env_action = round(int(model_action) * 1.0/self._zero_action * action_scope.load)
+            # Discharge resource from dynamic node.
+            env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.load)
         elif model_action == 0:
-            env_action =0
+            env_action = 0
         else:
-            # Load resource to dynamic node
-            env_action = round(int(model_action) * 1.0/self._zero_action * action_scope.discharge)
+            # Load resource to dynamic node.
+            env_action = round(int(model_action) * 1.0 / self._zero_action * action_scope.discharge)
         env_action = int(env_action)
 
         return env_action
