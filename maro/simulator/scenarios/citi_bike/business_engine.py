@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import datetime
-import getpass
 import os
 from typing import List
 
