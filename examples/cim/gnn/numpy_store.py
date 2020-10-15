@@ -71,13 +71,12 @@ class NumpyStore(AbsStore):
         """
         super().__init__()
         self.domain_type_dict = dict(domain_type_dict)
-        self.store = {key: np.zeros(shape=(capacity, *shape) if batch_first else (shape[0], capacity, *shape[1:]), dtype=data_type)
-                        for key, (shape, data_type, batch_first) in domain_type_dict.items()}
+        self.store = {key: np.zeros(shape=(capacity, *shape) if batch_first else (shape[0], capacity, *shape[1:]),
+                        dtype=data_type) for key, (shape, data_type, batch_first) in domain_type_dict.items()}
         self.batch_first_store = {key: batch_first for key, (_, _, batch_first) in domain_type_dict.items()}
 
         self.cnt = 0
         self.capacity = capacity
-
 
     def put(self, exp_dict: dict):
         """Insert a batch of experience into the store
@@ -108,10 +107,10 @@ class NumpyStore(AbsStore):
             for key in self.domain_type_dict.keys():
                 data = get_item(exp_dict, key)
                 if self.batch_first_store[key]:
-                    self.store[key][self.cnt: self.cnt+append_end] = data[0:append_end]
+                    self.store[key][self.cnt: self.cnt + append_end] = data[0: append_end]
                 else:
-                    self.store[key][:, self.cnt: self.cnt+append_end] = data[:, 0:append_end]
-            idxs[: append_end] = np.arange(self.cnt, self.cnt+append_end)
+                    self.store[key][:, self.cnt: self.cnt + append_end] = data[:, 0: append_end]
+            idxs[: append_end] = np.arange(self.cnt, self.cnt + append_end)
         if append_end < dlen:
             replace_idx = self._get_replace_idx(dlen - append_end)
             for key in self.domain_type_dict.keys():
@@ -127,7 +126,7 @@ class NumpyStore(AbsStore):
     def _get_replace_idx(self, cnt):
         return np.random.randint(low=0, high=self.capacity, size=cnt)
 
-    def get(self, indexes:np.array):
+    def get(self, indexes: np.array):
         """Get the experience indexed in the indexes list from the store
 
         Args:

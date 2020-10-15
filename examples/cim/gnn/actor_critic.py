@@ -8,6 +8,7 @@ from torch.nn.utils import clip_grad
 from examples.cim.gnn.utils import gnn_union
 from maro.rl import AbsAlgorithm
 
+
 class ActorCritic(AbsAlgorithm):
     """Actor-Critic algorithm in CIM problem.
 
@@ -134,9 +135,9 @@ class ActorCritic(AbsAlgorithm):
 
         if self._entropy_factor != 0:
             # actor_loss = actor_loss* torch.log(entropy_loss + np.e)
-            advantage[:, p_idx] += self._entropy_factor*entropy_loss.detach()
+            advantage[:, p_idx] += self._entropy_factor * entropy_loss.detach()
 
-        actor_loss = - (log_prob*torch.sum(advantage, axis=-1).detach()).mean()
+        actor_loss = - (log_prob * torch.sum(advantage, axis=-1).detach()).mean()
 
         # actor_loss.backward(retain_graph=True)
         # self._actor_optimizer["a&c"].step()
@@ -150,7 +151,7 @@ class ActorCritic(AbsAlgorithm):
         item_c_loss = critic_loss.item()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
         # self._critic_optimizer["a&c"].step()
-        tot_loss = 0.1*actor_loss + critic_loss # - self._entropy_factor * entropy_loss
+        tot_loss = 0.1 * actor_loss + critic_loss  # - self._entropy_factor * entropy_loss
         tot_loss.backward()
         tot_norm = clip_grad.clip_grad_norm_(self._model_dict["a&c"].parameters(), 1)
         self._optimizer["a&c"].step()
@@ -168,7 +169,7 @@ class ActorCritic(AbsAlgorithm):
     def save_model(self, pth, id):
         if not os.path.exists(pth):
             os.makedirs(pth)
-        pth = os.path.join(pth, "%d_ac.pkl"%id)
+        pth = os.path.join(pth, "%d_ac.pkl" % id)
         torch.save(self._model_dict["a&c"].state_dict(), pth)
 
     def _set_gnn_weights(self, weights):
@@ -183,7 +184,7 @@ class ActorCritic(AbsAlgorithm):
             fps.sort(key=self._get_save_idx)
             ac_pth = fps[-1]
         else:
-            ac_pth = "%d_ac.pkl"%idx
+            ac_pth = "%d_ac.pkl" % idx
         pth = os.path.join(folder_pth, ac_pth)
         with open(pth, "rb") as fp:
             weights = torch.load(fp, map_location=self._device)

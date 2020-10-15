@@ -1,16 +1,21 @@
-import ast, math
-import io, yaml, os, shutil
+import ast
+import io
+import math
 import numpy as np
 import random
+import os
+import shutil
 import sys
+import yaml
 from collections import defaultdict, OrderedDict
 
 import torch
 from torch.optim.lr_scheduler import LambdaLR
 
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, DecisionEvent
+from maro.simulator.scenarios.cim.common import Action
 from maro.utils import convert_dottable, clone
+
 
 def compute_v2p_degree_matrix(env):
     """This function compute the adjacent matrix. """
@@ -27,12 +32,16 @@ def compute_v2p_degree_matrix(env):
 
     return adj_matrix
 
+
 def warm_up_lr(opt, warmup_steps):
-    warm_up = lambda ep: math.pow(warmup_steps, 0.5) * min(math.pow(ep+1, -0.5), math.pow(warmup_steps, -1.5)*(ep+1))
+    warm_up = lambda ep: math.pow(warmup_steps, 0.5) * min(math.pow(ep + 1, -0.5), math.pow(warmup_steps, -1.5) *
+                            (ep + 1))
     return LambdaLR(opt, warm_up)
+
 
 def from_numpy(device, *np_values):
     return [torch.from_numpy(v).to(device) for v in np_values]
+
 
 def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     """Union multiple graph in CIM.
@@ -102,10 +111,10 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
 def flatten_embedding(embedding, batch_range, edge=None):
     if len(embedding.shape) == 3:
         batch, x_cnt, y_cnt = embedding.shape
-        addon = (batch_range*y_cnt).view(batch, 1, 1)
+        addon = (batch_range * y_cnt).view(batch, 1, 1)
     else:
         seq_len, batch, x_cnt, y_cnt = embedding.shape
-        addon = (batch_range*y_cnt).view(seq_len, batch, 1, 1)
+        addon = (batch_range * y_cnt).view(seq_len, batch, 1, 1)
 
     embedding_mask = embedding == 0
     embedding += addon
@@ -119,6 +128,7 @@ def flatten_embedding(embedding, batch_range, edge=None):
         edge = edge.reshape(-1, *edge.shape[2:])[:, col_mask, :]
         return ret, edge
 
+
 def log2json(file_path):
     """load the log file as a json list. """
 
@@ -126,6 +136,7 @@ def log2json(file_path):
         lines = fp.read().splitlines()
         json_list = "[" + ",".join(lines) + "]"
         return ast.literal_eval(json_list)
+
 
 def decision_cnt_analysis(env, pv=False, buffer_size=8):
     if not pv:
@@ -148,8 +159,9 @@ def decision_cnt_analysis(env, pv=False, buffer_size=8):
     env.reset()
     return decision_cnt
 
+
 def random_shortage(env, tick, action_dim=21):
-    zero_idx = action_dim//2
+    zero_idx = action_dim // 2
     r, pa, is_done = env.step(None)
     node_cnt = len(env.summary["node_mapping"]["ports"])
     while not is_done:
@@ -164,15 +176,16 @@ def random_shortage(env, tick, action_dim=21):
         action = Action(pa.vessel_idx, pa.port_idx, 0)
         r, pa, is_done = env.step(action)
 
-    shs = env.snapshot_list["ports"][tick-1:list(range(node_cnt)):"acc_shortage"]
-    fus = env.snapshot_list["ports"][tick-1:list(range(node_cnt)):"acc_fulfillment"]
+    shs = env.snapshot_list["ports"][tick - 1:list(range(node_cnt)):"acc_shortage"]
+    fus = env.snapshot_list["ports"][tick - 1:list(range(node_cnt)):"acc_fulfillment"]
     env.reset()
     return fus - shs, np.sum(shs+fus)
 
+
 def return_scaler(env, tick, gamma, action_dim=21):
     R, tot_amount = random_shortage(env, tick, action_dim)
-    Rs_mean = np.mean(R)/tick/(1-gamma)
-    return abs(1.0/Rs_mean), tot_amount
+    Rs_mean = np.mean(R) / tick / (1-gamma)
+    return abs(1.0 / Rs_mean), tot_amount
 
 
 def load_config(config_pth):
@@ -186,11 +199,13 @@ def load_config(config_pth):
     regularize_config(config)
     return config
 
+
 def save_config(config, config_pth):
     with open(config_pth, "w") as fp:
         config = dottable2dict(config)
-        config["env"]["exp_per_ep"] = ["%d, %d, %d"%(k[0], k[1],d) for k, d in config["env"]["exp_per_ep"].items()]
+        config["env"]["exp_per_ep"] = ["%d, %d, %d" % (k[0], k[1], d) for k, d in config["env"]["exp_per_ep"].items()]
         yaml.safe_dump(config, fp)
+
 
 def dottable2dict(config):
     if isinstance(config, float):
@@ -202,16 +217,18 @@ def dottable2dict(config):
         rt[k] = dottable2dict(v)
     return rt
 
+
 def save_code(folder, save_pth):
-    save_path = os.path.join(save_pth,"code")
-    code_pth = os.path.join(os.getcwd(),folder)
-    shutil.copytree(code_pth,save_path)
+    save_path = os.path.join(save_pth, "code")
+    code_pth = os.path.join(os.getcwd(), folder)
+    shutil.copytree(code_pth, save_path)
 
 
 def fix_seed(env, seed):
     env.set_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
+
 
 def zero_play(**args):
     env = Env(**args)
@@ -245,11 +262,12 @@ def regularize_config(config):
             set_attr(config[attrs[0]], attrs[1:], value)
 
     all_args = sys.argv[1:]
-    for i in range(len(all_args)//2):
-        name = all_args[i*2]
+    for i in range(len(all_args) // 2):
+        name = all_args[i * 2]
         attrs = name[2:].split(".")
-        value = parse_value(all_args[i*2+1])
+        value = parse_value(all_args[i * 2 + 1])
         set_attr(config, attrs, value)
+
 
 def analysis_speed(env):
     speed_dict = defaultdict(int)
@@ -257,6 +275,6 @@ def analysis_speed(env):
     for ves in env.configs["vessels"].values():
         speed_dict[ves["sailing"]["speed"]] += 1
     for sp, cnt in speed_dict.items():
-        eq_speed += 1.0*cnt/sp
-    eq_speed = 1.0/eq_speed
+        eq_speed += 1.0 * cnt / sp
+    eq_speed = 1.0 / eq_speed
     return speed_dict, eq_speed

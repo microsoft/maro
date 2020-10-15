@@ -9,6 +9,7 @@ from torch.nn.modules.activation import MultiheadAttention
 from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.normalization import LayerNorm
 
+
 class PositionalEncoder(nn.Module):
     """
     The positional encoding used in transformer to get the sequential information.
@@ -17,10 +18,10 @@ class PositionalEncoder(nn.Module):
     https://pytorch.org/tutorials/beginner/transformer_tutorial.html?highlight=positionalencoding
     """
 
-    def __init__(self, d_model, max_seq_len = 80):
+    def __init__(self, d_model, max_seq_len=80):
         super().__init__()
         self.d_model = d_model
-        self.times = 4*math.sqrt(self.d_model)
+        self.times = 4 * math.sqrt(self.d_model)
 
         # create constant "pe" matrix with values dependant on
         # pos and i
@@ -30,14 +31,15 @@ class PositionalEncoder(nn.Module):
                 self.pe[pos, i] = math.sin(pos / (10000 ** ((2 * i) / d_model)))
                 self.pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1)) / d_model)))
 
-        self.pe = self.pe.unsqueeze(1)/self.d_model
+        self.pe = self.pe.unsqueeze(1) / self.d_model
 
     def forward(self, x):
         # make embeddings relatively larger
         # x = x * self.sqrt_d_model
         # add constant to embedding
-        addon = self.pe[:x.shape[0], :, :x.shape[2]].to(x.get_device())
-        return x+addon
+        addon = self.pe[: x.shape[0], :, : x.shape[2]].to(x.get_device())
+        return x + addon
+
 
 class SimpleGATLayer(nn.Module):
     """The enhanced graph attention layer for heterogenenous neighborhood.
@@ -80,7 +82,7 @@ class SimpleGATLayer(nn.Module):
 
         self.zero_padding_template = torch.zeros((1, src_dim), dtype=torch.float)
 
-    def forward(self, src:Tensor, dest:Tensor, adj:Tensor, mask:Tensor, edges:Tensor=None):
+    def forward(self, src: Tensor, dest: Tensor, adj: Tensor, mask: Tensor, edges: Tensor=None):
         """Information aggregation from the source nodes to the destination nodes.
 
         Args:
@@ -105,7 +107,7 @@ class SimpleGATLayer(nn.Module):
 
         """
         assert(self.src_dim == src.shape[-1])
-        assert(self.dest_dim== dest.shape[-1])
+        assert(self.dest_dim == dest.shape[-1])
         batch, s_cnt, src_dim = src.shape
         batch, d_cnt, dest_dim = dest.shape
         src_neighbor_cnt = adj.shape[0]
@@ -120,14 +122,14 @@ class SimpleGATLayer(nn.Module):
         if edges is not None:
             src_embedding = torch.cat((src_embedding, edges), axis=2)
 
-        src_input = self.src_pre_layer(src_embedding.reshape(-1, src_dim+self.edge_dim)).reshape(*src_embedding.shape[:2], self.hidden_size)
-        dest_input = self.dest_pre_layer(dest.reshape(-1, dest_dim)).reshape(1, batch*d_cnt, self.hidden_size)
+        src_input = self.src_pre_layer(src_embedding.reshape(-1, src_dim + self.edge_dim)). \
+                                        reshape(*src_embedding.shape[:2], self.hidden_size)
+        dest_input = self.dest_pre_layer(dest.reshape(-1, dest_dim)).reshape(1, batch * d_cnt, self.hidden_size)
         dest_emb, _ = self.att(dest_input, src_input, src_input, key_padding_mask=mask)
 
         dest_emb = dest_emb + self.att_dropout(dest_emb)
         dest_emb = self.att_norm(dest_emb)
         return dest_emb.reshape(batch, d_cnt, self.hidden_size)
-
 
 
 class SimpleTransformer(nn.Module):
@@ -144,24 +146,26 @@ class SimpleTransformer(nn.Module):
         layer_num (int): The number of graph attention layers in each graph.
     """
 
-    def __init__(self, p_dim, v_dim, edge_dim:dict, output_size, layer_num=2):
+    def __init__(self, p_dim, v_dim, edge_dim: dict, output_size, layer_num=2):
         super().__init__()
         self.hidden_size = output_size
         self.layer_num = layer_num
 
         pl, vl, ppl = [], [], []
         for i in range(layer_num):
-            if i==0:
+            if i == 0:
                 pl.append(SimpleGATLayer(v_dim, p_dim, edge_dim["v"], self.hidden_size, nhead=4))
                 vl.append(SimpleGATLayer(p_dim, v_dim, edge_dim["v"], self.hidden_size, nhead=4))
                 # p2p links
-                ppl.append(SimpleGATLayer(p_dim, p_dim, edge_dim["p"], self.hidden_size, nhead=4, position_encoding=False))
+                ppl.append(SimpleGATLayer(p_dim, p_dim, edge_dim["p"], self.hidden_size, nhead=4,
+                                            position_encoding=False))
             else:
                 pl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4))
                 if i != layer_num - 1:
                     # p2v conv is not necessary at the last layer, for we only use port features
                     vl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4))
-                ppl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4, position_encoding=False))
+                ppl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4,
+                                            position_encoding=False))
         self.p_layers = nn.ModuleList(pl)
         self.v_layers = nn.ModuleList(vl)
         self.pp_layers = nn.ModuleList(ppl)
@@ -181,14 +185,16 @@ class SimpleTransformer(nn.Module):
         pre_p, pre_v, pre_pp = p, v, pp
         for i in range(self.layer_num):
             # only feed edge info in the first layer
-            p = self.p_layers[i](pre_v, pre_p, adj=pe["adj"], edges=pe["edge"] if i==0 else None, mask=pe["mask"])
+            p = self.p_layers[i](pre_v, pre_p, adj=pe["adj"], edges=pe["edge"] if i == 0 else None, mask=pe["mask"])
             if i != self.layer_num - 1:
-                v = self.v_layers[i](pre_p, pre_v, adj=ve["adj"], edges=ve["edge"] if i==0 else None, mask=ve["mask"])
+                v = self.v_layers[i](pre_p, pre_v, adj=ve["adj"], edges=ve["edge"] if i == 0 else None,
+                                    mask=ve["mask"])
             pp = self.pp_layers[i](pre_pp, pre_pp, adj=ppe["adj"],
-                                    edges=ppe["edge"] if i==0 else None, mask=ppe["mask"])
+                                    edges=ppe["edge"] if i == 0 else None, mask=ppe["mask"])
             pre_p, pre_v, pre_pp = p, v, pp
         p = torch.cat((p, pp), axis=2)
         return p, v
+
 
 class GeLU(nn.Module):
     """Simple gelu wrapper as a independent module. """
@@ -214,14 +220,13 @@ class Header(nn.Module):
             self.fc_0 = nn.Linear(input_size, hidden_size)
             self.act_0 = GeLU()
             # self.do_0 = Dropout(dropout)
-            self.fc_1 = nn.Linear(hidden_size, hidden_size//2)
+            self.fc_1 = nn.Linear(hidden_size, hidden_size // 2)
             self.act_1 = GeLU()
-            self.fc_2 = nn.Linear(hidden_size//2, output_size)
+            self.fc_2 = nn.Linear(hidden_size // 2, output_size)
         elif net_type == "1layer":
             self.fc_0 = nn.Linear(input_size, hidden_size)
             self.act_0 = GeLU()
             self.fc_1 = nn.Linear(hidden_size, output_size)
-
 
     def forward(self, x):
         if self.net_type == "res":
@@ -247,7 +252,8 @@ class SharedAC(nn.Module):
     as a critic layer, which are the two MLPs with residual connections.
     """
 
-    def __init__(self, input_dim_p, edge_dim_p, input_dim_v, edge_dim_v, tick_buffer, action_dim, a=True, c=True, scale=4, ac_head="res"):
+    def __init__(self, input_dim_p, edge_dim_p, input_dim_v, edge_dim_v, tick_buffer, action_dim, a=True, c=True,
+                    scale=4, ac_head="res"):
         super().__init__()
         assert(a or c)
         self.a, self.c = a, c
@@ -255,21 +261,25 @@ class SharedAC(nn.Module):
         self.input_dim_p = input_dim_p
         self.tick_buffer = tick_buffer
 
-        self.pre_dim_v, self.pre_dim_p = 8*scale, 16*scale
-        self.p_pre_layer = nn.Sequential(nn.Linear(input_dim_p, self.pre_dim_p), GeLU(), PositionalEncoder(d_model=self.pre_dim_p, max_seq_len=tick_buffer))
-        self.v_pre_layer = nn.Sequential(nn.Linear(input_dim_v, self.pre_dim_v), GeLU(), PositionalEncoder(d_model=self.pre_dim_v, max_seq_len=tick_buffer))
-        p_encoder_layer = TransformerEncoderLayer(d_model=self.pre_dim_p, nhead=4, activation="gelu", dim_feedforward=self.pre_dim_p*4)
-        v_encoder_layer = TransformerEncoderLayer(d_model=self.pre_dim_v, nhead=2, activation="gelu", dim_feedforward=self.pre_dim_v*4)
+        self.pre_dim_v, self.pre_dim_p = 8 * scale, 16 * scale
+        self.p_pre_layer = nn.Sequential(nn.Linear(input_dim_p, self.pre_dim_p), GeLU(),
+                                            PositionalEncoder(d_model=self.pre_dim_p, max_seq_len=tick_buffer))
+        self.v_pre_layer = nn.Sequential(nn.Linear(input_dim_v, self.pre_dim_v), GeLU(),
+                                            PositionalEncoder(d_model=self.pre_dim_v, max_seq_len=tick_buffer))
+        p_encoder_layer = TransformerEncoderLayer(d_model=self.pre_dim_p, nhead=4, activation="gelu",
+                                            dim_feedforward=self.pre_dim_p * 4)
+        v_encoder_layer = TransformerEncoderLayer(d_model=self.pre_dim_v, nhead=2, activation="gelu",
+                                            dim_feedforward=self.pre_dim_v * 4)
         # self.trans_layer_p = TransformerEncoder(p_encoder_layer, num_layers=3, norm=Norm(self.pre_dim_p))
         # self.trans_layer_v = TransformerEncoder(v_encoder_layer, num_layers=3, norm=Norm(self.pre_dim_v))
         self.trans_layer_p = TransformerEncoder(p_encoder_layer, num_layers=3)
         self.trans_layer_v = TransformerEncoder(v_encoder_layer, num_layers=3)
 
-        self.gnn_output_size = 32*scale
+        self.gnn_output_size = 32 * scale
         self.trans_gat = SimpleTransformer(
             p_dim=self.pre_dim_p,
             v_dim=self.pre_dim_v,
-            output_size=self.gnn_output_size//2,
+            output_size=self.gnn_output_size // 2,
             edge_dim={"p": edge_dim_p, "v": edge_dim_v},
             layer_num=2
         )
@@ -277,14 +287,14 @@ class SharedAC(nn.Module):
         # self.reduce_dim = nn.Linear(self.a_input, 2)
 
         if a:
-            self.policy_hidden_size = 16*scale
-            self.a_input = 3*self.gnn_output_size//2
-            self.actor = nn.Sequential(Header(self.a_input, self.policy_hidden_size, action_dim, ac_head), nn.Softmax(dim=-1))
+            self.policy_hidden_size = 16 * scale
+            self.a_input = 3 * self.gnn_output_size // 2
+            self.actor = nn.Sequential(Header(self.a_input, self.policy_hidden_size, action_dim, ac_head),
+                                        nn.Softmax(dim=-1))
         if c:
             self.value_hidden_size = 16*scale
             self.c_input = self.gnn_output_size
             self.critic = Header(self.c_input, self.value_hidden_size, 1, ac_head)
-
 
     def forward(self, state, a=False, p_idx=None, v_idx=None, c=False):
         assert((a and p_idx is not None and v_idx is not None) or c)
@@ -328,4 +338,3 @@ class SharedAC(nn.Module):
         if c and self.c:
             c_rtn = self.critic(emb_p).reshape(bsize, p_cnt)
         return a_rtn, c_rtn
-

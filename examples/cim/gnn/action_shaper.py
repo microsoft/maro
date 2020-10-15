@@ -1,5 +1,6 @@
 from maro.rl import ActionShaper
 
+
 class DiscreteActionShaper(ActionShaper):
     """The shaping class to transform the action in [-1, 1] to actual repositioning function. """
     def __init__(self, action_dim):
@@ -7,7 +8,7 @@ class DiscreteActionShaper(ActionShaper):
         self._action_dim = action_dim
         self._zero_action = self._action_dim // 2
 
-    def __call__(self, pending_action, model_action):
+    def __call__(self, decision_event, model_action):
         """Shaping the action in [-1,1] range to the actual repositioning function.
 
         This function maps integer model action within the range of [-A, A] to actual action. We define negative actual
@@ -18,12 +19,12 @@ class DiscreteActionShaper(ActionShaper):
             pending_action (Event): The decision event from the environment.
             model_action (int): Output action, range A means the half of the agent output dim.
         """
-        tick = pending_action.tick
+        # tick = pending_action.tick
         env_action = 0
-        action_index = model_action
+        # action_index = model_action
         model_action -= self._zero_action
 
-        action_scope = pending_action.action_scope
+        action_scope = decision_event.action_scope
 
         if model_action < 0:
             # Discharge resource from dynamic node.
@@ -36,5 +37,6 @@ class DiscreteActionShaper(ActionShaper):
         env_action = int(env_action)
 
         return env_action
+
 
 

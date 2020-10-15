@@ -1,26 +1,25 @@
 import ctypes
 import multiprocessing
-import time, os, pickle
-from collections import defaultdict, OrderedDict
-from multiprocessing import Process, Pipe, Event, Manager
+import os
+import pickle
+import time
+from collections import OrderedDict
+from multiprocessing import Process, Pipe
 
 import numpy as np
 import torch
 
-from examples.cim.gnn.actor_critic import ActorCritic
 from examples.cim.gnn.action_shaper import DiscreteActionShaper
-from examples.cim.gnn.utils import decision_cnt_analysis, compute_v2p_degree_matrix
 from examples.cim.gnn.utils import fix_seed, gnn_union
 from examples.cim.gnn.experience_shaper import ExperienceShaper
 from examples.cim.gnn.state_shaper import GNNStateShaper
 from examples.cim.gnn.shared_structure import SharedStructure
 from maro.rl import AbsActor
 from maro.simulator import Env
-from maro.simulator.scenarios.cim.common import Action, DecisionEvent
-from maro.utils import Logger, LogFormat, convert_dottable
+from maro.simulator.scenarios.cim.common import Action
 
 
-def organize_exp_list(experience_collections:dict, idx_mapping:dict):
+def organize_exp_list(experience_collections: dict, idx_mapping: dict):
     """The function assemble the experience from multiple processes into a dictionary.
 
     Args:
@@ -56,9 +55,9 @@ def organize_exp_list(experience_collections:dict, idx_mapping:dict):
 
         s = organize_obs(experience_collections["s"], idx, exp_len)
         s_ = organize_obs(experience_collections["s_"], idx, exp_len)
-        R = experience_collections["R"][idx:idx+exp_len]
+        R = experience_collections["R"][idx: idx + exp_len]
         R = R.reshape(-1, *R.shape[2:])
-        a = experience_collections["a"][idx:idx+exp_len]
+        a = experience_collections["a"][idx: idx + exp_len]
         a = a.reshape(-1, *a.shape[2:])
 
         result[code] = {
@@ -77,27 +76,26 @@ def organize_obs(obs, idx, exp_len):
     _, _, _, p_cnt, p_dim = obs["p"].shape
     batch = exp_len * para_cnt
     # v: tick_buffer, seq_len,  parallel_cnt, v_cnt, v_dim --> (tick_buffer, cnt, v_cnt, v_dim)
-    v = obs["v"][:, idx: idx+exp_len]
+    v = obs["v"][:, idx: idx + exp_len]
     v = v.reshape(tick_buffer, batch, v_cnt, v_dim)
-    p = obs["p"][:, idx: idx+exp_len]
+    p = obs["p"][:, idx: idx + exp_len]
     p = p.reshape(tick_buffer, batch, p_cnt, p_dim)
     # vo: seq_len * parallel_cnt * v_cnt * p_cnt* --> cnt * v_cnt * p_cnt*
-    vo = obs["vo"][idx: idx+exp_len]
+    vo = obs["vo"][idx: idx + exp_len]
     vo = vo.reshape(batch, v_cnt, vo.shape[-1])
-    po = obs["po"][idx: idx+exp_len]
+    po = obs["po"][idx: idx + exp_len]
     po = po.reshape(batch, p_cnt, po.shape[-1])
-    vedge = obs["vedge"][idx: idx+exp_len]
+    vedge = obs["vedge"][idx: idx + exp_len]
     vedge = vedge.reshape(batch, v_cnt, vedge.shape[-2], vedge.shape[-1])
-    pedge = obs["pedge"][idx: idx+exp_len]
+    pedge = obs["pedge"][idx: idx + exp_len]
     pedge = pedge.reshape(batch, p_cnt, pedge.shape[-2], pedge.shape[-1])
-    ppedge = obs["ppedge"][idx: idx+exp_len]
+    ppedge = obs["ppedge"][idx: idx + exp_len]
     ppedge = ppedge.reshape(batch, p_cnt, ppedge.shape[-2], ppedge.shape[-1])
 
     # mask: (seq_len, parallel_cnt, tick_buffer)
-    mask = obs["mask"][idx: idx+exp_len].reshape(batch, tick_buffer)
+    mask = obs["mask"][idx: idx + exp_len].reshape(batch, tick_buffer)
 
     return {"v": v, "p": p, "vo": vo, "po": po, "pedge": pedge, "vedge": vedge, "ppedge": ppedge, "mask": mask}
-
 
 
 def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_output):
@@ -117,7 +115,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
     env = Env(**config.env.param)
     fix_seed(env, config.env.seed)
     static_code_list, dynamic_code_list = list(env.summary["node_mapping"]["ports"].values()), \
-                                            list(env.summary["node_mapping"]["vessels"].values())
+        list(env.summary["node_mapping"]["vessels"].values())
     # create gnn_state_shaper without consuming any resources
 
     gnn_state_shaper = GNNStateShaper(static_code_list, dynamic_code_list, config.env.param.durations,
@@ -129,9 +127,9 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
 
     action_shaper = DiscreteActionShaper(config.model.action_dim)
     exp_shaper = ExperienceShaper(static_code_list, dynamic_code_list, config.env.param.durations, gnn_state_shaper,
-                                        scale_factor=config.env.return_scaler, time_slot=config.training.td_steps,
-                                        discount_factor=config.training.gamma, idx=index,
-                                        shared_storage=exp_output.structuralize(), exp_idx_mapping=exp_idx_mapping)
+                                    scale_factor=config.env.return_scaler, time_slot=config.training.td_steps,
+                                    discount_factor=config.training.gamma, idx=index,
+                                    shared_storage=exp_output.structuralize(), exp_idx_mapping=exp_idx_mapping)
 
     i = 0
     while pipe.recv() == "reset":
@@ -156,8 +154,8 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             model_action = pipe.recv()
             env_action = action_shaper(decision_event, model_action)
             exp_shaper.record(pending_action=decision_event, model_action=model_action, model_input=model_input)
-            logs.append([index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action, env_action, decision_event.action_scope.load,
-                            decision_event.action_scope.discharge])
+            logs.append([index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action,
+                env_action, decision_event.action_scope.load, decision_event.action_scope.discharge])
             action = Action(decision_event.vessel_idx, decision_event.port_idx, env_action)
             r, decision_event, is_done = env.step(action)
             j += 1
@@ -171,12 +169,12 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         logs = np.array(logs, dtype=np.float)
         pipe.send(logs)
 
-    print("the end")
 
 def compute_shortage(snapshot_list, max_tick, static_code_list):
     """Helper function to compute the shortage after a episode end.
     """
-    return np.sum(snapshot_list["ports"][max_tick-1: static_code_list: "acc_shortage"])
+    return np.sum(snapshot_list["ports"][max_tick - 1: static_code_list: "acc_shortage"])
+
 
 class ParallelActor(AbsActor):
     def __init__(self, config, demo_env, gnn_state_shaper, agent_manager, logger):
@@ -213,9 +211,9 @@ class ParallelActor(AbsActor):
         action_dim = config.model.action_dim
 
         v_dim, vedge_dim, v_cnt = self._gnn_state_shaper.get_input_dim("v"), \
-                                    self._gnn_state_shaper.get_input_dim("vedge"), len(self._dynamic_node_mapping)
+            self._gnn_state_shaper.get_input_dim("vedge"), len(self._dynamic_node_mapping)
         p_dim, pedge_dim, p_cnt = self._gnn_state_shaper.get_input_dim("p"), \
-                                    self._gnn_state_shaper.get_input_dim("pedge"), len(self._static_node_mapping)
+            self._gnn_state_shaper.get_input_dim("pedge"), len(self._static_node_mapping)
 
         self.pipes = [Pipe() for i in range(self.parallel_cnt)]
 
@@ -275,8 +273,7 @@ class ParallelActor(AbsActor):
 
         self.workers = [Process(
             target=single_player_worker, args=(i, config, self.exp_idx_mapping, self.pipes[i][1],
-                                               self.action_io, self.exp_output))
-                        for i in range(self.parallel_cnt)]
+                self.action_io, self.exp_output)) for i in range(self.parallel_cnt)]
         for w in self.workers:
             w.start()
 
@@ -313,17 +310,17 @@ class ParallelActor(AbsActor):
 
             t = time.time()
             graph = gnn_union(self.action_io_np["p"], self.action_io_np["po"], self.action_io_np["pedge"],
-                                      self.action_io_np["v"], self.action_io_np["vo"], self.action_io_np["vedge"],
-                                      self._gnn_state_shaper.p2p_static_graph, self.action_io_np["ppedge"],
-                                      self.action_io_np["mask"], self.device)
+                self.action_io_np["v"], self.action_io_np["vo"], self.action_io_np["vedge"],
+                self._gnn_state_shaper.p2p_static_graph, self.action_io_np["ppedge"],
+                self.action_io_np["mask"], self.device)
             t_state += time.time() - t
 
             assert(np.min(self.action_io_np["pid"]) == np.max(self.action_io_np["pid"]))
             assert(np.min(self.action_io_np["vid"]) == np.max(self.action_io_np["vid"]))
 
             t = time.time()
-            actions = self._inference_agents.choose_action(agent_id = (self.action_io_np["pid"][0],
-                                                            self.action_io_np["vid"][0]), state=graph)
+            actions = self._inference_agents.choose_action(agent_id=(self.action_io_np["pid"][0],
+                self.action_io_np["vid"][0]), state=graph)
             t_action += time.time() - t
 
             for i, p in enumerate(self.pipes):
@@ -336,7 +333,6 @@ class ParallelActor(AbsActor):
 
         self._logger.info("Mean of shortage: %f" % np.mean(self.action_io_np["sh"]))
         self._trainsfer_time += time.time() - tick
-
 
         self._logger.debug(dict(zip(self.log_header, self.action_io_np["sh"])))
 
@@ -358,4 +354,5 @@ class ParallelActor(AbsActor):
         """Terminate the child processes. """
         for p in self.pipes:
             p[0].send("close")
+
 

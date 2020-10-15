@@ -2,6 +2,7 @@ import multiprocessing
 
 import numpy as np
 
+
 def init_shared_memory(data_structure):
     # data_structure should be a dict like:
     # {
@@ -21,6 +22,7 @@ def init_shared_memory(data_structure):
             shared_data[k] = init_shared_memory(v)
         return shared_data
 
+
 def shared_data2numpy(shared_data, structure_info):
     if not isinstance(shared_data, dict):
         return np.frombuffer(shared_data, dtype=structure_info[1]).reshape(structure_info[0])
@@ -29,6 +31,7 @@ def shared_data2numpy(shared_data, structure_info):
         for k, v in shared_data.items():
             numpy_dict[k] = shared_data2numpy(v, structure_info[k])
         return numpy_dict
+
 
 class SharedStructure:
     def __init__(self, data_structure):
