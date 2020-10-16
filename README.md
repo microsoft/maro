@@ -23,6 +23,7 @@
 [![Coverage](https://img.shields.io/codecov/c/github/microsoft/maro)](https://codecov.io/gh/microsoft/maro)
 [![Downloads](https://img.shields.io/pypi/dm/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Docker Pulls](https://img.shields.io/docker/pulls/arthursjiang/maro)](https://hub.docker.com/repository/docker/arthursjiang/maro)
+[![Play with MARO](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/play_with_maro.svg)](https://hub.docker.com/r/arthursjiang/maro)
 
 # [![MARO LOGO](./docs/source/images/logo.svg)](https://maro.readthedocs.io/en/latest/)
 
