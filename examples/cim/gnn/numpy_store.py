@@ -27,8 +27,7 @@ def get_item(data_dict, key_tuple):
 
 
 def set_item(data_dict, key_tuple, data):
-    """The setter function corresponding to the get_item function.
-    """
+    """The setter function corresponding to the get_item function."""
     for i, key in enumerate(key_tuple):
         if key not in data_dict:
             data_dict[key] = {}
@@ -101,7 +100,6 @@ class NumpyStore(AbsStore):
         Returns:
             indexes (numpy.array): The list of the indexes each experience in the batch is located in.
         """
-
         dlen = exp_dict["len"]
         append_end = min(max(self.capacity - self.cnt, 0), dlen)
         idxs = np.zeros(dlen, dtype=np.int)
@@ -155,8 +153,7 @@ class NumpyStore(AbsStore):
         raise NotImplementedError("NumpyStore does not support sampling. Please use outer sampler to fetch samples!")
 
     def clear(self):
-        """Remove all the experience in the store.
-        """
+        """Remove all the experience in the store."""
         self.cnt = 0
 
 
@@ -175,7 +172,7 @@ class Shuffler:
         self._batch_size = batch_size
 
     def next(self):
-        """Uniformly sampling out a batch in the store. """
+        """Uniformly sampling out a batch in the store."""
         if self._start >= len(self._store):
             return None
         end = min(self._start + self._batch_size, len(self._store))

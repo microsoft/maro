@@ -293,7 +293,6 @@ class ParallelActor(AbsActor):
         Returns:
             result (dict): The key is the agent code, the value is the experience list stored in numpy.array.
         """
-
         # Compute the time used for state preparation in the child process.
         t_state = 0
         # Compute the time used for action inference.

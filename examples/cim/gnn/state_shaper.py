@@ -108,17 +108,6 @@ class GNNStateShaper(StateShaper):
         else:
             return at_index, attr
 
-    """
-    def arg_idx(self, arrival_time, p_or_v):
-        if self._feature_config.attention_order == "temporal":
-            return self.sort(arrival_time)
-        elif self._feature_config.attention_order == "meta_path_cnt":
-            return self._fixed_p_order if p_or_v else self._fixed_v_order
-        else:
-            # randomize the arrival time
-            return self.sort(arrival_time + np.random.randint(self._max_tick, size=arrival_time.shape))
-    """
-
     def end_ep_callback(self, snapshot_list):
         if self._only_demo:
             return

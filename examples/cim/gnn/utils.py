@@ -45,7 +45,6 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     Returns:
         result (dict): The dictionary that describes the graph.
     """
-
     seq_len, batch, v_cnt, v_dim = v.shape
     _, _, p_cnt, p_dim = p.shape
 
@@ -121,7 +120,6 @@ def flatten_embedding(embedding, batch_range, edge=None):
 
 def log2json(file_path):
     """load the log file as a json list."""
-
     with open(file_path, "r") as fp:
         lines = fp.read().splitlines()
         json_list = "[" + ",".join(lines) + "]"
