@@ -57,14 +57,10 @@ class ExperienceShaper:
         shortage = snapshot_list["ports"][self._tick_range:self._static_list:"shortage"].reshape(self._max_tick, -1)
         fulfillment = snapshot_list["ports"][self._tick_range:self._static_list:"fulfillment"] \
             .reshape(self._max_tick, -1)
-        # tot_shortage = np.sum(shortage, axis=1)
-        # tot_fulfillment = np.sum(fulfillment, axis=1)
         delta = fulfillment - shortage
         R = np.empty((self._len_return, len(self._static_list)), dtype=np.float)
         for i in range(0, self._len_return, 1):
             R[i] = np.dot(self._discount_vector, delta[i + 1: i + self._time_slot + 1])
-
-        # pkl.dump(R, open(r"/data/log/replay/R2.pkl", "wb"))
 
         for (agent_idx, vessel_idx), exp_list in self._experience_dict.items():
             for exp in exp_list:
@@ -74,10 +70,9 @@ class ExperienceShaper:
 
         tmpi = 0
         for (agent_idx, vessel_idx), idx_base in self._exp_idx_mapping.items():
-            # for (agent_idx, vessel_idx), exp_list in self._experience_dict.items():
             exp_list = self._experience_dict[(agent_idx, vessel_idx)]
             exp_len = len(exp_list)
-            # here, we assume that exp_idx_mapping order is not changed.
+            # Here, we assume that exp_idx_mapping order is not changed.
             self._shared_storage["len"][self._idx, tmpi] = exp_len
             self._shared_storage["s"]["v"][:, idx_base:idx_base + exp_len, self._idx] = \
                 np.stack([e["s"]["v"] for e in exp_list], axis=1)
@@ -110,9 +105,6 @@ class ExperienceShaper:
             self._shared_storage["R"][idx_base: idx_base + exp_len, self._idx] = \
                 np.vstack([exp["R"] for exp in exp_list])
             tmpi += 1
-
-        # pkl.dump(self._exp_idx_mapping, open(r"/data/log/replay/order2.pkl", "wb"))
-        # pkl.dump(self._shared_storage, open(r"/data/log/replay/22p2.pkl", "wb"))
 
     def reset(self):
         del self._experience_dict

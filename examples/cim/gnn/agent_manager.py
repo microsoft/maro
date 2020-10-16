@@ -27,7 +27,6 @@ class SimpleAgentManger(AbsAgentManager):
     def assemble(self, config):
         v_dim, vedge_dim = self._state_shaper.get_input_dim("v"), self._state_shaper.get_input_dim("vedge")
         p_dim, pedge_dim = self._state_shaper.get_input_dim("p"), self._state_shaper.get_input_dim("pedge")
-        # p_cnt = len(self.port_code_list)
 
         self.device = torch.device(config.training.device)
         self._logger.info(config.training.device)
@@ -85,7 +84,7 @@ class SimpleAgentManger(AbsAgentManager):
                     np.float32, True),
             ("s_", "mask"): ((config.model.tick_buffer, ), np.bool, True),
 
-            # to identify one dimension variable
+            # To identify one dimension variable.
             ("R",): ((len(self.port_code_list), ), np.float32, True),
             ("a",): (tuple(), np.int64, True),
         }

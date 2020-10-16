@@ -14,8 +14,6 @@ class TrainableAgent(AbsAgent):
 
     def train(self, training_config):
         loss_dict = defaultdict(list)
-        # loss_rt = defaultdict(float)
-        # for code, exp_pool in experience_pool_dict.items():
         for j in range(training_config.shuffle_time):
             shuffler = Shuffler(self._experience_pool, batch_size=training_config.batch_size)
             while shuffler.has_next():

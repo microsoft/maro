@@ -14,25 +14,25 @@ if __name__ == "__main__":
     config_pth = "examples/cim/gnn/config.yml"
     config = load_config(config_pth)
 
-    # generate log path.
+    # Generate log path.
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     time_str = datetime.datetime.now().strftime("%H%M%S.%f")
     subfolder_name = f"{config.env.param.topology}_{time_str}"
 
-    # log path.
+    # Log path.
     config.log.path = os.path.join(config.log.path, date_str, subfolder_name)
     if not os.path.exists(config.log.path):
         os.makedirs(config.log.path)
 
     simulation_logger = Logger(tag="simulation", dump_folder=config.log.path, dump_mode="w", auto_timestamp=False)
 
-    # create a demo environment to retrieve environment information.
+    # Create a demo environment to retrieve environment information.
     simulation_logger.info("Approximating the experience quantity of each agent...")
     demo_env = Env(**config.env.param)
     config.env.exp_per_ep = decision_cnt_analysis(demo_env, pv=True, buffer_size=8)
     simulation_logger.info(config.env.exp_per_ep)
 
-    # add some buffer to prevent overlapping
+    # Add some buffer to prevent overlapping.
     config.env.return_scaler, tot_order_amount = return_scaler(
         demo_env, tick=config.env.param.durations, gamma=config.training.gamma)
     simulation_logger.info(f"Return value will be scaled down by the factor {config.env.return_scaler}")

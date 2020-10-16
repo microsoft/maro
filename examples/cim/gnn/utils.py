@@ -61,13 +61,11 @@ def gnn_union(p, po, pedge, v, vo, vedge, p2p, ppedge, seq_mask, device):
     vadj = vadj.transpose(0, 1)
     # vedge.shape: (p_cnt*, batch*v_cnt, e_dim)
     vedge = vedge.transpose(0, 1)
-    # vedge = vedge.reshape(-1, *vedge.shape[-2:]).transpose(0, 1)[:vadj.shape[0]]
 
     padj, pedge = flatten_embedding(po, batch_range, pedge)
     pmask = padj == 0
     padj = padj.transpose(0, 1)
     pedge = pedge.transpose(0, 1)
-    # pedge = pedge.reshape(-1, *pedge.shape[-2:]).transpose(0, 1)[:padj.shape[0]]
 
     p2p_adj = p2p.repeat(batch, 1, 1)
     # p2p_adj.shape: (batch*p_cnt, p_cnt*)
@@ -153,7 +151,6 @@ def decision_cnt_analysis(env, pv=False, buffer_size=8):
 
 
 def random_shortage(env, tick, action_dim=21):
-    # zero_idx = action_dim // 2
     _, pa, is_done = env.step(None)
     node_cnt = len(env.summary["node_mapping"]["ports"])
     while not is_done:
@@ -224,7 +221,6 @@ def fix_seed(env, seed):
 
 def zero_play(**args):
     env = Env(**args)
-    # static_mapping = env.node_name_mapping["static"]
     _, pa, is_done = env.step(None)
     while not is_done:
         action = Action(pa.vessel_idx, pa.port_idx, 0)

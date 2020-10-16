@@ -31,8 +31,6 @@ model:
     onehot_identity: False
 log:
   path: "./"
-  # be careful to turn this on
-  snapshot: True
   exp:
     enable: false
     freq: 10

@@ -23,8 +23,7 @@ class PositionalEncoder(nn.Module):
         self.d_model = d_model
         self.times = 4 * math.sqrt(self.d_model)
 
-        # create constant "pe" matrix with values dependant on
-        # pos and i
+        # Create constant "pe" matrix with values dependant on pos and i.
         self.pe = torch.zeros(max_seq_len, d_model)
         for pos in range(max_seq_len):
             for i in range(0, d_model, 2):
@@ -34,9 +33,7 @@ class PositionalEncoder(nn.Module):
         self.pe = self.pe.unsqueeze(1) / self.d_model
 
     def forward(self, x):
-        # make embeddings relatively larger
-        # x = x * self.sqrt_d_model
-        # add constant to embedding
+        # Make embeddings relatively larger.
         addon = self.pe[: x.shape[0], :, : x.shape[2]].to(x.get_device())
         return x + addon
 
@@ -115,9 +112,7 @@ class SimpleGATLayer(nn.Module):
         src_embedding = src.reshape(-1, src_dim)
         src_embedding = torch.cat((self.zero_padding_template.to(src_embedding.get_device()), src_embedding))
 
-        # adj = adj[:,torch.randperm(adj.size()[1])]
         flat_adj = adj.reshape(-1)
-        # src_cnt * (batch * dest_cnt) * src_dim
         src_embedding = src_embedding[flat_adj].reshape(src_neighbor_cnt, -1, src_dim)
         if edges is not None:
             src_embedding = torch.cat((src_embedding, edges), axis=2)
@@ -157,7 +152,7 @@ class SimpleTransformer(nn.Module):
             if i == 0:
                 pl.append(SimpleGATLayer(v_dim, p_dim, edge_dim["v"], self.hidden_size, nhead=4))
                 vl.append(SimpleGATLayer(p_dim, v_dim, edge_dim["v"], self.hidden_size, nhead=4))
-                # p2p links
+                # p2p links.
                 ppl.append(
                     SimpleGATLayer(
                         p_dim, p_dim, edge_dim["p"], self.hidden_size, nhead=4, position_encoding=False)
@@ -165,7 +160,7 @@ class SimpleTransformer(nn.Module):
             else:
                 pl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4))
                 if i != layer_num - 1:
-                    # p2v conv is not necessary at the last layer, for we only use port features
+                    # p2v conv is not necessary at the last layer, for we only use port features.
                     vl.append(SimpleGATLayer(self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4))
                 ppl.append(SimpleGATLayer(
                     self.hidden_size, self.hidden_size, 0, self.hidden_size, nhead=4, position_encoding=False))
@@ -187,7 +182,7 @@ class SimpleTransformer(nn.Module):
         pp = p
         pre_p, pre_v, pre_pp = p, v, pp
         for i in range(self.layer_num):
-            # only feed edge info in the first layer
+            # Only feed edge info in the first layer.
             p = self.p_layers[i](pre_v, pre_p, adj=pe["adj"], edges=pe["edge"] if i == 0 else None, mask=pe["mask"])
             if i != self.layer_num - 1:
                 v = self.v_layers[i](
@@ -310,8 +305,8 @@ class SharedAC(nn.Module):
         v_cnt = feature_v.shape[2]
         assert(tb == self.tick_buffer)
 
-        # before: feature_p.shape: (tick_buffer, batch_size, p_cnt, p_dim)
-        # after: feature_p.shape: (tick_buffer, batch_size*p_cnt, p_dim)
+        # Before: feature_p.shape: (tick_buffer, batch_size, p_cnt, p_dim)
+        # After: feature_p.shape: (tick_buffer, batch_size*p_cnt, p_dim)
         feature_p = self.p_pre_layer(feature_p.reshape(feature_p.shape[0], -1, feature_p.shape[-1]))
         # state["mask"]: (batch_size, tick_buffer)
         # mask_p: (batch_size, p_cnt, tick_buffer)
@@ -326,12 +321,6 @@ class SharedAC(nn.Module):
         feature_v = feature_v[0].reshape(bsize, v_cnt, self.pre_dim_v)
 
         emb_p, emb_v = self.trans_gat(feature_p, state["pe"], feature_v, state["ve"], state["ppe"])
-
-        # date_str = f"{datetime.datetime.now().strftime("%Y%m%d")}"
-        # time_str = f"{datetime.datetime.now().strftime("%H%M%S.%f")}"
-        # subfolder_name = "%s_%s"%("./visualization/graph_embedding_p.npy", time_str)
-        # np.save("%s_%s.npy"%("./visualization/emb/p_emb/emb", time_str), emb_p.cpu().detach().numpy())
-        # np.save("%s_%s.npy"%("./visualization/emb/v_emb/emb", time_str), emb_v.cpu().detach().numpy())
 
         a_rtn, c_rtn = None, None
         if a and self.a:

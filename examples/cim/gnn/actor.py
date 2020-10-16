@@ -210,7 +210,6 @@ class ParallelActor(AbsActor):
         self.log_header = [f"sh_{i}" for i in range(self.parallel_cnt)]
 
         tick_buffer = config.model.tick_buffer
-        # action_dim = config.model.action_dim
 
         v_dim, vedge_dim, v_cnt = self._gnn_state_shaper.get_input_dim("v"), \
             self._gnn_state_shaper.get_input_dim("vedge"), len(self._dynamic_node_mapping)

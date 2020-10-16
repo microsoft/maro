@@ -37,10 +37,6 @@ class GNNLearner(AbsLearner):
 
             if training_config.enable and i % training_config.train_freq == training_config.train_freq - 1:
                 tick = time.time()
-
-                # for code, exp_pool in experience_pool_dict.items():
-                # loss_dict = self._trainable_agents.train(training_config)
-
                 training_time += time.time() - tick
 
             if log_pth is not None and (i + 1) % training_config.model_save_freq == 0:

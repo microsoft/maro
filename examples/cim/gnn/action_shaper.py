@@ -19,9 +19,7 @@ class DiscreteActionShaper(ActionShaper):
             pending_action (Event): The decision event from the environment.
             model_action (int): Output action, range A means the half of the agent output dim.
         """
-        # tick = pending_action.tick
         env_action = 0
-        # action_index = model_action
         model_action -= self._zero_action
 
         action_scope = decision_event.action_scope
