@@ -84,7 +84,9 @@ class CurrencyExchange():
     to_currency = None  # target currency
     init_time = None  # timestamp of tick 0
 
-    def __init__(self, data_path: str, from_currency: str, to_currency: str, fallback_exchange: float = 1, init_time: pd._libs.tslibs.timestamps.Timestamp = pd.Timestamp(year=1970, month=1, day=1)):
+    def __init__(
+            self, data_path: str, from_currency: str, to_currency: str, fallback_exchange: float = 1,
+            init_time: pd._libs.tslibs.timestamps.Timestamp = pd.Timestamp(year=1970, month=1, day=1)):
         self.from_currency = CurrencyType[from_currency]
         self.to_currency = CurrencyType[to_currency]
         self.init_time = init_time
@@ -141,7 +143,7 @@ class CurrencyExchange():
 
 class Singleton(object):
     _instance = None
-    
+
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(Singleton, cls).__new__(cls)
@@ -159,15 +161,13 @@ class Exchanger(Singleton):
 
     def __init__(
             self, data_path: str,
-            init_time: pd._libs.tslibs.timestamps.Timestamp = pd.Timestamp(year=1970, month=1, day=1)
-        ):
+            init_time: pd._libs.tslibs.timestamps.Timestamp = pd.Timestamp(year=1970, month=1, day=1)):
         self._data_path = data_path
         self._init_time = init_time
 
     def exchange_from_by_date(
             self, from_currency: CurrencyType, to_currency: CurrencyType,
-            amount: float, cur_date: pd._libs.tslibs.timestamps.Timestamp
-        ):
+            amount: float, cur_date: pd._libs.tslibs.timestamps.Timestamp):
         exchanger_key = from_currency.name + ':' + to_currency.name
         if exchanger_key not in self._exchangers_dict:
             self._exchangers_dict[exchanger_key] = CurrencyExchange(
@@ -187,8 +187,7 @@ class Exchanger(Singleton):
 
     def exchange_to_by_date(
             self, from_currency: CurrencyType, to_currency: CurrencyType,
-            amount: float, cur_date: pd._libs.tslibs.timestamps.Timestamp
-        ):
+            amount: float, cur_date: pd._libs.tslibs.timestamps.Timestamp):
         exchanger_key = from_currency.name + ':' + to_currency.name
         if exchanger_key not in self._exchangers_dict:
             self._exchangers_dict[exchanger_key] = CurrencyExchange(
@@ -205,6 +204,7 @@ class Exchanger(Singleton):
             )
         exchange_rate = self._exchangers_dict[exchanger_key].get_inter_bank_rate_by_tick(tick)
         return amount / exchange_rate
+
 
 if __name__ == "__main__":
     a = CurrencyExchange("/mnt/d/work/maro_git/maro/fin_pipeline/currency", 'CNY', 'SGD')

@@ -46,7 +46,7 @@ class ByMoneyCommission(Commission):
         self.min_fee = min_fee
 
     def execute(self, actual_price: float, actual_volume: int) -> float:
-        return round(max(actual_price*abs(actual_volume)*self.fee_rate, self.min_fee), 2)
+        return round(max(actual_price * abs(actual_volume) * self.fee_rate, self.min_fee), 2)
 
     @property
     def fee_rate(self):
@@ -66,7 +66,7 @@ class ByVolumeCommission(Commission):
         self.pre_volume_fee = pre_volume_fee
 
     def execute(self, actual_price: float, actual_volume: int) -> float:
-        return round(max(abs(actual_volume)*self.pre_volume_fee, self.min_fee), 2)
+        return round(max(abs(actual_volume) * self.pre_volume_fee, self.min_fee), 2)
 
     @property
     def pre_volume_fee(self):
@@ -105,7 +105,7 @@ class StampTaxCommission(ByMoneyCommission):
 
     def execute(self, actual_price: float, actual_volume: int) -> float:
         if actual_volume < 0:
-            return round(max(actual_price*abs(actual_volume)*self.tax_rate, self.min_fee), 2)
+            return round(max(actual_price * abs(actual_volume) * self.tax_rate, self.min_fee), 2)
         else:
             return 0
 

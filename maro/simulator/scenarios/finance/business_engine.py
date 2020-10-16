@@ -1,5 +1,4 @@
 import os
-import time
 import datetime
 import pandas as pd
 from typing import Dict, List
@@ -28,9 +27,9 @@ logger = CliLogger(name=__name__)
 
 class FinanceBusinessEngine(AbsBusinessEngine):
     def __init__(
-            self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, 
+            self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int,
             snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
-        ):
+    ):
         super().__init__(
             "finance", event_buffer, topology, start_tick, max_tick,
             snapshot_resolution, max_snapshots, additional_options

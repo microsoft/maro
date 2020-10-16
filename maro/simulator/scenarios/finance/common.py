@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Callable
+from typing import Callable
 from functools import partial
 
 
@@ -34,10 +34,9 @@ class TradeResult:
     """Result or a trade order"""
 
     def __init__(
-        self, sub_engine_name: str, item_index: int, trade_number: int, tick: int,
-        price_per_item: float, tax: float, action_id: int, is_trade_accept: bool = False,
-        is_trade_trigger: bool = True
-    ):
+            self, sub_engine_name: str, item_index: int, trade_number: int, tick: int,
+            price_per_item: float, tax: float, action_id: int, is_trade_accept: bool = False,
+            is_trade_trigger: bool = True):
         self.sub_engine_name = sub_engine_name
         self.item_index = item_index
         self.trade_number = trade_number
@@ -68,7 +67,7 @@ class DecisionEvent:
             tick (int): current tick of decision
             type (FinanceType): type of this decision
             item (int): available item index for action, such as a stock for StockSubEngine
-            sub_engine_name (str): name of sub-engine, used to identify which this decision come from, 
+            sub_engine_name (str): name of sub-engine, used to identify which this decision come from,
                 as we support multi-sub-engine with same type, we need this field from action
             action_scope_func (Callable): function to provide action scope
         """

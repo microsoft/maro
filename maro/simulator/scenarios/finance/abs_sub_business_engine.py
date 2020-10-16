@@ -8,7 +8,7 @@ class AbsSubBusinessEngine(ABC):
     def __init__(
             self, beginning_timestamp: int, start_tick: int, max_tick: int,
             frame_resolution: int, config: dict, event_buffer: EventBuffer
-        ):
+    ):
         self._beginning_timestamp = beginning_timestamp
         self._start_tick = start_tick
         self._max_tick = max_tick

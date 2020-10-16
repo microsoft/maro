@@ -21,7 +21,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     def __init__(
             self, beginning_timestamp: int, start_tick: int, max_tick: int,
             frame_resolution: int, config: dict, event_buffer: EventBuffer
-        ):
+    ):
         super().__init__(beginning_timestamp, start_tick, max_tick, frame_resolution, config, event_buffer)
 
         self._stock_codes: list = None
@@ -258,7 +258,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
         ret = True
         allow_split = self._allow_split
         if self._action_scope(action.action_type, action.item_index)[0][0] <= action.number \
-            and self._action_scope(action.action_type, action.item_index)[0][1] >= action.number:
+                and self._action_scope(action.action_type, action.item_index)[0][1] >= action.number:
             ret = False
         return ret, allow_split
 
