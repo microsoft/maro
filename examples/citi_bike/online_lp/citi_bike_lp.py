@@ -2,7 +2,7 @@ import math
 from typing import List, Tuple
 
 import numpy as np
-from pulp import LpProblem, LpVariable, LpMaximize, lpSum, LpStatus, value, GLPK
+from pulp import LpProblem, LpVariable, LpMaximize, lpSum, LpStatus, GLPK
 
 from maro.utils import DottableDict
 
@@ -105,34 +105,34 @@ class LP():
                 problem += (
                     self._inventory[tick][station] == (
                         self._inventory[tick - 1][station]
-                        + supply[tick - 1][station] - self._fulfillment[tick - 1][station]
+                        + supply[tick - 1, station] - self._fulfillment[tick - 1][station]
                         + self._transfer_to[tick - 1][station] - self._transfer_from[tick - 1][station]
                     )
                 ), f"Inventory_T{tick}_S{station}"
                 problem += (
                     self._safety_inventory[tick][station] <= (
                         self._inventory[tick - 1][station]
-                        + supply[tick - 1][station] - self._fulfillment[tick - 1][station]
+                        + supply[tick - 1, station] - self._fulfillment[tick - 1][station]
                         - self._transfer_from[tick - 1][station]
                     )
                 ), f"SafetyInventory_T{tick}_S{station}"
 
     def _set_objective(self, problem: LpProblem):
-        fulfillment_gain = lpSum([
-            math.pow(self._fulfillment_time_decay_factor, tick) * lpSum([
+        fulfillment_gain = lpSum(
+            math.pow(self._fulfillment_time_decay_factor, tick) * lpSum(
                 self._fulfillment[tick][station] for station in range(self._num_station)
-            ]) for tick in range(self._num_tick)
-        ])
+            ) for tick in range(self._num_tick)
+        )
 
-        safety_inventory_reward = self._safety_inventory_reward_factor * lpSum([
+        safety_inventory_reward = self._safety_inventory_reward_factor * lpSum(
             self._safety_inventory[tick][station] for station in range(self._num_station)
             for tick in range(self._num_tick)
-        ])
+        )
 
-        transfer_cost = self._transfer_cost_factor * lpSum([
+        transfer_cost = self._transfer_cost_factor * lpSum(
             self._transfer_to[tick][station] for station in range(self._num_station)
             for tick in range(self._num_tick)
-        ])
+        )
 
         problem += (fulfillment_gain + safety_inventory_reward - transfer_cost)
 
@@ -146,7 +146,38 @@ class LP():
         self._init_variables(init_inventory=init_inventory)
         self._add_constraints(problem=problem, demand=demand, supply=supply)
         self._set_objective(problem=problem)
-        problem.solve()
+        problem.solve(GLPK(msg=0))
+        print(f"Problem {problem.name}: {LpStatus[problem.status]}")
+
+        if LpStatus[problem.status] == 'Infeasible':
+            problem.writeLP(f"{problem.name}.lp")
+            for key, value in problem.constraints.items():
+                if value.slack != 0:
+                    print(
+                        f"key: {key}, "
+                        f"value: {value}, "
+                        f"slack: {value.slack}"
+                    )
+
+            def num(var):
+                if isinstance(var, int) or isinstance(var, np.float32):
+                    return (" ", var)
+                else:
+                    return ("*", var.varValue)
+
+            for tick in range(self._num_tick):
+                for station in range(self._num_station):
+                    print(
+                        f"T{tick}_S{station} \tD: {demand[tick, station]} \tS: {supply[tick, station]} \t"
+                        f"Inv: {num(self._inventory[tick][station])} \tSInv: {num(self._safety_inventory[tick][station])} \t"
+                        f"Fulfillment: {num(self._fulfillment[tick][station])} \t"
+                        f"TF: {num(self._transfer_from[tick][station])} \tTT: {num(self._transfer_to[tick][station])} \t"
+                        f"TT: {[num(self._transfer[tick][station][idx]) for idx in range(self._num_neighbor)]}"
+                    )
+
+            for station in range(self._num_station):
+                print(f"{station}: {self._station_neighbor_list[station][:self._num_neighbor]}")
+            exit(0)
 
     def get_transfer_list(
         self, env_tick: int, init_inventory: np.ndarray, demand: np.ndarray, supply: np.ndarray

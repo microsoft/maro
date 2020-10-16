@@ -132,6 +132,8 @@ class MaLpAgent():
             supply=supply
         )
 
+        print(transfer_list)
+
         action_list = [
             Action(from_station_idx=item[0], to_station_idx=item[1], number=min(item[2], init_inventory[item[0]]))
             for item in transfer_list
@@ -140,13 +142,24 @@ class MaLpAgent():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--peep", action='store_true')
     parser.add_argument("-c", "--config", type=str, default="examples/citi_bike/online_lp/config.yml")
+    parser.add_argument("-t", "--topology", type=str)
+    parser.add_argument("-r", "--seed", type=int)
     args = parser.parse_args()
 
     # Read the configuration.
     with io.open(args.config, "r") as in_file:
         raw_config = yaml.safe_load(in_file)
         config = convert_dottable(raw_config)
+
+    # Overwrite the config.
+    if args.topology is not None:
+        config.env.topology = args.topology
+    if args.seed is not None:
+        config.env.seed = args.seed
+    if args.peep:
+        PEEP_AND_USE_REAL_DATA = True
 
     # Init an environment for Citi Bike.
     env = Env(
@@ -170,7 +183,10 @@ if __name__ == "__main__":
     station_distance_adj = np.array(
         load_adj_from_csv(env.configs["distance_adj_data"], skiprows=1)
     ).reshape(num_station, num_station)
-    station_neighbor_list = np.argsort(station_distance_adj, axis=1).tolist()
+    station_neighbor_list = [
+        neighbor_list[1:]
+        for neighbor_list in np.argsort(station_distance_adj, axis=1).tolist()
+    ]
 
     # Init a Moving-Average based LP agent.
     decision_interval = env.configs["decision"]["resolution"]
@@ -206,6 +222,10 @@ if __name__ == "__main__":
                 init_inventory=env.snapshot_list["stations"][env.frame_index : env.agent_idx_list : "bikes"],
                 finished_events=env.get_finished_events()
             )
+            pre_decision_tick = decision_event.tick
         _, decision_event, is_done = env.step(action=action)
 
-    print(f"Online LP performance for topology {config.env.topology}: {env.metrics}")
+    print(
+        f"[{'De' if PEEP_AND_USE_REAL_DATA else 'MA'}] "
+        f"Topology {config.env.topology} with seed {config.env.seed}: {env.metrics}"
+    )
