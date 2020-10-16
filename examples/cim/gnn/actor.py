@@ -339,7 +339,7 @@ class ParallelActor(AbsActor):
         self._logger.info("receiving exp")
         logs = [p[0].recv() for p in self.pipes]
 
-        self._logger.info(f"Mean of shortage: {np.mean(self.action_io_np["sh"])}")
+        self._logger.info(f"Mean of shortage: {np.mean(self.action_io_np['sh'])}")
         self._trainsfer_time += time.time() - tick
 
         self._logger.debug(dict(zip(self.log_header, self.action_io_np["sh"])))
