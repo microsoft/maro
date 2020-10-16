@@ -19,7 +19,7 @@ import redis
 # private lib
 from maro.communication import DriverType, ZmqDriver
 from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
-from maro.communication.utils import default_parameters, peers_checker
+from maro.communication.utils import default_parameters, peers_checker, MessageCache
 from maro.utils import InternalLogger, DummyLogger
 from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
     InformationUncompletedError
@@ -32,8 +32,7 @@ MAX_RETRIES = default_parameters.proxy.redis.max_retries
 BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
 FAULT_TOLERANT = default_parameters.proxy.fault_tolerant
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
-PEER_UPDATE_FREQUENCY = default_parameters.proxy.peers_update_frequency
-DYNAMIC_PEER = default_parameters.proxy.dynamic_peer        # only enable at real k8s cluster or grass cluster
+IS_DYNAMIC_PEER = default_parameters.proxy.dynamic_peer.enable        # only enable at real k8s cluster or grass cluster
 
 
 class Proxy:
@@ -61,7 +60,7 @@ class Proxy:
                  driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
                  redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
                  base_retry_interval: float = BASE_RETRY_INTERVAL, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
-                 fault_tolerant: bool = FAULT_TOLERANT, dynamic_peer: bool = DYNAMIC_PEER,
+                 fault_tolerant: bool = FAULT_TOLERANT, dynamic_peer: bool = IS_DYNAMIC_PEER,
                  log_enable: bool = True):
         self._group_name = group_name
         self._component_type = component_type
@@ -99,10 +98,10 @@ class Proxy:
 
         # Parameters for dynamic peers
         self._is_dynamic_peer = dynamic_peer
-        self._peer_update_frequency = peer_update_frequency
-        # variable for dynamic peers
-        self._exited_peer_dict = defaultdict(list)
-        self._message_cache_for_exited_peers = defaultdict(list)
+        if self._is_dynamic_peer:
+            self._peer_update_frequency = peer_update_frequency
+            # variable for dynamic peers
+            self._message_cache_for_exited_peers = defaultdict(list)
 
         self._join()
 

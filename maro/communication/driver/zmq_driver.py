@@ -167,7 +167,9 @@ class ZmqDriver(AbsDriver):
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
             self._logger.debug(f"Send a {message.tag} message to {message.destination}.")
-        except Exception as e:
+        except ZMQError as e:
+            # TODO: check zmq error
+        except KeyError as e:
             return DriverSendError(f"Failure to send message caused by: {e}")
 
     def broadcast(self, message: Message):
