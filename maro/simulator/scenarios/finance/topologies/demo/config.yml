@@ -11,7 +11,7 @@ sub-engines:
   -
     name: 'sz_stocks' # used to access from out of env by name
     type: stock # stock, futures
-    data_path: "/mnt/d/work/finance_doc/qlib" 
+    data_path: "./" 
     stocks: # stocks to simulate 
       - "000001"
 

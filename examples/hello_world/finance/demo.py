@@ -14,34 +14,64 @@ env = Env(scenario="finance", topology="demo", start_tick=start_tick, durations=
 print(env.summary)
 for ep in range(max_ep):
     metrics = None
-    decision_evt: DecisionEvent = None
+    decision_evts = None
     is_done = False
     actions = None
 
     while not is_done:
-        metrics, decision_evt, is_done = env.step(actions)
+        metrics, decision_evts, is_done = env.step(actions)
 
         
         ep_start = time.time()
         actions = []
         if not is_done:
-            for decision_event in decision_evt:
+            for decision_event in decision_evts:
                 if decision_event.action_type == ActionType.order:
                     print("decision_event",decision_event)
                     # stock trading decision
-                    # qurey snapshot for information
+                    stock_index = decision_event.item
+                    action_scope = decision_event.action_scope
+                    min_amount = action_scope[0][0]
+                    max_amount = action_scope[0][1]
+                    supported_order_types = action_scope[1]
+                    default_order_mode = action_scope[2]
+                    print(stock_index, min_amount, max_amount, supported_order_types, default_order_mode)
+                    # qurey snapshot for stock information
                     cur_env_snap = env.snapshot_list.sz_stocks['stocks']
                     holding = cur_env_snap[env.tick-1:int(decision_event.item):"account_hold_num"][-1]
-                    # available = cur_env_snap[env.tick-1:int(decision_event.item):"is_valid"][-1]
                     cost = cur_env_snap[env.tick-1:int(decision_event.item):"average_cost"][-1]
-
+                    opening_price = cur_env_snap[env.tick-1:int(decision_event.item):"opening_price"][-1]
+                    closing_price = cur_env_snap[env.tick-1:int(decision_event.item):"closing_price"][-1]
+                    highest_price = cur_env_snap[env.tick-1:int(decision_event.item):"highest_price"][-1]
+                    lowest_price = cur_env_snap[env.tick-1:int(decision_event.item):"lowest_price"][-1]
+                    adj_closing_price = cur_env_snap[env.tick-1:int(decision_event.item):"adj_closing_price"][-1]
+                    dividends = cur_env_snap[env.tick-1:int(decision_event.item):"dividends"][-1]
+                    splits = cur_env_snap[env.tick-1:int(decision_event.item):"splits"][-1]
+                    print(holding, cost, opening_price, closing_price, highest_price, lowest_price, adj_closing_price, dividends, splits)
+                    # qurey snapshot for account information
                     total_money = env.snapshot_list.sz_stocks['sub_account'][env.tick-1:0:"total_money"][-1]
-                    print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "total_money:", total_money)
+                    remaining_money = env.snapshot_list.sz_stocks['sub_account'][env.tick-1:0:"remaining_money"][-1]
+                    print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "total_money:", total_money, "remaining_money", remaining_money)
 
-                    # if available == 1:
                     if holding > 0:# sub_engine_name -> market
                         action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=-holding,
                                         action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.market_order)
+                        
+                        # limit_order
+                        # action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=-holding,
+                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.limit_order, limit=highest_price)
+                        
+                        # stop order
+                        # action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=-holding,
+                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.stop_order, stop=lowest_price)
+                        
+                        # stop limit order
+                        # action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=-holding,
+                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.stop_limit_order, limit=lowest_price, stop=highest_price)
+                        
+                        # order that has life_time, default life_time is 1, if life_time > 1, order will keep live when not triggered in life_time ticks
+                        # action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=-holding,
+                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.limit_order, limit=highest_price, life_time=10)
                     else:
 
                         action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=1000,
