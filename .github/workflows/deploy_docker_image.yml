@@ -35,7 +35,7 @@ jobs:
     - name: Login docker hub
       run: |
         docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password ${{ secrets.DOCKER_HUB_PASSWORD }}
-        
+
     - name: Push image
       run: |
         docker push ${{ secrets.DOCKER_HUB_USERNAME }}/maro
