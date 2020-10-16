@@ -11,12 +11,13 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
 
-class ActorCriticHyperParameters:
-    """Hyper-parameter set for the Actor-Critic algorithm.
+class PPOHyperParameters:
+    """Hyper-parameter set for the Proximal Policy Optimization (PPO) algorithm.
 
     Args:
         num_actions (int): number of possible actions
         reward_decay (float): reward decay as defined in standard RL terminology
+        clip_ratio (float): clip ratio as defined in PPO's objective function.
         policy_train_iters (int): number of gradient descent steps for the policy model per call to ``train``.
         value_train_iters (int): number of gradient descent steps for the value model per call to ``train``.
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
@@ -24,24 +25,25 @@ class ActorCriticHyperParameters:
         lamb (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
-    __slots__ = ["num_actions", "reward_decay", "policy_train_iters", "value_train_iters", "k", "lamb"]
+    __slots__ = ["num_actions", "reward_decay", "clip_ratio", "policy_train_iters", "value_train_iters", "k", "lamb"]
 
     def __init__(
-        self, num_actions: int, reward_decay: float, policy_train_iters, value_train_iters: int,
-        k: int = -1, lamb: float = 1.0
+        self, num_actions: int, reward_decay: float, clip_ratio: float, policy_train_iters: int,
+        value_train_iters: int, k: int = -1, lamb: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
+        self.clip_ratio = clip_ratio
         self.policy_train_iters = policy_train_iters
         self.value_train_iters = value_train_iters
         self.k = k
         self.lamb = lamb
 
 
-class ActorCritic(AbsAlgorithm):
-    """Actor Critic algorithm with separate policy and value models (no shared layers).
+class PPO(AbsAlgorithm):
+    """Proximal policy optimization (PPO) algorithm.
 
-    The Actor-Critic algorithm base on the policy gradient theorem.
+    See https://arxiv.org/pdf/1707.06347.pdf for details.
 
     Args:
         policy_model (nn.Module): model for generating actions given states.
@@ -56,7 +58,7 @@ class ActorCritic(AbsAlgorithm):
 
     def __init__(
         self, policy_model: nn.Module, value_model: nn.Module, value_loss_func: Callable, policy_optimizer_cls,
-        policy_optimizer_params, value_optimizer_cls, value_optimizer_params, hyper_params: ActorCriticHyperParameters
+        policy_optimizer_params, value_optimizer_cls, value_optimizer_params, hyper_params: PPOHyperParameters
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -66,10 +68,6 @@ class ActorCritic(AbsAlgorithm):
         self._value_optimizer = value_optimizer_cls(self._value_model.parameters(), **value_optimizer_params)
         self._value_loss_func = value_loss_func
         self._hyper_params = hyper_params
-
-    @property
-    def model(self):
-        return {"policy": self._policy_model, "value": self._value_model}
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
@@ -86,16 +84,23 @@ class ActorCritic(AbsAlgorithm):
         return_est = torch.from_numpy(return_est)
         return return_est, return_est - state_values
 
-    def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
-        states = torch.from_numpy(state_sequence).to(self._device)
-        actions = torch.from_numpy(action_sequence).to(self._device)
+    def train(
+        self, state_sequence: np.ndarray, action_sequence: np.ndarray, log_action_prob_sequence: np.ndarray,
+        reward_sequence: np.ndarray
+    ):
+        states = torch.from_numpy(state_sequence).to(self._device)  # (N, state_dim)
+        actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
         return_est, advantages = self._get_bootstrapped_returns_and_advantages(states, reward_sequence)
-        # policy model training
+        log_action_prob_old = torch.from_numpy(log_action_prob_sequence).to(self._device)
+
+        # policy model training (with the value model fixed)
         for _ in range(self._hyper_params.policy_train_iters):
-            action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
-            policy_loss = -(torch.log(action_prob) * advantages).mean()
+            action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()  # (N, 1)
+            ratio = torch.exp(torch.log(action_prob) - log_action_prob_old)
+            clipped_ratio = torch.clamp(ratio, 1-self._hyper_params.clip_ratio, 1+self._hyper_params.clip_ratio)
+            loss = -(torch.min(ratio*advantages, clipped_ratio*advantages)).mean()
             self._policy_optimizer.zero_grad()
-            policy_loss.backward()
+            loss.backward()
             self._policy_optimizer.step()
 
         # value model training
@@ -123,30 +128,35 @@ class ActorCritic(AbsAlgorithm):
         torch.save({"policy": self._policy_model.state_dict(), "value": self._value_model.state_dict()}, path)
 
 
-class ActorCriticHyperParametersWithCombinedModel:
-    """Hyper-parameter set for the Actor-Critic algorithm with a combined policy/value model.
+class PPOHyperParametersWithCombinedModel:
+    """Hyper-parameter set for the Proximal Policy Optimization (PPO) algorithm.
 
     Args:
         num_actions (int): number of possible actions
         reward_decay (float): reward decay as defined in standard RL terminology
+        clip_ratio (float): clip ratio as defined in PPO's objective function.
         train_iters (int): number of gradient descent steps for the policy-value model per call to ``train``.
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
         lamb (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
-    __slots__ = ["num_actions", "reward_decay", "train_iters", "k", "lamb"]
+    __slots__ = ["num_actions", "reward_decay", "clip_ratio", "train_iters", "k", "lamb"]
 
-    def __init__(self, num_actions: int, reward_decay: float, train_iters: int, k: int = -1, lamb: float = 1.0):
+    def __init__(
+        self, num_actions: int, reward_decay: float, clip_ratio: float, train_iters: int,
+        k: int = -1, lamb: float = 1.0
+    ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
+        self.clip_ratio = clip_ratio
         self.train_iters = train_iters
         self.k = k
         self.lamb = lamb
 
 
-class ActorCriticWithCombinedModel(AbsAlgorithm):
-    """Actor Critic algorithm where policy and value models have shared layers.
+class PPOWithCombinedModel(AbsAlgorithm):
+    """PPO algorithm where policy and value models have shared layers.
 
     Args:
         policy_value_model (nn.Module): model for generating action distributions and values for given states using
@@ -159,7 +169,7 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
 
     def __init__(
         self, policy_value_model: nn.Module, value_loss_func: Callable, optimizer_cls, optimizer_params,
-        hyper_params: ActorCriticHyperParametersWithCombinedModel
+        hyper_params: PPOHyperParametersWithCombinedModel
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -175,28 +185,33 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
         action_dist = self._policy_value_model(state)[1].squeeze().numpy()  # (num_actions,)
-        return np.random.choice(self._hyper_params.num_actions, p=action_dist)
+        action_index = np.random.choice(self._hyper_params.num_actions, p=action_dist)
+        return action_index, np.log(action_dist[action_index])
 
-    def _get_bootstrapped_returns_and_advantages(self, states: torch.tensor, reward_sequence: np.ndarray):
+    def _get_bootstrapped_returns_and_advantages(self, states: torch.tensor, rewards: np.ndarray):
         state_values = self._policy_value_model(states)[0].detach()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
+            rewards, self._hyper_params.reward_decay, self._hyper_params.lamb,
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
         return return_est, return_est - state_values
 
-    def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
-        states = torch.from_numpy(state_sequence).to(self._device)
-        actions = torch.from_numpy(action_sequence).to(self._device)
+    def train(
+        self, state_sequence: np.ndarray, action_sequence: np.ndarray, log_action_prob_sequence: np.ndarray,
+        reward_sequence: np.ndarray
+    ):
+        states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
+        actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
         return_est, advantages = self._get_bootstrapped_returns_and_advantages(states, reward_sequence)
-        # policy-value model training
+        log_action_prob_old = torch.from_numpy(log_action_prob_sequence).to(self._device)
         for _ in range(self._hyper_params.train_iters):
             state_values, action_distribution = self._policy_value_model(states)
-            advantages = return_est - state_values
             action_prob = action_distribution.gather(1, actions.unsqueeze(1)).squeeze()   # (N,)
-            policy_loss = -(torch.log(action_prob) * advantages).mean()
+            ratio = torch.exp(torch.log(action_prob) - log_action_prob_old)
+            clipped_ratio = torch.clamp(ratio, 1 - self._hyper_params.clip_ratio, 1 + self._hyper_params.clip_ratio)
+            policy_loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
             value_loss = self._value_loss_func(state_values, return_est)
             loss = policy_loss + value_loss
             self._optimizer.zero_grad()
@@ -210,7 +225,9 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
         return self._policy_value_model
 
     def load_trainable_models_from_file(self, path):
+        """Load trainable models from disk."""
         self._policy_value_model = torch.load(path)
 
     def dump_trainable_models_to_file(self, path: str):
+        """Dump the algorithm's trainable models to disk."""
         torch.save(self._policy_value_model.state_dict(), path)

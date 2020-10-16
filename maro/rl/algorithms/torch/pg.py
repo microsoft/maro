@@ -35,8 +35,10 @@ class PolicyGradient(AbsAlgorithm):
         hyper_params: hyper-parameter set for the AC algorithm.
     """
 
-    def __init__(self, policy_model: nn.Module, optimizer_cls, optimizer_params,
-                 hyper_params: PolicyGradientHyperParameters):
+    def __init__(
+        self, policy_model: nn.Module, optimizer_cls, optimizer_params,
+        hyper_params: PolicyGradientHyperParameters
+    ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._policy_model = policy_model.to(self._device)
@@ -49,8 +51,8 @@ class PolicyGradient(AbsAlgorithm):
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        action_dist = self._policy_model(state).squeeze()  # (num_actions,)
-        return np.random.choice(self._hyper_params.num_actions, p=action_dist.numpy())
+        action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
+        return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
         states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
