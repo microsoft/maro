@@ -131,7 +131,7 @@ class GNNStateShaper(StateShaper):
         self.last_tick = -1
 
     def _sync_raw_features(self, snapshot_list, tick_range, static_code=None, dynamic_code=None):
-        """This function update the state_dict from snapshot_list in the given tick_range. """
+        """This function update the state_dict from snapshot_list in the given tick_range."""
         if len(tick_range) == 0:
             # this occurs when two actions happen at the same tick.
             return

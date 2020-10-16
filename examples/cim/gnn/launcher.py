@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # generate log path.
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     time_str = datetime.datetime.now().strftime("%H%M%S.%f")
-    subfolder_name = "%s_%s" % (config.env.param.topology, time_str)
+    subfolder_name = f"{config.env.param.topology}_{time_str}"
 
     # log path.
     config.log.path = os.path.join(config.log.path, date_str, subfolder_name)
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # add some buffer to prevent overlapping
     config.env.return_scaler, tot_order_amount = return_scaler(
         demo_env, tick=config.env.param.durations, gamma=config.training.gamma)
-    simulation_logger.info("Return value will be scaled down by the factor %f" % config.env.return_scaler)
+    simulation_logger.info(f"Return value will be scaled down by the factor {config.env.return_scaler}")
 
     save_config(config, os.path.join(config.log.path, "config.yml"))
     save_code("examples/cim/gnn", config.log.path)

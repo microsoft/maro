@@ -72,7 +72,7 @@ def organize_exp_list(experience_collections: dict, idx_mapping: dict):
 
 
 def organize_obs(obs, idx, exp_len):
-    """Helper function to transform the observation from multiple processes to a unified dictionary. """
+    """Helper function to transform the observation from multiple processes to a unified dictionary."""
     tick_buffer, _, para_cnt, v_cnt, v_dim = obs["v"].shape
     _, _, _, p_cnt, p_dim = obs["p"].shape
     batch = exp_len * para_cnt
@@ -174,8 +174,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
 
 
 def compute_shortage(snapshot_list, max_tick, static_code_list):
-    """Helper function to compute the shortage after a episode end.
-    """
+    """Helper function to compute the shortage after a episode end."""
     return np.sum(snapshot_list["ports"][max_tick - 1: static_code_list: "acc_shortage"])
 
 
@@ -208,7 +207,7 @@ class ParallelActor(AbsActor):
         self.device = torch.device(config.training.device)
 
         self.parallel_cnt = config.training.parallel_cnt
-        self.log_header = ["sh_%d" % i for i in range(self.parallel_cnt)]
+        self.log_header = [f"sh_{i}" for i in range(self.parallel_cnt)]
 
         tick_buffer = config.model.tick_buffer
         # action_dim = config.model.action_dim
@@ -340,26 +339,26 @@ class ParallelActor(AbsActor):
         self._logger.info("receiving exp")
         logs = [p[0].recv() for p in self.pipes]
 
-        self._logger.info("Mean of shortage: %f" % np.mean(self.action_io_np["sh"]))
+        self._logger.info(f"Mean of shortage: {np.mean(self.action_io_np["sh"])}")
         self._trainsfer_time += time.time() - tick
 
         self._logger.debug(dict(zip(self.log_header, self.action_io_np["sh"])))
 
-        with open(os.path.join(self.config.log.path, "logs_%d" % self._roll_out_cnt), "wb") as fp:
+        with open(os.path.join(self.config.log.path, f"logs_{self._roll_out_cnt}"), "wb") as fp:
             pickle.dump(logs, fp)
 
         self._logger.info("organize exp_dict")
         result = organize_exp_list(self.exp_output_np, self.exp_idx_mapping)
 
         if self.config.log.exp.enable and self._roll_out_cnt % self.config.log.exp.freq == 0:
-            with open(os.path.join(self.config.log.path, "exp_%d" % self._roll_out_cnt), "wb") as fp:
+            with open(os.path.join(self.config.log.path, f"exp_{self._roll_out_cnt}"), "wb") as fp:
                 pickle.dump(result, fp)
 
-        self._logger.debug("play time: %d" % int(self._roll_out_time))
-        self._logger.debug("transfer time: %d" % int(self._trainsfer_time))
+        self._logger.debug(f"play time: {int(self._roll_out_time)}")
+        self._logger.debug(f"transfer time: {int(self._trainsfer_time)}")
         return result
 
     def exit(self):
-        """Terminate the child processes. """
+        """Terminate the child processes."""
         for p in self.pipes:
             p[0].send("close")

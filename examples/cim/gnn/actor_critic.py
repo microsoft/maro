@@ -165,7 +165,7 @@ class ActorCritic(AbsAlgorithm):
     def save_model(self, pth, id):
         if not os.path.exists(pth):
             os.makedirs(pth)
-        pth = os.path.join(pth, "%d_ac.pkl" % id)
+        pth = os.path.join(pth, f"{id}_ac.pkl")
         torch.save(self._model_dict["a&c"].state_dict(), pth)
 
     def _set_gnn_weights(self, weights):
@@ -180,7 +180,7 @@ class ActorCritic(AbsAlgorithm):
             fps.sort(key=self._get_save_idx)
             ac_pth = fps[-1]
         else:
-            ac_pth = "%d_ac.pkl" % idx
+            ac_pth = f"{idx}_ac.pkl"
         pth = os.path.join(folder_pth, ac_pth)
         with open(pth, "rb") as fp:
             weights = torch.load(fp, map_location=self._device)

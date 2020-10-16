@@ -16,7 +16,7 @@ from maro.utils import convert_dottable, clone
 
 
 def compute_v2p_degree_matrix(env):
-    """This function compute the adjacent matrix. """
+    """This function compute the adjacent matrix."""
     topo_config = env.configs
     static_dict = env.summary["node_mapping"]["ports"]
     dynamic_dict = env.summary["node_mapping"]["vessels"]
@@ -122,7 +122,7 @@ def flatten_embedding(embedding, batch_range, edge=None):
 
 
 def log2json(file_path):
-    """load the log file as a json list. """
+    """load the log file as a json list."""
 
     with open(file_path, "r") as fp:
         lines = fp.read().splitlines()
@@ -195,7 +195,7 @@ def load_config(config_pth):
 def save_config(config, config_pth):
     with open(config_pth, "w") as fp:
         config = dottable2dict(config)
-        config["env"]["exp_per_ep"] = ["%d, %d, %d" % (k[0], k[1], d) for k, d in config["env"]["exp_per_ep"].items()]
+        config["env"]["exp_per_ep"] = [f"{k[0]}, {k[1]}, {d}" for k, d in config["env"]["exp_per_ep"].items()]
         yaml.safe_dump(config, fp)
 
 

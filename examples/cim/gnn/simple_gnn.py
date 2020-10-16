@@ -200,7 +200,7 @@ class SimpleTransformer(nn.Module):
 
 
 class GeLU(nn.Module):
-    """Simple gelu wrapper as a independent module. """
+    """Simple gelu wrapper as a independent module."""
     def __init__(self):
         super().__init__()
 

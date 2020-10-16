@@ -184,5 +184,5 @@ class Shuffler:
         return rst
 
     def has_next(self):
-        """Check if any experience is not visited. """
+        """Check if any experience is not visited."""
         return self._start < len(self._store)
