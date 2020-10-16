@@ -27,13 +27,13 @@ jobs:
         pip install -U -r ./docs/requirements.docs.txt
 
     - name: Install build dependencies
-      run: | 
+      run: |
         pip install -r maro/requirements.build.txt
-    
+
     - name: Compile cython files
       run: |
         cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx -3 -E FRAME_BACKEND=NUMPY,NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
-    
+
     - name: Build maro inplace
       run: |
         python setup.py build_ext -i
@@ -53,14 +53,14 @@ jobs:
         BRANCH: gh-pages # The branch the action should deploy to.
         FOLDER: docs/_build/html/ # The folder the action should deploy.
         CLEAN: true # Automatically remove deleted files from the deploy branch
-  
+
 #     - name: Switch to gh-pages
 #       run: |
 #         git checkout gh-pages
 
 #     - name: Copy output files
 #         cp -r docs/_build/html/* .
-  
+
 #     - name: Commit change
 #         git add _images _modules _sources _static apidoc installation key_components scenarios index.html genindex.html objects.inv py-modindex.html search.html searchindex.js
 #         git commit -m "update pages"
