@@ -1,0 +1,39 @@
+
+# entity used to specified which columns need to be extracted into binary, and its data type
+# current supported data types are: i, i2, i4, i8, f, d
+entity:
+  timestamp:
+    column: 'date'
+    dtype: 'i8'
+    # Used to specified time zone in source file, converter will convert it into UTC,
+    # Defaults to UTC if not specified:
+    # name : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    tzone: "America/New_York" 
+  opening_price: 
+    column: 'open'
+    dtype: 'f'
+  closing_price: 
+    column: 'close'
+    dtype: 'f'
+  trade_volume: 
+    column: 'volume'
+    dtype: 'i8'
+  highest_price: 
+    column: 'high'
+    dtype: 'f'
+  lowest_price: 
+    column: 'low'
+    dtype: 'f'
+  adj_closing_price: 
+    column: 'adjclose'
+    dtype: 'f'
+  dividends: 
+    column: 'dividends'
+    dtype: 'f'
+  splits: 
+    column: 'splits'
+    dtype: 'f'
+
+  # optional, used to specified which column's value should be used as event type
+  # if not provided, then use default event in events definition
+  # "_event": "type"
