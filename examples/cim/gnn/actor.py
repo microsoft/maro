@@ -10,10 +10,10 @@ import numpy as np
 import torch
 
 from examples.cim.gnn.action_shaper import DiscreteActionShaper
-from examples.cim.gnn.utils import fix_seed, gnn_union
 from examples.cim.gnn.experience_shaper import ExperienceShaper
 from examples.cim.gnn.state_shaper import GNNStateShaper
 from examples.cim.gnn.shared_structure import SharedStructure
+from examples.cim.gnn.utils import fix_seed, gnn_union
 from maro.rl import AbsActor
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action
@@ -117,7 +117,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
     fix_seed(env, config.env.seed)
     static_code_list, dynamic_code_list = list(env.summary["node_mapping"]["ports"].values()), \
         list(env.summary["node_mapping"]["vessels"].values())
-    # create gnn_state_shaper without consuming any resources
+    # Create gnn_state_shaper without consuming any resources.
 
     gnn_state_shaper = GNNStateShaper(
         static_code_list, dynamic_code_list, config.env.param.durations, config.model.feature,
@@ -166,7 +166,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         i += 1
         pipe.send("done")
         gnn_state_shaper.end_ep_callback(env.snapshot_list)
-        # organize and synchronize exp to shared memory
+        # Organize and synchronize exp to shared memory.
         exp_shaper(env.snapshot_list)
         exp_shaper.reset()
         logs = np.array(logs, dtype=np.float)
@@ -295,9 +295,9 @@ class ParallelActor(AbsActor):
             result (dict): The key is the agent code, the value is the experience list stored in numpy.array.
         """
 
-        # compute the time used for state preparation in the child process.
+        # Compute the time used for state preparation in the child process.
         t_state = 0
-        # compute the time used for action inference.
+        # Compute the time used for action inference.
         t_action = 0
 
         for p in self.pipes:

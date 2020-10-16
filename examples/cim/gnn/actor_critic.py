@@ -113,12 +113,12 @@ class ActorCritic(AbsAlgorithm):
             next_obs_batch["vo"], next_obs_batch["vedge"], self._p2p_adj, next_obs_batch["ppedge"],
             next_obs_batch["mask"], self._device)
 
-        # train actor network
+        # Train actor network.
         # self._actor_optimizer.zero_grad()
         # self._critic_optimizer.zero_grad()
         self._optimizer["a&c"].zero_grad()
 
-        # every port has a value
+        # Every port has a value.
         # values.shape: (batch, p_cnt)
 
         probs, values = self._model_dict["a&c"](obs_batch, a=True, p_idx=p_idx, v_idx=v_idx, c=True)
@@ -141,7 +141,7 @@ class ActorCritic(AbsAlgorithm):
         item_a_loss = actor_loss.item()
         item_e_loss = entropy_loss.mean().item()
 
-        # train critic network
+        # Train critic network.
         critic_loss = torch.sum(advantage.pow(2), axis=1).mean()
         # critic_loss.backward()
         item_c_loss = critic_loss.item()

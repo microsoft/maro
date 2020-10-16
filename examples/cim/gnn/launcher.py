@@ -43,14 +43,14 @@ if __name__ == "__main__":
     port_mapping = demo_env.summary["node_mapping"]["ports"]
     vessel_mapping = demo_env.summary["node_mapping"]["vessels"]
 
-    # create a mock gnn_state_shaper.
+    # Create a mock gnn_state_shaper.
     static_code_list, dynamic_code_list = list(port_mapping.values()), list(vessel_mapping.values())
     gnn_state_shaper = GNNStateShaper(
         static_code_list, dynamic_code_list, config.env.param.durations, config.model.feature,
         tick_buffer=config.model.tick_buffer, only_demo=True, max_value=demo_env.configs["total_containers"])
     gnn_state_shaper.compute_static_graph_structure(demo_env)
 
-    # create and assemble agent_manager
+    # Create and assemble agent_manager.
     agent_id_list = list(config.env.exp_per_ep.keys())
     training_logger = Logger(tag="training", dump_folder=config.log.path, dump_mode="w", auto_timestamp=False)
     agent_manager = SimpleAgentManger(
@@ -64,12 +64,12 @@ if __name__ == "__main__":
         agent_manager.load_models_from(config.model.path)
     """
 
-    # create the rollout actor to collect experience.
+    # Create the rollout actor to collect experience.
     actor = ParallelActor(config, demo_env, gnn_state_shaper, agent_manager, logger=simulation_logger)
 
-    # learner function for training and testing.
+    # Learner function for training and testing.
     learner = GNNLearner(actor, agent_manager, logger=simulation_logger)
     learner.train(config.training)
 
-    # cancel all the child process used for rollout.
+    # Cancel all the child process used for rollout.
     actor.exit()

@@ -30,7 +30,7 @@ class ExperienceShaper:
         self._last_tick = 0
 
     def record(self, pending_action, model_action, model_input):
-        # only the experience that has the next state of given time slot is valuable
+        # Only the experience that has the next state of given time slot is valuable.
         if pending_action.tick + self._time_slot < self._max_tick:
             self._experience_dict[pending_action.port_idx, pending_action.vessel_idx].append({
                 "tick": pending_action.tick,
