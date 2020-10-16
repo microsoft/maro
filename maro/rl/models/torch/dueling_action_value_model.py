@@ -18,9 +18,9 @@ class DuelingActionValueModel(nn.Module):
         self._advantage_mode = advantage_mode
 
     def forward(self, inputs):
-        shared_features = self._shared_layers(inputs)
-        state_values = self._value_layers(shared_features)
-        advantages = self._advantage_layers(shared_features)
+        features = self._shared_layers(inputs)
+        state_values = self._value_layers(features)
+        advantages = self._advantage_layers(features)
         # use mean or max correction to address the identifiability issue
         corrections = advantages.mean(1) if self._advantage_mode == 'mean' else advantages.max(1)[0]
         q_values = state_values + advantages - corrections.unsqueeze(1)
