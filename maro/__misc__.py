@@ -4,4 +4,4 @@
 
 __version__ = "0.1.1a10"
 
-__data_version__ = "0.1"
+__data_version__ = "0.2"

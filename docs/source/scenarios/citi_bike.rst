@@ -563,19 +563,19 @@ For the example above, the directory structure should be like:
    |-- ~/.maro
        |-- data
        |   |-- citi_bike
-       |       |-- [topology]
-       |           |-- .build          # bin data file
-       |           |-- .source
-       |               |-- .download   # original data file
-       |               |-- .clean      # cleaned data file
-       |-- temp                        # download temp file
+       |       |-- .build          # bin data file
+       |           |-- [topology]  # topology
+       |       |-- .source
+       |           |-- .download   # original data file
+       |           |-- .clean      # cleaned data file
+       |-- temp                    # download temp file
 
-Convert Command
-~~~~~~~~~~~~~~~
+Build Command
+~~~~~~~~~~~~~
 
-The data ``convert`` command is used to convert the CSV data files to binary data
+The data ``build`` command is used to build the CSV data files to binary data
 files that the simulator needs. Currently, there are three arguments for the data
-``convert`` command:
+``build`` command:
 
 * ``--meta``\ : required, used to specify the path of the meta file. The source
   columns that to be converted and the data type of each columns should be
@@ -587,7 +587,7 @@ files that the simulator needs. Currently, there are three arguments for the dat
 
 .. code-block:: sh
 
-   maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+   maro data build --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^
