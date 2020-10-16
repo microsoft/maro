@@ -3,22 +3,17 @@ import time
 import datetime
 import pandas as pd
 from typing import Dict, List
-from enum import IntEnum
 from yaml import safe_load
 from collections import OrderedDict
 
-from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.utils.logger import CliLogger
-from maro.backends.frame import FrameBase, SnapshotList
-
-
 
 from .frame_builder import build_frame
 from maro.simulator.utils.common import total_frames
 
-from .account import Account, AccountSnapshotWrapper
+from .account import AccountSnapshotWrapper
 from .common import FinanceType, SubEngineAccessWrapper, TradeResult, ActionType, ActionState
 from .sub_engines.stock.stock_business_engine import StockBusinessEngine
 from .currency import Exchanger
@@ -32,11 +27,14 @@ logger = CliLogger(name=__name__)
 
 
 class FinanceBusinessEngine(AbsBusinessEngine):
-    def __init__(self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}):
+    def __init__(
+            self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int, 
+            snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
+        ):
         super().__init__(
             "finance", event_buffer, topology, start_tick, max_tick,
             snapshot_resolution, max_snapshots, additional_options
-            )
+        )
 
         self._conf = {}
         self.update_config_root_path(__file__)
@@ -50,9 +48,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._read_conf()
         self._init_sub_engines()
-        self._exchanger = Exchanger(self._conf['account']['exchange_path'], pd.to_datetime(self._conf['beginning_date']))
-
-        
+        self._exchanger = Exchanger(
+            self._conf['account']['exchange_path'], pd.to_datetime(self._conf['beginning_date'])
+        )
 
         # out-side accessor as snapshost_list.trade_history
         self._snapshot_accessor.add_item("action_history", self._account.action_history)
@@ -80,11 +78,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Returns:
             bool: if scenario end at this tick
         """
-        #print("cur tick: ", tick)
         for sub_engine in self._sub_engines.values():
             sub_engine.step(tick)
-
-        
 
     def post_step(self, tick):
         """Post-process at specified tick
@@ -164,13 +159,16 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     elif action.action_type == ActionType.cancel_order:
                         self._sub_engines[engine_name].cancel_order(action)
                     elif action.action_type == ActionType.order:
-                        result: TradeResult = self._sub_engines[engine_name].take_action(action, self._account._sub_account_dict[engine_name].remaining_money, evt.tick)
-                        self._account.take_trade(result, cur_data=self._sub_engines[engine_name]._stock_list, cur_engine=engine_name)
+                        result: TradeResult = self._sub_engines[engine_name].take_action(
+                            action, self._account._sub_account_dict[engine_name].remaining_money, evt.tick
+                        )
+                        self._account.take_trade(
+                            result, cur_data=self._sub_engines[engine_name]._stock_list, cur_engine=engine_name
+                        )
                 else:
                     raise "Specified engine not exist."
                 if action.state != ActionState.pending and action.id not in self._finished_action:
                     self._finished_action[action.id] = action
-
 
     def _read_conf(self):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
@@ -183,8 +181,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             engine_type = FinanceType[sub_conf["type"]]
 
             if engine_type in sub_engine_definitions:
-                engine = sub_engine_definitions[engine_type](self._beginning_timestamp, self._start_tick, self._max_tick,
-                                                             self._snapshot_resolution, sub_conf, self._event_buffer)
+                engine = sub_engine_definitions[engine_type](
+                    self._beginning_timestamp, self._start_tick, self._max_tick,
+                    self._snapshot_resolution, sub_conf, self._event_buffer
+                )
 
                 self._sub_engines[engine.name] = engine
 
@@ -193,14 +193,18 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._account_frame = build_frame(total_frames(self._start_tick, self._max_tick, self._snapshot_resolution))
         self._account_snapshots = self._account_frame.snapshots
         self._account = self._account_frame.account[0]
-        self._account.set_init_state({name: sub_engine.account for name, sub_engine in self._sub_engines.items()}, self._conf['account']['money'])
+        self._account.set_init_state(
+            {name: sub_engine.account for name, sub_engine in self._sub_engines.items()}, self._conf['account']['money']
+        )
 
         self._sub_engine_accessor = SubEngineAccessWrapper(self._sub_engines)
         self._frame_accessor = self._sub_engine_accessor.get_property_access("frame")
         self._snapshot_accessor = self._sub_engine_accessor.get_property_access("snapshot_list")
         self._node_mapping_accessor = self._sub_engine_accessor.get_property_access("name_mapping")
 
-        self._account_snapshot_wrapper = AccountSnapshotWrapper(self._account_snapshots, {name: engine.snapshot_list for name, engine in self._sub_engines.items()})
+        self._account_snapshot_wrapper = AccountSnapshotWrapper(
+            self._account_snapshots, {name: engine.snapshot_list for name, engine in self._sub_engines.items()}
+        )
 
         # make sure out-side can access account wrapper, as it is not a sub-engine
         self._snapshot_accessor.add_item("account", self._account_snapshot_wrapper)

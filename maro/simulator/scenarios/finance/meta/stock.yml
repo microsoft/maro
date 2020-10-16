@@ -1,4 +1,3 @@
-
 # entity used to specified which columns need to be extracted into binary, and its data type
 # current supported data types are: i, i2, i4, i8, f, d
 entity:
@@ -8,29 +7,29 @@ entity:
     # Used to specified time zone in source file, converter will convert it into UTC,
     # Defaults to UTC if not specified:
     # name : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    tzone: "America/New_York" 
-  opening_price: 
+    tzone: "America/New_York"
+  opening_price:
     column: 'open'
     dtype: 'f'
-  closing_price: 
+  closing_price:
     column: 'close'
     dtype: 'f'
-  trade_volume: 
+  trade_volume:
     column: 'volume'
     dtype: 'i8'
-  highest_price: 
+  highest_price:
     column: 'high'
     dtype: 'f'
-  lowest_price: 
+  lowest_price:
     column: 'low'
     dtype: 'f'
-  adj_closing_price: 
+  adj_closing_price:
     column: 'adjclose'
     dtype: 'f'
-  dividends: 
+  dividends:
     column: 'dividends'
     dtype: 'f'
-  splits: 
+  splits:
     column: 'splits'
     dtype: 'f'
 

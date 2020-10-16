@@ -1,26 +1,27 @@
 import os
-from typing import Dict, List
-from collections import OrderedDict
 
-from maro.event_buffer import Event, EventBuffer
+from maro.event_buffer import EventBuffer
 from maro.simulator.scenarios.finance.abs_sub_business_engine import \
     AbsSubBusinessEngine
-from maro.simulator.scenarios.finance.common import (Action, DecisionEvent,
-                                                     FinanceType, TradeResult, OrderMode, ActionType, ActionState)
+from maro.simulator.scenarios.finance.common import (
+    Action, DecisionEvent,
+    FinanceType, TradeResult, OrderMode, ActionType, ActionState
+)
 
 from maro.data_lib import BinaryReader
-from maro.simulator.utils.common import tick_to_frame_index
 from .frame_builder import build_frame
 
 from maro.simulator.scenarios.finance.account import SubAccount
 
 from .stock import Stock
 from .stock_trader import StockTrader
-from ..common.trader import TradeConstrain
 
 
 class StockBusinessEngine(AbsSubBusinessEngine):
-    def __init__(self, beginning_timestamp: int, start_tick: int, max_tick: int, frame_resolution: int, config: dict, event_buffer: EventBuffer):
+    def __init__(
+            self, beginning_timestamp: int, start_tick: int, max_tick: int,
+            frame_resolution: int, config: dict, event_buffer: EventBuffer
+        ):
         super().__init__(beginning_timestamp, start_tick, max_tick, frame_resolution, config, event_buffer)
 
         self._stock_codes: list = None
@@ -66,29 +67,33 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     def step(self, tick: int):
         valid_stocks = []
 
-        for code, reader in self._readers.items():
-            #raw_stock = reader.next_item()
+        for code, _ in self._readers.items():
             for raw_stock in self._item_picker[code].items(tick):
                 if raw_stock is not None:
-                    #print(raw_stock)
                     # update frame by code
                     stock: Stock = self._stocks_dict[code]
                     stock.fill(raw_stock)
-                    #print("tick:", tick,"code:", code, "raw_stock:", raw_stock)
                     if stock.is_valid:
                         valid_stocks.append(code)
 
         # append cancel_order event
-        decision_event = DecisionEvent(tick, FinanceType.stock,-2, self.name, self._action_scope, action_type = ActionType.cancel_order)
+        decision_event = DecisionEvent(
+            tick, FinanceType.stock, -2, self.name, self._action_scope, action_type=ActionType.cancel_order
+        )
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
         self._event_buffer.insert_event(evt)
         # append account event
-        decision_event = DecisionEvent(tick, FinanceType.stock,-1, self.name, self._action_scope, action_type = ActionType.transfer)
+        decision_event = DecisionEvent(
+            tick, FinanceType.stock, -1, self.name, self._action_scope, action_type=ActionType.transfer
+        )
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
         self._event_buffer.insert_event(evt)
         # append order event
         for valid_stock in valid_stocks:
-            decision_event = DecisionEvent(tick, FinanceType.stock, valid_stock, self.name, self._action_scope,action_type = ActionType.order)
+            decision_event = DecisionEvent(
+                tick, FinanceType.stock, valid_stock, self.name,
+                self._action_scope, action_type=ActionType.order
+            )
             evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
             self._event_buffer.insert_event(evt)
@@ -99,7 +104,6 @@ class StockBusinessEngine(AbsSubBusinessEngine):
 
         for stock in self._stock_list:
             stock.reset()
-        
 
     def take_action(self, action: Action, remaining_money: float, tick: int) -> TradeResult:
         # 1. can trade -> bool
@@ -111,16 +115,25 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             out_of_scope, allow_split = self._verify_action(action)
             if not out_of_scope:
                 if not allow_split:
-                    asset, is_success, actual_price, actual_volume, commission_charge, is_trigger = self._trader.trade(action, self._stock_list, remaining_money)  # list  index is in action # self.snapshot
-                
+                    asset, is_success, actual_price, actual_volume, commission_charge,\
+                        is_trigger = self._trader.trade(
+                            action, self._stock_list, remaining_money
+                        )  # list  index is in action # self.snapshot
+
                 elif allow_split:
-                    asset, is_success, actual_price, actual_volume, commission_charge, is_trigger = self._trader.split_trade(
-                        action, self._stock_list, remaining_money, self._stock_list[action.item_index].trade_volume * self._action_scope_max)  # list  index is in action # self.snapshot
-                ret = TradeResult(self.name, action.item_index, actual_volume, tick, actual_price, commission_charge, is_success, is_trigger)
+                    asset, is_success, actual_price, actual_volume, commission_charge, \
+                        is_trigger = self._trader.split_trade(
+                            action, self._stock_list, remaining_money,
+                            self._stock_list[action.item_index].trade_volume * self._action_scope_max
+                        )  # list  index is in action # self.snapshot
+                ret = TradeResult(
+                    self.name, action.item_index, actual_volume, tick, actual_price,
+                    commission_charge, is_success, is_trigger
+                )
                 if not is_trigger:
                     if action.life_time != 1:
                         action.life_time -= 1
-                        self._event_buffer.gen_atom_event(tick+1, DecisionEvent, action)
+                        self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
                         if action.id not in self._pending_orders:
                             self._pending_orders.append(action.id)
                     else:
@@ -134,20 +147,23 @@ class StockBusinessEngine(AbsSubBusinessEngine):
                     if is_success:
                         action.state = ActionState.success
                         if actual_volume > 0:
-                            self._stock_list[asset].average_cost = ((self._stock_list[asset].account_hold_num*self._stock_list[asset].average_cost) +
-                                                                    (actual_price*actual_volume))/(self._stock_list[asset].account_hold_num + actual_volume)
+                            self._stock_list[asset].average_cost = (
+                                (self._stock_list[asset].account_hold_num * self._stock_list[asset].average_cost) +
+                                (actual_price * actual_volume)
+                            ) / (self._stock_list[asset].account_hold_num + actual_volume)
                         self._stock_list[asset].account_hold_num += actual_volume
                     else:
                         action.state = ActionState.failed
                     action.finish_tick = tick
                     action.action_result = ret
             else:
-                print("Warning: out of action scope and not allow split!", self.name, self._action_scope(action.action_type, action.item_index), action.number)
+                print(
+                    "Warning: out of action scope and not allow split!", self.name,
+                    self._action_scope(action.action_type, action.item_index), action.number
+                )
                 action.state = ActionState.failed
                 action.finish_tick = tick
 
-            
-            
         else:
             # order canceled
             self._canceled_orders.remove(action.id)
@@ -179,7 +195,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             if self._allow_split:
                 result = (-stock.account_hold_num, stock.trade_volume)
             else:
-                result = (max([-stock.account_hold_num, -stock.trade_volume * self._action_scope_max]), stock.trade_volume * self._action_scope_max)
+                result = (
+                    max([-stock.account_hold_num, -stock.trade_volume * self._action_scope_max]),
+                    stock.trade_volume * self._action_scope_max
+                )
             return (result, self._trader.supported_orders, self._order_mode)
 
         elif action_type == ActionType.transfer:
@@ -191,7 +210,7 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             # action_scope of pending orders
             result = self._pending_orders
 
-            return  result
+            return result
 
     def _init_frame(self):
         self._frame = build_frame(len(self._stock_codes), self._max_tick)
@@ -208,7 +227,10 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             self._stocks_dict[index] = stock
 
         self._account = self._frame.sub_account[0]
-        self._account.set_init_state(currency=self._config['currency'], leverage=self._config['leverage'], min_leverage_rate=self._config['min_leverage_rate'], init_money=self._config["money"])  # we only one account, so the index is 0
+        self._account.set_init_state(
+            currency=self._config['currency'], leverage=self._config['leverage'],
+            min_leverage_rate=self._config['min_leverage_rate'], init_money=self._config["money"]
+        )  # we only one account, so the index is 0
 
     def _init_reader(self):
         data_folder = self._config["data_path"]
@@ -223,11 +245,9 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             data_path = os.path.join(data_folder, f"{code}.bin")
 
             self._readers[index] = BinaryReader(data_path)
-            self._item_picker[index] = self._readers[index].items_tick_picker(self._start_tick, self._max_tick, time_unit="d")
-
-            # in case the data file contains different ticks
-            # new_max_tick = self._readers[code].max_tick
-            # self._max_tick = new_max_tick if self._max_tick <= 0 else min(new_max_tick, self._max_tick)
+            self._item_picker[index] = self._readers[index].items_tick_picker(
+                self._start_tick, self._max_tick, time_unit="d"
+            )
 
     def _init_trader(self, config):
         trade_constrain = config['trade_constrain']
@@ -237,7 +257,8 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     def _verify_action(self, action: Action):
         ret = True
         allow_split = self._allow_split
-        if self._action_scope(action.action_type, action.item_index)[0][0] <= action.number and self._action_scope(action.action_type, action.item_index)[0][1] >= action.number:
+        if self._action_scope(action.action_type, action.item_index)[0][0] <= action.number \
+            and self._action_scope(action.action_type, action.item_index)[0][1] >= action.number:
             ret = False
         return ret, allow_split
 

@@ -48,4 +48,4 @@ class Stock(NodeBase):
         self.dividends = raw_stock.dividends
         self.splits = raw_stock.splits
         self.trade_volume = raw_stock.trade_volume
-        self.is_valid = 1 #if raw_stock.is_valid else 0
+        self.is_valid = 1

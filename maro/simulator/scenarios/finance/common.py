@@ -1,6 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Callable
-from inspect import isfunction
+from typing import Dict, Callable
 from functools import partial
 
 
@@ -16,10 +15,12 @@ class OrderMode(Enum):
     stop_limit_order = "stop_limit_order"
     cancel_order = "cancel_order"
 
+
 class ActionType(Enum):
     order = "order"
     cancel_order = "cancel_order"
     transfer = "transfer"
+
 
 class ActionState(Enum):
     pending = "pending"
@@ -28,10 +29,15 @@ class ActionState(Enum):
     expired = "expired"
     canceled = "canceled"
 
+
 class TradeResult:
     """Result or a trade order"""
 
-    def __init__(self, sub_engine_name: str, item_index: int, trade_number: int, tick: int, price_per_item: float, tax: float, action_id: int, is_trade_accept: bool = False, is_trade_trigger: bool = True):
+    def __init__(
+        self, sub_engine_name: str, item_index: int, trade_number: int, tick: int,
+        price_per_item: float, tax: float, action_id: int, is_trade_accept: bool = False,
+        is_trade_trigger: bool = True
+    ):
         self.sub_engine_name = sub_engine_name
         self.item_index = item_index
         self.trade_number = trade_number
@@ -47,17 +53,23 @@ class TradeResult:
         return self.trade_number * self.price_per_item + self.tax
 
     def __repr__(self):
-        return f"< trade sub-engine: {self.sub_engine_name} item: {self.item_index} tick: {self.tick} number: {self.trade_number} price: {self.price_per_item} tax: {self.tax} tradable: {self.is_trade_accept} >"
+        return f"< trade sub-engine: {self.sub_engine_name} item: {self.item_index} \
+            tick: {self.tick} number: {self.trade_number} price: {self.price_per_item} \
+            tax: {self.tax} tradable: {self.is_trade_accept} >"
 
 
 class DecisionEvent:
-    def __init__(self, tick: int, type: FinanceType, item: int, sub_engine_name: str, action_scope_func: Callable, action_type: ActionType):
+    def __init__(
+        self, tick: int, type: FinanceType, item: int, sub_engine_name: str,
+        action_scope_func: Callable, action_type: ActionType
+    ):
         """
         Parameters:
             tick (int): current tick of decision
             type (FinanceType): type of this decision
             item (int): available item index for action, such as a stock for StockSubEngine
-            sub_engine_name (str): name of sub-engine, used to identify which this decision come from, as we support multi-sub-engine with same type, we need this field from action
+            sub_engine_name (str): name of sub-engine, used to identify which this decision come from, 
+                as we support multi-sub-engine with same type, we need this field from action
             action_scope_func (Callable): function to provide action scope
         """
         self.tick = tick
@@ -83,7 +95,11 @@ class DecisionEvent:
 class Action:
     idx = 0
 
-    def __init__(self, sub_engine_name: str, item_index: int=0, number: int=0, action_type: ActionType=ActionType.order, tick: int=0, order_mode: OrderMode = None, stop: float = 0, limit: float = 0, id: int = None, life_time: int = 1):
+    def __init__(
+        self, sub_engine_name: str, item_index: int = 0, number: int = 0,
+        action_type: ActionType = ActionType.order, tick: int = 0, order_mode: OrderMode = None,
+        stop: float = 0, limit: float = 0, id: int = None, life_time: int = 1
+    ):
         """
         Parameters:
             sub_engine_name (str): name of engine the decision event from
@@ -110,7 +126,8 @@ class Action:
         print("Action id:", self.id)
 
     def __repr__(self):
-        return f"<Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number} action type: {self.action_type} decision: {self.decision_tick} finished: {self.finish_tick}>"
+        return f"< Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number} action type: \
+            {self.action_type} decision: {self.decision_tick} finished: {self.finish_tick} >"
 
 
 class SubEngineAccessWrapper:

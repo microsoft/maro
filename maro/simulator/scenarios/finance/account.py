@@ -1,21 +1,14 @@
 """Used to maintain stock/futures, one account per episode"""
 from collections import OrderedDict
 
-import numpy as np
-
-# from maro.simulator.frame import Frame, FrameNodeType, SnapshotList
-# from maro.simulator.scenarios.entity_base import (EntityBase, FloatAttribute,
-#                                                   FrameBuilder, IntAttribute,
-#                                                   frame_node)
-from maro.backends.frame import FrameBase, SnapshotList
+from maro.backends.frame import SnapshotList
 from maro.backends.frame import node, NodeBase, NodeAttribute
-from maro.simulator.scenarios.finance.common import Action, FinanceType, ActionState
+from maro.simulator.scenarios.finance.common import Action, ActionState
 
 from .common import TradeResult
-from .currency import CurrencyType, CurrencyExchange, Exchanger
+from .currency import CurrencyType, Exchanger
 
 
-# snapshots.account.assets[tick: "sub-engine"]
 class AssetsAccessor:
     """This wrapper used to provide interfaces to access asset related quering inside one object"""
 
@@ -69,8 +62,7 @@ class Account(NodeBase):
     def __init__(self):
         self.action_history = OrderedDict()  # TODO: later
         self._last_total_money = 0
-        
-    
+
     def set_init_state(self, sub_account_dict: dict, money: float, currency: str = 'CNY'):
         # NOTE: the sub_account_dict, the key is the sub-engine name, value is SubAccount instance
         self._sub_account_dict = sub_account_dict
@@ -79,7 +71,6 @@ class Account(NodeBase):
         self.remaining_money = self._money
 
     def take_trade(self, trade_result: TradeResult, cur_data: list, cur_engine: str):
-        
         self._last_total_money = self.total_money
         if trade_result.is_trade_accept and trade_result.is_trade_trigger:
             self._sub_account_dict[cur_engine].take_trade(trade_result, cur_data)
@@ -116,7 +107,7 @@ class Account(NodeBase):
         result = 0
         if target in self._sub_account_dict:
             target_account: SubAccount = self._sub_account_dict[target]
-            is_from_main_account = True if amount>0 else False
+            is_from_main_account = True if amount > 0 else False
             if is_from_main_account:
                 if self.remaining_money < amount:
                     amount = self.remaining_money
@@ -134,7 +125,6 @@ class Account(NodeBase):
                 result = exchanged
                 self.remaining_money += result
                 print("transfer from sub-account to main account", amount, result)
-
 
         return amount, result
 
@@ -163,7 +153,6 @@ class SubAccount(NodeBase):
 
     def __init__(self):
         pass
-        
 
     def set_init_state(self, init_money: float, currency: str = 'CNY', leverage: float = 1, min_leverage_rate: float = 0):
         self._leverage = leverage
@@ -185,15 +174,11 @@ class SubAccount(NodeBase):
         self.remaining_money = self.total_money
 
     def take_trade(self, trade_result: TradeResult, cur_data: list):
-        #print("taking trade", trade_result)
-        
         cur_position = 0
         for stock in cur_data:
-            #print("stock", stock)
             cur_position += stock.closing_price * stock.account_hold_num
         self.remaining_money -= trade_result.total_cost
         self.total_money = self.remaining_money + cur_position
-        #print("remaining_money", self.remaining_money, "total_money", self.total_money)
 
     @property
     def currency(self):
@@ -201,7 +186,7 @@ class SubAccount(NodeBase):
 
     def leverage_alert(self):
         ret = False
-        if self._loan_money > 0 and self.total_money/(self._loan_money) < self._min_leverage_rate:
+        if self._loan_money > 0 and self.total_money / (self._loan_money) < self._min_leverage_rate:
             ret = True
         return ret
 
@@ -227,7 +212,9 @@ class SubAccount(NodeBase):
         if amount < 0:
             amount = abs(amount)
             if not self.leverage_alert():
-                available_amount = min([self.total_money - self._loan_money * self._min_leverage_rate, self.remaining_money])
+                available_amount = min(
+                    [self.total_money - self._loan_money * self._min_leverage_rate, self.remaining_money]
+                )
                 if available_amount > 0:
                     if amount > available_amount:
                         result = available_amount
