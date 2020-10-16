@@ -155,7 +155,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             pipe.send("features")
             model_action = pipe.recv()
             env_action = action_shaper(decision_event, model_action)
-            exp_shaper.record(pending_action=decision_event, model_action=model_action, model_input=model_input)
+            exp_shaper.record(decision_event=decision_event, model_action=model_action, model_input=model_input)
             logs.append([
                 index, decision_event.tick, decision_event.port_idx, decision_event.vessel_idx, model_action,
                 env_action, decision_event.action_scope.load, decision_event.action_scope.discharge])

@@ -16,7 +16,7 @@ class DiscreteActionShaper(ActionShaper):
         upper bound and lower bound of actual action are the resource in dynamic and static node respectively.
 
         Args:
-            pending_action (Event): The decision event from the environment.
+            decision_event (Event): The decision event from the environment.
             model_action (int): Output action, range A means the half of the agent output dim.
         """
         env_action = 0
