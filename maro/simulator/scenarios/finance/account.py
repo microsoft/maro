@@ -155,7 +155,7 @@ class SubAccount(NodeBase):
         pass
 
     def set_init_state(
-            self, init_money: float, currency: str = 'CNY', 
+            self, init_money: float, currency: str = 'CNY',
             leverage: float = 1, min_leverage_rate: float = 0
     ):
         self._leverage = leverage
