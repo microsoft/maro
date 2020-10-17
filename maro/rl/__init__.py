@@ -8,6 +8,11 @@ from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentMode
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.torch.pg import PolicyGradient, PolicyGradientHyperParameters
+from maro.rl.algorithms.torch.ac import ActorCritic, ActorCriticWithCombinedModel, ActorCriticHyperParameters, \
+    ActorCriticHyperParametersWithCombinedModel
+from maro.rl.algorithms.torch.ppo import PPO, PPOWithCombinedModel, PPOHyperParameters, \
+    PPOHyperParametersWithCombinedModel
 from maro.rl.algorithms.torch.dqn import DQN, DQNHyperParams
 from maro.rl.models.torch.mlp_representation import MLPRepresentation
 from maro.rl.models.torch.decision_layers import MLPDecisionLayers
@@ -34,6 +39,16 @@ __all__ = [
     "AbsAgentManager",
     "AgentMode",
     "AbsAlgorithm",
+    "PolicyGradient",
+    "PolicyGradientHyperParameters",
+    "ActorCritic",
+    "ActorCriticWithCombinedModel",
+    "ActorCriticHyperParameters",
+    "ActorCriticHyperParametersWithCombinedModel",
+    "PPO",
+    "PPOWithCombinedModel",
+    "PPOHyperParameters",
+    "PPOHyperParametersWithCombinedModel",
     "DQN",
     "DQNHyperParams",
     "MLPRepresentation",

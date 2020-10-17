@@ -54,10 +54,10 @@ class PolicyGradient(AbsAlgorithm):
         action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
-    def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
-        states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
-        returns = get_k_step_returns(reward_sequence, self._hyper_params.reward_decay)
-        actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
+    def train(self, states: np.ndarray, actions: np.ndarray, returns: np.ndarray):
+        states = torch.from_numpy(states).to(self._device)   # (N, state_dim)
+        actions = torch.from_numpy(actions).to(self._device)  # (N,)
+        returns = torch.from_numpy(returns).to(self._device)
         action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
         policy_loss = -(torch.log(action_prob) * returns).mean()
         self._policy_optimizer.zero_grad()

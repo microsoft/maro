@@ -16,8 +16,13 @@ class MLPDecisionLayers(nn.Module):
                             hidden layer number, which requires larger than 1.
         output_dim (int): Network output dimension.
         dropout_p (float): Dropout parameter.
+        softmax (bool): If true, the output of the net will be a softmax transformation of the top layer's output.
+            Defaults to False.
     """
-    def __init__(self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float):
+    def __init__(
+        self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float,
+        softmax: bool = False
+    ):
         super().__init__()
         self._name = name
         self._input_dim = input_dim
@@ -30,9 +35,11 @@ class MLPDecisionLayers(nn.Module):
         else:
             self._head = nn.Linear(hidden_dims[-1], self._output_dim)
         self._net = nn.Sequential(*self._layers, self._head)
+        self._softmax = nn.Softmax(dim=1) if softmax else None
 
     def forward(self, x):
-        return self._net(x).double()
+        out = self._net(x).double()
+        return self._softmax(out) if self._softmax else out
 
     @property
     def input_dim(self):

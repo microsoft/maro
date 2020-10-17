@@ -1,0 +1,74 @@
+env:
+  scenario: "cim"
+  topology: "toy.4p_ssdd_l0.0"
+  durations: 1120
+general:
+  total_training_episodes: 500 # max episode
+state_shaping:
+  look_back: 7
+  max_ports_downstream: 2
+  port_attributes:
+    - "empty"
+    - "full"
+    - "on_shipper"
+    - "on_consignee"
+    - "booking"
+    - "shortage"
+    - "fulfillment"
+  vessel_attributes:
+    - "empty"
+    - "full"
+    - "remaining_space"
+experience_shaping:
+  type: "truncated"
+  k_step:
+    reward_decay: 0.9
+    steps: 5
+  truncated:
+    time_window: 100
+    fulfillment_factor: 1.0
+    shortage_factor: 1.0
+    time_decay_factor: 0.97
+exploration:
+  epsilon_range: [0.0, 0.4]
+  split_point: [0.5, 0.8]
+  with_cache: true
+agents:
+  algorithm:
+    num_actions: 21
+    policy_model:
+      hidden_dims:
+        - 256
+        - 128
+        - 64
+      dropout_p: 0.0
+    value_model:
+      hidden_dims:
+        - 256
+        - 128
+        - 64
+      dropout_p: 0.0
+    policy_optimizer:
+      lr: 0.001
+    value_optimizer:
+      lr: 0.001
+    hyper_parameters:
+      reward_decay: .0
+      num_training_rounds_per_target_replacement: 5
+      tau: 0.1
+  experience_pool:
+    capacity: -1
+  training_loop_parameters:
+    min_experiences_to_train: 1024
+    num_batches: 10  # number of times the algorithm's step() method is called
+    batch_size: 128
+  seed: 1024   # for reproducibility
+distributed:
+  group_name: "dqn_distributed_test"
+  actor:
+    peer: {"actor": 1}
+  learner:
+    peer: {"actor_worker": 1}
+  redis:
+    host_name: "localhost"
+    port: 6379

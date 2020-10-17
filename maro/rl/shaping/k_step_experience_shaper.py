@@ -40,7 +40,7 @@ class KStepExperienceShaper(ExperienceShaper):
         states = np.asarray(trajectory.get_by_key["state"])
         actions = np.asarray(trajectory.get_by_key["action"])
         reward_array = np.fromiter(map(self._reward_func, trajectory.get_by_key("metrics")), dtype=np.float32)
-        reward_sums = get_k_step_returns(reward_array, self._reward_decay, k=self._steps)[:-1]
+        reward_sums = get_k_step_returns(reward_array, self._reward_decay, k=self._steps)
         discounts = np.array([self._reward_decay ** min(self._steps, length-i-1) for i in range(length-1)])
         next_states = np.pad(states[self._steps:], (0, length-self._steps-1), mode="edge")
         next_actions = np.pad(actions[self._steps:], (0, length-self._steps-1), mode="edge")

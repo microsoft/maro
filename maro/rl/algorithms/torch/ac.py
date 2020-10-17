@@ -76,20 +76,21 @@ class ActorCritic(AbsAlgorithm):
         action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
-    def _get_bootstrapped_returns_and_advantages(self, states: torch.tensor, rewards: np.ndarray):
-        state_values = self._value_model(states).detach()
+    def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
+        state_values = self._value_model(state_sequence).detach()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            rewards, self._hyper_params.reward_decay, self._hyper_params.lamb,
+            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
-        return return_est, return_est - state_values
+        return state_values, return_est
 
-    def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
-        states = torch.from_numpy(state_sequence).to(self._device)
-        actions = torch.from_numpy(action_sequence).to(self._device)
-        return_est, advantages = self._get_bootstrapped_returns_and_advantages(states, reward_sequence)
+    def train(self, states: np.ndarray, actions: torch.tensor, rewards: np.ndarray):
+        states = torch.from_numpy(states).to(self._device)
+        state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
+        advantages = return_est - state_values
+        actions = torch.from_numpy(actions).to(self._device)
         # policy model training
         for _ in range(self._hyper_params.policy_train_iters):
             action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
@@ -177,24 +178,24 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
         action_dist = self._policy_value_model(state)[1].squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
-    def _get_bootstrapped_returns_and_advantages(self, states: torch.tensor, reward_sequence: np.ndarray):
-        state_values = self._policy_value_model(states)[0].detach()
+    def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
+        state_values = self._policy_value_model(state_sequence)[0].detach()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
-        return return_est, return_est - state_values
+        return state_values, return_est
 
-    def train(self, state_sequence: np.ndarray, action_sequence: np.ndarray, reward_sequence: np.ndarray):
-        states = torch.from_numpy(state_sequence).to(self._device)
-        actions = torch.from_numpy(action_sequence).to(self._device)
-        return_est, advantages = self._get_bootstrapped_returns_and_advantages(states, reward_sequence)
+    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
+        states = torch.from_numpy(states).to(self._device)
+        state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
+        advantages = return_est - state_values
+        actions = torch.from_numpy(actions).to(self._device)
         # policy-value model training
         for _ in range(self._hyper_params.train_iters):
             state_values, action_distribution = self._policy_value_model(states)
-            advantages = return_est - state_values
             action_prob = action_distribution.gather(1, actions.unsqueeze(1)).squeeze()   # (N,)
             policy_loss = -(torch.log(action_prob) * advantages).mean()
             value_loss = self._value_loss_func(state_values, return_est)

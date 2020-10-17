@@ -53,6 +53,11 @@ class ColumnBasedStore(AbsStore):
     def __getitem__(self, index: int):
         return {k: lst[index] for k, lst in self._store.items()}
 
+    def __getstate__(self):
+        obj_dict = self.__dict__
+        obj_dict["_store"] = dict(obj_dict["_store"])
+        return obj_dict
+
     @property
     def capacity(self):
         """Store capacity.

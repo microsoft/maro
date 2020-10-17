@@ -74,7 +74,7 @@ class PPO(AbsAlgorithm):
         action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
-    def _get_bootstrapped_returns_and_advantages(self, states: torch.tensor, rewards: np.ndarray):
+    def _get_values_and_bootstrapped_returns(self, states: torch.tensor, rewards: np.ndarray):
         state_values = self._value_model(states).detach()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
@@ -82,16 +82,16 @@ class PPO(AbsAlgorithm):
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
-        return return_est, return_est - state_values
+        return state_values, return_est
 
     def train(
-        self, state_sequence: np.ndarray, action_sequence: np.ndarray, log_action_prob_sequence: np.ndarray,
-        reward_sequence: np.ndarray
+        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):
-        states = torch.from_numpy(state_sequence).to(self._device)  # (N, state_dim)
-        actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
-        return_est, advantages = self._get_bootstrapped_returns_and_advantages(states, reward_sequence)
-        log_action_prob_old = torch.from_numpy(log_action_prob_sequence).to(self._device)
+        states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
+        state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
+        advantages = return_est - state_values
+        actions = torch.from_numpy(actions).to(self._device)  # (N,)
+        log_action_prob_old = torch.from_numpy(log_action_prob).to(self._device)
 
         # policy model training (with the value model fixed)
         for _ in range(self._hyper_params.policy_train_iters):
@@ -188,24 +188,24 @@ class PPOWithCombinedModel(AbsAlgorithm):
         action_index = np.random.choice(self._hyper_params.num_actions, p=action_dist)
         return action_index, np.log(action_dist[action_index])
 
-    def _get_bootstrapped_returns_and_advantages(self, states: torch.tensor, rewards: np.ndarray):
-        state_values = self._policy_value_model(states)[0].detach()
+    def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
+        state_values = self._policy_value_model(state_sequence)[0].detach()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            rewards, self._hyper_params.reward_decay, self._hyper_params.lamb,
+            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
-        return return_est, return_est - state_values
+        return state_values, return_est
 
     def train(
-        self, state_sequence: np.ndarray, action_sequence: np.ndarray, log_action_prob_sequence: np.ndarray,
-        reward_sequence: np.ndarray
+        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):
-        states = torch.from_numpy(state_sequence).to(self._device)   # (N, state_dim)
-        actions = torch.from_numpy(action_sequence).to(self._device)  # (N,)
-        return_est, advantages = self._get_bootstrapped_returns_and_advantages(states, reward_sequence)
-        log_action_prob_old = torch.from_numpy(log_action_prob_sequence).to(self._device)
+        states = torch.from_numpy(states).to(self._device)   # (N, state_dim)
+        state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
+        advantages = return_est - state_values
+        actions = torch.from_numpy(actions).to(self._device)  # (N,)
+        log_action_prob_old = torch.from_numpy(log_action_prob).to(self._device)
         for _ in range(self._hyper_params.train_iters):
             state_values, action_distribution = self._policy_value_model(states)
             action_prob = action_distribution.gather(1, actions.unsqueeze(1)).squeeze()   # (N,)
