@@ -58,12 +58,6 @@ if __name__ == "__main__":
         training_logger)
     agent_manager.assemble(config)
 
-    """
-    # currently not support loading model
-    if os.path.exists(config.model.path):
-        agent_manager.load_models_from(config.model.path)
-    """
-
     # Create the rollout actor to collect experience.
     actor = ParallelActor(config, demo_env, gnn_state_shaper, agent_manager, logger=simulation_logger)
 

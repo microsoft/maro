@@ -137,11 +137,8 @@ class ActorCritic(AbsAlgorithm):
 
         # Train critic network.
         critic_loss = torch.sum(advantage.pow(2), axis=1).mean()
-        # critic_loss.backward()
         item_c_loss = critic_loss.item()
         # torch.nn.utils.clip_grad_norm_(self._critic_model.parameters(),0.5)
-        # self._critic_optimizer["a&c"].step()
-        # - self._entropy_factor * entropy_loss
         tot_loss = 0.1 * actor_loss + critic_loss
         tot_loss.backward()
         tot_norm = clip_grad.clip_grad_norm_(self._model_dict["a&c"].parameters(), 1)

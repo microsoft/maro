@@ -4,13 +4,17 @@ import numpy as np
 
 
 def init_shared_memory(data_structure):
-    # data_structure should be a dict like:
-    # {
-    #   "a": (shape, type),
-    #   "b": {
-    #           "b1": (shape, type),
-    #       }
-    # }
+    """Initialize the data structure of the shared memory.
+
+    Args:
+        data_structure: The dictionary that describes the data structure. For example,
+            {
+                "a": (shape, type),
+                "b": {
+                        "b1": (shape, type),
+                    }
+            }
+    """
     if isinstance(data_structure, tuple):
         mult = 1
         for i in data_structure[0]:

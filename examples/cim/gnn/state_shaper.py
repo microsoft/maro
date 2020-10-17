@@ -113,10 +113,6 @@ class GNNStateShaper(StateShaper):
             return
         tick_range = np.arange(start=self.last_tick, stop=self._max_tick)
         self._sync_raw_features(snapshot_list, list(tick_range))
-
-        # port_features = snapshot_list["ports"][list(range(self._max_tick)):self.port_code_list: self.port_features] \
-        #                     .reshape(self._max_tick, self.port_cnt, -1)
-        # pkl.dump(port_features, open("/data/log/replay/snapshot.pkl", "wb"))
         self.last_tick = -1
 
     def _sync_raw_features(self, snapshot_list, tick_range, static_code=None, dynamic_code=None):
@@ -132,7 +128,6 @@ class GNNStateShaper(StateShaper):
         full_on_port = snapshot_list["matrices"][tick_range::"full_on_ports"].reshape(
             len(tick_range), self.port_cnt, self.port_cnt)
         # Normalize features to a small range.
-        # port_state_mat = self.normalize(np.concatenate([port_naive_feature, full_on_port], axis=2))
         port_state_mat = self.normalize(port_naive_feature)
 
         if self._feature_config.onehot_identity:
@@ -149,7 +144,6 @@ class GNNStateShaper(StateShaper):
         full_on_vessel = snapshot_list["matrices"][tick_range::"full_on_vessels"].reshape(
             len(tick_range), self.vessel_cnt, self.port_cnt)
 
-        # vessel_state_mat = self.normalize(np.concatenate([vessel_naive_feature, full_on_vessel], axis=2))
         vessel_state_mat = self.normalize(vessel_naive_feature)
         if self._feature_config.onehot_identity:
             vessel_state_mat = np.concatenate(

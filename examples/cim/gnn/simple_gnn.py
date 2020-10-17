@@ -271,6 +271,8 @@ class SharedAC(nn.Module):
             d_model=self.pre_dim_p, nhead=4, activation="gelu", dim_feedforward=self.pre_dim_p * 4)
         v_encoder_layer = TransformerEncoderLayer(
             d_model=self.pre_dim_v, nhead=2, activation="gelu", dim_feedforward=self.pre_dim_v * 4)
+
+        # Alternative initialization: define the normalization.
         # self.trans_layer_p = TransformerEncoder(p_encoder_layer, num_layers=3, norm=Norm(self.pre_dim_p))
         # self.trans_layer_v = TransformerEncoder(v_encoder_layer, num_layers=3, norm=Norm(self.pre_dim_v))
         self.trans_layer_p = TransformerEncoder(p_encoder_layer, num_layers=3)
@@ -284,8 +286,6 @@ class SharedAC(nn.Module):
             edge_dim={"p": edge_dim_p, "v": edge_dim_v},
             layer_num=2
         )
-
-        # self.reduce_dim = nn.Linear(self.a_input, 2)
 
         if a:
             self.policy_hidden_size = 16 * scale

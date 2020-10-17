@@ -80,7 +80,7 @@ class NumpyStore(AbsStore):
         self.capacity = capacity
 
     def put(self, exp_dict: dict):
-        """Insert a batch of experience into the store
+        """Insert a batch of experience into the store.
 
         If the store reaches the maximum capacity, this function will replace the experience in the store randomly.
 
@@ -127,7 +127,7 @@ class NumpyStore(AbsStore):
         return np.random.randint(low=0, high=self.capacity, size=cnt)
 
     def get(self, indexes: np.array):
-        """Get the experience indexed in the indexes list from the store
+        """Get the experience indexed in the indexes list from the store.
 
         Args:
             indexes (np.array): A numpy array containing the indexes of a batch experience.
