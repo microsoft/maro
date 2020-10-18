@@ -33,7 +33,7 @@ class CitibikeStateShaping(BaseStateShaping):
         # indexes = [max(cur_frame_index + bias, 0) for bias in range(-self._td_steps+1, 1)]
         indexes = [max(cur_frame_index + bias, 0) for bias in range(0, -self._td_steps, -1)]
         idx2tick = frame_index_to_ticks(self._env._start_tick, self._env._start_tick + self._env._durations,
-                                       self._env._snapshot_resolution)
+                                        self._env._snapshot_resolution)
         ticks = np.array([min(idx2tick[idx][-1], env_tick) for idx in indexes], dtype=np.int).reshape(-1, 1)
 
         raw_features = self.feature_scaler * self._env.snapshot_list['stations'][

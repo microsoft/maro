@@ -8,7 +8,7 @@ from examples.citi_bike.ppo.action_shaping import ActionShaping
 
 station_attribute_list = [
     'bikes', 'fulfillment', 'trip_requirement', 'shortage',
-    'capacity', 'weekday', 'temperature', 'weather', 'holiday','min_bikes'
+    'capacity', 'weekday', 'temperature', 'weather', 'holiday', 'min_bikes'
 ]
 
 SHORTAGE_INDEX = 3
@@ -42,7 +42,7 @@ class CitibikeStateShaping:
     def timestep(self):
         return self._td_steps
 
-    def get_states(self, reward: object=None, decision_event: object=None, frame_index: int=-1):
+    def get_states(self, reward: object = None, decision_event: object = None, frame_index: int = -1):
         assert decision_event or frame_index >= 0, "valid frame_index should be provided if no decision event"
         cur_frame_index = decision_event.frame_index if decision_event else frame_index
         env_tick = self._env.tick if decision_event else self._env.get_frame_index_mapping()[frame_index][0]
@@ -59,11 +59,11 @@ class CitibikeStateShaping:
             if decision_event.type == DecisionType.Supply:
                 # get the remaining bikes of current bike station
                 station_bikes = np.ones(len(neighbors)) * self._env.snapshot_list['stations'][
-                    cur_frame_index : decision_event.station_idx : ['bikes']
+                    cur_frame_index: decision_event.station_idx: ['bikes']
                 ][0]
                 # get the capacity and bikes of neighbors
                 tmp = self._env.snapshot_list['stations'][
-                    cur_frame_index : neighbors : ['capacity', 'bikes']
+                    cur_frame_index: neighbors: ['capacity', 'bikes']
                 ]
                 neighbor_docks = tmp[:len(neighbors)] - tmp[len(neighbors):]
                 # get the legal amount each neighbor could receive
@@ -79,7 +79,7 @@ class CitibikeStateShaping:
                 # get the legal amount each neighbor could supply
                 legal_amount = np.min(np.vstack([neighbor_bikes, station_docks]), axis=0)
                 composed_amount = self.action_scaler * np.hstack([np.zeros((len(neighbors), 1)),
-                                                                  -legal_amount.reshape(-1,1)])
+                                                                  -legal_amount.reshape(-1, 1)])
 
         return {
             'acting_node_idx': acting_node_idx,
@@ -92,7 +92,6 @@ class CitibikeStateShaping:
             'shortage': shortage,
             'fulfillment': fulfillment,
             }
-
 
     def get_station_features(self, cur_frame_index: int, env_tick: int):
         indexes = [cur_frame_index + bias for bias in range(0, -self._td_steps, -1)]

@@ -10,7 +10,6 @@ class PostProcessor:
         self.trajectory = []
         self.last_decision_event = None
         self.cur_decision_event, self.cur_obs, self.cur_action = None, None, None
-        max_cnt = 100
         self.gammas = np.logspace(0, 100, 100, base=gamma)
         self.transfer_cost = transfer_cost
 
@@ -33,9 +32,12 @@ class PostProcessor:
         last['obs_'] = obs
 
         # reward computation
-        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index, decision_event.frame_index+1)): :
-                                                    ['fulfillment', 'shortage']].reshape(
-                                                        decision_event.frame_index-self.last_decision_event.frame_index+1, self.station_cnt, 2)
+        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index,
+                                                                   decision_event.frame_index+1))::
+                                                        ['fulfillment', 'shortage']].reshape(
+                                                        decision_event.frame_index -\
+                                                            self.last_decision_event.frame_index +\
+                                                                1, self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
         reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         # reward.shape: [station_cnt,]
@@ -67,7 +69,8 @@ class PostProcessor:
         # new exp recorded
 
         if isinstance(self.cur_action, Iterable):
-            action_edge = np.array([[a.from_station_idx for a in self.cur_action], [a.to_station_idx for a in self.cur_action]], np.int)
+            action_edge = np.array([[a.from_station_idx for a in self.cur_action],
+                                   [a.to_station_idx for a in self.cur_action]], np.int)
             action_amount = np.array([a.number for a in self.cur_action])
         else:
             action_edge = np.array([[self.cur_action.from_station_idx], [self.cur_action.to_station_idx]], np.int)

@@ -97,7 +97,6 @@ class CitibikeStateShaping:
             'fulfillment': fulfillment,
             }
 
-
     def get_station_features(self, cur_frame_index: int, env_tick: int):
         indexes = [cur_frame_index + bias for bias in range(0, -self._td_steps, -1)]
 

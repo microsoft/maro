@@ -68,7 +68,8 @@ class PostProcessor:
         else:
             reward[self.last_decision_event.station_idx] -= self.transfer_cost*np.sum(cur_action)
         last['r'] = reward*self.reward_scaler
-        last['gamma'] = np.ones(reward.shape[0])*self.gammas[decision_event.frame_index-self.last_decision_event.frame_index]
+        last['gamma'] = np.ones(reward.shape[0]) *\
+            self.gammas[decision_event.frame_index - self.last_decision_event.frame_index]
 
 
     def record(self, decision_event=None, obs=None, action=None):
@@ -86,8 +87,8 @@ class PostProcessor:
         # new exp recorded
 
         if isinstance(self.cur_action, Iterable):
-            action_edge = np.array([[a.from_station_idx for a in self.cur_action], [a.to_station_idx for a in self.cur_action]],
-                            np.int)
+            action_edge = np.array([[a.from_station_idx for a in self.cur_action],
+                                   [a.to_station_idx for a in self.cur_action]], np.int)
             action_amount = np.array([a.number for a in self.cur_action])
         else:
             action_edge = np.array([[self.cur_action.from_station_idx], [self.cur_action.to_station_idx]], np.int)

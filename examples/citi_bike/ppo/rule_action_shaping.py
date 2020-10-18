@@ -11,7 +11,7 @@ class ActionShaping:
         station_idx = decision_evt.station_idx
         amt_ratio = 0.5
         if(decision_evt.type == DecisionType.Demand):
-            #demand
+            # demand
             target_idx = station_idx
             act_idx = list(decision_evt.action_scope.keys())[0]
             act_amt = min(decision_evt.action_scope[target_idx], decision_evt.action_scope[act_idx]) * amt_ratio

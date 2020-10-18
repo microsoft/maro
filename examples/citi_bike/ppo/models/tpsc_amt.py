@@ -1,16 +1,11 @@
 import torch
 from torch import nn
-from torch.distributions.one_hot_categorical import OneHotCategorical
-from torch_geometric.nn import MessagePassing
-from torch_geometric.utils import add_self_loops, remove_self_loops, degree, softmax
-from examples.citi_bike.ppo.utils import to_dense_adj, sparse_pooling
-from examples.citi_bike.ppo.models.transformer import TransformerDecoder,TransformerEncoder,TransformerEncoderLayer,CustomTransformerDecoderLayer
-from examples.citi_bike.ppo.models.homo_gnn import MultiChannelLinear
-from torch_geometric.nn import GCNConv
-from torch_scatter import scatter_sum, scatter_mean
 from torch.distributions import Categorical
-import math
-import numpy as np 
+
+from examples.citi_bike.ppo.models.transformer import (TransformerDecoder, TransformerEncoder, TransformerEncoderLayer,
+                                                       CustomTransformerDecoderLayer)
+from examples.citi_bike.ppo.models.homo_gnn import MultiChannelLinear
+
 
 class AttTransPolicy(nn.Module):
     def __init__(self, node_dim, neighbor_cnt, per_graph_size):
@@ -22,11 +17,11 @@ class AttTransPolicy(nn.Module):
         self.perc = 0.5
         self.amt_resolution = 11
         self.amt_max = 6
-        self.amt_step = self.amt_max/(self.amt_resolution-1)
-        self.encoderLayer = TransformerEncoderLayer(d_model=self.node_dim, nhead=2,dropout=0)
+        self.amt_step = self.amt_max / (self.amt_resolution - 1)
+        self.encoderLayer = TransformerEncoderLayer(d_model=self.node_dim, nhead=2, dropout=0)
         self.transformerencoder = TransformerEncoder(self.encoderLayer, 1)
-        self.decoderLayer = CustomTransformerDecoderLayer(d_model=self.node_dim, nhead=2,dropout=0)
-        self.transformerdecoder = TransformerDecoder(self.decoderLayer,1)
+        self.decoderLayer = CustomTransformerDecoderLayer(d_model=self.node_dim, nhead=2, dropout=0)
+        self.transformerdecoder = TransformerDecoder(self.decoderLayer, 1)
 
         self.amt_hidden = 32
         self.amt_mask_arange = self.amt_step * torch.arange(self.amt_resolution, dtype=torch.float, requires_grad=False)
@@ -52,27 +47,27 @@ class AttTransPolicy(nn.Module):
         sign = actual_amount.new_ones((batch_size, 1), dtype=torch.int, requires_grad=False)
         sign[actual_amount[:, 0] < 0, 0] = -1
 
-        desrc_idx = col.reshape(-1,self.neighbor_cnt+1)[:,-1].reshape(-1)
+        desrc_idx = col.reshape(-1, self.neighbor_cnt + 1)[:, -1].reshape(-1)
         # ensrc_idx = col.reshape(-1, self.neighbor_cnt+1)[:, :-1].reshape(-1)
-        ensrc = x[col].reshape(-1,self.neighbor_cnt+1, self.node_dim)
+        ensrc = x[col].reshape(-1, self.neighbor_cnt + 1, self.node_dim)
         ensrc = torch.transpose(ensrc, 0, 1)
-        desrc = x[desrc_idx].reshape(1,-1,self.node_dim)
+        desrc = x[desrc_idx].reshape(1, -1, self.node_dim)
         memory = self.transformerencoder(ensrc)
         memory = memory * sign
-        tgt = self.transformerdecoder(desrc,memory)
+        tgt = self.transformerdecoder(desrc, memory)
         memory1 = torch.transpose(memory, 0, 1)
         memory2 = torch.transpose(memory1, 1, 2)
 
-        tgt_temp = torch.transpose(tgt,0,1)
+        tgt_temp = torch.transpose(tgt, 0, 1)
         att = torch.bmm(tgt_temp, memory2)
         att = self.softmax(att.squeeze(1))
         m = Categorical(att)
-        if(real_choice==None):
+        if(real_choice is None):
             choice = m.sample()
         else:
             choice = real_choice.reshape(-1)
         batch_idx = torch.arange(batch_size, requires_grad=False).to(choice.device)
-        
+
         # chosen_dest.shape: B*D
         chosen_dest = memory1[batch_idx, choice]
         amt_input = torch.cat((chosen_dest, tgt.reshape(batch_size, self.node_dim)), axis=1)
@@ -86,7 +81,7 @@ class AttTransPolicy(nn.Module):
         amt_ratio[batch_amt_arange > abs_chosen_actual_amount] = float('-inf')
         # disable learning of this header
         '''
-        amt_ratio[batch_amt_arange < (abs_chosen_actual_amount/2)] = float('-inf') 
+        amt_ratio[batch_amt_arange < (abs_chosen_actual_amount/2)] = float('-inf')
         amt_ratio[batch_idx, (abs_chosen_actual_amount/self.amt_step).long()] = 0
         '''
         # print(abs_chosen_actual_amount, amt_ratio)

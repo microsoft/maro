@@ -1,16 +1,11 @@
 import torch
 from torch import nn
-from torch.distributions.one_hot_categorical import OneHotCategorical
-from torch_geometric.nn import MessagePassing
-from torch_geometric.utils import add_self_loops, remove_self_loops, degree, softmax
-from examples.citi_bike.ppo.utils import to_dense_adj, sparse_pooling
-from examples.citi_bike.ppo.models.transformer import TransformerDecoder,TransformerEncoder,TransformerEncoderLayer,CustomTransformerDecoderLayer
-from examples.citi_bike.ppo.models.homo_gnn import MultiChannelLinear
-from torch_geometric.nn import GCNConv
-from torch_scatter import scatter_sum, scatter_mean
 from torch.distributions import Categorical
-import math
-import numpy as np
+
+from examples.citi_bike.ppo.models.transformer import (TransformerDecoder, TransformerEncoder, TransformerEncoderLayer,
+                                                       CustomTransformerDecoderLayer)
+from examples.citi_bike.ppo.models.homo_gnn import MultiChannelLinear
+
 
 class AttTransPolicy(nn.Module):
     def __init__(self, node_dim, neighbor_cnt, per_graph_size):
@@ -24,11 +19,12 @@ class AttTransPolicy(nn.Module):
         self.encoderLayer = TransformerEncoderLayer(d_model=self.node_dim, nhead=2, dropout=0.0)
         self.transformerencoder = TransformerEncoder(self.encoderLayer, 1)
         self.decoderLayer = CustomTransformerDecoderLayer(d_model=self.node_dim, nhead=2, dropout=0.0)
-        self.transformerdecoder = TransformerDecoder(self.decoderLayer,2)
+        self.transformerdecoder = TransformerDecoder(self.decoderLayer, 2)
 
         self.amt_hidden = 32
         self.amt_encoder_layer = TransformerEncoderLayer(d_model=self.node_dim, nhead=2, dropout=0.0)
-        self.amt_header = nn.Sequential(nn.Linear(self.node_dim*2, self.amt_hidden), nn.ReLU(), nn.Linear(self.amt_hidden, self.amt_resolution))
+        self.amt_header = nn.Sequential(nn.Linear(self.node_dim*2, self.amt_hidden), nn.ReLU(),
+                                        nn.Linear(self.amt_hidden, self.amt_resolution))
         self.amt_softmax = nn.Softmax(-1)
 
         '''
@@ -38,8 +34,9 @@ class AttTransPolicy(nn.Module):
         '''
 
         self.critic_hidden_dim = 16
-        # self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim, self.critic_hidden_dim), nn.ReLU(), MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
-        self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim, self.critic_hidden_dim), nn.ReLU(), MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
+        self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim,
+                                                               self.critic_hidden_dim), nn.ReLU(),
+                                            MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
 
     def determine_amount(self, x, actual_amount, src, dest_idx, sample=True):
         # chosen_dest.shape: B*D
@@ -78,14 +75,14 @@ class AttTransPolicy(nn.Module):
 
         ensrc = x[col].reshape(batch_size, self.neighbor_cnt, self.node_dim)
         ensrc = torch.transpose(ensrc, 0, 1)
-        desrc = x[acting_node].reshape(1,batch_size,self.node_dim)
+        desrc = x[acting_node].reshape(1, batch_size, self.node_dim)
         memory = self.transformerencoder(ensrc)
         memory = memory * sign
-        tgt = self.transformerdecoder(desrc,memory)
+        tgt = self.transformerdecoder(desrc, memory)
         memory1 = torch.transpose(memory, 0, 1)
         memory2 = torch.transpose(memory1, 1, 2)
 
-        tgt_temp = torch.transpose(tgt,0,1)
+        tgt_temp = torch.transpose(tgt, 0, 1)
         att = torch.bmm(tgt_temp, memory2)
         att = self.softmax(att.squeeze(1))
 

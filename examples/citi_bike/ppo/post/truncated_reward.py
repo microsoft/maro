@@ -1,7 +1,5 @@
 import numpy as np
-import math
-from collections import Iterable
-from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, DecisionType
+
 
 class PostProcessor:
     def __init__(
@@ -22,7 +20,7 @@ class PostProcessor:
         self.latest_obs_frame_index = -1
         self.cur_frame_index = 0
         self.cur_obs, self.cur_action = None, None
-        
+
         self.transfer_cost = transfer_cost
         self.delay_length = delay_length
         self.max_delay_length = max_delay_length
@@ -39,7 +37,7 @@ class PostProcessor:
 
     def __call__(self):
         order_data = self.env.snapshot_list['stations'][
-                : :['fulfillment', 'shortage']
+                ::['fulfillment', 'shortage']
             ].reshape(-1, 2, self.station_cnt).transpose((0, 2, 1))
         # reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         reward_per_frame = - order_data[:, :, 1]
@@ -104,7 +102,7 @@ class PostProcessor:
             return
 
         choice, amount, record_data = self.cur_action
-        
+
         self.trajectory.append({
             'obs': self.cur_obs,
             'a': np.array([choice, amount]),
@@ -122,4 +120,3 @@ class PostProcessor:
         self.hist_obs = {}
         self.latest_obs_frame_index = -1
         self.cur_obs, self.cur_action = None, None
-

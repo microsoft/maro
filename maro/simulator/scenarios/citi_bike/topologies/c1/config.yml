@@ -1,0 +1,50 @@
+decision:
+  extra_cost_mode: source # how to assign extra cost, avaiable value: source, target, target_neighbors
+
+  resolution: 80 # frequency to check if a cell need an action
+
+  effective_time_mean: 10
+  effective_time_std: 2
+
+  # these 2 water mark will affect the if decision should be generated
+  supply_water_mark_ratio: 0.9
+  demand_water_mark_ratio: 0.1
+
+  # ratio of action
+  action_scope:
+    low: 0.05 # min ratio of available bikes to keep for current cell, to supply to neighbors
+    high: 1 # max ratio of available bikes neighbors can provide to current cell
+    filters: # filters used to pick destinations
+      - type: "distance" # sort by distance, from neareast to farest
+        num: 80 # number of output
+      - type: "requirements" # sort by supply and demand requirements
+        num: 40
+      - type: "trip_window" # sort by trips in window
+        windows: 10 # frame index number for the window
+        num: 20
+
+reward: # reward options
+  alpha: 0.4
+  beta: 0.3
+  gamma: 0.3
+
+# timezone of the data
+# NOTE: we need this if we want to fit local time, as binary data will convert timestamp into UTC
+# name : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+time_zone: "America/New_York"
+
+#frequence to reset trip adj matrix
+adj_reset_frequency: 120
+
+
+# path to read trip data binary file
+trip_data: "/data/bin_ext/c1_2016/trips.bin"
+
+# path to read weather data
+weather_data: "/data/bin_ext/c1_2016/KNYC_daily.bin"
+
+# path to read csv file that used to init stations, also with station id -> index mapping
+stations_init_data: "/data/bin_ext/c1_2016/station_meta.csv"
+
+# path to distance adj matrix
+distance_adj_data: "/data/bin_ext/c1_2016/distance_adj.csv"

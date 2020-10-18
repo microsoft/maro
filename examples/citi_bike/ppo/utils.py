@@ -1,11 +1,9 @@
-import torch
-import numpy as np
-from torch_scatter import scatter, scatter_max
-from copy import copy
-import math
-from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, DecisionType
-import os
 import shutil
+import numpy as np
+
+import torch
+from torch_scatter import scatter_max
+
 
 def backup(source_pth, target_pth):
     '''
@@ -15,11 +13,14 @@ def backup(source_pth, target_pth):
     '''
     shutil.copytree(source_pth, target_pth)
 
+
 def de_batchize(edges, graph_size):
     return edges % graph_size
 
+
 def batch_split(data, dim=0):
     return np.split(data, indices_or_sections=data.shape[dim], axis=dim)
+
 
 def batchize(batch_obs):
     graph_size = batch_obs[0]['node_cnt']
@@ -46,6 +47,7 @@ def batchize(batch_obs):
         'node_cnt': graph_size,
     }
 
+
 def batchize_exp(batch):
     if (not batch):
         return {}
@@ -55,7 +57,6 @@ def batchize_exp(batch):
     else:
         # a.shape: [2, action_cnt]
         a = np.hstack([e['a'] for e in batch])
-
 
     # state
     s = batchize([e['obs'] for e in batch])
@@ -81,15 +82,16 @@ def batchize_exp(batch):
     return rlt
 
 
-
 def from_numpy(dtype, device, *args):
     if not args:
         return None
     else:
         return [torch.from_numpy(x).type(dtype).to(device=device) for x in args]
 
+
 def from_list(dtype, device, *args):
     return [dtype(x).to(device=device) for x in args]
+
 
 def obs_to_torch(obs, device):
     x = from_numpy(torch.FloatTensor, device, obs['x'])[0]
@@ -99,6 +101,7 @@ def obs_to_torch(obs, device):
 
     actual_amount = torch.FloatTensor(obs['actual_amount']).to(device=device)
     return x, edge_idx_list, action_edge_idx, actual_amount, per_graph_size
+
 
 def time_obs_to_torch(obs, device):
     x = from_numpy(torch.FloatTensor, device, obs['x'])[0]
@@ -116,9 +119,11 @@ def to_dense_adj(size, edge_index, edge_attr):
     rlt[edge_index[0], edge_index[1]] = edge_attr
     return rlt
 
+
 def polyak_update(polyak_factor, target_network, network):
     for target_param, param in zip(target_network.parameters(), network.parameters()):
         target_param.data.copy_(polyak_factor*target_param.data + (1.0 - polyak_factor)*param.data)
+
 
 def sparse_pooling(src, index=None, per_graph_size=None):
     if index is None:
@@ -126,6 +131,7 @@ def sparse_pooling(src, index=None, per_graph_size=None):
         index = index.to(src.device)
     out, argmax = scatter_max(src, index, dim=0)
     return out
+
 
 def compute_grad_norm(net, norm_type=2):
     normed_grads = [torch.norm(p.grad.detach(), norm_type) for p in net.parameters() if p.grad is not None]
