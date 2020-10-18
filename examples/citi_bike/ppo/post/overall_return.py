@@ -37,20 +37,21 @@ class PostProcessor:
                                                     ['fulfillment', 'shortage']].reshape(
                                                         decision_event.frame_index-self.last_decision_event.frame_index+1, self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
-        reward_per_frame = order_data[:,:,0] - order_data[:,:,1]
+        reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         # reward.shape: [station_cnt,]
         reward = self.gammas[:reward_per_frame.shape[0]].dot(reward_per_frame)
         # actions.shape: [action_cnt,]
         cur_action, cur_action_edge = last['a']
         # the transfer cost is appended on the received cell
         if self.last_decision_event.type == DecisionType.Supply:
-            reward[cur_action_edge[1]] -= self.transfer_cost*cur_action
+            reward[cur_action_edge[1]] -= self.transfer_cost * cur_action
         else:
-            reward[self.last_decision_event.station_idx] -= self.transfer_cost*np.sum(cur_action)
-        last['r'] = reward*self.reward_scaler
-        last['gamma'] = np.ones(reward.shape[0])*self.gammas[decision_event.frame_index-self.last_decision_event.frame_index]
+            reward[self.last_decision_event.station_idx] -= self.transfer_cost * np.sum(cur_action)
+        last['r'] = reward * self.reward_scaler
+        last['gamma'] = np.ones(reward.shape[0]) * self.gammas[decision_event.frame_index
+                                                                - self.last_decision_event.frame_index]
 
-        
+
     def record(self, decision_event=None, obs=None, action=None):
         if decision_event is not None and obs is not None:
             self.cur_decision_event = decision_event
@@ -64,13 +65,13 @@ class PostProcessor:
         if self.trajectory:
             self.normal_reward()
         # new exp recorded
-        
+
         if isinstance(self.cur_action, Iterable):
             action_edge = np.array([[a.from_station_idx for a in self.cur_action], [a.to_station_idx for a in self.cur_action]], np.int)
-            action_amount = np.array([a.number for a in self.cur_action]) 
+            action_amount = np.array([a.number for a in self.cur_action])
         else:
             action_edge = np.array([[self.cur_action.from_station_idx], [self.cur_action.to_station_idx]], np.int)
-            action_amount = np.array([self.cur_action.number]) 
+            action_amount = np.array([self.cur_action.number])
 
         self.trajectory.append({
             'obs': self.cur_obs,
@@ -82,8 +83,6 @@ class PostProcessor:
         self.last_decision_event = self.cur_decision_event
         self.cur_decision_event, self.cur_obs, self.cur_action = None, None, None
 
-
     def reset(self):
         self.trajectory = []
         self.last_decision_event = None
-

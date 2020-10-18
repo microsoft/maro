@@ -1,9 +1,9 @@
 experiment_name: "randday_sumr"
 env:
   scenario: "citi_bike"
-  topology: "toy.5s_6t"
+  topology: "c1"
   start_tick: 0
-  durations: 1440 # stop until the data steam end
+  durations: 14400 # stop until the data steam end
   snapshot_resolution: 20
   transfer_cost: 0.05
 train:
@@ -18,4 +18,4 @@ model:
   device: "cuda:0"
   emb_dim: 16
 save_code_after: 3 # -1 is not save, any positive number is after which episode the code is saved.
-    
+

@@ -1,7 +1,5 @@
 import numpy as np
-import math
-from collections import Iterable
-from maro.simulator.scenarios.citibike.common import Action, DecisionEvent, DecisionType
+
 
 class PostProcessor:
     def __init__(
@@ -31,7 +29,7 @@ class PostProcessor:
 
         self.fixed_window_size = fixed_window_size
         self.state_shaping = state_shaping
-        if self.fixed_window_size and self.state_shaping == None:
+        if self.fixed_window_size and self.state_shaping is None:
             print("State-Shaping instance is required in fixed window size mode!")
             exit(0)
         self.norm_ratio = 0.2
@@ -40,12 +38,12 @@ class PostProcessor:
 
     def __call__(self):
         order_data = self.env.snapshot_list['stations'][
-                : :['fulfillment', 'shortage','min_bikes']
+                ::['fulfillment', 'shortage','min_bikes']
             ].reshape(-1, 3, self.station_cnt).transpose((0, 2, 1))
         # reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         reward_per_frame = - order_data[:, :, 1]
-        inventary_per_frame = order_data[:,:,2]
-        shortage_per_frame = order_data[:,:,1]
+        inventary_per_frame = order_data[:, :, 2]
+        shortage_per_frame = order_data[:, :, 1]
 
         rm_list = []
         for i, sars in enumerate(self.trajectory):
@@ -90,29 +88,29 @@ class PostProcessor:
 
             #  self define the reward with trace info
             sars['self_r'] = 0
-            neighbor_idx,amt = sars['a']
-            neighbor_idx,amt = int(neighbor_idx[0]),int(amt[0]/0.1)
+            neighbor_idx, amt = sars['a']
+            neighbor_idx, amt = int(neighbor_idx[0]), int(amt[0]/0.1)
             act_idx = sars['obs']['acting_node_idx']
             _, col = sars['obs']['action_edge_idx']
             target_idx = col[neighbor_idx]
-            if(amt>0 and act_idx != target_idx):
+            if(amt > 0 and act_idx != target_idx):
                 # supply: act_idx -> target_idx
-                max_shortage = np.amax(shortage_per_frame[sars['frame_index']+1:end_foresee+1,act_idx])
-                min_invt = np.amin(inventary_per_frame[sars['frame_index'] + 1:end_foresee + 1,target_idx])
+                max_shortage = np.amax(shortage_per_frame[sars['frame_index'] + 1:end_foresee + 1, act_idx])
+                min_invt = np.amin(inventary_per_frame[sars['frame_index'] + 1:end_foresee + 1, target_idx])
                 shortage_created = min(amt,max_shortage)
-                shortage_reduced = max(amt-min_invt,0)
+                shortage_reduced = max(amt - min_invt, 0)
                 # # refine on target
                 # if(max_shortage > 0):
                 #     sars['self_r'] = -1
                 # elif(amt > min_invt):
                 #     sars['self_r'] = 1
-                sars['self_r'] = self.norm_ratio*(shortage_reduced-shortage_created)
+                sars['self_r'] = self.norm_ratio * (shortage_reduced-shortage_created)
             elif(amt<0 and act_idx != target_idx):
                 # demand: act_idx <- target_idx
-                max_shortage = np.amax(shortage_per_frame[sars['frame_index'] + 1:end_foresee + 1,target_idx])
-                min_invt = np.amin(inventary_per_frame[sars['frame_index'] + 1:end_foresee + 1,act_idx])
-                shortage_created = min(amt,max_shortage)
-                shortage_reduced = max(amt-min_invt,0)
+                max_shortage = np.amax(shortage_per_frame[sars['frame_index'] + 1:end_foresee + 1, target_idx])
+                min_invt = np.amin(inventary_per_frame[sars['frame_index'] + 1:end_foresee + 1, act_idx])
+                shortage_created = min(amt, max_shortage)
+                shortage_reduced = max(amt - min_invt, 0)
                 # # refine on target
                 # if(max_shortage > 0):
                 #     sars['self_r'] = -1

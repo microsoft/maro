@@ -68,22 +68,24 @@ class CitibikeStateShaping:
                 neighbor_docks = tmp[:len(neighbors)] - tmp[len(neighbors):]
                 # get the legal amount each neighbor could receive
                 legal_amount = np.min(np.vstack([neighbor_docks, station_bikes]), axis=0)
-                composed_amount = self.action_scaler*np.hstack([legal_amount.reshape(-1,1), np.zeros((len(neighbors),1))])
+                composed_amount = self.action_scaler*np.hstack([legal_amount.reshape(-1, 1),
+                                                                np.zeros((len(neighbors), 1))])
             else:
                 ctmp, btmp = self._env.snapshot_list['stations'][
-                    cur_frame_index : decision_event.station_idx : ['capacity', 'bikes']
+                    cur_frame_index: decision_event.station_idx: ['capacity', 'bikes']
                 ]
                 station_docks = np.ones(len(neighbors)) * (ctmp - btmp)
                 neighbor_bikes = self._env.snapshot_list['stations'][cur_frame_index:neighbors:['bikes']]
                 # get the legal amount each neighbor could supply
                 legal_amount = np.min(np.vstack([neighbor_bikes, station_docks]), axis=0)
-                composed_amount = self.action_scaler*np.hstack([np.zeros((len(neighbors), 1)), -legal_amount.reshape(-1,1)])
-        
+                composed_amount = self.action_scaler * np.hstack([np.zeros((len(neighbors), 1)),
+                                                                  -legal_amount.reshape(-1,1)])
+
         return {
             'acting_node_idx': acting_node_idx,
             'x': station_features,
-            'edge_idx_list': edge_idx_list, 
-            'action_edge_idx': action_edge_index, 
+            'edge_idx_list': edge_idx_list,
+            'action_edge_idx': action_edge_index,
             'actual_amount': composed_amount,
             'node_cnt': self._station_cnt,
             'tick': cur_frame_index,
@@ -96,12 +98,12 @@ class CitibikeStateShaping:
         indexes = [cur_frame_index + bias for bias in range(0, -self._td_steps, -1)]
 
         raw_features = self.feature_scaler * self._env.snapshot_list['stations'][
-            indexes : : station_attribute_list
+            indexes:: station_attribute_list
         ].reshape(self._td_steps, -1, self._station_cnt).transpose((2, 1, 0))
 
         shortage = raw_features[:, SHORTAGE_INDEX, -1]
         fulfillment = raw_features[:, FULFILLMENT_INDEX, -1]
-        
+
         station_features = np.concatenate(
             (
                 raw_features.reshape(self._station_cnt, -1),
@@ -118,7 +120,7 @@ class CitibikeStateShaping:
         indexes = [cur_frame_index + bias for bias in range(0, -self._td_steps, -1)]
 
         raw_trips = self._env.snapshot_list['matrices'][
-            indexes : : 'trips_adj'
+            indexes:: 'trips_adj'
         ].reshape(self._td_steps, self._station_cnt, self._station_cnt).transpose((1, 2, 0))
 
         # filter less frequent neighbors and add self loops

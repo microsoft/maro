@@ -2,7 +2,9 @@
 from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, DecisionType
 import numpy as np
 
+
 class ActionShaping:
+
     action_scaler = 0.1
     def __init__(self):
         pass
@@ -23,7 +25,6 @@ class ActionShaping:
                 actions.append(action)
             return actions
 
-
     def _create_action(self, decision_type, act_idx, target_idx, action):
         act = action/self.__class__.action_scaler
         if decision_type == DecisionType.Supply:
@@ -31,7 +32,6 @@ class ActionShaping:
         else:
             action = Action(target_idx, act_idx, int(abs(act)))
         return action
-            
 
 
-        
+

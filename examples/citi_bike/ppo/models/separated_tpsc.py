@@ -10,7 +10,7 @@ from torch_geometric.nn import GCNConv
 from torch_scatter import scatter_sum, scatter_mean
 from torch.distributions import Categorical
 import math
-import numpy as np 
+import numpy as np
 
 class AttTransPolicy(nn.Module):
     def __init__(self, node_dim, neighbor_cnt, per_graph_size):
@@ -68,7 +68,7 @@ class AttTransPolicy(nn.Module):
     def choose_destination(self, x, edge_index, actual_amount, acting_node, noise_scale=0.0, sample=True):
         # calculation attention
         row, col = edge_index
-        
+
         # print("col",col)
         # get the source group
         actual_amount = actual_amount.reshape(-1, self.neighbor_cnt)[:, 0]

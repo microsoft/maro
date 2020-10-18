@@ -1,7 +1,5 @@
 import numpy as np
-import math
-from collections import Iterable
-from maro.simulator.scenarios.citibike.common import Action, DecisionEvent, DecisionType
+
 
 class PostProcessor:
     def __init__(
@@ -29,7 +27,7 @@ class PostProcessor:
 
         self.fixed_window_size = fixed_window_size
         self.state_shaping = state_shaping
-        if self.fixed_window_size and self.state_shaping == None:
+        if self.fixed_window_size and self.state_shaping is None:
             print("State-Shaping instance is required in fixed window size mode!")
             exit(0)
 
@@ -38,7 +36,7 @@ class PostProcessor:
 
     def __call__(self):
         order_data = self.env.snapshot_list['stations'][
-                : :['fulfillment', 'shortage']
+                ::['fulfillment', 'shortage']
             ].reshape(-1, 2, self.station_cnt).transpose((0, 2, 1))
         reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
 
@@ -94,7 +92,7 @@ class PostProcessor:
             return
 
         att, amount, record_data = self.cur_action
-        
+
         self.trajectory.append({
             'obs': self.cur_obs,
             'a': np.concatenate((att, amount), axis=0).transpose(),
@@ -105,7 +103,6 @@ class PostProcessor:
             'supplement': record_data,
         })
         self.cur_obs, self.cur_action = None, None
-
 
     def reset(self):
         self.trajectory = []

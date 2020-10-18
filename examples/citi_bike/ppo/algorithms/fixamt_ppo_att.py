@@ -10,7 +10,7 @@ from copy import deepcopy
 from examples.citi_bike.ppo.utils import batchize, from_numpy, from_list, obs_to_torch, polyak_update
 from itertools import chain
 from maro.utils import Logger, LogFormat, convert_dottable
-from torch.utils.tensorboard import SummaryWriter  
+from torch.utils.tensorboard import SummaryWriter
 
 epoch_count = 0
 itr_count = 0
@@ -62,7 +62,7 @@ class AttGnnPPO:
             # a.shape: [2, action_cnt]
             a = np.hstack([e['a'] for e in batch])
 
-        
+
         # state
         s = batchize([e['obs'] for e in batch])
         s_ = batchize([e['obs_'] for e in batch])
@@ -84,7 +84,7 @@ class AttGnnPPO:
         if 'self_r' in batch[0]:
             rlt['self_r'] = np.hstack([np.array(e['self_r']) for e in batch])
         return rlt
-    
+
     def act(self, obs):
         '''
         forward gnn and policy to get action
@@ -111,10 +111,10 @@ class AttGnnPPO:
         print("total gamma shape",tot_gamma.shape)
         # normalize to a reasonable scope
         gamma = tot_gamma.reshape(-1, 1).repeat(1, self.per_graph_size)
-       
+
         x, edge_idx_list, action_edge_idx, actual_amount, per_graph_size = obs_to_torch(batch['s'], self.device)
         x_, edge_idx_list_, action_edge_idx_, actual_amount_, per_graph_size_ = obs_to_torch(batch['s_'], self.device)
-        
+
         # convert list to tensor
         old_actions = from_numpy(torch.FloatTensor, self.device, batch['a'])[0].reshape(2,-1)
         supplement = self.supplement2torch(batch['supplement']).float()
@@ -131,10 +131,10 @@ class AttGnnPPO:
             att_dist = Categorical(att.reshape(-1,self.neighbor_cnt+1))
             action_logprobs = att_dist.log_prob(old_actions[0].reshape(-1))
             att_entropy = att_dist.entropy()
-            
+
             state_values = self.policy.value(ts_emb)
             state_values_ = self.old_policy.value(ts_emb_).detach()
-                        
+
             # Finding the ratio (pi_theta / pi_theta__old):
             ratios = torch.exp(action_logprobs - old_logprobs.detach())
             # Finding Surrogate Loss:
@@ -147,7 +147,7 @@ class AttGnnPPO:
             ploss = -torch.min(surr1, surr2)
             mloss = self.mse_loss(state_values, rewards+gamma*state_values_)
             loss = ploss + mloss - 0.01*att_entropy
-            
+
             print("ratios",ratios.mean())
             print("advantage",advantages.mean())
             print("mse loss",mloss.mean())
@@ -165,7 +165,7 @@ class AttGnnPPO:
             loss_ret.append(loss.mean())
 
             itr_count += 1
-            
+
         self.old_policy.load_state_dict(self.policy.state_dict())
         self.old_temporal_gnn.load_state_dict(self.temporal_gnn.state_dict())
         self.writer.add_scalar('Loss\\', sum(loss_ret)/len(loss_ret), epoch_count)

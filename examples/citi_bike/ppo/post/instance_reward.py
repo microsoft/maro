@@ -1,7 +1,6 @@
 import numpy as np
-import math
 from collections import Iterable
-from maro.simulator.scenarios.citibike.common import Action, DecisionEvent, DecisionType
+from maro.simulator.scenarios.citibike.common import DecisionType
 
 
 class PostProcessor:
@@ -11,7 +10,6 @@ class PostProcessor:
         self.trajectory = []
         self.last_decision_event = None
         self.cur_decision_event, self.cur_obs, self.cur_action = None, None, None
-        max_cnt = 100
         self.gammas = np.logspace(0, 100, 100, base=gamma)
         self.transfer_cost = transfer_cost
 
@@ -29,7 +27,8 @@ class PostProcessor:
         cur_action, cur_action_edge = last['a']
         last_cell_idxes = cur_action_edge[1]
         last_frame_idx = min(max(0, decision_event.frame_index-1), self.last_decision_event.frame_index)
-        tmp = self.env.snapshot_list['stations'][list(range(last_frame_idx, decision_event.frame_index+1)):list(last_cell_idxes):['shortage', 'bikes']]
+        tmp = self.env.snapshot_list['stations'][list(range(last_frame_idx, decision_event.frame_index+1))
+                                                    :list(last_cell_idxes):['shortage', 'bikes']]
         tmp = tmp.reshape(-1, len(last_cell_idxes), 2)
         shortage, bikes = tmp[:,:,0], tmp[:,:,1]
         shortage = np.sum(shortage, axis=0)
@@ -53,11 +52,12 @@ class PostProcessor:
         last['obs_'] = obs
 
         # reward computation
-        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index, decision_event.frame_index+1)): :
-                                                    ['fulfillment', 'shortage']].reshape(
-                                                        decision_event.frame_index-self.last_decision_event.frame_index+1, self.station_cnt, 2)
+        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index,
+                                                        decision_event.frame_index+1))::
+                                                        ['fulfillment', 'shortage']].reshape(decision_event.frame_index
+                                                        - self.last_decision_event.frame_index+1, self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
-        reward_per_frame = order_data[:,:,0] - order_data[:,:,1]
+        reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         # reward.shape: [station_cnt,]
         reward = self.gammas[:reward_per_frame.shape[0]].dot(reward_per_frame)
         # actions.shape: [action_cnt,]
@@ -70,7 +70,7 @@ class PostProcessor:
         last['r'] = reward*self.reward_scaler
         last['gamma'] = np.ones(reward.shape[0])*self.gammas[decision_event.frame_index-self.last_decision_event.frame_index]
 
-        
+
     def record(self, decision_event=None, obs=None, action=None):
         if decision_event is not None and obs is not None:
             self.cur_decision_event = decision_event
@@ -84,13 +84,14 @@ class PostProcessor:
         if self.trajectory:
             self.normal_reward()
         # new exp recorded
-        
+
         if isinstance(self.cur_action, Iterable):
-            action_edge = np.array([[a.from_station_idx for a in self.cur_action], [a.to_station_idx for a in self.cur_action]], np.int)
-            action_amount = np.array([a.number for a in self.cur_action]) 
+            action_edge = np.array([[a.from_station_idx for a in self.cur_action], [a.to_station_idx for a in self.cur_action]],
+                            np.int)
+            action_amount = np.array([a.number for a in self.cur_action])
         else:
             action_edge = np.array([[self.cur_action.from_station_idx], [self.cur_action.to_station_idx]], np.int)
-            action_amount = np.array([self.cur_action.number]) 
+            action_amount = np.array([self.cur_action.number])
 
         self.trajectory.append({
             'obs': self.cur_obs,
@@ -101,7 +102,6 @@ class PostProcessor:
         })
         self.last_decision_event = self.cur_decision_event
         self.cur_decision_event, self.cur_obs, self.cur_action = None, None, None
-
 
     '''
     def __call__(self):
@@ -119,4 +119,3 @@ class PostProcessor:
     def reset(self):
         self.trajectory = []
         self.last_decision_event = None
-

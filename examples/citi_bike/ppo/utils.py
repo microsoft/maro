@@ -29,7 +29,7 @@ def batchize(batch_obs):
     acting_node_idx = np.array([e['acting_node_idx'] if 'acting_node_idx' in e else -1 for e in batch_obs]) + idx_inc
     actual_amount = np.vstack([e['actual_amount'] for e in batch_obs])
     action_edge_idx = np.hstack([batch_obs[i]['action_edge_idx']+idx_inc[i] for i in range(batch_size)])
-    
+
     x = np.vstack([e['x'] for e in batch_obs])
     time = np.vstack([e['x'] for e in batch_obs])
 
@@ -56,7 +56,7 @@ def batchize_exp(batch):
         # a.shape: [2, action_cnt]
         a = np.hstack([e['a'] for e in batch])
 
-    
+
     # state
     s = batchize([e['obs'] for e in batch])
     s_ = batchize([e['obs_'] for e in batch])
@@ -96,7 +96,7 @@ def obs_to_torch(obs, device):
     edge_idx_list = from_numpy(torch.LongTensor, device, *obs['edge_idx_list'])
     action_edge_idx = from_numpy(torch.LongTensor, device, obs['action_edge_idx'])[0]
     per_graph_size = obs['node_cnt']
-    
+
     actual_amount = torch.FloatTensor(obs['actual_amount']).to(device=device)
     return x, edge_idx_list, action_edge_idx, actual_amount, per_graph_size
 
@@ -106,7 +106,7 @@ def time_obs_to_torch(obs, device):
     edge_idx_list = from_numpy(torch.LongTensor, device, *obs['edge_idx_list'])
     action_edge_idx = from_numpy(torch.LongTensor, device, obs['action_edge_idx'])[0]
     per_graph_size = obs['node_cnt']
-    
+
     actual_amount = torch.FloatTensor(obs['actual_amount']).to(device=device)
     return x, time, edge_idx_list, action_edge_idx, actual_amount, per_graph_size
 
