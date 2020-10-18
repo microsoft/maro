@@ -25,9 +25,9 @@ class TruncatedExperienceShaper(ExperienceShaper):
             map(self._compute_reward, trajectory.get_by_key("event"), [snapshot_list]*len(trajectory)),
             dtype=np.float32
         )
-        return {agent_id: {"state": states[agent_ids == agent_id],
-                           "action": actions[agent_ids == agent_id],
-                           "reward": rewards[agent_ids == agent_id],
+        return {agent_id: {"states": states[agent_ids == agent_id],
+                           "actions": actions[agent_ids == agent_id],
+                           "rewards": rewards[agent_ids == agent_id],
                            }
                 for agent_id in set(agent_ids)}
 

@@ -4,7 +4,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 import os
-from typing import Callable
 
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
@@ -134,6 +133,11 @@ class AbsAgentManager(ABC):
         """
         return NotImplementedError
 
+    @abstractmethod
+    def train(self, *args, **kwargs):
+        """Train all agents."""
+        return NotImplementedError
+
     def update_epsilon(self, performance):
         """This method updates the exploration rates for each agent.
 
@@ -143,12 +147,6 @@ class AbsAgentManager(ABC):
         """
         if self._explorer:
             self._explorer.update(performance)
-
-    def train(self):
-        """Train all agents."""
-        self._assert_train_mode()
-        for agent in self._agent_dict.values():
-            agent.train()
 
     def load_trainable_models(self, agent_model_dict):
         """Load models from memory for each agent."""

@@ -86,7 +86,7 @@ class ActorCritic(AbsAlgorithm):
         return_est = torch.from_numpy(return_est)
         return state_values, return_est
 
-    def train(self, states: np.ndarray, actions: torch.tensor, rewards: np.ndarray):
+    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
         state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
         advantages = return_est - state_values

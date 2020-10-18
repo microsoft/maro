@@ -57,7 +57,7 @@ class AbsAgent(ABC):
         return self._algorithm.choose_action(model_state, epsilon)
 
     @abstractmethod
-    def train(self):
+    def train(self, *args, **kwargs):
         """Training logic to be implemented by the user.
 
         For example, this may include drawing samples from the experience pool and the algorithm training on

@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from torch.nn.functional import smooth_l1_loss
 from torch.optim import Adam, RMSprop
 
 from .agent import CIMAgent
@@ -37,7 +36,8 @@ class PGAgentManager(AbsAgentManager):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         model_action = self._agent_dict[agent_id].choose_action(
-            model_state, self._explorer.epsilon[agent_id] if self._explorer else None)
+            model_state, self._explorer.epsilon[agent_id] if self._explorer else None
+        )
 
         self._transition_cache = {"state": model_state,
                                   "action": model_action,
@@ -46,7 +46,9 @@ class PGAgentManager(AbsAgentManager):
                                   "event": decision_event}
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
+    def train(self, experiences_by_agent: dict):
+        for agent_id, experiences in experiences_by_agent.items():
+            self._agent_dict[agent_id].train(experiences)
+
     def store_experiences(self, experiences):
-        for agent_id, exp in experiences.items():
-            exp.update({"loss": [1e8] * len(exp[next(iter(exp))])})
-            self._agent_dict[agent_id].store_experiences(exp)
+        pass

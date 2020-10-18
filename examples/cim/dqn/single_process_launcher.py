@@ -29,29 +29,37 @@ if __name__ == "__main__":
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
-                                                  **config.experience_shaping.k_step)
+        experience_shaper = KStepExperienceShaper(
+            reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+            **config.experience_shaping.k_step
+        )
 
-    exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
-                          "split_point_dict": {"_all_": config.exploration.split_point},
-                          "with_cache": config.exploration.with_cache
-                          }
+    exploration_config = {
+        "epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
+        "split_point_dict": {"_all_": config.exploration.split_point},
+        "with_cache": config.exploration.with_cache
+    }
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
 
     # Step 3: create an agent manager.
-    agent_manager = DQNAgentManager(name="cim_learner",
-                                    mode=AgentMode.TRAIN_INFERENCE,
-                                    agent_id_list=agent_id_list,
-                                    state_shaper=state_shaper,
-                                    action_shaper=action_shaper,
-                                    experience_shaper=experience_shaper,
-                                    explorer=explorer)
+    agent_manager = DQNAgentManager(
+        name="cim_learner",
+        mode=AgentMode.TRAIN_INFERENCE,
+        agent_id_list=agent_id_list,
+        state_shaper=state_shaper,
+        action_shaper=action_shaper,
+        experience_shaper=experience_shaper,
+        explorer=explorer
+    )
 
     # Step 4: Create an actor and a learner to start the training process.
     actor = SimpleActor(env=env, inference_agents=agent_manager)
-    learner = SimpleLearner(trainable_agents=agent_manager, actor=actor,
-                            logger=Logger("single_host_cim_learner", auto_timestamp=False))
-
-    learner.train(total_episodes=config.general.total_training_episodes,
-                  model_dump_dir=os.path.join(os.getcwd(), "models"))
+    learner = SimpleLearner(
+        trainable_agents=agent_manager, actor=actor,
+        logger=Logger("single_host_cim_learner", auto_timestamp=False)
+    )
+    learner.train(
+        total_episodes=config.general.total_training_episodes,
+        model_dump_dir=os.path.join(os.getcwd(), "models")
+    )
     learner.test()
