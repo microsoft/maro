@@ -73,7 +73,9 @@ class ActorCritic(AbsAlgorithm):
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
+        self._policy_model.eval()
+        with torch.no_grad():
+            action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
@@ -175,7 +177,9 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        action_dist = self._policy_value_model(state)[1].squeeze().numpy()  # (num_actions,)
+        self._policy_value_model.eval()
+        with torch.no_grad():
+            action_dist = self._policy_value_model(state)[1].squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):

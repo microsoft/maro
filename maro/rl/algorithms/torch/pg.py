@@ -51,7 +51,9 @@ class PolicyGradient(AbsAlgorithm):
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
+        self._policy_model.eval()
+        with torch.no_grad():
+            action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def train(self, states: np.ndarray, actions: np.ndarray, returns: np.ndarray):
