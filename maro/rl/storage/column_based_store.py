@@ -93,7 +93,7 @@ class ColumnBasedStore(AbsStore):
         added_size = len(contents[next(iter(contents))])
         if self._capacity < 0:
             for key, val in contents.items():
-                if not isinstance(val, list) and not isinstance(val, np.ndarray):
+                if not isinstance(val, list):
                     self._store[key].append(val)
                 else:
                     self._store[key].extend(val)
