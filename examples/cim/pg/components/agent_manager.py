@@ -48,7 +48,7 @@ class PGAgentManager(AbsAgentManager):
 
     def train(self, experiences_by_agent: dict):
         for agent_id, experiences in experiences_by_agent.items():
-            self._agent_dict[agent_id].train(experiences)
+            self._agent_dict[agent_id].train(experiences["states"], experiences["actions"], experiences["rewards"])
 
     def store_experiences(self, experiences):
         pass

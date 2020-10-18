@@ -18,19 +18,18 @@ class TruncatedExperienceShaper(ExperienceShaper):
         self._shortage_factor = shortage_factor
 
     def __call__(self, trajectory, snapshot_list):
-        experiences_by_agent = {}
-        for i in range(len(trajectory) - 1):
-            transition = trajectory[i]
-            agent_id = transition["agent_id"]
-            if agent_id not in experiences_by_agent:
-                experiences_by_agent[agent_id] = defaultdict(list)
-            experiences = experiences_by_agent[agent_id]
-            experiences["state"].append(transition["state"])
-            experiences["action"].append(transition["action"])
-            experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-            experiences["next_state"].append(trajectory[i+1]["state"])
-
-        return experiences_by_agent
+        agent_ids = np.asarray(trajectory.get_by_key("agent_id"))
+        states = np.asarray(trajectory.get_by_key("state"))
+        actions = np.asarray(trajectory.get_by_key("action"))
+        rewards = np.fromiter(
+            map(self._compute_reward, trajectory.get_by_key("event"), [snapshot_list] * len(trajectory)),
+            dtype=np.float32
+        )
+        return {agent_id: {"states": states[agent_ids == agent_id],
+                           "actions": actions[agent_ids == agent_id],
+                           "rewards": rewards[agent_ids == agent_id],
+                           }
+                for agent_id in set(agent_ids)}
 
     def _compute_reward(self, decision_event, snapshot_list):
         start_tick = decision_event.tick + 1
