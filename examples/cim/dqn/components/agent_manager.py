@@ -50,12 +50,17 @@ class DQNAgentManager(AbsAgentManager):
                                   "event": decision_event}
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
-    def train(self):
+    def train(self, experiences_by_agent, performance=None):
         self._assert_train_mode()
+
+        # store experiences for each agent
+        for agent_id, exp in experiences_by_agent.items():
+            exp.update({"loss": [1e8] * len(exp[next(iter(exp))])})
+            self._agent_dict[agent_id].store_experiences(exp)
+
         for agent in self._agent_dict.values():
             agent.train()
 
-    def store_experiences(self, experiences):
-        for agent_id, exp in experiences.items():
-            exp.update({"loss": [1e8] * len(exp[next(iter(exp))])})
-            self._agent_dict[agent_id].store_experiences(exp)
+        # update exploration rates
+        if self._explorer is not None:
+            self._explorer.update(performance)
