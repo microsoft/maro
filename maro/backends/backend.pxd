@@ -27,7 +27,7 @@ cdef class SnapshotListAbc:
     cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list)
 
     # Record current backend state into snapshot list
-    cdef void take_snapshot(self, UINT frame_index) except *
+    cdef void take_snapshot(self, UINT tick) except *
 
     # List of available frame index in snapshot list
     cdef list get_frame_index_list(self)

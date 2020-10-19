@@ -115,15 +115,11 @@ cdef class NumpyBackend(BackendAbc):
         self._node_attr_dict = {}
         self._node_data_dict = {}
 
-
-
-        self._node_num_dict = {}
-
     cdef IDENTIFIER add_node(self, str name, UINT number) except +:
         """Add a new node type with name and number in backend"""
         cdef NodeInfo new_node = NodeInfo(name, len(self._nodes_list), number)
 
-        self._nodes_list.add(new_node)
+        self._nodes_list.append(new_node)
         self._node_attr_dict[new_node.id] = []
 
     cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, UINT slot_num) except +:
@@ -134,8 +130,8 @@ cdef class NumpyBackend(BackendAbc):
         cdef NodeInfo node = self._nodes_list[node_id]
         cdef AttrInfo new_attr = AttrInfo(attr_name, len(self._attrs_list), node.id, dtype, slot_num)
 
-        self._attrs_list.add(new_attr)
-        self._node_attr_dict[node_id].add(new_attr)
+        self._attrs_list.append(new_attr)
+        self._node_attr_dict[node_id].append(new_attr)
 
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
         """Set specified attribute value"""
@@ -335,8 +331,8 @@ cdef class NPSnapshotList(SnapshotListAbc):
     def __cinit__(self, NumpyBackend backend, int max_size):
         self._backend = backend
 
-        self._frame_index2index_dict = {}
-        self._index2frame_index_dict = {}
+        self._tick2index_dict = {}
+        self._index2tick_dict = {}
         self._node_name2id_dict = {}
         self._cur_index = 0
         self._max_size = max_size
@@ -347,18 +343,18 @@ cdef class NPSnapshotList(SnapshotListAbc):
             self._node_name2id_dict[node.name] = node.id
 
     cdef list get_frame_index_list(self):
-        return list(self._index2frame_index_dict.values())
+        return list(self._index2tick_dict.values())
 
-    cdef void take_snapshot(self, UINT frame_index) except *:
+    cdef void take_snapshot(self, UINT tick) except *:
         """Take snapshot for current backend"""
         cdef IDENTIFIER node_id
         cdef NodeInfo ni
         cdef np.ndarray data_arr
         cdef UINT target_index = 0
-        cdef UINT old_frame_index # old tick to be removed
+        cdef UINT old_tick # old tick to be removed
 
         # check if we are overriding exist snapshot, or not inserted yet
-        if frame_index not in self._frame_index2index_dict:
+        if tick not in self._tick2index_dict:
             self._cur_index += 1
 
             if self._cur_index >= self._max_size:
@@ -367,14 +363,14 @@ cdef class NPSnapshotList(SnapshotListAbc):
             target_index = self._cur_index
         else:
             # over-write old one
-            target_index = self._frame_index2index_dict[frame_index]
+            target_index = self._tick2index_dict[tick]
 
         # remove old mapping to make sure _tick2index_dict always keep correct ticks
-        if target_index in self._index2frame_index_dict:
-            old_frame_index = self._index2frame_index_dict[target_index]
+        if target_index in self._index2tick_dict:
+            old_tick = self._index2tick_dict[target_index]
 
-            if old_frame_index in self._frame_index2index_dict:
-                del self._frame_indexindex_dict[old_frame_index]
+            if old_tick in self._tick2index_dict:
+                del self._tick2index_dict[old_tick]
         
         # recording will copy data at 1st row into _cur_index row
         for node_id, data_arr in self._backend._node_data_dict.items():
@@ -384,12 +380,12 @@ cdef class NPSnapshotList(SnapshotListAbc):
             if self._is_history_enabled:
                 self._history_dict[ni.name].record(data_arr[0])
 
-        self._index2frame_index_dict[target_index] = frame_index
+        self._index2tick_dict[target_index] = tick
 
-        self._frame_index2index_dict[frame_index] = target_index
+        self._tick2index_dict[tick] = target_index
 
-    cdef query(self, IDENTIFIER node_id, list frame_indices, list node_index_list, list attr_list):
-        cdef UINT frame_index
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list):
+        cdef UINT tick
         cdef NODE_INDEX node_index
         cdef IDENTIFIER attr_id
         cdef AttrInfo attr
@@ -398,21 +394,21 @@ cdef class NPSnapshotList(SnapshotListAbc):
         # TODO: how about use a pre-allocate np array instead concat?
         cdef list retq = []
 
-        if len(frame_indices) == 0:
-            frame_indices = [t for t in self._frame_index2index_dict.keys()][-(self._max_size-1):]
+        if len(ticks) == 0:
+            ticks = [t for t in self._tick2index_dict.keys()][-(self._max_size-1):]
 
         if len(node_index_list) == 0:
             node_index_list = [i for i in range(len(self._backend._nodes_list))]
 
         # querying by tick attribute
-        for frame_index in frame_indices:
+        for tick in ticks:
             for node_index in node_index_list:
                 for attr_id in attr_list:
                     attr = self._backend._attrs_list[attr_id]
 
                     # since we have a clear tick to index mapping, do not need additional checking here
-                    if frame_index in self._frame_index2index_dict:
-                        retq.append(data_arr[attr.name][self._frame_index2index_dict[frame_index], node_index].astype("f").flatten())
+                    if tick in self._tick2index_dict:
+                        retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype("f").flatten())
                     else:
                         # padding for tick which not exist
                         retq.append(np.zeros(attr.slot_number, dtype='f'))              
@@ -440,8 +436,8 @@ cdef class NPSnapshotList(SnapshotListAbc):
     cdef void reset(self) except *:
         """Reset snapshot list"""
         self._cur_index = 0
-        self._frame_index2index_dict.clear()
-        self._index2frame_index_dict.clear()
+        self._tick2index_dict.clear()
+        self._index2tick_dict.clear()
         self._history_dict.clear()
 
         cdef IDENTIFIER node_id

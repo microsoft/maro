@@ -67,10 +67,10 @@ cdef class NPSnapshotList(SnapshotListAbc):
         dict _node_name2id_dict
 
         # frame_index -> index mapping
-        dict _frame_index2index_dict
+        dict _tick2index_dict
         
         # index -> old_frame_index mapping
-        dict _index2frame_index_dict
+        dict _index2tick_dict
 
         # current index to insert snapshot, default should be 1, never be 0
         int _cur_index

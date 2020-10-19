@@ -6,7 +6,7 @@
 
 from cpython cimport bool
 
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
 
 
 cdef class SnapshotList:
@@ -137,11 +137,11 @@ cdef class FrameBase:
 
     cpdef void reset(self) except *
 
-    cpdef void take_snapshot(self, int tick) except *
+    cpdef void take_snapshot(self, UINT tick) except *
 
     cpdef void enable_history(self, str path) except *
 
-    cdef void _setup_backend(self, bool enable_snapshot, int total_snapshot, dict options) except *
+    cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshot, dict options) except *
 
 
 cdef class FrameNode:
@@ -156,7 +156,7 @@ cdef class FrameNode:
     cdef:
         public type _node_cls
 
-        public int _number
+        public UINT _number
 
 
 cdef class NodeBase:
@@ -255,16 +255,24 @@ cdef class NodeBase:
         # index of current node in frame memory,
         # all the node/frame operation will base on this property, so user should create a mapping that
         # map the business model id/name to node index
-        int _index
+        NODE_INDEX _index
+
+        # Node id, used to access backend 
+        IDENTIFIER _id
+
+        UINT _node_number
 
         BackendAbc _backend
+
+        # Attriubtes: name -> id.
+        dict _attributes
 
         # enable dynamic attributes
         dict __dict__
 
     # set up the node for using with frame, and index
     # this is called by Frame after the instance is initialized
-    cdef void setup(self, BackendAbc backend, int index) except *
+    cdef void setup(self, BackendAbc backend, UINT index, IDENTIFIER id, UINT number, dict attr_name_id_dict) except *
 
     # internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *
@@ -284,4 +292,4 @@ cdef class NodeAttribute:
         public str _dtype
 
         # array size of tis attribute
-        public int _slot_number
+        public UINT _slot_number
