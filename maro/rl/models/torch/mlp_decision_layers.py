@@ -5,9 +5,9 @@ import torch.nn as nn
 
 
 class MLPDecisionLayers(nn.Module):
-    """Deep Q network.
+    """NN model to compute state or action values.
 
-    Choose multi-layer full connection with dropout as the basic network architecture.
+    Fully connected network with batch normalization, leaky RELU and dropout as layer components.
 
     Args:
         name (str): Network name.

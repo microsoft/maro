@@ -6,7 +6,8 @@ from torch.optim import Adam, RMSprop
 
 from .agent import CIMAgent
 from .config import config
-from maro.rl import AbsAgentManager, LearningModel, MLPDecisionLayers, ActorCritic, ActorCriticHyperParameters
+from maro.rl import AbsAgentManager, LearningModel, MLPPolicyNet, MLPDecisionLayers, ActorCritic, \
+    ActorCriticHyperParameters
 from maro.utils import set_seeds
 
 
@@ -16,12 +17,9 @@ class ACAgentManager(AbsAgentManager):
         num_actions = config.agents.algorithm.num_actions
         for agent_id in self._agent_id_list:
             policy_model = LearningModel(
-                decision_layers=MLPDecisionLayers(
-                    name=f'{agent_id}.policy',
-                    input_dim=self._state_shaper.dim,
-                    output_dim=num_actions,
-                    **config.agents.algorithm.policy_model,
-                    softmax=True
+                decision_layers=MLPPolicyNet(
+                    name=f'{agent_id}.policy', input_dim=self._state_shaper.dim, output_dim=num_actions,
+                    **config.agents.algorithm.policy_model
                 )
             )
 

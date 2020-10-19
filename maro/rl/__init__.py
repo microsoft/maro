@@ -15,7 +15,8 @@ from maro.rl.algorithms.torch.ppo import PPO, PPOWithCombinedModel, PPOHyperPara
     PPOHyperParametersWithCombinedModel
 from maro.rl.algorithms.torch.dqn import DQN, DQNHyperParams
 from maro.rl.models.torch.mlp_representation import MLPRepresentation
-from maro.rl.models.torch.decision_layers import MLPDecisionLayers
+from maro.rl.models.torch.mlp_policy_net import MLPPolicyNet
+from maro.rl.models.torch.mlp_decision_layers import MLPDecisionLayers
 from maro.rl.models.torch.learning_model import LearningModel
 from maro.rl.storage.abs_store import AbsStore
 from maro.rl.storage.column_based_store import ColumnBasedStore
@@ -52,6 +53,7 @@ __all__ = [
     "DQN",
     "DQNHyperParams",
     "MLPRepresentation",
+    "MLPPolicyNet",
     "MLPDecisionLayers",
     "LearningModel",
     "AbsStore",
