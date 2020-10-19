@@ -83,6 +83,9 @@ cdef class NodeInfo:
         self.id = id
         self.number = number
 
+    def __repr__(self):
+        return f"<NodeInfo name: {self.name}, id: {self.id}, number: {self.number}>"
+
 
 cdef class AttrInfo:
     """Internal structure to hold attribute info"""
@@ -107,6 +110,8 @@ cdef class AttrInfo:
         else:
             return (self.name, self.dtype, self.slot_number)
 
+    def __repr__(self):
+        return f"<AttrInfo name: {self.name}, id: {self.id}, node_id: {self.node_id}, slot_number: {self.slot_number}>"
 
 cdef class NumpyBackend(BackendAbc):
     def __cinit__(self):
@@ -122,6 +127,8 @@ cdef class NumpyBackend(BackendAbc):
         self._nodes_list.append(new_node)
         self._node_attr_dict[new_node.id] = []
 
+        return new_node.id
+
     cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, UINT slot_num) except +:
         """Add a new attribute for specified node with data type and slot number"""
         if node_id >= len(self._nodes_list):
@@ -132,6 +139,8 @@ cdef class NumpyBackend(BackendAbc):
 
         self._attrs_list.append(new_attr)
         self._node_attr_dict[node_id].append(new_attr)
+
+        return new_attr.id
 
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
         """Set specified attribute value"""
@@ -398,7 +407,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
             ticks = [t for t in self._tick2index_dict.keys()][-(self._max_size-1):]
 
         if len(node_index_list) == 0:
-            node_index_list = [i for i in range(len(self._backend._nodes_list))]
+            node_index_list = [i for i in range(self._backend._nodes_list[node_id].number)]
 
         # querying by tick attribute
         for tick in ticks:

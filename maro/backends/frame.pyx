@@ -472,6 +472,8 @@ cdef class SnapshotNode:
         cdef list attr_id_list = []
 
         for attr_name in attr_list:
+            if attr_name not in self._attributes:
+                raise Exception("Invalid attribute")
             attr_id_list.append(self._attributes[attr_name])
 
         return self._snapshots.query(self._node_id, ticks, node_list, attr_id_list)

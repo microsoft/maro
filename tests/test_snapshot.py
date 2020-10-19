@@ -160,7 +160,7 @@ class TestFrame(unittest.TestCase):
         frm.take_snapshot(0)
 
         # not exist attribute name
-        with self.assertRaises(ValueError) as ctx:
+        with self.assertRaises(Exception) as ctx:
             states = frm.snapshots["static"][::"a8"]
 
         # not exist node name
