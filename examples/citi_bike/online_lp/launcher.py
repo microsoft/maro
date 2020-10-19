@@ -6,7 +6,7 @@ import argparse
 import numpy as np
 import yaml
 
-from maro.data_lib import ItemTickPicker
+from maro.data_lib import BinaryReader, ItemTickPicker
 from maro.event_buffer import Event
 from maro.forecasting import OneStepFixWindowMA as Forecaster
 from maro.simulator import Env
@@ -132,8 +132,6 @@ class MaLpAgent():
             supply=supply
         )
 
-        print(transfer_list)
-
         action_list = [
             Action(from_station_idx=item[0], to_station_idx=item[1], number=min(item[2], init_inventory[item[0]]))
             for item in transfer_list
@@ -173,10 +171,20 @@ if __name__ == "__main__":
     # For debug only, used to peep the BE to get the real future data.
     if PEEP_AND_USE_REAL_DATA:
         ENV = env
-        TRIP_PICKER = env._business_engine._item_picker
+        TRIP_PICKER = BinaryReader(env.configs["trip_data"]).items_tick_picker(
+            start_time_offset=config.env.start_tick,
+            end_time_offset=(config.env.start_tick + config.env.durations),
+            time_unit="m"
+        )
 
     if config.env.seed is not None:
         env.set_seed(config.env.seed)
+
+    # Start simulation.
+    decision_event: DecisionEvent = None
+    action: Action = None
+    is_done: bool = False
+    _, decision_event, is_done = env.step(action=None)
 
     # TODO: Update the Env interface.
     num_station = len(env.agent_idx_list)
@@ -206,20 +214,16 @@ if __name__ == "__main__":
         ma_window_size=config.forecasting.ma_window_size
     )
 
-    # Start simulation.
-    decision_event: DecisionEvent = None
-    action: Action = None
-    is_done: bool = False
     pre_decision_tick: int = -1
-
-    _, decision_event, is_done = env.step(action=None)
     while not is_done:
         if decision_event.tick == pre_decision_tick:
             action = None
         else:
             action = agent.get_action_list(
                 env_tick=env.tick,
-                init_inventory=env.snapshot_list["stations"][env.frame_index : env.agent_idx_list : "bikes"],
+                init_inventory=env.snapshot_list["stations"][
+                    env.frame_index : env.agent_idx_list : "bikes"
+                ].astype(np.int32),
                 finished_events=env.get_finished_events()
             )
             pre_decision_tick = decision_event.tick

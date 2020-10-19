@@ -41,14 +41,14 @@ class LP():
         self._last_start_tick = -1
 
     def _init_variables(self, init_inventory: np.ndarray):
-        self._inventory = np.zeros((self._num_tick, self._num_station)).tolist()
-        self._safety_inventory = np.zeros((self._num_tick, self._num_station)).tolist()
-        self._fulfillment = np.zeros((self._num_tick, self._num_station)).tolist()
-        self._transfer = np.zeros((self._num_tick, self._num_station, self._num_neighbor)).tolist()
+        self._inventory = np.zeros((self._num_tick, self._num_station), dtype=np.int32).tolist()
+        self._safety_inventory = np.zeros((self._num_tick, self._num_station), dtype=np.int32).tolist()
+        self._fulfillment = np.zeros((self._num_tick, self._num_station), dtype=np.int32).tolist()
+        self._transfer = np.zeros((self._num_tick, self._num_station, self._num_neighbor), dtype=np.int32).tolist()
 
         # The intermediate variables for clearer constraints.
-        self._transfer_from = np.zeros((self._num_tick, self._num_station)).tolist()
-        self._transfer_to = np.zeros((self._num_tick, self._num_station)).tolist()
+        self._transfer_from = np.zeros((self._num_tick, self._num_station), dtype=np.int32).tolist()
+        self._transfer_to = np.zeros((self._num_tick, self._num_station), dtype=np.int32).tolist()
 
         for tick in range(self._num_tick):
             for station in range(self._num_station):
@@ -57,7 +57,9 @@ class LP():
                 )
                 self._safety_inventory[tick][station] = LpVariable(
                     name=f"T{tick}_S{station}_SafetyInv",
-                    lowBound=0, upBound=(self._safety_inventory_limit * self._station_capacity[station]), cat="Integer"
+                    lowBound=0,
+                    upBound=round(self._safety_inventory_limit * self._station_capacity[station]),
+                    cat="Integer"
                 )
                 self._fulfillment[tick][station] = LpVariable(
                     name=f"T{tick}_S{station}_Fulfillment", lowBound=0, cat="Integer"
@@ -147,37 +149,7 @@ class LP():
         self._add_constraints(problem=problem, demand=demand, supply=supply)
         self._set_objective(problem=problem)
         problem.solve(GLPK(msg=0))
-        print(f"Problem {problem.name}: {LpStatus[problem.status]}")
-
-        if LpStatus[problem.status] == 'Infeasible':
-            problem.writeLP(f"{problem.name}.lp")
-            for key, value in problem.constraints.items():
-                if value.slack != 0:
-                    print(
-                        f"key: {key}, "
-                        f"value: {value}, "
-                        f"slack: {value.slack}"
-                    )
-
-            def num(var):
-                if isinstance(var, int) or isinstance(var, np.float32):
-                    return (" ", var)
-                else:
-                    return ("*", var.varValue)
-
-            for tick in range(self._num_tick):
-                for station in range(self._num_station):
-                    print(
-                        f"T{tick}_S{station} \tD: {demand[tick, station]} \tS: {supply[tick, station]} \t"
-                        f"Inv: {num(self._inventory[tick][station])} \tSInv: {num(self._safety_inventory[tick][station])} \t"
-                        f"Fulfillment: {num(self._fulfillment[tick][station])} \t"
-                        f"TF: {num(self._transfer_from[tick][station])} \tTT: {num(self._transfer_to[tick][station])} \t"
-                        f"TT: {[num(self._transfer[tick][station][idx]) for idx in range(self._num_neighbor)]}"
-                    )
-
-            for station in range(self._num_station):
-                print(f"{station}: {self._station_neighbor_list[station][:self._num_neighbor]}")
-            exit(0)
+        # print(f"Problem {problem.name}: {LpStatus[problem.status]}")
 
     def get_transfer_list(
         self, env_tick: int, init_inventory: np.ndarray, demand: np.ndarray, supply: np.ndarray
