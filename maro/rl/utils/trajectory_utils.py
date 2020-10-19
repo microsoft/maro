@@ -20,8 +20,9 @@ def get_k_step_returns(rewards: np.ndarray, discount: float, k: int = -1, values
     Returns:
         An ndarray containing the k-step returns for each time step.
     """
-    assert values is None or len(rewards) == len(values), "rewards and values should have the same length"
     if values is not None:
+        assert len(rewards) == len(values), "rewards and values should have the same length"
+        assert len(values.shape) == 1, "values should be a one-dimensional array"
         rewards[-1] = values[-1]
     if k < 0:
         k = len(rewards) - 1

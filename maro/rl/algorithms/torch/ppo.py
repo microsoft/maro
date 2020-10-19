@@ -77,7 +77,7 @@ class PPO(AbsAlgorithm):
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, states: torch.tensor, rewards: np.ndarray):
-        state_values = self._value_model(states).detach()
+        state_values = self._value_model(states).detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             rewards, self._hyper_params.reward_decay, self._hyper_params.lamb,
@@ -193,7 +193,7 @@ class PPOWithCombinedModel(AbsAlgorithm):
         return action_index, np.log(action_dist[action_index])
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._policy_value_model(state_sequence)[0].detach()
+        state_values = self._policy_value_model(state_sequence)[0].detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,

@@ -79,7 +79,7 @@ class ActorCritic(AbsAlgorithm):
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._value_model(state_sequence).detach()
+        state_values = self._value_model(state_sequence).detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
@@ -183,7 +183,7 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._policy_value_model(state_sequence)[0].detach()
+        state_values = self._policy_value_model(state_sequence)[0].detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
