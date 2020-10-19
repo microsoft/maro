@@ -42,7 +42,7 @@ class MLPPolicyNet(nn.Module):
             self._last_layer.bias.data.uniform_(-init_w, init_w)
 
         # TODO: dim=1 for batch forward; dim=0 if only one
-        self._soft_max = nn.Softmax()
+        self._soft_max = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self._hidden_layer(x)
