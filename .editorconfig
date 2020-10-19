@@ -1,0 +1,39 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+
+# Source code or helper scripts
+[*.{py,pyx,pyd,sh}]
+indent_size = 4
+
+# Windows helper scripts
+[*.bat]
+indent_style = tab
+end_of_line = crlf
+
+# Config file
+[*.yml]
+indent_size = 2
+
+# Makefile
+[Makefile]
+indent_style = tab
+
+# Placeholder files
+[*.gitkeep]
+insert_final_newline = unset
+
+# Others
+[{*.csv, .gitignore, .dockerignore, *.md, *.rst, *.in, *.txt, *.ipynb, *.ico, *.svg, LICENSE, *.toml, *.df, *.ini}]
+end_of_line = unset
+charset = unset
+trim_trailing_whitespace = unset
+insert_final_newline = unset
+indent_style = unset
+indent_size = unset
