@@ -14,16 +14,17 @@ class PGAgentManager(AbsAgentManager):
         set_seeds(config.agents.seed)
         num_actions = config.agents.algorithm.num_actions
         for agent_id in self._agent_id_list:
-            policy_model = LearningModel(decision_layers=MLPDecisionLayers(name=f'{agent_id}.policy',
-                                                                           input_dim=self._state_shaper.dim,
-                                                                           output_dim=num_actions,
-                                                                           **config.agents.algorithm.policy_model,
-                                                                           softmax=True))
+            policy_model = LearningModel(
+                decision_layers=MLPDecisionLayers(
+                    name=f'{agent_id}.policy', input_dim=self._state_shaper.dim, output_dim=num_actions,
+                    **config.agents.algorithm.policy_model, softmax=True
+                )
+            )
 
             algorithm = PolicyGradient(
                 policy_model=policy_model,
                 optimizer_cls=Adam,
-                optimizer_params=config.agents.algorithm.policy_optimizer,
+                optimizer_params=config.agents.algorithm.optimizer,
                 hyper_params=PolicyGradientHyperParameters(
                     num_actions=num_actions,
                     **config.agents.algorithm.hyper_parameters,
