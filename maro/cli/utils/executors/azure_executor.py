@@ -37,6 +37,19 @@ class AzureExecutor:
         command = f"az group create --name {resource_group} --location {location}"
         _ = SubProcess.run(command)
 
+    @staticmethod
+    def delete_resource_group(resource_group: str):
+        """Delete a resource group without prompting.
+
+        Args:
+            resource_group: Name of resource group.
+
+        Returns:
+            None.
+        """
+        command = f"az group delete --name {resource_group} -y"
+        _ = SubProcess.run(command)
+
     # Resource related
 
     @staticmethod
@@ -182,6 +195,20 @@ class AzureExecutor:
         sas_str = SubProcess.run(command=command).strip('\n').replace('"', '')
         logger.debug(sas_str)
         return sas_str
+
+    @staticmethod
+    def get_connection_string(storage_account_name: str):
+        """Get the connection string for a storage account.
+
+        Args:
+            storage_account_name: The storage account name.
+
+        Returns:
+            str: Connection string.
+        """
+        command = f"az storage account show-connection-string --name {storage_account_name}"
+        return_str = SubProcess.run(command=command)
+        return json.loads(return_str)["connectionString"]
 
     # Utils
 
