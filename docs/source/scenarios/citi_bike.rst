@@ -516,7 +516,10 @@ Data Preparation
 ^^^^^^^^^^^^^^^^
 
 To start the simulation of Citi Bike scenario, users need to first generate the
-related data. Below is the introduction to the related commands:
+related data. (If the simulator did not detect the related data, it will automatically
+try to generate the related data in a temp folder, and remove the temp data after the
+experiment. So we encourage the users to generate the related data manually first.)
+Below is the introduction to the related commands:
 
 Environment List Command
 ~~~~~~~~~~~~~~~~~~~~~~~~
