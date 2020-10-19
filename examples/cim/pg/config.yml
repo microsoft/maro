@@ -32,7 +32,6 @@ agents:
         - 256
         - 128
         - 64
-      dropout_p: 0.0
     optimizer:
       lr: 0.001
     hyper_parameters:

@@ -32,7 +32,6 @@ agents:
         - 256
         - 128
         - 64
-      dropout_p: 0.0
     value_model:
       hidden_dims:
         - 256
