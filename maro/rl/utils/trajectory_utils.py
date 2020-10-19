@@ -28,7 +28,7 @@ def get_k_step_returns(rewards: np.ndarray, discount: float, k: int = -1, values
         k = len(rewards) - 1
     return reduce(
         lambda x, y: x * discount + y,
-        [np.pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards))-1, -1, -1)],
+        [np.pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards)) - 1, -1, -1)],
         np.pad(values[k:], (0, k)) if values is not None else np.zeros(len(rewards))
     )
 
