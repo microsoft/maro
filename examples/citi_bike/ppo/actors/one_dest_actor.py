@@ -139,14 +139,14 @@ if __name__ == "__main__":
     # evaluating_topo = ['c1', 'c2', 'c3', 'c4', 'region']
     evaluating_topo = ['c1']
     sample_cnt = 1
-    durations = 28800
+    durations = 14400
 
     for topo in evaluating_topo:
 
         print("Simulating: ", topo)
         tot_shortage, tot_fulfillment = 0, 0
         for _ in range(sample_cnt):
-            actor = ZeroActionActor("citibike", topo, 1440, durations, 80)
+            actor = ZeroActionActor("citi_bike", topo, 0, durations, 20)
             s, f = actor.sample()
             tot_shortage += s
             tot_fulfillment += f

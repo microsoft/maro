@@ -5,7 +5,7 @@ env:
   start_tick: 0
   durations: 14400 # stop until the data steam end
   snapshot_resolution: 20
-  transfer_cost: 0.05
+  transfer_cost: 0.0
 train:
   enable: true
   rollout_cnt: 3000

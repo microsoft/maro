@@ -27,8 +27,8 @@ class CitiBikeLearner:
             config = convert_dottable(raw_config)
 
         exp_name = config.experiment_name
-        exp_name = "%s_%s" % (datetime.now().strftime("%H_%M_%S"), exp_name)
-        exp_name_par = f"{datetime.now().strftime("%Y %m % d")}"
+        exp_name = '%s_%s'%(datetime.now().strftime('%H_%M_%S'), exp_name)
+        exp_name_par = f"{datetime.now().strftime('%Y%m%d')}"
         log_folder = os.path.join(os.getcwd(), "log", exp_name_par, exp_name)
 
         tensorboard_folder_train = os.path.join(os.getcwd(), "log", "train")
@@ -52,10 +52,8 @@ class CitiBikeLearner:
         if not os.path.exists(self.model_save_folder):
             os.makedirs(self.model_save_folder)
 
-        # self.rollouter = CitiBikeVecActor(CitibikeStateShaping, log_folder, batch_num=6)
         self.rollouter = CitiBikeActor(config.env, CitibikeStateShaping, PostProcessor, log_folder,
-                                       ts_path=os.path.join(tensorboard_folder_reward,
-                                                            "%s_%s" % (exp_name_par, exp_name)))
+                                       ts_path=os.path.join(tensorboard_folder_reward, f"{exp_name_par}_{exp_name}"))
         # self.rollouter = ZeroActionActor(scenario=config.env.scenario, topology=config.env.topology,
         #                                  start_tick=config.env.start_tick, durations=config.env.durations,
         #                                  snapshot_resolution=config.env.snapshot_resolution)
@@ -102,7 +100,7 @@ class CitiBikeLearner:
                 self._save_code()
 
             self._logger.debug(f"rollout cnt: {i}")
-            is_save_log = i % stats_save_freq == stats_save_freq-1
+            is_save_log = i % stats_save_freq == stats_save_freq - 1
             exp_list, stats = self.rollouter.sample(self.algorithm, save_log=is_save_log)
 
             if is_save_log:
@@ -119,11 +117,11 @@ class CitiBikeLearner:
             if i % flush_cnt == flush_cnt -1:
                 exp_pool = []
             if i % 500 == 499:
-                pth = os.path.join(self.log_folder, "nn_%d.pickle" % i)
+                pth = os.path.join(self.log_folder, f"nn_{i}.pickle")
                 self.algorithm.save(pth)
 
     def save_log(self, itr, stats):
-        with open(os.path.join(self.log_folder, "stats_%d" % itr), "wb") as fp:
+        with open(os.path.join(self.log_folder, f"stats_{itr}"), "wb") as fp:
             pickle.dump(stats, fp)
 
 

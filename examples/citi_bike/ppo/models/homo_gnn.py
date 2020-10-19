@@ -546,7 +546,7 @@ class LinearBackend(nn.Module):
                                  nn.Linear(self.temporal_size, out_dim), nn.ReLU())
 
     def forward(self, x, edge_idx_list):
-        # x.shape batch_cnt*sequence_len*node_dim
+        # x.shape batch_cnt * sequence_len * node_dim
         cur_x = x[:, 0]
         output = self.fwd(cur_x)
         return output

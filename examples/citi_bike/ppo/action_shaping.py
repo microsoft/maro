@@ -27,7 +27,7 @@ class ActionShaping:
             return actions
 
     def _create_action(self, decision_type, act_idx, target_idx, action):
-        act = action/self.__class__.action_scaler
+        act = action / self.__class__.action_scaler
         if decision_type == DecisionType.Supply:
             action = Action(act_idx, target_idx, int(abs(act)))
         else:

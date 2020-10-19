@@ -65,7 +65,7 @@ class CitibikeStateShaping:
                 tmp = self._env.snapshot_list['stations'][
                     cur_frame_index: neighbors: ['capacity', 'bikes']
                 ]
-                neighbor_docks = tmp[:len(neighbors)] - tmp[len(neighbors):]
+                neighbor_docks = tmp[0::2] - tmp[1::2]
                 # get the legal amount each neighbor could receive
                 legal_amount = np.min(np.vstack([neighbor_docks, station_bikes]), axis=0)
                 composed_amount = self.action_scaler*np.hstack([legal_amount.reshape(-1, 1),

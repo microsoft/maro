@@ -50,7 +50,6 @@ class AttGnnPPO:
         self.mse_loss = nn.MSELoss()
         self.K_epochs = 4
         self.eps_clip = 0.2
-        self.amt_bucket = 30
 
     def batchize_exp(self, batch):
         if (not batch):
@@ -93,8 +92,8 @@ class AttGnnPPO:
             x, edge_idx_list, action_edge_idx, actual_amount, per_graph_size = obs_to_torch(obs, self.device)
             emb = self.old_temporal_gnn(x, edge_idx_list)
             choice, cnt, att = self.old_policy(emb, action_edge_idx, actual_amount)
-            # print("att_dist",att)
-            return choice.cpu().numpy(), cnt.cpu().numpy(), {"choice_att": att, "att_prob": torch.log(att[0, choice]).cpu().numpy()}
+            return choice.cpu().numpy(), cnt.cpu().numpy(),\
+                   {"choice_att": att, "att_prob": torch.log(att[0, choice]).cpu().numpy()}
 
     def grad(self, batch):
         global epoch_count
@@ -140,15 +139,14 @@ class AttGnnPPO:
             # Finding Surrogate Loss:
             rewards = rewards.float()
             # state_values = state_values.reshape((-1,self.batch_size))
-            advantages = rewards + gamma*state_values_ - state_values.detach()
+            advantages = rewards + gamma * state_values_ - state_values.detach()
             advantages = advantages.sum(-1)
             surr1 = ratios * advantages
-            surr2 = torch.clamp(ratios, 1-self.eps_clip, 1+self.eps_clip) * advantages
-            ploss = -torch.min(surr1, surr2)
-            mloss = self.mse_loss(state_values, rewards+gamma*state_values_)
-            loss = ploss + mloss - 0.01*att_entropy
+            surr2 = torch.clamp(ratios, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
+            ploss = - torch.min(surr1, surr2)
+            mloss = self.mse_loss(state_values, rewards + gamma * state_values_)
+            loss = ploss + mloss - 0.01 * att_entropy
 
-            print("ratios", ratios.mean())
             print("advantage", advantages.mean())
             print("mse loss", mloss.mean())
             self.writer.add_scalar("policy loss\\", ploss.mean(), itr_count)
@@ -163,7 +161,6 @@ class AttGnnPPO:
             self.policy_opt.step()
 
             loss_ret.append(loss.mean())
-
             itr_count += 1
 
         self.old_policy.load_state_dict(self.policy.state_dict())
