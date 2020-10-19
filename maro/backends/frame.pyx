@@ -2,7 +2,8 @@
 # Licensed under the MIT license.
 
 #cython: language_level=3
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+#distutils: language = c++
+#distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 
 cimport cython
 from cpython cimport bool

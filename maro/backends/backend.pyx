@@ -2,8 +2,10 @@
 # Licensed under the MIT license.
 
 #cython: language_level=3
+#distutils: language = c++
 
 from cpython cimport bool
+
 
 cdef class SnapshotListAbc:
     cdef query(self, str node_name, list ticks, list node_index_list, list attr_name_list):
