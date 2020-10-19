@@ -4,7 +4,6 @@
 import os
 from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import List, Union
 
 from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
@@ -21,9 +20,9 @@ class AbsBusinessEngine(ABC):
     The core part of business engine is the step and post_step methods:
 
     1. step: Will be called one time at each tick.
-    2. post_step: Will be called at the end of each tick after all the events being processed,
-       simulator use the return value of this method (bool), to decide if it should stop simulation.
-       This is also a good place to check business final state of current tick if you follow event-driven pattern.
+    2. post_step: Will be called at the end of each tick after all the events being processed, \
+    simulator use the return value of this method (bool), to decide if it should stop simulation. \
+    This is also a good place to check business final state of current tick if you follow event-driven pattern.
 
     Args:
         event_buffer (EventBuffer): Used to process events.
@@ -35,9 +34,11 @@ class AbsBusinessEngine(ABC):
         addition_options (dict): Additional options for this business engine from outside.
     """
 
-    def __init__(self, scenario_name: str, event_buffer: EventBuffer, topology: str,
-                 start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
-                 additional_options: dict = None):
+    def __init__(
+        self, scenario_name: str, event_buffer: EventBuffer, topology: str,
+        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
+        additional_options: dict = None
+    ):
         self._scenario_name = scenario_name
         self._topology = topology
         self._event_buffer = event_buffer
@@ -137,17 +138,6 @@ class AbsBusinessEngine(ABC):
         """dict: Configurations of this business engine."""
         pass
 
-    def rewards(self, actions: Union[list, object]) -> Union[float, List[float]]:
-        """Calculate rewards based on actions, the value is based on scenario.
-
-        Args:
-            actions(list): Action(s) from agent.
-
-        Returns:
-            Union[float, List[float]]: Reward(s) based on actions.
-        """
-        return []
-
     @abstractmethod
     def reset(self):
         """Reset states business engine."""
@@ -171,6 +161,17 @@ class AbsBusinessEngine(ABC):
 
         Returns:
             dict: Key is node index, value is decided by scenario, usually is name or id.
+        """
+        return {}
+
+    def get_event_payload_detail(self) -> dict:
+        """Get payload keys for all kinds of event.
+
+        For the performance of the simulator, some event payload has no corresponding Python object.
+        This mapping is provided for your convenience in such case.
+
+        Returns:
+            dict: Key is the event type in string format, value is a list of available keys.
         """
         return {}
 

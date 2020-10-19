@@ -41,6 +41,7 @@ extensions = ["recommonmark",
               "sphinx.ext.napoleon",
               "sphinx.ext.viewcode",
               "sphinx_markdown_tables",
+              "sphinx_copybutton",
               ]
 
 napoleon_google_docstring = True

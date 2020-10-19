@@ -5,6 +5,7 @@ What is MARO?
     :width: 666px
     :align: center
     :alt: MARO
+    :target: https://github.com/microsoft/maro
 
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization. It can be
@@ -89,6 +90,14 @@ Contents
 
     scenarios/container_inventory_management.rst
     scenarios/citi_bike.rst
+
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Examples
+
+    examples/multi_agent_dqn_cim.rst
+    examples/greedy_policy_citi_bike.rst
 
 .. toctree::
     :maxdepth: 2
