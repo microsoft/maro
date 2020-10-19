@@ -8,7 +8,7 @@ from cpython cimport bool
 
 
 cdef class SnapshotListAbc:
-    cdef object[object, ndim=1] query(self, str node_name, list ticks, list node_index_list, list attr_list):
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list):
         pass
 
     cdef void take_snapshot(self, UINT frame_index) except *:
@@ -47,7 +47,7 @@ cdef class BackendAbc:
     cdef void reset(self) except *:
         pass
 
-    cdef void setup(self, bool enable_snapshot, int total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, UINT total_snapshot, dict options) except *:
         pass
 
     cdef dict get_node_info(self):

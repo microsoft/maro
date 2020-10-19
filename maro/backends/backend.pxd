@@ -6,25 +6,25 @@
 
 from cpython cimport bool
 
-from libc.stdint cimport int32_t, int64_t, int16_t, int8_t
+from libc.stdint cimport int32_t, int64_t, int16_t, int8_t, uint32_t, uint64_t
 
 # common types
 
 ctypedef unsigned int UINT
-ctypedef unsigned int64_t ULONG
+ctypedef uint64_t ULONG
 
 # ID of node and attribute
-ctypedef unsigned int64_t IDENTIFIER
+ctypedef uint64_t IDENTIFIER
 # Index type of node
-ctypedef unsigned int64_t NODE_INDEX
+ctypedef uint64_t NODE_INDEX
 # Index type of slot
-ctypedef unsigned int64_t SLOT_INDEX
+ctypedef uint64_t SLOT_INDEX
 
 
 # Base of all snapshot accessing implementation
 cdef class SnapshotListAbc:
     # Query states from snapshot list
-    cdef object[object, ndim=1] query(self, str node_name, list ticks, list node_index_list, list attr_list)
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list)
 
     # Record current backend state into snapshot list
     cdef void take_snapshot(self, UINT frame_index) except *

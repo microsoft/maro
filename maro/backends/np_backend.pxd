@@ -9,23 +9,22 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+
 
 cdef class NumpyBackend(BackendAbc):
     """Backend using numpy array to hold data, this backend only support fixed size array for now"""
     cdef:
-        # used to store real data, key is node name, value is np.ndarray
-        dict _node_data_dict
-
-        # node name -> node number in frame
-        dict _node_num_dict
+        # Used to store node information, index is the id (IDENTIFIER), value if NodeInfo
+        list _nodes_list
+        list _attrs_list
 
         # used to cache attribute by node name
-        # node name -> list of (name, type, slot), used to construct numpy structure array
-        dict _node_attr_dict        
+        # node id -> list of attribute id, used to construct numpy structure array
+        dict _node_attr_dict
 
-        # quick look up table to query with (node_name, attr_name) -> AttrInfo
-        dict _node_attr_lut
+        # Used to store real data, key is node id, value is np.ndarray
+        dict _node_data_dict
 
         bool _is_snapshot_enabled
 
@@ -65,11 +64,13 @@ cdef class NPSnapshotList(SnapshotListAbc):
     cdef:
         NumpyBackend _backend
 
-        # tick -> index mapping
-        dict _tick2index_dict
+        dict _node_name2id_dict
+
+        # frame_index -> index mapping
+        dict _frame_index2index_dict
         
-        # index -> tick mapping
-        dict _index2tick_dict
+        # index -> old_frame_index mapping
+        dict _index2frame_index_dict
 
         # current index to insert snapshot, default should be 1, never be 0
         int _cur_index

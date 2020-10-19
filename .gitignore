@@ -4,6 +4,7 @@
 *.log
 *.csv
 *.c
+*.cpp
 *.DS_Store
 .idea/
 .vscode/
