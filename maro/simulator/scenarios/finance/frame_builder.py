@@ -3,10 +3,11 @@
 
 from maro.backends.frame import FrameNode, FrameBase
 
+from .stock.stock import Stock
 from maro.simulator.scenarios.finance.account import Account
 
 
-def build_frame(snapshots_num: int):
+def build_frame(stock_num: int, snapshots_num: int):
     """Function to build citi_bike Frame.
 
     Args:
@@ -17,10 +18,11 @@ def build_frame(snapshots_num: int):
         CitibikeFrame: Frame instance for citi-bike scenario.
     """
 
-    class AccountFrame(FrameBase):
+    class StockFrame(FrameBase):
+        stocks = FrameNode(Stock, stock_num)
         account = FrameNode(Account, 1)
 
         def __init__(self):
             super().__init__(enable_snapshot=True, total_snapshot=snapshots_num)
 
-    return AccountFrame()
+    return StockFrame()
