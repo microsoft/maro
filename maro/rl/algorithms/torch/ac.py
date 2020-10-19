@@ -103,7 +103,7 @@ class ActorCritic(AbsAlgorithm):
 
         # value model training
         for _ in range(self._hyper_params.value_train_iters):
-            value_loss = self._value_loss_func(self._value_model(states), return_est)
+            value_loss = self._value_loss_func(self._value_model(states).squeeze(), return_est)
             self._value_optimizer.zero_grad()
             value_loss.backward()
             self._value_optimizer.step()
@@ -202,7 +202,7 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
             state_values, action_distribution = self._policy_value_model(states)
             action_prob = action_distribution.gather(1, actions.unsqueeze(1)).squeeze()   # (N,)
             policy_loss = -(torch.log(action_prob) * advantages).mean()
-            value_loss = self._value_loss_func(state_values, return_est)
+            value_loss = self._value_loss_func(state_values.squeeze(), return_est)
             loss = policy_loss + value_loss
             self._optimizer.zero_grad()
             loss.backward()
