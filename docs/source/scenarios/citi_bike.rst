@@ -515,11 +515,17 @@ Quick Start
 Data Preparation
 ^^^^^^^^^^^^^^^^
 
-To start the simulation of Citi Bike scenario, users need to first generate the
-related data. (If the simulator did not detect the related data, it will automatically
-try to generate the related data in a temp folder, and remove the temp data after the
-experiment. So we encourage the users to generate the related data manually first.)
-Below is the introduction to the related commands:
+To start the simulation of Citi Bike scenario, users have two options for the data preparation:
+
+* If the topology data is not generated in advance, the system will automatically download and
+  process the relevant data when the environment is created. The data will be stored in a
+  temporary folder and be automatically deleted after the experiment.
+
+* Before creating the environment, users can also manually download and generate relevant data.
+  This approach will save you a lot of time if you need to conduct several experiments on the
+  same topology. Therefore, we encourage you to generate the relevant data manually first.
+
+The following is the introduction to related commands:
 
 Environment List Command
 ~~~~~~~~~~~~~~~~~~~~~~~~
