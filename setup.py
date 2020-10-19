@@ -34,7 +34,7 @@ include_dirs = []
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
-        sources=[f"{BASE_SRC_PATH}/backend.c"])
+        sources=[f"{BASE_SRC_PATH}/backend.cpp"])
 )
 
 if FRAME_BACKEND == "NUMPY":
@@ -45,8 +45,7 @@ if FRAME_BACKEND == "NUMPY":
     extensions.append(
         Extension(
             f"{BASE_MODULE_NAME}.np_backend",
-            sources=[f"{BASE_SRC_PATH}/np_backend.c"],
-            define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+            sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
             include_dirs=include_dirs)
     )
 else:
@@ -55,15 +54,14 @@ else:
     extensions.append(
         Extension(
             f"{BASE_MODULE_NAME}.raw_backend",
-            sources=[f"{BASE_SRC_PATH}/raw_backend.c"])
+            sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"])
     )
 
 # frame
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.frame",
-        sources=[f"{BASE_SRC_PATH}/frame.c"],
-        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+        sources=[f"{BASE_SRC_PATH}/frame.cpp"],
         include_dirs=include_dirs)
 )
 
