@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # greedy nature of the DQN algorithm.
     state_shaper = CIMStateShaper(**config.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
+    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
 
     # Step 3: create an agent manager.
     agent_manager = PGAgentManager(

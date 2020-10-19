@@ -20,19 +20,10 @@ state_shaping:
     - "full"
     - "remaining_space"
 experience_shaping:
-  type: "truncated"
-  k_step:
-    reward_decay: 0.9
-    steps: 5
-  truncated:
-    time_window: 100
-    fulfillment_factor: 1.0
-    shortage_factor: 1.0
-    time_decay_factor: 0.97
-exploration:
-  epsilon_range: [0.0, 0.4]
-  split_point: [0.5, 0.8]
-  with_cache: true
+  time_window: 100
+  fulfillment_factor: 1.0
+  shortage_factor: 1.0
+  time_decay_factor: 0.97
 agents:
   algorithm:
     num_actions: 21
@@ -46,15 +37,9 @@ agents:
       lr: 0.001
     hyper_parameters:
       reward_decay: .0
-  experience_pool:
-    capacity: -1
-  training_loop_parameters:
-    min_experiences_to_train: 1024
-    num_batches: 10  # number of times the algorithm's step() method is called
-    batch_size: 128
   seed: 1024   # for reproducibility
 distributed:
-  group_name: "dqn_distributed_test"
+  group_name: "pg_distributed_test"
   actor:
     peer: {"actor": 1}
   learner:

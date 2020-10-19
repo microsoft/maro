@@ -18,7 +18,7 @@ if __name__ == "__main__":
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
+    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
     agent_manager = DQNAgentManager(
         name="cim_remote_actor",
         agent_id_list=agent_id_list,
