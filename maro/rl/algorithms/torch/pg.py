@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.utils.trajectory_utils import get_k_step_returns
 
 
 class PolicyGradientHyperParameters:

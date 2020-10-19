@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable
-
 from .abs_learner import AbsLearner
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.rl.actor.simple_actor import SimpleActor

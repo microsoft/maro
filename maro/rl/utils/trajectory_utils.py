@@ -26,9 +26,11 @@ def get_k_step_returns(rewards: np.ndarray, discount: float, k: int = -1, values
         rewards[-1] = values[-1]
     if k < 0:
         k = len(rewards) - 1
-    return reduce(lambda x, y: x*discount + y,
-                  [np.pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards))-1, -1, -1)],
-                  np.pad(values[k:], (0, k)) if values is not None else np.zeros(len(rewards)))
+    return reduce(
+        lambda x, y: x * discount + y,
+        [np.pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards))-1, -1, -1)],
+        np.pad(values[k:], (0, k)) if values is not None else np.zeros(len(rewards))
+    )
 
 
 def get_lambda_returns(rewards: np.ndarray, discount: float, lam: float, k: int = -1, values: np.ndarray = None):
@@ -58,9 +60,10 @@ def get_lambda_returns(rewards: np.ndarray, discount: float, lam: float, k: int 
         return get_k_step_returns(rewards, discount, k=k, values=values)
 
     k = min(k, len(rewards) - 1)
-    pre_truncate = reduce(lambda x, y: x*lam + y,
-                          [get_k_step_returns(rewards, discount, k=k, values=values)
-                           for k in range(k-1, 0, -1)])
+    pre_truncate = reduce(
+        lambda x, y: x * lam + y,
+        [get_k_step_returns(rewards, discount, k=k, values=values) for k in range(k - 1, 0, -1)]
+    )
 
-    post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lam**(k-1)
+    post_truncate = get_k_step_returns(rewards, discount, k=k, values=values) * lam**(k - 1)
     return (1 - lam) * pre_truncate + post_truncate

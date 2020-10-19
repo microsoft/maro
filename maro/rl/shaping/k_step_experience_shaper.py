@@ -41,24 +41,28 @@ class KStepExperienceShaper(ExperienceShaper):
         actions = np.asarray(trajectory.get_by_key["action"])
         reward_array = np.fromiter(map(self._reward_func, trajectory.get_by_key("metrics")), dtype=np.float32)
         reward_sums = get_k_step_returns(reward_array, self._reward_decay, k=self._steps)
-        discounts = np.array([self._reward_decay ** min(self._steps, length-i-1) for i in range(length-1)])
-        next_states = np.pad(states[self._steps:], (0, length-self._steps-1), mode="edge")
-        next_actions = np.pad(actions[self._steps:], (0, length-self._steps-1), mode="edge")
+        discounts = np.array([self._reward_decay ** min(self._steps, length - i - 1) for i in range(length - 1)])
+        next_states = np.pad(states[self._steps:], (0, length - self._steps - 1), mode="edge")
+        next_actions = np.pad(actions[self._steps:], (0, length - self._steps - 1), mode="edge")
 
         states, actions = states[:-1], actions[:-1]
 
         if self._is_per_agent:
-            return {agent_id: {KStepExperienceKeys.STATE.value: states[agent_ids == agent_id],
-                               KStepExperienceKeys.ACTION.value: actions[agent_ids == agent_id],
-                               KStepExperienceKeys.REWARD.value: reward_sums[agent_ids == agent_id],
-                               KStepExperienceKeys.NEXT_STATE.value: next_states[agent_ids == agent_id],
-                               KStepExperienceKeys.NEXT_ACTION.value: next_actions[agent_ids == agent_id],
-                               KStepExperienceKeys.DISCOUNT.value: discounts[agent_ids == agent_id]}
-                    for agent_id in set(agent_ids)}
+            return {agent_id: {
+                KStepExperienceKeys.STATE.value: states[agent_ids == agent_id],
+                KStepExperienceKeys.ACTION.value: actions[agent_ids == agent_id],
+                KStepExperienceKeys.REWARD.value: reward_sums[agent_ids == agent_id],
+                KStepExperienceKeys.NEXT_STATE.value: next_states[agent_ids == agent_id],
+                KStepExperienceKeys.NEXT_ACTION.value: next_actions[agent_ids == agent_id],
+                KStepExperienceKeys.DISCOUNT.value: discounts[agent_ids == agent_id]}
+                for agent_id in set(agent_ids)
+            }
         else:
-            return {KStepExperienceKeys.STATE.value: states,
-                    KStepExperienceKeys.ACTION.value: actions,
-                    KStepExperienceKeys.REWARD.value: reward_sums,
-                    KStepExperienceKeys.NEXT_STATE.value: next_states,
-                    KStepExperienceKeys.NEXT_ACTION.value: next_actions,
-                    KStepExperienceKeys.DISCOUNT.value: discounts}
+            return {
+                KStepExperienceKeys.STATE.value: states,
+                KStepExperienceKeys.ACTION.value: actions,
+                KStepExperienceKeys.REWARD.value: reward_sums,
+                KStepExperienceKeys.NEXT_STATE.value: next_states,
+                KStepExperienceKeys.NEXT_ACTION.value: next_actions,
+                KStepExperienceKeys.DISCOUNT.value: discounts
+            }

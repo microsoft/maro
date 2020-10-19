@@ -42,14 +42,10 @@ class AbsAgentManager(ABC):
             executable action. Cannot be None under Inference and TrainInference modes.
         explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
     """
-    def __init__(self,
-                 name: str,
-                 mode: AgentMode,
-                 agent_id_list: [str],
-                 state_shaper: StateShaper = None,
-                 action_shaper: ActionShaper = None,
-                 experience_shaper: ExperienceShaper = None,
-                 explorer: AbsExplorer = None):
+    def __init__(
+        self, name: str, mode: AgentMode, agent_id_list: [str], state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None, experience_shaper: ExperienceShaper = None, explorer: AbsExplorer = None
+    ):
         self._name = name
         if mode not in AgentMode:
             raise UnsupportedAgentModeError(msg='mode must be "train", "inference" or "train_inference"')

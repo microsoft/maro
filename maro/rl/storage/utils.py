@@ -3,7 +3,6 @@
 
 from enum import Enum
 from functools import wraps
-from typing import Sequence
 
 import numpy as np
 

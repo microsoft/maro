@@ -99,8 +99,8 @@ class PPO(AbsAlgorithm):
         for _ in range(self._hyper_params.policy_train_iters):
             action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()  # (N, 1)
             ratio = torch.exp(torch.log(action_prob) - log_action_prob_old)
-            clipped_ratio = torch.clamp(ratio, 1-self._hyper_params.clip_ratio, 1+self._hyper_params.clip_ratio)
-            loss = -(torch.min(ratio*advantages, clipped_ratio*advantages)).mean()
+            clipped_ratio = torch.clamp(ratio, 1 - self._hyper_params.clip_ratio, 1 + self._hyper_params.clip_ratio)
+            loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
             self._policy_optimizer.zero_grad()
             loss.backward()
             self._policy_optimizer.step()

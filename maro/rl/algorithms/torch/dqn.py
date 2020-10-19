@@ -19,8 +19,10 @@ class DQNHyperParams:
         tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
     """
     __slots__ = ["num_actions", "reward_decay", "num_training_rounds_per_target_replacement", "tau"]
-    def __init__(self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int,
-                 tau: float = 1.0):
+
+    def __init__(
+        self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int, tau: float = 1.0
+    ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.num_training_rounds_per_target_replacement = num_training_rounds_per_target_replacement
@@ -41,8 +43,10 @@ class DQN(AbsAlgorithm):
         target_model (nn.Module): Q-value model to train the ``eval_model`` against and to be updated periodically. If
             it is None, the target model will be initialized as a deep copy of the eval model.
     """
-    def __init__(self, eval_model: nn.Module, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
-                 target_model: nn.Module = None):
+    def __init__(
+        self, eval_model: nn.Module, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
+        target_model: nn.Module = None
+    ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._eval_model = eval_model.to(self._device)
