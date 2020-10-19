@@ -54,8 +54,8 @@ FORMAT_NAME_TO_FILE_FORMAT = {
 }
 
 FORMAT_NAME_TO_STDOUT_FORMAT = {
-    LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(tag)s | %(message)s', datefmt='%H:%M:%S'),
+    # We need to output clean messages in the INFO mode.
+    LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
 }
 
 # Progress of training, we give it a highest level.

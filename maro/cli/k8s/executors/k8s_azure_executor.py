@@ -436,6 +436,7 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
+        local_path = os.path.expanduser(local_path)
         source_path = get_reformatted_source_path(local_path)
         target_dir = get_reformatted_target_dir(remote_dir)
         if not target_dir.startswith("/"):
@@ -455,6 +456,7 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
+        local_dir = os.path.expanduser(local_dir)
         source_path = get_reformatted_source_path(remote_path)
         target_dir = get_reformatted_target_dir(local_dir)
         mkdir_script = f"mkdir -p {target_dir}"
@@ -592,7 +594,8 @@ class K8sAzureExecutor:
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs
-        k8s_job_config['metadata']['name'] = f"{job_id}"
+        k8s_job_config['metadata']['name'] = job_id
+        k8s_job_config['metadata']['labels']['jobName'] = job_name
         azure_file_config = k8s_job_config['spec']['template']['spec']['volumes'][0]['azureFile']
         azure_file_config['secretName'] = f"{cluster_id}-k8s-secret"
         azure_file_config['shareName'] = f"{cluster_id}-fs"
@@ -712,6 +715,23 @@ class K8sAzureExecutor:
         else:
             return image_name
 
+    def list_job(self):
+        # Get jobs details
+        command = f"kubectl get jobs -o=json"
+        return_str = SubProcess.run(command)
+        job_details_list = json.loads(return_str)["items"]
+        jobs_details = {}
+        for job_details in job_details_list:
+            jobs_details[job_details["metadata"]["labels"]["jobName"]] = job_details
+
+        # Print details
+        logger.info(
+            json.dumps(
+                jobs_details,
+                indent=4, sort_keys=True
+            )
+        )
+
     def get_job_logs(self, job_name: str, export_dir: str = './'):
         # Load details
         job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
@@ -827,7 +847,7 @@ class K8sAzureExecutor:
         pods_details = self.get_pods_details()
 
         for pod_details in pods_details:
-            if pod_details['metadata']['labels']['app'] == 'maro-redis':
+            if "app" in pod_details['metadata']['labels'] and pod_details['metadata']['labels']['app'] == 'maro-redis':
                 return_status['redis'] = {
                     'private_ip_address': pod_details['status']['podIP']
                 }
