@@ -29,7 +29,7 @@ class ACAgentManager(AbsAgentManager):
                 decision_layers=MLPDecisionLayers(
                     name=f'{agent_id}.policy',
                     input_dim=self._state_shaper.dim,
-                    output_dim=num_actions,
+                    output_dim=1,
                     **config.agents.algorithm.value_model
                 )
             )
