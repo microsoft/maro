@@ -437,7 +437,8 @@ class GrassAzureExecutor:
                 'cpu': node_size_to_spec[node_size]['numberOfCores'],
                 'memory': node_size_to_spec[node_size]['memoryInMb'],
                 'gpu': gpu_nums
-            }
+            },
+            'containers': {}
         }
         self.grass_executor.remote_set_node_details(
             node_name=node_name,
@@ -1043,6 +1044,8 @@ class GrassAzureExecutor:
             return_status = self.grass_executor.remote_get_master_details()
         elif resource_name == "nodes":
             return_status = self.grass_executor.remote_get_nodes_details()
+        elif resource_name == "containers":
+            return_status = self.grass_executor.remote_get_containers_details()
         else:
             raise CliException(f"Resource {resource_name} is unsupported")
 
