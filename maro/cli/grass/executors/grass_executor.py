@@ -70,6 +70,13 @@ class GrassExecutor:
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
+    def remote_get_containers_details(self):
+        command = f"ssh -o StrictHostKeyChecking=no " \
+                  f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} " \
+                  f"'python3 {GlobalPaths.MARO_GRASS_LIB}/scripts/get_containers_details.py {self.cluster_name}'"
+        return_str = SubProcess.run(command)
+        return json.loads(return_str)
+
     def remote_get_public_key(self, node_ip_address: str):
         command = f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} " \
                   f"'python3 {GlobalPaths.MARO_GRASS_LIB}/scripts/get_public_key.py'"

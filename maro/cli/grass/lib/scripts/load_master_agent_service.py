@@ -33,8 +33,7 @@ if __name__ == "__main__":
     os.makedirs(os.path.expanduser(f"~/.maro-local/agents/"), exist_ok=True)
     with open(os.path.expanduser(f"~/.maro-local/agents/master_agent.config"), 'w') as fw:
         json.dump({
-            'cluster_name': args.cluster_name,
-            'redis_port': redis_port
+            'cluster_name': args.cluster_name
         }, fw)
 
     # Load .service
