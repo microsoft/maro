@@ -805,11 +805,11 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         type=int,
         default=None,
         required=False,
-        help=("Specified start timestamp (in UTC) for binary file, "
-            "then this timestamp will be considered as tick=0 for binary reader, "
-            "this can be used to adjust the reader pipeline."
-        )
-    )
+        help="""
+        Specified start timestamp (in UTC) for binary file, 
+        then this timestamp will be considered as tick=0 for binary reader, 
+        this can be used to adjust the reader pipeline.
+        """)
 
     build_cmd_parser.set_defaults(func=convert)
 
