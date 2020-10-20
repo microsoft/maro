@@ -15,7 +15,7 @@ from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 MARO_BANNER = """
- __  __    _    ____   ___
+ ⁪⁪⁬__  __    _    ____   ___
 |  \/  |  / \  |  _ \ / _ \
 | |\/| | / _ \ | |_) | | | |
 | |  | |/ ___ \|  _ <| |_| |
@@ -43,10 +43,12 @@ def main():
     # maro env
     parser_env = subparsers.add_parser(
         'env',
-        help=('Get all environment-related information, '
-              'such as the supported scenarios, topologies. '
-              'And it is also responsible to generate data to the specific environment, '
-              'which has external data dependency.'),
+        help=(
+            'Get all environment-related information, '
+            'such as the supported scenarios, topologies. '
+            'And it is also responsible to generate data to the specific environment, '
+            'which has external data dependency.'
+        ),
         parents=[global_parser]
     )
     parser_env.set_defaults(func=_help_func(parser=parser_env))
@@ -804,8 +806,10 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         default=None,
         required=False,
         help=("Specified start timestamp (in UTC) for binary file, "
-              "then this timestamp will be considered as tick=0 for binary reader, "
-              "this can be used to adjust the reader pipeline."))
+            "then this timestamp will be considered as tick=0 for binary reader, "
+            "this can be used to adjust the reader pipeline."
+        )
+    )
 
     build_cmd_parser.set_defaults(func=convert)
 
