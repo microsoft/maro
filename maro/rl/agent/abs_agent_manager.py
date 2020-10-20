@@ -145,7 +145,7 @@ class AbsAgentManager(ABC):
         """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self._agent_dict.values():
-            agent.dump_trainable_models(dir_path)
+            agent.dump_trainable_models_to_file(dir_path)
 
     @property
     def name(self):
