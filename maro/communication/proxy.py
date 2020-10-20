@@ -456,14 +456,14 @@ class Proxy:
     def _check_peers_update(self):
         for peer_type, on_board_peer_name_list in self._onboard_peers_name_dict.items():
             on_redis_peers_dict = self._redis_connection.hgetall(self._peers_info_dict[peer_type].hash_table_name)
+            print(f"redis peer length: {len(on_redis_peers_dict.keys())}")
             # decode
-            on_redis_peers_dict = {json.loads(key): json.loads(value) for key, value in on_redis_peers_dict.items()}
-
+            on_redis_peers_dict = {key.decode(): json.loads(value) for key, value in on_redis_peers_dict.items()}
             on_board_peers_dict = {onboard_peer_name: self._peers_socket_dict[onboard_peer_name]
                                    for onboard_peer_name in on_board_peer_name_list}
 
             if on_board_peers_dict != on_redis_peers_dict:
-                for peer_name, socket_info in on_redis_peers_dict:
+                for peer_name, socket_info in on_redis_peers_dict.items():
                     # New peer joined.
                     if peer_name not in on_board_peers_dict.keys():
                         self._driver.connect({peer_name: socket_info})

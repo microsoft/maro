@@ -16,7 +16,7 @@ def peers_checker(func):
 
             if current_time - self._onboard_peers_lifetime > self._peer_update_frequency:
                 self._onboard_peers_lifetime = current_time
-                self._update_peers()
+                self._check_peers_update()
 
             if func.__name__ == "send" or func.__name__ == "isend":
                 message = args[0] if args else kwargs["message"]
