@@ -6,6 +6,8 @@ from functools import wraps
 
 import numpy as np
 
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
+
 
 def check_uniformity(arg_num):
     def decorator(func):
@@ -14,9 +16,9 @@ def check_uniformity(arg_num):
             contents = args[arg_num]
             if all(not isinstance(val, list) for val in contents.values()):
                 return func(*args, **kwargs)
-            length = len(contents[next(iter(contents))])
-            if any(not isinstance(val, list) or len(val) != length for val in contents.values()):
-                raise ValueError("values of contents should consist of lists of the same length")
+            col_length = len(contents[next(iter(contents))])
+            if any(not isinstance(val, list) or len(val) != col_length for val in contents.values()):
+                raise StoreMisalignmentError("values of contents should consist of lists of the same length")
             return func(*args, **kwargs)
         return wrapper
     return decorator

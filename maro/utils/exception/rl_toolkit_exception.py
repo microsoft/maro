@@ -20,3 +20,10 @@ class WrongAgentModeError(MAROException):
     """Wrong agent mode error."""
     def __init__(self, msg: str = None):
         super().__init__(4003, msg)
+
+
+class StoreMisalignmentError(MAROException):
+    """Raised when a ``put`` operation on a ``ColumnBasedStore`` would cause the underlying lists to have different
+     sizes."""
+    def __init__(self, msg: str = None):
+        super().__init__(4004, msg)

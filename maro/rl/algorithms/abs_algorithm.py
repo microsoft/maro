@@ -40,21 +40,21 @@ class AbsAlgorithm(ABC):
         return NotImplementedError
 
     @abstractmethod
-    def load_trainable_models(self, *models, **model_dict):
+    def load_models(self, *models, **model_dict):
         """Load trainable models from memory."""
         return NotImplementedError
 
     @abstractmethod
-    def dump_trainable_models(self):
+    def dump_models(self):
         """Return the algorithm's trainable models."""
         return NotImplementedError
 
     @abstractmethod
-    def load_trainable_models_from_file(self, path):
+    def load_models_from_file(self, path):
         """Load trainable models from disk."""
         return NotImplementedError
 
     @abstractmethod
-    def dump_trainable_models_to_file(self, path: str):
+    def dump_models_to_file(self, path: str):
         """Dump the algorithm's trainable models to disk."""
         return NotImplementedError

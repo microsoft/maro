@@ -9,6 +9,7 @@ import numpy as np
 from .abs_store import AbsStore
 from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
 from maro.utils import clone
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
 
 
 class ColumnBasedStore(AbsStore):
@@ -54,6 +55,11 @@ class ColumnBasedStore(AbsStore):
         return {k: lst[index] for k, lst in self._store.items()}
 
     def __getstate__(self):
+        """A small modification to make the object picklable.
+
+        Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved
+        in the ``defaultdict`` definition of the ``_store`` attribute.  
+        """
         obj_dict = self.__dict__
         obj_dict["_store"] = dict(obj_dict["_store"])
         return obj_dict
@@ -80,7 +86,8 @@ class ColumnBasedStore(AbsStore):
         """Put new contents in the store.
 
         Args:
-            contents (dict): Item object list.
+            contents (dict): dictionary of items to add to the store. If the store is not empty, this must have the
+                same keys as the store itself. Otherwise an ``StoreMisalignmentError`` will be raised.
             overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
                 used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
@@ -89,7 +96,7 @@ class ColumnBasedStore(AbsStore):
             The indexes where the newly added entries reside in the store.
         """
         if len(self._store) > 0 and contents.keys() != self._store.keys():
-            raise ValueError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
+            raise StoreMisalignmentError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
         added_size = len(contents[next(iter(contents))])
         if self._capacity < 0:
             for key, val in contents.items():

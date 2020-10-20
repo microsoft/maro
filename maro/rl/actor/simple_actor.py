@@ -42,7 +42,7 @@ class SimpleActor(AbsActor):
 
         # load models
         if model_dict is not None:
-            self._inference_agents.load_trainable_models(model_dict)
+            self._inference_agents.load_models(model_dict)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:

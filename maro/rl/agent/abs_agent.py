@@ -66,15 +66,15 @@ class AbsAgent(ABC):
         if self._experience_pool is not None:
             self._experience_pool.put(experiences)
 
-    def load_trainable_models(self, *models, **model_dict):
+    def load_models(self, *models, **model_dict):
         """Load models from memory."""
-        self._algorithm.load_trainable_models(*models, **model_dict)
+        self._algorithm.load_models(*models, **model_dict)
 
-    def dump_trainable_models(self):
+    def dump_models(self):
         """Return the algorithm's trainable models."""
-        return self._algorithm.dump_trainable_models()
+        return self._algorithm.dump_models()
 
-    def load_trainable_models_from_file(self, dir_path: str):
+    def load_models_from_file(self, dir_path: str):
         """Load trainable models from disk.
 
         Load trainable models from the specified directory. The model file is always prefixed with the agent's name.
@@ -82,9 +82,9 @@ class AbsAgent(ABC):
         Args:
             dir_path (str): path to the directory where the models are saved.
         """
-        self._algorithm.load_trainable_models_from_file(os.path.join(dir_path, self._name))
+        self._algorithm.load_models_from_file(os.path.join(dir_path, self._name))
 
-    def dump_trainable_models_to_file(self, dir_path: str):
+    def dump_models_to_file(self, dir_path: str):
         """Dump the algorithm's trainable models to disk.
 
         Dump trainable models to the specified directory. The model file is always prefixed with the agent's name.
@@ -92,7 +92,7 @@ class AbsAgent(ABC):
         Args:
             dir_path (str): path to the directory where the models are saved.
         """
-        self._algorithm.dump_trainable_models_to_file(os.path.join(dir_path, self._name))
+        self._algorithm.dump_models_to_file(os.path.join(dir_path, self._name))
 
     def dump_experience_store(self, dir_path: str):
         """Dump the experience pool to disk."""

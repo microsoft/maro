@@ -21,16 +21,14 @@ class SimpleLearner(AbsLearner):
         self._actor = actor
         self._logger = logger
 
-    def train(self, total_episodes, model_dump_dir: str = None):
+    def train(self, total_episodes: int):
         """Main loop for collecting experiences from the actor and using them to update policies.
 
         Args:
             total_episodes (int): number of episodes to be run.
-            model_dump_dir (str): If a path is provided, it will be treated as a directory under which all agents'
-                trainable models will be dumped.
         """
         for current_ep in range(1, total_episodes + 1):
-            model_dict = None if self._is_shared_agent_instance() else self._trainable_agents.dump_trainable_models()
+            model_dict = None if self._is_shared_agent_instance() else self._trainable_agents.dump_models()
             epsilon_dict = self._trainable_agents.explorer.epsilon if self._trainable_agents.explorer else None
             performance, exp_by_agent = self._actor.roll_out(model_dict=model_dict, epsilon_dict=epsilon_dict)
             if isinstance(performance, dict):
@@ -43,18 +41,18 @@ class SimpleLearner(AbsLearner):
 
             self._trainable_agents.train(exp_by_agent)
 
-        if model_dump_dir is not None:
-            self._trainable_agents.dump_trainable_models_to_files(model_dump_dir)
-
     def test(self):
         """Test policy performance."""
         performance, _ = self._actor.roll_out(
-            model_dict=self._trainable_agents.dump_trainable_models(),
+            model_dict=self._trainable_agents.dump_models(),
             return_details=False
         )
         for actor_id, perf in performance.items():
             self._logger.info(f"test performance from {actor_id}: {perf}")
         self._actor.roll_out(done=True)
+
+    def save_models(self, model_dump_dir: str):
+        self._trainable_agents.dump_models_to_files(model_dump_dir)
 
     def _is_shared_agent_instance(self):
         """If true, the set of agents performing inference in actor is the same as self._trainable_agents."""

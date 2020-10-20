@@ -121,31 +121,31 @@ class AbsAgentManager(ABC):
         """Train all agents."""
         return NotImplementedError
 
-    def load_trainable_models(self, agent_model_dict):
+    def load_models(self, agent_model_dict):
         """Load models from memory for each agent."""
         for agent_id, models in agent_model_dict.items():
-            self._agent_dict[agent_id].load_trainable_models(models)
+            self._agent_dict[agent_id].load_models(models)
 
-    def dump_trainable_models(self):
+    def dump_models(self):
         """Get agents' underlying models.
 
         This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
         """
-        return {agent_id: agent.dump_trainable_models() for agent_id, agent in self._agent_dict.items()}
+        return {agent_id: agent.dump_models() for agent_id, agent in self._agent_dict.items()}
 
-    def load_trainable_models_from_files(self, dir_path):
+    def load_models_from_files(self, dir_path):
         """Load models from disk for each agent."""
         for agent in self._agent_dict.values():
-            agent.load_trainable_models_from_file(dir_path)
+            agent.load_models_from_file(dir_path)
 
-    def dump_trainable_models_to_files(self, dir_path: str):
+    def dump_models_to_files(self, dir_path: str):
         """Dump agents' models to disk.
 
         Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
         """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self._agent_dict.values():
-            agent.dump_trainable_models_to_file(dir_path)
+            agent.dump_models_to_file(dir_path)
 
     @property
     def name(self):

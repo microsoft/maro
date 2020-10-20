@@ -21,21 +21,21 @@ class ActorCriticHyperParameters:
         value_train_iters (int): number of gradient descent steps for the value model per call to ``train``.
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
-        lamb (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+        lam (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
-    __slots__ = ["num_actions", "reward_decay", "policy_train_iters", "value_train_iters", "k", "lamb"]
+    __slots__ = ["num_actions", "reward_decay", "policy_train_iters", "value_train_iters", "k", "lam"]
 
     def __init__(
         self, num_actions: int, reward_decay: float, policy_train_iters, value_train_iters: int,
-        k: int = -1, lamb: float = 1.0
+        k: int = -1, lam: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.policy_train_iters = policy_train_iters
         self.value_train_iters = value_train_iters
         self.k = k
-        self.lamb = lamb
+        self.lam = lam
 
 
 class ActorCritic(AbsAlgorithm):
@@ -60,29 +60,28 @@ class ActorCritic(AbsAlgorithm):
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._policy_model = policy_model.to(self._device)
-        self._value_model = value_model.to(self._device)
-        self._policy_optimizer = policy_optimizer_cls(self._policy_model.parameters(), **policy_optimizer_params)
-        self._value_optimizer = value_optimizer_cls(self._value_model.parameters(), **value_optimizer_params)
+        self._model_dict = {"policy": policy_model.to(self._device), "value": value_model.to(self._device)}
+        self._policy_optimizer = policy_optimizer_cls(self._model_dict["policy"].parameters(), **policy_optimizer_params)
+        self._value_optimizer = value_optimizer_cls(self._model_dict["value"].parameters(), **value_optimizer_params)
         self._value_loss_func = value_loss_func
         self._hyper_params = hyper_params
 
     @property
     def model(self):
-        return {"policy": self._policy_model, "value": self._value_model}
+        return self._model_dict
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        self._policy_model.eval()
+        self._model_dict["policy"].eval()
         with torch.no_grad():
-            action_dist = self._policy_model(state).squeeze().numpy()  # (num_actions,)
+            action_dist = self._model_dict["policy"](state).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._value_model(state_sequence).detach().squeeze()
+        state_values = self._model_dict["value"](state_sequence).detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
+            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lam,
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
@@ -95,7 +94,7 @@ class ActorCritic(AbsAlgorithm):
         actions = torch.from_numpy(actions).to(self._device)
         # policy model training
         for _ in range(self._hyper_params.policy_train_iters):
-            action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
+            action_prob = self._model_dict["policy"](states).gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
             policy_loss = -(torch.log(action_prob) * advantages).mean()
             self._policy_optimizer.zero_grad()
             policy_loss.backward()
@@ -103,27 +102,22 @@ class ActorCritic(AbsAlgorithm):
 
         # value model training
         for _ in range(self._hyper_params.value_train_iters):
-            value_loss = self._value_loss_func(self._value_model(states).squeeze(), return_est)
+            value_loss = self._value_loss_func(self._model_dict["value"](states).squeeze(), return_est)
             self._value_optimizer.zero_grad()
             value_loss.backward()
             self._value_optimizer.step()
 
-    def load_trainable_models(self, model_dict):
-        self._policy_model = model_dict["policy"]
-        self._value_model = model_dict["value"]
+    def load_models(self, model_dict):
+        self._model_dict = model_dict
 
-    def dump_trainable_models(self):
-        return {"policy": self._policy_model, "value": self._value_model}
+    def dump_models(self):
+        return {name: model.state_dict() for name, model in self._model_dict.items()}
 
-    def load_trainable_models_from_file(self, path):
-        """Load trainable models from disk."""
-        model_dict = torch.load(path)
-        self._policy_model = model_dict["policy"]
-        self._value_model = model_dict["value"]
+    def load_models_from_file(self, path):
+        self._model_dict = torch.load(path)
 
-    def dump_trainable_models_to_file(self, path: str):
-        """Dump the algorithm's trainable models to disk."""
-        torch.save({"policy": self._policy_model.state_dict(), "value": self._value_model.state_dict()}, path)
+    def dump_models_to_file(self, path: str):
+        torch.save({name: model.state_dict() for name, model in self._model_dict.items()}, path)
 
 
 class ActorCriticHyperParametersWithCombinedModel:
@@ -135,17 +129,17 @@ class ActorCriticHyperParametersWithCombinedModel:
         train_iters (int): number of gradient descent steps for the policy-value model per call to ``train``.
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
-        lamb (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+        lam (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
-    __slots__ = ["num_actions", "reward_decay", "train_iters", "k", "lamb"]
+    __slots__ = ["num_actions", "reward_decay", "train_iters", "k", "lam"]
 
-    def __init__(self, num_actions: int, reward_decay: float, train_iters: int, k: int = -1, lamb: float = 1.0):
+    def __init__(self, num_actions: int, reward_decay: float, train_iters: int, k: int = -1, lam: float = 1.0):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.train_iters = train_iters
         self.k = k
-        self.lamb = lamb
+        self.lam = lam
 
 
 class ActorCriticWithCombinedModel(AbsAlgorithm):
@@ -186,7 +180,7 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
         state_values = self._policy_value_model(state_sequence)[0].detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lamb,
+            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lam,
             k=self._hyper_params.k, values=state_values_numpy
         )
         return_est = torch.from_numpy(return_est)
@@ -208,14 +202,14 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
             loss.backward()
             self._optimizer.step()
 
-    def load_trainable_models(self, policy_value_model):
+    def load_models(self, policy_value_model):
         self._policy_value_model = policy_value_model
 
-    def dump_trainable_models(self):
+    def dump_models(self):
         return self._policy_value_model
 
-    def load_trainable_models_from_file(self, path):
+    def load_models_from_file(self, path):
         self._policy_value_model = torch.load(path)
 
-    def dump_trainable_models_to_file(self, path: str):
+    def dump_models_to_file(self, path: str):
         torch.save(self._policy_value_model.state_dict(), path)
