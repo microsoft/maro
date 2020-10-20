@@ -65,11 +65,17 @@ class SocketTypeError(MAROException):
 
 
 class PeersDisconnectionError(MAROException):
-    """ Peers disconnection error, occurs in the driver. """
+    """Peers disconnection error, occurs in the driver. """
     def __init__(self, msg: str = None):
         super().__init__(1011, msg)
 
 
+class SendAgain(MAROException):
+    """Temporary failure to send message, try to rejoin."""
+    def __init__(self, msg: str = None):
+        super().__init__(1012, msg)
+
+
 __all__ = ["RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
            "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
-           "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError"]
+           "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError", "SendAgain"]
