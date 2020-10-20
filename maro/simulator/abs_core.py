@@ -13,9 +13,9 @@ from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
 class DecisionMode(IntEnum):
     """Decision mode that interactive with agent."""
-    # Ask agent for action one by one.
+    # Ask agent to take action one by one.
     Sequential = 0
-    # Ask agent for action at same time, not supported yes.
+    # Ask agent to take action at same time, not supported yet.
     Joint = 1
 
 
@@ -23,7 +23,7 @@ class AbsEnv(ABC):
     """The main MARO simulator abstract class, which provides interfaces to agents.
 
         Args:
-            scenario (str): Scenario name under maro/sim/scenarios folder.
+            scenario (str): Scenario name under maro/simulator/scenarios folder.
             topology (str): Topology name under specified scenario folder.
             start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
             durations (int): Duration ticks of this environment from start_tick.
@@ -34,11 +34,13 @@ class AbsEnv(ABC):
             options (dict): Additional parameters passed to business engine.
     """
 
-    def __init__(self, scenario: str, topology: str,
-                 start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
-                 decision_mode: DecisionMode,
-                 business_engine_cls: type,
-                 options: dict):
+    def __init__(
+        self, scenario: str, topology: str,
+        start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
+        decision_mode: DecisionMode,
+        business_engine_cls: type,
+        options: dict
+    ):
         self._tick = start_tick
         self._scenario = scenario
         self._topology = topology
@@ -61,7 +63,7 @@ class AbsEnv(ABC):
             action (Action): Action(s) from agent.
 
         Returns:
-            tuple: a tuple of (reward, decision event, is_done).
+            tuple: a tuple of (metrics, decision event, is_done).
         """
         pass
 
@@ -78,8 +80,7 @@ class AbsEnv(ABC):
     @property
     @abstractmethod
     def configs(self) -> dict:
-        """object: Configurations of current environment,
-        this field would be different for different scenario."""
+        """object: Configurations of current environment, this field would be different for different scenario."""
         pass
 
     @property
@@ -114,15 +115,14 @@ class AbsEnv(ABC):
     @property
     @abstractmethod
     def snapshot_list(self) -> SnapshotList:
-        """SnapshotList: Current snapshot list, a snapshot list contains all the snapshots of frame at each tick.
-        """
+        """SnapshotList: Current snapshot list, a snapshot list contains all the snapshots of frame at each tick."""
         pass
 
     def set_seed(self, seed: int):
         """Set random seed used by simulator.
 
         NOTE:
-            This will not set seed for python random or other packages' seed, such as numpy.
+            This will not set seed for Python random or other packages' seed, such as NumPy.
 
         Args:
             seed (int): Seed to set.
@@ -139,8 +139,7 @@ class AbsEnv(ABC):
         return {}
 
     def get_finished_events(self) -> List[Event]:
-        """List[Event]: All events finished so far.
-        """
+        """List[Event]: All events finished so far."""
         pass
 
     def get_pending_events(self, tick: int) -> List[Event]:

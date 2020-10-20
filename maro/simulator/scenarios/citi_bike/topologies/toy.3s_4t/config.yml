@@ -11,7 +11,7 @@ decision:
   supply_water_mark_ratio: 0.8
   demand_water_mark_ratio: 0.2
 
-  # ratio of action 
+  # ratio of action
   action_scope:
     # num: 20 # max avalible number of nerighbor station in each decision
     low: 0 # min ratio of available bikes to keep for current cell, to supply to neighbors
@@ -24,11 +24,6 @@ decision:
       - type: "trip_window" # sort by trips in window
         windows: 10 # frame index number for the window
         num: 20
-
-reward: # reward options
-  fulfillment_factor: 1
-  shortage_factor: 1
-  transfer_cost_factor: 0.05
 
 # timezone of the data
 # NOTE: we need this if we want to fit local time, as binary data will convert timestamp into UTC
