@@ -21,8 +21,7 @@ class GrassExecutor:
 
         self.admin_username = self.cluster_details['user']['admin_username']
 
-    def remote_build_image(self,
-                           remote_context_path: str, remote_image_name: str):
+    def remote_build_image(self, remote_context_path: str, remote_image_name: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no "
             f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} "

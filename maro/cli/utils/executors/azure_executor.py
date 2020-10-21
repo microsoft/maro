@@ -195,8 +195,7 @@ class AzureExecutor:
         services: str = 'bqtf',
         resource_types: str = 'sco',
         permissions: str = 'rwdlacup',
-        expiry: str = (datetime.datetime.utcnow() +
-                       datetime.timedelta(days=365)).strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
+        expiry: str = (datetime.datetime.utcnow() + datetime.timedelta(days=365)).strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
     ):
         command = (
             f'az storage account generate-sas --account-name {account_name} --services {services} '
