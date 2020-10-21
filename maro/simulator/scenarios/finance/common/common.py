@@ -19,7 +19,6 @@ class OrderMode(Enum):
 class ActionType(Enum):
     order = "order"
     cancel_order = "cancel_order"
-    transfer = "transfer"
 
 
 class ActionState(Enum):
@@ -34,10 +33,9 @@ class TradeResult:
     """Result or a trade order"""
 
     def __init__(
-            self, sub_engine_name: str, item_index: int, trade_number: int, tick: int,
+            self, item_index: int, trade_number: int, tick: int,
             price_per_item: float, tax: float, action_id: int, is_trade_accept: bool = False,
             is_trade_trigger: bool = True):
-        self.sub_engine_name = sub_engine_name
         self.item_index = item_index
         self.trade_number = trade_number
         self.tick = tick
@@ -52,14 +50,14 @@ class TradeResult:
         return self.trade_number * self.price_per_item + self.tax
 
     def __repr__(self):
-        return f"< trade sub-engine: {self.sub_engine_name} item: {self.item_index} \
+        return f"< trade item: {self.item_index} \
             tick: {self.tick} number: {self.trade_number} price: {self.price_per_item} \
             tax: {self.tax} tradable: {self.is_trade_accept} >"
 
 
 class DecisionEvent:
     def __init__(
-        self, tick: int, type: FinanceType, item: int, sub_engine_name: str,
+        self, tick: int, type: FinanceType, item: int,
         action_scope_func: Callable, action_type: ActionType
     ):
         """
@@ -75,7 +73,6 @@ class DecisionEvent:
         self.type = type
         self.action_type = action_type
         self.item = item
-        self.sub_engine_name = sub_engine_name
         self._action_scope = None
         self._action_scope_func = action_scope_func
 
@@ -88,7 +85,7 @@ class DecisionEvent:
         return self._action_scope
 
     def __repr__(self):
-        return f"<DecisionEvent type: {self.type}, tick: {self.tick}, engine: {self.sub_engine_name} >"
+        return f"<DecisionEvent type: {self.type}, tick: {self.tick}>"
 
 
 class Action:
@@ -127,54 +124,3 @@ class Action:
     def __repr__(self):
         return f"< Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number} action type: \
             {self.action_type} decision: {self.decision_tick} finished: {self.finish_tick} >"
-
-
-class SubEngineAccessWrapper:
-    class PropertyAccessor:
-        def __init__(self, properties: dict):
-            self._properties = properties
-            self._customized = {}
-
-        def add_item(self, key, val):
-            self._customized[key] = val
-
-        def __getitem__(self, name: str):
-            """Used to access frame/snapshotlist by name as a dictionary."""
-            if name in self._properties:
-                return self._properties[name]
-            elif name in self._customized:
-                return self._customized[name]
-
-            return None
-
-        def __getattribute__(self, name):
-            properties = object.__getattribute__(self, "_properties")
-            customized = object.__getattribute__(self, "_customized")
-
-            if name in properties or name in customized:
-                # used to access frame/snapshotlist by name as an attribute, such as env.snapshotlist.sub_a.xxxx
-                return properties[name] if name in properties else customized[name]
-            else:
-                # used to compact with current core to insert snapshot, or other implementation
-
-                # HOTFIX for special cases
-                if name == "insert_snapshot":
-                    return partial(SubEngineAccessWrapper.insert_snapshot, self)
-
-            return super().__getattribute__(name)
-
-    """Wrapper to access frame/config/snapshotlist by name of sub-engine"""
-
-    def __init__(self, sub_engines: dict):
-        self._engines = sub_engines
-
-    def get_property_access(self, property_name: str):
-        properties = {name: getattr(engine, property_name) for name, engine in self._engines.items()}
-
-        return SubEngineAccessWrapper.PropertyAccessor(properties)
-
-    @staticmethod
-    def insert_snapshot(snapshot_list_acc: PropertyAccessor, index):
-        """Used to support insert snapshot for property accessor"""
-        for name, snapshot_list in snapshot_list_acc._properties.items():
-            snapshot_list.insert_snapshot(index)
