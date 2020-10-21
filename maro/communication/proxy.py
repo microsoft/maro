@@ -69,8 +69,8 @@ class Proxy:
         self._group_name = group_name
         self._component_type = component_type
         self._redis_hash_name = f"{self._group_name}:{self._component_type}"
-        if os.getenv("component_name"):
-            self._name = os.getenv("component_name")
+        if "COMPONENT_NAME" in os.environ:
+            self._name = os.getenv("COMPONENT_NAME")
         else:
             unique_id = str(uuid.uuid1()).replace("-", "")
             self._name = f"{self._component_type}_proxy_{unique_id}"
