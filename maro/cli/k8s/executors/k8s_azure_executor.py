@@ -239,8 +239,8 @@ class K8sAzureExecutor:
 
         # Create k8s secret
         command = f'kubectl create secret generic {cluster_id}-k8s-secret ' \
-                  f'--from-literal=azurestorageaccountname={cluster_id}st ' \
-                  f'--from-literal=azurestorageaccountkey={storage_key}'
+            f'--from-literal=azurestorageaccountname={cluster_id}st ' \
+            f'--from-literal=azurestorageaccountkey={storage_key}'
         _ = SubProcess.run(command)
         logger.debug(command)
 
@@ -442,9 +442,9 @@ class K8sAzureExecutor:
         if not target_dir.startswith("/"):
             raise CliException("Invalid remote path")
         copy_command = f'azcopy copy ' \
-                       f'"{source_path}" ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{target_dir}?{sas}" ' \
-                       f'--recursive=True'
+            f'"{source_path}" ' \
+            f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{target_dir}?{sas}" ' \
+            f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def pull_data(self, local_dir: str, remote_path: str):
@@ -464,9 +464,9 @@ class K8sAzureExecutor:
         if not source_path.startswith("/"):
             raise CliException("Invalid remote path")
         copy_command = f'azcopy copy ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}" ' \
-                       f'"{os.path.expanduser(target_dir)}" ' \
-                       f'--recursive=True'
+            f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}" ' \
+            f'"{os.path.expanduser(target_dir)}" ' \
+            f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def remove_data(self, remote_path: str):
@@ -481,8 +481,8 @@ class K8sAzureExecutor:
 
         # Remove data
         copy_command = f'azcopy remove ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
-                       f'--recursive=True'
+            f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
+            f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def _check_and_get_account_sas(self):
@@ -545,13 +545,13 @@ class K8sAzureExecutor:
 
         # Apply k8s config
         command = f"kubectl apply -f " \
-                  f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
         _ = SubProcess.run(command)
 
     def stop_job(self, job_name: str):
         # Stop job
         command = f"kubectl delete -f " \
-                  f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
         _ = SubProcess.run(command)
 
     @staticmethod
@@ -613,8 +613,10 @@ class K8sAzureExecutor:
 
         return k8s_job_config
 
-    def _create_k8s_container_config(self, job_details: dict, k8s_container_config_template: dict,
-                                     component_type: str, component_index: int):
+    def _create_k8s_container_config(
+        self, job_details: dict, k8s_container_config_template: dict,
+        component_type: str, component_index: int
+    ):
         # Copy config
         k8s_container_config = deepcopy(k8s_container_config_template)
 
@@ -717,7 +719,7 @@ class K8sAzureExecutor:
 
     def list_job(self):
         # Get jobs details
-        command = f"kubectl get jobs -o=json"
+        command = "kubectl get jobs -o=json"
         return_str = SubProcess.run(command)
         job_details_list = json.loads(return_str)["items"]
         jobs_details = {}
