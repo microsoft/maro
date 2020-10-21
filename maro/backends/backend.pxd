@@ -10,8 +10,18 @@ from libc.stdint cimport int32_t, int64_t, int16_t, int8_t, uint32_t, uint64_t
 
 # common types
 
+ctypedef int64_t INT
 ctypedef unsigned int UINT
 ctypedef uint64_t ULONG
+
+
+ctypedef int8_t ATTR_BYTE
+ctypedef int16_t ATTR_SHORT
+ctypedef int32_t ATTR_INT
+ctypedef int64_t ATTR_LONG
+ctypedef float ATTR_FLOAT
+ctypedef double ATTR_DOUBLE
+
 
 # ID of node and attribute
 ctypedef uint64_t IDENTIFIER
@@ -46,11 +56,11 @@ cdef class BackendAbc:
 
     # Add a new node to current backend, with specified number (>=0)
     # Returns an ID of this new node in current backend
-    cdef IDENTIFIER add_node(self, str name, UINT number) except +
+    cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +
 
     # Add a new attribute to specified node (id)
     # Returns an ID of this new attribute for current node (id)
-    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, UINT slot_num) except +
+    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +
 
     # Set value of specified attribute slot.
     # NOTE: since we already know which node current attribute belongs to, so we just need to specify attribute id

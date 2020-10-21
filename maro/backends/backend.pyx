@@ -22,14 +22,14 @@ cdef class SnapshotListAbc:
 
     cdef list get_frame_index_list(self):
         return []
-
+ 
 
 cdef class BackendAbc:
 
-    cdef IDENTIFIER add_node(self, str name, UINT number) except +:
+    cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +:
         pass
 
-    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, UINT slot_num) except +:
+    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
         pass
 
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:

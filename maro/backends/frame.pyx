@@ -52,7 +52,7 @@ def node(name: str):
 
 
 cdef class NodeAttribute:
-    def __cinit__(self, str dtype, UINT slot_num = 1):
+    def __cinit__(self, str dtype, SLOT_INDEX slot_num = 1):
         self._dtype = dtype
         self._slot_number = slot_num
 
@@ -68,7 +68,7 @@ cdef class _NodeAttributeAccessor:
         IDENTIFIER _attr_id
 
         # Slot number of target attribute
-        public UINT _slot_number
+        public SLOT_INDEX _slot_number
 
         # Target backend
         BackendAbc _backend
@@ -199,7 +199,7 @@ cdef class NodeBase:
     def index(self):
         return self._index
 
-    cdef void setup(self, BackendAbc backend, UINT index, IDENTIFIER id, UINT number, dict attr_name_id_dict) except *:
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, NODE_INDEX number, dict attr_name_id_dict) except *:
         """Setup frame node, and bind attributes."""
         self._index = index
         self._id = id
@@ -272,7 +272,7 @@ cdef class NodeBase:
 
 
 cdef class FrameNode:
-    def __cinit__(self, type node_cls, UINT number):
+    def __cinit__(self, type node_cls, NODE_INDEX number):
         self._node_cls = node_cls
         self._number = number
 
@@ -353,7 +353,7 @@ cdef class FrameBase:
         # node -> attr -> id
         cdef dict node_attr_id_dict = {}
         cdef dict node_id_dict = {}
-        cdef UINT node_number
+        cdef NODE_INDEX node_number
         cdef NodeBase node
 
         # Internal loop indexer
@@ -411,7 +411,7 @@ cdef class FrameBase:
 cdef class SnapshotNode:
     cdef:
         # Target node number, used for empty node list
-        UINT _node_number
+        NODE_INDEX _node_number
 
         # Target node id
         IDENTIFIER _node_id
@@ -422,7 +422,7 @@ cdef class SnapshotNode:
         # reference to snapshots for querying
         SnapshotListAbc _snapshots
 
-    def __cinit__(self, IDENTIFIER node_id, UINT node_number, dict attributes, SnapshotListAbc snapshots):
+    def __cinit__(self, IDENTIFIER node_id, NODE_INDEX node_number, dict attributes, SnapshotListAbc snapshots):
         self._node_id = node_id
         self._node_number = node_number
         self._snapshots = snapshots
@@ -482,7 +482,7 @@ cdef class SnapshotNode:
 cdef class SnapshotList:
     def __cinit__(self, dict node_name_num_dict, dict node_id_dict, dict node_attr_id_dict, SnapshotListAbc snapshots):
         cdef str node_name
-        cdef UINT node_number
+        cdef NODE_INDEX node_number
         cdef IDENTIFIER node_id
 
         self._snapshots = snapshots

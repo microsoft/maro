@@ -156,7 +156,7 @@ cdef class FrameNode:
     cdef:
         public type _node_cls
 
-        public UINT _number
+        public NODE_INDEX _number
 
 
 cdef class NodeBase:
@@ -260,7 +260,7 @@ cdef class NodeBase:
         # Node id, used to access backend 
         IDENTIFIER _id
 
-        UINT _node_number
+        NODE_INDEX _node_number
 
         BackendAbc _backend
 
@@ -272,7 +272,7 @@ cdef class NodeBase:
 
     # set up the node for using with frame, and index
     # this is called by Frame after the instance is initialized
-    cdef void setup(self, BackendAbc backend, UINT index, IDENTIFIER id, UINT number, dict attr_name_id_dict) except *
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, NODE_INDEX number, dict attr_name_id_dict) except *
 
     # internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *
@@ -292,4 +292,4 @@ cdef class NodeAttribute:
         public str _dtype
 
         # array size of tis attribute
-        public UINT _slot_number
+        public SLOT_INDEX _slot_number
