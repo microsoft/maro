@@ -105,18 +105,18 @@ class DQN(AbsAlgorithm):
                     self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
                 )
 
-    def load_models(self, model_dict):
+    def load_models(self, eval_model):
         """Load the eval model from memory."""
-        self._model_dict = model_dict
+        self._model_dict["eval"] = eval_model
 
     def dump_models(self):
         """Return the eval model."""
-        return {name: model.state_dict() for name, model in self._model_dict}
+        return self._model_dict["eval"].state_dict()
 
     def load_models_from_file(self, path):
         """Load the eval model from disk."""
-        self._model_dict = torch.load(path)
+        self._model_dict["eval"] = torch.load(path)
 
     def dump_models_to_file(self, path: str):
         """Dump the eval model to disk."""
-        torch.save(self.dump_models(), path)
+        torch.save(self._model_dict["eval"], path)
