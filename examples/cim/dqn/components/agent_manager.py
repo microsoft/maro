@@ -51,6 +51,8 @@ def create_dqn_agents(agent_id_list, mode, config):
         agent_dict[agent_id] = CIMAgent(name=agent_id, mode=mode, algorithm=algorithm, experience_pool=experience_pool,
                                         **config.training_loop_parameters)
 
+    return agent_dict
+
 
 class DQNAgentManager(SimpleAgentManager):
     def train(self, experiences_by_agent, performance=None):
