@@ -4,26 +4,25 @@
 import torch.nn as nn
 
 
-class MLPDecisionLayers(nn.Module):
-    """Deep Q network.
+class RepresentationLayers(nn.Module):
+    def __init__(self, name: str, input_dim: int, hidden_dims: [int], output_dim: int, dropout_p: float):
+        """Deep Q network.
 
-    Choose multi-layer full connection with dropout as the basic network architecture.
+        Choose multi-layer full connection with dropout as the basic network architecture.
 
-    Args:
-        name (str): Network name.
-        input_dim (int): Network input dimension.
-        hidden_dims ([int]): Network hidden layer dimension. The length of ``hidden_dims`` means the
-                            hidden layer number, which requires larger than 1.
-        output_dim (int): Network output dimension.
-        dropout_p (float): Dropout parameter.
-    """
-    def __init__(self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float):
+        Args:
+            name (str): Network name.
+            input_dim (int): Network input dimension.
+            hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
+            output_dim (int): Network output dimension.
+            dropout_p (float): Dropout parameter.
+        """
         super().__init__()
         self._name = name
+        self._dropout_p = dropout_p
         self._input_dim = input_dim
         self._hidden_dims = hidden_dims if hidden_dims is not None else []
         self._output_dim = output_dim
-        self._dropout_p = dropout_p
         self._layers = self._build_layers([input_dim] + self._hidden_dims)
         if len(self._hidden_dims) == 0:
             self._head = nn.Linear(self._input_dim, self._output_dim)
@@ -51,8 +50,7 @@ class MLPDecisionLayers(nn.Module):
 
         BN -> Linear -> LeakyReLU -> Dropout
         """
-        return nn.Sequential(nn.BatchNorm1d(input_dim),
-                             nn.Linear(input_dim, output_dim),
+        return nn.Sequential(nn.Linear(input_dim, output_dim),
                              nn.LeakyReLU(),
                              nn.Dropout(p=self._dropout_p))
 

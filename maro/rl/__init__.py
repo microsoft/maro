@@ -5,13 +5,19 @@ from maro.rl.actor.abs_actor import AbsActor
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
-from maro.rl.agent.abs_agent import AbsAgent
-from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentMode
-from maro.rl.algorithms.torch.abs_algorithm import AbsAlgorithm
-from maro.rl.algorithms.torch.dqn import DQN, DQNHyperParams
-from maro.rl.models.torch.mlp_representation import MLPRepresentation
-from maro.rl.models.torch.decision_layers import MLPDecisionLayers
-from maro.rl.models.torch.learning_model import LearningModel
+from maro.rl.agent.abs_agent import AbsAgent, AgentMode
+from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
+from maro.rl.agent.simple_agent_manager import SimpleAgentManager
+from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.pg import PolicyGradient, PolicyGradientHyperParameters
+from maro.rl.algorithms.ac import ActorCritic, ActorCriticWithCombinedModel, ActorCriticHyperParameters, \
+    ActorCriticHyperParametersWithCombinedModel
+from maro.rl.algorithms.ppo import PPO, PPOWithCombinedModel, PPOHyperParameters, \
+    PPOHyperParametersWithCombinedModel
+from maro.rl.algorithms.dqn import DQN, DQNHyperParams
+from maro.rl.models.learning_model import LearningModel
+from maro.rl.models.representation_layers import RepresentationLayers
+from maro.rl.models.decision_layers import DecisionLayers
 from maro.rl.storage.abs_store import AbsStore
 from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.rl.storage.utils import OverwriteType
@@ -31,14 +37,26 @@ __all__ = [
     "AbsLearner",
     "SimpleLearner",
     "AbsAgent",
-    "AbsAgentManager",
     "AgentMode",
+    "AbsAgentManager",
+    "AgentManagerMode",
+    "SimpleAgentManager",
     "AbsAlgorithm",
+    "PolicyGradient",
+    "PolicyGradientHyperParameters",
+    "ActorCritic",
+    "ActorCriticWithCombinedModel",
+    "ActorCriticHyperParameters",
+    "ActorCriticHyperParametersWithCombinedModel",
+    "PPO",
+    "PPOWithCombinedModel",
+    "PPOHyperParameters",
+    "PPOHyperParametersWithCombinedModel",
     "DQN",
     "DQNHyperParams",
-    "MLPRepresentation",
-    "MLPDecisionLayers",
     "LearningModel",
+    "RepresentationLayers",
+    "DecisionLayers",
     "AbsStore",
     "ColumnBasedStore",
     "OverwriteType",

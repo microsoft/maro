@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from .abs_actor import AbsActor
-from maro.rl.agent.abs_agent_manager import AbsAgentManager
+from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.simulator import Env
 
 
@@ -13,11 +13,12 @@ class SimpleActor(AbsActor):
         env (Env): An Env instance.
         inference_agents (AbsAgentManager): An AgentManager instance that manages all agents.
     """
-    def __init__(self, env: Env, inference_agents: AbsAgentManager):
+    def __init__(self, env: Env, inference_agents: SimpleAgentManager):
         super().__init__(env, inference_agents)
 
-    def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
-                 return_details: bool = True):
+    def roll_out(
+        self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
+    ):
         """Perform one episode of roll-out and return performance and experiences.
 
         Args:
