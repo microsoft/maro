@@ -41,6 +41,8 @@ agents:
         - 256
         - 128
         - 64
+      softmax_enabled: false
+      batch_norm_enabled: false
       dropout_p: 0.0
     optimizer:
       lr: 0.05

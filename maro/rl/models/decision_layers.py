@@ -23,7 +23,7 @@ class DecisionLayers(nn.Module):
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
     """
     def __init__(
-        self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], activation=nn.LeakyReLU,
+        self, name: str, input_dim: int, output_dim: int, hidden_dims: [int], activation=nn.LeakyReLU,
         softmax_enabled: bool = False, batch_norm_enabled: bool = False, dropout_p: float = None
     ):
         super().__init__()

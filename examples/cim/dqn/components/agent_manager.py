@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from torch.nn.functional import smooth_l1_loss
+import torch.nn as nn
 from torch.optim import RMSprop
 
 from .agent import CIMAgent
@@ -31,8 +31,8 @@ def create_dqn_agents(agent_id_list, mode, config):
     for agent_id in agent_id_list:
         eval_model = LearningModel(
             decision_layers=DecisionLayers(
-                name=f'{agent_id}.policy', input_dim=config.algorithm.input_dim,
-                output_dim=num_actions, **config.algorithm.model
+                name=f'{agent_id}.policy', input_dim=config.algorithm.input_dim, output_dim=num_actions,
+                activation=nn.LeakyReLU, **config.algorithm.model
             )
         )
 
@@ -40,7 +40,7 @@ def create_dqn_agents(agent_id_list, mode, config):
             eval_model=eval_model,
             optimizer_cls=RMSprop,
             optimizer_params=config.algorithm.optimizer,
-            loss_func=smooth_l1_loss,
+            loss_func=nn.functional.smooth_l1_loss,
             hyper_params=DQNHyperParams(
                 **config.algorithm.hyper_parameters,
                 num_actions=num_actions
