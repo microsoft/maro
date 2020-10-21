@@ -167,3 +167,9 @@ def get_container_name_to_component_name(redis: Redis, cluster_name: str, job_na
         job_name=job_name
     )
     return {v: k for k, v in component_name_to_container_name.items()}
+
+
+def delete_container_name_to_component_name(redis: Redis, cluster_name: str, job_name: str) -> None:
+    redis.delete(
+        f"{job_name}:component_name_to_container_name"
+    )

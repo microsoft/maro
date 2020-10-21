@@ -20,8 +20,8 @@ from utils import (load_cluster_details,
                    get_job_details, get_jobs_details, set_job_details,
                    get_pending_job_tickets, remove_pending_job_ticket,
                    get_killed_job_tickets, remove_killed_job_ticket,
-                   get_containers_details,
-                   get_container_name_to_component_name, set_containers_details)
+                   get_containers_details,set_containers_details,
+                   get_container_name_to_component_name, delete_container_name_to_component_name)
 
 logger = logging.getLogger(__name__)
 
@@ -289,49 +289,54 @@ class FaultToleranceAgent(multiprocessing.Process):
             logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
             return
         else:
-            component_name = container_name_to_component_name[container_name]
-            free_resources = ResourceManagementExecutor.get_free_resources(
-                redis=self._redis,
-                cluster_name=self._cluster_name
-            )
-            required_resources = [
-                ContainerResource(
-                    container_name=ResourceManagementExecutor.build_container_name(
-                        job_id=container_details["job_id"],
-                        component_id=container_details["component_id"],
-                        component_index=container_details["component_index"]
-                    ),
-                    cpu=float(container_details["cpu"]),
-                    memory=float(container_details["memory"].replace("m", "")),
-                    gpu=float(container_details["gpu"])
+            try:
+                component_name = container_name_to_component_name[container_name]
+                free_resources = ResourceManagementExecutor.get_free_resources(
+                    redis=self._redis,
+                    cluster_name=self._cluster_name
                 )
-            ]
-            allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
-                allocation_details={"metric": "cpu"},
-                required_resources=required_resources,
-                free_resources=free_resources
-            )
-            # self._remove_container(
-            #     container_name=container_details["container_name"],
-            #     container_details=container_details
-            # )
-            job_details = get_job_details(
-                redis=self._redis,
-                cluster_name=self._cluster_name,
-                job_name=container_details["job_name"]
-            )
-            for container_name, node_name in allocation_plan.items():
-                node_details = get_node_details(
+                required_resources = [
+                    ContainerResource(
+                        container_name=ResourceManagementExecutor.build_container_name(
+                            job_id=container_details["job_id"],
+                            component_id=container_details["component_id"],
+                            component_index=container_details["component_index"]
+                        ),
+                        cpu=float(container_details["cpu"]),
+                        memory=float(container_details["memory"].replace("m", "")),
+                        gpu=float(container_details["gpu"])
+                    )
+                ]
+                allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
+                    allocation_details={"metric": "cpu"},
+                    required_resources=required_resources,
+                    free_resources=free_resources
+                )
+                # self._remove_container(
+                #     container_name=container_details["container_name"],
+                #     container_details=container_details
+                # )
+                job_details = get_job_details(
                     redis=self._redis,
                     cluster_name=self._cluster_name,
-                    node_name=node_name
+                    job_name=container_details["job_name"]
                 )
-                self._start_container(
-                    container_name=container_name,
-                    node_details=node_details,
-                    job_details=job_details,
-                    component_name=component_name
-                )
+                for container_name, node_name in allocation_plan.items():
+                    node_details = get_node_details(
+                        redis=self._redis,
+                        cluster_name=self._cluster_name,
+                        node_name=node_name
+                    )
+                    self._start_container(
+                        container_name=container_name,
+                        node_details=node_details,
+                        job_details=job_details,
+                        component_name=component_name
+                    )
+            except AllocationFailed as e:
+                logger.warning(f"Allocation failed with {e}")
+            except StartContainerFailed as e:
+                logger.warning(f"Start container failed with {e}")
 
     def _remove_container(self, container_name: str, container_details: dict) -> None:
         """Remove container.
@@ -689,10 +694,8 @@ class KilledJobAgent(multiprocessing.Process):
                 job_name=job_name
             )
             if job_details is not None:
-                job_id = job_details["id"]
-
                 # Kill job
-                self._kill_job(job_id=job_id)
+                self._kill_job(job_details=job_details)
             else:
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 
@@ -703,15 +706,26 @@ class KilledJobAgent(multiprocessing.Process):
                 job_name=job_name
             )
 
-    def _kill_job(self, job_id: str) -> None:
+    def _kill_job(self, job_details: dict) -> None:
         """Kill job and stop containers.
 
         Args:
-            job_id: The ID of the job.
+            job_details (dict): Details of the job.
 
         Returns:
             None.
         """
+        # Get params
+        job_id = job_details["id"]
+        job_name = job_details["name"]
+
+        # Delete mapping if fault tolerance is activated
+        delete_container_name_to_component_name(
+            redis=self._redis,
+            cluster_name=self._cluster_name,
+            job_name=job_name
+        )
+
         # Load details and vars
         nodes_details = get_nodes_details(
             redis=self._redis,
