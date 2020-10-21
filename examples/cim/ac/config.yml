@@ -32,12 +32,15 @@ agents:
         - 256
         - 128
         - 64
+      softmax_enabled: true
+      batch_norm_enabled: false
     value_model:
       hidden_dims:
         - 256
         - 128
         - 64
-      dropout_p: 0.0
+      softmax_enabled: false
+      batch_norm_enabled: true
     policy_optimizer:
       lr: 0.001
     value_optimizer:

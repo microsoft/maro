@@ -13,7 +13,6 @@ class CIMStateShaper(StateShaper):
         self._max_ports_downstream = max_ports_downstream
         self._port_attributes = port_attributes
         self._vessel_attributes = vessel_attributes
-        self._dim = (look_back + 1) * (max_ports_downstream + 1) * len(port_attributes) + len(vessel_attributes)
 
     def __call__(self, decision_event, snapshot_list):
         tick, port_idx, vessel_idx = decision_event.tick, decision_event.port_idx, decision_event.vessel_idx
@@ -23,7 +22,3 @@ class CIMStateShaper(StateShaper):
         vessel_features = snapshot_list["vessels"][tick: vessel_idx: self._vessel_attributes]
         state = np.concatenate((port_features, vessel_features))
         return str(port_idx), state
-
-    @property
-    def dim(self):
-        return self._dim

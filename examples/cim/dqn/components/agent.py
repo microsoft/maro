@@ -7,9 +7,9 @@ from maro.rl import AbsAgent, ColumnBasedStore
 
 
 class CIMAgent(AbsAgent):
-    def __init__(self, name, algorithm, experience_pool: ColumnBasedStore, min_experiences_to_train,
+    def __init__(self, name, mode, algorithm, experience_pool: ColumnBasedStore, min_experiences_to_train,
                  num_batches, batch_size):
-        super().__init__(name, algorithm, experience_pool)
+        super().__init__(name, mode, algorithm, experience_pool)
         self._min_experiences_to_train = min_experiences_to_train
         self._num_batches = num_batches
         self._batch_size = batch_size

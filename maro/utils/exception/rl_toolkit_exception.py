@@ -5,25 +5,31 @@ from maro.utils.exception import MAROException
 
 
 class UnsupportedAgentModeError(MAROException):
-    """Unsupported agent mode error."""
+    """Unsupported agent mode."""
     def __init__(self, msg: str = None):
         super().__init__(4001, msg)
 
 
 class MissingShaperError(MAROException):
-    """Missing shaper error."""
+    """Missing shaper."""
     def __init__(self, msg: str = None):
         super().__init__(4002, msg)
 
 
-class WrongAgentModeError(MAROException):
-    """Wrong agent mode error."""
+class WrongAgentManagerModeError(MAROException):
+    """Wrong agent manager mode."""
     def __init__(self, msg: str = None):
         super().__init__(4003, msg)
 
 
-class StoreMisalignmentError(MAROException):
-    """Raised when a ``put`` operation on a ``ColumnBasedStore`` would cause the underlying lists to have different
-     sizes."""
+class WrongAgentModeError(MAROException):
+    """Wrong agent mode."""
     def __init__(self, msg: str = None):
         super().__init__(4004, msg)
+
+
+class StoreMisalignmentError(MAROException):
+    """Raised when a ``put`` operation on a ``ColumnBasedStore`` would cause the underlying lists to have different
+    sizes."""
+    def __init__(self, msg: str = None):
+        super().__init__(4005, msg)

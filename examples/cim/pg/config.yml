@@ -32,6 +32,8 @@ agents:
         - 256
         - 128
         - 64
+      softmax_enabled: true
+      batch_norm_enabled: false
     optimizer:
       lr: 0.001
     hyper_parameters:

@@ -4,42 +4,34 @@
 import torch.nn as nn
 
 
-class MLPDecisionLayers(nn.Module):
-    """NN model to compute state or action values.
+class RepresentationLayers(nn.Module):
+    def __init__(self, name: str, input_dim: int, hidden_dims: [int], output_dim: int, dropout_p: float):
+        """Deep Q network.
 
-    Fully connected network with batch normalization, leaky RELU and dropout as layer components.
+        Choose multi-layer full connection with dropout as the basic network architecture.
 
-    Args:
-        name (str): Network name.
-        input_dim (int): Network input dimension.
-        hidden_dims ([int]): Network hidden layer dimension. The length of ``hidden_dims`` means the
-                            hidden layer number, which requires larger than 1.
-        output_dim (int): Network output dimension.
-        dropout_p (float): Dropout parameter.
-        softmax (bool): If true, the output of the net will be a softmax transformation of the top layer's output.
-            Defaults to False.
-    """
-    def __init__(
-        self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], dropout_p: float,
-        softmax: bool = False
-    ):
+        Args:
+            name (str): Network name.
+            input_dim (int): Network input dimension.
+            hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
+            output_dim (int): Network output dimension.
+            dropout_p (float): Dropout parameter.
+        """
         super().__init__()
         self._name = name
+        self._dropout_p = dropout_p
         self._input_dim = input_dim
         self._hidden_dims = hidden_dims if hidden_dims is not None else []
         self._output_dim = output_dim
-        self._dropout_p = dropout_p
         self._layers = self._build_layers([input_dim] + self._hidden_dims)
         if len(self._hidden_dims) == 0:
             self._head = nn.Linear(self._input_dim, self._output_dim)
         else:
             self._head = nn.Linear(hidden_dims[-1], self._output_dim)
         self._net = nn.Sequential(*self._layers, self._head)
-        self._softmax = nn.Softmax(dim=1) if softmax else None
 
     def forward(self, x):
-        out = self._net(x).double()
-        return self._softmax(out) if self._softmax else out
+        return self._net(x).double()
 
     @property
     def input_dim(self):
@@ -58,12 +50,9 @@ class MLPDecisionLayers(nn.Module):
 
         BN -> Linear -> LeakyReLU -> Dropout
         """
-        return nn.Sequential(
-            nn.BatchNorm1d(input_dim),
-            nn.Linear(input_dim, output_dim),
-            nn.LeakyReLU(),
-            nn.Dropout(p=self._dropout_p)
-        )
+        return nn.Sequential(nn.Linear(input_dim, output_dim),
+                             nn.LeakyReLU(),
+                             nn.Dropout(p=self._dropout_p))
 
     def _build_layers(self, layer_dims: []):
         """Build multi basic layer.

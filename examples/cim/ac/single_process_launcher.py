@@ -6,11 +6,11 @@ import os
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper, TwoPhaseLinearExplorer
+from maro.rl import SimpleLearner, SimpleActor, AgentMode, AgentManagerMode
 from maro.utils import Logger
 
 from components.action_shaper import CIMActionShaper
-from components.agent_manager import ACAgentManager
+from components.agent_manager import create_ac_agents, ACAgentManager
 from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
@@ -30,8 +30,8 @@ if __name__ == "__main__":
     # Step 3: create an agent manager.
     agent_manager = ACAgentManager(
         name="cim_learner",
-        mode=AgentMode.TRAIN_INFERENCE,
-        agent_id_list=agent_id_list,
+        mode=AgentManagerMode.TRAIN_INFERENCE,
+        agent_dict=create_ac_agents(agent_id_list, AgentMode.TRAIN_INFERENCE, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
@@ -43,8 +43,6 @@ if __name__ == "__main__":
         trainable_agents=agent_manager, actor=actor,
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(
-        total_episodes=config.general.total_training_episodes,
-        model_dump_dir=os.path.join(os.getcwd(), "models")
-    )
+    learner.train(total_episodes=config.general.total_training_episodes)
     learner.test()
+    learner.save_models(os.path.join(os.getcwd(), "models"))

@@ -4,10 +4,10 @@
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
+from maro.rl import AgentMode, AgentManagerMode, SimpleActor, ActorWorker
 
 from components.action_shaper import CIMActionShaper
-from components.agent_manager import DQNAgentManager
+from components.agent_manager import create_pg_agents, PGAgentManager
 from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
@@ -19,10 +19,10 @@ if __name__ == "__main__":
     state_shaper = CIMStateShaper(**config.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
     experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
-    agent_manager = DQNAgentManager(
+    agent_manager = PGAgentManager(
         name="cim_remote_actor",
-        agent_id_list=agent_id_list,
-        mode=AgentMode.INFERENCE,
+        mode=AgentManagerMode.INFERENCE,
+        agent_dict=create_pg_agents(agent_id_list, AgentMode.INFERENCE, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper

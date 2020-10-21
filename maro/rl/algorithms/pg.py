@@ -29,7 +29,7 @@ class PolicyGradient(AbsAlgorithm):
 
     Args:
         policy_model (nn.Module): model for generating actions given states.
-        optimizer_cls: torch optimizer class for the policy model.
+        optimizer_cls: torch optimizer class for the policy model. If this is None, the policy model is not trainable.
         optimizer_params: parameters required for the policy optimizer class.
         hyper_params: hyper-parameter set for the AC algorithm.
     """
@@ -41,7 +41,8 @@ class PolicyGradient(AbsAlgorithm):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._policy_model = policy_model.to(self._device)
-        self._policy_optimizer = optimizer_cls(self._policy_model.parameters(), **optimizer_params)
+        if optimizer_cls is not None:
+            self._policy_optimizer = optimizer_cls(self._policy_model.parameters(), **optimizer_params)
         self._hyper_params = hyper_params
 
     @property
@@ -56,14 +57,15 @@ class PolicyGradient(AbsAlgorithm):
         return np.random.choice(self._hyper_params.num_actions, p=action_dist)
 
     def train(self, states: np.ndarray, actions: np.ndarray, returns: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)   # (N, state_dim)
-        actions = torch.from_numpy(actions).to(self._device)  # (N,)
-        returns = torch.from_numpy(returns).to(self._device)
-        action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
-        policy_loss = -(torch.log(action_prob) * returns).mean()
-        self._policy_optimizer.zero_grad()
-        policy_loss.backward()
-        self._policy_optimizer.step()
+        if hasattr(self, "_optimizer"):
+            states = torch.from_numpy(states).to(self._device)   # (N, state_dim)
+            actions = torch.from_numpy(actions).to(self._device)  # (N,)
+            returns = torch.from_numpy(returns).to(self._device)
+            action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
+            policy_loss = -(torch.log(action_prob) * returns).mean()
+            self._policy_optimizer.zero_grad()
+            policy_loss.backward()
+            self._policy_optimizer.step()
 
     def load_models(self, policy_model):
         self._policy_model = policy_model

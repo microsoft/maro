@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from .abs_learner import AbsLearner
-from maro.rl.agent.abs_agent_manager import AbsAgentManager
+from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.utils import DummyLogger
 
@@ -15,7 +15,7 @@ class SimpleLearner(AbsLearner):
         actor (Actor or ActorProxy): an Actor or VectorActorProxy instance.
         logger: used for logging important messages.
     """
-    def __init__(self, trainable_agents: AbsAgentManager, actor, logger=DummyLogger()):
+    def __init__(self, trainable_agents: SimpleAgentManager, actor, logger=DummyLogger()):
         super().__init__()
         self._trainable_agents = trainable_agents
         self._actor = actor

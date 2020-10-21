@@ -57,8 +57,8 @@ class ColumnBasedStore(AbsStore):
     def __getstate__(self):
         """A small modification to make the object picklable.
 
-        Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved
-        in the ``defaultdict`` definition of the ``_store`` attribute.  
+        Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
+        ``defaultdict`` definition of the ``_store`` attribute.
         """
         obj_dict = self.__dict__
         obj_dict["_store"] = dict(obj_dict["_store"])

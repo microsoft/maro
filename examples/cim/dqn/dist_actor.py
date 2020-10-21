@@ -4,10 +4,10 @@
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
+from maro.rl import AgentMode, AgentManagerMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
 
 from components.action_shaper import CIMActionShaper
-from components.agent_manager import DQNAgentManager
+from components.agent_manager import create_dqn_agents, DQNAgentManager
 from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
@@ -34,8 +34,8 @@ if __name__ == "__main__":
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
     agent_manager = DQNAgentManager(
         name="cim_remote_actor",
-        agent_id_list=agent_id_list,
-        mode=AgentMode.INFERENCE,
+        mode=AgentManagerMode.INFERENCE,
+        agent_dict=create_dqn_agents(agent_id_list, AgentMode.INFERENCE, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
