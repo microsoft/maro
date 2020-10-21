@@ -3,6 +3,8 @@
 
 import io
 import os
+import numpy
+
 from setuptools import setup, find_packages, Extension
 
 # Set environment variable to skip deployment process of MARO
@@ -23,10 +25,6 @@ compile_conditions = {}
 # CURRENTLY we using environment variables to specified compiling conditions
 # TODO: used command line arguments instead
 
-# specified frame backend
-FRAME_BACKEND = os.environ.get("FRAME_BACKEND", "NUMPY")  # NUMPY or empty
-
-
 # include dirs for frame and its backend
 include_dirs = []
 
@@ -37,25 +35,23 @@ extensions.append(
         sources=[f"{BASE_SRC_PATH}/backend.cpp"])
 )
 
-if FRAME_BACKEND == "NUMPY":
-    import numpy
 
-    include_dirs.append(numpy.get_include())
+include_dirs.append(numpy.get_include())
 
-    extensions.append(
-        Extension(
-            f"{BASE_MODULE_NAME}.np_backend",
-            sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
-            include_dirs=include_dirs)
-    )
-else:
-    # raw implementation
-    # NOTE: not implemented now
-    extensions.append(
-        Extension(
-            f"{BASE_MODULE_NAME}.raw_backend",
-            sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"])
-    )
+extensions.append(
+    Extension(
+        f"{BASE_MODULE_NAME}.np_backend",
+        sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
+        include_dirs=include_dirs)
+)
+
+# raw implementation
+# NOTE: not implemented now
+extensions.append(
+    Extension(
+        f"{BASE_MODULE_NAME}.raw_backend",
+        sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"])
+)
 
 # frame
 extensions.append(
