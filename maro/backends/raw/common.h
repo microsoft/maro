@@ -9,19 +9,19 @@ namespace maro
     namespace backends
     {
         // Real data type of attributes.
-        typedef int8_t ATTR_BYTE;
-        typedef int16_t ATTR_SHORT;
-        typedef int32_t ATTR_INT;
-        typedef int64_t ATTR_LONG;
-        typedef float ATTR_FLOAT;
-        typedef double ATTR_DOUBLE;
+        using ATTR_BYTE = int8_t;
+        using ATTR_SHORT = int16_t;
+        using ATTR_INT = int32_t;
+        using ATTR_LONG = int64_t;
+        using ATTR_FLOAT = float;
+        using ATTR_DOUBLE = double;
 
         // NOTE: this should sync with maro/backends/backend.pxd
         // Common definitions.
-        typedef uint64_t UINT;
-        typedef uint64_t IDENTIFIER;
-        typedef uint64_t NODE_INDEX;
-        typedef uint64_t SLOT_INDEX;
+        using UINT = uint64_t;
+        using IDENTIFIER = uint64_t;
+        using NODE_INDEX = uint64_t;
+        using SLOT_INDEX = uint64_t;
 
         /**
          * @brief Supported data type for attributes.
