@@ -50,9 +50,11 @@ class RepresentationLayers(nn.Module):
 
         BN -> Linear -> LeakyReLU -> Dropout
         """
-        return nn.Sequential(nn.Linear(input_dim, output_dim),
-                             nn.LeakyReLU(),
-                             nn.Dropout(p=self._dropout_p))
+        return nn.Sequential(
+            nn.Linear(input_dim, output_dim),
+            nn.LeakyReLU(),
+            nn.Dropout(p=self._dropout_p)
+        )
 
     def _build_layers(self, layer_dims: []):
         """Build multi basic layer.
