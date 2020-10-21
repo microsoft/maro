@@ -1,9 +1,6 @@
 #ifndef _MARO_BACKEND_RAW_BACKEND
 #define _MARO_BACKEND_RAW_BACKEND
 
-#include "common.h"
-#include "attribute.h"
-
 /*
 Backend used to group attributes into nodes, as Node is a concept here.
 
@@ -33,7 +30,7 @@ POSSIABLE STRUCTURES:
 
 |--------------------- current frame ------------------------------|
 |              changable area               |  un-changable area   |
-|    node 1            |         node 2-----|     node 1           |
+|    node 1            |         node 2     |     node 1           |
 |-------------------------------- ----------|----------------------|
 | a11 | a12 | a2 | a3 | a4 | a5 | a61 | a62 | a7 | a81 | a82 | a83 |
 
@@ -50,22 +47,24 @@ POSSIABLE STRUCTURES:
 | a11 | a12 | a2 | a3 | a4 | a5 | a61 | a62 |
 
 
-2. dynamic
 
 
-|---------------------------------------------- current frame ---------------------------------------------|
-| n1-a11 | n1-a12 | u-n2-a2 | n1-a3 | n2-a4 | n2-a5 | n3-a61 | n3-a62 | u-n3-a7 | n1-a81 | n1-a82 | n1-a83 |
+2. complex
+
+memory layout (4 parts, we may use memmap with 4 files to hold this):
+
+|     indices memory      |          frame memory                     |
+|-------------------------|-------------------------------------------|
+|     indices memory      |          snapshot memory                  |
 
 
-| --------------------------------------- snapshot 1 ----------------------------------|
-| n1-a11 | n1-a12 | n1-a3 | n2-a4 | n2-a5 | n3-a61 | n3-a62 | n1-a81 | n1-a82 | n1-a83 |
-
-| --------------------------------------- snapshot N ----------------------------------|
-| n1-a11 | n1-a12 | n1-a3 | n2-a4 | n2-a5 | n3-a61 | n3-a62 | n1-a81 | n1-a82 | n1-a83 |
+We can also have a global index table for fast accessing.
 
 
-3. complex
+|   tick    |    node_id    | node_index    |  attr_id   | slot_index  |
 
+
+Structure:
 
 |------------------------------- current frame ----------------------------------------------|
 |-------------------------|----------- changable area --------------- |  un-changable area   |
@@ -76,7 +75,7 @@ POSSIABLE STRUCTURES:
 
 |------------------------------- snapshot 1 --------------------------|
 |-------------------------|------------------ changable area ---------|
-|-------------------------|    node 1            |         node 2-----|
+|-------------------------|    node 1            |         node 2     |
 |  node indices           |-------------------------------- ----------|
 | n1-indices | n2-indices | a11 | a12 | a2 | a3 | a4 | a5 | a61 | a62 |
 
@@ -88,10 +87,10 @@ POSSIABLE STRUCTURES:
 | n1-indices | n2-indices | a11 | a12 | a2 | a3 | a4 | a5 | a61 | a62 | a7 | a8 | a9 | a10 |
 
 
-To support dynamic nodes (add/remove), we have to method:
+To support dynamic nodes (add/remove), we have 2 method:
 
 1. No in-memory snapshot over-write
- 
+
  do not support snapshot overwrite, just keep all snapshot in mem-mapping file. we can just expend the file to support more data
 
 
@@ -114,18 +113,267 @@ all above methods need a table to track avaiable and existing snapshot, but may 
 
 */
 
+#include <string>
+#include <vector>
+#include <unordered_map>
+
+#include "common.h"
+#include "attribute.h"
+
+using namespace std;
 
 namespace maro
 {
-    namespace backends
+  namespace backends
+  {
+    namespace raw
     {
-        namespace raw
+      class BadSetupState : public exception
+      {
+      };
+
+      class BadNodeIndex : public exception
+      {
+      };
+
+      class BadSlotIndex : public exception
+      {
+      };
+
+      class BadNodeIdentifier : public exception
+      {
+
+      };
+
+      class BadAttributeIdentifier : public exception
+      {
+
+      };
+
+      /// <summary>
+      /// Backend used to hold node and releated attributes, providing accessing interface 
+      /// </summary>
+      class Backend
+      {
+        /// <summary>
+        /// Internal structure to hold node information.
+        /// </summary>
+        struct NodeInfo
         {
-          class Backend
-          {
-          };
-        } // namespace raw
-    }     // namespace backends
+          NODE_INDEX number{ 1 };
+
+          // offset in 1 frame
+          UINT offset;
+
+          // per node
+          ULONG attr_number;
+
+          IDENTIFIER id;
+
+          string name;
+        };
+
+        /// <summary>
+        /// Internal structure to hold attribute information.
+        /// </summary>
+        struct AttrInfo
+        {
+          AttrDataType data_type;
+
+          // offset in node
+          UINT offset;
+
+          NODE_INDEX slots{ 1 };
+
+          IDENTIFIER node_id;
+
+          IDENTIFIER id;
+
+          string name;
+        };
+
+        // node register information
+        vector<NodeInfo> _nodes;
+
+        // attribute register information
+        vector<AttrInfo> _attrs;
+
+        // used to hold all the attributes
+        vector<Attribute> _data;
+
+        // length of one frame, this is fixed after setup, used for fast calculation
+        size_t _frame_length{ 0 };
+
+        // is backend already setup
+        bool _is_setup{ false };
+
+        bool _is_snapshot_enabled{ false };
+
+        // capacity number of snapshots to keep
+        UINT _snapshot_number{ 0 };
+
+        // mapping for snapshot from tick to internal index
+        unordered_map<UINT, UINT> _ss_tick2index_map;
+
+        // mapping for snapshot from internal index to tick
+        unordered_map<UINT, UINT> _ss_index2tick_map;
+
+        // 0 is current frame
+        UINT _cur_snapshot_index{ 1 };
+
+      public:
+        Backend();
+
+        /// <summary>
+        /// Add a new node in backend
+        /// </summary>
+        /// <param name="node_name">Name of new node</param>
+        /// <returns>Id of new node, NOTE: this id is different with index, it is used to identify a node</returns>
+        IDENTIFIER add_node(string node_name) noexcept;
+
+        /// <summary>
+        /// Add a new attribute to specified node
+        /// </summary>
+        /// <param name="node_id">Id of node which new the attribute belongs to</param>
+        /// <param name="attr_name">Name of new attribute</param>
+        /// <param name="attr_type">Data type of this attribute</param>
+        /// <param name="slot_number">Number of slots of this attribute, default is 1</param>
+        /// <returns>Id of the new attribute</returns>
+        IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number = 1);
+
+
+        /// <summary>
+        /// Set value for specified attribute's slot
+        /// </summary>
+        /// <typeparam name="T">Supported attribute data type</typeparam>
+        /// <param name="attr_id">Id of attribute</param>
+        /// <param name="node_index">Index of node the attribute belongs to</param>
+        /// <param name="slot_index">Index of slot to set</param>
+        /// <param name="value">Value to set</param>
+        template <typename T>
+        void set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value);
+
+
+        // Attribute getters
+        ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
+        ATTR_SHORT get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
+        ATTR_INT get_int(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
+        ATTR_LONG get_long(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
+        ATTR_FLOAT get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
+        ATTR_DOUBLE get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
+
+        /// <summary>
+        /// Set number of nodes in this backend
+        /// </summary>
+        /// <param name="node_id">Id of node to set</param>
+        /// <param name="number">Number to set</param>
+        void set_node_number(IDENTIFIER node_id, NODE_INDEX number);
+
+        /// <summary>
+        /// Setup current backend。
+        ///
+        /// After seting up, add_attr and add_node will not work, and attribute's getter/setter can work at this point
+        /// </summary>
+        /// <param name="enable_snapshot">If backend should enable snapshot</param>
+        /// <param name="snapshot_number">Number of snapshots (in-memory) should be keep, this means old one will be over-write if reach the capacity</param>
+        void setup(bool enable_snapshot, UINT snapshot_number);
+
+        /// <summary>
+        /// Reset backend frame to initial
+        /// </summary>
+        void reset_frame();
+
+
+        /// <summary>
+        /// Reset backend snapshots to initial
+        /// </summary>
+        void reset_snapshots();
+
+
+        /*****************************************************/
+        // Snapshot functions
+
+        /*
+        We keep snapshot related function here as we will use one vector to hold both current frame and snapshots
+        */
+
+
+        /// <summary>
+        /// Take a snapshot for current frame
+        /// </summary>
+        /// <param name="tick">Key of this snapshot</param>
+        void take_snapshot(UINT tick);
+
+        /// <summary>
+        /// Get length of 1 tick querying
+        /// </summary>
+        /// <param name="node_id">Id of target node</param>
+        /// <param name="node_indices">Array of node index to query</param>
+        /// <param name="node_length">Length of node index array</param>
+        /// <param name="attributes">Id array of quering attribute</param>
+        /// <param name="attr_length">Length of attribute array</param>
+        /// <returns></returns>
+        UINT query_one_tick_length(IDENTIFIER node_id, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
+
+        /// <summary>
+        /// Query in snapshots with conditions
+        /// </summary>
+        /// <param name="result">Float pointer that used to hold result, it should be big enough</param>
+        /// <param name="node_id">Id of target node</param>
+        /// <param name="ticks">Ticks to query</param>
+        /// <param name="ticks_length">Length of ticks length</param>
+        /// <param name="node_indices">Array of node index to query</param>
+        /// <param name="node_length">Length of node index array</param>
+        /// <param name="attributes">Id array of quering attribute</param>
+        /// <param name="attr_length">Length of attribute array</param>
+        void query(ATTR_FLOAT* result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
+
+
+
+      private:
+
+        // Used to ensure setup state for further operations
+        inline void ensure_setup_state(bool expected_state = false);
+
+        /// <summary>
+        /// Ensure that node index is valid.
+        /// </summary>
+        /// <param name="cur">Current node index</param>
+        /// <param name="node">Target node information</param>
+        inline void ensure_node_index(NODE_INDEX cur, NodeInfo& node);
+
+        /// <summary>
+        /// Ensure that slot index is valid.
+        /// </summary>
+        /// <param name="cur">Current slot index</param>
+        /// <param name="attr">Target attribute information</param>
+        inline void ensure_slot_index(SLOT_INDEX cur, AttrInfo& attr);
+
+        /// <summary>
+        /// Ensure that node id is valid
+        /// </summary>
+        /// <param name="id">Node id</param>
+        inline void ensure_node_id(IDENTIFIER id);
+
+        /// <summary>
+        /// Ensure attribute id is valid
+        /// </summary>
+        /// <param name="id">Attribute id</param>
+        inline void ensure_attr_id(IDENTIFIER id);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="node_index"></param>
+        /// <param name="attr"></param>
+        /// <param name="slot_index"></param>
+        /// <returns></returns>
+        inline size_t calc_attr_index(UINT frame_index, NodeInfo& node, NODE_INDEX node_index, AttrInfo& attr, SLOT_INDEX slot_index);
+
+      };
+    } // namespace raw
+  }     // namespace backends
 } // namespace maro
 
 #endif
