@@ -44,12 +44,12 @@ class DQN(AbsAlgorithm):
             it is None, the target model will be initialized as a deep copy of the eval model.
     """
     def __init__(
-        self, eval_model, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
+        self, eval_model: nn.Module, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
         target_model=None
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._model_dict = {"eval": eval_model.to(self._device) if eval_model is not None else eval_model}
+        self._model_dict = {"eval": eval_model.to(self._device)}
         if optimizer_cls is not None:
             self._optimizer = optimizer_cls(self._model_dict["eval"].parameters(), **optimizer_params)
             if target_model is None:
@@ -107,7 +107,7 @@ class DQN(AbsAlgorithm):
 
     def load_models(self, eval_model):
         """Load the eval model from memory."""
-        self._model_dict["eval"] = eval_model
+        self._model_dict["eval"].load_state_dict(eval_model)
 
     def dump_models(self):
         """Return the eval model."""
