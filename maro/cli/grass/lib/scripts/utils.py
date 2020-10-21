@@ -32,7 +32,25 @@ def generate_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
     return f"{prefix}{postfix}"
 
 
-"""Details from Redis"""
+"""Master details"""
+
+
+def get_master_details(redis, cluster_name: str) -> dict:
+    return json.loads(
+        redis.get(
+            f"{cluster_name}:master_details"
+        )
+    )
+
+
+def set_master_details(redis, cluster_name: str, master_details: dict) -> None:
+    redis.set(
+        f"{cluster_name}:master_details",
+        json.dumps(master_details)
+    )
+
+
+"""Node details"""
 
 
 def get_node_details(redis, cluster_name: str, node_name: str) -> dict:
@@ -40,14 +58,6 @@ def get_node_details(redis, cluster_name: str, node_name: str) -> dict:
         redis.hget(
             f"{cluster_name}:node_details",
             node_name
-        )
-    )
-
-
-def get_master_details(redis, cluster_name: str) -> dict:
-    return json.loads(
-        redis.get(
-            f"{cluster_name}:master_details"
         )
     )
 
@@ -69,18 +79,14 @@ def set_node_details(redis, cluster_name: str, node_name: str, node_details: dic
     )
 
 
-def set_master_details(redis, cluster_name: str, master_details: dict) -> None:
-    redis.set(
-        f"{cluster_name}:master_details",
-        json.dumps(master_details)
-    )
-
-
 def delete_node_details(redis, cluster_name: str, node_name: str):
     redis.hdel(
         f"{cluster_name}:node_details",
         node_name
     )
+
+
+"""Job details"""
 
 
 def get_job_details(redis, cluster_name: str, job_name: str) -> dict:
@@ -107,6 +113,18 @@ def set_job_details(redis, cluster_name: str, job_name: str, job_details: dict) 
         job_name,
         json.dumps(job_details)
     )
+
+
+"""Containers details"""
+
+
+def get_containers_details(redis, cluster_name: str) -> dict:
+    containers_details = redis.hgetall(
+        f"{cluster_name}:container_details",
+    )
+    for container_name, container_details in containers_details.items():
+        containers_details[container_name] = json.loads(container_details)
+    return containers_details
 
 
 """Hash related"""
