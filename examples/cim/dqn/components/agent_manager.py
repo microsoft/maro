@@ -10,18 +10,23 @@ from maro.utils import set_seeds
 
 
 def create_dqn_agents(agent_id_list, mode, config):
+    num_actions = config.algorithm.num_actions
     if mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}:
         return {agent_id: DQN(
-                            eval_model=None,
-                            optimizer_cls=None,
-                            optimizer_params=None,
-                            loss_func=None,
-                            hyper_params=None
-                            )
+                    eval_model=None,
+                    optimizer_cls=None,
+                    optimizer_params=None,
+                    loss_func=None,
+                    hyper_params=DQNHyperParams(
+                        num_actions=num_actions,
+                        reward_decay=None,
+                        num_training_rounds_per_target_replacement=None,
+                        tau=None
+                    )
+                )
                 for agent_id in agent_id_list}
 
     set_seeds(config.seed)
-    num_actions = config.algorithm.num_actions
     agent_dict = {}
     for agent_id in agent_id_list:
         eval_model = LearningModel(
