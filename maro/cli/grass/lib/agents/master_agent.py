@@ -386,7 +386,7 @@ class FaultToleranceAgent(multiprocessing.Process):
         # Parse params
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
-        node_id = node_details["name"]
+        node_id = node_details["id"]
         node_name = node_details["name"]
         job_id = job_details["id"]
         job_name = job_details["name"]
@@ -570,7 +570,7 @@ class PendingJobAgent(multiprocessing.Process):
         # Parse params
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
-        node_id = node_details["name"]
+        node_id = node_details["id"]
         node_name = node_details["name"]
         job_name = job_details["name"]
         job_id = job_details["id"]
