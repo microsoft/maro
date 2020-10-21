@@ -92,7 +92,7 @@ class Action:
     idx = 0
 
     def __init__(
-        self, sub_engine_name: str, item_index: int = 0, number: int = 0,
+        self, item_index: int = 0, number: int = 0,
         action_type: ActionType = ActionType.order, tick: int = 0, order_mode: OrderMode = None,
         stop: float = 0, limit: float = 0, id: int = None, life_time: int = 1
     ):
@@ -102,7 +102,6 @@ class Action:
             item_index (int): index of the item (such as stock index), usually from DecisionEvent.items
             number (int): number to perform, positive means buy, negitive means sell
         """
-        self.sub_engine_name = sub_engine_name
         self.item_index = item_index
         self.number = number
         self.action_type = action_type
@@ -122,5 +121,5 @@ class Action:
         print("Action id:", self.id)
 
     def __repr__(self):
-        return f"< Action engine: {self.sub_engine_name} item: {self.item_index} number: {self.number} action type: \
+        return f"< Action item: {self.item_index} number: {self.number} action type: \
             {self.action_type} decision: {self.decision_tick} finished: {self.finish_tick} >"

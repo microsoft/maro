@@ -1,4 +1,5 @@
 """Used to maintain stock/futures, one account per episode"""
+from collections import OrderedDict
 from maro.backends.frame import SnapshotList
 from maro.backends.frame import node, NodeBase, NodeAttribute
 from maro.simulator.scenarios.finance.common.common import Action, ActionState, TradeResult
@@ -9,8 +10,11 @@ class Account(NodeBase):
     remaining_money = NodeAttribute("f")
     total_money = NodeAttribute("f")
 
-    def set_init_state(self, money: float):
-        self._money = money
+    def __init__(self):
+        self.action_history = OrderedDict()
+
+    def set_init_state(self, init_money: float):
+        self._money = init_money
         self.remaining_money = self._money
         self.total_money = self._money
         self._last_total_money = self._money
@@ -33,3 +37,4 @@ class Account(NodeBase):
         self._last_total_money = 0
         self.remaining_money = self._money
         self.total_money = self._money
+        self.action_history.clear()

@@ -1,7 +1,7 @@
 import math
 from enum import Enum
 from collections import OrderedDict
-from maro.simulator.scenarios.finance.common import (
+from maro.simulator.scenarios.finance.common.common import (
     Action, OrderMode
 )
 

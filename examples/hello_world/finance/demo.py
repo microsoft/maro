@@ -2,7 +2,7 @@ import time
 import random
 from collections import OrderedDict
 from maro.simulator import Env, DecisionMode
-from maro.simulator.scenarios.finance.common import Action, OrderMode, ActionType, DecisionEvent
+from maro.simulator.scenarios.finance.common.common import Action, OrderMode, ActionType, DecisionEvent
 
 auto_event_mode = False
 start_tick = 10226
@@ -37,7 +37,7 @@ for ep in range(max_ep):
                     default_order_mode = action_scope[2]
                     print(stock_index, min_amount, max_amount, supported_order_types, default_order_mode)
                     # qurey snapshot for stock information
-                    cur_env_snap = env.snapshot_list.sz_stocks['stocks']
+                    cur_env_snap = env.snapshot_list['stocks']
                     holding = cur_env_snap[env.tick-1:int(decision_event.item):"account_hold_num"][-1]
                     cost = cur_env_snap[env.tick-1:int(decision_event.item):"average_cost"][-1]
                     opening_price = cur_env_snap[env.tick-1:int(decision_event.item):"opening_price"][-1]
@@ -49,12 +49,12 @@ for ep in range(max_ep):
                     splits = cur_env_snap[env.tick-1:int(decision_event.item):"splits"][-1]
                     print(holding, cost, opening_price, closing_price, highest_price, lowest_price, adj_closing_price, dividends, splits)
                     # qurey snapshot for account information
-                    total_money = env.snapshot_list.sz_stocks['sub_account'][env.tick-1:0:"total_money"][-1]
-                    remaining_money = env.snapshot_list.sz_stocks['sub_account'][env.tick-1:0:"remaining_money"][-1]
+                    total_money = env.snapshot_list['account'][env.tick-1:0:"total_money"][-1]
+                    remaining_money = env.snapshot_list['account'][env.tick-1:0:"remaining_money"][-1]
                     print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "total_money:", total_money, "remaining_money", remaining_money)
 
                     if holding > 0:# sub_engine_name -> market
-                        action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=-holding,
+                        action = Action(item_index=decision_event.item, number=-holding,
                                         action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.market_order)
                         
                         # limit_order
@@ -74,24 +74,10 @@ for ep in range(max_ep):
                         #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.limit_order, limit=highest_price, life_time=10)
                     else:
 
-                        action = Action(sub_engine_name=decision_event.sub_engine_name, item_index=decision_event.item, number=1000,
+                        action = Action(item_index=decision_event.item, number=1000,
                                         action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.market_order)
                     # else:
                     #     action = None
-                elif decision_event.action_type == ActionType.transfer:
-                    action = None
-                    # account transfer decision
-                    # cur_env_snap = getattr(env.snapshot_list, decision_event.sub_engine_name)
-                    # sub_account_money = cur_env_snap.dynamic_nodes[env.tick:0:"remaining_money"][-1]
-                    # available = 1
-
-                    # main_account_money = env.snapshot_list.account.static_nodes[env.tick:0:"remaining_money"][-1]
-                    # if env.tick % 2 == 0:
-                    #     action = Action(sub_engine_name=decision_event.sub_engine_name, number=-100,
-                    #                         action_type=ActionType.transfer, tick=env.tick)
-                    # else:
-                    #     action = Action(sub_engine_name=decision_event.sub_engine_name, number=100,
-                    #                         action_type=ActionType.transfer, tick=env.tick)
                 elif decision_event.action_type == ActionType.cancel_order:
                     # cancel order decision
                     print(f"Cancel order decision_event:{decision_event.action_scope},tick:{env.tick}")
@@ -108,7 +94,7 @@ for ep in range(max_ep):
     #env.reset()
     ep_time = time.time() - ep_start
 
-stock_snapshots = env.snapshot_list.sz_stocks['stocks']
+stock_snapshots = env.snapshot_list['stocks']
 
 print("len of snapshot:", len(stock_snapshots))
 
@@ -146,7 +132,7 @@ print(sz_market_remaining_money)
 # print("remaining money for account")
 # print(account_remaining_money)
 
-sz_market_total_money = env.snapshot_list.sz_stocks['sub_account'][::"total_money"]
+sz_market_total_money = env.snapshot_list['account'][::"total_money"]
 
 print("total_money for sz market.")
 print(sz_market_total_money)

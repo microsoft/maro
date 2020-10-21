@@ -1,4 +1,4 @@
-from maro.simulator.scenarios.finance.common import OrderMode
+from maro.simulator.scenarios.finance.common.common import OrderMode
 
 
 class Order():
