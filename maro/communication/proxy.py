@@ -140,7 +140,7 @@ class Proxy:
         if self._enable_rejoin:
             container_name = os.getenv("CONTAINER_NAME")
             job_name = os.getenv("JOB_NAME")
-            self._redis_connection.hset(f"{job_name}:component_name_to_container_name", self._name, json.dumps(container_name))
+            self._redis_connection.hset(f"{job_name}:component_name_to_container_name", self._name, container_name)
 
     def __del__(self):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
@@ -462,13 +462,13 @@ class Proxy:
                 for peer_name, socket_info in on_redis_peers_dict.items():
                     # New peer joined.
                     if peer_name not in on_board_peers_dict.keys():
-                        self._logger.debug(f"PEER_REJOIN: New peer {peer_name} join.")
+                        self._logger.warn(f"PEER_REJOIN: New peer {peer_name} join.")
                         self._driver.connect({peer_name: socket_info})
                         self._peers_socket_dict[peer_name] = socket_info
                     else:
                         # Old peer restarted.
                         if socket_info != on_board_peers_dict[peer_name]:
-                            self._logger.debug(f"PEER_REJOIN: Peer {peer_name} rejoin.")
+                            self._logger.warn(f"PEER_REJOIN: Peer {peer_name} rejoin.")
                             self._driver.disconnect({peer_name: on_board_peers_dict[peer_name]})
                             self._driver.connect({peer_name: socket_info})
                             self._peers_socket_dict[peer_name] = socket_info
@@ -477,7 +477,7 @@ class Proxy:
                 exited_peers = [peer_name for peer_name in on_board_peers_dict.keys()
                                 if peer_name not in on_redis_peers_dict.keys()]
                 for exited_peer in exited_peers:
-                    self._logger.debug(f"PEER_REJOIN: Peer {exited_peer} exited.")
+                    self._logger.warn(f"PEER_REJOIN: Peer {exited_peer} exited.")
                     self._driver.disconnect({exited_peer: on_board_peers_dict[exited_peer]})
                     del self._peers_socket_dict[exited_peer]
 

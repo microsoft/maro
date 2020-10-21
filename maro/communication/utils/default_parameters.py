@@ -10,7 +10,7 @@ proxy = convert_dottable({
     "redis": {
         "host": "localhost",
         "port": 6379,
-        "max_retries": 5,
+        "max_retries": 10,
         "base_retry_interval": 0.1
     },
     "peer_rejoin": {

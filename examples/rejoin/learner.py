@@ -34,7 +34,7 @@ proxy = Proxy(group_name=config.group_name,
               max_wait_time_for_rejoin=config.rejoin.max_wait_time_for_rejoin,
               log_enable=True)
 
-peers = proxy.peers
+peers = proxy.peers["actor"]
 
 # message list build
 message_tag_list = ["cont"] * message_number
@@ -44,10 +44,10 @@ for s in stop_tag_posi:
 
 for idx, msg_tag in enumerate(message_tag_list):
     time.sleep(random.randint(0,5))
-    peer_idx = idx % len(peers["actor"])
+    peer_idx = idx % len(peers)
     message = SessionMessage(tag=msg_tag,
                              source=proxy.component_name,
-                             destination=peers["actor"][peer_idx],
+                             destination=peers[peer_idx],
                              payload=msg_tag,
                              session_type=SessionType.TASK)
     reply = proxy.send(message)

@@ -25,7 +25,7 @@ def peers_checker(func):
                 # check message cache, if has, send pending message first.
                 if self._enable_message_cache and peer_name in list(self._message_cache_for_exited_peers.keys()):
                     pending_session_ids = []
-                    self._logger.debug(f"Sending pending message to {peer_name}.")
+                    self._logger.warn(f"Sending pending message to {peer_name}.")
                     for pending_message in self._message_cache_for_exited_peers[peer_name]:
                         pending_session_ids.append(func(self, pending_message))
                     del self._message_cache_for_exited_peers[peer_name]

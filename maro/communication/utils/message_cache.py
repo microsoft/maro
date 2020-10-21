@@ -32,5 +32,5 @@ class MessageCache(abc.MutableMapping):
     def append(self, key, value):
         if len(self._dict[key]) == self._max_length:
             self._dict[key].pop(0)
-        
+
         self._dict[key].append(value)
