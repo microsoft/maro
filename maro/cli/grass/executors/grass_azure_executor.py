@@ -16,11 +16,14 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node, copy_files_from_node, sync_mkdir, copy_and_rename
 from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.utils.details import (load_cluster_details, save_cluster_details, load_job_details, save_job_details,
-                                    load_schedule_details, save_schedule_details)
+from maro.cli.utils.details import (
+    load_cluster_details, save_cluster_details, load_job_details, save_job_details,
+    load_schedule_details, save_schedule_details
+)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import (generate_cluster_id, generate_job_id, generate_component_id, generate_node_name,
-                                   get_valid_file_name)
+from maro.cli.utils.naming import (
+    generate_cluster_id, generate_job_id, generate_component_id, generate_node_name, get_valid_file_name
+)
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
@@ -65,8 +68,9 @@ class GrassAzureExecutor:
             "root['master']['samba']": {'password': ''.join(secrets.choice(alphabet) for _ in range(20))},
             "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20))
         }
-        with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml')) as fr:
+        with open(
+            os.path.expanduser(f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml')
+        ) as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -194,18 +198,30 @@ class GrassAzureExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
 
         # Create folders
-        sync_mkdir(remote_path=GlobalPaths.MARO_GRASS_LIB,
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
+        sync_mkdir(
+            remote_path=GlobalPaths.MARO_GRASS_LIB,
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
 
         # Copy required files
         copy_files_to_node(
@@ -619,9 +635,11 @@ class GrassAzureExecutor:
         # Get stoppable nodes
         stoppable_nodes = []
         for node_name, node_details in nodes_details.items():
-            if node_details['node_size'] == node_size and \
-                    node_details['state'] == 'Running' and \
-                    self._count_running_containers(node_details) == 0:
+            if (
+                node_details['node_size'] == node_size and
+                node_details['state'] == 'Running' and
+                self._count_running_containers(node_details) == 0
+            ):
                 stoppable_nodes.append(node_name)
 
         # Check replicas
@@ -700,8 +718,7 @@ class GrassAzureExecutor:
 
     # maro grass image
 
-    def push_image(self, image_name: str, image_path: str, remote_context_path: str,
-                   remote_image_name: str):
+    def push_image(self, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str):
         # Load details
         cluster_details = self.cluster_details
         admin_username = cluster_details['user']['admin_username']
@@ -719,8 +736,8 @@ class GrassAzureExecutor:
                 export_path=os.path.expanduser(image_path)
             )
             if self._check_checksum_validity(
-                    local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, image_name)
+                local_file_path=os.path.expanduser(image_path),
+                remote_file_path=os.path.join(images_dir, image_name)
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
@@ -741,8 +758,8 @@ class GrassAzureExecutor:
                 target_dir=image_path
             )
             if self._check_checksum_validity(
-                    local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, new_file_name)
+                local_file_path=os.path.expanduser(image_path),
+                remote_file_path=os.path.join(images_dir, new_file_name)
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
@@ -902,8 +919,9 @@ class GrassAzureExecutor:
         optional_key_to_value = {
             "root['tags']": {}
         }
-        with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-job.yml')) as fr:
+        with open(
+            os.path.expanduser(f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-job.yml')
+        ) as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -998,8 +1016,9 @@ class GrassAzureExecutor:
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
         # Validate grass-azure-start-job
-        with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-schedule.yml')) as fr:
+        with open(
+            os.path.expanduser(f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-schedule.yml')
+        ) as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,

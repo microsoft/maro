@@ -36,8 +36,10 @@ class NodeAgent:
 
 
 class NodeTrackingAgent(multiprocessing.Process):
-    def __init__(self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int,
-                 check_interval: int = 10):
+    def __init__(
+        self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int,
+        check_interval: int = 10
+    ):
         super().__init__()
         self._cluster_name = cluster_name
         self._node_name = node_name
@@ -152,16 +154,20 @@ class NodeTrackingAgent(multiprocessing.Process):
             None.
         """
         # Update actual cpu
-        completed_process = subprocess.run(UPTIME_COMMAND,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8")
+        completed_process = subprocess.run(
+            UPTIME_COMMAND,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         uptime_str = completed_process.stdout
         split_uptime = uptime_str.split()
         node_details["resources"]["actual_free_cpu"] = \
             node_details["resources"]["cpu"] - float(split_uptime[-3].replace(",", ""))
 
         # Update actual memory
-        completed_process = subprocess.run(FREE_COMMAND,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8")
+        completed_process = subprocess.run(
+            FREE_COMMAND,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         free_str = completed_process.stdout
         split_free = free_str.split()
         node_details["resources"]["actual_free_memory"] = float(split_free[12]) / 1024
@@ -170,9 +176,10 @@ class NodeTrackingAgent(multiprocessing.Process):
         node_details["resources"]["actual_free_gpu"] = node_details["resources"]["target_free_gpu"]
         # Get nvidia-smi result
         try:
-            completed_process = subprocess.run(NVIDIA_SMI_COMMAND,
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               encoding="utf8")
+            completed_process = subprocess.run(
+                NVIDIA_SMI_COMMAND,
+                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+            )
             nvidia_smi_str = completed_process.stdout
             node_details["resources"]["actual_gpu_usage"] = f"{float(nvidia_smi_str)}%"
         except Exception:
@@ -186,17 +193,20 @@ class NodeTrackingAgent(multiprocessing.Process):
             dict: container_name to inspect_details mapping.
         """
         # Get containers in current node
-        completed_process = subprocess.run(GET_CONTAINERS_COMMAND,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8")
+        completed_process = subprocess.run(
+            GET_CONTAINERS_COMMAND,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         return_str = completed_process.stdout.strip("\n")
         containers = [] if return_str == "" else return_str.split("\n")
         if len(containers) == 0:
             return {}
 
         # Get inspect_details_list then build inspects_details
-        completed_process = subprocess.run(INSPECT_CONTAINER_COMMAND.format(containers=" ".join(containers)),
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                           encoding="utf8")
+        completed_process = subprocess.run(
+            INSPECT_CONTAINER_COMMAND.format(containers=" ".join(containers)),
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         return_str = completed_process.stdout
         inspect_details_list = json.loads(return_str)
         return {inspect_details["Config"]["Labels"]["container_name"]: inspect_details
