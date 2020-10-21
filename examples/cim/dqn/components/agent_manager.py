@@ -11,7 +11,7 @@ from maro.utils import set_seeds
 
 def create_dqn_agents(agent_id_list, mode, config):
     num_actions = config.algorithm.num_actions
-    if mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}:
+    if mode == AgentMode.INFERENCE:
         return {agent_id: DQN(
                     eval_model=None,
                     optimizer_cls=None,
