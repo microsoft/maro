@@ -28,6 +28,7 @@ from .frame_builder import build_frame
 from .station import Station
 from .stations_info import get_station_info
 from .weather_table import WeatherTable
+from maro.data_lib.dump_csv_converter import dump_csv_converter
 
 logger = CliLogger(name=__name__)
 
@@ -134,6 +135,11 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
+
+        converter = dump_csv_converter()
+        self._frame.dump(converter.dump_folder)
+        converter.start_processing()
+
         self._total_trips = 0
         self._total_operate_num = 0
         self._total_shortages = 0
