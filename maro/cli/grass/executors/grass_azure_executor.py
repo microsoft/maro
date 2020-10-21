@@ -428,6 +428,7 @@ class GrassAzureExecutor:
 
         # Save details
         node_details = {
+            "name": node_name,
             'public_ip_address': ip_addresses[0]["virtualMachine"]["network"]['publicIpAddresses'][0]['ipAddress'],
             'private_ip_address': ip_addresses[0]["virtualMachine"]["network"]['privateIpAddresses'][0],
             'node_size': node_size,

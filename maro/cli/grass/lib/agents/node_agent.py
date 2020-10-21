@@ -73,6 +73,7 @@ class NodeTrackingAgent(multiprocessing.Process):
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
+        node_details["containers"] = {}
         containers_details = node_details["containers"]
         inspects_details = self._get_inspects_details()
 

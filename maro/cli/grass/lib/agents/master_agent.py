@@ -92,6 +92,8 @@ class MasterAgent:
         container_tracking_agent.start()
         pending_job_agent = PendingJobAgent(cluster_details=self._cluster_details)
         pending_job_agent.start()
+        fault_tolerance_agent = FaultToleranceAgent(cluster_details=self._cluster_details)
+        fault_tolerance_agent.start()
         killed_job_agent = KilledJobAgent(cluster_details=self._cluster_details)
         killed_job_agent.start()
 
@@ -217,21 +219,20 @@ class ContainerTrackingAgent(multiprocessing.Process):
 
 
 class FaultToleranceAgent(multiprocessing.Process):
-    def __init__(self, cluster_name: str, redis_port: int, check_interval: int = 5):
+    def __init__(self, cluster_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_name = cluster_name
-        self._redis = Redis(
-            host="localhost",
-            port=redis_port,
-            charset="utf-8", decode_responses=True
-        )
-        self._check_interval = check_interval
-
-        cluster_details = load_cluster_details(cluster_name=cluster_name)
+        self._cluster_name = cluster_details["name"]
         self._cluster_id = cluster_details["id"]
         self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
+        self._redis = Redis(
+            host="localhost",
+            port=cluster_details["master"]["redis"]["port"],
+            charset="utf-8", decode_responses=True
+        )
+
+        self._check_interval = check_interval
 
     def run(self) -> None:
         """Start tracking exited containers.
@@ -300,9 +301,9 @@ class FaultToleranceAgent(multiprocessing.Process):
                         component_id=container_details["component_id"],
                         component_index=container_details["component_index"]
                     ),
-                    cpu=container_details["cpu"],
-                    memory=container_details["memory"],
-                    gpu=container_details["gpu"]
+                    cpu=float(container_details["cpu"]),
+                    memory=float(container_details["memory"].replace("m", "")),
+                    gpu=float(container_details["gpu"])
                 )
             ]
             allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
@@ -310,10 +311,10 @@ class FaultToleranceAgent(multiprocessing.Process):
                 required_resources=required_resources,
                 free_resources=free_resources
             )
-            self._remove_container(
-                container_name=container_details["container_name"],
-                container_details=container_details
-            )
+            # self._remove_container(
+            #     container_name=container_details["container_name"],
+            #     container_details=container_details
+            # )
             job_details = get_job_details(
                 redis=self._redis,
                 cluster_name=self._cluster_name,
@@ -343,12 +344,12 @@ class FaultToleranceAgent(multiprocessing.Process):
             None.
         """
         # Get details and params
+        node_name = container_details["node_name"]
         node_details = get_node_details(
             redis=self._redis,
             cluster_name=self._cluster_name,
-            node_name=container_details["node_name"]
+            node_name=node_name
         )
-        node_name = node_details["name"]
 
         # Load and exec command
         command = REMOVE_CONTAINER_COMMAND.format(
@@ -564,6 +565,8 @@ class PendingJobAgent(multiprocessing.Process):
         # Parse params
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
+        node_id = node_details["name"]
+        node_name = node_details["name"]
         job_name = job_details["name"]
         job_id = job_details["id"]
         component_id = container_name.split("-")[1]
@@ -575,25 +578,29 @@ class PendingJobAgent(multiprocessing.Process):
 
         # Parse environment parameters and labels
         environment_parameters = (
-            f"-e CONTAINER_NAME={container_name} "
-            f"-e COMPONENT_TYPE={component_type} "
-            f"-e COMPONENT_ID={component_id} "
-            f"-e COMPONENT_INDEX={component_index} "
-            f"-e JOB_NAME={job_name} "
-            f"-e JOB_ID={job_id} "
-            f"-e CLUSTER_NAME={cluster_name} "
             f"-e CLUSTER_ID={cluster_id} "
+            f"-e CLUSTER_NAME={cluster_name} "
+            f"-e NODE_ID={node_id} "
+            f"-e NODE_NAME={node_name} "
+            f"-e JOB_ID={job_id} "
+            f"-e JOB_NAME={job_name} "
+            f"-e COMPONENT_ID={component_id} "
+            f"-e COMPONENT_TYPE={component_type} "
+            f"-e COMPONENT_INDEX={component_index} "
+            f"-e CONTAINER_NAME={container_name} "
             f"-e PYTHONUNBUFFERED=0"
         )
         labels = (
-            f"-l container_name={container_name} "
+            f"-l cluster_id={cluster_id} "
+            f"-l cluster_name={cluster_name} "
+            f"-l node_id={node_id} "
+            f"-l node_name={node_name} "
+            f"-l job_id={job_id} "
+            f"-l job_name={job_name} "
             f"-l component_type={component_type} "
             f"-l component_id={component_id} "
             f"-l component_index={component_index} "
-            f"-l job_name={job_name} "
-            f"-l job_id={job_id} "
-            f"-l cluster_name={cluster_name} "
-            f"-l cluster_id={cluster_id} "
+            f"-l container_name={container_name} "
             f"-l cpu={cpu} "
             f"-l memory={memory} "
             f"-l gpu={gpu}"
