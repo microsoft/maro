@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 import torch.nn as nn
-from torch.optim import Adam, RMSprop
+from torch.optim import Adam
 
 from .agent import CIMAgent
 from maro.rl import AgentMode, SimpleAgentManager, LearningModel, DecisionLayers, PolicyGradient, \
