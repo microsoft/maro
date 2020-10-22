@@ -105,10 +105,11 @@ class AbsAgent(ABC):
         """
         self._algorithm.dump_models_to_file(os.path.join(dir_path, self._name))
 
-    def dump_experience_store(self, dir_path: str):
+    def dump_experience_pool(self, dir_path: str):
         """Dump the experience pool to disk."""
         if self._experience_pool is not None:
-            with open(os.path.join(dir_path, self._name)) as fp:
+            os.makedirs(dir_path, exist_ok=True)
+            with open(os.path.join(dir_path, self._name), "wb") as fp:
                 pickle.dump(self._experience_pool, fp)
 
     def _assert_train_mode(self):
