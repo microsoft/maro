@@ -80,8 +80,10 @@ class AbsAgent(ABC):
 
     def dump_model_dict(self, dir_path: str):
         """Dump models to disk."""
-        torch.save({model_key: model.state_dict() for model_key, model in self._algorithm.model_dict.items()},
-                   os.path.join(dir_path, self._name))
+        torch.save(
+            {model_key: model.state_dict() for model_key, model in self._algorithm.model_dict.items()},
+            os.path.join(dir_path, self._name)
+        )
 
     def dump_experience_store(self, dir_path: str):
         """Dump the experience pool to disk."""
