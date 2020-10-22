@@ -58,7 +58,7 @@ agents:
 distributed:
   group_name: "dqn_distributed_test"
   actor:
-    peer: {"actor": 1}
+    peer: {"learner": 1}
   learner:
     peer: {"actor_worker": 1}
   redis:

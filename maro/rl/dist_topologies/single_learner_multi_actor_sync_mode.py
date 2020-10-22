@@ -23,7 +23,7 @@ class ActorProxy(object):
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
     """
     def __init__(self, proxy_params):
-        self._proxy = Proxy(component_type="actor", **proxy_params)
+        self._proxy = Proxy(component_type="learner", **proxy_params)
 
     def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
                  return_details: bool = True):
