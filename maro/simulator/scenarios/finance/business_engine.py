@@ -167,7 +167,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # We following the snapshot_resolution settings to take snapshot.
         if (tick + 1) % self._snapshot_resolution == 0:
             # NOTE: We should use frame_index method to get correct index in snapshot list.
-            self._frame.take_snapshot(tick)
+            self._frame.take_snapshot(self.frame_index(tick))
 
         # We reset the station station each resolution.
         for stock in self._stocks:
@@ -200,7 +200,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for stock in self._stocks:
             stock.reset()
 
-        self._matrices_node.reset()
+        # self._matrices_node.reset()
         
         self._pending_orders = []
         self._canceled_orders = []
