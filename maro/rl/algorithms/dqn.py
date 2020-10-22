@@ -119,4 +119,4 @@ class DQN(AbsAlgorithm):
 
     def dump_models_to_file(self, path: str):
         """Dump the eval model to disk."""
-        torch.save(self._model_dict["eval"], path)
+        torch.save(self._model_dict["eval"].state_dict(), path)
