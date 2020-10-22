@@ -76,9 +76,9 @@ cdef class NodeInfo:
     cdef:
         public IDENTIFIER id
         public str name
-        public UINT number
+        public NODE_INDEX number
 
-    def __cinit__(self, str name, IDENTIFIER id, UINT number):
+    def __cinit__(self, str name, IDENTIFIER id, NODE_INDEX number):
         self.name = name
         self.id = id
         self.number = number
@@ -96,7 +96,7 @@ cdef class AttrInfo:
         public IDENTIFIER node_id
         public UINT slot_number
 
-    def __cinit__(self, str name, IDENTIFIER id, IDENTIFIER node_id, str dtype, UINT slot_number):
+    def __cinit__(self, str name, IDENTIFIER id, IDENTIFIER node_id, str dtype, SLOT_INDEX slot_number):
         self.name = name
         self.dtype = dtype
         self.id = id
@@ -120,7 +120,7 @@ cdef class NumpyBackend(BackendAbc):
         self._node_attr_dict = {}
         self._node_data_dict = {}
 
-    cdef IDENTIFIER add_node(self, str name, UINT number) except +:
+    cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +:
         """Add a new node type with name and number in backend"""
         cdef NodeInfo new_node = NodeInfo(name, len(self._nodes_list), number)
 
@@ -129,7 +129,7 @@ cdef class NumpyBackend(BackendAbc):
 
         return new_node.id
 
-    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, UINT slot_num) except +:
+    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
         """Add a new attribute for specified node with data type and slot number"""
         if node_id >= len(self._nodes_list):
             raise Exception("Invalid node id.")
@@ -195,14 +195,14 @@ cdef class NumpyBackend(BackendAbc):
         else:
             attr_array[0][node_index, slot_index] = value 
 
-    cdef object[object, ndim=1] get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices):
+    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices):
         cdef AttrInfo attr = self._attrs_list[attr_id]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_id][attr.name]
 
         if attr.slot_number == 1:
-            return attr_array[0][node_index, slot_indices[0]]
+            return attr_array[0][node_index, slot_indices[0]].tolist()
         else:
-            return attr_array[0][node_index, slot_indices]
+            return attr_array[0][node_index, slot_indices].tolist()
 
     cdef void setup(self, bool enable_snapshot, UINT total_snapshot, dict options) except *:
         """Set up the numpy backend"""
@@ -380,7 +380,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
             if old_tick in self._tick2index_dict:
                 del self._tick2index_dict[old_tick]
-        
+         
         # recording will copy data at 1st row into _cur_index row
         for node_id, data_arr in self._backend._node_data_dict.items():
             ni = self._backend._nodes_list[node_id]

@@ -31,6 +31,7 @@ ctypedef uint64_t NODE_INDEX
 ctypedef uint64_t SLOT_INDEX
 
 
+
 # Base of all snapshot accessing implementation
 cdef class SnapshotListAbc:
     # Query states from snapshot list
@@ -73,7 +74,7 @@ cdef class BackendAbc:
     cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *
 
     # Get values of specified slots
-    cdef object[object, ndim=1] get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices)
+    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices)
 
     # Get node definition of backend
     cdef dict get_node_info(self)
