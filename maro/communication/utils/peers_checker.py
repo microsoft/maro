@@ -12,7 +12,10 @@ def peers_checker(func):
         while self._enable_rejoin:
             current_time = time.time()
             if current_time - rejoin_start_time > self._max_wait_time_for_rejoin:
-                raise TimeoutError(f"Out of max waiting time for rejoin. Cannot reach the minimal number of peers.")
+                raise TimeoutError(
+                    f"Out of max waiting time for rejoin {self._max_wait_time_for_rejoin}. "
+                    f"Cannot reach the minimal number of peers."
+                )
 
             if current_time - self._onboard_peers_lifetime > self._peer_update_frequency:
                 self._onboard_peers_lifetime = current_time
