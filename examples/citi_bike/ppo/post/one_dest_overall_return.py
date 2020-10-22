@@ -1,7 +1,5 @@
 import numpy as np
-import math
-from collections import Iterable
-from maro.simulator.scenarios.citibike.common import Action, DecisionEvent, DecisionType
+
 
 class PostProcessor:
     def __init__(self, env, transfer_cost=0.02, gamma=0.9):
@@ -10,7 +8,6 @@ class PostProcessor:
         self.trajectory = []
         self.last_decision_event = None
         self.cur_decision_event, self.cur_obs, self.cur_action = None, None, None
-        max_cnt = 100
         self.gammas = np.logspace(0, 100, 100, base=gamma)
         self.transfer_cost = transfer_cost
 
@@ -33,11 +30,11 @@ class PostProcessor:
         last['obs_'] = obs
 
         # reward computation
-        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index, decision_event.frame_index+1)): :
-                                                    ['fulfillment', 'shortage']].reshape(
+        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index, decision_event.frame_index+1))::
+                                                        ['fulfillment', 'shortage']].reshape(
                                                         decision_event.frame_index-self.last_decision_event.frame_index+1, self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
-        reward_per_frame = order_data[:,:,0] - order_data[:,:,1]
+        reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         # reward.shape: [station_cnt,]
         reward = self.gammas[:reward_per_frame.shape[0]].dot(reward_per_frame)
         '''
@@ -52,7 +49,7 @@ class PostProcessor:
         last['r'] = reward*self.reward_scaler
         last['gamma'] = np.ones(reward.shape[0])*self.gammas[decision_event.frame_index-self.last_decision_event.frame_index]
 
-        
+
     def record(self, decision_event=None, obs=None, action=None):
         if decision_event is not None and obs is not None:
             self.cur_decision_event = decision_event
@@ -66,9 +63,9 @@ class PostProcessor:
         if self.trajectory:
             self.normal_reward()
         # new exp recorded
-        
+
         choice, amount, record_data = action
-        
+
         self.trajectory.append({
             'obs': self.cur_obs,
             'a': np.array([choice, amount]),
@@ -80,8 +77,6 @@ class PostProcessor:
         self.last_decision_event = self.cur_decision_event
         self.cur_decision_event, self.cur_obs, self.cur_action = None, None, None
 
-
     def reset(self):
         self.trajectory = []
         self.last_decision_event = None
-

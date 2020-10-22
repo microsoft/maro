@@ -37,7 +37,7 @@ class AttTransPolicy(nn.Module):
         self.critic_hidden_dim = 16
         self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim, self.critic_hidden_dim), nn.ReLU(), MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
 
-    def forward(self, x, edge_index, actual_amount, real_choice=None,noise_scale=0.0):
+    def forward(self, x, edge_index, actual_amount, real_choice=None, noise_scale=0.0):
         # calculation attention
         row, col = edge_index
         # print("col",col)

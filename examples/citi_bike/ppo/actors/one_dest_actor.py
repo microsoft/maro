@@ -139,7 +139,7 @@ if __name__ == "__main__":
     # evaluating_topo = ['c1', 'c2', 'c3', 'c4', 'region']
     evaluating_topo = ['c1']
     sample_cnt = 1
-    durations = 14400
+    durations = 28800
 
     for topo in evaluating_topo:
 

@@ -28,7 +28,7 @@ class PostProcessor:
 
         self.fixed_window_size = fixed_window_size
         self.state_shaping = state_shaping
-        if self.fixed_window_size and self.state_shaping == None:
+        if self.fixed_window_size and self.state_shaping is None:
             print("State-Shaping instance is required in fixed window size mode!")
             exit(0)
 
@@ -113,7 +113,6 @@ class PostProcessor:
             'supplement': record_data,
         })
         self.cur_obs, self.cur_action = None, None
-
 
     def reset(self):
         self.trajectory = []

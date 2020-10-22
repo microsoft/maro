@@ -8,9 +8,9 @@ from torch import optim
 from torch.distributions import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from examples.citi_bike.enc_gat.models.homo_gnn import LinearBackend
-from examples.citi_bike.enc_gat.models.transformer_policy_with_separate_critic import AttTransPolicy
-from examples.citi_bike.enc_gat.utils import batchize, from_numpy, obs_to_torch
+from examples.citi_bike.ppo.models.homo_gnn import LinearBackend
+from examples.citi_bike.ppo.transformer_policy_with_separate_critic import AttTransPolicy
+from examples.citi_bike.ppo.utils import batchize, from_numpy, obs_to_torch
 from maro.utils import Logger, LogFormat
 
 epoch_count = 0

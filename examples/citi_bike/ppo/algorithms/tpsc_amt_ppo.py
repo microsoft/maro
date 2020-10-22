@@ -14,6 +14,7 @@ from torch.utils.tensorboard import SummaryWriter
 epoch_count = 0
 itr_count = 0
 
+
 class AttGnnPPO:
     def __init__(self, node_dim, channel_cnt, graph_size, log_pth, device="cuda:0", **kargs):
         self.device = torch.device(device)
@@ -33,7 +34,7 @@ class AttGnnPPO:
         tensorboard_pth = log_pth + "/tensorboard"
         if not os.path.exists(tensorboard_pth):
             os.makedirs(tensorboard_pth)
-        self.writer = SummaryWriter(tensorboard_pth+ "/citibike_trans")
+        self.writer = SummaryWriter(tensorboard_pth + "/citibike_trans")
 
         self.old_policy = deepcopy(self.policy)
         self.old_temporal_gnn = deepcopy(self.temporal_gnn)
@@ -46,7 +47,7 @@ class AttGnnPPO:
         self.old_temporal_gnn.eval()
 
         # optimizer
-        self.temporal_gnn_opt = optim.Adam(self.temporal_gnn.parameters(),lr=3e-4)
+        self.temporal_gnn_opt = optim.Adam(self.temporal_gnn.parameters(), lr=3e-4)
         self.policy_opt = optim.Adam(self.policy.parameters(), lr=3e-4)
 
         # loss

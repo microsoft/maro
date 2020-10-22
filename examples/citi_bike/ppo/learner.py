@@ -6,13 +6,14 @@ from datetime import datetime
 import pickle
 
 # from examples.citi_bike.ppo.algorithms.choice_amt_ppo import AttGnnPPO
-from examples.citi_bike.ppo.algorithms.fixamt_ppo_att import AttGnnPPO
+# from examples.citi_bike.ppo.algorithms.fixamt_ppo_att import AttGnnPPO
+from examples.citi_bike.ppo.algorithms.sep_reward_ppo import AttGnnPPO
 from examples.citi_bike.ppo.actors.one_dest_actor import CitiBikeActor
 # from examples.citi_bike.ppo.citibike_state_shaping import CitibikeStateShaping
-from examples.citi_bike.ppo.fixamt_state_shaping import CitibikeStateShaping
-# from examples.citi_bike.ppo.choice_amt_state_shaping import CitibikeStateShaping
-from examples.citi_bike.ppo.post.truncated_reward import PostProcessor
-# from examples.citi_bike.ppo.post.selfdef_reward import PostProcessor
+# from examples.citi_bike.ppo.fixamt_state_shaping import CitibikeStateShaping
+from examples.citi_bike.ppo.choice_amt_state_shaping import CitibikeStateShaping
+# from examples.citi_bike.ppo.post.truncated_reward import PostProcessor
+from examples.citi_bike.ppo.post.selfdef_reward import PostProcessor
 from examples.citi_bike.ppo.utils import backup
 from maro.simulator import Env
 from maro.utils import Logger, LogFormat, convert_dottable
@@ -27,7 +28,7 @@ class CitiBikeLearner:
             config = convert_dottable(raw_config)
 
         exp_name = config.experiment_name
-        exp_name = '%s_%s'%(datetime.now().strftime('%H_%M_%S'), exp_name)
+        exp_name = '%s_%s' % (datetime.now().strftime('%H_%M_%S'), exp_name)
         exp_name_par = f"{datetime.now().strftime('%Y%m%d')}"
         log_folder = os.path.join(os.getcwd(), "log", exp_name_par, exp_name)
 
@@ -65,7 +66,7 @@ class CitiBikeLearner:
         station_cnt = len(self.demo_env.snapshot_list["stations"])
         channel_cnt = self.demo_state_shaping.channel_cnt
         reward, decision_evt, is_done = self.demo_env.step(None)
-        neighbor_cnt = len(decision_evt.action_scope)-1
+        neighbor_cnt = len(decision_evt.action_scope) - 1
         # algorithm parameter
         algoirthm_config = {
             "emb_dim": config.model.emb_dim,
@@ -114,7 +115,7 @@ class CitiBikeLearner:
                 sampler = BatchSampler(RandomSampler(exp_pool), batch_size=batch_size, drop_last=False)
                 for batch in sampler:
                     self.algorithm.grad([exp_pool[bid] for bid in batch])
-            if i % flush_cnt == flush_cnt -1:
+            if i % flush_cnt == flush_cnt - 1:
                 exp_pool = []
             if i % 500 == 499:
                 pth = os.path.join(self.log_folder, f"nn_{i}.pickle")

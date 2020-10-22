@@ -1,7 +1,7 @@
 import numpy as np
-import math
 from collections import Iterable
-from maro.simulator.scenarios.citibike.common import Action, DecisionEvent, DecisionType
+from maro.simulator.scenarios.citibike.common import DecisionType
+
 
 class PostProcessor:
     def __init__(self, env, transfer_cost=0.02, gamma=0.9):
@@ -33,11 +33,11 @@ class PostProcessor:
 
         # reward computation
         order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index,
-                                                                   decision_event.frame_index+1))::
+                                                                   decision_event.frame_index + 1))::
                                                         ['fulfillment', 'shortage']].reshape(
                                                         decision_event.frame_index -\
-                                                            self.last_decision_event.frame_index +\
-                                                                1, self.station_cnt, 2)
+                                                        self.last_decision_event.frame_index + 1,
+                                                        self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
         reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         # reward.shape: [station_cnt,]
@@ -50,9 +50,8 @@ class PostProcessor:
         else:
             reward[self.last_decision_event.station_idx] -= self.transfer_cost * np.sum(cur_action)
         last['r'] = reward * self.reward_scaler
-        last['gamma'] = np.ones(reward.shape[0]) * self.gammas[decision_event.frame_index
-                                                                - self.last_decision_event.frame_index]
-
+        last['gamma'] = np.ones(reward.shape[0]) * self.gammas[decision_event.frame_index -\
+                                                               self.last_decision_event.frame_index]
 
     def record(self, decision_event=None, obs=None, action=None):
         if decision_event is not None and obs is not None:

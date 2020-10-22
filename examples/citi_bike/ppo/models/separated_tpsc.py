@@ -37,6 +37,8 @@ class AttTransPolicy(nn.Module):
         self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim,
                                                                self.critic_hidden_dim), nn.ReLU(),
                                             MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
+        self.critic_mlp = nn.Sequential(nn.Linear(self.node_dim * 2, self.critic_hidden_dim), nn.ReLU(),
+                                        nn.Linear(self.critic_hidden_dim, 1))
 
     def determine_amount(self, x, actual_amount, src, dest_idx, sample=True):
         # chosen_dest.shape: B*D
@@ -103,3 +105,17 @@ class AttTransPolicy(nn.Module):
         x = torch.transpose(x.reshape(-1, self.per_graph_size, self.node_dim), 0, 1)
         output = self.critic_headers(x).reshape(self.per_graph_size, -1)
         return torch.transpose(output, 0, 1)
+
+    def busi_value(self, x, *args):
+        x = x.reshape(-1, self.per_graph_size, self.node_dim)
+        src_dest = args[-1]
+        batch_size = src_dest.shape[0]
+        src = src_dest[:, 0].long()
+        dest = src_dest[:, 1].long()
+        src_mem = x[torch.arange(batch_size), src]
+        dest_mem = x[torch.arange(batch_size), dest]
+        # src_mem = x[src,torch.arange(batch_size)]
+        # dest_mem = x[dest,torch.arange(batch_size)]
+        last_feature = torch.cat((src_mem, dest_mem), -1)
+        output = self.critic_mlp(last_feature)
+        return output.squeeze(-1)

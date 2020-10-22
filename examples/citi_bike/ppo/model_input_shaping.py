@@ -55,7 +55,7 @@ class StateShaping:
         sparse_adj = coo_matrix(adj)
         row, col = sparse_adj.row, sparse_adj.col
         edge_index = np.stack((row, col), axis=0)
-        edge_x =  np.concatenate((trip_adj[row, col], distance_mat[row, col]), axis=1)
+        edge_x = np.concatenate((trip_adj[row, col], distance_mat[row, col]), axis=1)
 
         '''
         # init_edge_index
@@ -71,7 +71,7 @@ class StateShaping:
             ftmp, btmp = self._env.snapshot_list.static_nodes[cur_tick:decision_event.cell_idx:
                                                               (['capacity', 'bikes'], 0)]
             actual_amount = np.ones(len(decision_event.action_scope)) * (ftmp - btmp)
-            actual_amount = np.hstack([np.zeros((*actual_amount.shape, 1)), -actual_amount.reshape(-1,1)])
+            actual_amount = np.hstack([np.zeros((*actual_amount.shape, 1)), -actual_amount.reshape(-1, 1)])
         a_row, a_col = action_edge_index
         action_edge_x = self._time_mat[action_edge_index[0], action_edge_index[1]]
         # edge attribute: trip adj + transportation time

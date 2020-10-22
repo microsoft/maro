@@ -27,10 +27,10 @@ class PostProcessor:
         cur_action, cur_action_edge = last['a']
         last_cell_idxes = cur_action_edge[1]
         last_frame_idx = min(max(0, decision_event.frame_index-1), self.last_decision_event.frame_index)
-        tmp = self.env.snapshot_list['stations'][list(range(last_frame_idx, decision_event.frame_index+1))
-                                                    :list(last_cell_idxes):['shortage', 'bikes']]
+        tmp = self.env.snapshot_list['stations'][list(range(last_frame_idx, decision_event.frame_index + 1)):
+                                                 list(last_cell_idxes):['shortage', 'bikes']]
         tmp = tmp.reshape(-1, len(last_cell_idxes), 2)
-        shortage, bikes = tmp[:,:,0], tmp[:,:,1]
+        shortage, bikes = tmp[:, :, 0], tmp[:, :, 1]
         shortage = np.sum(shortage, axis=0)
         bikes = np.mean(bikes, axis=0)
         if self.last_decision_event.type == DecisionType.Supply:
@@ -54,7 +54,7 @@ class PostProcessor:
         # reward computation
         order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index,
                                                         decision_event.frame_index+1))::
-                                                        ['fulfillment', 'shortage']].reshape(decision_event.frame_index
+                                                        ['fulfillment', 'shortage']].reshape(decision_event.frame_index\
                                                         - self.last_decision_event.frame_index+1, self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
         reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]

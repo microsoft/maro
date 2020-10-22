@@ -61,7 +61,6 @@ class AttGnnPPO:
             # a.shape: [2, action_cnt]
             a = np.hstack([e["a"] for e in batch])
 
-
         # state
         s = batchize([e["obs"] for e in batch])
         s_ = batchize([e["obs_"] for e in batch])
@@ -93,7 +92,7 @@ class AttGnnPPO:
             emb = self.old_temporal_gnn(x, edge_idx_list)
             choice, cnt, att = self.old_policy(emb, action_edge_idx, actual_amount)
             return choice.cpu().numpy(), cnt.cpu().numpy(),\
-                   {"choice_att": att, "att_prob": torch.log(att[0, choice]).cpu().numpy()}
+                {"choice_att": att, "att_prob": torch.log(att[0, choice]).cpu().numpy()}
 
     def grad(self, batch):
         global epoch_count

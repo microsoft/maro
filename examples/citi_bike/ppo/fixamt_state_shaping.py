@@ -40,7 +40,7 @@ class CitibikeStateShaping(BaseStateShaping):
         raw_features = self.feature_scaler * self._env.snapshot_list['stations'][
             indexes:: station_attribute_list
         ].reshape(self._td_steps, self._station_cnt, len(station_attribute_list))
-        raw_features = raw_features.transpose((0,2,1))
+        raw_features = raw_features.transpose((0, 2, 1))
         shortage = raw_features[-1, SHORTAGE_INDEX, :]
         fulfillment = raw_features[-1, FULFILLMENT_INDEX, :]
 

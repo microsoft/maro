@@ -144,7 +144,8 @@ class AttGnnPPO:
             edge = torch.cat((action_edge_idx[0, :-1].reshape(1, -1), action_edge_idx[1, :-1].reshape(1, -1)), 0)
             emb = self.old_temporal_gnn(x, edge)
             choice, att = self.old_policy.choose_destination(emb, action_edge_idx, actual_amount, acting_node)
-            amt_choice, amt_att = self.old_policy.determine_amount(emb, actual_amount, acting_node, choice)
+            abs_choice = action_edge_idx[1, choice]
+            amt_choice, amt_att = self.old_policy.determine_amount(emb, actual_amount, acting_node, abs_choice)
             batch_idx = torch.arange(choice.shape[0], dtype=torch.long).to(self.device)
             cnt = amt_choice * self.old_policy.amt_step * actual_amount[batch_idx, choice]
             return choice.cpu().numpy(), \
@@ -155,7 +156,9 @@ class AttGnnPPO:
                     "choice_att": att,
                     "amt_att": amt_att,
                     "choice_prob": att[batch_idx, choice].cpu().numpy(),
-                    "amt_prob": amt_att[batch_idx, amt_choice].cpu().numpy()}
+                    "amt_prob": amt_att[batch_idx, amt_choice].cpu().numpy(),
+                    'src': acting_node.cpu().numpy(),
+                    'dest': abs_choice.cpu().numpy()}
 
     def grad(self, batch):
         global epoch_count
