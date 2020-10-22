@@ -107,7 +107,7 @@ class DQN(AbsAlgorithm):
 
     def load_models(self, eval_model):
         """Load the eval model from memory."""
-        self._model_dict["eval"] = eval_model
+        self._model_dict["eval"].load_state_dict(eval_model)
 
     def dump_models(self):
         """Return the eval model."""

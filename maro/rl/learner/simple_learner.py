@@ -51,7 +51,7 @@ class SimpleLearner(AbsLearner):
             self._logger.info(f"test performance from {actor_id}: {perf}")
         self._actor.roll_out(done=True)
 
-    def save_models(self, model_dump_dir: str):
+    def dump_models(self, model_dump_dir: str):
         self._trainable_agents.dump_models_to_files(model_dump_dir)
 
     def _is_shared_agent_instance(self):

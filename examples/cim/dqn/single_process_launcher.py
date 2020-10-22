@@ -61,4 +61,4 @@ if __name__ == "__main__":
     )
     learner.train(total_episodes=config.general.total_training_episodes)
     learner.test()
-    learner.save_models(os.path.join(os.getcwd(), "models"))
+    learner.dump_models(os.path.join(os.getcwd(), "models"))

@@ -121,7 +121,8 @@ class ActorCritic(AbsAlgorithm):
                 self._value_optimizer.step()
 
     def load_models(self, model_dict):
-        self._model_dict = model_dict
+        for name, model in self._model_dict.items():
+            model.load_state_dict(model_dict[name])
 
     def dump_models(self):
         return {name: model.state_dict() for name, model in self._model_dict.items()}
@@ -219,10 +220,10 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
                 self._optimizer.step()
 
     def load_models(self, policy_value_model):
-        self._policy_value_model = policy_value_model
+        self._policy_value_model.load_state_dict(policy_value_model)
 
     def dump_models(self):
-        return self._policy_value_model
+        return self._policy_value_model.state_dict()
 
     def load_models_from_file(self, path):
         self._policy_value_model = torch.load(path)

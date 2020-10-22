@@ -11,16 +11,9 @@ from maro.utils import set_seeds
 
 
 def create_pg_agents(agent_id_list, mode, config):
-    if mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}:
-        return {agent_id: PolicyGradient(
-                            policy_model=None,
-                            optimizer_cls=None,
-                            optimizer_params=None,
-                            hyper_params=None,
-                            )
-            for agent_id in agent_id_list}
-    set_seeds(config.seed)
+    is_trainable = mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}
     num_actions = config.algorithm.num_actions
+    set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
         policy_model = LearningModel(
@@ -32,8 +25,8 @@ def create_pg_agents(agent_id_list, mode, config):
 
         algorithm = PolicyGradient(
             policy_model=policy_model,
-            optimizer_cls=Adam,
-            optimizer_params=config.algorithm.optimizer,
+            optimizer_cls=Adam if is_trainable else None,
+            optimizer_params=config.algorithm.optimizer if is_trainable else None,
             hyper_params=PolicyGradientHyperParameters(
                 num_actions=num_actions,
                 **config.algorithm.hyper_parameters,

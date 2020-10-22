@@ -97,7 +97,8 @@ class ColumnBasedStore(AbsStore):
         """
         if len(self._store) > 0 and contents.keys() != self._store.keys():
             raise StoreMisalignmentError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
-        added_size = len(contents[next(iter(contents))])
+        added = contents[next(iter(contents))]
+        added_size = len(added) if isinstance(added, list) else 1
         if self._capacity < 0:
             for key, val in contents.items():
                 if not isinstance(val, list):

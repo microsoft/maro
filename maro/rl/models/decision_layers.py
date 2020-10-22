@@ -23,7 +23,7 @@ class DecisionLayers(nn.Module):
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
     """
     def __init__(
-        self, *, name: str, input_dim: int, output_dim: int, hidden_dims: [int], activation=nn.LeakyReLU,
+        self, name: str, input_dim: int, output_dim: int, hidden_dims: [int], activation=nn.LeakyReLU,
         softmax_enabled: bool = False, batch_norm_enabled: bool = False, dropout_p: float = None
     ):
         super().__init__()
@@ -32,6 +32,12 @@ class DecisionLayers(nn.Module):
         self._hidden_dims = hidden_dims if hidden_dims is not None else []
         self._output_dim = output_dim
 
+        # network features
+        self._activation = activation
+        self._softmax = nn.Softmax(dim=1) if softmax_enabled else None
+        self._batch_norm_enabled = batch_norm_enabled
+        self._dropout_p = dropout_p
+
         # build the net
         self._layers = self._build_layers([input_dim] + self._hidden_dims)
         if len(self._hidden_dims) == 0:
@@ -39,12 +45,6 @@ class DecisionLayers(nn.Module):
         else:
             self._top_layer = nn.Linear(hidden_dims[-1], self._output_dim)
         self._net = nn.Sequential(*self._layers, self._top_layer)
-
-        # network features
-        self._activation = activation
-        self._softmax = nn.Softmax(dim=1) if softmax_enabled else None
-        self._batch_norm_enabled = batch_norm_enabled
-        self._dropout_p = dropout_p
 
     def forward(self, x):
         out = self._net(x).double()

@@ -42,12 +42,13 @@ class SimpleAgentManager(AbsAgentManager):
         model_action = self.agent_dict[agent_id].choose_action(
             model_state, self._explorer.epsilon[agent_id] if self._explorer else None
         )
-
-        self._transition_cache = {"state": model_state,
-                                  "action": model_action,
-                                  "reward": None,
-                                  "agent_id": agent_id,
-                                  "event": decision_event}
+        self._transition_cache = {
+            "state": model_state,
+            "action": model_action,
+            "reward": None,
+            "agent_id": agent_id,
+            "event": decision_event
+        }
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):

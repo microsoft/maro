@@ -11,21 +11,9 @@ from maro.utils import set_seeds
 
 
 def create_ac_agents(agent_id_list, mode, config):
-    if mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}:
-        return {agent_id: ActorCritic(
-                            policy_model=None,
-                            value_model=None,
-                            value_loss_func=None,
-                            policy_optimizer_cls=None,
-                            policy_optimizer_params=None,
-                            value_optimizer_cls=None,
-                            value_optimizer_params=None,
-                            hyper_params=None,
-                            )
-                for agent_id in agent_id_list}
-
-    set_seeds(config.seed)
+    is_trainable = mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}
     num_actions = config.algorithm.num_actions
+    set_seeds(config.seed)
     agent_dict = {}
 
     for agent_id in agent_id_list:
@@ -46,11 +34,11 @@ def create_ac_agents(agent_id_list, mode, config):
         algorithm = ActorCritic(
             policy_model=policy_model,
             value_model=value_model,
-            value_loss_func=nn.functional.smooth_l1_loss,
-            policy_optimizer_cls=Adam,
-            policy_optimizer_params=config.algorithm.policy_optimizer,
-            value_optimizer_cls=RMSprop,
-            value_optimizer_params=config.algorithm.value_optimizer,
+            value_loss_func=nn.functional.smooth_l1_loss if is_trainable else None,
+            policy_optimizer_cls=Adam if is_trainable else None,
+            policy_optimizer_params=config.algorithm.policy_optimizer if is_trainable else None,
+            value_optimizer_cls=RMSprop if is_trainable else None,
+            value_optimizer_params=config.algorithm.value_optimizer if is_trainable else None,
             hyper_params=ActorCriticHyperParameters(
                 num_actions=num_actions,
                 **config.algorithm.hyper_parameters,

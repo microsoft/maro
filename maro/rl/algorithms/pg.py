@@ -68,10 +68,10 @@ class PolicyGradient(AbsAlgorithm):
             self._policy_optimizer.step()
 
     def load_models(self, policy_model):
-        self._policy_model = policy_model
+        self._policy_model.load_state_dict(policy_model)
 
     def dump_models(self):
-        return self._policy_model
+        return self._policy_model.state_dict()
 
     def load_models_from_file(self, path):
         """Load trainable models from disk."""
