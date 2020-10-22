@@ -24,7 +24,6 @@ from maro.utils import InternalLogger, DummyLogger
 from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
     InformationUncompletedError
 
-
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 MAX_LENGTH_FOR_MESSAGE_CACHE = 1024
 HOST = default_parameters.proxy.redis.host
@@ -32,10 +31,10 @@ PORT = default_parameters.proxy.redis.port
 MAX_RETRIES = default_parameters.proxy.redis.max_retries
 BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
-ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable        # only enable at real k8s cluster or grass cluster
+ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable  # only enable at real k8s cluster or grass cluster
 PEER_UPDATE_FREQUENCY = default_parameters.proxy.peer_rejoin.peers_update_frequency
-MESSAGE_CACHE_FOR_EXITED_PEER = default_parameters.proxy.peer_rejoin.message_cache_for_rejoin
-REJOIN_WAIT_TIME = default_parameters.proxy.peer_rejoin.max_wait_time_for_rejoin
+ENABLE_MESSAGE_CACHE_FOR_REJOIN = default_parameters.proxy.peer_rejoin.enable_message_cache
+MAX_WAIT_TIME_FOR_REJOIN = default_parameters.proxy.peer_rejoin.max_wait_time_for_rejoin
 MINIMAL_PEERS = default_parameters.proxy.peer_rejoin.minimal_peers
 
 
@@ -59,13 +58,15 @@ class Proxy:
         log_enable (bool): Open internal logger or not. Defaults to True.
     """
 
-    def __init__(self, group_name: str, component_type: str, expected_peers: dict,
-                 driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
-                 redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
-                 base_retry_interval: float = BASE_RETRY_INTERVAL, enable_rejoin: bool = ENABLE_REJOIN,
-                 minimal_peers: Union[float, dict] = MINIMAL_PEERS, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
-                 enable_message_cache_for_rejoin: bool = MESSAGE_CACHE_FOR_EXITED_PEER,
-                 max_wait_time_for_rejoin: int = REJOIN_WAIT_TIME, log_enable: bool = True):
+    def __init__(
+        self, group_name: str, component_type: str, expected_peers: dict,
+        driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
+        redis_address: Tuple = (HOST, PORT), max_retries: int = MAX_RETRIES,
+        base_retry_interval: float = BASE_RETRY_INTERVAL, enable_rejoin: bool = ENABLE_REJOIN,
+        minimal_peers: Union[float, dict] = MINIMAL_PEERS, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
+        enable_message_cache_for_rejoin: bool = ENABLE_MESSAGE_CACHE_FOR_REJOIN,
+        max_wait_time_for_rejoin: int = MAX_WAIT_TIME_FOR_REJOIN, log_enable: bool = True
+    ):
         self._group_name = group_name
         self._component_type = component_type
         self._redis_hash_name = f"{self._group_name}:{self._component_type}"
@@ -89,9 +90,11 @@ class Proxy:
         # Record the peer's redis information.
         self._peers_info_dict = {}
         for peer_type, number in expected_peers.items():
-            self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
-                                                          expected_number=number)
-        self._peers_socket_dict = defaultdict(dict)
+            self._peers_info_dict[peer_type] = _PEER_INFO(
+                hash_table_name=f"{self._group_name}:{peer_type}",
+                expected_number=number
+            )
+        self._on_board_peer_socket_dict = defaultdict(dict)
 
         # Record connected peers' name.
         self._onboard_peers_name_dict = {}
@@ -108,11 +111,15 @@ class Proxy:
             if self._enable_message_cache:
                 self._message_cache_for_exited_peers = MessageCache(MAX_LENGTH_FOR_MESSAGE_CACHE)
             if isinstance(minimal_peers, float):
-                self._minimal_peers = {peer_type: max(int(peer_info.expected_number * minimal_peers), 1)
-                                       for peer_type, peer_info in self._peers_info_dict.items()}
+                self._minimal_peers = {
+                    peer_type: max(int(peer_info.expected_number * minimal_peers), 1)
+                    for peer_type, peer_info in self._peers_info_dict.items()
+                }
             else:
-                self._minimal_peers = {peer_type: max(int(peer_info.expected_number * minimal_peers[peer_type]), 1)
-                                       for peer_type, peer_info in self._peers_info_dict.items()}
+                self._minimal_peers = {
+                    peer_type: max(int(peer_info.expected_number * minimal_peers[peer_type]), 1)
+                    for peer_type, peer_info in self._peers_info_dict.items()
+                }
 
         self._join()
 
@@ -167,9 +174,10 @@ class Proxy:
             signal.signal(signal.SIGINT, self._signal_handler)
             signal.signal(signal.SIGTERM, self._signal_handler)
         except Exception as e:
-            self._logger.critical(f"Signal detector disable. This may cause dirty data to be left in the Redis! "
-                                  f"To avoid this, please use multiprocess or make sure it can exit successfully."
-                                  f"Due to {str(e)}.")
+            self._logger.critical(
+                f"Signal detector disable. This may cause dirty data to be left in the Redis! To avoid this, please "
+                f"use multiprocess or make sure it can exit successfully. Due to {str(e)}."
+            )
 
     def _get_peers_list(self):
         """To collect all peers' name in the same group (group name) from Redis."""
@@ -189,14 +197,18 @@ class Proxy:
                     self._logger.debug(f"{self._name} successfully get all {peer_type}\'s name.")
                     break
                 else:
-                    self._logger.debug(f"{self._name} failed to get {peer_type}\'s name. Retrying in "
-                                       f"{self._retry_interval * (2 ** retry_number)} seconds.")
+                    self._logger.debug(
+                        f"{self._name} failed to get {peer_type}\'s name. Retrying in "
+                        f"{self._retry_interval * (2 ** retry_number)} seconds."
+                    )
+
                     time.sleep(self._retry_interval * (2 ** retry_number))
                     retry_number += 1
 
             if not expected_peers_name:
                 raise InformationUncompletedError(
-                    f"{self._name} failure to get enough number of {peer_type} from redis.")
+                    f"{self._name} failure to get enough number of {peer_type} from redis."
+                )
 
             self._onboard_peers_name_dict[peer_type] = expected_peers_name
 
@@ -206,15 +218,16 @@ class Proxy:
         """Grabbing all peers' address from Redis, and connect all peers in driver. """
         for peer_type, name_list in self._onboard_peers_name_dict.items():
             try:
-                peers_socket_value = self._redis_connection.hmget(self._peers_info_dict[peer_type].hash_table_name,
-                                                                  name_list)
+                peers_socket_value = self._redis_connection.hmget(
+                    self._peers_info_dict[peer_type].hash_table_name, name_list
+                )
                 for idx, peer_name in enumerate(name_list):
-                    self._peers_socket_dict[peer_name] = json.loads(peers_socket_value[idx])
+                    self._on_board_peer_socket_dict[peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
             except Exception as e:
                 raise InformationUncompletedError(f"{self._name} failed to get {name_list}\'s address. Due to {str(e)}")
 
-        self._driver.connect(self._peers_socket_dict)
+        self._driver.connect(self._on_board_peer_socket_dict)
 
     @property
     def group_name(self) -> str:
@@ -278,26 +291,30 @@ class Proxy:
 
         return received_message
 
-    def _scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
-                 session_id: str = None) -> List[str]:
+    def _scatter(
+        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+    ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
 
         for destination, payload in destination_payload_list:
-            message = SessionMessage(tag=tag,
-                                     source=self._name,
-                                     destination=destination,
-                                     session_id=session_id,
-                                     payload=payload,
-                                     session_type=session_type)
+            message = SessionMessage(
+                tag=tag,
+                source=self._name,
+                destination=destination,
+                session_id=session_id,
+                payload=payload,
+                session_type=session_type
+            )
             session_id_list.append(self.isend(message))
 
         # Flatten.
         session_id_list = list(itertools.chain.from_iterable(session_id_list))
         return session_id_list
 
-    def scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
-                session_id: str = None) -> List[Message]:
+    def scatter(
+        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+    ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
         Args:
@@ -313,8 +330,9 @@ class Proxy:
         """
         return self.receive_by_id(self._scatter(tag, session_type, destination_payload_list, session_id))
 
-    def iscatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
-                 session_id: str = None) -> List[str]:
+    def iscatter(
+        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+    ) -> List[str]:
         """Scatters a list of data to peers, and return list of message id.
 
         Args:
@@ -331,22 +349,26 @@ class Proxy:
         return self._scatter(tag, session_type, destination_payload_list, session_id)
 
     @peers_checker
-    def _broadcast(self, tag: Union[str, Enum], session_type: SessionType,
-                   session_id: str = None, payload=None) -> List[str]:
+    def _broadcast(
+        self, tag: Union[str, Enum], session_type: SessionType, session_id: str = None, payload=None
+    ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
-        message = SessionMessage(tag=tag,
-                                 source=self._name,
-                                 destination="*",
-                                 payload=payload,
-                                 session_id=session_id,
-                                 session_type=session_type)
+        message = SessionMessage(
+            tag=tag,
+            source=self._name,
+            destination="*",
+            payload=payload,
+            session_id=session_id,
+            session_type=session_type
+        )
 
         self._driver.broadcast(message)
 
         return [message.session_id] * len(list(itertools.chain.from_iterable(self._onboard_peers_name_dict.values())))
 
-    def broadcast(self, tag: Union[str, Enum], session_type: SessionType,
-                  session_id: str = None, payload=None) -> List[Message]:
+    def broadcast(
+        self, tag: Union[str, Enum], session_type: SessionType, session_id: str = None, payload=None
+    ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
         Args:
@@ -360,8 +382,9 @@ class Proxy:
         """
         return self.receive_by_id(self._broadcast(tag, session_type, session_id, payload))
 
-    def ibroadcast(self, tag: Union[str, Enum], session_type: SessionType,
-                   session_id: str = None, payload=None) -> List[str]:
+    def ibroadcast(
+        self, tag: Union[str, Enum], session_type: SessionType, session_id: str = None, payload=None
+    ) -> List[str]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
         Args:
@@ -403,8 +426,9 @@ class Proxy:
 
         return self.receive_by_id([message.session_id]) if not sending_status else sending_status
 
-    def reply(self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None,
-              ack_reply: bool = False) -> List[str]:
+    def reply(
+        self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False
+    ) -> List[str]:
         """Reply a received message.
 
         Args:
@@ -421,12 +445,14 @@ class Proxy:
         else:
             session_stage = NotificationSessionStage.RECEIVE
 
-        replied_message = SessionMessage(tag=tag if tag else received_message.tag,
-                                         source=self._name,
-                                         destination=received_message.source,
-                                         session_id=received_message.session_id,
-                                         payload=payload,
-                                         session_stage=session_stage)
+        replied_message = SessionMessage(
+            tag=tag if tag else received_message.tag,
+            source=self._name,
+            destination=received_message.source,
+            session_id=received_message.session_id,
+            payload=payload,
+            session_stage=session_stage
+        )
         return self.isend(replied_message)
 
     def forward(self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None,
@@ -442,12 +468,14 @@ class Proxy:
         Returns:
             List[str]: Message belonged session id.
         """
-        forward_message = SessionMessage(tag=tag if tag else received_message.tag,
-                                         source=self._name,
-                                         destination=destination,
-                                         session_id=received_message.session_id,
-                                         payload=payload if payload else received_message.payload,
-                                         session_stage=received_message.session_stage)
+        forward_message = SessionMessage(
+            tag=tag if tag else received_message.tag,
+            source=self._name,
+            destination=destination,
+            session_id=received_message.session_id,
+            payload=payload if payload else received_message.payload,
+            session_stage=received_message.session_stage
+        )
         return self.isend(forward_message)
 
     def _check_peers_update(self):
@@ -455,8 +483,10 @@ class Proxy:
             on_redis_peers_dict = self._redis_connection.hgetall(self._peers_info_dict[peer_type].hash_table_name)
             # decode
             on_redis_peers_dict = {key.decode(): json.loads(value) for key, value in on_redis_peers_dict.items()}
-            on_board_peers_dict = {onboard_peer_name: self._peers_socket_dict[onboard_peer_name]
-                                   for onboard_peer_name in on_board_peer_name_list}
+            on_board_peers_dict = {
+                onboard_peer_name: self._on_board_peer_socket_dict[onboard_peer_name]
+                for onboard_peer_name in on_board_peer_name_list
+            }
 
             if on_board_peers_dict != on_redis_peers_dict:
                 for peer_name, socket_info in on_redis_peers_dict.items():
@@ -464,14 +494,14 @@ class Proxy:
                     if peer_name not in on_board_peers_dict.keys():
                         self._logger.warn(f"PEER_REJOIN: New peer {peer_name} join.")
                         self._driver.connect({peer_name: socket_info})
-                        self._peers_socket_dict[peer_name] = socket_info
+                        self._on_board_peer_socket_dict[peer_name] = socket_info
                     else:
                         # Old peer restarted.
                         if socket_info != on_board_peers_dict[peer_name]:
                             self._logger.warn(f"PEER_REJOIN: Peer {peer_name} rejoin.")
                             self._driver.disconnect({peer_name: on_board_peers_dict[peer_name]})
                             self._driver.connect({peer_name: socket_info})
-                            self._peers_socket_dict[peer_name] = socket_info
+                            self._on_board_peer_socket_dict[peer_name] = socket_info
 
                 # Onboard peer exited.
                 exited_peers = [peer_name for peer_name in on_board_peers_dict.keys()
@@ -479,7 +509,7 @@ class Proxy:
                 for exited_peer in exited_peers:
                     self._logger.warn(f"PEER_REJOIN: Peer {exited_peer} exited.")
                     self._driver.disconnect({exited_peer: on_board_peers_dict[exited_peer]})
-                    del self._peers_socket_dict[exited_peer]
+                    del self._on_board_peer_socket_dict[exited_peer]
 
                 # update peer dict
                 self._onboard_peers_name_dict[peer_type] = list(on_redis_peers_dict.keys())

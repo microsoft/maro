@@ -12,7 +12,7 @@ def peers_checker(func):
         while self._enable_rejoin:
             current_time = time.time()
             if current_time - rejoin_start_time > self._max_wait_time_for_rejoin:
-                raise KeyError(f"Out of max waiting time for rejoin. Cannot reach the minimal number of peers.")
+                raise TimeoutError(f"Out of max waiting time for rejoin. Cannot reach the minimal number of peers.")
 
             if current_time - self._onboard_peers_lifetime > self._peer_update_frequency:
                 self._onboard_peers_lifetime = current_time
@@ -35,12 +35,17 @@ def peers_checker(func):
             if isinstance(output, SendAgain):
                 # Record messages for exited peers.
                 if len(self._onboard_peers_name_dict[peer_type]) > self._minimal_peers[peer_type]:
-                    self._message_cache_for_exited_peers.append(peer_name, message)
-                    self._logger.critical(f"Peer {peer_name} exited, but still have enough peers. Save message to message cache.")
+                    if self._enable_message_cache:
+                        self._message_cache_for_exited_peers.append(peer_name, message)
+                    self._logger.critical(
+                        f"Peer {peer_name} exited, but still have enough peers. Save message to message cache."
+                    )
                     return output
                 else:
-                    self._logger.critical(f"No enough peers! Waiting for peer {peer_name} restart. Remaining time: "
-                                          f"{rejoin_start_time + self._max_wait_time_for_rejoin - current_time}")
+                    self._logger.critical(
+                        f"No enough peers! Waiting for peer {peer_name} restart. Remaining time: "
+                        f"{rejoin_start_time + self._max_wait_time_for_rejoin - current_time}"
+                    )
                     time.sleep(self._peer_update_frequency)
             else:
                 if "pending_session_ids" in locals():

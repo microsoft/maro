@@ -22,11 +22,13 @@ class ActorProxy(object):
     Args:
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
     """
+
     def __init__(self, proxy_params):
         self._proxy = Proxy(component_type="actor", **proxy_params)
 
-    def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
-                 return_details: bool = True):
+    def roll_out(
+        self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
+    ):
         """Send roll-out requests to remote actors.
 
         This method has exactly the same signature as ``SimpleActor``'s ``roll_out`` method but instead of doing
@@ -46,9 +48,11 @@ class ActorProxy(object):
             Performance and per-agent experiences from the remote actor.
         """
         if done:
-            self._proxy.ibroadcast(tag=MessageTag.ROLLOUT,
-                                   session_type=SessionType.NOTIFICATION,
-                                   payload={PayloadKey.DONE: True})
+            self._proxy.ibroadcast(
+                tag=MessageTag.ROLLOUT,
+                session_type=SessionType.NOTIFICATION,
+                payload={PayloadKey.DONE: True}
+            )
             return None, None
         else:
             performance, exp_by_agent = {}, {}
@@ -57,8 +61,10 @@ class ActorProxy(object):
                                 PayloadKey.RETURN_DETAILS: return_details})
                         for peer in self._proxy.peers["actor_worker"]]
             # TODO: double check when ack enable
-            replies = self._proxy.scatter(tag=MessageTag.ROLLOUT, session_type=SessionType.TASK,
-                                          destination_payload_list=payloads)
+            replies = self._proxy.scatter(
+                tag=MessageTag.ROLLOUT, session_type=SessionType.TASK,
+                destination_payload_list=payloads
+            )
             for msg in replies:
                 performance[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
                 if msg.payload[PayloadKey.EXPERIENCE] is not None:
@@ -78,6 +84,7 @@ class ActorWorker(object):
         local_actor: An ``AbsActor`` instance.
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
     """
+
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor_worker", **proxy_params)
@@ -94,15 +101,20 @@ class ActorWorker(object):
         if data.get(PayloadKey.DONE, False):
             sys.exit(0)
 
-        performance, experiences = self._local_actor.roll_out(model_dict=data[PayloadKey.MODEL],
-                                                              epsilon_dict=data[PayloadKey.EPSILON],
-                                                              return_details=data[PayloadKey.RETURN_DETAILS])
+        performance, experiences = self._local_actor.roll_out(
+            model_dict=data[PayloadKey.MODEL],
+            epsilon_dict=data[PayloadKey.EPSILON],
+            return_details=data[PayloadKey.RETURN_DETAILS]
+        )
 
-        self._proxy.reply(received_message=message,
-                          tag=MessageTag.UPDATE,
-                          payload={PayloadKey.PERFORMANCE: performance,
-                                   PayloadKey.EXPERIENCE: experiences}
-                          )
+        self._proxy.reply(
+            received_message=message,
+            tag=MessageTag.UPDATE,
+            payload={
+                PayloadKey.PERFORMANCE: performance,
+                PayloadKey.EXPERIENCE: experiences
+            }
+        )
 
     def launch(self):
         """Entry point method.

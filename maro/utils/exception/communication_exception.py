@@ -76,6 +76,8 @@ class SendAgain(MAROException):
         super().__init__(1012, msg)
 
 
-__all__ = ["RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
-           "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
-           "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError", "SendAgain"]
+__all__ = [
+    "RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
+    "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
+    "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError", "SendAgain"
+]
