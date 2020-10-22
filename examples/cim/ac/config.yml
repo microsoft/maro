@@ -50,7 +50,7 @@ agents:
       policy_train_iters: 1
       value_train_iters: 10
       k: -1
-      lamb: 1.0
+      lam: 1.0
   seed: 1024   # for reproducibility
 distributed:
   group_name: "ac_distributed_test"
