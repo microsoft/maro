@@ -18,7 +18,7 @@ with io.open(CONFIG_PATH, "r") as in_file:
 
 # obtain model input dimension from state shaping configurations
 look_back = config["state_shaping"]["look_back"]
-max_ports_downstream = config["state_shaping"]["max_port_downstream"]
+max_ports_downstream = config["state_shaping"]["max_ports_downstream"]
 num_port_attributes = len(config["state_shaping"]["port_attributes"])
 num_vessel_attributes = len(config["state_shaping"]["vessel_attributes"])
 
