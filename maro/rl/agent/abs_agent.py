@@ -87,6 +87,7 @@ class AbsAgent(ABC):
 
     def dump_experience_store(self, dir_path: str):
         """Dump the experience pool to disk."""
-        os.makedirs(dir_path, exist_ok=True)
-        with open(os.path.join(dir_path, self._name)) as fp:
+        path = os.path.join(dir_path, self._name)
+        os.makedirs(path, exist_ok=True)
+        with open(path, "w") as fp:
             pickle.dump(self._experience_pool, fp)
