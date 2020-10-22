@@ -101,8 +101,9 @@ class ColumnBasedStore(AbsStore):
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
-            write_indexes = get_update_indexes(self._size, added_size, self._capacity, self._overwrite_type,
-                                               overwrite_indexes=overwrite_indexes)
+            write_indexes = get_update_indexes(
+                self._size, added_size, self._capacity, self._overwrite_type, overwrite_indexes=overwrite_indexes
+            )
             self.update(write_indexes, contents)
             self._size = min(self._capacity, self._size + added_size)
             return write_indexes
@@ -134,7 +135,7 @@ class ColumnBasedStore(AbsStore):
 
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                          e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+                e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
         Returns:
             Filtered indexes and corresponding objects.
         """
