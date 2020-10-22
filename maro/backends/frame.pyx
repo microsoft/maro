@@ -21,18 +21,17 @@ cimport numpy as np
 import numpy as np
 
 
-# NOTE: here to support backend switching
-IF FRAME_BACKEND == "NUMPY":
+from maro.backends.np_backend cimport NumpyBackend
+from maro.backends.raw_backend cimport RawBackend
+
+backend_dict = {
+    "raw" : RawBackend,
+    "np" : NumpyBackend
+}
 
 
-    from maro.backends.np_backend cimport NumpyBackend as backend
-
-ELSE:
-    from maro.backends.raw_backend cimport RawBackend as backend
-
-
-NP_SLOT_INDEX = np.uint64
-NP_NODE_INDEX = np.uint64
+NP_SLOT_INDEX = np.uint16
+NP_NODE_INDEX = np.uint16
 
 
 def node(name: str):
@@ -278,7 +277,11 @@ cdef class FrameNode:
 
 
 cdef class FrameBase:
-    def __init__(self, enable_snapshot: bool = False, total_snapshot: int = 0, options: dict = {}):
+    def __init__(self, enable_snapshot: bool = False, total_snapshot: int = 0, options: dict = {}, backend_name="np"):
+        print("using ", backend_name, "backend")
+
+        backend = backend_dict.get(backend_name, NumpyBackend)
+
         self._backend = backend()
 
         self._setup_backend(enable_snapshot, total_snapshot, options)

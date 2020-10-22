@@ -28,12 +28,12 @@ namespace maro
     }
         
 
-      CONSTRUCTOR(ATTR_BYTE, _byte, AttrDataType::BYTE)
-      CONSTRUCTOR(ATTR_DOUBLE, _double, AttrDataType::DOUBLE)
-      CONSTRUCTOR(ATTR_FLOAT, _float, AttrDataType::FLOAT)
-      CONSTRUCTOR(ATTR_INT, _int, AttrDataType::INT)
-      CONSTRUCTOR(ATTR_LONG, _long, AttrDataType::LONG)
-      CONSTRUCTOR(ATTR_SHORT, _short, AttrDataType::SHORT)
+      CONSTRUCTOR(ATTR_BYTE, _byte, AttrDataType::ABYTE)
+      CONSTRUCTOR(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
+      CONSTRUCTOR(ATTR_FLOAT, _float, AttrDataType::AFLOAT)
+      CONSTRUCTOR(ATTR_INT, _int, AttrDataType::AINT)
+      CONSTRUCTOR(ATTR_LONG, _long, AttrDataType::ALONG)
+      CONSTRUCTOR(ATTR_SHORT, _short, AttrDataType::ASHORT)
 
 
       CAST_OPERATOR(ATTR_BYTE, _byte)
@@ -44,7 +44,7 @@ namespace maro
 
       Attribute::operator ATTR_FLOAT() const noexcept
       {
-        if (_type == AttrDataType::FLOAT || _type == AttrDataType::DOUBLE)
+        if (_type == AttrDataType::AFLOAT || _type == AttrDataType::ADOUBLE)
         {
           return _data._float;
         }
@@ -55,7 +55,7 @@ namespace maro
 
       Attribute::operator ATTR_DOUBLE() const noexcept
       {
-        if (_type == AttrDataType::FLOAT || _type == AttrDataType::DOUBLE)
+        if (_type == AttrDataType::AFLOAT || _type == AttrDataType::ADOUBLE)
         {
           return _data._double;
         }
@@ -65,12 +65,12 @@ namespace maro
         }
       }
 
-      DATA_ASSIGN(ATTR_BYTE, _byte, AttrDataType::BYTE)
-      DATA_ASSIGN(ATTR_SHORT, _short, AttrDataType::SHORT)
-      DATA_ASSIGN(ATTR_INT, _int, AttrDataType::INT)
-      DATA_ASSIGN(ATTR_LONG, _long, AttrDataType::LONG)
-      DATA_ASSIGN(ATTR_FLOAT, _float, AttrDataType::FLOAT)
-      DATA_ASSIGN(ATTR_DOUBLE, _double, AttrDataType::DOUBLE)
+      DATA_ASSIGN(ATTR_BYTE, _byte, AttrDataType::ABYTE)
+      DATA_ASSIGN(ATTR_SHORT, _short, AttrDataType::ASHORT)
+      DATA_ASSIGN(ATTR_INT, _int, AttrDataType::AINT)
+      DATA_ASSIGN(ATTR_LONG, _long, AttrDataType::ALONG)
+      DATA_ASSIGN(ATTR_FLOAT, _float, AttrDataType::AFLOAT)
+      DATA_ASSIGN(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
 
     }
   }

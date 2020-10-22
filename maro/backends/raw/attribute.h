@@ -28,7 +28,7 @@ namespace maro
         } _data alignas(8) { 0 };
 
         // data type enum, default is int
-        AttrDataType _type{ AttrDataType::INT };
+        AttrDataType _type{ AttrDataType::AINT };
 
       public:
         // constructors

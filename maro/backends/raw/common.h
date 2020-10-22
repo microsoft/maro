@@ -20,24 +20,25 @@ namespace maro
 
       // NOTE: this should sync with maro/backends/backend.pxd
       // Common definitions.
-      using INT = int64_t;
-      using UINT = uint64_t;
-      using ULONG = uint64_t;
-      using IDENTIFIER = uint64_t;
-      using NODE_INDEX = uint64_t;
-      using SLOT_INDEX = uint64_t;
+      using INT = int;
+      using UINT = unsigned int;
+      using ULONG = unsigned long long;
+
+      using IDENTIFIER = unsigned int;
+      using NODE_INDEX = unsigned short; // max 65535
+      using SLOT_INDEX = unsigned short;
 
       /// <summary>
       /// Supported data type for attributes.
       /// </summary>
       enum class AttrDataType : char
       {
-        BYTE,
-        SHORT,
-        INT,
-        LONG,
-        FLOAT,
-        DOUBLE,
+        ABYTE,
+        ASHORT,
+        AINT,
+        ALONG,
+        AFLOAT,
+        ADOUBLE,
       };
     }
   }

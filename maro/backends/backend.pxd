@@ -10,9 +10,9 @@ from libc.stdint cimport int32_t, int64_t, int16_t, int8_t, uint32_t, uint64_t
 
 # common types
 
-ctypedef int64_t INT
+ctypedef int INT
 ctypedef unsigned int UINT
-ctypedef uint64_t ULONG
+ctypedef unsigned long long ULONG
 
 
 ctypedef int8_t ATTR_BYTE
@@ -24,11 +24,11 @@ ctypedef double ATTR_DOUBLE
 
 
 # ID of node and attribute
-ctypedef uint64_t IDENTIFIER
+ctypedef unsigned int IDENTIFIER
 # Index type of node
-ctypedef uint64_t NODE_INDEX
+ctypedef unsigned short NODE_INDEX
 # Index type of slot
-ctypedef uint64_t SLOT_INDEX
+ctypedef unsigned short SLOT_INDEX
 
 
 

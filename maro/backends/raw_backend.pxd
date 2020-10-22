@@ -7,6 +7,8 @@
 cimport cython
 
 from cpython cimport bool
+from libcpp.string cimport string
+
 from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
     ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE)
 
@@ -18,12 +20,12 @@ cdef extern from "raw/common.h" namespace "maro::backends::raw":
 
 
 cdef extern from "raw/common.h" namespace "maro::backends::raw::AttrDataType":
-    cdef AttrDataType AttrDataType_BYTE
-    cdef AttrDataType AttrDataType_SHORT
-    cdef AttrDataType AttrDataType_INT
-    cdef AttrDataType AttrDataType_LONG
-    cdef AttrDataType AttrDataType_FLOAT
-    cdef AttrDataType AttrDataType_DOUBLE
+    cdef AttrDataType ABYTE
+    cdef AttrDataType ASHORT
+    cdef AttrDataType AINT
+    cdef AttrDataType ALONG
+    cdef AttrDataType AFLOAT
+    cdef AttrDataType ADOUBLE
 
 
 cdef extern from "raw/attribute.cpp":
@@ -41,8 +43,8 @@ cdef extern from "raw/backend.cpp" namespace "maro::backends::raw":
 
 cdef extern from "raw/backend.h" namespace "maro::backends::raw":
     cdef cppclass Backend:
-        IDENTIFIER add_node(str node_name)
-        IDENTIFIER add_attr(IDENTIFIER node_id, str attr_name, AttrDataType attr_type, SLOT_INDEX slot_number)
+        IDENTIFIER add_node(string node_name)
+        IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number)
         ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
         ATTR_SHORT get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
         ATTR_INT get_int(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)

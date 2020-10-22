@@ -33,19 +33,19 @@ cdef class RawBackend(BackendAbc):
         return id
 
     cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
-        cdef AttrDataType dt = AttrDataType_INT
+        cdef AttrDataType dt = AINT
 
         # TODO: refactor later
         if dtype == "i" or dtype == "i4":
-            dt = AttrDataType_INT
+            dt = AINT
         elif dtype == "i2":
-            dt = AttrDataType_SHORT
+            dt = ASHORT
         elif dtype == "i8":
-            dt = AttrDataType_LONG
+            dt = ALONG
         elif dtype == "f":
-            dt = AttrDataType_FLOAT
+            dt = AFLOAT
         elif dtype == "d":
-            dt = AttrDataType_DOUBLE
+            dt = ADOUBLE
         
         cdef IDENTIFIER attr_id = self._backend.add_attr(node_id, attr_name.encode(), dt, slot_num)
 
@@ -120,9 +120,9 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef IDENTIFIER attr_id
 
         # NOTE: format must be changed if NODE_INDEX type changed
-        cdef NODE_INDEX[:] node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="I")
+        cdef NODE_INDEX[:] node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="H")
         cdef IDENTIFIER[:] attr_id_list = view.array(shape=(len(attr_list),), itemsize=sizeof(IDENTIFIER), format="I")
-        cdef INT[:] tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="I")
+        cdef INT[:] tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="i")
 
         for index in range(len(node_index_list)):
             node_indices[index] = node_index_list[index]
@@ -157,3 +157,6 @@ cdef class RawSnapshotList(SnapshotListAbc):
     # Reset internal states
     cdef void reset(self) except *:
         self._backend._backend.reset_snapshots()
+
+    def __len__(self):
+        pass
