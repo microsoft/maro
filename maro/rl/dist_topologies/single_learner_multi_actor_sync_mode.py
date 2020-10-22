@@ -82,7 +82,7 @@ class ActorWorker(object):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor_worker", **proxy_params)
         self._registry_table = RegisterTable(self._proxy.get_peers)
-        self._registry_table.register_event_handler("actor:rollout:1", self.on_rollout_request)
+        self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):
         """Perform local roll-out and send the results back to the request sender.
