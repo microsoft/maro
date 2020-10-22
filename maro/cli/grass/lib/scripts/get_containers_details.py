@@ -22,9 +22,7 @@ if __name__ == "__main__":
     redis_port = cluster_details['master']['redis']['port']
 
     # Get nodes details
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(host=master_hostname, port=redis_port, charset="utf-8", decode_responses=True)
     containers_details = get_containers_details(
         redis=redis,
         cluster_name=args.cluster_name

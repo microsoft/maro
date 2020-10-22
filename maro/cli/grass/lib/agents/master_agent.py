@@ -15,13 +15,15 @@ from redis import Redis
 
 from exception import AllocationFailed, StartContainerFailed
 from resource import NodeResource, ContainerResource
-from utils import (load_cluster_details,
-                   get_node_details, get_nodes_details,
-                   get_job_details, get_jobs_details, set_job_details,
-                   get_pending_job_tickets, remove_pending_job_ticket,
-                   get_killed_job_tickets, remove_killed_job_ticket,
-                   get_containers_details,
-                   get_container_name_to_component_name, set_containers_details)
+from utils import (
+    load_cluster_details,
+    get_node_details, get_nodes_details,
+    get_job_details, get_jobs_details, set_job_details,
+    get_pending_job_tickets, remove_pending_job_ticket,
+    get_killed_job_tickets, remove_killed_job_ticket,
+    get_containers_details, set_containers_details,
+    get_container_name_to_component_name, delete_container_name_to_component_name
+)
 
 logger = logging.getLogger(__name__)
 
@@ -260,8 +262,10 @@ class FaultToleranceAgent(multiprocessing.Process):
 
         # Iterate container status
         for container_name, container_details in containers_details.items():
-            if (container_details["state"]["Status"] == "exited" and
-                container_details["state"]["ExitCode"] != 0):
+            if (
+                container_details["state"]["Status"] == "exited" and
+                container_details["state"]["ExitCode"] != 0
+            ):
                 self._restart_container(container_name=container_name, container_details=container_details)
 
     def _restart_container(self, container_name: str, container_details: dict) -> None:
@@ -289,49 +293,55 @@ class FaultToleranceAgent(multiprocessing.Process):
             logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
             return
         else:
-            component_name = container_name_to_component_name[container_name]
-            free_resources = ResourceManagementExecutor.get_free_resources(
-                redis=self._redis,
-                cluster_name=self._cluster_name
-            )
-            required_resources = [
-                ContainerResource(
-                    container_name=ResourceManagementExecutor.build_container_name(
-                        job_id=container_details["job_id"],
-                        component_id=container_details["component_id"],
-                        component_index=container_details["component_index"]
-                    ),
-                    cpu=float(container_details["cpu"]),
-                    memory=float(container_details["memory"].replace("m", "")),
-                    gpu=float(container_details["gpu"])
+            try:
+                component_name = container_name_to_component_name[container_name]
+                free_resources = ResourceManagementExecutor.get_free_resources(
+                    redis=self._redis,
+                    cluster_name=self._cluster_name
                 )
-            ]
-            allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
-                allocation_details={"metric": "cpu"},
-                required_resources=required_resources,
-                free_resources=free_resources
-            )
-            # self._remove_container(
-            #     container_name=container_details["container_name"],
-            #     container_details=container_details
-            # )
-            job_details = get_job_details(
-                redis=self._redis,
-                cluster_name=self._cluster_name,
-                job_name=container_details["job_name"]
-            )
-            for container_name, node_name in allocation_plan.items():
-                node_details = get_node_details(
+                required_resources = [
+                    ContainerResource(
+                        container_name=ResourceManagementExecutor.build_container_name(
+                            job_id=container_details["job_id"],
+                            component_id=container_details["component_id"],
+                            component_index=container_details["component_index"]
+                        ),
+                        cpu=float(container_details["cpu"]),
+                        memory=float(container_details["memory"].replace("m", "")),
+                        gpu=float(container_details["gpu"])
+                    )
+                ]
+                allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
+                    allocation_details={"metric": "cpu"},
+                    required_resources=required_resources,
+                    free_resources=free_resources
+                )
+                # TODO: keep it or leave it
+                # self._remove_container(
+                #     container_name=container_details["container_name"],
+                #     container_details=container_details
+                # )
+                job_details = get_job_details(
                     redis=self._redis,
                     cluster_name=self._cluster_name,
-                    node_name=node_name
+                    job_name=container_details["job_name"]
                 )
-                self._start_container(
-                    container_name=container_name,
-                    node_details=node_details,
-                    job_details=job_details,
-                    component_name=component_name
-                )
+                for container_name, node_name in allocation_plan.items():
+                    node_details = get_node_details(
+                        redis=self._redis,
+                        cluster_name=self._cluster_name,
+                        node_name=node_name
+                    )
+                    self._start_container(
+                        container_name=container_name,
+                        node_details=node_details,
+                        job_details=job_details,
+                        component_name=component_name
+                    )
+            except AllocationFailed as e:
+                logger.warning(f"Allocation failed with {e}")
+            except StartContainerFailed as e:
+                logger.warning(f"Start container failed with {e}")
 
     def _remove_container(self, container_name: str, container_details: dict) -> None:
         """Remove container.
@@ -357,9 +367,10 @@ class FaultToleranceAgent(multiprocessing.Process):
             node_hostname=node_details["hostname"],
             containers=container_name
         )
-        completed_process = subprocess.run(command,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                           encoding="utf8")
+        completed_process = subprocess.run(
+            command,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         if completed_process.returncode != 0:
             logger.error(f"No container {container_name} in {node_name}")
 
@@ -381,7 +392,7 @@ class FaultToleranceAgent(multiprocessing.Process):
         # Parse params
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
-        node_id = node_details["name"]
+        node_id = node_details["id"]
         node_name = node_details["name"]
         job_id = job_details["id"]
         job_name = job_details["name"]
@@ -453,8 +464,10 @@ class FaultToleranceAgent(multiprocessing.Process):
 
         # Exec command
         logger.info(command)
-        completed_process = subprocess.run(command,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8")
+        completed_process = subprocess.run(
+            command,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         if completed_process.returncode != 0:
             raise AllocationFailed(completed_process.stderr)
 
@@ -565,7 +578,7 @@ class PendingJobAgent(multiprocessing.Process):
         # Parse params
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
-        node_id = node_details["name"]
+        node_id = node_details["id"]
         node_name = node_details["name"]
         job_name = job_details["name"]
         job_id = job_details["id"]
@@ -636,8 +649,10 @@ class PendingJobAgent(multiprocessing.Process):
 
         # Exec command
         logger.info(command)
-        completed_process = subprocess.run(command,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8")
+        completed_process = subprocess.run(
+            command,
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        )
         if completed_process.returncode != 0:
             raise AllocationFailed(completed_process.stderr)
 
@@ -689,10 +704,8 @@ class KilledJobAgent(multiprocessing.Process):
                 job_name=job_name
             )
             if job_details is not None:
-                job_id = job_details["id"]
-
                 # Kill job
-                self._kill_job(job_id=job_id)
+                self._kill_job(job_details=job_details)
             else:
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 
@@ -703,15 +716,26 @@ class KilledJobAgent(multiprocessing.Process):
                 job_name=job_name
             )
 
-    def _kill_job(self, job_id: str) -> None:
+    def _kill_job(self, job_details: dict) -> None:
         """Kill job and stop containers.
 
         Args:
-            job_id: The ID of the job.
+            job_details (dict): Details of the job.
 
         Returns:
             None.
         """
+        # Get params
+        job_id = job_details["id"]
+        job_name = job_details["name"]
+
+        # Delete mapping if fault tolerance is activated
+        delete_container_name_to_component_name(
+            redis=self._redis,
+            cluster_name=self._cluster_name,
+            job_name=job_name
+        )
+
         # Load details and vars
         nodes_details = get_nodes_details(
             redis=self._redis,
@@ -737,9 +761,11 @@ class KilledJobAgent(multiprocessing.Process):
                     node_hostname=node_hostname,
                     containers=" ".join(removable_containers)
                 )
-                completed_process = subprocess.run(command,
-                                                   shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                                   encoding="utf8")
+                completed_process = subprocess.run(
+                    command,
+                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    encoding="utf8"
+                )
                 if completed_process.returncode != 0:
                     logger.error(completed_process.stderr)
                 logger.info(command)
@@ -801,12 +827,16 @@ class ResourceManagementExecutor:
         # Init resources PQ
         required_resources_pq = []
         for required_resource in required_resources:
-            heapq.heappush(required_resources_pq,
-                           (-getattr(required_resource, metric), required_resource))
+            heapq.heappush(
+                required_resources_pq,
+                (-getattr(required_resource, metric), required_resource)
+            )
         free_resources_pq = []
         for free_resource in free_resources:
-            heapq.heappush(free_resources_pq,
-                           (getattr(free_resource, metric), free_resource))
+            heapq.heappush(
+                free_resources_pq,
+                (getattr(free_resource, metric), free_resource)
+            )
 
         # Get allocation
         while len(required_resources_pq) > 0:
@@ -831,18 +861,26 @@ class ResourceManagementExecutor:
                 free_resource.cpu -= required_resource.cpu
                 free_resource.memory -= required_resource.memory
                 free_resource.gpu -= required_resource.gpu
-                heapq.heappush(free_resources_pq,
-                               (getattr(free_resource, metric), free_resource))
+                heapq.heappush(
+                    free_resources_pq,
+                    (getattr(free_resource, metric), free_resource)
+                )
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (getattr(not_usable_free_resource, metric), not_usable_free_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                    )
             else:
                 # add previous resources back, to do printing
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (getattr(not_usable_free_resource, metric), not_usable_free_resource))
-                heapq.heappush(required_resources_pq,
-                               (-getattr(required_resource, metric), required_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                    )
+                heapq.heappush(
+                    required_resources_pq,
+                    (-getattr(required_resource, metric), required_resource)
+                )
 
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
@@ -881,12 +919,16 @@ class ResourceManagementExecutor:
         # Init resources PQ
         required_resources_pq = []
         for required_resource in required_resources:
-            heapq.heappush(required_resources_pq,
-                           (-getattr(required_resource, metric), required_resource))
+            heapq.heappush(
+                required_resources_pq,
+                (-getattr(required_resource, metric), required_resource)
+            )
         free_resources_pq = []
         for free_resource in free_resources:
-            heapq.heappush(free_resources_pq,
-                           (-getattr(free_resource, metric), free_resource))
+            heapq.heappush(
+                free_resources_pq,
+                (-getattr(free_resource, metric), free_resource)
+            )
 
         # Get allocation
         while len(required_resources_pq) > 0:
@@ -911,18 +953,26 @@ class ResourceManagementExecutor:
                 free_resource.cpu -= required_resource.cpu
                 free_resource.memory -= required_resource.memory
                 free_resource.gpu -= required_resource.gpu
-                heapq.heappush(free_resources_pq,
-                               (-getattr(free_resource, metric), free_resource))
+                heapq.heappush(
+                    free_resources_pq,
+                    (-getattr(free_resource, metric), free_resource)
+                )
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (-getattr(not_usable_free_resource, metric), not_usable_free_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                    )
             else:
                 # add previous resources back, to do printing
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (-getattr(not_usable_free_resource, metric), not_usable_free_resource))
-                heapq.heappush(required_resources_pq,
-                               (-getattr(required_resource, metric), required_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
+                    )
+                heapq.heappush(
+                    required_resources_pq,
+                    (-getattr(required_resource, metric), required_resource)
+                )
 
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)

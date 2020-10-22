@@ -15,9 +15,7 @@ def create_pending_job_ticket(cluster_name: str, job_name: str):
     master_hostname = cluster_details['master']['hostname']
     redis_port = cluster_details['master']['redis']['port']
 
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(host=master_hostname, port=redis_port, charset="utf-8", decode_responses=True)
     redis.lpush(
         f"{cluster_name}:pending_job_tickets",
         job_name
