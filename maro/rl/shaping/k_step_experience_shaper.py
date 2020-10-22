@@ -1,19 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict, deque
 from enum import Enum
 from typing import Callable
 
-import numpy as np
-
 from .experience_shaper import ExperienceShaper
-from maro.rl.utils.trajectory_utils import get_k_step_returns
 
 
 class KStepExperienceKeys(Enum):
     STATE = "state"
     ACTION = "action"
     REWARD = "reward"
+    RETURN = "return"
     NEXT_STATE = "next_state"
     NEXT_ACTION = "next_action"
     DISCOUNT = "discount"
@@ -31,38 +30,32 @@ class KStepExperienceShaper(ExperienceShaper):
     def __init__(self, reward_func: Callable, reward_decay: float, steps: int, is_per_agent: bool = True):
         super().__init__(reward_func)
         self._reward_decay = reward_decay
-        self._num_steps = steps
+        self._steps = steps
         self._is_per_agent = is_per_agent
 
     def __call__(self, trajectory, snapshot_list):
-        length = len(trajectory)
-        agent_ids = np.asarray(trajectory.get_by_key["agent_id"])
-        states = np.asarray(trajectory.get_by_key["state"])
-        actions = np.asarray(trajectory.get_by_key["action"])
-        reward_array = np.fromiter(map(self._reward_func, trajectory.get_by_key("metrics")), dtype=np.float32)
-        reward_sums = get_k_step_returns(reward_array, self._reward_decay, k=self._num_steps)
-        discounts = np.array([self._reward_decay ** min(self._num_steps, length - i - 1) for i in range(length - 1)])
-        next_states = np.pad(states[self._num_steps:], (0, length - self._num_steps - 1), mode="edge")
-        next_actions = np.pad(actions[self._num_steps:], (0, length - self._num_steps - 1), mode="edge")
+        experiences = defaultdict(lambda: defaultdict(deque)) if self._is_per_agent else defaultdict(deque)
+        reward_list = deque()
+        full_return = partial_return = 0
+        for i in range(len(trajectory) - 2, -1, -1):
+            transition = trajectory[i]
+            next_transition = trajectory[min(len(trajectory) - 1, i + self._steps)]
+            reward_list.appendleft(self._reward_func(trajectory[i]["metrics"]))
+            # compute the full return
+            full_return = full_return * self._reward_decay + reward_list[0]
+            # compute the partial return
+            partial_return = partial_return * self._reward_decay + reward_list[0]
+            if len(reward_list) > self._steps:
+                partial_return -= reward_list.pop() * self._reward_decay ** (self._steps - 1)
+            agent_exp = experiences[transition["agent_id"]] if self._is_per_agent else experiences
+            agent_exp[KStepExperienceKeys.STATE.value].appendleft(transition["state"])
+            agent_exp[KStepExperienceKeys.ACTION.value].appendleft(transition["action"])
+            agent_exp[KStepExperienceKeys.REWARD.value].appendleft(partial_return)
+            agent_exp[KStepExperienceKeys.RETURN.value].appendleft(full_return)
+            agent_exp[KStepExperienceKeys.NEXT_STATE.value].appendleft(next_transition["state"])
+            agent_exp[KStepExperienceKeys.NEXT_ACTION.value].appendleft(next_transition["action"])
+            agent_exp[KStepExperienceKeys.DISCOUNT.value].appendleft(
+                self._reward_decay ** (min(self._steps, len(trajectory) - 1 - i))
+            )
 
-        states, actions = states[:-1], actions[:-1]
-
-        if self._is_per_agent:
-            return {agent_id: {
-                KStepExperienceKeys.STATE.value: states[agent_ids == agent_id],
-                KStepExperienceKeys.ACTION.value: actions[agent_ids == agent_id],
-                KStepExperienceKeys.REWARD.value: reward_sums[agent_ids == agent_id],
-                KStepExperienceKeys.NEXT_STATE.value: next_states[agent_ids == agent_id],
-                KStepExperienceKeys.NEXT_ACTION.value: next_actions[agent_ids == agent_id],
-                KStepExperienceKeys.DISCOUNT.value: discounts[agent_ids == agent_id]}
-                for agent_id in set(agent_ids)
-            }
-        else:
-            return {
-                KStepExperienceKeys.STATE.value: states,
-                KStepExperienceKeys.ACTION.value: actions,
-                KStepExperienceKeys.REWARD.value: reward_sums,
-                KStepExperienceKeys.NEXT_STATE.value: next_states,
-                KStepExperienceKeys.NEXT_ACTION.value: next_actions,
-                KStepExperienceKeys.DISCOUNT.value: discounts
-            }
+        return dict(experiences)
