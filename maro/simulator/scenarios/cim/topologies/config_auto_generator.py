@@ -6,11 +6,11 @@ import math
 import shutil
 import random
 
-TOPOLOGY_LIST = ["toy.4p_ssdd", "toy.5p_ssddd", "toy.6p_sssbdd", "global_trade.22p"]
+TOPOLOGY_LIST = ["global_trade.22p"]
 SAILING_TIME = 7
-VESSEL_CAPACITY_REDUNDANCY_RATIOS = [20, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.5, 2.5]
+VESSEL_CAPACITY_REDUNDANCY_RATIOS = [20, 4.5, 4.5, 4.5, 4.5, 4.5, 6.0, 6.0, 6.0]
 VESSEL_CAPACITY_DELTA_RATIO = 0.1
-AVG_ORDER_RATIO = 0.02
+AVG_ORDER_RATIO = 0.008
 ORDER_RATIO_DELTA = 0.005
 ORDER_NOISE = 0.002
 PERIOD = 112
