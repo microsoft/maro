@@ -85,7 +85,7 @@ class AbsAgent(ABC):
             os.path.join(dir_path, self._name)
         )
 
-    def dump_experience_store(self, dir_path: str):
+    def dump_experience_pool(self, dir_path: str):
         """Dump the experience pool to disk."""
         os.makedirs(dir_path, exist_ok=True)
         with open(os.path.join(dir_path, self._name), "wb") as fp:

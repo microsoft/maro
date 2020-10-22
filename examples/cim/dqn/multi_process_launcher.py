@@ -11,7 +11,7 @@ from components.config import config
 
 
 ACTOR_NUM = config.distributed.learner.peer["actor_worker"]  # must be same as in config
-LEARNER_NUM = config.distributed.actor.peer["learner"]
+LEARNER_NUM = config.distributed.actor.peer["actor"]
 
 learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_learner.py &"
 actor_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_actor.py &"
