@@ -432,27 +432,4 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     def _build_temp_data(self):
         """Build temporary data for predefined environment."""
-        logger.warning_yellow(f"Binary data files for scenario: citi_bike topology: {self._topology} not found.")
-        citi_bike_process = CitiBikeProcess(is_temp=True)
-        if self._topology in citi_bike_process.topologies:
-            pid = str(os.getpid())
-            logger.warning_yellow(
-                f"Generating temp binary data file for scenario: citi_bike topology: {self._topology} pid: {pid}. "
-                "If you want to keep the data, please use MARO CLI command "
-                f"'maro env data generate -s citi_bike -t {self._topology}' to generate the binary data files first."
-            )
-            self._citi_bike_data_pipeline = citi_bike_process.topologies[self._topology]
-            self._citi_bike_data_pipeline.download()
-            self._citi_bike_data_pipeline.clean()
-            self._citi_bike_data_pipeline.build()
-            build_folders = self._citi_bike_data_pipeline.get_build_folders()
-            trip_folder = build_folders["trip"]
-            weather_folder = build_folders["weather"]
-            self._conf["weather_data"] = chagne_file_path(self._conf["weather_data"], weather_folder)
-            self._conf["trip_data"] = chagne_file_path(self._conf["trip_data"], trip_folder)
-            self._conf["stations_init_data"] = chagne_file_path(self._conf["stations_init_data"], trip_folder)
-            self._conf["distance_adj_data"] = chagne_file_path(self._conf["distance_adj_data"], trip_folder)
-        else:
-            raise CommandError(
-                "generate", f"Can not generate data files for scenario: citi_bike topology: {self._topology}"
-            )
+        pass
