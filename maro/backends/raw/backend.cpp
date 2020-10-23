@@ -64,10 +64,16 @@ namespace maro
 
         auto id = _nodes.size();
 
+        if (id >= MAX_IDENTIFIERS)
+        {
+          throw MaxNodeTypeNumberError();
+        }
+
         NodeInfo node{ 1, 0, 0, id, node_name };
 
         _nodes.push_back(node);
 
+        // we can safe cast here, as we have checking before
         return IDENTIFIER(id);
       }
 
@@ -76,6 +82,11 @@ namespace maro
         ensure_setup_state(false);
 
         auto id = _attrs.size();
+
+        if (id >= MAX_IDENTIFIERS)
+        {
+          throw MaxAttributeTypeNumberError();
+        }
 
         // Invalid node id will be ignored
         if (node_id >= _nodes.size())
@@ -105,7 +116,21 @@ namespace maro
         node.number = number;
       }
 
-      void Backend::setup(bool enable_snapshot, UINT snapshot_number)
+      NODE_INDEX Backend::get_node_number(IDENTIFIER node_id)
+      {
+        ensure_node_id(node_id);
+
+        auto& node = _nodes[node_id];
+
+        return node.number;
+      }
+
+      USHORT Backend::get_snapshot_number()
+      {
+        return _snapshot_number;
+      }
+
+      void Backend::setup(bool enable_snapshot, USHORT snapshot_number)
       {
         ensure_setup_state(false);
 
@@ -171,7 +196,7 @@ namespace maro
                                                                                                                      \
         auto& target_attr = _data[attr_index];                                                                       \
                                                                                                                      \
-        return m_attr_type(target_attr);                                                                             \
+        return target_attr.get_##m_func_name##();                                                                    \
     }
 
       GET_ATTR_VALUE_BY_TYPE(ATTR_BYTE, byte)
@@ -210,9 +235,14 @@ namespace maro
       template void Backend::set_attr_value<ATTR_DOUBLE>(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, ATTR_DOUBLE value);
 
 
-      void Backend::take_snapshot(UINT tick)
+      void Backend::take_snapshot(INT tick)
       {
         ensure_setup_state(true);
+
+        if (tick < 0)
+        {
+          throw InvalidSnapshotTick();
+        }
 
         // try to find if tick exists
         auto internal_index_ite = _ss_tick2index_map.find(tick);
@@ -262,9 +292,27 @@ namespace maro
 
         auto& node = _nodes[node_id];
 
-        for (UINT i = 0; i < node_length; i++)
+        
+
+        NODE_INDEX* _node_indices = nullptr;
+
+        if (node_indices == nullptr)
         {
-          auto node_index = node_indices[i];
+          node_length = node.number;
+
+          _node_indices = new NODE_INDEX[node_length];
+
+          for (auto i = 0; i < node_length; i++)
+          {
+            _node_indices[i] = i;
+          }
+        }
+
+        const NODE_INDEX* __node_indices = node_indices == nullptr ? _node_indices : node_indices;
+
+        for (auto i = 0; i < node_length; i++)
+        {
+          auto node_index = __node_indices[i];
 
           ensure_node_index(node_index, node);
 
@@ -276,6 +324,11 @@ namespace maro
           }
         }
 
+        if (_node_indices != nullptr)
+        {
+          delete []_node_indices;
+        }
+
         return length;
       }
 
@@ -284,20 +337,61 @@ namespace maro
       {
         ensure_node_id(node_id);
 
-        UINT tick{ 0 };
+        auto& node = _nodes[node_id];
+
+        if ( attributes == nullptr)
+        {
+          return;
+        }
+
+        INT* _ticks = nullptr;
+
+        if (ticks == nullptr)
+        {
+          ticks_length = _ss_tick2index_map.size();
+
+          _ticks = new INT[ticks_length];
+
+          INT i = 0;
+
+          for (auto iter = _ss_tick2index_map.begin(); iter != _ss_tick2index_map.end(); iter++)
+          {
+            _ticks[i] = iter->first;
+            i++;
+          }
+        }
+
+        NODE_INDEX* _node_indices = nullptr;
+
+        if (node_indices == nullptr)
+        {
+          node_length = node.number;
+
+          _node_indices = new NODE_INDEX[node_length];
+
+          for (auto i = 0; i < node_length; i++)
+          {
+            _node_indices[i] = i;
+          }
+        }
+
+        const INT* __ticks = ticks == nullptr ? _ticks : ticks;
+        const NODE_INDEX* __node_indices = node_indices == nullptr ? _node_indices : node_indices;
+
+        INT tick{ 0 };
         // index of frame in the data array
         // 0 is current frame, others are snapshots
         UINT frame_index{ 1 };
         UINT node_index{ 0 };
 
-        auto& node = _nodes[node_id];
+        
         auto one_frame_length = query_one_tick_length(node_id, node_indices, node_length, attributes, attr_length);
 
         size_t ret_index = 0;
 
-        for (UINT i = 0; i < ticks_length; i++)
+        for (auto i = 0; i < ticks_length; i++)
         {
-          tick = ticks[i];
+          tick = __ticks[i];
 
           // skip if tick is negative, leave related parts with default value
           if (tick < 0)
@@ -307,7 +401,7 @@ namespace maro
             continue;
           }
 
-          auto internal_index_ite = _ss_tick2index_map.find(UINT(tick));
+          auto internal_index_ite = _ss_tick2index_map.find(tick);
 
           // skip if tick not exist, leave related parts with default value
           if (internal_index_ite == _ss_tick2index_map.end())
@@ -322,7 +416,7 @@ namespace maro
 
           for (UINT j = 0; j < node_length; j++)
           {
-            node_index = node_indices[j];
+            node_index = __node_indices[j];
 
             ensure_node_index(node_index, node);
 
@@ -330,7 +424,7 @@ namespace maro
             {
               auto& attr = _attrs[attributes[k]];
 
-              for (UINT slot_index = 0; slot_index < attr.slots; slot_index++)
+              for (SLOT_INDEX slot_index = 0; slot_index < attr.slots; slot_index++)
               {
                 auto attr_index = calc_attr_index(frame_index, node, node_index, attr, slot_index);
 
@@ -343,6 +437,11 @@ namespace maro
               }
             }
           }
+        }
+
+        if (_node_indices != nullptr)
+        {
+          delete[]_node_indices;
         }
       }
     }

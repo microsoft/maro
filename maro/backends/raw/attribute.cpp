@@ -14,19 +14,20 @@ namespace maro
         _data.##m_field = val;                        \
     }
 
-#define CAST_OPERATOR(m_operator, m_field)           \
-    Attribute::operator m_operator() const noexcept  \
-    {                                                \
-        return _data.m_field;                        \
-    }
 
 #define DATA_ASSIGN(m_type, m_field, m_internal_type) \
-    void Attribute::operator =(##m_type val) noexcept \
+    void Attribute::operator =(##m_type val)          \
     {                                                 \
-        _data.##m_field = val;                        \
         _type = m_internal_type;                      \
+        _data.##m_field = val;                        \
     }
-        
+
+
+#define DATA_GETTER(m_name, m_field, m_type, m_internal_type)    \
+    m_type Attribute::get_##m_name()                             \
+    {                                                            \
+      return _data.##m_field;                                    \
+    }
 
       CONSTRUCTOR(ATTR_BYTE, _byte, AttrDataType::ABYTE)
       CONSTRUCTOR(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
@@ -36,35 +37,6 @@ namespace maro
       CONSTRUCTOR(ATTR_SHORT, _short, AttrDataType::ASHORT)
 
 
-      CAST_OPERATOR(ATTR_BYTE, _byte)
-      CAST_OPERATOR(ATTR_SHORT, _short)
-      CAST_OPERATOR(ATTR_INT, _int)
-      CAST_OPERATOR(ATTR_LONG, _long)
-
-
-      Attribute::operator ATTR_FLOAT() const noexcept
-      {
-        if (_type == AttrDataType::AFLOAT || _type == AttrDataType::ADOUBLE)
-        {
-          return _data._float;
-        }
-        else {
-          return ATTR_FLOAT(_data._long);
-        }
-      }
-
-      Attribute::operator ATTR_DOUBLE() const noexcept
-      {
-        if (_type == AttrDataType::AFLOAT || _type == AttrDataType::ADOUBLE)
-        {
-          return _data._double;
-        }
-        else
-        {
-          return ATTR_DOUBLE(_data._long);
-        }
-      }
-
       DATA_ASSIGN(ATTR_BYTE, _byte, AttrDataType::ABYTE)
       DATA_ASSIGN(ATTR_SHORT, _short, AttrDataType::ASHORT)
       DATA_ASSIGN(ATTR_INT, _int, AttrDataType::AINT)
@@ -72,6 +44,41 @@ namespace maro
       DATA_ASSIGN(ATTR_FLOAT, _float, AttrDataType::AFLOAT)
       DATA_ASSIGN(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
 
+
+      DATA_GETTER(byte, _byte, ATTR_BYTE, AttrDataType::ABYTE)
+      DATA_GETTER(short, _short, ATTR_SHORT, AttrDataType::ASHORT)
+      DATA_GETTER(int, _int, ATTR_INT, AttrDataType::AINT)
+      DATA_GETTER(long, _long, ATTR_LONG, AttrDataType::ALONG)
+      DATA_GETTER(float, _float, ATTR_FLOAT, AttrDataType::AFLOAT)
+      DATA_GETTER(double, _double, ATTR_DOUBLE, AttrDataType::ADOUBLE)
+
+
+      Attribute::operator ATTR_FLOAT()
+      {
+        switch (_type)
+        {
+        case AttrDataType::ABYTE:
+          return ATTR_FLOAT(_data._byte);
+          break;
+        case AttrDataType::ASHORT:
+          return ATTR_FLOAT(_data._short);
+          break;
+        case AttrDataType::AINT:
+          return ATTR_FLOAT(_data._int);
+          break;
+        case AttrDataType::ALONG:
+          return ATTR_FLOAT(_data._long);
+          break;
+        case AttrDataType::AFLOAT:
+          return _data._float;
+          break;
+        case AttrDataType::ADOUBLE:
+          return ATTR_FLOAT(_data._double);
+          break;
+        default:
+          break;
+        }
+      }
     }
   }
 }

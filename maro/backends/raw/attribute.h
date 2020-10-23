@@ -3,12 +3,18 @@
 
 #include "common.h"
 
+using namespace std;
+
 namespace maro
 {
   namespace backends
   {
     namespace raw
     {
+
+      class AttributeTypeNotMatchError: public exception
+      {};
+
       /// <summary>
       /// Attribute for a node, used to hold all supported data type
       /// </summary>
@@ -40,23 +46,27 @@ namespace maro
         Attribute(ATTR_FLOAT float_val) noexcept;
         Attribute(ATTR_DOUBLE double_val) noexcept;
 
-        // cast function
-        operator ATTR_BYTE() const noexcept;
-        operator ATTR_SHORT() const noexcept;
-        operator ATTR_INT() const noexcept;
-        operator ATTR_LONG() const noexcept;
-        operator ATTR_FLOAT() const noexcept;
-        operator ATTR_DOUBLE() const noexcept;
+        // getters
+        ATTR_BYTE get_byte();
+        ATTR_SHORT get_short();
+        ATTR_INT get_int();
+        ATTR_LONG get_long();
+        ATTR_FLOAT get_float();
+        ATTR_DOUBLE get_double();
 
+        // setters
+        // NOTE: these setters will change inernal data type
+        void operator=(const ATTR_BYTE val);
+        void operator=(const ATTR_SHORT val);
+        void operator=(const ATTR_INT val);
+        void operator=(const ATTR_LONG val);
+        void operator=(const ATTR_FLOAT val);
+        void operator=(const ATTR_DOUBLE val);
 
-        // assign
-        // NOTE: assign with different data type will change internal data type!
-        void operator=(const ATTR_BYTE val) noexcept;
-        void operator=(const ATTR_SHORT val) noexcept;
-        void operator=(const ATTR_INT val) noexcept;
-        void operator=(const ATTR_LONG val) noexcept;
-        void operator=(const ATTR_FLOAT val) noexcept;
-        void operator=(const ATTR_DOUBLE val) noexcept;
+        /// <summary>
+        /// Used to cast current data to float, for quering result
+        /// </summary>
+        operator ATTR_FLOAT();
       };
     } // namespace raw
   }     // namespace backends

@@ -9,7 +9,7 @@ cimport cython
 from cpython cimport bool
 from libcpp.string cimport string
 
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
     ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE)
 
 
@@ -54,13 +54,13 @@ cdef extern from "raw/backend.h" namespace "maro::backends::raw":
         void set_attr_value[T](IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value)
 
         void set_node_number(IDENTIFIER node_id, NODE_INDEX number)
-        void setup(bool enable_snapshot, UINT snapshot_number)
+        void setup(bool enable_snapshot, USHORT snapshot_number)
         void reset_frame()
         void reset_snapshots()
-        void take_snapshot(UINT tick)
+        void take_snapshot(INT tick)
         UINT query_one_tick_length(IDENTIFIER node_id, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
         void query(ATTR_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT ticks_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
-
+        USHORT get_snapshot_number()
 
 cdef class RawBackend(BackendAbc):
     cdef:

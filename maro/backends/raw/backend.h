@@ -116,6 +116,7 @@ all above methods need a table to track avaiable and existing snapshot, but may 
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <iostream>
 
 #include "common.h"
 #include "attribute.h"
@@ -149,6 +150,17 @@ namespace maro
       {
 
       };
+
+      class MaxAttributeTypeNumberError: public exception
+      {
+      };
+
+      class MaxNodeTypeNumberError: public exception
+      {
+      };
+
+      class InvalidSnapshotTick: public exception
+      {};
 
       /// <summary>
       /// Backend used to hold node and releated attributes, providing accessing interface 
@@ -210,16 +222,16 @@ namespace maro
         bool _is_snapshot_enabled{ false };
 
         // capacity number of snapshots to keep
-        UINT _snapshot_number{ 0 };
+        USHORT _snapshot_number{ 0 };
 
         // mapping for snapshot from tick to internal index
-        unordered_map<UINT, UINT> _ss_tick2index_map;
+        unordered_map<INT, INT> _ss_tick2index_map;
 
         // mapping for snapshot from internal index to tick
-        unordered_map<UINT, UINT> _ss_index2tick_map;
+        unordered_map<INT, INT> _ss_index2tick_map;
 
         // 0 is current frame
-        UINT _cur_snapshot_index{ 1 };
+        INT _cur_snapshot_index{ 1 };
 
       public:
         Backend();
@@ -276,7 +288,7 @@ namespace maro
         /// </summary>
         /// <param name="enable_snapshot">If backend should enable snapshot</param>
         /// <param name="snapshot_number">Number of snapshots (in-memory) should be keep, this means old one will be over-write if reach the capacity</param>
-        void setup(bool enable_snapshot, UINT snapshot_number);
+        void setup(bool enable_snapshot, USHORT snapshot_number);
 
         /// <summary>
         /// Reset backend frame to initial
@@ -302,7 +314,7 @@ namespace maro
         /// Take a snapshot for current frame
         /// </summary>
         /// <param name="tick">Key of this snapshot</param>
-        void take_snapshot(UINT tick);
+        void take_snapshot(INT tick);
 
         /// <summary>
         /// Get length of 1 tick querying
@@ -328,6 +340,15 @@ namespace maro
         /// <param name="attr_length">Length of attribute array</param>
         void query(ATTR_FLOAT* result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
 
+
+        /// <summary>
+        /// Get node number for specified node
+        /// </summary>
+        /// <param name="node_id">Id of node to get</param>
+        /// <returns>Number of this node</returns>
+        NODE_INDEX get_node_number(IDENTIFIER node_id);
+
+        USHORT get_snapshot_number();
 
 
       private:

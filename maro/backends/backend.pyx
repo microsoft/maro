@@ -11,7 +11,7 @@ cdef class SnapshotListAbc:
     cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list):
         pass
 
-    cdef void take_snapshot(self, UINT frame_index) except *:
+    cdef void take_snapshot(self, INT tick) except *:
         pass
 
     cdef void enable_history(self, str history_folder) except *:
@@ -47,7 +47,7 @@ cdef class BackendAbc:
     cdef void reset(self) except *:
         pass
 
-    cdef void setup(self, bool enable_snapshot, UINT total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *:
         pass
 
     cdef dict get_node_info(self):

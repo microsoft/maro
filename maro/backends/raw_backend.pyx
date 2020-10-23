@@ -101,7 +101,7 @@ cdef class RawBackend(BackendAbc):
     cdef void reset(self) except *:
         self._backend.reset_frame()
 
-    cdef void setup(self, bool enable_snapshot, UINT total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *:
         self._backend.setup(enable_snapshot, total_snapshot)
 
     cdef dict get_node_info(self):
@@ -120,9 +120,17 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef IDENTIFIER attr_id
 
         # NOTE: format must be changed if NODE_INDEX type changed
-        cdef NODE_INDEX[:] node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="H")
-        cdef IDENTIFIER[:] attr_id_list = view.array(shape=(len(attr_list),), itemsize=sizeof(IDENTIFIER), format="I")
-        cdef INT[:] tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="i")
+        cdef NODE_INDEX[:] node_indices = None
+
+        if node_index_list is not None and len(node_index_list) > 0:
+            node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="H")
+
+        cdef IDENTIFIER[:] attr_id_list = view.array(shape=(len(attr_list),), itemsize=sizeof(IDENTIFIER), format="H")
+        
+        cdef INT[:] tick_list = None
+        
+        if ticks is not None and len(ticks) > 0:
+            tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="i")
 
         for index in range(len(node_index_list)):
             node_indices[index] = node_index_list[index]
@@ -133,9 +141,14 @@ cdef class RawSnapshotList(SnapshotListAbc):
         for index in range(len(ticks)):
             tick_list[index] = ticks[index]
 
+        # Use 1st node to calc frame length
         cdef UINT per_frame_length = self._backend._backend.query_one_tick_length(node_id, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
         cdef ATTR_FLOAT[:] result = view.array(shape=(per_frame_length * len(ticks), ), itemsize=sizeof(ATTR_FLOAT), format="f")
+
+        print("ticks --> ", ticks)
+        print("nodes --> ", node_index_list)
+        print("attrs --> ", attr_list)
 
         self._backend._backend.query(&result[0], node_id, &tick_list[0], len(tick_list), &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
@@ -143,7 +156,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
 
     # Record current backend state into snapshot list
-    cdef void take_snapshot(self, UINT tick) except *:
+    cdef void take_snapshot(self, INT tick) except *:
         self._backend._backend.take_snapshot(tick)
 
     # List of available frame index in snapshot list
@@ -159,4 +172,4 @@ cdef class RawSnapshotList(SnapshotListAbc):
         self._backend._backend.reset_snapshots()
 
     def __len__(self):
-        pass
+        return self._backend._backend.get_snapshot_number()

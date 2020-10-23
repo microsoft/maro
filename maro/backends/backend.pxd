@@ -13,7 +13,7 @@ from libc.stdint cimport int32_t, int64_t, int16_t, int8_t, uint32_t, uint64_t
 ctypedef int INT
 ctypedef unsigned int UINT
 ctypedef unsigned long long ULONG
-
+ctypedef unsigned short USHORT
 
 ctypedef int8_t ATTR_BYTE
 ctypedef int16_t ATTR_SHORT
@@ -24,7 +24,7 @@ ctypedef double ATTR_DOUBLE
 
 
 # ID of node and attribute
-ctypedef unsigned int IDENTIFIER
+ctypedef unsigned short IDENTIFIER
 # Index type of node
 ctypedef unsigned short NODE_INDEX
 # Index type of slot
@@ -38,7 +38,7 @@ cdef class SnapshotListAbc:
     cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list)
 
     # Record current backend state into snapshot list
-    cdef void take_snapshot(self, UINT tick) except *
+    cdef void take_snapshot(self, INT tick) except *
 
     # List of available frame index in snapshot list
     cdef list get_frame_index_list(self)
@@ -80,7 +80,7 @@ cdef class BackendAbc:
     cdef dict get_node_info(self)
 
     # Setup backend with options
-    cdef void setup(self, bool enable_snapshot, UINT total_snapshot, dict options) except *
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *
 
     # Reset internal states
     cdef void reset(self) except *

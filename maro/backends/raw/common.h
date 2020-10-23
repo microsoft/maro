@@ -1,8 +1,9 @@
 #ifndef _MARO_BACKENDS_RAW_COMMON
 #define _MARO_BACKENDS_RAW_COMMON
 
-#include <stdint.h>
-
+#include <cstdint>
+#include <limits>
+#include <iostream>
 
 namespace maro
 {
@@ -17,16 +18,23 @@ namespace maro
       using ATTR_LONG = int64_t;
       using ATTR_FLOAT = float;
       using ATTR_DOUBLE = double;
+      using QUERING_FLOAT = float;
 
       // NOTE: this should sync with maro/backends/backend.pxd
       // Common definitions.
       using INT = int;
+      using USHORT = unsigned short;
       using UINT = unsigned int;
       using ULONG = unsigned long long;
+      using LONG = long long;
+      using SHORT = short;
 
-      using IDENTIFIER = unsigned int;
+      using IDENTIFIER = unsigned short;
       using NODE_INDEX = unsigned short; // max 65535
       using SLOT_INDEX = unsigned short;
+
+      // max type of node/attribute we can have in one backend instance
+      const unsigned short MAX_IDENTIFIERS = USHRT_MAX;
 
       /// <summary>
       /// Supported data type for attributes.

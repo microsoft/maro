@@ -12,7 +12,7 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX
 
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
@@ -204,7 +204,7 @@ cdef class NumpyBackend(BackendAbc):
         else:
             return attr_array[0][node_index, slot_indices].tolist()
 
-    cdef void setup(self, bool enable_snapshot, UINT total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *:
         """Set up the numpy backend"""
         self._is_snapshot_enabled = enable_snapshot
 
@@ -354,7 +354,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
     cdef list get_frame_index_list(self):
         return list(self._index2tick_dict.values())
 
-    cdef void take_snapshot(self, UINT tick) except *:
+    cdef void take_snapshot(self, INT tick) except *:
         """Take snapshot for current backend"""
         cdef IDENTIFIER node_id
         cdef NodeInfo ni
