@@ -11,10 +11,6 @@ namespace maro
   {
     namespace raw
     {
-
-      class AttributeTypeNotMatchError: public exception
-      {};
-
       /// <summary>
       /// Attribute for a node, used to hold all supported data type
       /// </summary>
@@ -34,7 +30,7 @@ namespace maro
         } _data alignas(8) { 0 };
 
         // data type enum, default is int
-        AttrDataType _type{ AttrDataType::AINT };
+        AttrDataType _type{ AttrDataType::ABYTE };
 
       public:
         // constructors

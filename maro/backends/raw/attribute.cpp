@@ -22,7 +22,7 @@ namespace maro
         _data.##m_field = val;                        \
     }
 
-
+     // Before assign any value, all field will be 0, so we do care about data type here, even data type not match
 #define DATA_GETTER(m_name, m_field, m_type, m_internal_type)    \
     m_type Attribute::get_##m_name()                             \
     {                                                            \

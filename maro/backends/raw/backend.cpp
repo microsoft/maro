@@ -1,7 +1,5 @@
 #include "backend.h"
 
-
-
 namespace maro
 {
   namespace backends
@@ -292,7 +290,7 @@ namespace maro
 
         auto& node = _nodes[node_id];
 
-        
+
 
         NODE_INDEX* _node_indices = nullptr;
 
@@ -326,7 +324,7 @@ namespace maro
 
         if (_node_indices != nullptr)
         {
-          delete []_node_indices;
+          delete[]_node_indices;
         }
 
         return length;
@@ -339,7 +337,7 @@ namespace maro
 
         auto& node = _nodes[node_id];
 
-        if ( attributes == nullptr)
+        if (attributes == nullptr)
         {
           return;
         }
@@ -384,7 +382,7 @@ namespace maro
         UINT frame_index{ 1 };
         UINT node_index{ 0 };
 
-        
+
         auto one_frame_length = query_one_tick_length(node_id, node_indices, node_length, attributes, attr_length);
 
         size_t ret_index = 0;

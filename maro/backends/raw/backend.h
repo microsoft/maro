@@ -129,38 +129,69 @@ namespace maro
   {
     namespace raw
     {
+      /// <summary>
+      /// Attribute accessing before backend setup
+      /// </summary>
       class BadSetupState : public exception
       {
       };
 
+
+      /// <summary>
+      /// Invalid node index to access
+      /// </summary>
       class BadNodeIndex : public exception
       {
       };
 
+
+      /// <summary>
+      /// Invalid slot index to access
+      /// </summary>
       class BadSlotIndex : public exception
       {
       };
 
+
+      /// <summary>
+      /// Invalid node id to access
+      /// </summary>
       class BadNodeIdentifier : public exception
       {
-
       };
 
+
+      /// <summary>
+      /// Invalid attribute id to access
+      /// </summary>
       class BadAttributeIdentifier : public exception
       {
 
       };
 
-      class MaxAttributeTypeNumberError: public exception
+
+      /// <summary>
+      /// Reach the max id of attribute (not slot number)
+      /// </summary>
+      class MaxAttributeTypeNumberError : public exception
       {
       };
 
-      class MaxNodeTypeNumberError: public exception
+
+      /// <summary>
+      /// Reach the max id of node
+      /// </summary>
+      class MaxNodeTypeNumberError : public exception
       {
       };
 
-      class InvalidSnapshotTick: public exception
+
+      /// <summary>
+      /// Invalid tick to take snapshot, it must be greater than 0 for now
+      /// </summary>
+      class InvalidSnapshotTick : public exception
       {};
+
 
       /// <summary>
       /// Backend used to hold node and releated attributes, providing accessing interface 
@@ -253,7 +284,6 @@ namespace maro
         /// <returns>Id of the new attribute</returns>
         IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number = 1);
 
-
         /// <summary>
         /// Set value for specified attribute's slot
         /// </summary>
@@ -264,7 +294,6 @@ namespace maro
         /// <param name="value">Value to set</param>
         template <typename T>
         void set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value);
-
 
         // Attribute getters
         ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
@@ -295,12 +324,10 @@ namespace maro
         /// </summary>
         void reset_frame();
 
-
         /// <summary>
         /// Reset backend snapshots to initial
         /// </summary>
         void reset_snapshots();
-
 
         /*****************************************************/
         // Snapshot functions
@@ -308,7 +335,6 @@ namespace maro
         /*
         We keep snapshot related function here as we will use one vector to hold both current frame and snapshots
         */
-
 
         /// <summary>
         /// Take a snapshot for current frame
@@ -340,7 +366,6 @@ namespace maro
         /// <param name="attr_length">Length of attribute array</param>
         void query(ATTR_FLOAT* result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
 
-
         /// <summary>
         /// Get node number for specified node
         /// </summary>
@@ -348,8 +373,11 @@ namespace maro
         /// <returns>Number of this node</returns>
         NODE_INDEX get_node_number(IDENTIFIER node_id);
 
+        /// <summary>
+        /// Get max number of snapshots
+        /// </summary>
+        /// <returns>Number of max snapshots</returns>
         USHORT get_snapshot_number();
-
 
       private:
 
