@@ -278,8 +278,6 @@ cdef class FrameNode:
 
 cdef class FrameBase:
     def __init__(self, enable_snapshot: bool = False, total_snapshot: int = 0, options: dict = {}, backend_name="np"):
-        print("using ", backend_name, "backend")
-
         backend = backend_dict.get(backend_name, NumpyBackend)
 
         self._backend = backend()

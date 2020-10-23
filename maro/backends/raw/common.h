@@ -34,7 +34,8 @@ namespace maro
       using SLOT_INDEX = unsigned short;
 
       // max type of node/attribute we can have in one backend instance
-      const unsigned short MAX_IDENTIFIERS = USHRT_MAX;
+      const IDENTIFIER MAX_IDENTIFIERS = USHRT_MAX;
+      const USHORT MAX_SNAPSHOTS = USHRT_MAX;
 
       /// <summary>
       /// Supported data type for attributes.

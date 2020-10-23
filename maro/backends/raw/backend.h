@@ -192,6 +192,9 @@ namespace maro
       class InvalidSnapshotTick : public exception
       {};
 
+      class MaxSnapshotError: public exception
+      {};
+
 
       /// <summary>
       /// Backend used to hold node and releated attributes, providing accessing interface 
@@ -350,7 +353,7 @@ namespace maro
         /// <param name="node_length">Length of node index array</param>
         /// <param name="attributes">Id array of quering attribute</param>
         /// <param name="attr_length">Length of attribute array</param>
-        /// <returns></returns>
+        /// <returns>Length of one tick for this query</returns>
         UINT query_one_tick_length(IDENTIFIER node_id, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
 
         /// <summary>
@@ -377,7 +380,13 @@ namespace maro
         /// Get max number of snapshots
         /// </summary>
         /// <returns>Number of max snapshots</returns>
-        USHORT get_snapshot_number();
+        USHORT get_max_snapshot_number();
+
+        /// <summary>
+        /// How many ticks in snapshot
+        /// </summary>
+        /// <returns>Number of ticks in snapshots</returns>
+        USHORT get_valid_tick_number();
 
       private:
 

@@ -123,7 +123,7 @@ namespace maro
         return node.number;
       }
 
-      USHORT Backend::get_snapshot_number()
+      USHORT Backend::get_max_snapshot_number()
       {
         return _snapshot_number;
       }
@@ -237,9 +237,16 @@ namespace maro
       {
         ensure_setup_state(true);
 
+        // we do not accept negative tick
         if (tick < 0)
         {
           throw InvalidSnapshotTick();
+        }
+
+        // make sure snapshot number will not reach the limitation
+        if (_ss_tick2index_map.size() >= MAX_SNAPSHOTS)
+        {
+          throw MaxSnapshotError();
         }
 
         // try to find if tick exists
@@ -282,6 +289,11 @@ namespace maro
         _ss_tick2index_map[tick] = target_index;
       }
 
+      USHORT Backend::get_valid_tick_number()
+      {
+        return USHORT(_ss_tick2index_map.size());
+      }
+
       UINT Backend::query_one_tick_length(IDENTIFIER node_id, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
       {
         ensure_node_id(node_id);
@@ -289,8 +301,6 @@ namespace maro
         UINT length = 0;
 
         auto& node = _nodes[node_id];
-
-
 
         NODE_INDEX* _node_indices = nullptr;
 

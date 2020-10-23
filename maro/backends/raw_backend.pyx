@@ -3,7 +3,8 @@
 
 #cython: language_level=3
 #distutils: language = c++
-
+import numpy as np
+cimport numpy as np
 cimport cython
 
 from cython cimport view
@@ -11,6 +12,9 @@ from cpython cimport bool
 
 from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
     ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE)
+
+
+np.import_array()
 
 ctypedef fused maro_attribute_types:
     ATTR_BYTE
@@ -65,7 +69,7 @@ cdef class RawBackend(BackendAbc):
         if dt == "i" or dt == "i4":
             self._backend.set_attr_value[ATTR_INT](attr_id, node_index, slot_index, value)
         elif dt == "i2":
-            self._backend.set_attr_value[ATTR_BYTE](attr_id, node_index, slot_index, value)
+            self._backend.set_attr_value[ATTR_SHORT](attr_id, node_index, slot_index, value)
         elif dt == "i8":
             self._backend.set_attr_value[ATTR_LONG](attr_id, node_index, slot_index, value)
         elif dt == "f":
@@ -132,7 +136,7 @@ cdef class RawBackend(BackendAbc):
 cdef class RawSnapshotList(SnapshotListAbc):
     def __cinit__(self, RawBackend backend):
         self._backend = backend;
-
+        
     # Query states from snapshot list
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -149,9 +153,13 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef IDENTIFIER[:] attr_id_list = view.array(shape=(len(attr_list),), itemsize=sizeof(IDENTIFIER), format="H")
         
         cdef INT[:] tick_list = None
+
+        cdef USHORT ticks_length = len(ticks)
         
         if ticks is not None and len(ticks) > 0:
             tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="i")
+        else:
+            ticks_length = self._backend._backend.get_valid_tick_number()
 
         for index in range(len(node_index_list)):
             node_indices[index] = node_index_list[index]
@@ -169,7 +177,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
         self._backend._backend.query(&result[0], node_id, &tick_list[0], len(tick_list), &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
-        return result
+        return np.array(result)
 
     # Record current backend state into snapshot list
     cdef void take_snapshot(self, INT tick) except *:
@@ -188,4 +196,4 @@ cdef class RawSnapshotList(SnapshotListAbc):
         self._backend._backend.reset_snapshots()
 
     def __len__(self):
-        return self._backend._backend.get_snapshot_number()
+        return self._backend._backend.get_max_snapshot_number()
