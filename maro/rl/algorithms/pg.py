@@ -42,7 +42,7 @@ class PolicyGradient(AbsAlgorithm):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._policy_model = policy_model.to(self._device)
         if optimizer_cls is not None:
-            self._policy_optimizer = optimizer_cls(self._policy_model.parameters(), **optimizer_params)
+            self._optimizer = optimizer_cls(self._policy_model.parameters(), **optimizer_params)
         self._hyper_params = hyper_params
 
     @property
@@ -63,9 +63,9 @@ class PolicyGradient(AbsAlgorithm):
             returns = torch.from_numpy(returns).to(self._device)
             action_prob = self._policy_model(states).gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
             policy_loss = -(torch.log(action_prob) * returns).mean()
-            self._policy_optimizer.zero_grad()
+            self._optimizer.zero_grad()
             policy_loss.backward()
-            self._policy_optimizer.step()
+            self._optimizer.step()
 
     def load_models(self, policy_model):
         self._policy_model.load_state_dict(policy_model)
