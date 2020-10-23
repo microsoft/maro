@@ -5,6 +5,8 @@
 #distutils: language = c++
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 
+import os
+
 cimport cython
 from cpython cimport bool
 from typing import Union
@@ -29,6 +31,7 @@ backend_dict = {
     "np" : NumpyBackend
 }
 
+_default_backend_name = "np"
 
 NP_SLOT_INDEX = np.uint16
 NP_NODE_INDEX = np.uint16
@@ -277,7 +280,15 @@ cdef class FrameNode:
 
 
 cdef class FrameBase:
-    def __init__(self, enable_snapshot: bool = False, total_snapshot: int = 0, options: dict = {}, backend_name="np"):
+    def __init__(self, enable_snapshot: bool = False, total_snapshot: int = 0, options: dict = {}, backend_name=None):
+        # backend name from parameter is highest priority
+        if backend_name is None:
+            # try to get default backend settings from environment settings, or use np by default
+            backend_name = os.environ.get("DEFAULT_BACKEND_NAME", _default_backend_name)
+            
+        print("Using backend:", backend_name)
+
+        # use numpy if backend name is invalid
         backend = backend_dict.get(backend_name, NumpyBackend)
 
         self._backend = backend()

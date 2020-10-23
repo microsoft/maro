@@ -146,7 +146,7 @@ class TestFrame(unittest.TestCase):
             self.assertEqual(10, len(frame.snapshots), msg="snapshot length should be 10")
 
             # another frame without snapshots enabled
-            frame1 = build_frame()
+            frame1 = build_frame(backend_name=backend_name)
 
             self.assertIsNone(frame1.snapshots)
 
