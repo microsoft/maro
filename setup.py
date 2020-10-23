@@ -50,7 +50,8 @@ extensions.append(
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.raw_backend",
-        sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"])
+        sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
+        include_dirs=include_dirs)
 )
 
 # frame

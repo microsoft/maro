@@ -265,7 +265,7 @@ namespace maro
         unordered_map<INT, INT> _ss_index2tick_map;
 
         // 0 is current frame
-        INT _cur_snapshot_index{ 1 };
+        USHORT _cur_snapshot_index{ 1 };
 
       public:
         Backend();

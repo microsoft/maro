@@ -260,18 +260,16 @@ namespace maro
           // if the tick exists, then over-write it using same internal index
           target_index = internal_index_ite->second;
         }
-        else
+
+        // increase internal index
+        _cur_snapshot_index += 1;
+
+        if (_cur_snapshot_index > _snapshot_number)
         {
-          // or increase internal index
-          _cur_snapshot_index += 1;
-
-          if (_cur_snapshot_index >= _data.size())
-          {
-            // 0 is used for current frame
-            _cur_snapshot_index = 1;
-          }
+          // 0 is used for current frame
+          _cur_snapshot_index = 1;
         }
-
+        
         // copy current frame data into target index
         //copy_n(_attributes.begin(), _frame_length, _attributes.begin() + ((size_t)target_index * _frame_length));
         memcpy(&_data[(size_t)target_index * _frame_length], &_data[0], _frame_length * sizeof(Attribute));
@@ -287,6 +285,7 @@ namespace maro
 
         // update the map
         _ss_tick2index_map[tick] = target_index;
+        _ss_index2tick_map[target_index] = tick;
       }
 
       USHORT Backend::get_valid_tick_number()
@@ -391,7 +390,6 @@ namespace maro
         // 0 is current frame, others are snapshots
         UINT frame_index{ 1 };
         UINT node_index{ 0 };
-
 
         auto one_frame_length = query_one_tick_length(node_id, node_indices, node_length, attributes, attr_length);
 

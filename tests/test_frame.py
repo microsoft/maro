@@ -76,8 +76,6 @@ class TestFrame(unittest.TestCase):
             static_node.a1[1] = 12
             static_node.a1[0] = 20
 
-            print(static_node.a1[:])
-
             self.assertListEqual([20, 12], list(static_node.a1[:]), msg="static node's a1 should be [20, 12]")
             self.assertEqual(20, static_node.a1[0], msg="1st slot of a1 should be 20")
             self.assertEqual(12, static_node.a1[1], msg="2nd slot of a1 should be 12")
