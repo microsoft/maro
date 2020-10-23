@@ -175,6 +175,8 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
         cdef ATTR_FLOAT[:] result = view.array(shape=(per_frame_length * ticks_length, ), itemsize=sizeof(ATTR_FLOAT), format="f")
 
+        result[:] = 0
+
         self._backend._backend.query(&result[0], node_id, &tick_list[0], ticks_length, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
         return np.array(result)
