@@ -157,7 +157,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef USHORT ticks_length = len(ticks)
         
         if ticks is not None and ticks_length > 0:
-            tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="i")
+            tick_list = view.array(shape=(ticks_length,), itemsize=sizeof(INT), format="i")
 
             for index in range(ticks_length):
                 tick_list[index] = ticks[index]

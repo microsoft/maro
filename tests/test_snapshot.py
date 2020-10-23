@@ -6,8 +6,9 @@ import unittest
 
 import numpy as np
 
-from test_frame import build_frame, DYNAMIC_NODE_NUM, STATIC_NODE_NUM, backends_to_test
+from test_frame import build_frame, DYNAMIC_NODE_NUM, STATIC_NODE_NUM
 
+from tests.utils import backends_to_test
 
 class TestFrame(unittest.TestCase):
     def test_take_snapshot(self):

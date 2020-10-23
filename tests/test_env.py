@@ -6,7 +6,7 @@ import unittest
 from dummy.dummy_business_engine import DummyEngine
 from maro.simulator.core import Env, BusinessEngineNotFoundError
 
-from test_frame import backends_to_test
+from tests.utils import backends_to_test
 
 def run_to_end(env: Env):
     """Run the end of env"""

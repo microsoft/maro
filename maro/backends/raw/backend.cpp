@@ -260,16 +260,18 @@ namespace maro
           // if the tick exists, then over-write it using same internal index
           target_index = internal_index_ite->second;
         }
-
-        // increase internal index
-        _cur_snapshot_index += 1;
-
-        if (_cur_snapshot_index > _snapshot_number)
+        else
         {
-          // 0 is used for current frame
-          _cur_snapshot_index = 1;
+          // increase internal index
+          _cur_snapshot_index += 1;
+
+          if (_cur_snapshot_index > _snapshot_number)
+          {
+            // 0 is used for current frame
+            _cur_snapshot_index = 1;
+          }
         }
-        
+
         // copy current frame data into target index
         //copy_n(_attributes.begin(), _frame_length, _attributes.begin() + ((size_t)target_index * _frame_length));
         memcpy(&_data[(size_t)target_index * _frame_length], &_data[0], _frame_length * sizeof(Attribute));

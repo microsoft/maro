@@ -11,6 +11,7 @@ from maro.utils.exception.backends_exception import (
     BackendsSetItemInvalidException,
     BackendsArrayAttributeAccessException)
 
+from tests.utils import backends_to_test
 
 STATIC_NODE_NUM = 5
 DYNAMIC_NODE_NUM = 10
@@ -37,7 +38,7 @@ def build_frame(enable_snapshot:bool=False, total_snapshot:int=10, backend_name=
 
     return MyFrame()
 
-backends_to_test = ["np", "raw"]
+
 
 class TestFrame(unittest.TestCase):
     def test_node_number(self):

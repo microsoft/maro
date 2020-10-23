@@ -4,6 +4,8 @@
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.event_buffer import EventBuffer, EventState
 
+backends_to_test = ["np", "raw"]
+
 def next_step(eb: EventBuffer, be: AbsBusinessEngine, tick: int):
     if tick > 0:
         # lets post process last tick first before start a new tick
