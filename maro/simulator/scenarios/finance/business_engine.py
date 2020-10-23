@@ -29,12 +29,6 @@ from maro.simulator.scenarios.finance.stock.stock_trader import StockTrader
 logger = CliLogger(name=__name__)
 
 metrics_desc = """
-Citi bike metrics used to provide statistics information at current point (may be in the middle of a tick).
-It contains following keys:
-
-trip_requirements (int): Accumulative trips until now.
-bike_shortage (int): Accumulative shortage until now.
-operation_number (int): Accumulative operation cost until now.
 """
 
 
@@ -67,7 +61,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # Time zone we used to transfer UTC to target time zone.
         self._time_zone = gettz(self._conf["time_zone"])
 
-        # Our weather table used to query weather by date.
+        # Our quote table used to query quote by tick.
         quote_data_path = self._conf["data_path"]
         if quote_data_path.startswith("~"):
             quote_data_path = os.path.expanduser(quote_data_path)
@@ -88,11 +82,11 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             self._quote_readers.append(BinaryReader(quote_data_paths[idx]))
             self._quote_pickers.append(self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
-        # We keep this used to calculate real datetime to get weather and holiday info.
-        self._trip_start_date: datetime.datetime = datetime.datetime.fromisoformat(self._conf["beginning_date"])
+        # We keep this used to calculate real datetime to get quote info.
+        self._quote_start_date: datetime.datetime = datetime.datetime.fromisoformat(self._conf["beginning_date"])
 
         # Since binary data hold UTC timestamp, convert it into our target timezone.
-        self._trip_start_date = self._trip_start_date.astimezone(self._time_zone)
+        self._quote_start_date = self._quote_start_date.astimezone(self._time_zone)
 
         # Used to cache last date we updated the station additional features to avoid to much time updating.
         self._last_date: datetime.datetime = None
@@ -428,7 +422,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def _tick_2_date(self, tick: int):
         # Get current date to update additional info.
         # NOTE: We do not need hour and minutes for now.
-        return (self._trip_start_date + relativedelta(minutes=tick)).date()
+        return (self._quote_start_date + relativedelta(minutes=tick)).date()
 
     def _build_temp_data(self):
         """Build temporary data for predefined environment."""
