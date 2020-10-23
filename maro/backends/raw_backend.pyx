@@ -22,6 +22,7 @@ ctypedef fused maro_attribute_types:
 
 cdef class RawBackend(BackendAbc):
     def __cinit__(self):
+        self._node_info = {}
         self._attr_type_dict = {}
         self.snapshots = RawSnapshotList(self)
 
@@ -29,6 +30,8 @@ cdef class RawBackend(BackendAbc):
         cdef IDENTIFIER id = self._backend.add_node(name.encode())
 
         self._backend.set_node_number(id, number)
+
+        self._node_info[id] = {"number": number, "name": name, "attrs":{}}
 
         return id
 
@@ -50,6 +53,9 @@ cdef class RawBackend(BackendAbc):
         cdef IDENTIFIER attr_id = self._backend.add_attr(node_id, attr_name.encode(), dt, slot_num)
 
         self._attr_type_dict[attr_id] = dtype
+
+        self._node_info[node_id]["attrs"][attr_id] = {"type": dtype, "slots": slot_num, "name": attr_name}
+
 
         return attr_id
 
@@ -98,6 +104,8 @@ cdef class RawBackend(BackendAbc):
         for slot in slot_indices:
             result.append(self.get_attr_value(node_index, attr_id, slot))
 
+        return result
+
     cdef void reset(self) except *:
         self._backend.reset_frame()
 
@@ -105,7 +113,20 @@ cdef class RawBackend(BackendAbc):
         self._backend.setup(enable_snapshot, total_snapshot)
 
     cdef dict get_node_info(self):
-        return {}
+        cdef dict node_info = {}
+
+        for node_id, node in self._node_info.items():
+            node_info[node["name"]] = {
+                "number": node["number"],
+                "attributes": {
+                    attr["name"]: {
+                        "type": attr["type"],
+                        "slots": attr["slots"]
+                    } for _, attr in node["attrs"].items()
+                }
+            }
+
+        return node_info
 
 
 cdef class RawSnapshotList(SnapshotListAbc):
@@ -146,14 +167,9 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
         cdef ATTR_FLOAT[:] result = view.array(shape=(per_frame_length * len(ticks), ), itemsize=sizeof(ATTR_FLOAT), format="f")
 
-        print("ticks --> ", ticks)
-        print("nodes --> ", node_index_list)
-        print("attrs --> ", attr_list)
-
         self._backend._backend.query(&result[0], node_id, &tick_list[0], len(tick_list), &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
         return result
-
 
     # Record current backend state into snapshot list
     cdef void take_snapshot(self, INT tick) except *:

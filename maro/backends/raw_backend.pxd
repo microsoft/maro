@@ -72,6 +72,8 @@ cdef class RawBackend(BackendAbc):
         # attr_id -> dtype
         dict _attr_type_dict
 
+        dict _node_info
+
 cdef class RawSnapshotList(SnapshotListAbc):
     cdef:
         RawBackend _backend
