@@ -156,8 +156,11 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
         cdef USHORT ticks_length = len(ticks)
         
-        if ticks is not None and len(ticks) > 0:
+        if ticks is not None and ticks_length > 0:
             tick_list = view.array(shape=(len(ticks),), itemsize=sizeof(UINT), format="i")
+
+            for index in range(ticks_length):
+                tick_list[index] = ticks[index]
         else:
             ticks_length = self._backend._backend.get_valid_tick_number()
 
@@ -167,15 +170,12 @@ cdef class RawSnapshotList(SnapshotListAbc):
         for index in range(len(attr_list)):
             attr_id_list[index] = attr_list[index]
 
-        for index in range(len(ticks)):
-            tick_list[index] = ticks[index]
-
         # Use 1st node to calc frame length
         cdef UINT per_frame_length = self._backend._backend.query_one_tick_length(node_id, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
-        cdef ATTR_FLOAT[:] result = view.array(shape=(per_frame_length * len(ticks), ), itemsize=sizeof(ATTR_FLOAT), format="f")
+        cdef ATTR_FLOAT[:] result = view.array(shape=(per_frame_length * ticks_length, ), itemsize=sizeof(ATTR_FLOAT), format="f")
 
-        self._backend._backend.query(&result[0], node_id, &tick_list[0], len(tick_list), &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
+        self._backend._backend.query(&result[0], node_id, &tick_list[0], ticks_length, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
         return np.array(result)
 
