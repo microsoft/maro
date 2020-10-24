@@ -30,8 +30,8 @@
 Multi-Agent Resource Optimization (MARO) platform is an instance of Reinforcement
 learning as a Service (RaaS) for real-world resource optimization. It can be
 applied to many important industrial domains, such as [container inventory
-management](https://maro.readthedocs.io/en/v0.1/scenarios/container_inventory_management.html) 
-in logistics, [bike repositioning](https://maro.readthedocs.io/en/v0.1/scenarios/citi_bike.html) 
+management](https://maro.readthedocs.io/en/v0.1/scenarios/container_inventory_management.html)
+in logistics, [bike repositioning](https://maro.readthedocs.io/en/v0.1/scenarios/citi_bike.html)
 in transportation, virtual machine provisioning in data centers, and asset management in finance. Besides
 [Reinforcement Learning](https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf) (RL),
 it also supports other planning/decision mechanisms, such as
@@ -79,7 +79,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 - Prerequisites
   - C++ Compiler
     - Linux or Mac OS X: `gcc`
-    - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15) 
+    - Windows: [Build Tools for Visual Studio 2017](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)
 
 - Enable Virtual Environment
   - Mac OS / Linux
@@ -95,10 +95,12 @@ of user-defined functions for message auto-handling, cluster provision, and job 
     ```powershell
     # If your environment is not clean, create a virtual environment firstly.
     python -m venv maro_venv
-    .\maro_venv\Scripts\activate
 
     # You may need this for SecurityError in PowerShell.
     Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
+
+    # Activate the virtual environment.
+    .\maro_venv\Scripts\activate
     ```
 
 - Install MARO
