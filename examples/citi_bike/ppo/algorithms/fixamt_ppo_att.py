@@ -164,7 +164,7 @@ class AttGnnPPO:
 
         self.old_policy.load_state_dict(self.policy.state_dict())
         self.old_temporal_gnn.load_state_dict(self.temporal_gnn.state_dict())
-        self.writer.add_scalar("Loss\\", sum(loss_ret)/len(loss_ret), epoch_count)
+        self.writer.add_scalar("Loss\\", sum(loss_ret) / len(loss_ret), epoch_count)
         epoch_count += 1
 
     def supplement2torch(self, sup):

@@ -36,7 +36,7 @@ class AttTransPolicy(nn.Module):
         # calculation attention
         row, col = edge_index
 
-        actual_amount = torch.sum(actual_amount.reshape(-1, self.neighbor_cnt+1, 2), axis=-1)
+        actual_amount = torch.sum(actual_amount.reshape(-1, self.neighbor_cnt + 1, 2), axis=-1)
         # actual_amount = actual_amount.reshape(-1, self.neighbor_cnt)
         batch_size = actual_amount.shape[0]
         sign = actual_amount.new_ones((batch_size, 1), dtype=torch.int, requires_grad=False)

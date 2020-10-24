@@ -5,14 +5,9 @@ from torch.utils.data import RandomSampler, BatchSampler
 from datetime import datetime
 import pickle
 
-# from examples.citi_bike.ppo.algorithms.choice_amt_ppo import AttGnnPPO
-# from examples.citi_bike.ppo.algorithms.fixamt_ppo_att import AttGnnPPO
-from examples.citi_bike.ppo.algorithms.sep_reward_ppo import AttGnnPPO
+from examples.citi_bike.ppo.algorithms.fixamt_ppo_att import AttGnnPPO
 from examples.citi_bike.ppo.actors.one_dest_actor import CitiBikeActor
-# from examples.citi_bike.ppo.citibike_state_shaping import CitibikeStateShaping
-# from examples.citi_bike.ppo.fixamt_state_shaping import CitibikeStateShaping
-from examples.citi_bike.ppo.choice_amt_state_shaping import CitibikeStateShaping
-# from examples.citi_bike.ppo.post.truncated_reward import PostProcessor
+from examples.citi_bike.ppo.fixamt_state_shaping import CitibikeStateShaping
 from examples.citi_bike.ppo.post.selfdef_reward import PostProcessor
 from examples.citi_bike.ppo.utils import backup
 from maro.simulator import Env
@@ -97,7 +92,7 @@ class CitiBikeLearner:
         exp_pool = []
         for i in range(rollout_cnt):
             # prediction
-            if self.config.save_code_after == i+1:
+            if self.config.save_code_after == (i + 1):
                 self._save_code()
 
             self._logger.debug(f"rollout cnt: {i}")

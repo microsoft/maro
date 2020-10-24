@@ -56,7 +56,7 @@ class MultiChannelLinear(nn.Module):
 class EdgeConv(MessagePassing):
     def __init__(self, node_dim, edge_dim, out_dim):
         super(EdgeConv, self).__init__(aggr='add')  # "Add" aggregation.
-        self.layers = nn.Sequential(nn.Linear(node_dim+edge_dim, out_dim), nn.ReLU())
+        self.layers = nn.Sequential(nn.Linear(node_dim + edge_dim, out_dim), nn.ReLU())
 
     def forward(self, x, edge_x, edge_index):
         # edge_index_0, edge_x_0 = remove_self_loops(edge_index, edge_attr=edge_x)
@@ -64,7 +64,7 @@ class EdgeConv(MessagePassing):
         row, col = edge_index
         deg = degree(row, x.size(0), dtype=x.dtype)
         deg_inv_sqrt = deg.pow(-0.5)
-        norm = deg_inv_sqrt[row]*deg_inv_sqrt[col]
+        norm = deg_inv_sqrt[row] * deg_inv_sqrt[col]
         return self.propagate(edge_index, x=x, edge_x=edge_x, norm=norm)
 
     def message(self, x_i, x_j, edge_x, norm):
@@ -131,7 +131,7 @@ class TwoStepPolicy(nn.Module):
         att_sm[actual_amount == 0] = 0
         att = torch.sum(att_sm, dim=1)
 
-        amount = amount_edge*actual_amount
+        amount = amount_edge * actual_amount
         amount = torch.sum(amount_edge, dim=-1)
         return att, amount
 
@@ -175,7 +175,7 @@ class AttAmtPolicy(nn.Module):
         masked_idx = torch.tensor(masked_value).reshape(-1, 1)
         masked_arr = torch.zeros((masked_idx.shape[0], self.amt_bucket)).to(device)
         for i in range(masked_idx.shape[0]):
-            temp = int(math.ceil(masked_idx[i].item()/0.1/2))
+            temp = int(math.ceil(masked_idx[i].item() / 0.1 / 2))
             temp = min(30, temp)
             temp = max(1, temp)
             masked_arr[i, temp:] = float('-inf')
@@ -514,15 +514,14 @@ class STGNNBackend(nn.Module):
     def __init__(self, node_dim, out_dim, channel_cnt=1):
         super().__init__()
         self.node_dim = node_dim
-        # self.temporal_rnn = nn.GRU(input_size=self.node_dim, hidden_size=self.temporal_size, num_layers=2, batch_first=True)
+        # self.temporal_rnn = nn.GRU(input_size=self.node_dim, hidden_size=self.temporal_size,
+        #                            num_layers=2, batch_first=True)
         self.temporal_size = 32
         self.spatial_size = 32
         self.fwd = nn.Sequential(nn.Linear(self.node_dim, self.temporal_size), nn.ReLU(),
                                  nn.Linear(self.temporal_size, self.temporal_size), nn.ReLU())
-        # self.spatial_conv = nn.ModuleList([GCNConv(self.temporal_size, self.spatial_size) for _ in range(channel_cnt)])
         self.spatial_emb1 = GCNConv(self.temporal_size, self.temporal_size)
         self.spatial_emb2 = GCNConv(self.temporal_size, self.temporal_size)
-        # self.output_emb = nn.Sequential(nn.Linear(self.spatial_size*channel_cnt, out_dim), nn.ReLU())
         self.output_emb = nn.Sequential(nn.Linear(self.temporal_size, out_dim), nn.ReLU())
 
     def forward(self, x, edge):

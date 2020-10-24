@@ -37,8 +37,7 @@ class PostProcessor:
 
     def __call__(self):
         order_data = self.env.snapshot_list['stations'][
-                ::['fulfillment', 'shortage']
-            ].reshape(-1, self.station_cnt, 2)
+            ::['fulfillment', 'shortage']].reshape(-1, self.station_cnt, 2)
         # reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         reward_per_frame = - order_data[:, :, 1]
 
@@ -70,7 +69,7 @@ class PostProcessor:
             sars['gamma'] = self.decay_factors[end_index - sars['frame_index']]
 
             amount = np.abs(sars['a'][1])
-            amount_cost = amount*self.transfer_cost
+            amount_cost = amount * self.transfer_cost
             sars['r'] = np.dot(
                 self.decay_factors[:end_index - sars['frame_index']],
                 reward_per_frame[sars['frame_index'] + 1:end_index + 1])
