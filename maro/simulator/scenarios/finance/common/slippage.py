@@ -50,7 +50,7 @@ class ByVolumeSlippage(Slippage):
         self.__pre_volume_fee = pre_volume_fee
 
     def execute(self, order_action: Action, cur_data: dict, deal_price: float) -> float:
-        return round(abs(order_action.volume) * self.__pre_volume_fee, 2) # problem
+        return round(abs(order_action.volume) * self.__pre_volume_fee, 2)  # problem
 
 
 class ByTradeSlippage(Slippage):
@@ -62,4 +62,4 @@ class ByTradeSlippage(Slippage):
         self.__pre_trade_fee = pre_trade_fee
 
     def execute(self, order_action: Action, cur_data: dict, deal_price: float) -> float:
-        return round(self.__pre_trade_fee, 2) # problem
+        return round(self.__pre_trade_fee, 2)  # problem
