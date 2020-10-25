@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Callable
-from functools import partial
 
 
 class FinanceType(Enum):

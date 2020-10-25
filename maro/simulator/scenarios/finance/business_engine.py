@@ -6,15 +6,13 @@ import os
 from typing import List
 from collections import OrderedDict
 
-import numpy as np
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
-from maro.utils.exception.cli_exception import CommandError
+from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from yaml import safe_load
 
@@ -80,7 +78,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         for idx in range(len(self._conf["stocks"])):
             self._quote_readers.append(BinaryReader(quote_data_paths[idx]))
-            self._quote_pickers.append(self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
+            self._quote_pickers.append(
+                self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
         # We keep this used to calculate real datetime to get quote info.
         self._quote_start_date: datetime.datetime = datetime.datetime.fromisoformat(self._conf["beginning_date"])
@@ -185,17 +184,18 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._snapshots.reset()
 
-        for reader in self._quote_readers: 
+        for reader in self._quote_readers:
             reader.reset()
 
         for idx in range(len(self._quote_pickers)):
-            self._quote_pickers[idx]=self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d")
+            self._quote_pickers[idx] = self._quote_readers[idx].items_tick_picker(
+                self._start_tick, self._max_tick, time_unit="d")
 
         for stock in self._stocks:
             stock.reset()
 
         # self._matrices_node.reset()
-        
+
         self._pending_orders = []
         self._canceled_orders = []
         self._finished_action = OrderedDict()

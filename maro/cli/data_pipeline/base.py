@@ -112,7 +112,9 @@ class DataPipeline(ABC):
         self._new_file_list.append(self._build_file)
         if os.path.exists(self._clean_file):
             logger.info_green(f"Building binary data from {self._clean_file} to {self._build_file}.")
-            convert(meta=self._build_meta_file, file=[self._clean_file], output=self._build_file, start_timestamp=start_timestamp)
+            convert(
+                meta=self._build_meta_file, file=[self._clean_file],
+                output=self._build_file, start_timestamp=start_timestamp)
         else:
             logger.warning_yellow(f"Not found cleaned data: {self._clean_file}.")
 
