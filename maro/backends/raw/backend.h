@@ -377,6 +377,11 @@ namespace maro
         /// <returns>Number of ticks in snapshots</returns>
         USHORT get_valid_tick_number();
 
+        /// <summary>
+        /// Get ticks in snapshots
+        /// </summary>
+        void get_ticks(INT *result);
+
       private:
         // Used to ensure setup state for further operations
         inline void ensure_setup_state(bool expected_state = false);

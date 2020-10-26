@@ -242,7 +242,12 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
     # List of available frame index in snapshot list
     cdef list get_frame_index_list(self) except +:
-        return []
+        cdef USHORT number = self._raw._backend.get_valid_tick_number()
+        cdef INT[:] result = view.array(shape=(number,), itemsize=sizeof(INT), format="i")
+
+        self._raw._backend.get_ticks(&result[0])
+
+        return list(result)
 
     # Enable history, history will dump backend into files each time take_snapshot called
     cdef void enable_history(self, str history_folder) except +:

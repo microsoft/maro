@@ -62,6 +62,7 @@ cdef extern from "raw/backend.h" namespace "maro::backends::raw":
         void query(ATTR_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT ticks_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
         USHORT get_max_snapshot_number()
         USHORT get_valid_tick_number()
+        void get_ticks(INT *result)
 
 cdef class RawBackend(BackendAbc):
     cdef:

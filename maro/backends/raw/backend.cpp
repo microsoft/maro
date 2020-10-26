@@ -295,7 +295,21 @@ namespace maro
         return USHORT(_ss_tick2index_map.size());
       }
 
-      
+      void Backend::get_ticks(INT *result)
+      {
+        if (result == nullptr)
+        {
+          return;
+        }
+
+        auto i = 0;
+        for (auto iter = _ss_tick2index_map.begin(); iter != _ss_tick2index_map.end(); iter++)
+        {
+          result[i] = iter->first;
+
+          i++;
+        }
+      }  
 
       UINT Backend::query_one_tick_length(IDENTIFIER node_id, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
       {
@@ -339,15 +353,15 @@ namespace maro
       void Backend::query(ATTR_FLOAT *result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length,
                           const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
       {
-        ensure_node_id(node_id);
-
-        auto &node = _nodes[node_id];
-
         // We do need attributes to query
-        if (attributes == nullptr)
+        if (result == nullptr || attributes == nullptr)
         {
           return;
         }
+
+        ensure_node_id(node_id);
+
+        auto &node = _nodes[node_id];
 
         vector<INT> _ticks;
 

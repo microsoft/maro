@@ -352,7 +352,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
             self._node_name2id_dict[node.name] = node.id
 
     cdef list get_frame_index_list(self) except +:
-        return list(self._index2tick_dict.values())
+        return list(self._tick2index_dict.keys())
 
     cdef void take_snapshot(self, INT tick) except +:
         """Take snapshot for current backend"""

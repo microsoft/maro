@@ -23,6 +23,12 @@ class TestFrame(unittest.TestCase):
 
             frame.take_snapshot(0)
 
+            frame_index_list = frame.snapshots.get_frame_index_list()
+
+            # check if frame list correct
+            # NOTE: since our resolution is 1 here, so tick==frame_index
+            self.assertListEqual(frame_index_list, [0])
+
             a1_at_tick_0 = frame.snapshots["static"][:0:"a1"]
 
             # the value should be same with current
@@ -36,6 +42,12 @@ class TestFrame(unittest.TestCase):
 
             self.assertListEqual(list(a1_at_tick_0.astype("i")), [
                                 1, 23], msg="1st static node's a1 should be [1, 23] at tick 0 even static node value changed")
+
+            frame.take_snapshot(1)
+
+            frame_index_list = frame.snapshots.get_frame_index_list()
+
+            self.assertListEqual(frame_index_list, [0, 1])
 
     def test_slice_quering(self):
         for backend_name in backends_to_test:
@@ -138,6 +150,11 @@ class TestFrame(unittest.TestCase):
                 len(frame.static_nodes))], msg="a2 at tick 1 for all nodes should be correct")
             self.assertEqual(
                 1000, states[2][0], msg="a2 for 1st static node for 2nd row should be 1000")
+
+
+            frame_index_list = frame.snapshots.get_frame_index_list()
+
+            self.assertListEqual(frame_index_list, [1, 2])
 
     def test_snapshot_length(self):
         """Test __len__ function result"""
