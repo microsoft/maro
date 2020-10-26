@@ -416,6 +416,8 @@ namespace maro
         /// <param name="slot_index"></param>
         /// <returns></returns>
         inline size_t calc_attr_index(UINT frame_index, NodeInfo &node, NODE_INDEX node_index, AttrInfo &attr, SLOT_INDEX slot_index);
+
+        void fill_node_indices(vector<NODE_INDEX>& node_indices, NodeInfo& node);
       };
     } // namespace raw
   }   // namespace backends

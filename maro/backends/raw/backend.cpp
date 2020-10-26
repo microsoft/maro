@@ -55,6 +55,14 @@ namespace maro
         return (size_t)frame_index * _frame_length + (size_t)node.offset + (size_t)node.attr_number * node_index + attr.offset + slot_index;
       }
 
+      void Backend::fill_node_indices(vector<NODE_INDEX>& node_indices, NodeInfo& node)
+      {
+        for (auto i = 0; i < node.number; i++)
+        {
+          node_indices.push_back(i);
+        }
+      }
+
       IDENTIFIER Backend::add_node(string node_name) noexcept
       {
         ensure_setup_state(false);
@@ -287,6 +295,8 @@ namespace maro
         return USHORT(_ss_tick2index_map.size());
       }
 
+      
+
       UINT Backend::query_one_tick_length(IDENTIFIER node_id, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
       {
         ensure_node_id(node_id);
@@ -295,22 +305,20 @@ namespace maro
 
         auto &node = _nodes[node_id];
 
-        NODE_INDEX *_node_indices = nullptr;
+        vector<NODE_INDEX> _node_indices;
 
+        // fill with node indices if no one passed
         if (node_indices == nullptr)
         {
-          node_length = node.number;
+          fill_node_indices(_node_indices, node);
 
-          _node_indices = new NODE_INDEX[node_length];
-
-          for (auto i = 0; i < node_length; i++)
-          {
-            _node_indices[i] = i;
-          }
+          node_length = _node_indices.size();
         }
 
-        const NODE_INDEX *__node_indices = node_indices == nullptr ? _node_indices : node_indices;
+        // Choose what we need.
+        const NODE_INDEX *__node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
 
+        // Calc the length.
         for (auto i = 0; i < node_length; i++)
         {
           auto node_index = __node_indices[i];
@@ -325,11 +333,6 @@ namespace maro
           }
         }
 
-        if (_node_indices != nullptr)
-        {
-          delete[] _node_indices;
-        }
-
         return length;
       }
 
@@ -340,44 +343,37 @@ namespace maro
 
         auto &node = _nodes[node_id];
 
+        // We do need attributes to query
         if (attributes == nullptr)
         {
           return;
         }
 
-        INT *_ticks = nullptr;
+        vector<INT> _ticks;
 
+        // Prepare ticks if no one passed
         if (ticks == nullptr)
         {
           ticks_length = _ss_tick2index_map.size();
 
-          _ticks = new INT[ticks_length];
-
-          INT i = 0;
-
           for (auto iter = _ss_tick2index_map.begin(); iter != _ss_tick2index_map.end(); iter++)
           {
-            _ticks[i] = iter->first;
-            i++;
+            _ticks.push_back(iter->first);
           }
         }
 
-        NODE_INDEX *_node_indices = nullptr;
+        vector<NODE_INDEX> _node_indices;
 
         if (node_indices == nullptr)
         {
           node_length = node.number;
 
-          _node_indices = new NODE_INDEX[node_length];
-
-          for (auto i = 0; i < node_length; i++)
-          {
-            _node_indices[i] = i;
-          }
+          fill_node_indices(_node_indices, node);
         }
 
-        const INT *__ticks = ticks == nullptr ? _ticks : ticks;
-        const NODE_INDEX *__node_indices = node_indices == nullptr ? _node_indices : node_indices;
+        // Choose what we need
+        const INT *__ticks = ticks == nullptr ? &_ticks[0] : ticks;
+        const NODE_INDEX *__node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
 
         INT tick{0};
         // index of frame in the data array
@@ -385,6 +381,7 @@ namespace maro
         UINT frame_index{1};
         UINT node_index{0};
 
+        // Length per frame, used to padding result for invalid tick
         auto one_frame_length = query_one_tick_length(node_id, node_indices, node_length, attributes, attr_length);
 
         size_t ret_index = 0;
@@ -401,6 +398,7 @@ namespace maro
             continue;
           }
 
+          // find if tick exists
           auto internal_index_ite = _ss_tick2index_map.find(tick);
 
           // skip if tick not exist, leave related parts with default value
@@ -414,6 +412,7 @@ namespace maro
           // use data at specified frame if frame exist
           frame_index = _ss_tick2index_map[tick];
 
+          // do querying
           for (UINT j = 0; j < node_length; j++)
           {
             node_index = __node_indices[j];
@@ -437,11 +436,6 @@ namespace maro
               }
             }
           }
-        }
-
-        if (_node_indices != nullptr)
-        {
-          delete[] _node_indices;
         }
       }
     } // namespace raw
