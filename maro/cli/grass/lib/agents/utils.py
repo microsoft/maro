@@ -154,22 +154,27 @@ def remove_killed_job_ticket(redis: Redis, cluster_name: str, job_name: str):
 """Fault tolerance related"""
 
 
-def get_component_name_to_container_name(redis: Redis, cluster_name: str, job_name: str) -> dict:
+def get_rejoin_component_name_to_container_name(redis: Redis, job_id: str) -> dict:
     return redis.hgetall(
-        f"{job_name}:component_name_to_container_name"
+        f"job:{job_id}:rejoin_component_name_to_container_name"
     )
 
 
-def get_container_name_to_component_name(redis: Redis, cluster_name: str, job_name: str) -> dict:
-    component_name_to_container_name = get_component_name_to_container_name(
+def get_rejoin_container_name_to_component_name(redis: Redis, job_id: str) -> dict:
+    component_name_to_container_name = get_rejoin_component_name_to_container_name(
         redis=redis,
-        cluster_name=cluster_name,
-        job_name=job_name
+        job_id=job_id
     )
     return {v: k for k, v in component_name_to_container_name.items()}
 
 
-def delete_container_name_to_component_name(redis: Redis, cluster_name: str, job_name: str) -> None:
+def delete_rejoin_container_name_to_component_name(redis: Redis, job_id: str) -> None:
     redis.delete(
-        f"{job_name}:component_name_to_container_name"
+        f"job:{job_id}:rejoin_component_name_to_container_name"
+    )
+
+
+def get_rejoin_details(redis: Redis, job_id: str) -> dict:
+    return redis.hgetall(
+        f"job:{job_id}:rejoin_details"
     )

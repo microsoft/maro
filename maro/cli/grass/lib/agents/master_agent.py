@@ -22,7 +22,7 @@ from utils import (
     get_pending_job_tickets, remove_pending_job_ticket,
     get_killed_job_tickets, remove_killed_job_ticket,
     get_containers_details, set_containers_details,
-    get_container_name_to_component_name, delete_container_name_to_component_name
+    get_rejoin_container_name_to_component_name, delete_rejoin_container_name_to_component_name, get_rejoin_details
 )
 
 logger = logging.getLogger(__name__)
@@ -278,70 +278,86 @@ class FaultToleranceAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get component_name_to_container_name
-        container_name_to_component_name = get_container_name_to_component_name(
+        # Get rejoin details
+        rejoin_details = get_rejoin_details(
             redis=self._redis,
-            cluster_name=self._cluster_name,
-            job_name=container_details["job_name"]
+            job_id=container_details["job_id"]
         )
-
-        # If the mapping not exists, skip the restart operation.
-        if container_name_to_component_name is None:
-            return
-        # If the mapping exists, but the container is not in the mapping, skip the restart operation.
-        elif container_name not in container_name_to_component_name:
-            logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
+        # If the details not exists, or the "enable" key is not "1", skip the restart operation.
+        if rejoin_details is None or rejoin_details["enable"] != "1":
             return
         else:
-            try:
-                component_name = container_name_to_component_name[container_name]
-                free_resources = ResourceManagementExecutor.get_free_resources(
-                    redis=self._redis,
-                    cluster_name=self._cluster_name
-                )
-                required_resources = [
-                    ContainerResource(
-                        container_name=ResourceManagementExecutor.build_container_name(
-                            job_id=container_details["job_id"],
-                            component_id=container_details["component_id"],
-                            component_index=container_details["component_index"]
-                        ),
-                        cpu=float(container_details["cpu"]),
-                        memory=float(container_details["memory"].replace("m", "")),
-                        gpu=float(container_details["gpu"])
+            # Get component_name_to_container_name
+            rejoin_container_name_to_component_name = get_rejoin_container_name_to_component_name(
+                redis=self._redis,
+                job_id=container_details["job_id"]
+            )
+
+            # If the mapping not exists, or the container is not in the mapping, skip the restart operation.
+            if (
+                rejoin_container_name_to_component_name is None or
+                container_name not in rejoin_container_name_to_component_name
+            ):
+                logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
+                return
+            else:
+                try:
+                    # Get flags and other params
+                    remove_container = rejoin_details.get("remove_container", "0")
+                    component_name = rejoin_container_name_to_component_name[container_name]
+
+                    # Get resources and allocation plan
+                    free_resources = ResourceManagementExecutor.get_free_resources(
+                        redis=self._redis,
+                        cluster_name=self._cluster_name
                     )
-                ]
-                allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
-                    allocation_details={"metric": "cpu"},
-                    required_resources=required_resources,
-                    free_resources=free_resources
-                )
-                # TODO: keep it or leave it
-                # self._remove_container(
-                #     container_name=container_details["container_name"],
-                #     container_details=container_details
-                # )
-                job_details = get_job_details(
-                    redis=self._redis,
-                    cluster_name=self._cluster_name,
-                    job_name=container_details["job_name"]
-                )
-                for container_name, node_name in allocation_plan.items():
-                    node_details = get_node_details(
+                    required_resources = [
+                        ContainerResource(
+                            container_name=ResourceManagementExecutor.build_container_name(
+                                job_id=container_details["job_id"],
+                                component_id=container_details["component_id"],
+                                component_index=container_details["component_index"]
+                            ),
+                            cpu=float(container_details["cpu"]),
+                            memory=float(container_details["memory"].replace("m", "")),
+                            gpu=float(container_details["gpu"])
+                        )
+                    ]
+                    allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
+                        allocation_details={"metric": "cpu"},
+                        required_resources=required_resources,
+                        free_resources=free_resources
+                    )
+
+                    # If the flag is "1", remove the failed container
+                    if remove_container == "1":
+                        self._remove_container(
+                            container_name=container_details["container_name"],
+                            container_details=container_details
+                        )
+
+                    # Start a new container
+                    job_details = get_job_details(
                         redis=self._redis,
                         cluster_name=self._cluster_name,
-                        node_name=node_name
+                        job_name=container_details["job_name"]
                     )
-                    self._start_container(
-                        container_name=container_name,
-                        node_details=node_details,
-                        job_details=job_details,
-                        component_name=component_name
-                    )
-            except AllocationFailed as e:
-                logger.warning(f"Allocation failed with {e}")
-            except StartContainerFailed as e:
-                logger.warning(f"Start container failed with {e}")
+                    for container_name, node_name in allocation_plan.items():
+                        node_details = get_node_details(
+                            redis=self._redis,
+                            cluster_name=self._cluster_name,
+                            node_name=node_name
+                        )
+                        self._start_container(
+                            container_name=container_name,
+                            node_details=node_details,
+                            job_details=job_details,
+                            component_name=component_name
+                        )
+                except AllocationFailed as e:
+                    logger.warning(f"Allocation failed with {e}")
+                except StartContainerFailed as e:
+                    logger.warning(f"Start container failed with {e}")
 
     def _remove_container(self, container_name: str, container_details: dict) -> None:
         """Remove container.
@@ -727,13 +743,11 @@ class KilledJobAgent(multiprocessing.Process):
         """
         # Get params
         job_id = job_details["id"]
-        job_name = job_details["name"]
 
         # Delete mapping if fault tolerance is activated
-        delete_container_name_to_component_name(
+        delete_rejoin_container_name_to_component_name(
             redis=self._redis,
-            cluster_name=self._cluster_name,
-            job_name=job_name
+            job_id=job_id
         )
 
         # Load details and vars
