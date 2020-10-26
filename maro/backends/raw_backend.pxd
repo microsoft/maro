@@ -77,4 +77,4 @@ cdef class RawBackend(BackendAbc):
 
 cdef class RawSnapshotList(SnapshotListAbc):
     cdef:
-        RawBackend _backend
+        RawBackend _raw
