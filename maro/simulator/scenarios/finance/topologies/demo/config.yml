@@ -1,38 +1,29 @@
 # this is the tick=0 for all the sub-engines
 # stock/futures whoes beginning date later than this, will be filled with 0
 beginning_date: "2019-01-01"
-
+time_zone: "Asia/Shanghai"
 account:
-  money: 10000000000 # 1 unit
-  exchange_path: "../../fin_pipeline/currency"
-  currency: CNY
+  money: 10000 # 1 unit
 
-sub-engines:
-  -
-    name: 'sz_stocks' # used to access from out of env by name
-    type: stock # stock, futures
-    data_path: "./"
-    stocks: # stocks to simulate
-      - "000001"
+type: stock # stock, futures
+data_path: "./"
+stocks: # stocks to simulate
+  - "000001"
 
-    action_scope: # max and min value for stocks
-      max: 0.2
-    currency: "CNY"
-    money: 100000
-    leverage: 1.0
-    min_leverage_rate: 0
+action_scope: # max and min value for stocks
+  max: 0.2
 
-    order_mode:
-      - "market_order"
-      - "limit_order"
-      - "stop_order"
-      - "stop_limit_order"
+order_mode:
+  - "market_order"
+  - "limit_order"
+  - "stop_order"
+  - "stop_limit_order"
 
-    trade_constrain:
-      min_buy_unit: 100
-      min_sell_unit: 100
-      deal_price: "opening" # options: opening closing, use opening or closing price as deal_price
-      slippage: 0.00246 # slippage config, buy price shall be (1+slippage/2)*deal_price, sell price shall be (1-slippage/2)*deal_price
-      close_tax: 0.001  # close tax, shell charge close_tax*sell_price when selling out
-      commission: 0.0003  # commission, shell charge commission*sell_price or commission*buy_price when trading
-      allow_split: false
+trade_constrain:
+  min_buy_unit: 100
+  min_sell_unit: 100
+  deal_price: "opening"  # options: opening closing, use opening or closing price as deal_price
+  slippage: 0.00246  # slippage config, buy price shall be (1+slippage/2)*deal_price, sell price shall be (1-slippage/2)*deal_price
+  close_tax: 0.001  # close tax, shell charge close_tax*sell_price when selling out
+  commission: 0.0003  # commission, shell charge commission*sell_price or commission*buy_price when trading
+  allow_split: false

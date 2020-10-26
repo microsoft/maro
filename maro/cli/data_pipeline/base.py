@@ -107,12 +107,14 @@ class DataPipeline(ABC):
         self._new_folder_list.append(self._build_folder)
         os.makedirs(self._build_folder, exist_ok=True)
 
-    def build(self):
+    def build(self, start_timestamp: int = None):
         """Build the cleaned data file to binary data file."""
         self._new_file_list.append(self._build_file)
         if os.path.exists(self._clean_file):
             logger.info_green(f"Building binary data from {self._clean_file} to {self._build_file}.")
-            convert(meta=self._build_meta_file, file=[self._clean_file], output=self._build_file)
+            convert(
+                meta=self._build_meta_file, file=[self._clean_file],
+                output=self._build_file, start_timestamp=start_timestamp)
         else:
             logger.warning_yellow(f"Not found cleaned data: {self._clean_file}.")
 
@@ -163,10 +165,10 @@ class DataTopology(ABC):
         for pipeline in self._data_pipeline:
             self._data_pipeline[pipeline].clean()
 
-    def build(self):
+    def build(self, start_timestamp: int = None):
         """Build the cleaned data files of all data pipelines to binary data file."""
         for pipeline in self._data_pipeline:
-            self._data_pipeline[pipeline].build()
+            self._data_pipeline[pipeline].build(start_timestamp)
 
     def remove(self):
         """Remove the temporary files and folders of all data pipelines."""
