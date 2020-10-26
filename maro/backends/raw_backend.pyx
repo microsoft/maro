@@ -60,15 +60,10 @@ cdef class RawBackend(BackendAbc):
 
         self._node_info[node_id]["attrs"][attr_id] = {"type": dtype, "slots": slot_num, "name": attr_name}
 
-
         return attr_id
 
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
-
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
         cdef str dt = self._attr_type_dict[attr_id]
-
-        a = &self._backend.set_attr_value[ATTR_INT]
 
         # Any good way to avoid this?
         # TODO: pass PythonObject later
