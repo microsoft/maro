@@ -748,7 +748,7 @@ class TwoHeadLocalQ(nn.Module):
 
     def forward(self, x, actions, action_edge_idx_list):
         row, col = action_edge_idx_list
-        x_idx = col.reshape(-1, 21)[:, :-1]
+        x_idx = col.reshape(-1, 20)
         x_idx = x_idx.reshape(-1)
         action_feat = self.action_emb(actions)
         neighbor_feat = torch.cat((x[x_idx], action_feat), dim=1)
