@@ -74,11 +74,11 @@ class AttGnnPPO:
 
     def batchize_obs(self, obs_list):
         batch_size = len(obs_list)
-        idx_inc = np.arange(batch_size)*self.per_graph_size
+        idx_inc = np.arange(batch_size) * self.per_graph_size
 
         acting_node_idx = np.hstack([e["acting_node_idx"] for e in obs_list]) + idx_inc
         actual_amount = np.hstack([e["actual_amount"] for e in obs_list])
-        action_edge_idx = np.hstack([obs_list[i]["action_edge_idx"]+idx_inc[i] for i in range(batch_size)])
+        action_edge_idx = np.hstack([obs_list[i]["action_edge_idx"] + idx_inc[i] for i in range(batch_size)])
 
         x = np.concatenate([e["x"][0] for e in obs_list], axis=1)
         time = np.concatenate([e["x"][1] for e in obs_list], axis=1)
@@ -200,7 +200,8 @@ class AttGnnPPO:
             # def evaluate(self, obs, mask, actions):
             ts_emb = self.temporal_gnn(x, edge)
             # action_p is a tuple
-            _, choice_att = self.policy.choose_destination(ts_emb, action_edge_idx, actual_amount, acting_node, sample=False)
+            _, choice_att = self.policy.choose_destination(ts_emb, action_edge_idx, actual_amount, acting_node,
+                                                           sample=False)
             _, amt_att = self.policy.determine_amount(ts_emb, actual_amount, acting_node, old_choice, sample=False)
 
             choice_prob = choice_att[batch_arange, old_choice]
@@ -213,20 +214,20 @@ class AttGnnPPO:
             state_values = self.policy.value(ts_emb)
 
             # Finding the ratio (pi_theta / pi_theta__old):
-            ratios = (action_prob+0.00001)/(old_action_prob+0.00001)
-            ratios_choice = (choice_prob+0.00001)/(old_choice_prob+0.00001)
-            ratios_amt = (amt_prob+0.00001)/(old_amt_prob+0.00001)
+            ratios = (action_prob + 0.00001) / (old_action_prob + 0.00001)
+            ratios_choice = (choice_prob + 0.00001) / (old_choice_prob + 0.00001)
+            ratios_amt = (amt_prob + 0.00001) / (old_amt_prob + 0.00001)
             # Finding Surrogate Loss:
-            advantages = rewards + gamma*state_values_ - state_values.detach()
+            advantages = rewards + gamma * state_values_ - state_values.detach()
             advantages = advantages.sum(-1)
             surr1 = ratios * advantages
 
-            surr2 = torch.clamp(ratios_choice, 1-self.eps_clip, 1+self.eps_clip) *\
-                torch.clamp(ratios_amt, 1-self.eps_clip, 1+self.eps_clip) * advantages
+            surr2 = torch.clamp(ratios_choice, 1 - self.eps_clip, 1 + self.eps_clip) *\
+                torch.clamp(ratios_amt, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
 
             ploss = -torch.min(surr1, surr2)
-            mloss = self.mse_loss(state_values, rewards+gamma*state_values_)
-            loss = ploss + 1000 * mloss - 0.1*(amt_entropy+choice_entropy)
+            mloss = self.mse_loss(state_values, rewards + gamma * state_values_)
+            loss = ploss + 1000 * mloss - 0.1 * (amt_entropy + choice_entropy)
 
             print("mse loss", mloss.mean())
             self.writer.add_scalar("policy loss\\", ploss.mean(), itr_count)
@@ -255,7 +256,7 @@ class AttGnnPPO:
 
         self.old_policy.load_state_dict(self.policy.state_dict())
         self.old_temporal_gnn.load_state_dict(self.temporal_gnn.state_dict())
-        self.writer.add_scalar("Loss\\", sum(loss_ret)/len(loss_ret), epoch_count)
+        self.writer.add_scalar("Loss\\", sum(loss_ret) / len(loss_ret), epoch_count)
         epoch_count += 1
 
     def save(self, pth):

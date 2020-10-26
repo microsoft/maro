@@ -38,7 +38,7 @@ class AttTransPolicy(nn.Module):
 
         # print("col",col)
         # get the source group
-        actual_amount = torch.sum(actual_amount.reshape(-1, self.neighbor_cnt+1, 2), axis=-1)
+        actual_amount = torch.sum(actual_amount.reshape(-1, self.neighbor_cnt + 1, 2), axis=-1)
         batch_size = actual_amount.shape[0]
         sign = actual_amount.new_ones((batch_size, 1), dtype=torch.int, requires_grad=False)
         sign[actual_amount[:, 0] < 0, 0] = -1

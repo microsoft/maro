@@ -3,7 +3,7 @@ from torch import nn
 from torch import optim
 from torch.distributions import Categorical
 import numpy as np
-from examples.citi_bike.ppo.models.homo_gnn import STGNNBackend, LinearBackendtpsc
+from examples.citi_bike.ppo.models.homo_gnn import LinearBackendtpsc
 from examples.citi_bike.ppo.models.separated_tpsc import AttTransPolicy
 from torch.optim.lr_scheduler import StepLR
 from copy import deepcopy
@@ -23,15 +23,10 @@ class AttGnnPPO:
         self.neighbor_cnt = kargs['neighbor_cnt']
         self.per_graph_size = graph_size
         self.gamma = kargs['gamma']
-        # self.temporal_gnn = STGNNBackend(node_dim+6,out_dim=self.emb_dim,channel_cnt=self.channel_cnt)
-        # self.temporal_gnn = SimpleBackend(time_window=20, node_dim=node_dim,output_dim=self.emb_dim)
-        self.temporal_gnn = LinearBackendtpsc(node_dim + 6,out_dim=self.emb_dim, channel_cnt=self.channel_cnt)
+        self.temporal_gnn = LinearBackendtpsc(node_dim + 6, out_dim=self.emb_dim, channel_cnt=self.channel_cnt)
         self.policy = AttTransPolicy(self.emb_dim, self.neighbor_cnt, graph_size)
-        # self.gnn.load_state_dict(torch.load("/home/xiaoyuan/maro_internal/log/2020082111/0119_test/toy_gnn.pickle"))
-        # self.policy = AttPolicy(self.emb_dim, self.neighbor_cnt, graph_size)
-        # self.policy.load_state_dict(torch.load("/home/xiaoyuan/maro_internal/log/2020082111/0119_test/toy_policy.pickle"))
         self._logger = Logger(tag='model', format_=LogFormat.simple,
-                                dump_folder=log_pth, dump_mode='w', auto_timestamp=False)
+                              dump_folder=log_pth, dump_mode='w', auto_timestamp=False)
 
         ts_path = kargs['ts_path']
         self.writer = SummaryWriter(ts_path)
@@ -72,17 +67,19 @@ class AttGnnPPO:
 
     def batchize_obs(self, obs_list):
         batch_size = len(obs_list)
-        idx_inc = np.arange(batch_size)*self.per_graph_size
+        idx_inc = np.arange(batch_size) * self.per_graph_size
 
         acting_node_idx = np.hstack([e['acting_node_idx'] for e in obs_list]) + idx_inc
         actual_amount = np.hstack([e['actual_amount'] for e in obs_list])
-        action_edge_idx = np.hstack([obs_list[i]['action_edge_idx']+idx_inc[i] for i in range(batch_size)])
+        action_edge_idx = np.hstack([obs_list[i]['action_edge_idx'] +
+                                     idx_inc[i] for i in range(batch_size)])
 
         x = np.concatenate([e['x'][0] for e in obs_list], axis=1)
         time = np.concatenate([e['x'][1] for e in obs_list], axis=1)
 
         channel_cnt = len(obs_list[0]['edge_idx_list'])
-        edge_idx_list = [np.hstack([obs_list[i]['edge_idx_list'][j]+idx_inc[i] for i in range(batch_size)]) for j in range(channel_cnt)]
+        edge_idx_list = [np.hstack([obs_list[i]['edge_idx_list'][j] +
+                                    idx_inc[i] for i in range(batch_size)]) for j in range(channel_cnt)]
 
         return {
             'acting_node_idx': acting_node_idx,
@@ -145,7 +142,7 @@ class AttGnnPPO:
             x, time_feature, edge_idx_list, action_edge_idx, actual_amount, acting_node = self.obs_to_torch(obs)
             x = torch.cat((x, time_feature.float()), -1)
             actual_amount = actual_amount.reshape(-1, self.neighbor_cnt)
-            edge = torch.cat((action_edge_idx[0,:-1].reshape(1, -1), action_edge_idx[1, :-1].reshape(1, -1)), 0)
+            edge = torch.cat((action_edge_idx[0, :-1].reshape(1, -1), action_edge_idx[1, :-1].reshape(1, -1)), 0)
             emb = self.old_temporal_gnn(x, edge)
             choice, att = self.old_policy.choose_destination(emb, action_edge_idx, actual_amount, acting_node)
             abs_choice = action_edge_idx[1, choice]
@@ -209,7 +206,8 @@ class AttGnnPPO:
             # def evaluate(self, obs, mask, actions):
             ts_emb = self.temporal_gnn(x, edge)
             # action_p is a tuple
-            _, choice_att = self.policy.choose_destination(ts_emb, action_edge_idx, actual_amount, acting_node, sample=False)
+            _, choice_att = self.policy.choose_destination(ts_emb, action_edge_idx, actual_amount, acting_node,
+                                                           sample=False)
             _, amt_att = self.policy.determine_amount(ts_emb, actual_amount, acting_node, dest, sample=False)
 
             choice_prob = choice_att[batch_arange, old_choice]
@@ -227,23 +225,24 @@ class AttGnnPPO:
             ratios_amt = (amt_prob + 0.00001) / (old_amt_prob + 0.00001)
 
             # Finding Surrogate Loss:
-            advantages = rewards + gamma*state_values_ - state_values.detach()
+            advantages = rewards + gamma * state_values_ - state_values.detach()
             advantages = advantages.sum(-1)
 
             busi_advantages = busi_rewards + tot_gamma * busi_state_values_ - busi_state_values.detach()
             busi_advantages = busi_advantages.sum(-1)
 
             surr1_choice = ratios_choice * advantages
-            surr2_choice = torch.clamp(ratios_choice, 1-self.eps_clip, 1+self.eps_clip) * advantages
+            surr2_choice = torch.clamp(ratios_choice, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
 
             surr1_amt = ratios_amt * busi_advantages
-            surr2_amt = torch.clamp(ratios_amt, 1-self.eps_clip, 1+self.eps_clip) * busi_advantages
+            surr2_amt = torch.clamp(ratios_amt, 1 - self.eps_clip, 1 + self.eps_clip) * busi_advantages
 
-            ploss = -torch.min(surr1_choice, surr2_choice) - torch.min(surr1_amt,surr2_amt)
-            mloss = self.mse_loss(state_values, rewards+gamma*state_values_) + self.mse_loss(busi_state_values, busi_rewards+tot_gamma*busi_state_values_)
-            loss = ploss + 1000 * mloss - 0.1*(amt_entropy+choice_entropy)
+            ploss = -torch.min(surr1_choice, surr2_choice) - torch.min(surr1_amt, surr2_amt)
+            mloss = self.mse_loss(state_values, rewards + gamma * state_values_) +\
+                self.mse_loss(busi_state_values, busi_rewards + tot_gamma * busi_state_values_)
+            loss = ploss + 1000 * mloss - 0.1 * (amt_entropy + choice_entropy)
 
-            print("mse loss",mloss.mean())
+            print("mse loss", mloss.mean())
             self.writer.add_scalar('policy loss\\', ploss.mean(), itr_count)
             self.writer.add_scalar('mse loss\\', mloss.mean(), itr_count)
             self.writer.add_scalar('amt entropy\\', amt_entropy.mean(), itr_count)
@@ -270,9 +269,8 @@ class AttGnnPPO:
 
         self.old_policy.load_state_dict(self.policy.state_dict())
         self.old_temporal_gnn.load_state_dict(self.temporal_gnn.state_dict())
-        self.writer.add_scalar('Loss\\', sum(loss_ret)/len(loss_ret), epoch_count)
+        self.writer.add_scalar('Loss\\', sum(loss_ret) / len(loss_ret), epoch_count)
         epoch_count += 1
-
 
     def save(self, pth):
         torch.save([self.temporal_gnn.state_dict(), self.policy.state_dict()], pth)

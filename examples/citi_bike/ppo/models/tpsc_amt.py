@@ -25,7 +25,8 @@ class AttTransPolicy(nn.Module):
 
         self.amt_hidden = 32
         self.amt_mask_arange = self.amt_step * torch.arange(self.amt_resolution, dtype=torch.float, requires_grad=False)
-        self.amt_header = nn.Sequential(nn.Linear(self.node_dim*2, self.amt_hidden), nn.ReLU(), nn.Linear(self.amt_hidden, self.amt_resolution))
+        self.amt_header = nn.Sequential(nn.Linear(self.node_dim * 2, self.amt_hidden), nn.ReLU(),
+                                        nn.Linear(self.amt_hidden, self.amt_resolution))
         self.amt_softmax = nn.Softmax(-1)
 
         '''
@@ -35,14 +36,16 @@ class AttTransPolicy(nn.Module):
         '''
 
         self.critic_hidden_dim = 16
-        self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim, self.critic_hidden_dim), nn.ReLU(), MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
+        self.critic_headers = nn.Sequential(MultiChannelLinear(self.per_graph_size, self.node_dim,
+                                                               self.critic_hidden_dim), nn.ReLU(),
+                                            MultiChannelLinear(self.per_graph_size, self.critic_hidden_dim, 1))
 
     def forward(self, x, edge_index, actual_amount, real_choice=None, noise_scale=0.0):
         # calculation attention
         row, col = edge_index
         # print("col",col)
         # get the source group
-        actual_amount = torch.sum(actual_amount.reshape(-1, self.neighbor_cnt+1, 2), axis=-1)
+        actual_amount = torch.sum(actual_amount.reshape(-1, self.neighbor_cnt + 1, 2), axis=-1)
         batch_size = actual_amount.shape[0]
         sign = actual_amount.new_ones((batch_size, 1), dtype=torch.int, requires_grad=False)
         sign[actual_amount[:, 0] < 0, 0] = -1

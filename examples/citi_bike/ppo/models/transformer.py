@@ -19,17 +19,17 @@ class PositionalEncoder(nn.Module):
     def __init__(self, d_model, max_seq_len=80):
         super().__init__()
         self.d_model = d_model
-        self.times = 4*math.sqrt(self.d_model)
+        self.times = 4 * math.sqrt(self.d_model)
 
         # create constant 'pe' matrix with values dependant on
         # pos and i
         self.pe = torch.zeros(max_seq_len, d_model)
         for pos in range(max_seq_len):
             for i in range(0, d_model, 2):
-                self.pe[pos, i] = math.sin(pos / (10000 ** ((2 * i)/d_model)))
-                self.pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1))/d_model)))
+                self.pe[pos, i] = math.sin(pos / (10000 ** ((2 * i) / d_model)))
+                self.pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1)) / d_model)))
 
-        self.pe = self.pe.unsqueeze(1)/self.d_model
+        self.pe = self.pe.unsqueeze(1) / self.d_model
 
     def forward(self, x):
         # make embeddings relatively larger
@@ -37,7 +37,7 @@ class PositionalEncoder(nn.Module):
         # add constant to embedding
         # make the addon relatively smaller
         addon = self.pe[:x.shape[0], :, :x.shape[2]].to(x.get_device())
-        return x+addon
+        return x + addon
 
 
 class TransGATLayer(nn.Module):
@@ -49,7 +49,7 @@ class TransGATLayer(nn.Module):
         self.hidden_size = hidden_size
         self.nhead = nhead
         self.concat_layers = []
-        self.concat_layers.append(nn.Linear(src_dim+dest_dim+edge_dim, hidden_size))
+        self.concat_layers.append(nn.Linear(src_dim + dest_dim + edge_dim, hidden_size))
         self.concat_layers.append(GeLU())
         self.enable_pe = position_encoding
         if position_encoding:
@@ -123,8 +123,8 @@ class TransGATLayer(nn.Module):
 
         # only get the first dimension
         if self.aggregate_func == 'decoder':
-            dest_decode = self.decoder_fc(dest.reshape(batch*d_cnt, dest_dim))
-            aggregated_emb = self.decoder(dest_decode.reshape(1, batch*d_cnt, self.hidden_size), dest_emb,
+            dest_decode = self.decoder_fc(dest.reshape(batch * d_cnt, dest_dim))
+            aggregated_emb = self.decoder(dest_decode.reshape(1, batch * d_cnt, self.hidden_size), dest_emb,
                                           memory_key_padding_mask=mask)
         else:
             aggregated_emb = self._aggregate(dest_emb)

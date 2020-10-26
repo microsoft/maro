@@ -25,17 +25,18 @@ def batch_split(data, dim=0):
 def batchize(batch_obs):
     graph_size = batch_obs[0]['node_cnt']
     batch_size = len(batch_obs)
-    idx_inc = np.arange(batch_size)*graph_size
+    idx_inc = np.arange(batch_size) * graph_size
 
     acting_node_idx = np.array([e['acting_node_idx'] if 'acting_node_idx' in e else -1 for e in batch_obs]) + idx_inc
     actual_amount = np.vstack([e['actual_amount'] for e in batch_obs])
-    action_edge_idx = np.hstack([batch_obs[i]['action_edge_idx']+idx_inc[i] for i in range(batch_size)])
+    action_edge_idx = np.hstack([batch_obs[i]['action_edge_idx'] + idx_inc[i] for i in range(batch_size)])
 
     x = np.vstack([e['x'] for e in batch_obs])
     time = np.vstack([e['x'] for e in batch_obs])
 
     channel_cnt = len(batch_obs[0]['edge_idx_list'])
-    edge_idx_list = [np.hstack([batch_obs[i]['edge_idx_list'][j]+idx_inc[i] for i in range(batch_size)]) for j in range(channel_cnt)]
+    edge_idx_list = [np.hstack([batch_obs[i]['edge_idx_list'][j] + idx_inc[i] for i in range(batch_size)])
+                     for j in range(channel_cnt)]
 
     return {
         'acting_node_idx': acting_node_idx,
@@ -122,12 +123,12 @@ def to_dense_adj(size, edge_index, edge_attr):
 
 def polyak_update(polyak_factor, target_network, network):
     for target_param, param in zip(target_network.parameters(), network.parameters()):
-        target_param.data.copy_(polyak_factor*target_param.data + (1.0 - polyak_factor)*param.data)
+        target_param.data.copy_(polyak_factor * target_param.data + (1.0 - polyak_factor) * param.data)
 
 
 def sparse_pooling(src, index=None, per_graph_size=None):
     if index is None:
-        index = torch.arange(src.shape[0], dtype=torch.int64)/per_graph_size
+        index = torch.arange(src.shape[0], dtype=torch.int64) / per_graph_size
         index = index.to(src.device)
     out, argmax = scatter_max(src, index, dim=0)
     return out

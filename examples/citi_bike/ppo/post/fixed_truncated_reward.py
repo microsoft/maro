@@ -36,8 +36,7 @@ class PostProcessor:
 
     def __call__(self):
         order_data = self.env.snapshot_list['stations'][
-                ::['fulfillment', 'shortage']
-            ].reshape(-1, 2, self.station_cnt).transpose((0, 2, 1))
+            ::['fulfillment', 'shortage']].reshape(-1, 2, self.station_cnt).transpose((0, 2, 1))
         reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
 
         rm_list = []

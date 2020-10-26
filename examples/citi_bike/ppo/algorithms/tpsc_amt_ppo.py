@@ -101,7 +101,7 @@ class AttGnnPPO:
         # convert list to tensor
         old_actions = from_numpy(torch.FloatTensor, self.device, batch["a"])[0]
         batch_arange = torch.arange(old_actions.shape[1]).to(device=self.device)
-        old_choice, old_amt = old_actions[0].long(), (old_actions[1]/self.old_policy.amt_step).long()
+        old_choice, old_amt = old_actions[0].long(), (old_actions[1] / self.old_policy.amt_step).long()
         old_choice_prob, old_amt_prob = self.supplement2torch(batch["supplement"])
         old_action_prob = old_choice_prob.float() * old_amt_prob.float()
         loss_ret = []
@@ -126,16 +126,16 @@ class AttGnnPPO:
 
             # Finding the ratio (pi_theta / pi_theta__old):
             # ratios = torch.exp(action_logprobs - old_logprobs.detach())
-            ratios = (action_prob+0.00001)/(old_action_prob+0.00001)
+            ratios = (action_prob + 0.00001) / (old_action_prob + 0.00001)
             # Finding Surrogate Loss:
-            advantages = rewards + gamma*state_values_ - state_values.detach()
+            advantages = rewards + gamma * state_values_ - state_values.detach()
             advantages = advantages.sum(-1)
             surr1 = ratios * advantages.mean()
-            surr2 = torch.clamp(ratios, 1-self.eps_clip, 1+self.eps_clip) * advantages.mean()
+            surr2 = torch.clamp(ratios, 1 - self.eps_clip, 1 + self.eps_clip) * advantages.mean()
 
             ploss = -torch.min(surr1, surr2)
-            mloss = self.mse_loss(state_values, rewards+gamma*state_values_)
-            loss = ploss + 100*mloss - 1.0*att_entropy
+            mloss = self.mse_loss(state_values, rewards + gamma * state_values_)
+            loss = ploss + 100 * mloss - 1.0 * att_entropy
             # print("rewards",rewards)
             # print("state_values",state_values)
             # print("state_values_",state_values_)
@@ -161,7 +161,7 @@ class AttGnnPPO:
 
         self.old_policy.load_state_dict(self.policy.state_dict())
         self.old_temporal_gnn.load_state_dict(self.temporal_gnn.state_dict())
-        self.writer.add_scalar("Loss\\", sum(loss_ret)/len(loss_ret), epoch_count)
+        self.writer.add_scalar("Loss\\", sum(loss_ret) / len(loss_ret), epoch_count)
         epoch_count += 1
 
     def supplement2torch(self, sup):

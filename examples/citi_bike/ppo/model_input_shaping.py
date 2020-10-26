@@ -37,9 +37,12 @@ class StateShaping:
         ticks = [cur_tick + bias for bias in range(0, -self._td_steps, -1)]
 
         # cur_neighbor_idx_list = [0]*6
-        station_feat_raw = self._env.snapshot_list.static_nodes[ticks:: (self._station_attribute_list, 0)].reshape(self._td_steps, self._station_cnt, len(self._station_attribute_list))
+        station_feat_raw = self._env.snapshot_list.static_nodes[ticks:: (self._station_attribute_list,
+                                                                         0)].reshape(self._td_steps, self._station_cnt,
+                                                                                     len(self._station_attribute_list))
         station_feat_raw *= self.distance_scaler
-        # id_feat = np.repeat((np.arange(self._station_cnt)/self._station_cnt).reshape(1, -1), self._td_steps, axis=0).reshape(self._td_steps, self._station_cnt, 1)
+        # id_feat = np.repeat((np.arange(self._station_cnt)/self._station_cnt).reshape(1, -1),
+        #                      self._td_steps, axis=0).reshape(self._td_steps, self._station_cnt, 1)
         # station_feat_raw = np.concatenate((station_feat_raw, id_feat), axis=-1)
         station_features = np.transpose(station_feat_raw, (1, 2, 0)).reshape(self._station_cnt, -1)
         id_feat = np.identity(self._station_cnt)
@@ -87,4 +90,4 @@ class StateShaping:
             'action_edge_x': action_edge_x,
             'actual_amount': actual_amount,
             'node_cnt': self._station_cnt,
-            }
+        }

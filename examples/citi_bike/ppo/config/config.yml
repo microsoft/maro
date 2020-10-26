@@ -9,13 +9,13 @@ env:
 train:
   enable: true
   rollout_cnt: 3000
-  batch_size: 4096
+  batch_size: 1024
   gamma: 0.99
   freq: 1
   exp_replay:
       flush: 8
 model:
-  device: "cuda:0"
+  device: "cuda:1"
   emb_dim: 16
 save_code_after: 3 # -1 is not save, any positive number is after which episode the code is saved.
 

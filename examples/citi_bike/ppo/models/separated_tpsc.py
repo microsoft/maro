@@ -15,7 +15,7 @@ class AttTransPolicy(nn.Module):
         self.per_graph_size = per_graph_size
         self.neighbor_cnt = neighbor_cnt
         self.amt_resolution = 11
-        self.amt_step = 1.0/(self.amt_resolution-1)
+        self.amt_step = 1.0 / (self.amt_resolution - 1)
         self.encoderLayer = TransformerEncoderLayer(d_model=self.node_dim, nhead=2, dropout=0.0)
         self.transformerencoder = TransformerEncoder(self.encoderLayer, 1)
         self.decoderLayer = CustomTransformerDecoderLayer(d_model=self.node_dim, nhead=2, dropout=0.0)
@@ -23,7 +23,7 @@ class AttTransPolicy(nn.Module):
 
         self.amt_hidden = 32
         self.amt_encoder_layer = TransformerEncoderLayer(d_model=self.node_dim, nhead=2, dropout=0.0)
-        self.amt_header = nn.Sequential(nn.Linear(self.node_dim*2, self.amt_hidden), nn.ReLU(),
+        self.amt_header = nn.Sequential(nn.Linear(self.node_dim * 2, self.amt_hidden), nn.ReLU(),
                                         nn.Linear(self.amt_hidden, self.amt_resolution))
         self.amt_softmax = nn.Softmax(-1)
 
@@ -53,7 +53,7 @@ class AttTransPolicy(nn.Module):
 
         seq_x = torch.cat((src_x, dest_x), axis=0)
         emb_x = self.amt_encoder_layer(seq_x)
-        emb_x = torch.transpose(emb_x, 1, 0).reshape(batch_size, self.node_dim*2)
+        emb_x = torch.transpose(emb_x, 1, 0).reshape(batch_size, self.node_dim * 2)
         emb_x = self.amt_header(emb_x)
         att = self.amt_softmax(emb_x)
 

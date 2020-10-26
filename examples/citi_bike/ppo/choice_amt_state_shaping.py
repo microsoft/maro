@@ -58,7 +58,7 @@ class CitibikeStateShaping(BaseStateShaping):
                 ]
                 neighbor_docks = tmp[0::2] - tmp[1::2]
                 # get the legal amount each neighbor could receive
-                legal_amount = np.min(np.vstack([neighbor_docks, station_bikes]), axis=0)*self.action_scaler
+                legal_amount = np.min(np.vstack([neighbor_docks, station_bikes]), axis=0) * self.action_scaler
             else:
                 ctmp, btmp = self._env.snapshot_list['stations'][
                     cur_frame_index: decision_event.station_idx: ['capacity', 'bikes']
@@ -66,7 +66,7 @@ class CitibikeStateShaping(BaseStateShaping):
                 station_docks = np.ones(len(neighbors)) * (ctmp - btmp)
                 neighbor_bikes = self._env.snapshot_list['stations'][cur_frame_index:neighbors:['bikes']]
                 # get the legal amount each neighbor could supply
-                legal_amount = - np.min(np.vstack([neighbor_bikes, station_docks]), axis=0)*self.action_scaler
+                legal_amount = - np.min(np.vstack([neighbor_bikes, station_docks]), axis=0) * self.action_scaler
 
         return {
             'acting_node_idx': np.array([acting_node_idx]),
@@ -78,7 +78,7 @@ class CitibikeStateShaping(BaseStateShaping):
             'tick': cur_frame_index,
             'shortage': shortage,
             'fulfillment': fulfillment,
-            }
+        }
 
     # def get_station_features(self, cur_frame_index: int, env_tick: int):
     #     indexes = [cur_frame_index + bias for bias in range(0, -self._td_steps, -1)]
@@ -103,7 +103,7 @@ class CitibikeStateShaping(BaseStateShaping):
     #     return station_features, shortage, fulfillment
 
     def get_station_features(self, cur_frame_index: int, env_tick: int):
-        indexes = [max(cur_frame_index + bias, 0) for bias in range(-self._td_steps+1, 1)]
+        indexes = [max(cur_frame_index + bias, 0) for bias in range(-self._td_steps + 1, 1)]
         # indexes = [max(cur_frame_index + bias, 0) for bias in range(0,-self._td_steps, -1)]
         idx2tick = frame_index_to_ticks(self._env._start_tick, self._env._start_tick + self._env._durations,
                                         self._env._snapshot_resolution)

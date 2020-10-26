@@ -36,7 +36,6 @@ class CitibikeStateShaping(BaseStateShaping):
                                         self._env._snapshot_resolution)
         ticks = np.array([min(idx2tick[idx][-1], env_tick) for idx in indexes], dtype=np.int).reshape(-1, 1)
 
-        testing =  self._env.snapshot_list['stations']
         raw_features = self.feature_scaler * self._env.snapshot_list['stations'][
             indexes:: station_attribute_list
         ].reshape(self._td_steps, self._station_cnt, len(station_attribute_list))

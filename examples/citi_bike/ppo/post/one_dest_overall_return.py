@@ -17,9 +17,9 @@ class PostProcessor:
     def __call__(self):
         ret = np.zeros(self.station_cnt)
         valid_traj = self.trajectory[:-1]
-        for i in range(len(valid_traj)-1, -1, -1):
+        for i in range(len(valid_traj) - 1, -1, -1):
             sars = valid_traj[i]
-            ret = ret*sars['gamma'][0] + sars['r']
+            ret = ret * sars['gamma'][0] + sars['r']
             sars['r'] = ret
         return valid_traj
 
@@ -30,9 +30,10 @@ class PostProcessor:
         last['obs_'] = obs
 
         # reward computation
-        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index, decision_event.frame_index+1))::
+        order_data = self.env.snapshot_list['stations'][list(range(self.last_decision_event.frame_index,
+                                                                   decision_event.frame_index + 1))::
                                                         ['fulfillment', 'shortage']].reshape(
-                                                        decision_event.frame_index-self.last_decision_event.frame_index+1, self.station_cnt, 2)
+            decision_event.frame_index - self.last_decision_event.frame_index + 1, self.station_cnt, 2)
         # reward_per_frame.shape: [frame_cnt, station_cnt]
         reward_per_frame = order_data[:, :, 0] - order_data[:, :, 1]
         # reward.shape: [station_cnt,]
@@ -46,9 +47,9 @@ class PostProcessor:
         else:
             reward[self.last_decision_event.station_idx] -= self.transfer_cost*np.sum(cur_action)
         '''
-        last['r'] = reward*self.reward_scaler
-        last['gamma'] = np.ones(reward.shape[0])*self.gammas[decision_event.frame_index-self.last_decision_event.frame_index]
-
+        last['r'] = reward * self.reward_scaler
+        last['gamma'] = np.ones(reward.shape[0]) * self.gammas[decision_event.frame_index -
+                                                               self.last_decision_event.frame_index]
 
     def record(self, decision_event=None, obs=None, action=None):
         if decision_event is not None and obs is not None:

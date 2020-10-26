@@ -48,7 +48,7 @@ class ActionShaping:
         return action
 
     def _create_action(self, act_idx, target_idx, action):
-        act = action/self.__class__.action_scaler
+        act = action / self.__class__.action_scaler
         if act > 0:
             action = Action(act_idx, target_idx, int(abs(act)))
         else:

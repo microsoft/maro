@@ -36,7 +36,7 @@ class AttGnnPPO:
         tensorboard_pth = log_pth + "/tensorboard"
         if not os.path.exists(tensorboard_pth):
             os.makedirs(tensorboard_pth)
-        self.writer = SummaryWriter(tensorboard_pth+ "/citibike_trans")
+        self.writer = SummaryWriter(tensorboard_pth + "/citibike_trans")
 
         self.old_policy = deepcopy(self.policy)
         self.old_temporal_gnn = deepcopy(self.temporal_gnn)
@@ -156,8 +156,8 @@ class AttGnnPPO:
             surr1 = ratios * advantages
             surr2 = torch.clamp(ratios, 1 - self.eps_clip, 1 + self.eps_clip) * advantages
             ploss = -torch.min(surr1, surr2)
-            mloss = self.mse_loss(state_values, rewards+tot_gamma*state_values_)
-            loss = ploss + mloss - 0.01*att_entropy
+            mloss = self.mse_loss(state_values, rewards + tot_gamma * state_values_)
+            loss = ploss + mloss - 0.01 * att_entropy
 
             print("ratios", ratios.mean())
             print("advantage", advantages.mean())
@@ -181,7 +181,7 @@ class AttGnnPPO:
         self.old_policy.load_state_dict(self.policy.state_dict())
         self.old_temporal_gnn.load_state_dict(self.temporal_gnn.state_dict())
         self.old_critic_gnn.load_state_dict(self.critic_gnn.state_dict())
-        self.writer.add_scalar("Loss\\", sum(loss_ret)/len(loss_ret), epoch_count)
+        self.writer.add_scalar("Loss\\", sum(loss_ret) / len(loss_ret), epoch_count)
         epoch_count += 1
 
     def supplement2torch(self, sup):

@@ -48,7 +48,8 @@ class CitiBikeActor:
         else:
         '''
         self.writer = SummaryWriter(ts_path)
-        self.env = Env(scenario=env_config.scenario, topology=env_config.topology, start_tick=env_config.start_tick, durations=env_config.durations, snapshot_resolution=env_config.snapshot_resolution)
+        self.env = Env(scenario=env_config.scenario, topology=env_config.topology, start_tick=env_config.start_tick,
+                       durations=env_config.durations, snapshot_resolution=env_config.snapshot_resolution)
 
         self.state_shaping = state_shaping_cls(self.env)
         self.post_processing = post_processing_cls(self.env, transfer_cost=env_config.transfer_cost)
@@ -120,7 +121,8 @@ class CitiBikeActor:
 
 class ZeroActionActor:
     def __init__(self, scenario, topology, start_tick, durations, snapshot_resolution):
-        self.env = Env(scenario=scenario, topology=topology, start_tick=start_tick, durations=durations, snapshot_resolution=snapshot_resolution)
+        self.env = Env(scenario=scenario, topology=topology, start_tick=start_tick, durations=durations,
+                       snapshot_resolution=snapshot_resolution)
         pass
 
     def sample(self):
@@ -151,4 +153,4 @@ if __name__ == "__main__":
             tot_shortage += s
             tot_fulfillment += f
 
-        print(1.0*tot_shortage/(tot_shortage+tot_fulfillment), tot_shortage, tot_fulfillment)
+        print(1.0 * tot_shortage / (tot_shortage + tot_fulfillment), tot_shortage, tot_fulfillment)
