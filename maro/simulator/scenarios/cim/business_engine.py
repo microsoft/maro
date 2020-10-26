@@ -12,7 +12,10 @@ from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
 
-from .common import ActionScope, DecisionEvent, CimEventType, VesselDischargePayload, VesselStatePayload
+from .common import (
+    Action, ActionScope, DecisionEvent, CimEventType,
+    VesselDischargePayload, VesselStatePayload, LadenReturnPayload, EmptyReturnPayload
+)
 from .frame_builder import gen_cim_frame
 from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
 
@@ -262,6 +265,21 @@ class CimBusinessEngine(AbsBusinessEngine):
             "vessels": self._data_cntr.vessel_mapping
         }
 
+    def get_event_payload_detail(self) -> dict:
+        """dict: Event payload details of current scenario."""
+        return {
+            CimEventType.ORDER.name: Order.summary_key,
+            CimEventType.RETURN_FULL.name: LadenReturnPayload.summary_key,
+            CimEventType.VESSEL_ARRIVAL.name: VesselStatePayload.summary_key,
+            CimEventType.LOAD_FULL.name: VesselStatePayload.summary_key,
+            CimEventType.DISCHARGE_FULL.name: VesselDischargePayload.summary_key,
+            CimEventType.PENDING_DECISION.name: DecisionEvent.summary_key,
+            CimEventType.LOAD_EMPTY.name: Action.summary_key,
+            CimEventType.DISCHARGE_EMPTY.name: Action.summary_key,
+            CimEventType.VESSEL_DEPARTURE.name: VesselStatePayload.summary_key,
+            CimEventType.RETURN_EMPTY.name: EmptyReturnPayload.summary_key
+        }
+
     def get_agent_idx_list(self) -> list:
         """Get port index list related with this environment.
 
@@ -398,10 +416,12 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         buffer_ticks = self._data_cntr.full_return_buffers[src_port.idx]
 
-        payload = (order.src_port_idx, order.dest_port_idx, execute_qty)
+        payload = LadenReturnPayload(
+            src_port_idx=order.src_port_idx, dest_port_idx=order.dest_port_idx, quantity=execute_qty
+        )
 
         laden_return_evt = self._event_buffer.gen_atom_event(
-            evt.tick + buffer_ticks, CimEventType.RETURN_FULL, payload
+            tick=evt.tick + buffer_ticks, event_type=CimEventType.RETURN_FULL, payload=payload
         )
 
         # If buffer_tick is 0, we should execute it as this tick.
@@ -417,19 +437,15 @@ class CimBusinessEngine(AbsBusinessEngine):
         1. First move the container from on_shipper to full (update state: on_shipper -> full).
         2. Then append the container to the port pending list.
         """
-        # The payload is a tuple (src_port_idx, dest_port_idx, quantity).
-        full_rtn_payload = evt.payload
-        src_port_idx = full_rtn_payload[0]
-        dest_port_idx = full_rtn_payload[1]
-        qty = full_rtn_payload[2]
+        payload: LadenReturnPayload = evt.payload
 
-        src_port = self._ports[src_port_idx]
-        src_port.on_shipper -= qty
-        src_port.full += qty
+        src_port = self._ports[payload.src_port_idx]
+        src_port.on_shipper -= payload.quantity
+        src_port.full += payload.quantity
 
-        pending_full_number = self._get_pending_full(src_port_idx, dest_port_idx)
+        pending_full_number = self._get_pending_full(payload.src_port_idx, payload.dest_port_idx)
 
-        self._set_pending_full(src_port_idx, dest_port_idx, pending_full_number + qty)
+        self._set_pending_full(payload.src_port_idx, payload.dest_port_idx, pending_full_number + payload.quantity)
 
     def _on_full_load(self, evt: Event):
         """Handler for processing event that a vessel need to load full containers from current port.
@@ -542,9 +558,10 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._full_on_vessels[vessel_idx, port_idx] -= discharge_qty
 
         buffer_ticks = self._data_cntr.empty_return_buffers[port.idx]
-        payload = (discharge_qty, port.idx)
+        payload = EmptyReturnPayload(port_idx=port.idx, quantity=discharge_qty)
         mt_return_evt = self._event_buffer.gen_atom_event(
-            evt.tick + buffer_ticks, CimEventType.RETURN_EMPTY, payload)
+            tick=evt.tick + buffer_ticks, event_type=CimEventType.RETURN_EMPTY, payload=payload
+        )
 
         if buffer_ticks == 0:
             evt.immediate_event_list.append(mt_return_evt)
@@ -557,11 +574,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         Args:
             evt (Event Object): Empty-return event object.
         """
-        qty, port_idx = evt.payload
-        port = self._ports[port_idx]
+        payload: EmptyReturnPayload = evt.payload
+        port = self._ports[payload.port_idx]
 
-        port.on_consignee -= qty
-        port.empty += qty
+        port.on_consignee -= payload.quantity
+        port.empty += payload.quantity
 
     def _on_action_received(self, evt: Event):
         """Handler for processing actions from agent.
