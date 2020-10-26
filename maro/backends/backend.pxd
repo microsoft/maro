@@ -31,6 +31,9 @@ ctypedef unsigned short NODE_INDEX
 ctypedef unsigned short SLOT_INDEX
 
 
+# Handlers to handle exception from cpp side, and raise to python side
+cdef int raise_get_attr_error() except +
+
 
 # Base of all snapshot accessing implementation
 cdef class SnapshotListAbc:
@@ -68,7 +71,7 @@ cdef class BackendAbc:
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *
 
     # Get value of specified attribute slot
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error
 
     # Set values of specified slots
     cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *

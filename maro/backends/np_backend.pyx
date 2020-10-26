@@ -12,7 +12,7 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX, raise_get_attr_error
 
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
@@ -164,7 +164,7 @@ cdef class NumpyBackend(BackendAbc):
         else:
             attr_array[0][node_index] = value
 
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index):
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error:
         """Get specified attribute value"""
         if attr_id >= len(self._attrs_list):
             raise Exception("Invalid attribute id")

@@ -11,7 +11,7 @@ from cython cimport view
 from cpython cimport bool
 
 from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
-    ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE)
+    ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE, raise_get_attr_error)
 
 
 # Ensure numpy will not crash, as we use numpy as query result
@@ -55,12 +55,14 @@ cdef class AttributeShortAccessor(AttributeAccessor):
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
         return self._raw._backend.get_short(self._attr_id, node_index, slot_index)
 
+
 cdef class AttributeIntAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
         self._raw._backend.set_attr_value[ATTR_INT](self._attr_id, node_index, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
         return self._raw._backend.get_int(self._attr_id, node_index, slot_index)
+
 
 cdef class AttributeLongAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
@@ -69,12 +71,14 @@ cdef class AttributeLongAccessor(AttributeAccessor):
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
         return self._raw._backend.get_long(self._attr_id, node_index, slot_index)
 
+
 cdef class AttributeFloatAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
         self._raw._backend.set_attr_value[ATTR_FLOAT](self._attr_id, node_index, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
         return self._raw._backend.get_float(self._attr_id, node_index, slot_index)
+
 
 cdef class AttributeDoubleAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
@@ -131,7 +135,7 @@ cdef class RawBackend(BackendAbc):
 
         acc.set_value(node_index, slot_index, value)
 
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index):
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error:
         cdef AttributeAccessor acc = self._attr_type_dict[attr_id]
 
         return acc.get_value(node_index, slot_index)
