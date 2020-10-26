@@ -18,7 +18,7 @@ namespace maro
         }
       }
 
-      inline void Backend::ensure_node_index(NODE_INDEX cur, NodeInfo& node)
+      inline void Backend::ensure_node_index(NODE_INDEX cur, NodeInfo &node)
       {
         if (cur >= node.number)
         {
@@ -26,7 +26,7 @@ namespace maro
         }
       }
 
-      inline void Backend::ensure_slot_index(SLOT_INDEX cur, AttrInfo& attr)
+      inline void Backend::ensure_slot_index(SLOT_INDEX cur, AttrInfo &attr)
       {
         if (cur >= attr.slots)
         {
@@ -50,11 +50,10 @@ namespace maro
         }
       }
 
-      inline size_t Backend::calc_attr_index(UINT frame_index, NodeInfo& node, NODE_INDEX node_index, AttrInfo& attr, SLOT_INDEX slot_index)
+      inline size_t Backend::calc_attr_index(UINT frame_index, NodeInfo &node, NODE_INDEX node_index, AttrInfo &attr, SLOT_INDEX slot_index)
       {
         return (size_t)frame_index * _frame_length + (size_t)node.offset + (size_t)node.attr_number * node_index + attr.offset + slot_index;
       }
-
 
       IDENTIFIER Backend::add_node(string node_name) noexcept
       {
@@ -67,7 +66,7 @@ namespace maro
           throw MaxNodeTypeNumberError();
         }
 
-        NodeInfo node{ 1, 0, 0, id, node_name };
+        NodeInfo node{1, 0, 0, id, node_name};
 
         _nodes.push_back(node);
 
@@ -92,9 +91,9 @@ namespace maro
           throw BadNodeIndex();
         }
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
-        AttrInfo attr{ attr_type, node.attr_number, slot_number, node_id, id, attr_name };
+        AttrInfo attr{attr_type, node.attr_number, slot_number, node_id, id, attr_name};
 
         _attrs.push_back(attr);
 
@@ -109,7 +108,7 @@ namespace maro
         ensure_setup_state(false);
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         node.number = number;
       }
@@ -118,7 +117,7 @@ namespace maro
       {
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         return node.number;
       }
@@ -143,7 +142,7 @@ namespace maro
 
         size_t attr_num = 0;
 
-        for (auto& node : _nodes)
+        for (auto &node : _nodes)
         {
           node.offset = UINT(attr_num);
 
@@ -178,48 +177,47 @@ namespace maro
         memset(&_data[_frame_length], 0, sizeof(Attribute) * (_data.size() - _frame_length));
       }
 
-#define GET_ATTR_VALUE_BY_TYPE(m_attr_type, m_func_name)                                                             \
-    m_attr_type Backend::get_##m_func_name##(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)       \
-    {                                                                                                                \
-        ensure_setup_state(true);                                                                                    \
-        ensure_attr_id(attr_id);                                                                                     \
-                                                                                                                     \
-        auto& attr = _attrs[attr_id];                                                                                \
-        auto& node = _nodes[attr.node_id];                                                                           \
-                                                                                                                     \
-        ensure_node_index(node_index, node);                                                                         \
-        ensure_slot_index(slot_index, attr);                                                                         \
-                                                                                                                     \
-        auto attr_index = calc_attr_index(0, node, node_index, attr, slot_index);                                    \
-                                                                                                                     \
-        auto& target_attr = _data[attr_index];                                                                       \
-                                                                                                                     \
-        return target_attr.get_##m_func_name##();                                                                    \
-    }
+#define GET_ATTR_VALUE_BY_TYPE(m_attr_type, m_func_name)                                                     \
+  m_attr_type Backend::get_##m_func_name##(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) \
+  {                                                                                                          \
+    ensure_setup_state(true);                                                                                \
+    ensure_attr_id(attr_id);                                                                                 \
+                                                                                                             \
+    auto &attr = _attrs[attr_id];                                                                            \
+    auto &node = _nodes[attr.node_id];                                                                       \
+                                                                                                             \
+    ensure_node_index(node_index, node);                                                                     \
+    ensure_slot_index(slot_index, attr);                                                                     \
+                                                                                                             \
+    auto attr_index = calc_attr_index(0, node, node_index, attr, slot_index);                                \
+                                                                                                             \
+    auto &target_attr = _data[attr_index];                                                                   \
+                                                                                                             \
+    return target_attr.get_##m_func_name##();                                                                \
+  }
 
       GET_ATTR_VALUE_BY_TYPE(ATTR_BYTE, byte)
-        GET_ATTR_VALUE_BY_TYPE(ATTR_SHORT, short)
-        GET_ATTR_VALUE_BY_TYPE(ATTR_INT, int)
-        GET_ATTR_VALUE_BY_TYPE(ATTR_LONG, long)
-        GET_ATTR_VALUE_BY_TYPE(ATTR_FLOAT, float)
-        GET_ATTR_VALUE_BY_TYPE(ATTR_DOUBLE, double)
+      GET_ATTR_VALUE_BY_TYPE(ATTR_SHORT, short)
+      GET_ATTR_VALUE_BY_TYPE(ATTR_INT, int)
+      GET_ATTR_VALUE_BY_TYPE(ATTR_LONG, long)
+      GET_ATTR_VALUE_BY_TYPE(ATTR_FLOAT, float)
+      GET_ATTR_VALUE_BY_TYPE(ATTR_DOUBLE, double)
 
-
-        template <typename T>
+      template <typename T>
       void Backend::set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value)
       {
         ensure_setup_state(true);
         ensure_attr_id(attr_id);
 
-        auto& attr = _attrs[attr_id];
-        auto& node = _nodes[attr.node_id];
+        auto &attr = _attrs[attr_id];
+        auto &node = _nodes[attr.node_id];
 
         ensure_node_index(node_index, node);
         ensure_slot_index(slot_index, attr);
 
         auto attr_index = calc_attr_index(0, node, node_index, attr, slot_index);
 
-        auto& target_attr = _data[attr_index];
+        auto &target_attr = _data[attr_index];
 
         target_attr = value;
       }
@@ -231,7 +229,6 @@ namespace maro
       template void Backend::set_attr_value<ATTR_LONG>(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, ATTR_LONG value);
       template void Backend::set_attr_value<ATTR_FLOAT>(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, ATTR_FLOAT value);
       template void Backend::set_attr_value<ATTR_DOUBLE>(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, ATTR_DOUBLE value);
-
 
       void Backend::take_snapshot(INT tick)
       {
@@ -301,9 +298,9 @@ namespace maro
 
         UINT length = 0;
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
-        NODE_INDEX* _node_indices = nullptr;
+        NODE_INDEX *_node_indices = nullptr;
 
         if (node_indices == nullptr)
         {
@@ -317,7 +314,7 @@ namespace maro
           }
         }
 
-        const NODE_INDEX* __node_indices = node_indices == nullptr ? _node_indices : node_indices;
+        const NODE_INDEX *__node_indices = node_indices == nullptr ? _node_indices : node_indices;
 
         for (auto i = 0; i < node_length; i++)
         {
@@ -327,7 +324,7 @@ namespace maro
 
           for (UINT j = 0; j < attr_length; j++)
           {
-            auto& attr = _attrs[attributes[j]];
+            auto &attr = _attrs[attributes[j]];
 
             length += attr.slots;
           }
@@ -335,25 +332,25 @@ namespace maro
 
         if (_node_indices != nullptr)
         {
-          delete[]_node_indices;
+          delete[] _node_indices;
         }
 
         return length;
       }
 
-      void Backend::query(ATTR_FLOAT* result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length,
-        const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
+      void Backend::query(ATTR_FLOAT *result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length,
+                          const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
       {
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         if (attributes == nullptr)
         {
           return;
         }
 
-        INT* _ticks = nullptr;
+        INT *_ticks = nullptr;
 
         if (ticks == nullptr)
         {
@@ -370,7 +367,7 @@ namespace maro
           }
         }
 
-        NODE_INDEX* _node_indices = nullptr;
+        NODE_INDEX *_node_indices = nullptr;
 
         if (node_indices == nullptr)
         {
@@ -384,14 +381,14 @@ namespace maro
           }
         }
 
-        const INT* __ticks = ticks == nullptr ? _ticks : ticks;
-        const NODE_INDEX* __node_indices = node_indices == nullptr ? _node_indices : node_indices;
+        const INT *__ticks = ticks == nullptr ? _ticks : ticks;
+        const NODE_INDEX *__node_indices = node_indices == nullptr ? _node_indices : node_indices;
 
-        INT tick{ 0 };
+        INT tick{0};
         // index of frame in the data array
         // 0 is current frame, others are snapshots
-        UINT frame_index{ 1 };
-        UINT node_index{ 0 };
+        UINT frame_index{1};
+        UINT node_index{0};
 
         auto one_frame_length = query_one_tick_length(node_id, node_indices, node_length, attributes, attr_length);
 
@@ -430,13 +427,13 @@ namespace maro
 
             for (UINT k = 0; k < attr_length; k++)
             {
-              auto& attr = _attrs[attributes[k]];
+              auto &attr = _attrs[attributes[k]];
 
               for (SLOT_INDEX slot_index = 0; slot_index < attr.slots; slot_index++)
               {
                 auto attr_index = calc_attr_index(frame_index, node, node_index, attr, slot_index);
 
-                auto& target_attr = _data[attr_index];
+                auto &target_attr = _data[attr_index];
 
                 // put into result array
                 *(result + ret_index) = ATTR_FLOAT(target_attr);
@@ -449,9 +446,9 @@ namespace maro
 
         if (_node_indices != nullptr)
         {
-          delete[]_node_indices;
+          delete[] _node_indices;
         }
       }
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro

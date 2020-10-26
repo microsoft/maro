@@ -30,7 +30,7 @@ IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
         PyTypeObject PyArray_Type
 
         np.ndarray PyArray_SimpleNewFromData(int nd, np.npy_intp * dims, int typenum, void* data)
-        
+
         np.ndarray PyArray_NewFromDescr(PyTypeObject* subtype, np.dtype descr, int nd, np.npy_intp* dims, np.npy_intp* strides, void* data, int flags, object obj)
 
 
@@ -243,7 +243,7 @@ cdef class NumpyBackend(BackendAbc):
                 shape = (snapshot_number + 1, node_number)
             else:
                 shape = (1, node_number)
-            
+
             IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
                 # for ONE_BLOCK mode, we only calculate total size we need to allocate memory
                 # shape, data type, beginning of this node
@@ -322,7 +322,7 @@ cdef class NumpyBackend(BackendAbc):
         cdef IDENTIFIER node_id
         cdef AttrInfo attr_info
         cdef np.ndarray data_arr
-        
+
         for node_id, data_arr in self._node_data_dict.items():
             # we have to reset by each attribute
             for attr_info in self._node_attr_dict[node_id]:
@@ -380,7 +380,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
             if old_tick in self._tick2index_dict:
                 del self._tick2index_dict[old_tick]
-         
+
         # recording will copy data at 1st row into _cur_index row
         for node_id, data_arr in self._backend._node_data_dict.items():
             ni = self._backend._nodes_list[node_id]
@@ -441,7 +441,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
             dump_path = os.path.join(history_folder, f"{ni.name}.bin")
 
             self._history_dict[ni.name] = NPBufferedMmap(dump_path, data_arr.dtype, ni.number)
-        
+
     cdef void reset(self) except *:
         """Reset snapshot list"""
         self._cur_index = 0
@@ -452,7 +452,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
         cdef IDENTIFIER node_id
         cdef AttrInfo attr_info
         cdef np.ndarray data_arr
-        
+
         for node_id, data_arr in self._backend._node_data_dict.items():
             # we have to reset by each attribute
             for attr_info in self._backend._node_attr_dict[node_id]:

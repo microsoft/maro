@@ -8,26 +8,25 @@ namespace maro
     {
 
 #define CONSTRUCTOR(m_type, m_field, m_internal_type) \
-    Attribute::Attribute(##m_type val) noexcept       \
-    {                                                 \
-        _type = m_internal_type;                      \
-        _data.##m_field = val;                        \
-    }
-
+  Attribute::Attribute(##m_type val) noexcept         \
+  {                                                   \
+    _type = m_internal_type;                          \
+    _data.##m_field = val;                            \
+  }
 
 #define DATA_ASSIGN(m_type, m_field, m_internal_type) \
-    void Attribute::operator =(##m_type val)          \
-    {                                                 \
-        _type = m_internal_type;                      \
-        _data.##m_field = val;                        \
-    }
+  void Attribute::operator=(##m_type val)             \
+  {                                                   \
+    _type = m_internal_type;                          \
+    _data.##m_field = val;                            \
+  }
 
-     // Before assign any value, all field will be 0, so we do care about data type here, even data type not match
-#define DATA_GETTER(m_name, m_field, m_type, m_internal_type)    \
-    m_type Attribute::get_##m_name()                             \
-    {                                                            \
-      return _data.##m_field;                                    \
-    }
+      // Before assign any value, all field will be 0, so we do care about data type here, even data type not match
+#define DATA_GETTER(m_name, m_field, m_type, m_internal_type) \
+  m_type Attribute::get_##m_name()                            \
+  {                                                           \
+    return _data.##m_field;                                   \
+  }
 
       CONSTRUCTOR(ATTR_BYTE, _byte, AttrDataType::ABYTE)
       CONSTRUCTOR(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
@@ -36,7 +35,6 @@ namespace maro
       CONSTRUCTOR(ATTR_LONG, _long, AttrDataType::ALONG)
       CONSTRUCTOR(ATTR_SHORT, _short, AttrDataType::ASHORT)
 
-
       DATA_ASSIGN(ATTR_BYTE, _byte, AttrDataType::ABYTE)
       DATA_ASSIGN(ATTR_SHORT, _short, AttrDataType::ASHORT)
       DATA_ASSIGN(ATTR_INT, _int, AttrDataType::AINT)
@@ -44,14 +42,12 @@ namespace maro
       DATA_ASSIGN(ATTR_FLOAT, _float, AttrDataType::AFLOAT)
       DATA_ASSIGN(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
 
-
       DATA_GETTER(byte, _byte, ATTR_BYTE, AttrDataType::ABYTE)
       DATA_GETTER(short, _short, ATTR_SHORT, AttrDataType::ASHORT)
       DATA_GETTER(int, _int, ATTR_INT, AttrDataType::AINT)
       DATA_GETTER(long, _long, ATTR_LONG, AttrDataType::ALONG)
       DATA_GETTER(float, _float, ATTR_FLOAT, AttrDataType::AFLOAT)
       DATA_GETTER(double, _double, ATTR_DOUBLE, AttrDataType::ADOUBLE)
-
 
       Attribute::operator ATTR_FLOAT()
       {
@@ -79,6 +75,6 @@ namespace maro
           break;
         }
       }
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro

@@ -91,25 +91,21 @@ To support dynamic nodes (add/remove), we have 2 method:
 
 1. No in-memory snapshot over-write
 
- do not support snapshot overwrite, just keep all snapshot in mem-mapping file. we can just expend the file to support more data
+  do not support snapshot overwrite, just keep all snapshot in mem-mapping file. we can just expend the file to support more data
 
 
 2. with in memory snapshot over-write
- we need another mapping that used to index every part of snapshot, as the length will be different for snapshots.
+  we need another mapping that used to index every part of snapshot, as the length will be different for snapshots.
 
- When over-writing:
- 1). if existing snapshot is larger than current one, then we just save current frame in current snapshot, and leave the additional space there
- 2). if existing snapshot is shorter than current one, then we have 2 way to due with:
+  When over-writing:
+  1). if existing snapshot is larger than current one, then we just save current frame in current snapshot, and leave the additional space there
+  2). if existing snapshot is shorter than current one, then we have 2 way to due with:
     1)). split current frame into 2 parts, 1st one's length same as over-writing snapshot, 2nd append to the end (after allocate new memory)
     2)). just allocate a large enough meomry to hold this, make over-writing snapshot as avaialble
 
 
 all above methods need a table to track avaiable and existing snapshot, but may be the content is different
 |                      snapshot mapping table                             |
-
-
-
-
 
 */
 
@@ -136,14 +132,12 @@ namespace maro
       {
       };
 
-
       /// <summary>
       /// Invalid node index to access
       /// </summary>
       class BadNodeIndex : public exception
       {
       };
-
 
       /// <summary>
       /// Invalid slot index to access
@@ -152,7 +146,6 @@ namespace maro
       {
       };
 
-
       /// <summary>
       /// Invalid node id to access
       /// </summary>
@@ -160,15 +153,12 @@ namespace maro
       {
       };
 
-
       /// <summary>
       /// Invalid attribute id to access
       /// </summary>
       class BadAttributeIdentifier : public exception
       {
-
       };
-
 
       /// <summary>
       /// Reach the max id of attribute (not slot number)
@@ -177,7 +167,6 @@ namespace maro
       {
       };
 
-
       /// <summary>
       /// Reach the max id of node
       /// </summary>
@@ -185,19 +174,19 @@ namespace maro
       {
       };
 
-
       /// <summary>
       /// Invalid tick to take snapshot, it must be greater than 0 for now
       /// </summary>
       class InvalidSnapshotTick : public exception
-      {};
+      {
+      };
 
-      class MaxSnapshotError: public exception
-      {};
-
+      class MaxSnapshotError : public exception
+      {
+      };
 
       /// <summary>
-      /// Backend used to hold node and releated attributes, providing accessing interface 
+      /// Backend used to hold node and releated attributes, providing accessing interface
       /// </summary>
       class Backend
       {
@@ -206,7 +195,7 @@ namespace maro
         /// </summary>
         struct NodeInfo
         {
-          NODE_INDEX number{ 1 };
+          NODE_INDEX number{1};
 
           // offset in 1 frame
           UINT offset;
@@ -229,7 +218,7 @@ namespace maro
           // offset in node
           UINT offset;
 
-          NODE_INDEX slots{ 1 };
+          NODE_INDEX slots{1};
 
           IDENTIFIER node_id;
 
@@ -248,15 +237,15 @@ namespace maro
         vector<Attribute> _data;
 
         // length of one frame, this is fixed after setup, used for fast calculation
-        size_t _frame_length{ 0 };
+        size_t _frame_length{0};
 
         // is backend already setup
-        bool _is_setup{ false };
+        bool _is_setup{false};
 
-        bool _is_snapshot_enabled{ false };
+        bool _is_snapshot_enabled{false};
 
         // capacity number of snapshots to keep
-        USHORT _snapshot_number{ 0 };
+        USHORT _snapshot_number{0};
 
         // mapping for snapshot from tick to internal index
         unordered_map<INT, INT> _ss_tick2index_map;
@@ -265,7 +254,7 @@ namespace maro
         unordered_map<INT, INT> _ss_index2tick_map;
 
         // 0 is current frame
-        USHORT _cur_snapshot_index{ 1 };
+        USHORT _cur_snapshot_index{1};
 
       public:
         Backend();
@@ -367,7 +356,7 @@ namespace maro
         /// <param name="node_length">Length of node index array</param>
         /// <param name="attributes">Id array of quering attribute</param>
         /// <param name="attr_length">Length of attribute array</param>
-        void query(ATTR_FLOAT* result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
+        void query(ATTR_FLOAT *result, IDENTIFIER node_id, const INT ticks[], UINT ticks_length, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length);
 
         /// <summary>
         /// Get node number for specified node
@@ -389,7 +378,6 @@ namespace maro
         USHORT get_valid_tick_number();
 
       private:
-
         // Used to ensure setup state for further operations
         inline void ensure_setup_state(bool expected_state = false);
 
@@ -398,14 +386,14 @@ namespace maro
         /// </summary>
         /// <param name="cur">Current node index</param>
         /// <param name="node">Target node information</param>
-        inline void ensure_node_index(NODE_INDEX cur, NodeInfo& node);
+        inline void ensure_node_index(NODE_INDEX cur, NodeInfo &node);
 
         /// <summary>
         /// Ensure that slot index is valid.
         /// </summary>
         /// <param name="cur">Current slot index</param>
         /// <param name="attr">Target attribute information</param>
-        inline void ensure_slot_index(SLOT_INDEX cur, AttrInfo& attr);
+        inline void ensure_slot_index(SLOT_INDEX cur, AttrInfo &attr);
 
         /// <summary>
         /// Ensure that node id is valid
@@ -420,18 +408,17 @@ namespace maro
         inline void ensure_attr_id(IDENTIFIER id);
 
         /// <summary>
-        /// 
+        /// Calculate attribute index
         /// </summary>
         /// <param name="node"></param>
         /// <param name="node_index"></param>
         /// <param name="attr"></param>
         /// <param name="slot_index"></param>
         /// <returns></returns>
-        inline size_t calc_attr_index(UINT frame_index, NodeInfo& node, NODE_INDEX node_index, AttrInfo& attr, SLOT_INDEX slot_index);
-
+        inline size_t calc_attr_index(UINT frame_index, NodeInfo &node, NODE_INDEX node_index, AttrInfo &attr, SLOT_INDEX slot_index);
       };
     } // namespace raw
-  }     // namespace backends
+  }   // namespace backends
 } // namespace maro
 
 #endif

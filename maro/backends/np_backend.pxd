@@ -32,7 +32,7 @@ cdef class NumpyBackend(BackendAbc):
             char* _data
 
             # memory size
-            size_t _data_size 
+            size_t _data_size
 
 
 cdef class NPBufferedMmap:
@@ -68,7 +68,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
         # frame_index -> index mapping
         dict _tick2index_dict
-        
+
         # index -> old_frame_index mapping
         dict _index2tick_dict
 

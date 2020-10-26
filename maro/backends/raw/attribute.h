@@ -27,10 +27,10 @@ namespace maro
           ATTR_DOUBLE _double;
 
           char _data[8];
-        } _data alignas(8) { 0 };
+        } _data alignas(8){0};
 
         // data type enum, default is int
-        AttrDataType _type{ AttrDataType::ABYTE };
+        AttrDataType _type{AttrDataType::ABYTE};
 
       public:
         // constructors
@@ -65,7 +65,7 @@ namespace maro
         operator ATTR_FLOAT();
       };
     } // namespace raw
-  }     // namespace backends
+  }   // namespace backends
 } // namespace maro
 
 #endif

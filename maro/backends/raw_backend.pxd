@@ -32,7 +32,7 @@ cdef extern from "raw/attribute.cpp":
     pass
 
 
-cdef extern from "raw/attribute.h" namespace "maro::backends::raw": 
+cdef extern from "raw/attribute.h" namespace "maro::backends::raw":
     cdef cppclass Attribute:
         pass
 
@@ -66,7 +66,7 @@ cdef extern from "raw/backend.h" namespace "maro::backends::raw":
 cdef class RawBackend(BackendAbc):
     cdef:
         Backend _backend
-        
+
         # node name -> IDENTFIER
         dict _node2id_dict
 

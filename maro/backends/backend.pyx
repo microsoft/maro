@@ -22,7 +22,7 @@ cdef class SnapshotListAbc:
 
     cdef list get_frame_index_list(self):
         return []
- 
+
 
 cdef class BackendAbc:
 
@@ -37,7 +37,7 @@ cdef class BackendAbc:
 
     cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index):
         pass
-        
+
     cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *:
         pass
 

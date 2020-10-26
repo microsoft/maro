@@ -66,7 +66,7 @@ cdef class BackendAbc:
     # Set value of specified attribute slot.
     # NOTE: since we already know which node current attribute belongs to, so we just need to specify attribute id
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *
-    
+
     # Get value of specified attribute slot
     cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
 
@@ -84,5 +84,3 @@ cdef class BackendAbc:
 
     # Reset internal states
     cdef void reset(self) except *
-
-    

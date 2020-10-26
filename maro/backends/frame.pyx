@@ -285,8 +285,6 @@ cdef class FrameBase:
         if backend_name is None:
             # try to get default backend settings from environment settings, or use np by default
             backend_name = os.environ.get("DEFAULT_BACKEND_NAME", _default_backend_name)
-            
-        print("Using backend:", backend_name)
 
         # use numpy if backend name is invalid
         backend = backend_dict.get(backend_name, NumpyBackend)

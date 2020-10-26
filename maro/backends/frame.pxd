@@ -257,7 +257,7 @@ cdef class NodeBase:
         # map the business model id/name to node index
         NODE_INDEX _index
 
-        # Node id, used to access backend 
+        # Node id, used to access backend
         IDENTIFIER _id
 
         NODE_INDEX _node_number

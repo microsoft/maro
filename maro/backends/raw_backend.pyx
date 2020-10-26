@@ -53,7 +53,7 @@ cdef class RawBackend(BackendAbc):
             dt = AFLOAT
         elif dtype == "d":
             dt = ADOUBLE
-        
+
         cdef IDENTIFIER attr_id = self._backend.add_attr(node_id, attr_name.encode(), dt, slot_num)
 
         self._attr_type_dict[attr_id] = dtype
@@ -90,7 +90,7 @@ cdef class RawBackend(BackendAbc):
             return self._backend.get_float(attr_id, node_index, slot_index)
         elif dt == "d":
             return self._backend.get_double(attr_id, node_index, slot_index)
-        
+
     cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *:
         cdef SLOT_INDEX slot
         cdef int index
@@ -136,7 +136,7 @@ cdef class RawBackend(BackendAbc):
 cdef class RawSnapshotList(SnapshotListAbc):
     def __cinit__(self, RawBackend backend):
         self._backend = backend;
-        
+
     # Query states from snapshot list
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -151,11 +151,11 @@ cdef class RawSnapshotList(SnapshotListAbc):
             node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="H")
 
         cdef IDENTIFIER[:] attr_id_list = view.array(shape=(len(attr_list),), itemsize=sizeof(IDENTIFIER), format="H")
-        
+
         cdef INT[:] tick_list = None
 
         cdef USHORT ticks_length = len(ticks)
-        
+
         if ticks is not None and ticks_length > 0:
             tick_list = view.array(shape=(ticks_length,), itemsize=sizeof(INT), format="i")
 

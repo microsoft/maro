@@ -49,9 +49,8 @@ namespace maro
         AFLOAT,
         ADOUBLE,
       };
-    }
-  }
-}
-
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro
 
 #endif
