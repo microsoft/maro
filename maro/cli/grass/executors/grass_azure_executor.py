@@ -19,8 +19,10 @@ from maro.cli.grass.utils.hash import get_checksum
 from maro.cli.utils.details import (load_cluster_details, save_cluster_details, load_job_details, save_job_details,
                                     load_schedule_details, save_schedule_details)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import (generate_cluster_id, generate_job_id, generate_component_id, generate_node_name,
-                                   get_valid_file_name)
+from maro.cli.utils.naming import (
+    generate_cluster_id, generate_job_id, generate_component_id, generate_node_name,
+    get_valid_file_name
+)
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
@@ -194,18 +196,30 @@ class GrassAzureExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
 
         # Create folders
-        sync_mkdir(remote_path=GlobalPaths.MARO_GRASS_LIB,
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
-        sync_mkdir(remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-                   admin_username=admin_username, node_ip_address=master_public_ip_address)
+        sync_mkdir(
+            remote_path=GlobalPaths.MARO_GRASS_LIB,
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
 
         # Copy required files
         copy_files_to_node(
@@ -437,7 +451,8 @@ class GrassAzureExecutor:
                 'cpu': node_size_to_spec[node_size]['numberOfCores'],
                 'memory': node_size_to_spec[node_size]['memoryInMb'],
                 'gpu': gpu_nums
-            }
+            },
+            'containers': {}
         }
         self.grass_executor.remote_set_node_details(
             node_name=node_name,
@@ -697,8 +712,10 @@ class GrassAzureExecutor:
 
     # maro grass image
 
-    def push_image(self, image_name: str, image_path: str, remote_context_path: str,
-                   remote_image_name: str):
+    def push_image(
+        self, image_name: str, image_path: str, remote_context_path: str,
+        remote_image_name: str
+    ):
         # Load details
         cluster_details = self.cluster_details
         admin_username = cluster_details['user']['admin_username']
@@ -716,8 +733,8 @@ class GrassAzureExecutor:
                 export_path=os.path.expanduser(image_path)
             )
             if self._check_checksum_validity(
-                    local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, image_name)
+                local_file_path=os.path.expanduser(image_path),
+                remote_file_path=os.path.join(images_dir, image_name)
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
@@ -738,8 +755,8 @@ class GrassAzureExecutor:
                 target_dir=image_path
             )
             if self._check_checksum_validity(
-                    local_file_path=os.path.expanduser(image_path),
-                    remote_file_path=os.path.join(images_dir, new_file_name)
+                local_file_path=os.path.expanduser(image_path),
+                remote_file_path=os.path.join(images_dir, new_file_name)
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return

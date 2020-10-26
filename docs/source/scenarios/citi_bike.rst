@@ -515,8 +515,17 @@ Quick Start
 Data Preparation
 ^^^^^^^^^^^^^^^^
 
-To start the simulation of Citi Bike scenario, users need to first generate the
-related data. Below is the introduction to the related commands:
+To start the simulation of Citi Bike scenario, users have two options for the data preparation:
+
+* If the topology data is not generated in advance, the system will automatically download and
+  process the relevant data when the environment is created. The data will be stored in a
+  temporary folder and be automatically deleted after the experiment.
+
+* Before creating the environment, users can also manually download and generate relevant data.
+  This approach will save you a lot of time if you need to conduct several experiments on the
+  same topology. Therefore, we encourage you to generate the relevant data manually first.
+
+The following is the introduction to related commands:
 
 Environment List Command
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -563,19 +572,19 @@ For the example above, the directory structure should be like:
    |-- ~/.maro
        |-- data
        |   |-- citi_bike
-       |       |-- [topology]
-       |           |-- .build          # bin data file
-       |           |-- .source
-       |               |-- .download   # original data file
-       |               |-- .clean      # cleaned data file
-       |-- temp                        # download temp file
+       |       |-- .build          # bin data file
+       |           |-- [topology]  # topology
+       |       |-- .source
+       |           |-- .download   # original data file
+       |           |-- .clean      # cleaned data file
+       |-- temp                    # download temp file
 
-Convert Command
-~~~~~~~~~~~~~~~
+Build Command
+~~~~~~~~~~~~~
 
-The data ``convert`` command is used to convert the CSV data files to binary data
+The data ``build`` command is used to build the CSV data files to binary data
 files that the simulator needs. Currently, there are three arguments for the data
-``convert`` command:
+``build`` command:
 
 * ``--meta``\ : required, used to specify the path of the meta file. The source
   columns that to be converted and the data type of each columns should be
@@ -587,7 +596,7 @@ files that the simulator needs. Currently, there are three arguments for the dat
 
 .. code-block:: sh
 
-   maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+   maro data build --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^
