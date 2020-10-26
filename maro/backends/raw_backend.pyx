@@ -64,8 +64,14 @@ cdef class RawBackend(BackendAbc):
         return attr_id
 
     cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
+
+    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
         cdef str dt = self._attr_type_dict[attr_id]
 
+        a = &self._backend.set_attr_value[ATTR_INT]
+
+        # Any good way to avoid this?
+        # TODO: pass PythonObject later
         if dt == "i" or dt == "i4":
             self._backend.set_attr_value[ATTR_INT](attr_id, node_index, slot_index, value)
         elif dt == "i2":
@@ -80,6 +86,7 @@ cdef class RawBackend(BackendAbc):
     cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index):
         cdef str dt = self._attr_type_dict[attr_id]
 
+        # TODO: pass PythonObject later
         if dt == "i" or dt == "i4":
             return self._backend.get_int(attr_id, node_index, slot_index)
         elif dt == "i2":

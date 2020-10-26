@@ -182,17 +182,12 @@ namespace maro
   {                                                                                                          \
     ensure_setup_state(true);                                                                                \
     ensure_attr_id(attr_id);                                                                                 \
-                                                                                                             \
     auto &attr = _attrs[attr_id];                                                                            \
     auto &node = _nodes[attr.node_id];                                                                       \
-                                                                                                             \
     ensure_node_index(node_index, node);                                                                     \
     ensure_slot_index(slot_index, attr);                                                                     \
-                                                                                                             \
     auto attr_index = calc_attr_index(0, node, node_index, attr, slot_index);                                \
-                                                                                                             \
     auto &target_attr = _data[attr_index];                                                                   \
-                                                                                                             \
     return target_attr.get_##m_func_name##();                                                                \
   }
 

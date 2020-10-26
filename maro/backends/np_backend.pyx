@@ -38,7 +38,7 @@ IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
 cdef int MMAP_BUFFER_SIZE = 100
 
 
-# TODO: 
+# TODO:
 # 1. add dtype in header, to make it easy to read
 # 2. add tick for each snapshot
 cdef class NPBufferedMmap:
@@ -193,7 +193,7 @@ cdef class NumpyBackend(BackendAbc):
         if attr.slot_number == 1:
             attr_array[0][node_index, slot_index[0]] = value[0]
         else:
-            attr_array[0][node_index, slot_index] = value 
+            attr_array[0][node_index, slot_index] = value
 
     cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices):
         cdef AttrInfo attr = self._attrs_list[attr_id]
@@ -247,7 +247,7 @@ cdef class NumpyBackend(BackendAbc):
             IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
                 # for ONE_BLOCK mode, we only calculate total size we need to allocate memory
                 # shape, data type, beginning of this node
-                # NOTE: we have to keep data type here, or it will be collected by GC at sometime, 
+                # NOTE: we have to keep data type here, or it will be collected by GC at sometime,
                 # then will cause numpy array cannot get the reference
                 # , we will increase he reference later
                 node_info[node_id] = (shape, data_type, self._data_size)
@@ -279,7 +279,7 @@ cdef class NumpyBackend(BackendAbc):
 
                 self._node_data_dict[node_id] = PyArray_NewFromDescr(&PyArray_Type, data_type, 2, np_dims, NULL, &self._data[offset], np.NPY_ARRAY_C_CONTIGUOUS | np.NPY_ARRAY_WRITEABLE, None)
 
-                # NOTE: we have to increate the reference count of related dtype, 
+                # NOTE: we have to increate the reference count of related dtype,
                 # or it will cause seg fault
                 Py_INCREF(data_type)
 
@@ -420,7 +420,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
                         retq.append(data_arr[attr.name][self._tick2index_dict[tick], node_index].astype("f").flatten())
                     else:
                         # padding for tick which not exist
-                        retq.append(np.zeros(attr.slot_number, dtype='f'))              
+                        retq.append(np.zeros(attr.slot_number, dtype='f'))
 
         return np.concatenate(retq)
 
@@ -429,7 +429,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
         if self._is_history_enabled:
             return
 
-        self._is_history_enabled = True 
+        self._is_history_enabled = True
 
         cdef IDENTIFIER node_id
         cdef NodeInfo ni
