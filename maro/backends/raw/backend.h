@@ -111,7 +111,7 @@ all above methods need a table to track avaiable and existing snapshot, but may 
 
 #include <string>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <iostream>
 
 #include "common.h"
@@ -248,10 +248,10 @@ namespace maro
         USHORT _snapshot_number{0};
 
         // mapping for snapshot from tick to internal index
-        unordered_map<INT, INT> _ss_tick2index_map;
+        map<INT, INT> _ss_tick2index_map;
 
         // mapping for snapshot from internal index to tick
-        unordered_map<INT, INT> _ss_index2tick_map;
+        map<INT, INT> _ss_index2tick_map;
 
         // 0 is current frame
         USHORT _cur_snapshot_index{1};
