@@ -12,19 +12,19 @@ cdef int raise_get_attr_error() except +:
 
 
 cdef class SnapshotListAbc:
-    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list):
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list) except +:
         pass
 
-    cdef void take_snapshot(self, INT tick) except *:
+    cdef void take_snapshot(self, INT tick) except +:
         pass
 
-    cdef void enable_history(self, str history_folder) except *:
+    cdef void enable_history(self, str history_folder) except +:
         pass
 
-    cdef void reset(self) except *:
+    cdef void reset(self) except +:
         pass
 
-    cdef list get_frame_index_list(self):
+    cdef list get_frame_index_list(self) except +:
         return []
 
 
@@ -36,23 +36,23 @@ cdef class BackendAbc:
     cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
         pass
 
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except *:
+    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except +:
         pass
 
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error:
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +:
         pass
 
-    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except *:
+    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except +:
         pass
 
-    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices):
+    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices) except +:
         pass
 
-    cdef void reset(self) except *:
+    cdef void reset(self) except +:
         pass
 
-    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except +:
         pass
 
-    cdef dict get_node_info(self):
+    cdef dict get_node_info(self) except +:
         return {}

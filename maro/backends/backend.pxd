@@ -31,26 +31,22 @@ ctypedef unsigned short NODE_INDEX
 ctypedef unsigned short SLOT_INDEX
 
 
-# Handlers to handle exception from cpp side, and raise to python side
-cdef int raise_get_attr_error() except +
-
-
 # Base of all snapshot accessing implementation
 cdef class SnapshotListAbc:
     # Query states from snapshot list
-    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list)
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list) except +
 
     # Record current backend state into snapshot list
-    cdef void take_snapshot(self, INT tick) except *
+    cdef void take_snapshot(self, INT tick) except +
 
     # List of available frame index in snapshot list
-    cdef list get_frame_index_list(self)
+    cdef list get_frame_index_list(self) except +
 
     # Enable history, history will dump backend into files each time take_snapshot called
-    cdef void enable_history(self, str history_folder) except *
+    cdef void enable_history(self, str history_folder) except +
 
     # Reset internal states
-    cdef void reset(self) except *
+    cdef void reset(self) except +
 
 
 # Base of all backend implementation
@@ -68,22 +64,22 @@ cdef class BackendAbc:
 
     # Set value of specified attribute slot.
     # NOTE: since we already know which node current attribute belongs to, so we just need to specify attribute id
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *
+    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except +
 
     # Get value of specified attribute slot
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +
 
     # Set values of specified slots
-    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *
+    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except +
 
     # Get values of specified slots
-    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices)
+    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices) except +
 
     # Get node definition of backend
-    cdef dict get_node_info(self)
+    cdef dict get_node_info(self) except +
 
     # Setup backend with options
-    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except +
 
     # Reset internal states
-    cdef void reset(self) except *
+    cdef void reset(self) except +

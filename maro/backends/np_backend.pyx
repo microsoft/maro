@@ -12,7 +12,7 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX, raise_get_attr_error
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX
 
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
@@ -64,7 +64,7 @@ cdef class NPBufferedMmap:
         if self._current_record_number >= self._buffer_size:
             self.reload()
 
-    cdef void reload(self) except *:
+    cdef void reload(self) except +:
         """Reload the file with offset to avoid memmap size limitation"""
         self._data_arr = np.memmap(self._path, self._dtype, "w+", offset=self._offset, shape=(self._buffer_size, self._node_number))
 
@@ -142,7 +142,7 @@ cdef class NumpyBackend(BackendAbc):
 
         return new_attr.id
 
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
+    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except +:
         """Set specified attribute value"""
         if attr_id >= len(self._attrs_list):
             raise Exception("Invalid attribute id")
@@ -164,7 +164,7 @@ cdef class NumpyBackend(BackendAbc):
         else:
             attr_array[0][node_index] = value
 
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error:
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +:
         """Get specified attribute value"""
         if attr_id >= len(self._attrs_list):
             raise Exception("Invalid attribute id")
@@ -186,7 +186,7 @@ cdef class NumpyBackend(BackendAbc):
         else:
             return attr_array[0][node_index]
 
-    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *:
+    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except +:
         cdef AttrInfo attr = self._attrs_list[attr_id]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_id][attr.name]
 
@@ -195,7 +195,7 @@ cdef class NumpyBackend(BackendAbc):
         else:
             attr_array[0][node_index, slot_index] = value
 
-    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices):
+    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices) except +:
         cdef AttrInfo attr = self._attrs_list[attr_id]
         cdef np.ndarray attr_array = self._node_data_dict[attr.node_id][attr.name]
 
@@ -204,7 +204,7 @@ cdef class NumpyBackend(BackendAbc):
         else:
             return attr_array[0][node_index, slot_indices].tolist()
 
-    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except +:
         """Set up the numpy backend"""
         self._is_snapshot_enabled = enable_snapshot
 
@@ -295,7 +295,7 @@ cdef class NumpyBackend(BackendAbc):
         ELSE:
             pass
 
-    cdef dict get_node_info(self):
+    cdef dict get_node_info(self) except +:
         cdef dict node_info = {}
 
         cdef IDENTIFIER node_id
@@ -317,7 +317,7 @@ cdef class NumpyBackend(BackendAbc):
         return node_info
 
 
-    cdef void reset(self) except *:
+    cdef void reset(self) except +:
         """Reset all the attributes value"""
         cdef IDENTIFIER node_id
         cdef AttrInfo attr_info
@@ -351,10 +351,10 @@ cdef class NPSnapshotList(SnapshotListAbc):
         for node in backend._nodes_list:
             self._node_name2id_dict[node.name] = node.id
 
-    cdef list get_frame_index_list(self):
+    cdef list get_frame_index_list(self) except +:
         return list(self._index2tick_dict.values())
 
-    cdef void take_snapshot(self, INT tick) except *:
+    cdef void take_snapshot(self, INT tick) except +:
         """Take snapshot for current backend"""
         cdef IDENTIFIER node_id
         cdef NodeInfo ni
@@ -393,7 +393,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
         self._tick2index_dict[tick] = target_index
 
-    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list):
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list) except +:
         cdef UINT tick
         cdef NODE_INDEX node_index
         cdef IDENTIFIER attr_id
@@ -424,7 +424,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
         return np.concatenate(retq)
 
-    cdef void enable_history(self, str history_folder) except *:
+    cdef void enable_history(self, str history_folder) except +:
         """Enable history recording, used to save all the snapshots into file"""
         if self._is_history_enabled:
             return
@@ -442,7 +442,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
             self._history_dict[ni.name] = NPBufferedMmap(dump_path, data_arr.dtype, ni.number)
 
-    cdef void reset(self) except *:
+    cdef void reset(self) except +:
         """Reset snapshot list"""
         self._cur_index = 0
         self._tick2index_dict.clear()

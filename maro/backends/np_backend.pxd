@@ -56,7 +56,7 @@ cdef class NPBufferedMmap:
         # memory mapping np array
         np.ndarray _data_arr
 
-    cdef void reload(self) except *
+    cdef void reload(self) except +
 
 
 cdef class NPSnapshotList(SnapshotListAbc):
@@ -83,4 +83,4 @@ cdef class NPSnapshotList(SnapshotListAbc):
         # key: node name, value: history buffer
         dict _history_dict
 
-    cdef void enable_history(self, str history_folder) except *
+    cdef void enable_history(self, str history_folder) except +

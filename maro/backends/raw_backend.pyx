@@ -11,7 +11,7 @@ from cython cimport view
 from cpython cimport bool
 
 from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
-    ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE, raise_get_attr_error)
+    ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE)
 
 
 # Ensure numpy will not crash, as we use numpy as query result
@@ -38,10 +38,10 @@ cdef class AttributeAccessor:
         self._raw = raw
         self._attr_id = attr_id
 
-    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         pass
 
-    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         pass
 
     def __dealloc__(self):
@@ -49,42 +49,42 @@ cdef class AttributeAccessor:
 
 
 cdef class AttributeShortAccessor(AttributeAccessor):
-    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         self._raw._backend.set_attr_value[ATTR_SHORT](self._attr_id, node_index, slot_index, value)
 
-    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._raw._backend.get_short(self._attr_id, node_index, slot_index)
 
 
 cdef class AttributeIntAccessor(AttributeAccessor):
-    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         self._raw._backend.set_attr_value[ATTR_INT](self._attr_id, node_index, slot_index, value)
 
-    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._raw._backend.get_int(self._attr_id, node_index, slot_index)
 
 
 cdef class AttributeLongAccessor(AttributeAccessor):
-    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         self._raw._backend.set_attr_value[ATTR_LONG](self._attr_id, node_index, slot_index, value)
 
-    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._raw._backend.get_long(self._attr_id, node_index, slot_index)
 
 
 cdef class AttributeFloatAccessor(AttributeAccessor):
-    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         self._raw._backend.set_attr_value[ATTR_FLOAT](self._attr_id, node_index, slot_index, value)
 
-    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._raw._backend.get_float(self._attr_id, node_index, slot_index)
 
 
 cdef class AttributeDoubleAccessor(AttributeAccessor):
-    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
         self._raw._backend.set_attr_value[ATTR_DOUBLE](self._attr_id, node_index, slot_index, value)
 
-    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index):
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._raw._backend.get_double(self._attr_id, node_index, slot_index)
 
 
@@ -130,24 +130,24 @@ cdef class RawBackend(BackendAbc):
 
         return attr_id
 
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value)  except *:
+    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except +:
         cdef AttributeAccessor acc = self._attr_type_dict[attr_id]
 
         acc.set_value(node_index, slot_index, value)
 
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +raise_get_attr_error:
+    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +:
         cdef AttributeAccessor acc = self._attr_type_dict[attr_id]
 
         return acc.get_value(node_index, slot_index)
 
-    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value)  except *:
+    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except +:
         cdef SLOT_INDEX slot
         cdef int index
 
         for index, slot in enumerate(slot_index):
             self.set_attr_value(node_index, attr_id, slot, value[index])
 
-    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices):
+    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices) except +:
         cdef AttributeAccessor acc = self._attr_type_dict[attr_id]
 
         cdef SLOT_INDEX slot
@@ -159,13 +159,13 @@ cdef class RawBackend(BackendAbc):
 
         return result
 
-    cdef void reset(self) except *:
+    cdef void reset(self) except +:
         self._backend.reset_frame()
 
-    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *:
+    cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except +:
         self._backend.setup(enable_snapshot, total_snapshot)
 
-    cdef dict get_node_info(self):
+    cdef dict get_node_info(self) except +:
         cdef dict node_info = {}
 
         for node_id, node in self._node_info.items():
@@ -189,7 +189,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
     # Query states from snapshot list
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list):
+    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list) except +:
         cdef int index
         cdef IDENTIFIER attr_id
 
@@ -237,19 +237,19 @@ cdef class RawSnapshotList(SnapshotListAbc):
         return np.array(result)
 
     # Record current backend state into snapshot list
-    cdef void take_snapshot(self, INT tick) except *:
+    cdef void take_snapshot(self, INT tick) except +:
         self._raw._backend.take_snapshot(tick)
 
     # List of available frame index in snapshot list
-    cdef list get_frame_index_list(self):
+    cdef list get_frame_index_list(self) except +:
         return []
 
     # Enable history, history will dump backend into files each time take_snapshot called
-    cdef void enable_history(self, str history_folder) except *:
+    cdef void enable_history(self, str history_folder) except +:
         pass
 
     # Reset internal states
-    cdef void reset(self) except *:
+    cdef void reset(self) except +:
         self._raw._backend.reset_snapshots()
 
     def __len__(self):
