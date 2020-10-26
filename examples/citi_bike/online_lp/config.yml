@@ -9,12 +9,14 @@ env:
 forecasting:
   ma_window_size: 10  # Unit: env.configs["decision"]["resolution"].
 
-lp:
+ilp:
   num_neighbor: 20
   plan_window_size: 120 # Unit: Env tick.
-  apply_buffer_size: 20 # Unit: Env tick.
+  apply_buffer_size: 20 # Unit: Env tick. It should not be larger than plan_window_size
   safety_inventory_limit: 0.3
   objective:
+    # fulfillment reward factor is set to 1
     fulfillment_time_decay_factor: 0.99
     transfer_cost_factor: 0
     safety_inventory_reward_factor: 0.01
+    safety_inventory_reward_time_decay_factor: 0.99

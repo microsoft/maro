@@ -8,7 +8,11 @@ table, the experiment is configured with the default parameter value in the file
 
 ## Future demand and supply from BE
 
-Topology  | #Requirements | Shortage      | #Repositioning
+For the experiments below, we imitate the way of reading log data in BE and peep
+the future demand and supply of bikes for each station from the trip reader
+directly. These demand and supply data are then be used in the LP formulation.
+
+Topology  | #Requirements | #Shortage      | #Repositioning
 ----------|--------------:|--------------:|----------------:
 toy.3s_4t |  15,071       |  8,168 +/-  7 |     173 +/-   4
 toy.4s_4t |  10,128       |  4,061 +/-  5 |   1,628 +/-   8
@@ -21,7 +25,10 @@ ny.202006 | 197,833       |  1,899 +/- 21 |  36,515 +/- 208
 
 ## Future demand and supply by One-step Fixed-window Moving Average
 
-Topology  | #Requirements | Shortage       | #Repositioning
+For the experiments below, we use a simple fixed-window moving average to predict
+the future demand and supply of bikes for each station.
+
+Topology  | #Requirements | #Shortage       | #Repositioning
 ----------|--------------:|---------------:|------------------:
 toy.3s_4t |  15,071       |  8,167 +/-   1 |       1 +/-     0
 toy.4s_4t |  10,128       |  3,711 +/-   3 |   2,462 +/-     6

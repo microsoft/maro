@@ -15,16 +15,30 @@ from maro.simulator.scenarios.citi_bike.common import Action, BikeReturnPayload,
 from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
 from maro.utils import convert_dottable
 
-from citi_bike_lp import LP
+from citi_bike_ilp import CitiBikeILP
 
 # For debug only.
 PEEP_AND_USE_REAL_DATA: bool = False
 ENV: Env = None
 TRIP_PICKER: ItemTickPicker = None
 
-class MaLpAgent():
-    def __init__(self, lp: LP, num_station: int, num_time_interval: int, ticks_per_interval: int, ma_window_size: int):
-        self._lp = lp
+class MaIlpAgent():
+    def __init__(
+        self, ilp: CitiBikeILP, num_station: int, num_time_interval: int, ticks_per_interval: int, ma_window_size: int
+    ):
+        """An agent that make decisions by ILP in Citi Bike scenario.
+
+        Args:
+            ilp (CitiBikeILP): The ILP instance.
+            num_station (int): The number of stations in the target environment.
+            num_time_interval (int): The number of time intervals for which the agent need to provide future demand and
+                supply for the ILP. Also, the time interval in the agent indicates the number of environment ticks
+                between two decision points in the ILP.
+            ticks_per_interval (int): How many environment ticks in each time interval. It is same to the number of
+                ticks between two decision points in the ILP.
+            ma_window_size (int): The historical data maintain window size of the Moving Average Forecaster.
+        """
+        self._ilp = ilp
         self._num_station = num_station
         self._num_time_interval = num_time_interval
         self._ticks_per_interval = ticks_per_interval
@@ -33,6 +47,8 @@ class MaLpAgent():
             self._supply_forecaster = [Forecaster(window_size=ma_window_size) for _ in range(self._num_station)]
             self._num_recorded_interval = 0
             self._next_event_idx = 0
+
+    # ============================= private start =============================
 
     def _record_history(self, env_tick: int, finished_events: List[Event]):
         """
@@ -43,8 +59,8 @@ class MaLpAgent():
         num_interval_to_record = (env_tick - 1) // self._ticks_per_interval - self._num_recorded_interval
         if num_interval_to_record <= 0:
             return
-        demand_history = np.zeros((num_interval_to_record, self._num_station), dtype=np.int32)
-        supply_history = np.zeros((num_interval_to_record, self._num_station), dtype=np.int32)
+        demand_history = np.zeros((num_interval_to_record, self._num_station), dtype=np.int16)
+        supply_history = np.zeros((num_interval_to_record, self._num_station), dtype=np.int16)
 
         while self._next_event_idx < len(finished_events):
             # Calculate the interval index of this finished event.
@@ -86,19 +102,19 @@ class MaLpAgent():
         """
         demand = np.array(
             [round(self._demand_forecaster[i].forecast()) for i in range(self._num_station)],
-            dtype=np.int32
+            dtype=np.int16
         ).reshape((1, -1)).repeat(self._num_time_interval, axis=0)
 
         supply = np.array(
             [round(self._supply_forecaster[i].forecast()) for i in range(self._num_station)],
-            dtype=np.int32
+            dtype=np.int16
         ).reshape((1, -1)).repeat(self._num_time_interval, axis=0)
 
         return demand, supply
 
     def __peep_at_the_future(self, env_tick:int):
-        demand = np.zeros((self._num_time_interval, self._num_station), dtype=np.int32)
-        supply = np.zeros((self._num_time_interval, self._num_station), dtype=np.int32)
+        demand = np.zeros((self._num_time_interval, self._num_station), dtype=np.int16)
+        supply = np.zeros((self._num_time_interval, self._num_station), dtype=np.int16)
 
         for tick in range(env_tick, env_tick + self._num_time_interval * self._ticks_per_interval):
             interval_idx = (tick - env_tick) // self._ticks_per_interval
@@ -118,6 +134,8 @@ class MaLpAgent():
 
         return demand, supply
 
+    # ============================= private end =============================
+
     def get_action_list(self, env_tick: int, init_inventory: np.ndarray, finished_events: List[Event]):
         if PEEP_AND_USE_REAL_DATA:
             demand, supply = self.__peep_at_the_future(env_tick=env_tick)
@@ -125,7 +143,7 @@ class MaLpAgent():
             self._record_history(env_tick=env_tick, finished_events=finished_events)
             demand, supply = self._forecast_demand_and_supply()
 
-        transfer_list = self._lp.get_transfer_list(
+        transfer_list = self._ilp.get_transfer_list(
             env_tick=env_tick,
             init_inventory=init_inventory,
             demand=demand,
@@ -138,12 +156,25 @@ class MaLpAgent():
         ]
         return action_list
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--peep", action='store_true')
-    parser.add_argument("-c", "--config", type=str, default="examples/citi_bike/online_lp/config.yml")
-    parser.add_argument("-t", "--topology", type=str)
-    parser.add_argument("-r", "--seed", type=int)
+    parser.add_argument(
+        "--peep", action='store_true',
+        help="If set, peep the future demand and supply of bikes for each station directly from the log data."
+    )
+    parser.add_argument(
+        "-c", "--config", type=str, default="examples/citi_bike/online_lp/config.yml",
+        help="The path of the config file."
+    )
+    parser.add_argument(
+        "-t", "--topology", type=str,
+        help="Which topology to use. If set, it will over-write the topology set in the config file."
+    )
+    parser.add_argument(
+        "-r", "--seed", type=int,
+        help="The random seed for the environment. If set, it will over-write the seed set in the config file."
+    )
     args = parser.parse_args()
 
     # Read the configuration.
@@ -196,20 +227,20 @@ if __name__ == "__main__":
         for neighbor_list in np.argsort(station_distance_adj, axis=1).tolist()
     ]
 
-    # Init a Moving-Average based LP agent.
+    # Init a Moving-Average based ILP agent.
     decision_interval = env.configs["decision"]["resolution"]
-    lp = LP(
+    ilp = CitiBikeILP(
         num_station=num_station,
-        num_neighbor=min(config.lp.num_neighbor, num_station - 1),
+        num_neighbor=min(config.ilp.num_neighbor, num_station - 1),
         station_capacity=env.snapshot_list["stations"][env.frame_index : env.agent_idx_list : "capacity"],
         station_neighbor_list=station_neighbor_list,
         decision_interval=decision_interval,
-        config=config.lp
+        config=config.ilp
     )
-    agent = MaLpAgent(
-        lp=lp,
+    agent = MaIlpAgent(
+        ilp=ilp,
         num_station=num_station,
-        num_time_interval=math.ceil(config.lp.plan_window_size / decision_interval),
+        num_time_interval=math.ceil(config.ilp.plan_window_size / decision_interval),
         ticks_per_interval=decision_interval,
         ma_window_size=config.forecasting.ma_window_size
     )
@@ -223,7 +254,7 @@ if __name__ == "__main__":
                 env_tick=env.tick,
                 init_inventory=env.snapshot_list["stations"][
                     env.frame_index : env.agent_idx_list : "bikes"
-                ].astype(np.int32),
+                ].astype(np.int16),
                 finished_events=env.get_finished_events()
             )
             pre_decision_tick = decision_event.tick
