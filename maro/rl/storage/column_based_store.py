@@ -54,7 +54,7 @@ class ColumnBasedStore(AbsStore):
         return {k: lst[index] for k, lst in self._store.items()}
 
     def __getstate__(self):
-        """A small modification to make the object picklable.
+        """A patch for picking the object with lambda.
         Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
         ``defaultdict`` definition of the ``_store`` attribute.
         """
