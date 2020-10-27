@@ -32,7 +32,8 @@ include_dirs = []
 extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.backend",
-        sources=[f"{BASE_SRC_PATH}/backend.cpp"])
+        sources=[f"{BASE_SRC_PATH}/backend.cpp"],
+        extra_compile_args=['-std=c++11'])
 )
 
 
@@ -42,7 +43,8 @@ extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.np_backend",
         sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
-        include_dirs=include_dirs)
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
 )
 
 # raw implementation
@@ -51,7 +53,8 @@ extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.raw_backend",
         sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
-        include_dirs=include_dirs)
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
 )
 
 # frame
@@ -59,7 +62,8 @@ extensions.append(
     Extension(
         f"{BASE_MODULE_NAME}.frame",
         sources=[f"{BASE_SRC_PATH}/frame.cpp"],
-        include_dirs=include_dirs)
+        include_dirs=include_dirs,
+        extra_compile_args=['-std=c++11'])
 )
 
 
