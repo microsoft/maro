@@ -74,7 +74,13 @@ namespace maro
           throw MaxNodeTypeNumberError();
         }
 
-        NodeInfo node{1, 0, 0, id, node_name};
+        NodeInfo node;
+
+        node.id = id;
+        node.number = 1;
+        node.name = node.name;
+        node.offset = 0;
+        node.attr_number = 0;
 
         _nodes.push_back(node);
 
@@ -101,7 +107,14 @@ namespace maro
 
         auto &node = _nodes[node_id];
 
-        AttrInfo attr{attr_type, node.attr_number, slot_number, node_id, id, attr_name};
+        AttrInfo attr;
+
+        attr.id = id;
+        attr.data_type = attr_type;
+        attr.node_id = node_id;
+        attr.name = attr_name;
+        attr.slots = slot_number;
+        attr.offset = node.attr_number;
 
         _attrs.push_back(attr);
 
