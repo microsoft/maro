@@ -148,8 +148,10 @@ class Proxy:
         if "JOB_ID" in os.environ and "CONTAINER_NAME" in os.environ:
             container_name = os.getenv("CONTAINER_NAME")
             job_id = os.getenv("JOB_ID")
-            rejoin_config = {"enable": int(self._enable_rejoin),
-                             "remove_container": int(self._auto_clean_for_container)}
+            rejoin_config = {
+                "enable": int(self._enable_rejoin),
+                "remove_container": int(self._auto_clean_for_container)
+            }
 
             self._redis_connection.hset(f"rejoin:{job_id}:rejoin_details", rejoin_config)
 
