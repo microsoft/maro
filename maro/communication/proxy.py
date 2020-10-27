@@ -66,8 +66,8 @@ class Proxy:
         base_retry_interval: float = BASE_RETRY_INTERVAL, enable_rejoin: bool = ENABLE_REJOIN,
         minimal_peers: Union[float, dict] = MINIMAL_PEERS, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
         enable_message_cache_for_rejoin: bool = ENABLE_MESSAGE_CACHE_FOR_REJOIN,
-        timeout_for_minimal_peer_number: int = TIMEOUT_FOR_MINIMAL_PEER_NUMBER, auto_clean_for_container: bool = AUTO_CLEAN,
-        log_enable: bool = True
+        timeout_for_minimal_peer_number: int = TIMEOUT_FOR_MINIMAL_PEER_NUMBER,
+        auto_clean_for_container: bool = AUTO_CLEAN, log_enable: bool = True
     ):
         self._group_name = group_name
         self._component_type = component_type
@@ -414,8 +414,11 @@ class Proxy:
             peer_type = message.destination.split("_proxy_")[0]
             self._rejoin(peer_type)
 
-            if self._enable_message_cache and message.destination in list(self._message_cache_for_exited_peers.keys()) \
-                and message.destination in self._onboard_peers_name_dict[peer_type]:
+            if (
+                self._enable_message_cache and
+                message.destination in list(self._message_cache_for_exited_peers.keys()) and
+                message.destination in self._onboard_peers_name_dict[peer_type]
+            ):
                 pending_session_ids = []
                 self._logger.warn(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
