@@ -6,7 +6,7 @@ with environment random seed 0, 128, 1024.  Besides the parameter listed in the
 table, the experiment is configured with the default parameter value in the file
 `examples/citi_bike/greedy/config.yml`
 
-Topology  | #Requirements | #Shortage      | #Repositioning
+Topology  | #Requirements | #Shortage     | #Repositioning
 ----------|--------------:|--------------:|----------------:
 toy.3s_4t |  15,071       | 8,449 +/-  22 |  1,173 +/-  31
 toy.4s_4t |  10,128       | 5,983 +/- 100 | 10,649 +/- 240
