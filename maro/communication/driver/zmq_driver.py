@@ -42,7 +42,7 @@ class ZmqDriver(AbsDriver):
         self._receive_timeout = receive_timeout
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._zmq_context = zmq.Context()
-        self._historical_peer_name = []
+        self._disconnected_peer_name_list = []
         self._logger = logger
 
         self._setup_sockets()
@@ -120,8 +120,8 @@ class ZmqDriver(AbsDriver):
                 except Exception as e:
                     raise PeersConnectionError(f"Driver cannot connect to {peer_name}! Due to {str(e)}")
 
-            if peer_name in self._historical_peer_name:
-                self._historical_peer_name.remove(peer_name)
+            if peer_name in self._disconnected_peer_name_list:
+                self._disconnected_peer_name_list.remove(peer_name)
 
     def disconnect(self, peers_address_dict: Dict[str, Dict[str, str]]):
         for peer_name, address_dict in peers_address_dict.items():
@@ -137,7 +137,7 @@ class ZmqDriver(AbsDriver):
                 except Exception as e:
                     raise PeersDisconnectionError(f"Driver cannot disconnect to {peer_name}! Due to {str(e)}")
 
-            self._historical_peer_name.append(peer_name)
+            self._disconnected_peer_name_list.append(peer_name)
             self._logger.warn(f"Disconnected with {peer_name}.")
 
     def receive(self, is_continuous: bool = True):
@@ -176,11 +176,11 @@ class ZmqDriver(AbsDriver):
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
             self._logger.debug(f"Send a {message.tag} message to {message.destination}.")
-        except KeyError as e:
-            if message.destination in self._historical_peer_name:
+        except KeyError as key_error:
+            if message.destination in self._disconnected_peer_name_list:
                 return SendAgain(f"Temporary failure to send message to {message.destination}, may rejoin later.")
             else:
-                raise DriverSendError(f"Failure to send message caused by: {e}")
+                raise DriverSendError(f"Failure to send message caused by: {key_error}")
         except Exception as e:
             raise DriverSendError(f"Failure to send message caused by: {e}")
 

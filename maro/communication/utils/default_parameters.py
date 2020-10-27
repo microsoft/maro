@@ -16,9 +16,10 @@ proxy = convert_dottable({
     "peer_rejoin": {
         "enable": False,
         "peers_update_frequency": 10,
-        "minimal_peers": 1.0,  # 1.0 - 0.1 available peers percentage (at least one alive peer)
+        "minimal_peers": 1,  # int, minimal request peer number; or dict {"peer_type": int} for each peer type
         "enable_message_cache": True,
-        "max_wait_time_for_rejoin": 300  # second
+        "max_wait_time_for_rejoin": 300,  # second
+        "auto_clean_for_container": False
     }
 })
 
