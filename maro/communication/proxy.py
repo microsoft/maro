@@ -34,7 +34,7 @@ DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
 ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable  # only enable at real k8s cluster or grass cluster
 PEER_UPDATE_FREQUENCY = default_parameters.proxy.peer_rejoin.peers_update_frequency
 ENABLE_MESSAGE_CACHE_FOR_REJOIN = default_parameters.proxy.peer_rejoin.enable_message_cache
-MAX_WAIT_TIME_FOR_REJOIN = default_parameters.proxy.peer_rejoin.max_wait_time_for_rejoin
+TIMEOUT_FOR_MINIMAL_PEER_NUMBER = default_parameters.proxy.peer_rejoin.timeout_for_minimal_peer_number
 MINIMAL_PEERS = default_parameters.proxy.peer_rejoin.minimal_peers
 AUTO_CLEAN = default_parameters.proxy.peer_rejoin.auto_clean_for_container
 
@@ -66,7 +66,7 @@ class Proxy:
         base_retry_interval: float = BASE_RETRY_INTERVAL, enable_rejoin: bool = ENABLE_REJOIN,
         minimal_peers: Union[float, dict] = MINIMAL_PEERS, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
         enable_message_cache_for_rejoin: bool = ENABLE_MESSAGE_CACHE_FOR_REJOIN,
-        max_wait_time_for_rejoin: int = MAX_WAIT_TIME_FOR_REJOIN, auto_clean_for_container: bool = AUTO_CLEAN,
+        timeout_for_minimal_peer_number: int = TIMEOUT_FOR_MINIMAL_PEER_NUMBER, auto_clean_for_container: bool = AUTO_CLEAN,
         log_enable: bool = True
     ):
         self._group_name = group_name
@@ -109,7 +109,7 @@ class Proxy:
         self._auto_clean_for_container = auto_clean_for_container
         if self._enable_rejoin:
             self._peer_update_frequency = peer_update_frequency
-            self._max_wait_time_for_rejoin = max_wait_time_for_rejoin
+            self._timeout_for_minimal_peer_number = timeout_for_minimal_peer_number
             self._enable_message_cache = enable_message_cache_for_rejoin
             if self._enable_message_cache:
                 self._message_cache_for_exited_peers = MessageCache(MAX_LENGTH_FOR_MESSAGE_CACHE)
@@ -559,19 +559,19 @@ class Proxy:
             self._check_peers_update()
 
         if peer_type and len(self._onboard_peers_name_dict[peer_type]) < self._minimal_peers[peer_type]:
-            self._wait_peer_rejoin(peer_type)
+            self._wait_for_minimal_peer_number(peer_type)
         elif not peer_type:
             for p_type, name_list in self._onboard_peers_name_dict.items():
                 if len(name_list) < self._minimal_peers[p_type]:
-                    self._wait_peer_rejoin(p_type)
+                    self._wait_for_minimal_peer_number(p_type)
 
-    def _wait_peer_rejoin(self, peer_type):
+    def _wait_for_minimal_peer_number(self, peer_type):
         start_time = time.time()
 
-        while time.time() - start_time < self._max_wait_time_for_rejoin:
+        while time.time() - start_time < self._timeout_for_minimal_peer_number:
             self._logger.critical(
                 f"No enough peers in {peer_type}! Wait for some peer restart. Remaining time: "
-                f"{start_time + self._max_wait_time_for_rejoin - time.time()}"
+                f"{start_time + self._timeout_for_minimal_peer_number - time.time()}"
             )
             self._check_peers_update()
 
