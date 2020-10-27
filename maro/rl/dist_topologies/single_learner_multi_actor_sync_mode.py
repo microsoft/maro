@@ -97,12 +97,14 @@ class ActorWorker(object):
             sys.exit(0)
 
         performance, experiences = self._local_actor.roll_out(
-            model_dict=data[PayloadKey.MODEL], epsilon_dict=data[PayloadKey.EPSILON],
+            model_dict=data[PayloadKey.MODEL],
+            epsilon_dict=data[PayloadKey.EPSILON],
             return_details=data[PayloadKey.RETURN_DETAILS]
         )
 
         self._proxy.reply(
-            received_message=message, tag=MessageTag.UPDATE,
+            received_message=message,
+            tag=MessageTag.UPDATE,
             payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCE: experiences}
         )
 
