@@ -86,7 +86,7 @@ class SimpleAgentManager(AbsAgentManager):
         for agent_id, models in agent_model_dict.items():
             self.agent_dict[agent_id].load_models(models)
 
-    def dump_models(self):
+    def dump_models(self) -> dict:
         """Get agents' underlying models.
 
         This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.

@@ -31,7 +31,7 @@ class AbsAgentManager(ABC):
         name (str): Name of agent manager.
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
-        agent_dict (dict): List of agent identifiers.
+        agent_dict (dict): A dictionary of agents to be wrapper by the agent manager.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
