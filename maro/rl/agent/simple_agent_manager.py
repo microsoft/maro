@@ -28,11 +28,13 @@ class SimpleAgentManager(AbsAgentManager):
                 raise MissingShaperError(msg=f"experience_shaper cannot be None under mode {self._mode}")
 
         super().__init__(
-            name, mode, agent_dict, state_shaper=state_shaper, action_shaper=action_shaper,
-            experience_shaper=experience_shaper, explorer=explorer
+            name, mode, agent_dict,
+            state_shaper=state_shaper,
+            action_shaper=action_shaper,
+            experience_shaper=experience_shaper
         )
 
-        # data structures to temporarily store transitions and trajectory
+        # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     }
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
     agent_manager = DQNAgentManager(
-        name="cim_remote_learner",
+        name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
         agent_dict=create_dqn_agents(agent_id_list, AgentMode.TRAIN, config.agents),
         explorer=explorer

@@ -19,11 +19,11 @@ from components.state_shaper import CIMStateShaper
 
 
 if __name__ == "__main__":
-    # Step 1: initialize a CIM environment for using a toy dataset.
+    # Step 1: Initialize a CIM environment for using a toy dataset.
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
-    # Step 2: create state, action and experience shapers. We also need to create an explorer here due to the
+    # Step 2: Create state, action and experience shapers. We also need to create an explorer here due to the
     # greedy nature of the DQN algorithm.
     state_shaper = CIMStateShaper(**config.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     }
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
 
-    # Step 3: create an agent manager.
+    # Step 3: Create an agent manager.
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,

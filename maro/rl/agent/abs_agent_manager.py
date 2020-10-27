@@ -38,12 +38,12 @@ class AbsAgentManager(ABC):
             input.
         action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
-        explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
     """
     def __init__(
         self, name: str, mode: AgentManagerMode, agent_dict: dict,
-        state_shaper: StateShaper = None, action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None, explorer: AbsExplorer = None
+        state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None,
+        experience_shaper: ExperienceShaper = None
     ):
         self._name = name
         self._mode = mode
@@ -51,7 +51,6 @@ class AbsAgentManager(ABC):
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
-        self._explorer = explorer
 
     def __getitem__(self, agent_id):
         return self.agent_dict[agent_id]
@@ -84,11 +83,6 @@ class AbsAgentManager(ABC):
     def name(self):
         """Agent manager's name."""
         return self._name
-
-    @property
-    def explorer(self):
-        """Explorer used by the agent manager."""
-        return self._explorer
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

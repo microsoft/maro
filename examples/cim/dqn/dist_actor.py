@@ -22,7 +22,7 @@ if __name__ == "__main__":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
         experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+            reward_func=lambda mt: 1 - mt["container_shortage"]/mt["order_requirements"],
             **config.experience_shaping.k_step
         )
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     }
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
     agent_manager = DQNAgentManager(
-        name="cim_remote_actor",
+        name="distributed_cim_actor",
         mode=AgentManagerMode.INFERENCE,
         agent_dict=create_dqn_agents(agent_id_list, AgentMode.INFERENCE, config.agents),
         state_shaper=state_shaper,

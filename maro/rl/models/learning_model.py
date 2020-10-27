@@ -21,7 +21,9 @@ class LearningModel(nn.Module):
         clip_value (float): Threshold used to clip gradients.
     """
     def __init__(
-        self, representation_layers: nn.Module = IdentityLayers(), decision_layers: nn.Module = IdentityLayers(),
+        self,
+        representation_layers: nn.Module = IdentityLayers(),
+        decision_layers: nn.Module = IdentityLayers(),
         clip_value: float = None
     ):
         super().__init__()

@@ -17,7 +17,9 @@ def create_dqn_agents(agent_id_list, mode, config):
     for agent_id in agent_id_list:
         eval_model = LearningModel(
             decision_layers=DecisionLayers(
-                name=f'{agent_id}.policy', input_dim=config.algorithm.input_dim, output_dim=num_actions,
+                name=f'{agent_id}.policy',
+                input_dim=config.algorithm.input_dim,
+                output_dim=num_actions,
                 activation=nn.LeakyReLU, **config.algorithm.model
             )
         )

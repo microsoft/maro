@@ -65,7 +65,7 @@ class DecisionLayers(nn.Module):
     def _build_basic_layer(self, input_dim, output_dim):
         """Build basic layer.
 
-        BN -> Linear -> LeakyReLU -> Dropout
+        BN -> Linear -> Activation -> Dropout
         """
         components = []
         if self._batch_norm_enabled:

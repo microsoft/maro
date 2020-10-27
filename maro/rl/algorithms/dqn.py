@@ -35,7 +35,7 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        eval_model (nn.Module): trainable Q-value model for computing actions given states.
+        eval_model (nn.Module): Q-value model for given states and actions.
         optimizer_cls: torch optimizer class for the eval model. If this is None, the eval model is not trainable.
         optimizer_params: parameters required for the eval optimizer class.
         loss_func (Callable): loss function for the value model.
@@ -53,9 +53,13 @@ class DQN(AbsAlgorithm):
         if optimizer_cls is not None:
             self._optimizer = optimizer_cls(self._model_dict["eval"].parameters(), **optimizer_params)
             if target_model is None:
-                self._model_dict["target"] = clone(eval_model).to(self._device) if eval_model is not None else None
+                self._model_dict["target"] = clone(eval_model).to(self._device)
             else:
                 self._model_dict["target"] = target_model.to(self._device)
+        # No gradient computation required for the target model
+        for param in self._model_dict["target"].parameters():
+            param.requires_grad = False
+
         self._loss_func = loss_func
         self._hyper_params = hyper_params
         self._train_cnt = 0
@@ -94,7 +98,7 @@ class DQN(AbsAlgorithm):
             if self._train_cnt % self._hyper_params.num_training_rounds_per_target_replacement == 0:
                 self._update_target_model()
 
-            return np.abs((current_q_values - target_q_values).detach().numpy())
+            return loss.detach().numpy()
 
     def _update_target_model(self):
         if hasattr(self, "_optimizer"):
