@@ -199,7 +199,7 @@ namespace maro
       }
 
 #define GET_ATTR_VALUE_BY_TYPE(m_attr_type, m_func_name)                                                     \
-  m_attr_type Backend::get_##m_func_name##(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) \
+  m_attr_type Backend::get_##m_func_name(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)   \
   {                                                                                                          \
     ensure_setup_state(true);                                                                                \
     ensure_attr_id(attr_id);                                                                                 \
@@ -209,7 +209,7 @@ namespace maro
     ensure_slot_index(slot_index, attr);                                                                     \
     auto attr_index = calc_attr_index(0, node, node_index, attr, slot_index);                                \
     auto &target_attr = _data[attr_index];                                                                   \
-    return target_attr.get_##m_func_name##();                                                                \
+    return target_attr.get_##m_func_name();                                                                  \
   }
 
       GET_ATTR_VALUE_BY_TYPE(ATTR_BYTE, byte)
