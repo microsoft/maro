@@ -309,7 +309,7 @@ namespace maro
 
           i++;
         }
-      }  
+      }
 
       UINT Backend::query_one_tick_length(IDENTIFIER node_id, const NODE_INDEX node_indices[], UINT node_length, const IDENTIFIER attributes[], UINT attr_length)
       {
