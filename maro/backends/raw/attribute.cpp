@@ -8,24 +8,24 @@ namespace maro
     {
 
 #define CONSTRUCTOR(m_type, m_field, m_internal_type) \
-  Attribute::Attribute(##m_type val) noexcept         \
+  Attribute::Attribute(m_type val) noexcept         \
   {                                                   \
     _type = m_internal_type;                          \
-    _data.##m_field = val;                            \
+    _data.m_field = val;                              \
   }
 
 #define DATA_ASSIGN(m_type, m_field, m_internal_type) \
-  void Attribute::operator=(##m_type val)             \
+  void Attribute::operator=(m_type val)             \
   {                                                   \
     _type = m_internal_type;                          \
-    _data.##m_field = val;                            \
+    _data.m_field = val;                              \
   }
 
       // Before assign any value, all field will be 0, so we do care about data type here, even data type not match
 #define DATA_GETTER(m_name, m_field, m_type, m_internal_type) \
   m_type Attribute::get_##m_name()                            \
   {                                                           \
-    return _data.##m_field;                                   \
+    return _data.m_field;                                     \
   }
 
       CONSTRUCTOR(ATTR_BYTE, _byte, AttrDataType::ABYTE)
