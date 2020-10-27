@@ -16,6 +16,7 @@ from .common import ActionScope, DecisionEvent, CimEventType, VesselDischargePay
 from .frame_builder import gen_cim_frame
 from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
 from maro.data_lib.dump_csv_converter import dump_csv_converter
+from maro.simulator.abs_core import DecisionMode
 
 
 metrics_desc = """
@@ -199,9 +200,12 @@ class CimBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset the business engine, it will reset frame value."""
 
-        converter = dump_csv_converter()
-        self._frame.dump(converter.dump_folder)
-        converter.start_processing()
+        """ By checking enable-dump-snapshot parameters, business engine decisdes dump snapshot data to local disk or not. """
+        if self._additional_options.__contains__('enable-dump-snapshot'):
+            parent_path = self._additional_options['enable-dump-snapshot']
+            converter = dump_csv_converter(parent_path)
+            self._frame.dump(converter.dump_folder)
+            converter.start_processing()
 
         self._snapshots.reset()
 

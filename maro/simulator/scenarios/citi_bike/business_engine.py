@@ -136,9 +136,12 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset internal states for episode."""
 
-        converter = dump_csv_converter()
-        self._frame.dump(converter.dump_folder)
-        converter.start_processing()
+        """ By checking enable-dump-snapshot parameters, business engine decisdes dump snapshot data to local disk or not. """
+        if self._additional_options.__contains__('enable-dump-snapshot'):
+            parent_path = self._additional_options['enable-dump-snapshot']
+            converter = dump_csv_converter(parent_path)
+            self._frame.dump(converter.dump_folder)
+            converter.start_processing()
 
         self._total_trips = 0
         self._total_operate_num = 0

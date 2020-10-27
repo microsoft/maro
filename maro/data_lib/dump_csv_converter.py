@@ -12,12 +12,12 @@ import numpy as np
 
 class dump_csv_converter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
-    def __init__(self, parentPath = ''):
+    def __init__(self, parent_path = ''):
         super().__init__()
         now = datetime.now()
         self._foldername = 'snapshot_dump_' + now.strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
-        if parentPath is not '':
-            self._foldername = Path.joinpath(parentPath, self._foldername)
+        if parent_path is not '':
+            self._foldername = os.path.join(parent_path, self._foldername)
 
         folderPath = Path(self._foldername)
         if folderPath.exists():
