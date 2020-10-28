@@ -70,8 +70,10 @@ data and the forecasting demand values here.
 - *Log Non-0: The percentage of Non-0 data points in the future demand extracted from trip log data.*
 - *Log Max: The maximum data point in the future demand extracted from trip log data.*
 - *Diff to Log: The percentage of forecasting data points that is different to the one extracted from trip log data.*
-- *Max Diff: The maximum difference between the forecasting data point and the corresponding future demand extracted from the trip log data.*
-- *Diff > 5: The percentage of the difference that is more than 5 between the forecasting data point and the corresponding future demand extracted from the trip log data.*
+- *Max Diff: The maximum difference between the forecasting data point and the corresponding future demand
+extracted from the trip log data.*
+- *Diff > 5: The percentage of the difference that is more than 5 between the
+forecasting data point and the corresponding future demand extracted from the trip log data.*
 
 According to the log data, much more than 88% future temporal-spatial demand is
 **0**. Besides, during the observation window listed above, although the maximum
