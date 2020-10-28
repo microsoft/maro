@@ -59,7 +59,9 @@ def launch(config):
 
     # Step 4: Create an actor and a learner to start the training process.
     early_stopping_checker = SimpleEarlyStoppingChecker(
-        metric_func=lambda x: x["container_shortage"], **config.general.early_stopping
+        last_k=config.general.early_stopping.last_k,
+        metric_func=lambda x: x["container_shortage"],
+        threshold=config.general.early_stopping.threshold
     )
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
@@ -68,7 +70,11 @@ def launch(config):
         explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.max_episode, early_stopping_checker=early_stopping_checker)
+    learner.train(
+        max_episode=config.general.max_episode,
+        early_stopping_checker=early_stopping_checker,
+        early_stopping_check_ep=config.general.early_stopping.start_ep
+    )
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 

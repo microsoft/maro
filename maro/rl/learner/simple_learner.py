@@ -54,14 +54,15 @@ class SimpleLearner(AbsLearner):
         self._logger.info(f"ep {ep} - performance: {performance}, epsilons: {epsilon_dict}")
         return performance, exp_by_agent
 
-    def train(self, max_episode: int, early_stopping_checker: Callable = None):
+    def train(self, max_episode: int, early_stopping_checker: Callable = None, early_stopping_check_ep: int = None):
         """Main loop for collecting experiences from the actor and using them to update policies.
 
         Args:
             max_episode (int): number of episodes to be run. If negative, the training loop will run forever unless
                 an ``early_stopping_checker`` is provided and the early stopping condition is met.
             early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
-                terminated based on the latest performances.
+                terminated based on the latest performances. Defaults to None.
+            early_stopping_check_ep (int): Episode from which early stopping check is initiated. Defaults to None.
         """
         if max_episode < 0 and early_stopping_checker is None:
             warnings.warn(
@@ -72,7 +73,9 @@ class SimpleLearner(AbsLearner):
         while max_episode < 0 or episode <= max_episode:
             performance, exp_by_agent = self._sample(episode, max_episode)
             self._performance_history.append(performance)
-            if early_stopping_checker is not None and early_stopping_checker(self._performance_history):
+            if early_stopping_checker is not None and \
+                    (early_stopping_check_ep is None or episode >= early_stopping_check_ep) and \
+                    early_stopping_checker(self._performance_history):
                 self._logger.info("Early stopping condition satisfied. Training complete.")
                 break
             self._trainable_agents.train(exp_by_agent)

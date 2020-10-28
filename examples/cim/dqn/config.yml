@@ -5,6 +5,7 @@ env:
 general:
   max_episode: 500 # max episode
   early_stopping:
+    start_ep: 50
     last_k: 3
     threshold: 0.3
 state_shaping:
