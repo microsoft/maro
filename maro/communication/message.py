@@ -3,6 +3,7 @@
 
 # native lib
 from enum import Enum
+import sys
 from typing import Union
 import uuid
 
@@ -87,5 +88,7 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            raise MessageSessionTypeError(f"Receive unrecognized session type {self.session_type}, please use "
-                                          f"the SessionType class.")
+            sys.stderr.write(
+                f"Receive unrecognized session type {self.session_type}, please use the SessionType class."
+            )
+            sys.exit(64)

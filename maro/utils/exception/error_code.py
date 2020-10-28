@@ -18,6 +18,7 @@ ERROR_CODE = {
     1010: "Socket Type Error",
     1011: "Peers Disconnection Error",
     1012: "MARO Send Again Error",
+    1013: "Peers Rejoin Timeout",
 
     # data lib
     2000: "Meta does not contain timestamp field",

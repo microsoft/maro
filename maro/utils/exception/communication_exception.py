@@ -76,8 +76,15 @@ class SendAgain(MAROException):
         super().__init__(1012, msg)
 
 
+class PeersRejoinTimeout(MAROException):
+    """Failure to get enough peers during the max waitting time."""
+    def __init__(self, msg: str = None):
+        super().__init__(1013, msg)
+
+
 __all__ = [
     "RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
     "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
-    "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError", "SendAgain"
+    "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError", "SendAgain",
+    "PeersRejoinTimeout"
 ]

@@ -3,6 +3,7 @@
 
 # native lib
 import socket
+import sys
 from typing import Dict
 
 # third party package
@@ -180,7 +181,8 @@ class ZmqDriver(AbsDriver):
             if message.destination in self._disconnected_peer_name_list:
                 return SendAgain(f"Temporary failure to send message to {message.destination}, may rejoin later.")
             else:
-                raise DriverSendError(f"Failure to send message caused by: {key_error}")
+                self._logger.critical(f"Failure to send message caused by: {key_error}")
+                sys.exit(64)
         except Exception as e:
             raise DriverSendError(f"Failure to send message caused by: {e}")
 

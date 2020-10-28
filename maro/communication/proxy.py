@@ -22,7 +22,7 @@ from maro.communication import Message, SessionMessage, SessionType, TaskSession
 from maro.communication.utils import default_parameters, MessageCache
 from maro.utils import InternalLogger, DummyLogger
 from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
-    InformationUncompletedError, SendAgain
+    InformationUncompletedError, SendAgain, PeersRejoinTimeout
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 MAX_LENGTH_FOR_MESSAGE_CACHE = 1024
@@ -86,8 +86,10 @@ class Proxy:
 
         try:
             self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1])
+            self._redis_connection.ping()
         except Exception as e:
-            raise RedisConnectionError(f"{self._name} failure to connect to redis server due to {e}")
+            self._logger.critical(f"{self._name} failure to connect to redis server due to {e}")
+            sys.exit(64)
 
         # Record the peer's redis information.
         self._peers_info_dict = {}
@@ -153,11 +155,11 @@ class Proxy:
                 "remove_container": int(self._auto_clean_for_container)
             }
 
-            self._redis_connection.hset(f"rejoin:{job_id}:rejoin_details", rejoin_config)
+            self._redis_connection.hset(f"job:{job_id}:runtime_details", rejoin_config)
 
             if self._enable_rejoin:
                 self._redis_connection.hset(
-                    f"rejoin:{job_id}:component_name_to_container_name", self._name, container_name
+                    f"job:{job_id}:rejoin_component_name_to_container_name", self._name, container_name
                 )
 
     def __del__(self):
@@ -175,7 +177,8 @@ class Proxy:
             self._driver = ZmqDriver(**self._driver_parameters, logger=self._logger) if self._driver_parameters else \
                 ZmqDriver(logger=self._logger)
         else:
-            raise DriverTypeError(f"Unsupported driver type {self._driver_type}, please use DriverType class.")
+            self._logger.critical(f"Unsupported driver type {self._driver_type}, please use DriverType class.")
+            sys.exit(64)
 
         driver_address = self._driver.address
         self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(driver_address))
@@ -411,7 +414,7 @@ class Proxy:
         """
         return self._broadcast(tag, session_type, session_id, payload)
 
-    def _send(self, message: Message) -> Union[SendAgain, str, None]:
+    def _send(self, message: Message) -> Union[SendAgain, str]:
         if self._enable_rejoin:
             peer_type = message.destination.split("_proxy_")[0]
             self._rejoin(peer_type)
@@ -443,7 +446,7 @@ class Proxy:
         return sending_status if "pending_session_ids" not in locals() else \
             pending_session_ids.append(message.session_id)
 
-    def isend(self, message: Message) -> str:
+    def isend(self, message: Message) -> Union[SendAgain, str]:
         """Send a message to a remote peer.
 
         Args:
@@ -454,7 +457,7 @@ class Proxy:
         """
         return self._send(message)
 
-    def send(self, message: Message) -> Message:
+    def send(self, message: Message) -> Union[Message, SendAgain]:
         """Send a message to a remote peer.
 
         Args:
@@ -469,7 +472,7 @@ class Proxy:
 
     def reply(
         self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False
-    ) -> List[str]:
+    ) -> str:
         """Reply a received message.
 
         Args:
@@ -497,7 +500,7 @@ class Proxy:
         return self.isend(replied_message)
 
     def forward(self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None,
-                payload=None) -> List[str]:
+                payload=None) -> str:
         """Forward a received message.
 
         Args:
@@ -585,4 +588,5 @@ class Proxy:
 
             time.sleep(self._peer_update_frequency)
 
-        raise PeersMissError(f"Failure to get enough peers for {peer_type}.")
+        self._logger.critical(f"Failure to get enough peers for {peer_type}.")
+        sys.exit(65)
