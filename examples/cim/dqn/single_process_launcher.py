@@ -7,8 +7,8 @@ import os
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import SimpleLearner, SimpleActor, AgentManagerMode, KStepExperienceShaper, \
-    TwoPhaseLinearExplorer
+from maro.rl import AgentManagerMode, SimpleEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor,  \
+    TwoPhaseLinearExplorer,
 from maro.utils import Logger
 
 from components.action_shaper import CIMActionShaper
@@ -58,6 +58,9 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
+    early_stopping_checker = SimpleEarlyStoppingChecker(
+        metric_func=lambda x: x["container_shortage"], **config.general.early_stopping
+    )
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
         trainable_agents=agent_manager,
@@ -65,7 +68,7 @@ def launch(config):
         explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.max_episode)
+    learner.train(max_episode=config.general.max_episode, early_stopping_checker=early_stopping_checker)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 

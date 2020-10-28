@@ -4,6 +4,9 @@ env:
   durations: 1120
 general:
   max_episode: 500 # max episode
+  early_stopping:
+    last_k: 3
+    threshold: 0.3
 state_shaping:
   look_back: 7
   max_ports_downstream: 2

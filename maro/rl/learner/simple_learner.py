@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import sys
 from typing import Callable, Union
 import warnings
 
@@ -62,25 +63,20 @@ class SimpleLearner(AbsLearner):
             early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
                 terminated based on the latest performances.
         """
-        if max_episode < 0:
-            if early_stopping_checker is None:
-                warnings.warn("No max episode and early stopping checker provided. The training loop will run forever.")
-            episode = 1
-            while True:
-                performance, exp_by_agent = self._sample(episode, max_episode)
-                self._performance_history.append(performance)
-                if early_stopping_checker is not None and early_stopping_checker(self._performance_history):
-                    self._logger.info("Early stopping condition satisfied. Training complete.")
-                    break
-                episode += 1
-        else:
-            for episode in range(1, max_episode + 1):
-                performance, exp_by_agent = self._sample(episode, max_episode)
-                self._performance_history.append(performance)
-                if early_stopping_checker is not None and early_stopping_checker(self._performance_history):
-                    self._logger.info("Early stopping condition satisfied. Training complete.")
-                    break
-                self._trainable_agents.train(exp_by_agent)
+        if max_episode < 0 and early_stopping_checker is None:
+            warnings.warn(
+                "The training loop will run forever since neither maximum episode nor early stopping checker "
+                "is provided. "
+            )
+        episode = 1
+        while max_episode < 0 or episode <= max_episode:
+            performance, exp_by_agent = self._sample(episode, max_episode)
+            self._performance_history.append(performance)
+            if early_stopping_checker is not None and early_stopping_checker(self._performance_history):
+                self._logger.info("Early stopping condition satisfied. Training complete.")
+                break
+            self._trainable_agents.train(exp_by_agent)
+            episode += 1
 
     def test(self):
         """Test policy performance."""
@@ -89,7 +85,12 @@ class SimpleLearner(AbsLearner):
             return_details=False
         )
         self._logger.info(f"test performance: {performance}")
-        self._actor.roll_out(done=True)
+
+    def exit(self):
+        """Tell the remote actor to exit"""
+        if isinstance(self._actor, ActorProxy):
+            self._actor.roll_out(done=True)
+        sys.exit()
 
     def dump_models(self, model_dump_dir: str):
         self._trainable_agents.dump_models_to_files(model_dump_dir)

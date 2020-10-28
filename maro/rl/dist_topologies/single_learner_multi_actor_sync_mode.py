@@ -25,8 +25,9 @@ class ActorProxy(object):
     def __init__(self, proxy_params):
         self._proxy = Proxy(component_type="learner", **proxy_params)
 
-    def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
-                 return_details: bool = True):
+    def roll_out(
+        self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
+    ):
         """Send roll-out requests to remote actors.
 
         This method has exactly the same signature as ``SimpleActor``'s ``roll_out`` method but instead of doing

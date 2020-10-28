@@ -22,6 +22,8 @@ from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.k_step_experience_shaper import KStepExperienceShaper
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
+from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
+from maro.rl.early_stopping.simple_early_stopping_checker import SimpleEarlyStoppingChecker
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
 
 
@@ -50,6 +52,8 @@ __all__ = [
     "AbsExplorer",
     "LinearExplorer",
     "TwoPhaseLinearExplorer",
+    "AbsEarlyStoppingChecker",
+    "SimpleEarlyStoppingChecker",
     "ActorProxy",
     "ActorWorker"
 ]
