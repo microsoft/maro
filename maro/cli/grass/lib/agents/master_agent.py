@@ -8,6 +8,7 @@ import logging
 import multiprocessing
 import os
 import subprocess
+import sys
 import time
 import uuid
 
@@ -22,7 +23,9 @@ from utils import (
     get_pending_job_tickets, remove_pending_job_ticket,
     get_killed_job_tickets, remove_killed_job_ticket,
     get_containers_details, set_containers_details,
-    get_rejoin_container_name_to_component_name, delete_rejoin_container_name_to_component_name, get_rejoin_details
+    get_rejoin_container_name_to_component_name, delete_rejoin_container_name_to_component_name,
+    get_job_runtime_details,
+    get_rejoin_component_restart_times, incr_rejoin_component_restart_times
 )
 
 logger = logging.getLogger(__name__)
@@ -62,7 +65,7 @@ START_CONTAINER_WITH_GPU_COMMAND = (
 
 REMOVE_CONTAINER_COMMAND = (
     "ssh -o StrictHostKeyChecking=no {admin_username}@{node_hostname} "
-    "docker rm {containers}"
+    "docker rm -f {containers}"
 )
 
 STOP_CONTAINER_COMMAND = (
@@ -74,6 +77,12 @@ AVAILABLE_METRICS = {
     "cpu",
     "memory",
     "gpu"
+}
+
+ERROR_CODE_FOR_NOT_RESTART = 64
+ERROR_CODE_FOR_STOP_JOB = 65
+ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {
+    0, ERROR_CODE_FOR_NOT_RESTART, ERROR_CODE_FOR_STOP_JOB
 }
 
 
@@ -94,8 +103,8 @@ class MasterAgent:
         container_tracking_agent.start()
         pending_job_agent = PendingJobAgent(cluster_details=self._cluster_details)
         pending_job_agent.start()
-        fault_tolerance_agent = FaultToleranceAgent(cluster_details=self._cluster_details)
-        fault_tolerance_agent.start()
+        container_runtime_agent = ContainerRuntimeAgent(cluster_details=self._cluster_details)
+        container_runtime_agent.start()
         killed_job_agent = KilledJobAgent(cluster_details=self._cluster_details)
         killed_job_agent.start()
 
@@ -220,7 +229,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
         )
 
 
-class FaultToleranceAgent(multiprocessing.Process):
+class ContainerRuntimeAgent(multiprocessing.Process):
     def __init__(self, cluster_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = cluster_details["name"]
@@ -262,11 +271,84 @@ class FaultToleranceAgent(multiprocessing.Process):
 
         # Iterate container status
         for container_name, container_details in containers_details.items():
-            if (
-                container_details["state"]["Status"] == "exited" and
-                container_details["state"]["ExitCode"] != 0
+            # Get job_runtime_details and flags
+            job_runtime_details = get_job_runtime_details(
+                redis=self._redis,
+                job_id=container_details["job_id"]
+            )
+
+            # Remove container
+            is_remove_container = self._is_remove_container(
+                container_details=container_details,
+                job_runtime_details=job_runtime_details
+            )
+            if is_remove_container:
+                self._remove_container(container_name=container_name, container_details=container_details)
+
+            # Restart container
+            if self._is_restart_container(
+                container_details=container_details,
+                job_runtime_details=job_runtime_details
             ):
                 self._restart_container(container_name=container_name, container_details=container_details)
+
+            # Stop job
+            if self._is_stop_job(container_details=container_details):
+                self._stop_job(job_id=container_details["job_id"], is_remove_container=is_remove_container)
+
+    @staticmethod
+    def _is_remove_container(container_details: dict, job_runtime_details: dict) -> bool:
+        """Check if the container need to be removed.
+
+        Args:
+            container_details (dict): Details of the container.
+            job_runtime_details (dict): Runtime details of the job.
+
+        Returns:
+            bool: True or False.
+        """
+        return (
+            container_details["state"]["Status"] == "exited" and
+            job_runtime_details is not None and
+            job_runtime_details.get("remove_failed_container") == "1"
+        )
+
+    def _is_restart_container(self, container_details: dict, job_runtime_details: dict) -> bool:
+        """Check if the container need to be removed.
+
+        Args:
+            container_details (dict): Details of the container.
+            job_runtime_details (dict): Runtime details of the job.
+
+        Returns:
+            bool: True or False.
+        """
+        return (
+            container_details["state"]["Status"] == "exited" and
+            container_details["state"]["ExitCode"] not in ERROR_CODES_FOR_NOT_RESTART_CONTAINER and
+            job_runtime_details is not None and
+            job_runtime_details.get("rejoin:enable") == "1" and
+            get_rejoin_component_restart_times(
+                self._redis,
+                job_id=container_details["job_id"],
+                component_id=container_details["component_id"]
+            ) < int(job_runtime_details.get("rejoin:max_restart_times", sys.maxsize))
+        )
+
+    @staticmethod
+    def _is_stop_job(container_details: dict) -> bool:
+        """Check if the job need to be stop.
+
+        Args:
+            container_details (dict): Details of the container.
+
+        Returns:
+            bool: True of False.
+        """
+        return (
+            container_details["state"]["Status"] == "exited" and
+            container_details["state"]["ExitCode"] == ERROR_CODE_FOR_STOP_JOB
+        )
 
     def _restart_container(self, container_name: str, container_details: dict) -> None:
         """Restart container.
@@ -278,93 +360,81 @@ class FaultToleranceAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get rejoin details
-        rejoin_details = get_rejoin_details(
+        # Get component_name_to_container_name
+        rejoin_container_name_to_component_name = get_rejoin_container_name_to_component_name(
             redis=self._redis,
             job_id=container_details["job_id"]
         )
-        # If the details not exists, or the "enable" key is not "1", skip the restart operation.
-        if rejoin_details is None or rejoin_details["enable"] != "1":
+
+        # If the mapping not exists, or the container is not in the mapping, skip the restart operation.
+        if (
+            rejoin_container_name_to_component_name is None or
+            container_name not in rejoin_container_name_to_component_name
+        ):
+            logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
             return
         else:
-            # Get component_name_to_container_name
-            rejoin_container_name_to_component_name = get_rejoin_container_name_to_component_name(
-                redis=self._redis,
-                job_id=container_details["job_id"]
-            )
+            try:
+                # Get params
+                component_name = rejoin_container_name_to_component_name[container_name]
 
-            # If the mapping not exists, or the container is not in the mapping, skip the restart operation.
-            if (
-                rejoin_container_name_to_component_name is None or
-                container_name not in rejoin_container_name_to_component_name
-            ):
-                logger.warning(f"Container {container_name} is not found in container_name_to_component_name mapping")
-                return
-            else:
-                try:
-                    # Get flags and other params
-                    remove_container = rejoin_details.get("remove_container", "0")
-                    component_name = rejoin_container_name_to_component_name[container_name]
-
-                    # Get resources and allocation plan
-                    free_resources = ResourceManagementExecutor.get_free_resources(
-                        redis=self._redis,
-                        cluster_name=self._cluster_name
+                # Get resources and allocation plan
+                free_resources = ResourceManagementExecutor.get_free_resources(
+                    redis=self._redis,
+                    cluster_name=self._cluster_name
+                )
+                required_resources = [
+                    ContainerResource(
+                        container_name=ResourceManagementExecutor.build_container_name(
+                            job_id=container_details["job_id"],
+                            component_id=container_details["component_id"],
+                            component_index=container_details["component_index"]
+                        ),
+                        cpu=float(container_details["cpu"]),
+                        memory=float(container_details["memory"].replace("m", "")),
+                        gpu=float(container_details["gpu"])
                     )
-                    required_resources = [
-                        ContainerResource(
-                            container_name=ResourceManagementExecutor.build_container_name(
-                                job_id=container_details["job_id"],
-                                component_id=container_details["component_id"],
-                                component_index=container_details["component_index"]
-                            ),
-                            cpu=float(container_details["cpu"]),
-                            memory=float(container_details["memory"].replace("m", "")),
-                            gpu=float(container_details["gpu"])
-                        )
-                    ]
-                    allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
-                        allocation_details={"metric": "cpu"},
-                        required_resources=required_resources,
-                        free_resources=free_resources
-                    )
+                ]
+                allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
+                    allocation_details={"metric": "cpu"},
+                    required_resources=required_resources,
+                    free_resources=free_resources
+                )
 
-                    # If the flag is "1", remove the failed container
-                    if remove_container == "1":
-                        self._remove_container(
-                            container_name=container_details["container_name"],
-                            container_details=container_details
-                        )
-
-                    # Start a new container
-                    job_details = get_job_details(
+                # Start a new container
+                job_details = get_job_details(
+                    redis=self._redis,
+                    cluster_name=self._cluster_name,
+                    job_name=container_details["job_name"]
+                )
+                for container_name, node_name in allocation_plan.items():
+                    node_details = get_node_details(
                         redis=self._redis,
                         cluster_name=self._cluster_name,
-                        job_name=container_details["job_name"]
+                        node_name=node_name
                     )
-                    for container_name, node_name in allocation_plan.items():
-                        node_details = get_node_details(
-                            redis=self._redis,
-                            cluster_name=self._cluster_name,
-                            node_name=node_name
-                        )
-                        self._start_container(
-                            container_name=container_name,
-                            node_details=node_details,
-                            job_details=job_details,
-                            component_name=component_name
-                        )
-                except AllocationFailed as e:
-                    logger.warning(f"Allocation failed with {e}")
-                except StartContainerFailed as e:
-                    logger.warning(f"Start container failed with {e}")
+                    self._start_container(
+                        container_name=container_name,
+                        node_details=node_details,
+                        job_details=job_details,
+                        component_name=component_name
+                    )
+                incr_rejoin_component_restart_times(
+                    redis=self._redis,
+                    job_id=container_details["job_id"],
+                    component_id=container_details["component_id"]
+                )
+            except AllocationFailed as e:
+                logger.warning(f"Allocation failed with {e}")
+            except StartContainerFailed as e:
+                logger.warning(f"Start container failed with {e}")
 
     def _remove_container(self, container_name: str, container_details: dict) -> None:
         """Remove container.
 
         Args:
-            container_name: Name of the container.
-            container_details: Details of the container.
+            container_name (str): Name of the container.
+            container_details (dict): Details of the container.
 
         Returns:
             None.
@@ -389,6 +459,63 @@ class FaultToleranceAgent(multiprocessing.Process):
         )
         if completed_process.returncode != 0:
             logger.error(f"No container {container_name} in {node_name}")
+
+    def _stop_job(self, job_id: str, is_remove_container: bool) -> None:
+        """Stop job.
+
+        Args:
+            job_id (str): Id of the job.
+            is_remove_container (bool): If the containers need to be removed.
+
+        Returns:
+            None.
+        """
+        # Delete mapping if fault tolerance is activated
+        delete_rejoin_container_name_to_component_name(
+            redis=self._redis,
+            job_id=job_id
+        )
+
+        # Load details and vars
+        nodes_details = get_nodes_details(
+            redis=self._redis,
+            cluster_name=self._cluster_name
+        )
+
+        # Delete containers
+        for node_name, node_details in nodes_details.items():
+            # Load details
+            container_details = node_details["containers"]
+            node_hostname = node_details["hostname"]
+
+            # Filter containers
+            stoppable_containers = []
+            for container_name in container_details:
+                if container_name.startswith(job_id):
+                    stoppable_containers.append(container_name)
+
+            # Stop containers
+            if len(stoppable_containers) > 0:
+                if is_remove_container:
+                    command = REMOVE_CONTAINER_COMMAND.format(
+                        admin_username=self._admin_username,
+                        node_hostname=node_hostname,
+                        containers=" ".join(stoppable_containers)
+                    )
+                else:
+                    command = STOP_CONTAINER_COMMAND.format(
+                        admin_username=self._admin_username,
+                        node_hostname=node_hostname,
+                        containers=" ".join(stoppable_containers)
+                    )
+                completed_process = subprocess.run(
+                    command,
+                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    encoding="utf8"
+                )
+                if completed_process.returncode != 0:
+                    logger.error(completed_process.stderr)
+                logger.info(command)
 
     def _start_container(self, container_name: str, node_details: dict, job_details: dict, component_name: str) -> None:
         """Start container.
