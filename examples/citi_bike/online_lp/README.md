@@ -42,38 +42,59 @@ ny.202006 | 197,833       |  1,071 +/-  42 | 185,101 +/- 1,860
 ## Comparison of these two strategy and analysis of the forecasting results
 
 As shown in the tables above, there is no big difference between directly using
-log data and using forecasting results by MA. To find out why forecasting demand
-and supply with such a simple method can contribute to the *not bad* result, we
+trip log data and using MA forecasting results. To find out why forecasting demand
+and supply by such a simple method can contribute to the *not bad* result, we
 select the topology *ny.201910* and compare the forecasting results to the data
-extracted from the log data. Since the gap between future actual supply is
-determined not only by the future trip requirement, but also by the future bike
+extracted from the trip log data. Since the gap between future actual supply is
+determined not only by the future trip requirements, but also by the future bike
 inventory and trip fulfillment, we only compare the future demand from the log
 data and the forecasting demand values here.
 
 ### Topology: ny.201910
 
+ Time | Tick | Log Non-0 | Log Max | Diff to Log | Max Diff | Diff > 5
+:----:|:----:|----------:|--------:|------------:|---------:|---------:
+00:00 | 1440 |  1.18%    |       4 | 55.00%      |       8  |   1.54%
+02:00 | 1560 |  0.78%    |       2 | 28.69%      |       4  |   0.00%
+04:00 | 1680 |  5.52%    |      15 |  8.20%      |      15  |   0.20%
+06:00 | 1800 | 11.99%    |      21 | 14.41%      |      21  |   3.14%
+08:00 | 1920 | 10.39%    |      25 | 50.72%      |      24  |   2.06%
+10:00 | 2040 |  9.44%    |      15 | 73.46%      |      25  |  16.76%
+12:00 | 2160 |  9.71%    |      14 | 71.76%      |      16  |  14.15%
+14:00 | 2280 | 10.03%    |      13 | 63.82%      |       9  |   2.97%
+16:00 | 2400 | 11.93%    |      34 | 67.65%      |      31  |   4.54%
+18:00 | 2520 |  9.54%    |      16 | 68.17%      |      15  |  13.40%
+20:00 | 2640 |  8.63%    |      14 | 67.16%      |      18  |  15.55%
+22:00 | 2760 |  4.84%    |       4 | 63.73%      |      10  |   2.94%
+
+- *Log Non-0: The percentage of Non-0 data points in the future demand extracted from trip log data.*
+- *Log Max: The maximum data point in the future demand extracted from trip log data.*
+- *Diff to Log: The percentage of forecasting data points that is different to the one extracted from trip log data.*
+- *Max Diff: The maximum difference between the forecasting data point and the corresponding future demand extracted from the trip log data.*
+- *Diff > 5: The percentage of the difference that is more than 5 between the forecasting data point and the corresponding future demand extracted from the trip log data.*
+
 According to the log data, much more than 88% future temporal-spatial demand is
-**0**. Besides, during the observation window listed below, although the maximum
+**0**. Besides, during the observation window listed above, although the maximum
 demand is 34 (at a specific station, during a time interval of 20 minutes), the
 corresponding demand distribution shows that demand exceeding 10 bikes per time
 interval (20 minutes) is only 2%.
 
 ![Demand Distribution Between Tick 2400 ~ Tick 2519](./LogDemand.ny201910.2400.png)
 
-Maybe due to the *sparse* and *small* demand, the precision of the forecasting
-methods contributes less to the final repositioning performance.
+Besides, we can also find that the percentage of forecasting results that differ
+to the data extracted from trip log is not low. To dive deeper in the practical
+influence the difference may make, we further count the percentage of difference
+larger than 5 bikes. As shown in the table above, in most of the time intervals,
+the difference is very small. We select two time intervals to more intuitively
+show the distribution of the forecasting difference to the trip log. One for the
+interval with the *Max Diff* (16:00-18:00), one for the interval with the highest
+percentage of *Diff > 5* (10:00-12:00).
 
- Time | Tick | Log Non-0 | Log Max | Diff to Log | Max Diff
-:----:|:----:|----------:|--------:|------------:|---------:
-00:00 | 1440 |  1.18%    |       4 | 55.00%      |       8
-02:00 | 1560 |  0.78%    |       2 | 28.69%      |       4
-04:00 | 1680 |  5.52%    |      15 |  8.20%      |      15
-06:00 | 1800 | 11.99%    |      21 | 14.41%      |      21
-08:00 | 1920 | 10.39%    |      25 | 50.72%      |      24
-10:00 | 2040 |  9.44%    |      15 | 73.46%      |      25
-12:00 | 2160 |  9.71%    |      14 | 71.76%      |      16
-14:00 | 2280 | 10.03%    |      13 | 63.82%      |       9
-16:00 | 2400 | 11.93%    |      34 | 67.65%      |      31
-18:00 | 2520 |  9.54%    |      16 | 68.17%      |      15
-20:00 | 2640 |  8.63%    |      14 | 67.16%      |      18
-22:00 | 2760 |  4.84%    |       4 | 63.73%      |      10
+![Demand Distribution Between Tick 2400 ~ Tick 2519](./DemandDiff.ny201910.2400.png)
+
+![Demand Distribution Between Tick 2040 ~ Tick 2159](./DemandDiff.ny201910.2040.png)
+
+Maybe due to the *sparse* and *small* trip demand, and the *small* difference
+between the forecasting results and data extracted from the trip log data, the
+precision of the forecasting methods contributes less to the final repositioning
+performance.
