@@ -10,7 +10,7 @@ import os
 from components.config import config
 
 
-ACTOR_NUM = config.distributed.learner.peer["actor_worker"]  # must be same as in config
+ACTOR_NUM = config.distributed.learner.peer["actor"]  # must be same as in config
 LEARNER_NUM = config.distributed.actor.peer["learner"]
 
 learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_learner.py &"

@@ -56,7 +56,7 @@ class ActorProxy(object):
             payloads = [(peer, {PayloadKey.MODEL: model_dict,
                                 PayloadKey.EPSILON: epsilon_dict,
                                 PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers["actor_worker"]]
+                        for peer in self._proxy.peers["actor"]]
             # TODO: double check when ack enable
             replies = self._proxy.scatter(
                 tag=MessageTag.ROLLOUT, session_type=SessionType.TASK, destination_payload_list=payloads
@@ -82,7 +82,7 @@ class ActorWorker(object):
     """
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
-        self._proxy = Proxy(component_type="actor_worker", **proxy_params)
+        self._proxy = Proxy(component_type="actor", **proxy_params)
         self._registry_table = RegisterTable(self._proxy.get_peers)
         self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 

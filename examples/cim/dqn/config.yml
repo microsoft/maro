@@ -60,7 +60,7 @@ distributed:
   actor:
     peer: {"learner": 1}
   learner:
-    peer: {"actor_worker": 1}
+    peer: {"actor": 1}
   redis:
     host_name: "localhost"
     port: 6379
