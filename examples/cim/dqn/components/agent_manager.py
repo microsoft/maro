@@ -5,12 +5,11 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from .agent import CIMAgent
-from maro.rl import AgentMode, SimpleAgentManager, LearningModel, DecisionLayers, DQN, DQNHyperParams, ColumnBasedStore
+from maro.rl import SimpleAgentManager, LearningModel, DecisionLayers, DQN, DQNHyperParams, ColumnBasedStore
 from maro.utils import set_seeds
 
 
-def create_dqn_agents(agent_id_list, mode, config):
-    is_trainable = mode in {AgentMode.TRAIN, AgentMode.TRAIN_INFERENCE}
+def create_dqn_agents(agent_id_list, config):
     num_actions = config.algorithm.num_actions
     set_seeds(config.seed)
     agent_dict = {}
@@ -26,9 +25,9 @@ def create_dqn_agents(agent_id_list, mode, config):
 
         algorithm = DQN(
             eval_model=eval_model,
-            optimizer_cls=RMSprop if is_trainable else None,
-            optimizer_params=config.algorithm.optimizer if is_trainable else None,
-            loss_func=nn.functional.smooth_l1_loss if is_trainable else None,
+            optimizer_cls=RMSprop,
+            optimizer_params=config.algorithm.optimizer,
+            loss_func=nn.functional.smooth_l1_loss,
             hyper_params=DQNHyperParams(
                 **config.algorithm.hyper_parameters,
                 num_actions=num_actions
@@ -36,8 +35,12 @@ def create_dqn_agents(agent_id_list, mode, config):
         )
 
         experience_pool = ColumnBasedStore(**config.experience_pool)
-        agent_dict[agent_id] = CIMAgent(name=agent_id, mode=mode, algorithm=algorithm, experience_pool=experience_pool,
-                                        **config.training_loop_parameters)
+        agent_dict[agent_id] = CIMAgent(
+            name=agent_id,
+            algorithm=algorithm,
+            experience_pool=experience_pool,
+            **config.training_loop_parameters
+        )
 
     return agent_dict
 

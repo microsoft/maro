@@ -70,10 +70,7 @@ Agent Manager
 The agent manager provides a unified interactive interface with the environment
 for RL agent(s). From the actor's perspective, it isolates the complex dependencies
 of the various homogeneous/heterogeneous agents, so that the whole agent manager
-will behave just like a single agent. Besides that, the agent manager also plays
-the role of an agent assembler. It can assemble different RL agents according to
-the actual requirements, such as whether to share the underlying model, whether
-to share the experience pool, etc.
+will behave just like a single agent.
 
 .. code-block:: python
 

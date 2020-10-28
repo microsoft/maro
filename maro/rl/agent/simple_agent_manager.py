@@ -8,16 +8,19 @@ from .abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.utils.exception.rl_toolkit_exception import MissingShaperError
 
 
 class SimpleAgentManager(AbsAgentManager):
     def __init__(
-        self, name: str, mode: AgentManagerMode, agent_dict: dict,
-        state_shaper: StateShaper = None, action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None, explorer: AbsExplorer = None,
+        self,
+        name: str,
+        mode: AgentManagerMode,
+        agent_dict: dict,
+        state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None,
+        experience_shaper: ExperienceShaper = None
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
@@ -38,11 +41,11 @@ class SimpleAgentManager(AbsAgentManager):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-    def choose_action(self, decision_event, snapshot_list):
+    def choose_action(self, decision_event, snapshot_list, epsilon_dict: dict = None):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         model_action = self.agent_dict[agent_id].choose_action(
-            model_state, self._explorer.epsilon[agent_id] if self._explorer else None
+            model_state, epsilon_dict[agent_id] if epsilon_dict else None
         )
         self._transition_cache = {
             "state": model_state,

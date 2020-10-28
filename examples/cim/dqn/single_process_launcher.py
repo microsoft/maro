@@ -7,18 +7,30 @@ import os
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import SimpleLearner, SimpleActor, AgentMode, AgentManagerMode, KStepExperienceShaper, \
+from maro.rl import SimpleLearner, SimpleActor, AgentManagerMode, KStepExperienceShaper, \
     TwoPhaseLinearExplorer
 from maro.utils import Logger
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import create_dqn_agents, DQNAgentManager
-from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 
-if __name__ == "__main__":
+def launch(config):
+    # First determine the input dimension and add it to the config.
+    def set_input_dim():
+        # obtain model input dimension from state shaping configurations
+        look_back = config["state_shaping"]["look_back"]
+        max_ports_downstream = config["state_shaping"]["max_ports_downstream"]
+        num_port_attributes = len(config["state_shaping"]["port_attributes"])
+        num_vessel_attributes = len(config["state_shaping"]["vessel_attributes"])
+
+        input_dim = (look_back + 1) * (max_ports_downstream + 1) * num_port_attributes + num_vessel_attributes
+        config["agents"]["algorithm"]["input_dim"] = input_dim
+
+    set_input_dim()
+
     # Step 1: Initialize a CIM environment for using a toy dataset.
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
@@ -46,7 +58,7 @@ if __name__ == "__main__":
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list, AgentMode.TRAIN_INFERENCE, config.agents),
+        agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
@@ -62,3 +74,8 @@ if __name__ == "__main__":
     learner.train(total_episodes=config.general.total_training_episodes)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
+
+
+if __name__ == "__main__":
+    from components.config import config
+    launch(config)

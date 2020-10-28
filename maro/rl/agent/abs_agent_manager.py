@@ -7,7 +7,6 @@ from enum import Enum
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.utils.exception.rl_toolkit_exception import WrongAgentManagerModeError
 
 
@@ -22,10 +21,7 @@ class AbsAgentManager(ABC):
 
     The agent manager provides a unified interactive interface with the environment for RL agent(s). From
     the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous
-    agents, so that the whole agent manager will behave just like a single agent. Besides that, the agent
-    manager also plays the role of an agent assembler. It can assemble different RL agents according to the
-    actual requirements, such as whether to share the underlying model, whether to share the experience
-    pool, etc.
+    agents, so that the whole agent manager will behave just like a single agent.
 
     Args:
         name (str): Name of agent manager.
@@ -40,7 +36,10 @@ class AbsAgentManager(ABC):
             executable action. Cannot be None under Inference and TrainInference modes.
     """
     def __init__(
-        self, name: str, mode: AgentManagerMode, agent_dict: dict,
+        self,
+        name: str,
+        mode: AgentManagerMode,
+        agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
