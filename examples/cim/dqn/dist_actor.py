@@ -4,7 +4,7 @@
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentManagerMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
+from maro.rl import AgentManagerMode, SimpleActor, ActorWorker, KStepExperienceShaper
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import create_dqn_agents, DQNAgentManager
@@ -36,12 +36,6 @@ def launch(config):
             **config.experience_shaping.k_step
         )
 
-    exploration_config = {
-        "epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
-        "split_point_dict": {"_all_": config.exploration.split_point},
-        "with_cache": config.exploration.with_cache
-    }
-    explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
     agent_manager = DQNAgentManager(
         name="distributed_cim_actor",
         mode=AgentManagerMode.INFERENCE,
@@ -49,7 +43,6 @@ def launch(config):
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
-        explorer=explorer
     )
     proxy_params = {
         "group_name": config.distributed.group_name,

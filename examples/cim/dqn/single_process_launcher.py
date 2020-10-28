@@ -47,13 +47,6 @@ def launch(config):
             **config.experience_shaping.k_step
         )
 
-    exploration_config = {
-        "epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
-        "split_point_dict": {"_all_": config.exploration.split_point},
-        "with_cache": config.exploration.with_cache
-    }
-    explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
-
     # Step 3: Create an agent manager.
     agent_manager = DQNAgentManager(
         name="cim_learner",
@@ -61,17 +54,18 @@ def launch(config):
         agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
-        experience_shaper=experience_shaper,
-        explorer=explorer
+        experience_shaper=experience_shaper
     )
 
     # Step 4: Create an actor and a learner to start the training process.
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
-        trainable_agents=agent_manager, actor=actor,
+        trainable_agents=agent_manager,
+        actor=actor,
+        explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(total_episodes=config.general.total_training_episodes)
+    learner.train(max_episode=config.general.max_episodes)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 
