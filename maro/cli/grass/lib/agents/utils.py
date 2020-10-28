@@ -174,7 +174,23 @@ def delete_rejoin_container_name_to_component_name(redis: Redis, job_id: str) ->
     )
 
 
-def get_rejoin_details(redis: Redis, job_id: str) -> dict:
+def get_job_runtime_details(redis: Redis, job_id: str) -> dict:
     return redis.hgetall(
-        f"job:{job_id}:rejoin_details"
+        f"job:{job_id}:runtime_details"
+    )
+
+
+def get_rejoin_component_restart_times(redis, job_id: str, component_id: str) -> int:
+    restart_times = redis.hget(
+        f"job:{job_id}:component_id_to_restart_times",
+        component_id
+    )
+    return 0 if restart_times is None else int(restart_times)
+
+
+def incr_rejoin_component_restart_times(redis, job_id: str, component_id: str) -> None:
+    redis.hincrby(
+        f"job:{job_id}:component_id_to_restart_times",
+        component_id,
+        1
     )
