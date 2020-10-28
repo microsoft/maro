@@ -59,7 +59,9 @@ class ActorProxy(object):
                         for peer in self._proxy.peers["actor"]]
             # TODO: double check when ack enable
             replies = self._proxy.scatter(
-                tag=MessageTag.ROLLOUT, session_type=SessionType.TASK, destination_payload_list=payloads
+                tag=MessageTag.ROLLOUT,
+                session_type=SessionType.TASK,
+                destination_payload_list=payloads
             )
             for msg in replies:
                 performance[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
