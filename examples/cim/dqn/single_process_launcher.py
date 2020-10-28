@@ -8,7 +8,7 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.rl import AgentManagerMode, SimpleEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor,  \
-    TwoPhaseLinearExplorer,
+    TwoPhaseLinearExplorer
 from maro.utils import Logger
 
 from components.action_shaper import CIMActionShaper
