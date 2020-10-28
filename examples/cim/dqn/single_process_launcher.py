@@ -65,7 +65,7 @@ def launch(config):
         explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.max_episodes)
+    learner.train(max_episode=config.general.max_episode)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 

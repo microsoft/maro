@@ -70,6 +70,7 @@ class SimpleLearner(AbsLearner):
                 performance, exp_by_agent = self._sample(episode, max_episode)
                 self._performance_history.append(performance)
                 if early_stopping_checker is not None and early_stopping_checker(self._performance_history):
+                    self._logger.info("Early stopping condition satisfied. Training complete.")
                     break
                 episode += 1
         else:
@@ -77,6 +78,7 @@ class SimpleLearner(AbsLearner):
                 performance, exp_by_agent = self._sample(episode, max_episode)
                 self._performance_history.append(performance)
                 if early_stopping_checker is not None and early_stopping_checker(self._performance_history):
+                    self._logger.info("Early stopping condition satisfied. Training complete.")
                     break
                 self._trainable_agents.train(exp_by_agent)
 
