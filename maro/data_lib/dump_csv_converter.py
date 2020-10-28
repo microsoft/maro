@@ -8,12 +8,18 @@ from pathlib import Path
 import threading
 import pandas as pd
 import numpy as np
+import inspect
 
 
 class dump_csv_converter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
+
     def __init__(self, parent_path = ''):
         super().__init__()
+        self.__parent_path = parent_path
+        #self.__generate_new_folder(parent_path)
+
+    def __generate_new_folder(self, parent_path):
         now = datetime.now()
         self._foldername = 'snapshot_dump_' + now.strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
         if parent_path is not '':
@@ -27,6 +33,9 @@ class dump_csv_converter:
     @property
     def dump_folder(self):
         return self._foldername
+
+    def reset_folder_path(self):
+        self.__generate_new_folder(self.__parent_path)
 
     def process_data(self):
         for curDir, dirs, files in os.walk(self._foldername):
@@ -80,4 +89,40 @@ class dump_csv_converter:
             for file in files:
                 if file.endswith('.meta') or file.endswith('.npy'):
                     os.remove(file)
+
+    def dump_descsion_events(self, decision_events):
+        decision_events_file = os.path.join(self._foldername, 'decision_events.csv')
+        for e in decision_events:
+            print(e)
+        headers, colums_count = self._calc_event_headers(decision_events[0])
+        array = []
+        for event in decision_events:
+            attr_dict = dict()
+            for key in headers:
+                if event.__dict__.__contains__(key):
+                    if key == 'snapshot_list':
+                        obj = event.__dict__[key]
+                        for obj_key in obj.__dict__.keys:
+                            if obj_key[0] is not '_':
+                                attr_dict[obj_key] = obj.__dict__[obj_key]
+                    else:
+                        attr_dict[key] = event.__dict__[key]
+
+            array.append(attr_dict)
+
+        dataframe = pd.DataFrame(array)
+        dataframe.to_csv(decision_events_file, index = False)
+
+    def _calc_event_headers(self, event):
+        if event is None:
+            return [], 0
+        headers = []
+        count = 0
+        for attr in dir(event):
+            if attr[0] is not '_':
+                headers.append(attr)
+                count = count + 1
+
+        return headers, count
+
 

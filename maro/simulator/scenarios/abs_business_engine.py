@@ -9,7 +9,6 @@ from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.simulator.utils.common import tick_to_frame_index, total_frames
 
-
 class AbsBusinessEngine(ABC):
     """Abstract class for all the business engine, a business engine is the core part of a scenario,
     used to hold all related logics.

@@ -7,9 +7,12 @@ from maro.simulator.scenarios.cim.common import Action
 start_tick = 0
 durations = 100  # 100 days
 
+opts = dict()
+opts['enable-dump-snapshot'] = '/Users/micl/Documents/dumps'
+
 # Initialize an environment with a specific scenario, related topology.
 env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=start_tick, durations=durations)
+          start_tick=start_tick, durations=durations, options=opts)
 
 
 # Query environment summary, which includes business instances, intra-instance attributes, etc.
