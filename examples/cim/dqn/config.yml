@@ -58,12 +58,3 @@ agents:
     num_batches: 10  # number of times the algorithm's step() method is called
     batch_size: 128
   seed: 1024   # for reproducibility
-distributed:
-  group_name: "dqn_distributed_test"
-  actor:
-    peer: {"actor": 1}
-  learner:
-    peer: {"actor_worker": 1}
-  redis:
-    host_name: "localhost"
-    port: 6379

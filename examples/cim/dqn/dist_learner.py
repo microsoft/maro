@@ -32,9 +32,9 @@ def launch(config):
     )
 
     proxy_params = {
-        "group_name": config.distributed.group_name,
-        "expected_peers": config.distributed.learner.peer,
-        "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port)
+        "group_name": os.environ["GROUP"],
+        "expected_peers": {"actor": int(os.environ["NUM_ACTORS"])},
+        "redis_address": ("localhost", 6379)
     }
 
     learner = SimpleLearner(

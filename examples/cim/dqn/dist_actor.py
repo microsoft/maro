@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+
 import numpy as np
 
 from maro.simulator import Env
@@ -45,9 +47,9 @@ def launch(config):
         experience_shaper=experience_shaper,
     )
     proxy_params = {
-        "group_name": config.distributed.group_name,
-        "expected_peers": config.distributed.actor.peer,
-        "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port)
+        "group_name": os.environ["GROUP"],
+        "expected_peers": {"learner": 1},
+        "redis_address": ("localhost", 6379)
     }
     actor_worker = ActorWorker(
         local_actor=SimpleActor(env=env, inference_agents=agent_manager),
