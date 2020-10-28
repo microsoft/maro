@@ -48,7 +48,9 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(
-                tag=MessageTag.ROLLOUT, session_type=SessionType.NOTIFICATION, payload={PayloadKey.DONE: True}
+                tag=MessageTag.ROLLOUT,
+                session_type=SessionType.NOTIFICATION,
+                payload={PayloadKey.DONE: True}
             )
             return None, None
         else:
