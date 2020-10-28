@@ -98,7 +98,7 @@ class DQN(AbsAlgorithm):
             if self._train_cnt % self._hyper_params.target_replacement_period == 0:
                 self._update_target_model()
 
-            return loss.detach().numpy()
+            return np.abs((current_q_values - target_q_values).detach().numpy())
 
     def _update_target_model(self):
         if hasattr(self, "_optimizer"):
