@@ -31,12 +31,7 @@ class SimpleLearner(AbsLearner):
             model_dict = None if self._is_shared_agent_instance() else self._trainable_agents.get_models()
             epsilon_dict = self._trainable_agents.explorer.epsilon if self._trainable_agents.explorer else None
             performance, exp_by_agent = self._actor.roll_out(model_dict=model_dict, epsilon_dict=epsilon_dict)
-            if isinstance(performance, dict):
-                for actor_id, perf in performance.items():
-                    self._logger.info(f"ep {current_ep} - performance: {perf},"
-                                      f"source: {actor_id}, epsilons: {epsilon_dict}")
-            else:
-                self._logger.info(f"ep {current_ep} - performance: {performance}, epsilons: {epsilon_dict}")
+            self._logger.info(f"ep {current_ep} - performance: {performance}, epsilons: {epsilon_dict}")
 
             self._trainable_agents.store_experiences(exp_by_agent)
             self._trainable_agents.train()
