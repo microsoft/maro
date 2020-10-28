@@ -21,8 +21,8 @@ from maro.communication import DriverType, ZmqDriver
 from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
 from maro.communication.utils import default_parameters, MessageCache
 from maro.utils import InternalLogger, DummyLogger
-from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
-    InformationUncompletedError, SendAgain, PeersRejoinTimeout
+from maro.utils.exception.communication_exception import RedisConnectionError, PeersMissError, \
+    InformationUncompletedError, SendAgain
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 MAX_LENGTH_FOR_MESSAGE_CACHE = 1024

@@ -8,7 +8,6 @@ from typing import Union
 import uuid
 
 # private lib
-from maro.utils.exception.communication_exception import MessageSessionTypeError
 from maro.communication.utils import session_id_generator
 
 
