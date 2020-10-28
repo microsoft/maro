@@ -6,8 +6,8 @@ general:
   max_episode: 500 # max episode
   early_stopping:
     start_ep: 50
-    last_k: 3
-    threshold: 0.3
+    last_k: 5
+    threshold: 0.2
 state_shaping:
   look_back: 7
   max_ports_downstream: 2

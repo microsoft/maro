@@ -60,7 +60,7 @@ def launch(config):
     # Step 4: Create an actor and a learner to start the training process.
     early_stopping_checker = SimpleEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
-        metric_func=lambda x: x["container_shortage"],
+        metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
         threshold=config.general.early_stopping.threshold
     )
     actor = SimpleActor(env=env, inference_agents=agent_manager)
