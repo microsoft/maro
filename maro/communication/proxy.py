@@ -37,6 +37,7 @@ ENABLE_MESSAGE_CACHE_FOR_REJOIN = default_parameters.proxy.peer_rejoin.enable_me
 TIMEOUT_FOR_MINIMAL_PEER_NUMBER = default_parameters.proxy.peer_rejoin.timeout_for_minimal_peer_number
 MINIMAL_PEERS = default_parameters.proxy.peer_rejoin.minimal_peers
 AUTO_CLEAN = default_parameters.proxy.peer_rejoin.auto_clean_for_container
+MAX_REJOIN_TIMES = default_parameters.proxy.peer_rejoin.max_rejoin_times
 
 
 class Proxy:
@@ -67,7 +68,7 @@ class Proxy:
         minimal_peers: Union[float, dict] = MINIMAL_PEERS, peer_update_frequency: int = PEER_UPDATE_FREQUENCY,
         enable_message_cache_for_rejoin: bool = ENABLE_MESSAGE_CACHE_FOR_REJOIN,
         timeout_for_minimal_peer_number: int = TIMEOUT_FOR_MINIMAL_PEER_NUMBER,
-        auto_clean_for_container: bool = AUTO_CLEAN, log_enable: bool = True
+        log_enable: bool = True
     ):
         self._group_name = group_name
         self._component_type = component_type
@@ -108,7 +109,6 @@ class Proxy:
 
         # Parameters for dynamic peers
         self._enable_rejoin = enable_rejoin
-        self._auto_clean_for_container = auto_clean_for_container
         if self._enable_rejoin:
             self._peer_update_frequency = peer_update_frequency
             self._timeout_for_minimal_peer_number = timeout_for_minimal_peer_number
@@ -152,7 +152,8 @@ class Proxy:
             job_id = os.getenv("JOB_ID")
             rejoin_config = {
                 "enable": int(self._enable_rejoin),
-                "remove_container": int(self._auto_clean_for_container)
+                "rejoin:max_restart_times": MAX_REJOIN_TIMES,
+                "remove_container": int(AUTO_CLEAN)
             }
 
             self._redis_connection.hset(f"job:{job_id}:runtime_details", rejoin_config)
