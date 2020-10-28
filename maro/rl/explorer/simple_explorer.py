@@ -17,7 +17,7 @@ class LinearExplorer(AbsExplorer):
         self._min_eps = min_eps
 
     def generate_epsilon(self, current_ep, max_ep, performance_history=None):
-        return self._min_eps + (self._max_eps - self._min_eps) * (1 - current_ep / max_ep)
+        return self._min_eps + (self._max_eps - self._min_eps) * (1 - current_ep / (max_ep - 1))
 
 
 class TwoPhaseLinearExplorer(AbsExplorer):
@@ -42,7 +42,7 @@ class TwoPhaseLinearExplorer(AbsExplorer):
         self._min_eps = min_eps
 
     def generate_epsilon(self, current_ep, max_ep, performance_history=None):
-        progress = current_ep / max_ep
+        progress = current_ep / (max_ep - 1)
         if progress <= self._progress_split:
             return self._max_eps - (self._max_eps - self._eps_split) * progress / self._progress_split
         else:

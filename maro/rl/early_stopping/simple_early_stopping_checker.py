@@ -25,5 +25,5 @@ class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
         self._threshold = threshold
 
     def __call__(self, performance_history):
-        metrics = map(self._metric_func, performance_history[-self._last_k:])
+        metrics = list(map(self._metric_func, performance_history[-self._last_k:]))
         return stdev(metrics) / mean(metrics) < self._threshold

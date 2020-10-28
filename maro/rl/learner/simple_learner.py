@@ -69,8 +69,8 @@ class SimpleLearner(AbsLearner):
                 "The training loop will run forever since neither maximum episode nor early stopping checker "
                 "is provided. "
             )
-        episode = 1
-        while max_episode < 0 or episode <= max_episode:
+        episode = 0
+        while max_episode < 0 or episode < max_episode:
             performance, exp_by_agent = self._sample(episode, max_episode)
             self._performance_history.append(performance)
             if early_stopping_checker is not None and \
