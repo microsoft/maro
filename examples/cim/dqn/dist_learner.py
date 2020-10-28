@@ -3,7 +3,7 @@
 
 import os
 
-from maro.rl import ActorProxy, SimpleLearner, AgentManagerMode, TwoPhaseLinearExplorer
+from maro.rl import ActorProxy, AgentManagerMode, SimpleEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearExplorer
 from maro.simulator import Env
 from maro.utils import Logger
 
@@ -37,15 +37,26 @@ def launch(config):
         "redis_address": ("localhost", 6379)
     }
 
+    early_stopping_checker = SimpleEarlyStoppingChecker(
+        last_k=config.general.early_stopping.last_k,
+        metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
+        threshold=config.general.early_stopping.threshold
+    )
+
     learner = SimpleLearner(
         trainable_agents=agent_manager,
         actor=ActorProxy(proxy_params=proxy_params),
         explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.train(config.general.max_episode)
+    learner.train(
+        max_episode=config.general.max_episode,
+        early_stopping_checker=early_stopping_checker,
+        early_stopping_check_ep=config.general.early_stopping.start_ep
+    )
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
+    learner.exit()
 
 
 if __name__ == "__main__":

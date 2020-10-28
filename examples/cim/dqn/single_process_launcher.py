@@ -77,6 +77,7 @@ def launch(config):
     )
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
+    learner.exit()
 
 
 if __name__ == "__main__":
