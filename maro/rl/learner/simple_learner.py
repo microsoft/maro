@@ -1,30 +1,33 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable
+from typing import Callable, Union
 import warnings
 
 from .abs_learner import AbsLearner
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.explorer.abs_explorer import AbsExplorer
-from maro.utils import DummyLogger
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
+from maro.utils import Logger, DummyLogger
 
 
 class SimpleLearner(AbsLearner):
     """A simple implementation of ``AbsLearner``.
 
     Args:
-        trainable_agents (AbsAgentManager): an AgentManager instance that manages all agents.
-        actor (Actor or ActorProxy): an Actor or VectorActorProxy instance.
-        logger: used for logging important messages.
+        trainable_agents (AbsAgentManager): An AgentManager instance that manages all agents.
+        actor (SimpleActor or ActorProxy): An SimpleActor or ActorProxy instance responsible for performing roll-outs
+            (environment sampling).
+        explorer (AbsExplorer): An explorer instance responsible for generating exploration rates. Defaults to None.
+        logger (Logger): Used to log important messages.
     """
     def __init__(
         self,
         trainable_agents: SimpleAgentManager,
-        actor,
+        actor: Union[SimpleActor, ActorProxy],
         explorer: AbsExplorer = None,
-        logger=DummyLogger()
+        logger: Logger = DummyLogger()
     ):
         super().__init__()
         self._trainable_agents = trainable_agents
@@ -43,7 +46,7 @@ class SimpleLearner(AbsLearner):
             return None
 
     def _sample(self, ep, max_ep):
-        """One episode"""
+        """Perform one episode of environment sampling through actor roll-out."""
         model_dict = None if self._is_shared_agent_instance() else self._trainable_agents.dump_models()
         epsilon_dict = self._get_epsilons(ep, max_ep)
         performance, exp_by_agent = self._actor.roll_out(model_dict=model_dict, epsilon_dict=epsilon_dict)
@@ -56,8 +59,8 @@ class SimpleLearner(AbsLearner):
         Args:
             max_episode (int): number of episodes to be run. If negative, the training loop will run forever unless
                 an ``early_stopping_checker`` is provided and the early stopping condition is met.
-            early_stopping_checker (Callable): A Callable object to judge whether the training loop should be ended
-                based on the latest performances.
+            early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
+                terminated based on the latest performances.
         """
         if max_episode < 0:
             if early_stopping_checker is None:

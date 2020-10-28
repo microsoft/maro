@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from .agent import CIMAgent
-from maro.rl import SimpleAgentManager, LearningModel, DecisionLayers, DQN, DQNHyperParams, ColumnBasedStore
+from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, DQN, DQNHyperParams, ColumnBasedStore
 from maro.utils import set_seeds
 
 
@@ -15,7 +15,7 @@ def create_dqn_agents(agent_id_list, config):
     agent_dict = {}
     for agent_id in agent_id_list:
         eval_model = LearningModel(
-            decision_layers=DecisionLayers(
+            decision_layers=FullyConnectedNet(
                 name=f'{agent_id}.policy',
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,

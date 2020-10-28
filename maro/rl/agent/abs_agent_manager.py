@@ -62,14 +62,18 @@ class AbsAgentManager(ABC):
 
     @abstractmethod
     def on_env_feedback(self, *args, **kwargs):
-        """Do things after a feedback is received from the environment following an action."""
+        """Processing logic after receiving feedback from the environment is implemented here.
+
+        See ``SimpleAgentManager`` for example.
+        """
         return NotImplemented
 
     @abstractmethod
     def post_process(self, *args, **kwargs):
-        """Do things after an episode is finished.
+        """Processing logic after an episode is finished.
 
-        These things may involve shaping experiences and resetting stateful objects.
+        These things may involve generating experiences and resetting stateful objects. See ``SimpleAgentManager``
+        for example.
         """
         return NotImplemented
 

@@ -9,6 +9,15 @@ from .abs_early_stopping_checker import AbsEarlyStoppingChecker
 
 
 class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
+    """Simple early stopping checker based on the mean and standard deviation of the last k performance records.
+
+    Args:
+        last_k (int): Number of the latest performance records to check for early stopping.
+        performance_metric_func (Callable): A function to obtain the metric from a performance record to be evaluated
+            against a threshold value.
+        threshold (float): The threshold value against which the early stopping metric is compared. The early stopping
+            condition is satisfied if the metric obtained using the ``performance_metric_func`` is below this threshold.
+    """
     def __init__(self, last_k: int, performance_metric_func: Callable, threshold: float):
         super().__init__()
         self._last_k = last_k

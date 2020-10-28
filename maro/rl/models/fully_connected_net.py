@@ -6,7 +6,7 @@ from collections import OrderedDict
 import torch.nn as nn
 
 
-class DecisionLayers(nn.Module):
+class FullyConnectedNet(nn.Module):
     """NN model to compute state or action values.
 
     Fully connected network with optional batch normalization, activation and dropout components.

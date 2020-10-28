@@ -15,17 +15,17 @@ class DQNHyperParams:
     Args:
         num_actions (int): number of possible actions
         reward_decay (float): reward decay as defined in standard RL terminology
-        num_training_rounds_per_target_replacement (int): number of training frequency of target model replacement
+        target_replacement_period (int): number of training frequency of target model replacement
         tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
     """
-    __slots__ = ["num_actions", "reward_decay", "num_training_rounds_per_target_replacement", "tau"]
+    __slots__ = ["num_actions", "reward_decay", "target_replacement_period", "tau"]
 
     def __init__(
-        self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int, tau: float = 1.0
+        self, num_actions: int, reward_decay: float, target_replacement_period: int, tau: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
-        self.num_training_rounds_per_target_replacement = num_training_rounds_per_target_replacement
+        self.target_replacement_period = target_replacement_period
         self.tau = tau
 
 
@@ -95,7 +95,7 @@ class DQN(AbsAlgorithm):
             loss.backward()
             self._optimizer.step()
             self._train_cnt += 1
-            if self._train_cnt % self._hyper_params.num_training_rounds_per_target_replacement == 0:
+            if self._train_cnt % self._hyper_params.target_replacement_period == 0:
                 self._update_target_model()
 
             return loss.detach().numpy()

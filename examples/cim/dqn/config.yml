@@ -49,7 +49,7 @@ agents:
       lr: 0.05
     hyper_parameters:
       reward_decay: .0
-      num_training_rounds_per_target_replacement: 5
+      target_replacement_period: 5
       tau: 0.1
   experience_pool:
     capacity: -1
