@@ -6,7 +6,7 @@ with environment random seed 0, 128, 1024.  Besides the parameter listed in the
 table, the experiment is configured with the default parameter value in the file
 `examples/citi_bike/online_lp/config.yml`
 
-## Future demand and supply from BE
+## Future Demand and Supply from BE
 
 For the experiments below, we imitate the way of reading log data in BE and peep
 the future demand and supply of bikes for each station from the trip reader
@@ -23,7 +23,7 @@ ny.202001 | 169,304       |  1,968 +/- 25 |  69,468 +/- 201
 ny.202004 |  91,810       |    169 +/-  8 |  18,976 +/- 159
 ny.202006 | 197,833       |  1,908 +/- 27 |  36,301 +/- 117
 
-## Future demand and supply by One-step Fixed-window Moving Average
+## Future Demand and Supply by One-Step Fixed-Window Moving Average
 
 For the experiments below, we use a simple fixed-window moving average to predict
 the future demand and supply of bikes for each station.
@@ -39,7 +39,7 @@ ny.202001 | 169,304       |  1,746 +/-  33 | 168,379 +/-   338
 ny.202004 |  91,810       |    104 +/-   8 | 114,145 +/-   831
 ny.202006 | 197,833       |  1,071 +/-  42 | 185,101 +/- 1,860
 
-## Comparison of these two strategy and analysis of the forecasting results
+## Comparison of These Two Strategy and Analysis of the Forecasting Results
 
 As shown in the tables above, there is no big difference between directly using
 trip log data and using MA forecasting results. To find out why forecasting demand
