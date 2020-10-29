@@ -103,7 +103,7 @@ class Env(AbsEnv):
                 converter.reset_folder_path()
                 self._business_engine._frame.dump(converter.dump_folder)
                 converter.start_processing()
-                # converter.dump_descsion_events(self._decision_events)
+                converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
 
         self._decision_events.clear()
 
