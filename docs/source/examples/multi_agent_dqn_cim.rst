@@ -142,7 +142,7 @@ the DQN algorithm and an experience pool for each agent.
             set_seeds(config.agents.seed)
             num_actions = config.agents.algorithm.num_actions
             for agent_id in self._agent_id_list:
-                eval_model = LearningModel(decision_layers=MLPFullyConnectedNet(name=f'{agent_id}.policy',
+                eval_model = LearningModel(decision_layers=FullyConnectedNet(name=f'{agent_id}.policy',
                                                                              input_dim=self._state_shaper.dim,
                                                                              output_dim=num_actions,
                                                                              **config.agents.algorithm.model)
