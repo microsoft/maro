@@ -7,25 +7,18 @@ import numpy as np
 
 from maro.simulator import Env
 from maro.rl import AgentManagerMode, SimpleActor, ActorWorker, KStepExperienceShaper
+from maro.utils import convert_dottable
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import create_dqn_agents, DQNAgentManager
+from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 
 def launch(config):
-    def set_input_dim():
-        # obtain model input dimension from state shaping configurations
-        look_back = config["state_shaping"]["look_back"]
-        max_ports_downstream = config["state_shaping"]["max_ports_downstream"]
-        num_port_attributes = len(config["state_shaping"]["port_attributes"])
-        num_vessel_attributes = len(config["state_shaping"]["vessel_attributes"])
-
-        input_dim = (look_back + 1) * (max_ports_downstream + 1) * num_port_attributes + num_vessel_attributes
-        config["agents"]["algorithm"]["input_dim"] = input_dim
-
-    set_input_dim()
+    set_input_dim(config)
+    config = convert_dottable(config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.state_shaping)
