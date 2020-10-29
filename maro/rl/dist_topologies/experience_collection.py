@@ -36,7 +36,7 @@ def merge_experiences_with_trajectory_boundaries(trajectories_by_source) -> dict
         trajectories_by_source (dict): Agent's trajectories from multiple sources.
 
     Returns:
-         A list of trajectories for each agent.
+        A list of trajectories for each agent.
     """
     merged = defaultdict(list)
     for exp_by_agent in trajectories_by_source.values():
@@ -44,5 +44,3 @@ def merge_experiences_with_trajectory_boundaries(trajectories_by_source) -> dict
             merged[agent_id].append(trajectory)
 
     return merged
-
-
