@@ -38,5 +38,7 @@ ERROR_CODE = {
     4001: "Unsupported Agent Mode",
     4002: "Missing Shaper",
     4003: "Wrong Agent Manager Mode",
-    4004: "Store Misalignment Error"
+    4004: "Store Misalignment Error",
+    4005: "Invalid Episode",
+    4006: "Infinite Training Loop"
 }

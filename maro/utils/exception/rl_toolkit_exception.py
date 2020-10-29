@@ -27,3 +27,15 @@ class StoreMisalignmentError(MAROException):
     sizes."""
     def __init__(self, msg: str = None):
         super().__init__(4004, msg)
+
+
+class InvalidEpisodeError(MAROException):
+    """Raised when the ``max_episode`` passed to the the ``SimpleLearner``'s ``train`` method is negative and not -1."""
+    def __init__(self, msg: str = None):
+        super().__init__(4005, msg)
+
+
+class InfiniteTrainingLoopError(MAROException):
+    """Raised when the ``SimpleLearner``'s training loop becomes infinite."""
+    def __init__(self, msg: str = None):
+        super().__init__(4006, msg)

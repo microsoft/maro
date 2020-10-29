@@ -11,6 +11,7 @@ from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
 from maro.utils import Logger, DummyLogger
+from maro.utils.exception.rl_toolkit_exception import InvalidEpisodeError, InfiniteTrainingLoopError
 
 
 class SimpleLearner(AbsLearner):
@@ -54,29 +55,30 @@ class SimpleLearner(AbsLearner):
         self._logger.info(f"ep {ep} - performance: {performance}, epsilons: {epsilon_dict}")
         return performance, exp_by_agent
 
-    def train(self, max_episode: int, early_stopping_checker: Callable = None, early_stopping_check_ep: int = None):
+    def train(self, max_episode: int, early_stopping_checker: Callable = None, warmup_ep: int = None):
         """Main loop for collecting experiences from the actor and using them to update policies.
 
         Args:
-            max_episode (int): number of episodes to be run. If negative, the training loop will run forever unless
+            max_episode (int): number of episodes to be run. If -1, the training loop will run forever unless
                 an ``early_stopping_checker`` is provided and the early stopping condition is met.
             early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
                 terminated based on the latest performances. Defaults to None.
-            early_stopping_check_ep (int): Episode from which early stopping check is initiated. Defaults to None.
+            warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
         """
-        if max_episode < 0 and early_stopping_checker is None:
-            warnings.warn(
+        if max_episode < -1:
+            raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
+        if max_episode == -1 and early_stopping_checker is None:
+            raise InfiniteTrainingLoopError(
                 "The training loop will run forever since neither maximum episode nor early stopping checker "
                 "is provided. "
             )
         episode = 0
-        while max_episode < 0 or episode < max_episode:
+        while max_episode == -1 or episode < max_episode:
             performance, exp_by_agent = self._sample(episode, max_episode)
             self._performance_history.append(performance)
-            if early_stopping_checker is not None and \
-                    (early_stopping_check_ep is None or episode >= early_stopping_check_ep) and \
+            if early_stopping_checker is not None and (warmup_ep is None or episode >= warmup_ep) and \
                     early_stopping_checker(self._performance_history):
-                self._logger.info("Early stopping condition satisfied. Training complete.")
+                self._logger.info("Early stopping condition hit. Training complete.")
                 break
             self._trainable_agents.train(exp_by_agent)
             episode += 1
@@ -89,11 +91,11 @@ class SimpleLearner(AbsLearner):
         )
         self._logger.info(f"test performance: {performance}")
 
-    def exit(self):
+    def exit(self, code: int = 0):
         """Tell the remote actor to exit"""
         if isinstance(self._actor, ActorProxy):
             self._actor.roll_out(done=True)
-        sys.exit()
+        sys.exit(code)
 
     def dump_models(self, model_dump_dir: str):
         self._trainable_agents.dump_models_to_files(model_dump_dir)
