@@ -11,6 +11,9 @@ import uuid
 from maro.communication.utils import session_id_generator
 
 
+NON_RESTART_EXIT_CODE = 64
+
+
 class SessionType(Enum):
     """Communication session categories.
 
@@ -77,8 +80,10 @@ class SessionMessage(Message):
         session_stage (Enum): It indicates the current session stage.
     """
 
-    def __init__(self, tag: Union[str, Enum], source: str, destination: str, payload=None,
-                 session_id: str = None, session_type: SessionType = SessionType.TASK, session_stage=None):
+    def __init__(
+        self, tag: Union[str, Enum], source: str, destination: str, payload=None, session_id: str = None,
+        session_type: SessionType = SessionType.TASK, session_stage=None
+    ):
         super().__init__(tag, source, destination, payload, session_id)
         self.session_type = session_type
 
@@ -90,4 +95,4 @@ class SessionMessage(Message):
             sys.stderr.write(
                 f"Receive unrecognized session type {self.session_type}, please use the SessionType class."
             )
-            sys.exit(64)
+            sys.exit(NON_RESTART_EXIT_CODE)

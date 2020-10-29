@@ -17,6 +17,7 @@ from maro.utils.exception.communication_exception import PeersConnectionError, D
     SocketTypeError, PeersDisconnectionError, SendAgain
 
 
+NON_RESTART_EXIT_CODE = 64
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout
 RECEIVE_TIMEOUT = default_parameters.driver.zmq.receive_timeout
@@ -182,7 +183,7 @@ class ZmqDriver(AbsDriver):
                 return SendAgain(f"Temporary failure to send message to {message.destination}, may rejoin later.")
             else:
                 self._logger.critical(f"Failure to send message caused by: {key_error}")
-                sys.exit(64)
+                sys.exit(NON_RESTART_EXIT_CODE)
         except Exception as e:
             raise DriverSendError(f"Failure to send message caused by: {e}")
 
