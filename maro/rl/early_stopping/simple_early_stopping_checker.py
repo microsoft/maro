@@ -43,5 +43,6 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
         if self._last_k > len(metric_series):
             return False
         else:
+            metric_series = metric_series[-self._last_k:]
             max_delta = max(abs(val2 - val1) / val1 for val1, val2 in zip(metric_series, metric_series[1:]))
             return max_delta < self._threshold

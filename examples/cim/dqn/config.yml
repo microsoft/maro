@@ -5,7 +5,7 @@ env:
 general:
   max_episode: 500
   early_stopping:
-    start_ep: 50
+    warmup_ep: 50
     last_k: 5
     threshold: 0.2
 state_shaping:

@@ -3,7 +3,7 @@
 
 import os
 
-from maro.rl import ActorProxy, AgentManagerMode, SimpleEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearExplorer, \
+from maro.rl import ActorProxy, AgentManagerMode, MaxDeltaEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearExplorer, \
     concat_experiences_by_agent
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -31,7 +31,6 @@ def launch(config):
 
     early_stopping_checker = SimpleEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
-        metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
         threshold=config.general.early_stopping.threshold
     )
 
@@ -44,7 +43,8 @@ def launch(config):
     learner.train(
         max_episode=config.general.max_episode,
         early_stopping_checker=early_stopping_checker,
-        early_stopping_check_ep=config.general.early_stopping.start_ep
+        warmup_ep=config.general.early_stopping.warmup_ep,
+        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))

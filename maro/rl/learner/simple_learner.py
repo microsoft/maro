@@ -21,14 +21,15 @@ class SimpleLearner(AbsLearner):
         trainable_agents (AbsAgentManager): An AgentManager instance that manages all agents.
         actor (SimpleActor or ActorProxy): An SimpleActor or ActorProxy instance responsible for performing roll-outs
             (environment sampling).
-        explorer (AbsExplorer): An explorer instance responsible for generating exploration rates. Defaults to None.
+        explorer (dict or AbsExplorer): An explorer instance responsible for generating exploration rates.
+            Defaults to None.
         logger (Logger): Used to log important messages.
     """
     def __init__(
         self,
         trainable_agents: SimpleAgentManager,
         actor: Union[SimpleActor, ActorProxy],
-        explorer: AbsExplorer = None,
+        explorer: Union[dict, AbsExplorer] = None,
         logger: Logger = DummyLogger()
     ):
         super().__init__()
@@ -39,13 +40,18 @@ class SimpleLearner(AbsLearner):
         self._performance_history = []
 
     def _get_epsilons(self, current_ep, max_ep):
-        if self._explorer is not None:
+        if self._explorer is None:
+            return None
+        elif isinstance(self._explorer, dict):
+            return {
+                agent_id: self._explorer[agent_id].generate_epsilon(current_ep, max_ep, self._performance_history)
+                for agent_id in self._trainable_agents.agent_dict
+            }
+        else:
             return {
                 agent_id: self._explorer.generate_epsilon(current_ep, max_ep, self._performance_history)
                 for agent_id in self._trainable_agents.agent_dict
             }
-        else:
-            return None
 
     def _sample(self, ep, max_ep):
         """Perform one episode of environment sampling through actor roll-out."""
@@ -55,7 +61,10 @@ class SimpleLearner(AbsLearner):
         self._logger.info(f"ep {ep} - performance: {performance}, epsilons: {epsilon_dict}")
         return performance, exp_by_agent
 
-    def train(self, max_episode: int, early_stopping_checker: Callable = None, warmup_ep: int = None):
+    def train(
+        self, max_episode: int, early_stopping_checker: Callable = None, warmup_ep: int = None,
+        early_stopping_metric_func: Callable = None
+    ):
         """Main loop for collecting experiences from the actor and using them to update policies.
 
         Args:
@@ -64,6 +73,8 @@ class SimpleLearner(AbsLearner):
             early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
                 terminated based on the latest performances. Defaults to None.
             warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
+            early_stopping_metric_func (Callable): A function to extract the metric from a performance record
+                for early stopping checking.
         """
         if max_episode < -1:
             raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
@@ -73,11 +84,13 @@ class SimpleLearner(AbsLearner):
                 "is provided. "
             )
         episode = 0
+        metric_series = []
         while max_episode == -1 or episode < max_episode:
             performance, exp_by_agent = self._sample(episode, max_episode)
             self._performance_history.append(performance)
+            metric_series.append(early_stopping_metric_func(performance))
             if early_stopping_checker is not None and (warmup_ep is None or episode >= warmup_ep) and \
-                    early_stopping_checker(self._performance_history):
+                    early_stopping_checker(metric_series):
                 self._logger.info("Early stopping condition hit. Training complete.")
                 break
             self._trainable_agents.train(exp_by_agent)

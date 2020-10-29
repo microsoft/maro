@@ -1,13 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 import os
 
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentManagerMode, SimpleEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor,  \
+from maro.rl import AgentManagerMode, MaxDeltaEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor, \
     TwoPhaseLinearExplorer
 from maro.utils import Logger, convert_dottable
 
@@ -38,7 +37,7 @@ def launch(config):
             **config.experience_shaping.k_step
         )
 
-    # Step 3: Create an agent manager.
+    # Step 3: Create agents and an agent manager.
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
@@ -49,9 +48,8 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    early_stopping_checker = SimpleEarlyStoppingChecker(
+    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
-        metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
         threshold=config.general.early_stopping.threshold
     )
     actor = SimpleActor(env=env, inference_agents=agent_manager)
@@ -64,7 +62,8 @@ def launch(config):
     learner.train(
         max_episode=config.general.max_episode,
         early_stopping_checker=early_stopping_checker,
-        early_stopping_check_ep=config.general.early_stopping.start_ep
+        warmup_ep=config.general.early_stopping.warmup_ep,
+        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
