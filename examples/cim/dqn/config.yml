@@ -3,7 +3,7 @@ env:
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
 general:
-  max_episode: 500 # max episode
+  max_episode: 500
   early_stopping:
     start_ep: 50
     last_k: 5
@@ -59,6 +59,6 @@ agents:
     capacity: -1
   training_loop_parameters:
     min_experiences_to_train: 1024
-    num_batches: 10  # number of times the algorithm's step() method is called
+    num_batches: 10
     batch_size: 128
   seed: 1024   # for reproducibility
