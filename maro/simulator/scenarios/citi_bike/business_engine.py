@@ -182,13 +182,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         Returns:
             dict: Metrics information.
         """
-        total_trips = self._total_trips
-        total_shortage = self._total_shortages
-
         return DocableDict(
             metrics_desc,
-            trip_requirements=total_trips,
-            bike_shortage=total_shortage,
+            trip_requirements=self._total_trips,
+            bike_shortage=self._total_shortages,
             operation_number=self._total_operate_num
         )
 

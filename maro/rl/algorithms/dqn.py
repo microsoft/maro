@@ -13,19 +13,23 @@ class DQNHyperParams:
     """Hyper-parameter set for the DQN algorithm.
 
     Args:
-        num_actions (int): number of possible actions
-        reward_decay (float): reward decay as defined in standard RL terminology
-        num_training_rounds_per_target_replacement (int): number of training frequency of target model replacement
-        tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
+        num_actions (int): Number of possible actions
+        reward_decay (float): Reward decay as defined in standard RL terminology
+        target_replacement_frequency (int): Number of training rounds between target model updates
+        tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
     """
-    __slots__ = ["num_actions", "reward_decay", "num_training_rounds_per_target_replacement", "tau"]
+    __slots__ = ["num_actions", "reward_decay", "target_replacement_frequency", "tau"]
 
     def __init__(
-        self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int, tau: float = 1.0
+        self,
+        num_actions: int,
+        reward_decay: float,
+        target_replacement_frequency: int,
+        tau: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
-        self.num_training_rounds_per_target_replacement = num_training_rounds_per_target_replacement
+        self.target_replacement_frequency = target_replacement_frequency
         self.tau = tau
 
 
@@ -35,7 +39,7 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        eval_model (nn.Module): trainable Q-value model for computing actions given states.
+        eval_model (nn.Module): Q-value model for given states and actions.
         optimizer_cls: torch optimizer class for the eval model. If this is None, the eval model is not trainable.
         optimizer_params: parameters required for the eval optimizer class.
         loss_func (Callable): loss function for the value model.
@@ -44,8 +48,13 @@ class DQN(AbsAlgorithm):
             it is None, the target model will be initialized as a deep copy of the eval model.
     """
     def __init__(
-        self, eval_model: nn.Module, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
-        target_model: nn.Module = None
+        self,
+        eval_model: nn.Module,
+        optimizer_cls,
+        optimizer_params,
+        loss_func,
+        hyper_params: DQNHyperParams,
+        target_model=None
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,6 +65,10 @@ class DQN(AbsAlgorithm):
                 self._model_dict["target"] = clone(eval_model).to(self._device)
             else:
                 self._model_dict["target"] = target_model.to(self._device)
+        # No gradient computation required for the target model
+        for param in self._model_dict["target"].parameters():
+            param.requires_grad = False
+
         self._loss_func = loss_func
         self._hyper_params = hyper_params
         self._train_cnt = 0
@@ -91,7 +104,7 @@ class DQN(AbsAlgorithm):
             loss.backward()
             self._optimizer.step()
             self._train_cnt += 1
-            if self._train_cnt % self._hyper_params.num_training_rounds_per_target_replacement == 0:
+            if self._train_cnt % self._hyper_params.target_replacement_frequency == 0:
                 self._update_target_model()
 
             return np.abs((current_q_values - target_q_values).detach().numpy())

@@ -35,7 +35,7 @@ class AbsAlgorithm(ABC):
         """Train models using samples.
 
         This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
-        algorithm, this may look like train(self, state, action, reward, next_state).
+        algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).
         """
         return NotImplementedError
 

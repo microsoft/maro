@@ -36,9 +36,6 @@ class SimpleActor(AbsActor):
             return None, None
 
         self._env.reset()
-        # assign epsilons
-        if epsilon_dict is not None:
-            self._inference_agents.explorer.epsilon = epsilon_dict
 
         # load models
         if model_dict is not None:
@@ -46,7 +43,9 @@ class SimpleActor(AbsActor):
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            action = self._inference_agents.choose_action(decision_event, self._env.snapshot_list)
+            action = self._inference_agents.choose_action(
+                decision_event, self._env.snapshot_list, epsilon_dict=epsilon_dict
+            )
             metrics, decision_event, is_done = self._env.step(action)
             self._inference_agents.on_env_feedback(metrics)
 

@@ -7,7 +7,6 @@ from enum import Enum
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.utils.exception.rl_toolkit_exception import WrongAgentManagerModeError
 
 
@@ -22,28 +21,28 @@ class AbsAgentManager(ABC):
 
     The agent manager provides a unified interactive interface with the environment for RL agent(s). From
     the actor’s perspective, it isolates the complex dependencies of the various homogeneous/heterogeneous
-    agents, so that the whole agent manager will behave just like a single agent. Besides that, the agent
-    manager also plays the role of an agent assembler. It can assemble different RL agents according to the
-    actual requirements, such as whether to share the underlying model, whether to share the experience
-    pool, etc.
+    agents, so that the whole agent manager will behave just like a single agent.
 
     Args:
         name (str): Name of agent manager.
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
-        agent_dict (dict): List of agent identifiers.
+        agent_dict (dict): A dictionary of agents to be wrapper by the agent manager.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
-        explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
     """
     def __init__(
-        self, name: str, mode: AgentManagerMode, agent_dict: dict,
-        state_shaper: StateShaper = None, action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None, explorer: AbsExplorer = None
+        self,
+        name: str,
+        mode: AgentManagerMode,
+        agent_dict: dict,
+        state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None,
+        experience_shaper: ExperienceShaper = None
     ):
         self._name = name
         self._mode = mode
@@ -51,7 +50,6 @@ class AbsAgentManager(ABC):
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
-        self._explorer = explorer
 
     def __getitem__(self, agent_id):
         return self.agent_dict[agent_id]
@@ -64,14 +62,18 @@ class AbsAgentManager(ABC):
 
     @abstractmethod
     def on_env_feedback(self, *args, **kwargs):
-        """Do things after a feedback is received from the environment following an action."""
+        """Processing logic after receiving feedback from the environment is implemented here.
+
+        See ``SimpleAgentManager`` for example.
+        """
         return NotImplemented
 
     @abstractmethod
     def post_process(self, *args, **kwargs):
-        """Do things after an episode is finished.
+        """Processing logic after an episode is finished.
 
-        These things may involve shaping experiences and resetting stateful objects.
+        These things may involve generating experiences and resetting stateful objects. See ``SimpleAgentManager``
+        for example.
         """
         return NotImplemented
 
@@ -84,11 +86,6 @@ class AbsAgentManager(ABC):
     def name(self):
         """Agent manager's name."""
         return self._name
-
-    @property
-    def explorer(self):
-        """Explorer used by the agent manager."""
-        return self._explorer
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

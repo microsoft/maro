@@ -1,8 +1,8 @@
 env:
-  scenario: "citi_bike"
-  topology: "ny.201801"
+  scenario: citi_bike
+  topology: toy.3s_4t
   start_tick: 0
-  durations: 2880
+  durations: 10080
   resolution: 10
   seed: 128
 agent:

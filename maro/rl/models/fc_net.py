@@ -6,7 +6,7 @@ from collections import OrderedDict
 import torch.nn as nn
 
 
-class DecisionLayers(nn.Module):
+class FullyConnectedNet(nn.Module):
     """NN model to compute state or action values.
 
     Fully connected network with optional batch normalization, activation and dropout components.
@@ -65,7 +65,7 @@ class DecisionLayers(nn.Module):
     def _build_basic_layer(self, input_dim, output_dim):
         """Build basic layer.
 
-        BN -> Linear -> LeakyReLU -> Dropout
+        BN -> Linear -> Activation -> Dropout
         """
         components = []
         if self._batch_norm_enabled:
