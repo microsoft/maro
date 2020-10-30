@@ -74,7 +74,7 @@ class SimpleLearner(AbsLearner):
                 terminated based on the latest performances. Defaults to None.
             warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
             early_stopping_metric_func (Callable): A function to extract the metric from a performance record
-                for early stopping checking.
+                for early stopping checking. Defaults to None.
         """
         if max_episode < -1:
             raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
@@ -83,16 +83,20 @@ class SimpleLearner(AbsLearner):
                 "The training loop will run forever since neither maximum episode nor early stopping checker "
                 "is provided. "
             )
+        if early_stopping_checker is not None:
+            assert early_stopping_metric_func is not None, \
+                "early_stopping_metric_func cannot be None if early_stopping_checker is provided."
+
         episode = 0
         metric_series = []
         while max_episode == -1 or episode < max_episode:
             performance, exp_by_agent = self._sample(episode, max_episode)
             self._performance_history.append(performance)
-            metric_series.append(early_stopping_metric_func(performance))
-            if early_stopping_checker is not None and (warmup_ep is None or episode >= warmup_ep) and \
-                    early_stopping_checker(metric_series):
-                self._logger.info("Early stopping condition hit. Training complete.")
-                break
+            if early_stopping_checker is not None:
+                metric_series.append(early_stopping_metric_func(performance))
+                if warmup_ep is None or episode >= warmup_ep and early_stopping_checker(metric_series):
+                    self._logger.info("Early stopping condition hit. Training complete.")
+                    break
             self._trainable_agents.train(exp_by_agent)
             episode += 1
 
