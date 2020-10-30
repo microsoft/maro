@@ -51,4 +51,8 @@ def create_ac_agents(agent_id_list, config):
 class ACAgentManager(SimpleAgentManager):
     def train(self, experiences_by_agent: dict):
         for agent_id, experiences in experiences_by_agent.items():
-            self.agent_dict[agent_id].train(experiences["states"], experiences["actions"], experiences["rewards"])
+            if isinstance(experiences, list):
+                for trajectory in experiences_by_agent:
+                    self.agent_dict[agent_id].train(trajectory["states"], trajectory["actions"], trajectory["rewards"])
+            else:
+                self.agent_dict[agent_id].train(experiences["states"], experiences["actions"], experiences["rewards"])
