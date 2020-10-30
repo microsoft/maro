@@ -131,7 +131,7 @@ class Proxy:
                     for peer_type, peer_info in self._peers_info_dict.items()
                 }
             else:
-                self._logger.critical(f"Unsupported minimal peers type, please use integer or dict.")
+                self._logger.critical("Unsupported minimal peers type, please use integer or dict.")
                 sys.exit(NON_RESTART_EXIT_CODE)
 
         self._join()
@@ -551,8 +551,12 @@ class Proxy:
     def _check_peers_update(self):
         for peer_type, on_board_peer_name_list in self._onboard_peers_name_dict.items():
             # Updated_onboard_peers_dict is the newest peers' information from the Redis.
-            updated_onboard_peers_dict = self._redis_connection.hgetall(self._peers_info_dict[peer_type].hash_table_name)
-            updated_onboard_peers_dict = {key.decode(): json.loads(value) for key, value in updated_onboard_peers_dict.items()}
+            updated_onboard_peers_dict = self._redis_connection.hgetall(
+                self._peers_info_dict[peer_type].hash_table_name
+            )
+            updated_onboard_peers_dict = {
+                key.decode(): json.loads(value) for key, value in updated_onboard_peers_dict.items()
+            }
 
             # Onboard_peers_dict is the peers' information which stores in local.
             onboard_peers_dict = {

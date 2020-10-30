@@ -54,6 +54,7 @@ def fake_rejoin(queue, redis_port):
     actor_init(queue, redis_port)
 
 
+@unittest.skipUnless(os.environ.get("test_with_redis", False), "require redis")
 class TestProxy(unittest.TestCase):
     master_proxy = None
 
