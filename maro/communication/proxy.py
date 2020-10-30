@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 # native lib
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, deque
 from enum import Enum
 import itertools
 import json
@@ -19,10 +19,9 @@ import redis
 # private lib
 from maro.communication import DriverType, ZmqDriver
 from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
-from maro.communication.utils import default_parameters, MessageCache
+from maro.communication.utils import default_parameters
 from maro.utils import InternalLogger, DummyLogger
 from maro.utils.exception.communication_exception import PeersMissError, InformationUncompletedError, SendAgain
-
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 NON_RESTART_EXIT_CODE = 64
@@ -119,7 +118,9 @@ class Proxy:
             self._timeout_for_minimal_peer_number = timeout_for_minimal_peer_number
             self._enable_message_cache = enable_message_cache_for_rejoin
             if self._enable_message_cache:
-                self._message_cache_for_exited_peers = MessageCache(MAX_LENGTH_FOR_MESSAGE_CACHE)
+                self._message_cache_for_exited_peers = defaultdict(
+                    lambda: deque([], maxlen=MAX_LENGTH_FOR_MESSAGE_CACHE)
+                )
             if isinstance(minimal_peers, int):
                 self._minimal_peers = {
                     peer_type: max(minimal_peers, 1)
@@ -275,7 +276,7 @@ class Proxy:
         """
         return self._driver.receive(is_continuous)
 
-    def receive_by_id(self, session_ids: Union[list, str, SendAgain]) -> List[Message]:
+    def receive_by_id(self, session_ids: Union[list, str, SendAgain]) -> Union[List[Message], SendAgain]:
         """Receive target messages from communication driver.
 
         Args:
@@ -338,7 +339,11 @@ class Proxy:
                 payload=payload,
                 session_type=session_type
             )
-            session_id_list.append(self.isend(message))
+            sending_status = self.isend(message)
+            if isinstance(sending_status, list):
+                session_id_list += sending_status
+            else:
+                session_id_list.append(sending_status)
 
         # Flatten.
         return session_id_list
@@ -444,8 +449,8 @@ class Proxy:
 
             if (
                 self._enable_message_cache and
-                message.destination in list(self._message_cache_for_exited_peers.keys()) and
-                message.destination in self._onboard_peers_name_dict[peer_type]
+                message.destination in self._onboard_peers_name_dict[peer_type] and
+                message.destination in list(self._message_cache_for_exited_peers.keys())
             ):
                 pending_session_ids = []
                 self._logger.warn(f"Sending pending message to {message.destination}.")
@@ -458,11 +463,12 @@ class Proxy:
 
         if isinstance(sending_status, SendAgain):
             if self._enable_message_cache:
-                self._message_cache_for_exited_peers.append(message.destination, message)
+                self._message_cache_for_exited_peers[message.destination].append(message)
                 self._logger.warn(
                     f"Peer {message.destination} exited, but still have enough peers. Save message to message cache."
                 )
-            self._logger.warn(f"Peer {message.destination} exited, but still have enough peers.")
+            else:
+                self._logger.warn(f"Peer {message.destination} exited, but still have enough peers.")
         else:
             sending_status = message.session_id
 
@@ -619,5 +625,5 @@ class Proxy:
 
             time.sleep(self._peers_catch_lifetime)
 
-        self._logger.critical(f"Failure to get enough peers for {peer_type}.")
+        self._logger.critical(f"Failure to get enough peers for {peer_type}. All components will exited.")
         sys.exit(KILL_CONTAINERS_EXIT_CODE)
