@@ -82,7 +82,8 @@ class DDPG(AbsAlgorithm):
 
         self._value_loss_func = value_loss_func
         self._hyper_params = hyper_params
-        self._training_cnt = 0
+        self._policy_train_cnt = 0
+        self._value_train_cnt = 0
 
     def choose_action(self, state, epsilon=None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)  # (1, state_dim)
@@ -91,6 +92,38 @@ class DDPG(AbsAlgorithm):
             action = self._model_dict["policy"](state)
         return action
 
+    def _train_value_model(
+        self, states: torch.tensor, actions: torch.tensor, rewards: torch.tensor, next_states: torch.tensor
+    ):
+        # value model training
+        if hasattr(self, "_value_optimizer"):
+            if len(actions.shape) == 1:
+                actions = actions.unsqueeze(1)  # (N, 1)
+            current_q_values = self._model_dict["value"](torch.cat([states, actions])).squeeze(1)  # (N,)
+            next_actions = self._model_dict["policy_target"](states).unsqueeze(dim=1)
+            next_q_values = self._model_dict["value_target"](torch.cat([next_states, next_actions])).squeeze(1)  # (N,)
+            target_q_values = (rewards + self._hyper_params.reward_decay * next_q_values).detach()  # (N,)
+            loss = self._value_loss_func(current_q_values, target_q_values)
+            self._model_dict["value"].train()
+            self._value_optimizer.zero_grad()
+            loss.backward()
+            self._value_optimizer.step()
+            self._value_train_cnt += 1
+            if self._value_train_cnt % self._hyper_params.value_target_update_frequency == 0:
+                self._update_target_model("value")
+
+    def _train_policy_model(self, states: torch.tensor):
+        # policy model training
+        if hasattr(self, "_policy_optimizer"):
+            loss = -self._model_dict["value"](torch.cat([states, self._model_dict["policy"](states)])).mean()
+            self._model_dict["policy"].train()
+            self._policy_optimizer.zero_grad()
+            loss.backward()
+            self._policy_optimizer.step()
+            self._policy_train_cnt += 1
+            if self._policy_train_cnt % self._hyper_params.policy_target_update_frequency == 0:
+                self._update_target_model("policy")
+
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         if not hasattr(self, "_value_optimizer") and not hasattr(self, "_policy_optimizer"):
             warnings.warn(f"No value optimizer or policy optimizer found. Make sure you are using the right "
@@ -98,28 +131,12 @@ class DDPG(AbsAlgorithm):
             return
 
         states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
-        actions = torch.from_numpy(actions).to(self._device)  # (N,)
+        actions = torch.from_numpy(actions).to(self._device).unsqueeze(dim=1)  # (N, 1)
+        rewards = torch.from_numpy(rewards).to(self._device)  # (N,)
+        next_states = torch.from_numpy(next_states).to(self._device)  # (N, state_dim)
 
-        # value model training
-        if hasattr(self, "_value_optimizer"):
-            rewards = torch.from_numpy(rewards).to(self._device)  # (N,)
-            next_states = torch.from_numpy(next_states).to(self._device)  # (N, state_dim)
-            if len(actions.shape) == 1:
-                actions = actions.unsqueeze(1)  # (N, 1)
-            current_q_values = self._model_dict["value"](states).gather(1, actions).squeeze(1)  # (N,)
-            next_q_values = self._model_dict["value"](next_states).max(dim=1)[0]  # (N,)
-            target_q_values = (rewards + self._hyper_params.reward_decay * next_q_values).detach()  # (N,)
-            loss = self._loss_func(current_q_values, target_q_values)
-            self._model_dict["eval"].train()
-            self._optimizer.zero_grad()
-            loss.backward()
-            self._optimizer.step()
-            self._train_cnt += 1
-            if self._train_cnt % self._hyper_params.value_target_update_frequency == 0:
-                self._update_target_model("value")
-
-        # # policy model training
-        # if hasattr(self, "_policy_optimizer"):
+        self._train_value_model(states, actions, rewards, next_states)
+        self._train_policy_model(states)
 
     def _update_target_model(self, which: str):
         if which not in {"policy", "value"}:
