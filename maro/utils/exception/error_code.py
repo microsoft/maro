@@ -39,7 +39,10 @@ ERROR_CODE = {
     3003: "Deployment Error",
 
     # 4000-4999: Error codes for RL toolkit
-    4001: "Unsupported Agent Mode Error",
-    4002: "Missing Shaper Error",
-    4003: "Wrong Agent Mode Error"
+    4001: "Unsupported Agent Mode",
+    4002: "Missing Shaper",
+    4003: "Wrong Agent Manager Mode",
+    4004: "Store Misalignment Error",
+    4005: "Invalid Episode",
+    4006: "Infinite Training Loop"
 }
