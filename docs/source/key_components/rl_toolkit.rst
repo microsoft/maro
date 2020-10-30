@@ -70,23 +70,9 @@ Agent Manager
 The agent manager provides a unified interactive interface with the environment
 for RL agent(s). From the actor's perspective, it isolates the complex dependencies
 of the various homogeneous/heterogeneous agents, so that the whole agent manager
-will behave just like a single agent.
-
-.. code-block:: python
-
-   def assemble_agents(self, config):
-       # Initialize experience pool instance.
-       ...
-       # Construct underlying learning model and related RL algorithm.
-       ...
-       for agent_id in self._agent_id_list:
-           # Assemble your agent here, load experience pool, RL algorithms, etc.
-           # You can control the experience pool and learning model sharing pattern, based on different assembling strategy.
-           self._agent_dict[agent_id] = Agent(...)
-
-Furthermore, to well serve the distributed algorithm (scalable), the agent
-manager provides two kinds of working modes, which can be applied in different
-distributed components, such as inference mode in actor, training mode in learner.
+will behave just like a single agent. Furthermore, to well serve the distributed algorithm
+(scalable), the agent manager provides two kinds of working modes, which can be applied in
+different distributed components, such as inference mode in actor, training mode in learner.
 
 .. image:: ../images/rl/agent_manager.svg
    :target: ../images/rl/agent_manager.svg

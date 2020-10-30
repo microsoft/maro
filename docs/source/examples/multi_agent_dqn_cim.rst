@@ -116,8 +116,9 @@ Agent Manager
 
 The complexities of the environment can be isolated from the learning algorithm by using an
 `Agent manager <https://maro.readthedocs.io/en/latest/key_components/rl_toolkit.html#agent-manager>`_
-to manage individual agents. We define a function to create the agents and an AgentManager class
-that implements the abstract ``train`` method in accordance with the DQN algorithm. .
+to manage individual agents. We define a function to create the agents and an agent manager class
+that implements the ``train`` method where the newly obtained experiences are stored in the agents'
+experience pools before training, in accordance with the DQN algorithm.
 
 .. code-block:: python
     def create_dqn_agents(agent_id_list, config):
