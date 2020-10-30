@@ -13,19 +13,23 @@ class DQNHyperParams:
     """Hyper-parameter set for the DQN algorithm.
 
     Args:
-        num_actions (int): number of possible actions
-        reward_decay (float): reward decay as defined in standard RL terminology
-        target_replacement_frequency (int): number of training frequency of target model replacement
-        tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
+        num_actions (int): Number of possible actions.
+        reward_decay (float): Reward decay as defined in standard RL terminology.
+        target_update_frequency (int): Number of training rounds between target model updates.
+        tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1-tau) * target_model.
     """
-    __slots__ = ["num_actions", "reward_decay", "target_replacement_frequency", "tau"]
+    __slots__ = ["num_actions", "reward_decay", "target_update_frequency", "tau"]
 
     def __init__(
-        self, num_actions: int, reward_decay: float, target_replacement_frequency: int, tau: float = 1.0
+        self,
+        num_actions: int,
+        reward_decay: float,
+        target_update_frequency: int,
+        tau: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
-        self.target_replacement_frequency = target_replacement_frequency
+        self.target_update_frequency = target_update_frequency
         self.tau = tau
 
 
@@ -36,15 +40,20 @@ class DQN(AbsAlgorithm):
 
     Args:
         eval_model (nn.Module): Q-value model for given states and actions.
-        optimizer_cls: torch optimizer class for the eval model. If this is None, the eval model is not trainable.
-        optimizer_params: parameters required for the eval optimizer class.
-        loss_func (Callable): loss function for the value model.
-        hyper_params: hyper-parameter set for the DQN algorithm.
+        optimizer_cls: Torch optimizer class for the eval model. If this is None, the eval model is not trainable.
+        optimizer_params: Parameters required for the eval optimizer class.
+        loss_func (Callable): Loss function for the value model.
+        hyper_params: Hyper-parameter set for the DQN algorithm.
         target_model (nn.Module): Q-value model to train the ``eval_model`` against and to be updated periodically. If
             it is None, the target model will be initialized as a deep copy of the eval model.
     """
     def __init__(
-        self, eval_model: nn.Module, optimizer_cls, optimizer_params, loss_func, hyper_params: DQNHyperParams,
+        self,
+        eval_model: nn.Module,
+        optimizer_cls,
+        optimizer_params,
+        loss_func,
+        hyper_params: DQNHyperParams,
         target_model=None
     ):
         super().__init__()
@@ -95,7 +104,7 @@ class DQN(AbsAlgorithm):
             loss.backward()
             self._optimizer.step()
             self._train_cnt += 1
-            if self._train_cnt % self._hyper_params.target_replacement_frequency == 0:
+            if self._train_cnt % self._hyper_params.target_update_frequency == 0:
                 self._update_target_model()
 
             return np.abs((current_q_values - target_q_values).detach().numpy())
