@@ -6,7 +6,6 @@ import os
 import numpy as np
 
 from maro.simulator import Env
-
 from maro.rl import AgentManagerMode, MaxDeltaEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor, \
     TwoPhaseLinearExplorer
 from maro.utils import Logger, convert_dottable
