@@ -16,29 +16,29 @@ class DDPGHyperParameters:
     Args:
         num_actions (int): Number of possible actions
         reward_decay (float): Reward decay as defined in standard RL terminology
-        policy_target_update_period (int): Number of training rounds between policy target model updates.
-        value_target_update_period (int): Number of training rounds between policy target model updates.
+        policy_target_update_frequency (int): Number of training rounds between policy target model updates.
+        value_target_update_frequency (int): Number of training rounds between policy target model updates.
         policy_tau (float): Soft update coefficient for the policy model, e.g.,
             target_model = tau * eval_model + (1-tau) * target_model
         value_tau (float): Soft update coefficient for the value model.
     """
     __slots__ = [
-        "num_actions", "reward_decay", "policy_target_update_period", "value_target_update_period",
+        "num_actions", "reward_decay", "policy_target_update_frequency", "value_target_update_frequency",
         "policy_tau", "value_tau"]
 
     def __init__(
         self,
         num_actions: int,
         reward_decay: float,
-        policy_target_update_period: int,
-        value_target_update_period: int,
+        policy_target_update_frequency: int,
+        value_target_update_frequency: int,
         policy_tau: float = 1.0,
         value_tau: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
-        self.policy_target_update_period = policy_target_update_period
-        self.value_target_update_period = value_target_update_period
+        self.policy_target_update_frequency = policy_target_update_frequency
+        self.value_target_update_frequency = value_target_update_frequency
         self.policy_tau = policy_tau
         self.value_tau = value_tau
 
@@ -115,12 +115,12 @@ class DDPG(AbsAlgorithm):
             loss.backward()
             self._optimizer.step()
             self._train_cnt += 1
-            if self._train_cnt % self._hyper_params.value_target_update_period == 0:
+            if self._train_cnt % self._hyper_params.value_target_update_frequency == 0:
                 self._update_target_model("value")
 
         # # policy model training
         # if hasattr(self, "_policy_optimizer"):
-            
+
     def _update_target_model(self, which: str):
         if which not in {"policy", "value"}:
             raise ValueError(f"unrecognized member: {which}")
