@@ -23,6 +23,7 @@ class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
         if self._last_k > len(metric_series):
             return False
         else:
+            metric_series = metric_series[-self._last_k:]
             return stdev(metric_series) / mean(metric_series) < self._threshold
 
 
