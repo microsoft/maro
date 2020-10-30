@@ -34,10 +34,10 @@ experience_shaping:
     shortage_factor: 1.0
     time_decay_factor: 0.97
 exploration:
-  min_eps: .0
-  max_eps: .4
-  eps_split: 0.32
-  progress_split: 0.5
+  start_eps: 0.4
+  mid_eps: 0.32
+  end_eps: 0.0
+  split_point: 0.5
 agents:
   algorithm:
     num_actions: 21
