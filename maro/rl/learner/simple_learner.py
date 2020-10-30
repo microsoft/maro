@@ -3,7 +3,6 @@
 
 import sys
 from typing import Callable, Union
-import warnings
 
 from .abs_learner import AbsLearner
 from maro.rl.actor.simple_actor import SimpleActor
