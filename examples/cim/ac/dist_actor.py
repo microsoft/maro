@@ -10,7 +10,7 @@ from maro.rl import AgentManagerMode, SimpleActor, ActorWorker
 from maro.utils import convert_dottable
 
 from components.action_shaper import CIMActionShaper
-from components.agent_manager import create_ac_agent, ACAgentManager
+from components.agent_manager import create_ac_agents, ACAgentManager
 from components.config import config, set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
@@ -28,7 +28,7 @@ def launch(config):
     agent_manager = ACAgentManager(
         name="cim_remote_actor",
         mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_ac_agent(agent_id_list, config.agents),
+        agent_dict=create_ac_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
