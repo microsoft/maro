@@ -23,7 +23,7 @@ class dump_csv_converter:
     def __generate_new_folder(self, parent_path):
         now = datetime.now()
         self._foldername = 'snapshot_dump_' + now.strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
-        if parent_path is not '':
+        if parent_path != '':
             self._foldername = os.path.join(parent_path, self._foldername)
 
         folderPath = Path(self._foldername)
@@ -114,7 +114,7 @@ class dump_csv_converter:
         headers = []
         count = 0
         for attr in dir(event):
-            if attr[0] is not '_':
+            if attr[0] != '_':
                 headers.append(attr)
                 count = count + 1
 
