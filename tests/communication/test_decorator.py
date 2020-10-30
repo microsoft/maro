@@ -1,15 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 import os
 import subprocess
 import sys
 import threading
 import unittest
 
-from maro.communication import Proxy, SessionMessage, dist
-from utils import get_random_port, proxy_generator
+from maro.communication import SessionMessage, dist
+from tests.communication.utils import get_random_port, proxy_generator
 
 
 def handler_function(that, proxy, message):
@@ -43,7 +43,7 @@ class TestDecorator(unittest.TestCase):
         # Initial receiver.
         conditional_event = "sender:*:1"
         handler_dict = {conditional_event: handler_function}
-        decorator_task = threading.Thread(target=lunch_receiver, args=(handler_dict, redis_port, ))
+        decorator_task = threading.Thread(target=lunch_receiver, args=(handler_dict, redis_port,))
         decorator_task.start()
 
         # Initial sender proxy.
@@ -58,13 +58,15 @@ class TestDecorator(unittest.TestCase):
             cls.redis_process.kill()
 
     def test_decorator(self):
-        message = SessionMessage(tag="unittest",
-                                 source=TestDecorator.sender_proxy.component_name,
-                                 destination=TestDecorator.sender_proxy.peers["receiver"][0],
-                                 payload={"counter": 0})
+        message = SessionMessage(
+            tag="unittest",
+            source=TestDecorator.sender_proxy.component_name,
+            destination=TestDecorator.sender_proxy.peers["receiver"][0],
+            payload={"counter": 0}
+        )
         replied_message = TestDecorator.sender_proxy.send(message)
 
-        self.assertEqual(message.payload["counter"]+1, replied_message[0].payload["counter"])
+        self.assertEqual(message.payload["counter"] + 1, replied_message[0].payload["counter"])
 
 
 if __name__ == "__main__":

@@ -55,7 +55,7 @@ def fake_rejoin(queue, redis_port):
 
 
 @unittest.skipUnless(os.environ.get("test_with_redis", False), "require redis")
-class TestProxy(unittest.TestCase):
+class TestRejoin(unittest.TestCase):
     master_proxy = None
 
     @classmethod
@@ -96,24 +96,28 @@ class TestProxy(unittest.TestCase):
     def test_rejoin(self):
         # Check all connected
         dp_list = []
-        for peer in self.peers:
+        for peer in TestRejoin.peers:
             dp_list.append((peer, "continuous"))
 
-        self.master_proxy.scatter(tag="cont", session_type=SessionType.NOTIFICATION, destination_payload_list=dp_list)
+        TestRejoin.master_proxy.scatter(
+            tag="cont",
+            session_type=SessionType.NOTIFICATION,
+            destination_payload_list=dp_list
+        )
 
         # Disconnect one peer
         dis_message = SessionMessage(
             tag="stop",
-            source=self.master_proxy.component_name,
-            destination=self.peers[1],
+            source=TestRejoin.master_proxy.component_name,
+            destination=TestRejoin.peers[1],
             payload=None,
             session_type=SessionType.TASK
         )
-        self.master_proxy.isend(dis_message)
+        TestRejoin.master_proxy.isend(dis_message)
 
         # Now, 1 peer exited, only have 2 peers
         time.sleep(2)
-        replied = self.master_proxy.scatter(
+        replied = TestRejoin.master_proxy.scatter(
             tag="cont", session_type=SessionType.NOTIFICATION,
             destination_payload_list=dp_list
         )
@@ -122,7 +126,7 @@ class TestProxy(unittest.TestCase):
         # Wait for rejoin
         time.sleep(5)
         # Now, all peers rejoin
-        replied = self.master_proxy.scatter(
+        replied = TestRejoin.master_proxy.scatter(
             tag="cont", session_type=SessionType.NOTIFICATION,
             destination_payload_list=dp_list
         )
