@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
-from typing import Callable, Iterable, Sequence, Union
+from typing import Callable, Iterable, Union
 from .abs_shaper import AbsShaper
 
 
@@ -23,11 +23,11 @@ class ExperienceShaper(AbsShaper):
         self._reward_func = reward_func
 
     @abstractmethod
-    def __call__(self, trajectory: Sequence, snapshot_list) -> Iterable:
+    def __call__(self, trajectory, snapshot_list) -> Iterable:
         """Converts transitions along a trajectory to experiences.
 
         Args:
-            trajectory(Sequence): A sequence of transitions recorded by the agent manager during roll-out.
+            trajectory: A sequence of transitions recorded by the agent manager during roll-out.
             snapshot_list: Snapshot list stored in the environment at the end of an episode.
         Returns:
             Experiences that can be used by the algorithm.
