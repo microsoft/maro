@@ -272,7 +272,7 @@ inside.
         "redis_address": ("localhost", 6379)
     }
 
-    early_stopping_checker = SimpleEarlyStoppingChecker(
+    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
         threshold=config.general.early_stopping.threshold
     )
