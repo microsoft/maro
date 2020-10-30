@@ -22,16 +22,14 @@ Learner and Actor
   .. code-block:: python
 
     # Train function of learner.
-    def train(self, total_episodes):
-        for current_ep in range(total_episodes):
-            models = self._trainable_agents.get_models()
+    def train(self, max_episode:
+        for current_ep in range(max_episode):
+            models = self._trainable_agents.dump_models()
             performance, experiences = self._actor.roll_out(models=models,
                                                             epsilons=self._trainable_agents.explorer.epsilons,
                                                             seed=self._seed)
 
-            self._trainable_agents.store_experiences(experiences)
             self._trainable_agents.train()
-            self._trainable_agents.update_epsilon(performance)
 
 * **Actor** is the abstraction of experience collection. It is responsible for
   interacting with the environment and collecting experience. The experiences
