@@ -53,7 +53,7 @@ agents:
       lr: 0.05
     hyper_parameters:
       reward_decay: .0
-      target_replacement_frequency: 5
+      target_update_frequency: 5
       tau: 0.1
   experience_pool:
     capacity: -1

@@ -226,7 +226,7 @@ occurs on the actor side, we need to create appropriate agent managers on both s
 
 On the actor side, the agent manager must be equipped with all shapers as well as an explorer. Thus, The code for
 creating an environment and an agent manager on the actor side is similar to that for the single-host version,
-except that it is necessary to set the AgentMode to AgentMode.INFERENCE. As in the single-process version, the environment
+except that it is necessary to set the AgentManagerMode to AgentManagerMode.INFERENCE. As in the single-process version, the environment
 and the agent manager are wrapped in a SimpleActor instance. To make the actor a distributed worker, we need to further
 wrap it in an ActorWorker instance. Finally, we launch the worker and it starts to listen to roll-out requests from the
 learner. The following code snippet shows the creation of an actor worker with a simple (local) actor wrapped inside.
@@ -251,8 +251,8 @@ learner. The following code snippet shows the creation of an actor worker with a
     )
     actor_worker.launch()
 
-On the learner side, an agent manager in AgentMode.TRAIN mode is required. However, it is not necessary to create shapers for an
-agent manager in AgentMode.TRAIN mode (although a state shaper is created in this example so that the model input dimension can
+On the learner side, an agent manager in AgentManagerMode.TRAIN mode is required. However, it is not necessary to create shapers for an
+agent manager in AgentManagerMode.TRAIN mode (although a state shaper is created in this example so that the model input dimension can
 be readily accessed). Instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
 serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
 processes and receiving results. Calling the train method executes the usual training loop except that the actual

@@ -6,17 +6,21 @@ import os
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import SimpleLearner, SimpleActor, AgentMode, AgentManagerMode
-from maro.utils import Logger
+from maro.rl import SimpleLearner, SimpleActor, AgentManagerMode
+from maro.utils import Logger, convert_dottable
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import create_pg_agents, PGAgentManager
-from components.config import config
+from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 
-if __name__ == "__main__":
+def launch(config):
+    # First determine the input dimension and add it to the config.
+    set_input_dim(config)
+    config = convert_dottable(config)
+
     # Step 1: initialize a CIM environment for using a toy dataset.
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
@@ -31,7 +35,7 @@ if __name__ == "__main__":
     agent_manager = PGAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_pg_agents(agent_id_list, AgentMode.TRAIN_INFERENCE, config.agents),
+        agent_dict=create_pg_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
@@ -43,6 +47,11 @@ if __name__ == "__main__":
         trainable_agents=agent_manager, actor=actor,
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(total_episodes=config.general.total_training_episodes)
+    learner.train(max_episode=config.general.total_training_episodes)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
+
+
+if __name__ == "__main__":
+    from components.config import config
+    launch(config)

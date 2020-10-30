@@ -7,12 +7,12 @@ from .abs_early_stopping_checker import AbsEarlyStoppingChecker
 
 
 class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
-    """Simple early stopping checker based on the mean and standard deviation of the last k performance records.
+    """Early stopping checker based on the mean and standard deviation of the last k metric values.
 
     Args:
         last_k (int): Number of the latest performance records to check for early stopping.
         threshold (float): The threshold value against which the early stopping metric is compared. The early stopping
-            condition is satisfied if the metric obtained using the ``performance_metric_func`` is below this threshold.
+            condition is satisfied if the metric is below this threshold.
     """
     def __init__(self, last_k: int, threshold: float):
         super().__init__()
@@ -28,12 +28,15 @@ class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
 
 
 class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
-    """Simple early stopping checker based on the mean and standard deviation of the last k performance records.
+    """Early stopping checker based on the maximum relative change over the last k metric values.
+
+    The relative change is defined as |m(i+1) - m(i)| / m[i]. The maximum of the last k-1 changes in the metric series
+    is compared with the threshold to determine if early stopping should be triggered.
 
     Args:
         last_k (int): Number of the latest performance records to check for early stopping.
         threshold (float): The threshold value against which the early stopping metric is compared. The early stopping
-            condition is satisfied if the metric obtained using the ``performance_metric_func`` is below this threshold.
+            condition is satisfied if the metric is below this threshold.
     """
     def __init__(self, last_k: int, threshold: float):
         super().__init__()

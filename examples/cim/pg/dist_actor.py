@@ -1,10 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentMode, AgentManagerMode, SimpleActor, ActorWorker
+from maro.rl import AgentManagerMode, SimpleActor, ActorWorker
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import create_pg_agents, PGAgentManager
@@ -22,15 +24,15 @@ if __name__ == "__main__":
     agent_manager = PGAgentManager(
         name="cim_remote_actor",
         mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_pg_agents(agent_id_list, AgentMode.INFERENCE, config.agents),
+        agent_dict=create_pg_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
     )
     proxy_params = {
-        "group_name": config.distributed.group_name,
-        "expected_peers": config.distributed.actor.peer,
-        "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port)
+        "group_name": os.environ["GROUP"],
+        "expected_peers": {"learner": 1},
+        "redis_address": ("localhost", 6379)
     }
     actor_worker = ActorWorker(
         local_actor=SimpleActor(env=env, inference_agents=agent_manager),
