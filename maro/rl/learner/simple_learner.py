@@ -91,9 +91,9 @@ class SimpleLearner(AbsLearner):
         metric_series = []
         while max_episode == -1 or episode < max_episode:
             performance, exp_by_agent = self._sample(episode, max_episode)
-            self._performance_history.append(performance)
+            latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
             if early_stopping_checker is not None:
-                metric_series.append(early_stopping_metric_func(performance))
+                metric_series.extend(map(early_stopping_metric_func, latest))
                 if warmup_ep is None or episode >= warmup_ep and early_stopping_checker(metric_series):
                     self._logger.info("Early stopping condition hit. Training complete.")
                     break

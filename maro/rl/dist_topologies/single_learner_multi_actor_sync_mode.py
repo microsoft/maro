@@ -67,7 +67,7 @@ class ActorProxy(object):
                 destination_payload_list=payloads
             )
 
-            performance = {msg.source: msg.payload[PayloadKey.PERFORMANCE] for msg in replies}
+            performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
             experiences_by_source = {msg.source: msg.payload[PayloadKey.EXPERIENCE] for msg in replies}
 
             return performance, self._experience_collecting_func(experiences_by_source)
