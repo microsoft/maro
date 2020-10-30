@@ -47,7 +47,7 @@ def launch(config):
         trainable_agents=agent_manager, actor=actor,
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.total_training_episodes)
+    learner.train(max_episode=config.general.max_episodes)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 

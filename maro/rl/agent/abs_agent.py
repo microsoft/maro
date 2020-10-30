@@ -10,12 +10,6 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.storage.abs_store import AbsStore
 
 
-class AgentMode(Enum):
-    TRAIN = "train"
-    INFERENCE = "inference"
-    TRAIN_INFERENCE = "train_inference"
-
-
 class AbsAgent(ABC):
     """Abstract RL agent class.
 

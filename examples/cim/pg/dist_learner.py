@@ -34,6 +34,6 @@ if __name__ == "__main__":
         ),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.total_training_episodes)
+    learner.train(max_episode=config.general.max_episode)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
