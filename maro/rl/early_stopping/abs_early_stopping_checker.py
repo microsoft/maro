@@ -13,11 +13,11 @@ class AbsEarlyStoppingChecker(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, performance_history) -> bool:
+    def __call__(self, metric_series) -> bool:
         """Check whether the early stopping condition (defined in the class) is met.
 
         Args:
-            performance_history: History of performances (from actors) used to check whether the early stopping
+            metric_series: History of performances (from actors) used to check whether the early stopping
                 condition is satisfied.
 
         Returns:

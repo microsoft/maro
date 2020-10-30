@@ -19,7 +19,7 @@ class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
         self._last_k = last_k
         self._threshold = threshold
 
-    def __call__(self, metric_series):
+    def __call__(self, metric_series: list):
         if self._last_k > len(metric_series):
             return False
         else:
@@ -40,7 +40,7 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
         self._last_k = last_k
         self._threshold = threshold
 
-    def __call__(self, metric_series):
+    def __call__(self, metric_series: list):
         if self._last_k > len(metric_series):
             return False
         else:
