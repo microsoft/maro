@@ -28,7 +28,7 @@ namespace maro
       class AttrMap : public map<A, V> {};
 
       template<typename T, typename A, typename V>
-      class TickAttrMap : public map<T, AttrMap<V>> {};
+      class TickAttrMap : public map<T, AttrMap<A, V>> {};
 
 
 
@@ -66,7 +66,8 @@ namespace maro
         /// <param name="node_length"></param>
         /// <param name="attributes"></param>
         /// <param name="attr_length"></param>
-        void query(QUERING_FLOAT* result, IDENTIFIER node_id, INT[] ticks, UINT tick_length, NODE_INDEX[] node_indices, UINT node_length, IDENTIFIER attributes, UINT attr_length);
+        void query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
+          NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length);
       };
     }
   }

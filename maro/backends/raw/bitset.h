@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "common.h"
 
 using namespace std;
 
@@ -13,35 +14,42 @@ namespace maro
   {
     namespace raw
     {
-      /// <summary>
-      /// Iterator to go over bitset for target value
-      /// </summary>
-      class BitsetIterator
-      {
-      public:
-        BitsetIterator(Bitset& bitset, bool target);
-
-        /// <summary>
-        /// If reach the end of bitset.
-        /// </summary>
-        /// <returns>True of reach the end, or false</returns>
-        bool end();
-      };
+      const auto BITS_PER_BYTE = 8;
+      const auto BITS_PER_MASK = sizeof(ULONG) * BITS_PER_BYTE;
 
       class Bitset
       {
+        /// <summary>
+        /// Iterator to go over bitset for target value
+        /// </summary>
+        class BitsetIterator
+        {
+        public:
+          BitsetIterator(Bitset& bitset, bool target);
+
+          /// <summary>
+          /// If reach the end of bitset.
+          /// </summary>
+          /// <returns>True of reach the end, or false</returns>
+          bool end();
+        };
+
+
         vector<ULONG> _masks;
 
-        size_t _empties;
+        ULONG _empties;
+
+        //size of bits
+        ULONG _bit_size;
 
       public:
         Bitset(UINT size);
 
         /// <summary>
-        /// Expend mask with spcified size
+        /// Extend mask with spcified size
         /// </summary>
-        /// <param name="size">Size to expend, it should be 64 times</param>
-        void expend(UINT size);
+        /// <param name="size">Size to extend, it should be 64 times</param>
+        void extend(UINT size);
 
         /// <summary>
         /// Invert bits
@@ -52,25 +60,31 @@ namespace maro
         /// reset all bit to specified value
         /// </summary>
         /// <param name="">Value to reset</param>
-        void reset(bool value);
+        void reset(bool value=false);
 
         /// <summary>
         /// Get value at specified index
         /// </summary>
         /// <param name="index">Index of bit</param>
         /// <returns>True if the bit is 1, or 0</returns>
-        bool operator[](size_t index) const;
+        bool get(LONG index) const;
+
+        void set(LONG index, bool value);
 
 
         /// <summary>
         /// Get number of empty slot
         /// </summary>
-        void empties();
+        ULONG empties();
+
+        ULONG size();
+
+        UINT mask_size();
 
         /// <summary>
         /// Get an iterator to go over all empty slots
         /// </summary>
-        BitsetIterator& get_empty_slots();
+        BitsetIterator* get_empty_slots();
       };
     }
   }
