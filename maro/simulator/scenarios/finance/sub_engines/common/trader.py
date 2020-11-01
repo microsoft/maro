@@ -12,13 +12,13 @@ class TradeConstrain(Enum):
 
 
 class Trader():
-    def __init__(self, trade_constrain: dict):
+    def __init__(self, trade_constraint: dict):
         self._order_handlers = OrderedDict()
         self._slippage_handler = None
         self._commission_handlers = []
-        self._trade_constrain = OrderedDict()
-        for constrain in trade_constrain:
-            self._trade_constrain[constrain] = trade_constrain[constrain]
+        self._trade_constraint = OrderedDict()
+        for constrain in trade_constraint:
+            self._trade_constraint[constrain] = trade_constraint[constrain]
 
         self._trade_number = 0
 
@@ -45,8 +45,8 @@ class Trader():
         is_buy = True if order_action.number >= 0 else False
 
         deal_price = cur_data[order_action.item_index].opening_price
-        if 'deal_price' in self._trade_constrain:
-            if self._trade_constrain['deal_price'] == 'closing':
+        if 'deal_price' in self._trade_constraint:
+            if self._trade_constraint['deal_price'] == 'closing':
                 deal_price = cur_data[order_action.item_index].closing_price
         commission_charge = 0
 
@@ -70,9 +70,9 @@ class Trader():
                         deal_volume -= math.ceil((deal_money - remaining_money) / deal_price)
 
                     # if min buy unit is configed
-                    if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() \
-                            and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
-                        odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                    if TradeConstrain.min_buy_unit.value in self._trade_constraint.keys() \
+                            and self._trade_constraint[TradeConstrain.min_buy_unit.value] != 0:
+                        odd_volume = deal_volume % self._trade_constraint[TradeConstrain.min_buy_unit.value]
                         if odd_volume != 0:
                             deal_volume -= odd_volume
 
@@ -82,11 +82,11 @@ class Trader():
                         deal_volume = avalib_volume
 
                     # if min sell unit is configed
-                    if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() \
-                            and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
-                        odd_volume = abs(deal_volume) % self._trade_constrain[TradeConstrain.min_sell_unit.value]
+                    if TradeConstrain.min_sell_unit.value in self._trade_constraint.keys() \
+                            and self._trade_constraint[TradeConstrain.min_sell_unit.value] != 0:
+                        odd_volume = abs(deal_volume) % self._trade_constraint[TradeConstrain.min_sell_unit.value]
                         if odd_volume != 0:
-                            if odd_volume != avalib_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]:
+                            if odd_volume != avalib_volume % self._trade_constraint[TradeConstrain.min_sell_unit.value]:
                                 deal_volume -= odd_volume
 
                 for commission_handler in self._commission_handlers:
@@ -104,9 +104,9 @@ class Trader():
                     if expected_remaining < 0:
                         deal_volume -= math.ceil((-expected_remaining) / deal_price)
 
-                        if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() \
-                                and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
-                            odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                        if TradeConstrain.min_buy_unit.value in self._trade_constraint.keys() \
+                                and self._trade_constraint[TradeConstrain.min_buy_unit.value] != 0:
+                            odd_volume = deal_volume % self._trade_constraint[TradeConstrain.min_buy_unit.value]
                             if odd_volume != 0:
                                 deal_volume -= odd_volume
 
@@ -134,8 +134,8 @@ class Trader():
         is_buy = True if order_action.number >= 0 else False
         split_trades = []
         deal_price = cur_data[order_action.item_index].opening_price
-        if 'deal_price' in self._trade_constrain:
-            if self._trade_constrain['deal_price'] == 'closing':
+        if 'deal_price' in self._trade_constraint:
+            if self._trade_constraint['deal_price'] == 'closing':
                 deal_price = cur_data[order_action.item_index].closing_price
         continue_splippage_price = deal_price
 
@@ -167,9 +167,9 @@ class Trader():
                             deal_volume -= math.ceil((deal_money - remaining_money) / deal_price)
 
                         # if min buy unit is configed
-                        if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() \
-                                and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
-                            odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                        if TradeConstrain.min_buy_unit.value in self._trade_constraint.keys() \
+                                and self._trade_constraint[TradeConstrain.min_buy_unit.value] != 0:
+                            odd_volume = deal_volume % self._trade_constraint[TradeConstrain.min_buy_unit.value]
                             if odd_volume != 0:
                                 deal_volume -= odd_volume
 
@@ -180,12 +180,12 @@ class Trader():
                             deal_volume = avalib_volume
 
                         # if min sell unit is configed
-                        if TradeConstrain.min_sell_unit.value in self._trade_constrain.keys() \
-                                and self._trade_constrain[TradeConstrain.min_sell_unit.value] != 0:
-                            odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_sell_unit.value]
+                        if TradeConstrain.min_sell_unit.value in self._trade_constraint.keys() \
+                                and self._trade_constraint[TradeConstrain.min_sell_unit.value] != 0:
+                            odd_volume = deal_volume % self._trade_constraint[TradeConstrain.min_sell_unit.value]
                             if odd_volume != 0:
                                 if odd_volume != avalib_volume % \
-                                        self._trade_constrain[TradeConstrain.min_sell_unit.value]:
+                                        self._trade_constraint[TradeConstrain.min_sell_unit.value]:
                                     deal_volume -= odd_volume
 
                     if deal_volume <= 0:
@@ -208,9 +208,9 @@ class Trader():
                             is_success = False
                             deal_volume -= math.ceil((-expected_remaining) / deal_price)
 
-                            if TradeConstrain.min_buy_unit.value in self._trade_constrain.keys() \
-                                    and self._trade_constrain[TradeConstrain.min_buy_unit.value] != 0:
-                                odd_volume = deal_volume % self._trade_constrain[TradeConstrain.min_buy_unit.value]
+                            if TradeConstrain.min_buy_unit.value in self._trade_constraint.keys() \
+                                    and self._trade_constraint[TradeConstrain.min_buy_unit.value] != 0:
+                                odd_volume = deal_volume % self._trade_constraint[TradeConstrain.min_buy_unit.value]
                                 if odd_volume != 0:
                                     deal_volume -= odd_volume
 

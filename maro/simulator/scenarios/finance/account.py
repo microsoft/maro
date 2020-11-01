@@ -1,7 +1,7 @@
 """Used to maintain stock/futures, one account per episode"""
 from collections import OrderedDict
 from maro.backends.frame import node, NodeBase, NodeAttribute
-from maro.simulator.scenarios.finance.common.common import TradeResult
+from maro.simulator.scenarios.finance.common.common import TradeResult, Order, OrderDirection
 
 
 @node("account")
@@ -18,19 +18,17 @@ class Account(NodeBase):
         self.total_money = self._money
         self._last_total_money = self._money
 
-    def take_trade(self, trade_result: TradeResult, cur_data: list):
+    def take_trade(self, order: Order, trade_result: TradeResult, cur_data: list):
         self._last_total_money = self.total_money
-        if trade_result.is_trade_accept and trade_result.is_trade_trigger:
+        if trade_result:
             cur_position = 0
             for stock in cur_data:
                 cur_position += stock.closing_price * stock.account_hold_num
-            self.remaining_money -= trade_result.total_cost
+            if order.direction == OrderDirection.buy:
+                self.remaining_money -= trade_result.trade_number * trade_result.price_per_item + trade_result.tax
+            else:
+                self.remaining_money += trade_result.trade_number * trade_result.price_per_item - trade_result.tax
             self.total_money = self.remaining_money + cur_position
-
-    def calc_reward(self):
-        reward = self.total_money - self._last_total_money
-        print("reward:", reward)
-        return reward
 
     def reset(self):
         self._last_total_money = 0

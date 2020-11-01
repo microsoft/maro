@@ -1,4 +1,5 @@
 from enum import Enum
+from maro.simulator.scenarios.finance.common.common import OrderDirection
 
 
 class CommissionType(Enum):
@@ -16,7 +17,7 @@ class Commission():
     def __init__(self, min_fee):
         self.min_fee = min_fee
 
-    def execute(self, actual_price: float, actual_volume: int):
+    def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int):
         pass
 
     @property
@@ -45,8 +46,8 @@ class ByMoneyCommission(Commission):
         self.fee_rate = fee_rate
         self.min_fee = min_fee
 
-    def execute(self, actual_price: float, actual_volume: int) -> float:
-        return round(max(actual_price * abs(actual_volume) * self.fee_rate, self.min_fee), 2)
+    def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
+        return round(max(actual_price * actual_volume * self.fee_rate, self.min_fee), 2)
 
     @property
     def fee_rate(self):
@@ -65,8 +66,8 @@ class ByVolumeCommission(Commission):
         self.commission_type = CommissionType.by_volume_commission
         self.pre_volume_fee = pre_volume_fee
 
-    def execute(self, actual_price: float, actual_volume: int) -> float:
-        return round(max(abs(actual_volume) * self.pre_volume_fee, self.min_fee), 2)
+    def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
+        return round(max(actual_volume * self.pre_volume_fee, self.min_fee), 2)
 
     @property
     def pre_volume_fee(self):
@@ -85,7 +86,7 @@ class ByTradeCommission(Commission):
         self.commission_type = CommissionType.by_volume_commission
         self.pre_trade_fee = pre_trade_fee
 
-    def execute(self, actual_price: float, actual_volume: int) -> float:
+    def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
         return round(max(self.pre_trade_fee, self.min_fee), 2)
 
     @property
@@ -103,9 +104,9 @@ class StampTaxCommission(ByMoneyCommission):
         ByMoneyCommission.__init__(self, tax_rate, min_fee)
         self.commission_type = CommissionType.stamp_tax_commission
 
-    def execute(self, actual_price: float, actual_volume: int) -> float:
-        if actual_volume < 0:
-            return round(max(actual_price * abs(actual_volume) * self.tax_rate, self.min_fee), 2)
+    def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
+        if direction == OrderDirection.sell:
+            return round(max(actual_price * actual_volume * self.tax_rate, self.min_fee), 2)
         else:
             return 0
 

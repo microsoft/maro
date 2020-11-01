@@ -250,9 +250,9 @@ class StockBusinessEngine(AbsSubBusinessEngine):
             )
 
     def _init_trader(self, config):
-        trade_constrain = config['trade_constrain']
+        trade_constraint = config['trade_constraint']
 
-        self._trader = StockTrader(trade_constrain)
+        self._trader = StockTrader(trade_constraint)
 
     def _verify_action(self, action: Action):
         ret = True
@@ -265,6 +265,6 @@ class StockBusinessEngine(AbsSubBusinessEngine):
     @property
     def _allow_split(self):
         allow_split = False
-        if "allow_split" in self._config["trade_constrain"]:
-            allow_split = self._config["trade_constrain"]["allow_split"]
+        if "allow_split" in self._config["trade_constraint"]:
+            allow_split = self._config["trade_constraint"]["allow_split"]
         return allow_split
