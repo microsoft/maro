@@ -71,7 +71,7 @@ class FullyConnectedNet(nn.Module):
                 param.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
 
     def forward(self, x):
-        out = self._net(x).double()
+        out = self._net(x)
         if self._skip_connection_enabled:
             out += x
         return self._softmax(out) if self._softmax else out

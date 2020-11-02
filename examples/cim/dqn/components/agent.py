@@ -25,7 +25,7 @@ class CIMAgent(AbsAgent):
         """Implementation of the training loop for DQN.
 
         Experiences are sampled using their TD errors as weights. After training, the new TD errors are updated
-        in the experience pool.   
+        in the experience pool.
         """
         if len(self._experience_pool) < self._min_experiences_to_train:
             return
@@ -34,7 +34,7 @@ class CIMAgent(AbsAgent):
             indexes, sample = self._experience_pool.sample_by_key("loss", self._batch_size)
             state = np.asarray(sample["state"])
             action = np.asarray(sample["action"])
-            reward = np.asarray(sample["reward"])
+            reward = np.asarray(sample["reward"], dtype=np.float32)
             next_state = np.asarray(sample["next_state"])
             loss = self._algorithm.train(state, action, reward, next_state)
             self._experience_pool.update(indexes, {"loss": loss})
