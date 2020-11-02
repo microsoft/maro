@@ -89,8 +89,8 @@ class ActorCritic(AbsAlgorithm):
         state_values = self._model_dict["value"](state_sequence).detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lam,
-            k=self._hyper_params.k, values=state_values_numpy
+            reward_sequence, state_values_numpy, self._hyper_params.reward_decay, self._hyper_params.lam,
+            k=self._hyper_params.k
         )
         return_est = torch.from_numpy(return_est)
         return state_values, return_est
@@ -196,8 +196,8 @@ class ActorCriticWithCombinedModel(AbsAlgorithm):
         state_values = self._policy_value_model(state_sequence)[0].detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            reward_sequence, self._hyper_params.reward_decay, self._hyper_params.lam,
-            k=self._hyper_params.k, values=state_values_numpy
+            reward_sequence, state_values_numpy, self._hyper_params.reward_decay, self._hyper_params.lam,
+            k=self._hyper_params.k
         )
         return_est = torch.from_numpy(return_est)
         return state_values, return_est
