@@ -164,11 +164,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
-        if not self._conf["trade_constraint"]["allow_day_trade"] and self.is_market_closed():
+        if (not self._conf["trade_constraint"]["allow_day_trade"]) and self.is_market_closed():
             # not allowed day trade, add stock buy amount to hold here
             for order in self._excuting_orders:
-                if order.direction == OrderDirection.buy and order.result.is_trade_accept:
-                    self._stocks[order.item].account_hold_num += order.result.trade_number
+                if order.direction == OrderDirection.buy:
+                    self._stocks[order.item].account_hold_num += order.action_result.trade_number
+            self._excuting_orders.clear()
         # We following the snapshot_resolution settings to take snapshot.
         if (tick + 1) % self._snapshot_resolution == 0:
             # NOTE: We should use frame_index method to get correct index in snapshot list.
@@ -358,14 +359,17 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 
 
             if ret:
-                # TODO: day trading should be considered
                 action.state = ActionState.success
                 if action.direction == OrderDirection.buy:
                     self._stocks[action.item].average_cost = (
                         (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
                         (ret.price_per_item * ret.trade_number)
                     ) / (self._stocks[action.item].account_hold_num + ret.trade_number)
-                    self._stocks[action.item].account_hold_num += ret.trade_number
+                    # day trading is considered
+                    if self._conf["trade_constraint"]["allow_day_trade"]:
+                        self._stocks[action.item].account_hold_num += ret.trade_number
+                    else:
+                        self._excuting_orders.append(action)
                 else:
                     self._stocks[action.item].account_hold_num -= ret.trade_number
             else:
