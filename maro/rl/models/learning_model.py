@@ -20,10 +20,12 @@ class LearningModel(nn.Module):
             and outputs values of interest in RL (e.g., state & action values).
         clip_value (float): Threshold used to clip gradients.
     """
-    def __init__(self,
-                 representation_layers: nn.Module = IdentityLayers(),
-                 decision_layers: nn.Module = IdentityLayers(),
-                 clip_value: float = None):
+    def __init__(
+        self,
+        representation_layers: nn.Module = IdentityLayers(),
+        decision_layers: nn.Module = IdentityLayers(),
+        clip_value: float = None
+    ):
         super().__init__()
         self._net = nn.Sequential(representation_layers, decision_layers)
 
