@@ -1,7 +1,7 @@
 #ifndef _MARO_BACKENDS_RAW_BITSET
 #define _MARO_BACKENDS_RAW_BITSET
 
-
+#include <memory>
 #include <vector>
 
 #include "common.h"
@@ -14,33 +14,36 @@ namespace maro
   {
     namespace raw
     {
-      const auto BITS_PER_BYTE = 8;
-      const auto BITS_PER_MASK = sizeof(ULONG) * BITS_PER_BYTE;
+      const USHORT BITS_PER_BYTE = 8;
+      const USHORT BITS_PER_MASK = sizeof(ULONG) * BITS_PER_BYTE;
+
+      
+      class IndexOutRange: public exception
+      {};
+
 
       class Bitset
       {
         /// <summary>
         /// Iterator to go over bitset for target value
         /// </summary>
-        class BitsetIterator
+        class BitsetIterateObject
         {
+          friend Bitset;
+
+          ULONG _mask_index{0};
+          // when offset == 0, iterator will check if current mask equals to MAX_ULONG
+          USHORT _mask_offset{0};
         public:
-          BitsetIterator(Bitset& bitset, bool target);
-
-          /// <summary>
-          /// If reach the end of bitset.
-          /// </summary>
-          /// <returns>True of reach the end, or false</returns>
-          bool end();
+          BitsetIterateObject();
         };
-
 
         vector<ULONG> _masks;
 
-        ULONG _empties;
-
         //size of bits
         ULONG _bit_size;
+
+        BitsetIterateObject _iter_obj;
 
       public:
         Bitset(UINT size);
@@ -50,11 +53,6 @@ namespace maro
         /// </summary>
         /// <param name="size">Size to extend, it should be 64 times</param>
         void extend(UINT size);
-
-        /// <summary>
-        /// Invert bits
-        /// </summary>
-        void invert();
 
         /// <summary>
         /// reset all bit to specified value
@@ -67,15 +65,9 @@ namespace maro
         /// </summary>
         /// <param name="index">Index of bit</param>
         /// <returns>True if the bit is 1, or 0</returns>
-        bool get(LONG index) const;
+        bool get(ULONG index) const;
 
-        void set(LONG index, bool value);
-
-
-        /// <summary>
-        /// Get number of empty slot
-        /// </summary>
-        ULONG empties();
+        void set(ULONG index, bool value);
 
         ULONG size();
 
@@ -84,7 +76,13 @@ namespace maro
         /// <summary>
         /// Get an iterator to go over all empty slots
         /// </summary>
-        BitsetIterator* get_empty_slots();
+        BitsetIterateObject& empty_iter_obj();
+
+        // if reach the end
+        bool is_end(BitsetIterateObject& iter_obj);
+
+        // get next empty index
+        ULONG empty_index(BitsetIterateObject& iter_obj);
       };
     }
   }

@@ -7,25 +7,17 @@ namespace maro
   {
     namespace raw
     {
-      Bitset::BitsetIterator::BitsetIterator(Bitset& bitset, bool target)
+      Bitset::BitsetIterateObject::BitsetIterateObject()
       {
-
       }
 
-
-      bool Bitset::BitsetIterator::end()
-      {
-        return true;
-      }
-
-      template<typename T>
+      template <typename T>
       inline UINT ceil_to_times(UINT n)
       {
         auto b = sizeof(T) * BITS_PER_BYTE;
 
-        return n % b == 0 ? n/b : (floorl(n / b) + 1);
+        return n % b == 0 ? n / b : (floorl(n / b) + 1);
       }
-
 
       Bitset::Bitset(UINT size)
       {
@@ -34,8 +26,6 @@ namespace maro
         _masks.resize(vector_size);
 
         _bit_size = vector_size * BITS_PER_MASK;
-
-        _empties = _bit_size;
       }
 
       void Bitset::extend(UINT size)
@@ -45,25 +35,13 @@ namespace maro
         _masks.resize(_masks.size() + new_size);
 
         _bit_size += new_size * BITS_PER_MASK;
-
-        _empties += new_size * BITS_PER_MASK;
-      }
-
-      void Bitset::invert()
-      {
-
       }
 
       void Bitset::reset(bool value)
       {
-        auto v = value ? 1 : 0;
+        auto v = value ? ULONG_MAX : 0ULL;
 
         memset(&_masks[0], v, _masks.size() * sizeof(ULONG));
-      }
-
-      ULONG Bitset::empties()
-      {
-        return _empties;
       }
 
       ULONG Bitset::size()
@@ -73,30 +51,36 @@ namespace maro
 
       UINT Bitset::mask_size()
       {
-        return _mask.size();
+        return _masks.size();
       }
 
-      Bitset::BitsetIterator* Bitset::get_empty_slots()
+      bool Bitset::get(ULONG index) const
       {
-        return nullptr;
-      }
+        if (index >= _bit_size)
+        {
+          throw IndexOutRange();
+        }
 
-      bool Bitset::get(LONG index) const
-      {
-        ULONG i = floorl(index / sizeof(ULONG));
-        auto offset = i % sizeof(ULONG);
+        ULONG i = floorl(index / BITS_PER_MASK);
+        auto offset = index % BITS_PER_MASK;
 
         auto mask = _masks[i];
 
-        auto target = mask >> offset & 0x1;
+        auto target = mask >> offset & 0x1ULL;
 
         return target == 1;
+
       }
 
-      void Bitset::set(LONG index, bool value)
+      void Bitset::set(ULONG index, bool value)
       {
-        ULONG i = floorl(index / 64);
-        auto offset = i % sizeof(ULONG);
+        if (index >= _bit_size)
+        {
+          throw IndexOutRange();
+        }
+
+        ULONG i = floorl(index / BITS_PER_MASK);
+        auto offset = index % BITS_PER_MASK;
 
         if (value)
         {
@@ -108,6 +92,76 @@ namespace maro
           _masks[i] &= !(0x1ULL << offset);
         }
       }
-    }
-  }
-}
+
+      Bitset::BitsetIterateObject& Bitset::empty_iter_obj()
+      {
+        // reset it each time
+        _iter_obj._mask_index = 0ULL;
+        _iter_obj._mask_offset = 0;
+
+        return _iter_obj;
+      }
+
+      bool Bitset::is_end(BitsetIterateObject& iter_obj)
+      {
+        auto index = _iter_obj._mask_index;
+        auto offset = _iter_obj._mask_offset;
+
+        if (offset >= BITS_PER_MASK)
+        {
+          index++;
+          offset = 0;
+        }
+
+        // find next mask that has empty slot (0)
+        if (offset == 0)
+        {
+          while (index < _masks.size())
+          {
+            if (_masks[index] != ULLONG_MAX)
+            {
+              break;
+            }
+
+            index++;
+          }
+        }
+
+        //
+        if (index >= _masks.size())
+        {
+          return true;
+        }
+
+        _iter_obj._mask_index = index;
+        _iter_obj._mask_offset = offset;
+
+        return false;
+      }
+
+      ULONG Bitset::empty_index(BitsetIterateObject& iter_obj)
+      {
+        auto index = _iter_obj._mask_index;
+        auto offset = _iter_obj._mask_offset;
+
+        auto mask = _masks[index];
+
+        for (auto i = offset; i < BITS_PER_MASK; i++)
+        {
+          mask = mask >> i;
+
+          // check if last bit is 0
+          if ((mask & 0x1ULL) == 0)
+          {
+            // pointer offset to next one
+            _iter_obj._mask_offset = offset + 1;
+
+            return index * BITS_PER_MASK + i;
+          }
+        }
+
+        return 0;
+      }
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro
