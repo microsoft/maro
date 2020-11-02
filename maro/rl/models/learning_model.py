@@ -5,7 +5,7 @@ import torch.nn as nn
 
 
 class LearningModel(nn.Module):
-    """A general NN model that consists of multiple building blocks.
+    """NN model that consists of multiple building blocks.
 
     The building blocks must be chainable, i.e., the output dimension of one block must match the input dimension of
     its successors.
