@@ -75,6 +75,12 @@ namespace maro
           break;
         }
       }
+      void Attribute::operator=(const Attribute& attr)
+      {
+        _type = attr._type;
+
+        memcpy(_data._data, attr._data._data, sizeof(char) * 8);
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

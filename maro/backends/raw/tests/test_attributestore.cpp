@@ -78,21 +78,25 @@ const lest::test specification[] =
 
 
     // size should be same as setup specified
-    EXPECT(10 == ats.size());
+    EXPECT(10 == ats.capacity());
+
+    // actually only 5 slots being used.
+    EXPECT(5 == ats.size());
 
     // 2nd attribute
     ats.add(0, 5, 1, 1);
 
     // still within the capacity
+    EXPECT(10 == ats.capacity());
     EXPECT(10 == ats.size());
 
     // this will extend internal space
     ats.add(0, 5, 2, 10);
 
     // the size will be changed (double size of last_index)
-    EXPECT(120 == ats.size());
+    EXPECT(120 == ats.capacity());
     EXPECT(60 == ats.last_index());
-    
+    EXPECT(60 == ats.size());
   },
 
   CASE("Add without setup works same.")
@@ -102,7 +106,8 @@ const lest::test specification[] =
     ats.add(0, 5, 0, 1);
 
     EXPECT(5 == ats.last_index());
-    EXPECT(10 == ats.size());
+    EXPECT(10 == ats.capacity());
+    EXPECT(5 == ats.size());
   },
 
   CASE("Remove will cause empty slots in the middle of vector")
@@ -127,8 +132,8 @@ const lest::test specification[] =
     EXPECT_THROWS_AS(ats(0, 1, 0, 1), BadAttributeIndexing);
 
     // but 1st node's attribute will not be affected.
-    attr = ats(0, 0, 0, 1);
-    EXPECT(10 == attr.get_int());
+    auto& attr2 = ats(0, 0, 0, 1);
+    EXPECT(10 == attr2.get_int());
   },
 
   CASE("Remove with invalid parameter will not cause error.")
@@ -174,13 +179,51 @@ const lest::test specification[] =
     EXPECT(10 == ats.last_index());
 
     // and our last node will be moved to 1st slot, but with updated index
-    attr = ats(0, 1, 0, 9);
+    auto& attr2 = ats(0, 1, 0, 9);
 
     // so value should not be changed
-    EXPECT(10 == attr.get_int());
+    EXPECT(10 == attr2.get_int());
 
     // size will not change too
 
+  },
+
+  CASE("COPY should not contain empty slot.")
+  {
+    auto ats = AttributeStore();
+
+    ats.add(0, 2, 0, 5);
+
+    // set value for 1st & last attr of 2nd node, used to validate
+    auto& attr = ats(0, 1, 0, 0);
+    attr = 10;
+
+    auto& attr2 = ats(0, 1, 0, 4);
+    attr2 = 11;
+
+    // remove node to gen empty slots
+    ats.remove(0, 0, 0, 5);
+
+    // target to hold attrs and map
+    auto attrs_dest = vector<Attribute>(ats.size());
+    auto map_dest = unordered_map<ULONG, size_t>();
+
+    // no exception as we have enough space to hold attributes
+    EXPECT_NO_THROW(ats.copy_to(&attrs_dest[0], map_dest));
+
+    // check if our attributes copied correct
+
+    // 1st in destinition vector should be last one of 2nd node after arrange
+    auto& attr3 = attrs_dest[0];
+
+    EXPECT(11 == attr3.get_int());
+
+    auto& attr4 = attrs_dest[attrs_dest.size() - 1];
+
+    EXPECT(10 == attr4.get_int());
+
+    // there should be 5 keys in map
+    EXPECT(5 == map_dest.size());
   },
 }
 ;

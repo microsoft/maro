@@ -32,9 +32,15 @@ namespace maro
             if (!_slot_masks[i])
             {
               _attributes[i] = _attributes[_last_index-1];
+
+              _slot_masks[i] = true;
+              _slot_masks[_last_index - 1] = false;
+
               _last_index--;
             }
           }
+
+          _is_dirty = false;
         }
       }
 
@@ -109,13 +115,23 @@ namespace maro
         }
       }
 
-      void AttributeStore::copy_to(void* p)
+      void AttributeStore::copy_to(Attribute* p, unordered_map<ULONG, size_t>& map)
       {
         // arrange before copy
+        arrange();
 
+        // do copy
+        memcpy(p, &_attributes[0], _last_index * sizeof(Attribute));
+
+        // copy the mapping
+        // NOTE: this coppy will not change the index, others should consider it when using this
+        for (auto iter : _mapping)
+        {
+          map[iter.first] = iter.second;
+        }
       }
 
-      size_t AttributeStore::size()
+      size_t AttributeStore::capacity()
       {
         return _attributes.size();
       }
@@ -123,6 +139,11 @@ namespace maro
       size_t AttributeStore::last_index()
       {
         return _last_index;
+      }
+
+      size_t AttributeStore::size()
+      {
+        return _mapping.size();
       }
 
     }

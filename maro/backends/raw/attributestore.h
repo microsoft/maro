@@ -67,11 +67,12 @@ namespace maro
         /// <summary>
         /// Copy valid data to target address
         /// </summary>
-        void copy_to(void* p);
+        void copy_to(Attribute* p, unordered_map<ULONG, size_t> &map);
 
 
-        size_t size();
+        size_t capacity();
         size_t last_index();
+        size_t size();
       };
     }
   }
