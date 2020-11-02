@@ -28,7 +28,6 @@ for ep in range(max_ep):
         if not is_done:
             for decision_event in decision_evts:
                 if decision_event.action_type == ActionType.order:
-                    #print("decision_event", decision_event)
                     # stock trading decision
                     stock_index = decision_event.item
                     action_scope = decision_event.action_scope
@@ -38,7 +37,7 @@ for ep in range(max_ep):
                     sell_min_amount = action_scope.sell_min
                     sell_max_amount = action_scope.sell_max
                     supported_order_types = action_scope.supported_order
-                    print(stock_index, min_amount, max_amount, sell_min_amount, sell_max_amount)
+                    print("<<<<    trade decision_event", stock_index, min_amount, max_amount, sell_min_amount, sell_max_amount)
                     # qurey snapshot for stock information
                     cur_env_snap = env.snapshot_list['stocks']
                     holding = cur_env_snap[last_frame_idx:int(decision_event.item):"account_hold_num"][-1]
@@ -57,37 +56,39 @@ for ep in range(max_ep):
                     #print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "total_money:", total_money, "remaining_money", remaining_money)
 
                     if holding > 0:  # sub_engine_name -> market
-                        action = MarketOrder(item=decision_event.item, amount=holding,
-                                        direction=OrderDirection.sell, tick=env.tick)
+                        # action = MarketOrder(item=decision_event.item, amount=holding,
+                        #                 direction=OrderDirection.sell, tick=env.tick)
 
                         # limit_order
-                        # action = Action(item_index=decision_event.item, number=-holding,
-                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.limit_order, limit=highest_price)
+                        # action = LimitOrder(item=decision_event.item, amount=holding,
+                        #                 direction=OrderDirection.sell, tick=env.tick, limit=highest_price)
 
                         # stop order
-                        # action = Action(item_index=decision_event.item, number=-holding,
-                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.stop_order, stop=lowest_price)
+                        # action = StopOrder(item=decision_event.item, amount=holding,
+                        #                 direction=OrderDirection.sell, tick=env.tick, stop=lowest_price)
 
                         # stop limit order
-                        # action = Action(item_index=decision_event.item, number=-holding,
-                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.stop_limit_order, limit=lowest_price, stop=highest_price)
+                        # action = StopLimitOrder(item=decision_event.item, amount=holding,
+                        #                 direction=OrderDirection.sell, tick=env.tick, stop=highest_price, limit=lowest_price)
 
                         # order that has life_time, default life_time is 1, if life_time > 1, order will keep live when not triggered in life_time ticks
-                        # action = Action(item_index=decision_event.item, number=-holding,
-                        #                 action_type=ActionType.order, tick=env.tick, order_mode=OrderMode.limit_order, limit=highest_price, life_time=10)
+                        action = LimitOrder(item=decision_event.item, amount=holding,
+                                        direction=OrderDirection.sell, tick=env.tick, limit=highest_price, life_time=10)
                     else:
 
                         action = MarketOrder(item=decision_event.item, amount=1000,
                                         direction=OrderDirection.buy, tick=env.tick)
+                    print(f"    >>>>trade order: {action.id},tick:{env.tick}")
 
                 elif decision_event.action_type == ActionType.cancel_order:
                     # cancel order decision
-                    # print(f"Cancel order decision_event:{decision_event.action_scope},tick:{env.tick}")
+                    print(f"<<<<    Cancel order decision_event:{[x.id for x in decision_event.action_scope.available_orders]},tick:{env.tick}")
                     if len(decision_event.action_scope.available_orders) > 0:
                         for i in range(len(decision_event.action_scope.available_orders)):
                             if random.random() > 0.75:
-                                action = CancelOrder(action_id=decision_event.action_scope.available_orders[i],
+                                action = CancelOrder(action=decision_event.action_scope.available_orders[i],
                                                 tick=env.tick)
+                                print(f"    >>>>Cancel order:{action.action.id},tick:{env.tick}")
                                 actions.append(action)
                     action = None
                 actions.append(action)

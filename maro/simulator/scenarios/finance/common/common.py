@@ -115,18 +115,18 @@ class Action(ABC):
         self.life_time = life_time
         self.action_result = None
         self.comment = ""
-        print("Action id:", self.id)
+        # print("Action id:", self.id)
 
     def __repr__(self):
-        return f"< Action decision: {self.decision_tick} finished: {self.finish_tick} >"
+        return f"< Action decision: {self.decision_tick} finished: {self.finish_tick} state: {self.state} >"
 
 
 class CancelOrder(Action):
-    def __init__(self, action_id, tick):
+    def __init__(self, action, tick):
         super().__init__(
             tick=tick, life_time=1
         )
-        self.cancel_action_id = action_id
+        self.action = action
 
 
 class Order(Action):
@@ -149,10 +149,10 @@ class Order(Action):
 
 class MarketOrder(Order):
     def __init__(
-        self, tick: int, item: int, amount: int, direction: OrderDirection):
+        self, tick: int, item: int, amount: int, direction: OrderDirection, life_time: int = 1):
         super().__init__(
             item=item, amount=amount, direction=direction,
-            mode=OrderMode.market_order, tick=tick
+            mode=OrderMode.market_order, tick=tick, life_time=life_time
         )
 
     def is_trigger(self, price, trade_volume) -> bool:
@@ -166,11 +166,11 @@ class MarketOrder(Order):
 class LimitOrder(Order):
     def __init__(
         self, tick: int, item: int, amount: int, direction: OrderDirection,
-        limit: float
+        limit: float, life_time: int = 1
     ):
         super().__init__(
             item=item, amount=amount, direction=direction,
-            mode=OrderMode.limit_order, tick=tick
+            mode=OrderMode.limit_order, tick=tick, life_time=life_time
         )
         self.limit = limit
 
@@ -190,11 +190,11 @@ class LimitOrder(Order):
 class StopOrder(Order):
     def __init__(
         self, tick: int, item: int, amount: int, direction: OrderDirection,
-        stop: float
+        stop: float, life_time: int = 1
     ):
         super().__init__(
             item=item, amount=amount, direction=direction,
-            mode=OrderMode.stop_order, tick=tick
+            mode=OrderMode.stop_order, tick=tick, life_time=life_time
         )
         self.stop = stop
     
@@ -214,11 +214,11 @@ class StopOrder(Order):
 class StopLimitOrder(Order):
     def __init__(
         self, tick: int, item: int, amount: int, direction: OrderDirection,
-        stop: float, limit: float
+        stop: float, limit: float, life_time: int = 1
     ):
         super().__init__(
             item=item, amount=amount, direction=OrderDirection,
-            mode=OrderMode.stop_limit_order, tick=tick
+            mode=OrderMode.stop_limit_order, tick=tick, life_time=life_time
         )
         self.stop = stop
         self.limit = limit

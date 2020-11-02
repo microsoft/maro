@@ -152,9 +152,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
         self._event_buffer.insert_event(evt)
 
-        # append panding orders still not triggered in the available life time
-        for action in self._pending_orders:
-            self._event_buffer.gen_atom_event(tick, DecisionEvent, action)
+        # # append panding orders still not triggered in the available life time
+        # for action in self._pending_orders:
+        #     self._event_buffer.gen_atom_event(tick, DecisionEvent, action)
 
         # append order event
         for valid_stock in valid_stocks:
@@ -168,10 +168,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def post_step(self, tick: int):
         if (not self._conf["trade_constraint"]["allow_day_trade"]) and self.is_market_closed():
             # not allowed day trade, add stock buy amount to hold here
-            for order in self._executing_orders:
-                if order.direction == OrderDirection.buy:
-                    self._stocks[order.item].account_hold_num += order.action_result.trade_number
-            self._executing_orders.clear()
+            if len(self._executing_orders) > 0:
+                for order in self._executing_orders:
+                    if order.direction == OrderDirection.buy:
+                        self._stocks[order.item].account_hold_num += order.action_result.trade_number
+                self._executing_orders.clear()
+        self._account.update_position(self._stocks)
         # We following the snapshot_resolution settings to take snapshot.
         if (tick + 1) % self._snapshot_resolution == 0:
             # NOTE: We should use frame_index method to get correct index in snapshot list.
@@ -305,14 +307,13 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             return
 
         for action in actions:
+            # if action in self._pending_orders:
+            #     self._pending_orders.remove(action)
             if action is None:
                 pass
             else:
-                if action.id not in self._account.action_history:
-                    self._account.action_history[action.id] = action
-
-                if action is type(CancelOrder):
-                    self.cancel_order(action)
+                if isinstance(action, CancelOrder):
+                    self.cancel_order(action, evt.tick)
                 else:
                     result: TradeResult = self.take_action(
                         action, self._account.remaining_money, evt.tick
@@ -323,6 +324,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
                 if action.state != ActionState.pending and action.id not in self._finished_action:
                     self._finished_action[action.id] = action
+        # append panding orders still not triggered in the available life time
+        for action in self._pending_orders:
+            self._event_buffer.gen_atom_event(evt.tick, DecisionEvent, action)
 
     def take_action(self, action: Action, remaining_money: float, tick: int) -> TradeResult:
         # 1. can trade -> bool
@@ -334,48 +338,44 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             stock = self._stocks[action.item]
             is_trigger = action.is_trigger(stock.opening_price, stock.trade_volume)
             if is_trigger:
-                if action.id in self._pending_orders:
-                    self._pending_orders.remove(action.id)
+                print(f"  <<>>  executing order {action.id}")
                 if not self._allow_split:
                     ret = self.trade(
                             action
                         )  
-                elif self._allow_split:
+                else:
                     # TODO: Split trade should be implemented
                     ret = self.split_trade(
                             action
-                        )  
+                        )
+
+                if ret is not None:
+                    action.state = ActionState.success
+                    action.finish_tick = tick
+                    if action.direction == OrderDirection.buy:
+                        self._stocks[action.item].average_cost = (
+                            (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
+                            (ret.price_per_item * ret.trade_number)
+                        ) / (self._stocks[action.item].account_hold_num + ret.trade_number)
+                        # day trading is considered
+                        if self._conf["trade_constraint"]["allow_day_trade"]:
+                            self._stocks[action.item].account_hold_num += ret.trade_number
+                        else:
+                            self._executing_orders.append(action)
+                    else:
+                        self._stocks[action.item].account_hold_num -= ret.trade_number
+                else:
+                    action.state = ActionState.failed
+                    action.finish_tick = tick
             else:
-                if action.life_time != 1:
+                if action.life_time > 1:
                     action.life_time -= 1
                     # move to step
                     # self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
-                    if action.id not in self._pending_orders:
-                        self._pending_orders.append(action.id)
+                    self._pending_orders.append(action)
                 else:
-                    if action.id in self._pending_orders:
-                        self._pending_orders.remove(action.id)
-                        action.state = ActionState.expired
-                        action.finish_tick = tick
-                
-
-            if ret:
-                action.state = ActionState.success
-                if action.direction == OrderDirection.buy:
-                    self._stocks[action.item].average_cost = (
-                        (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
-                        (ret.price_per_item * ret.trade_number)
-                    ) / (self._stocks[action.item].account_hold_num + ret.trade_number)
-                    # day trading is considered
-                    if self._conf["trade_constraint"]["allow_day_trade"]:
-                        self._stocks[action.item].account_hold_num += ret.trade_number
-                    else:
-                        self._executing_orders.append(action)
-                else:
-                    self._stocks[action.item].account_hold_num -= ret.trade_number
-            else:
-                action.state = ActionState.failed
-            action.finish_tick = tick
+                    action.state = ActionState.expired
+                    action.finish_tick = tick
             action.action_result = ret
 
         else:
@@ -383,10 +383,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             pass
         return ret
 
-    def cancel_order(self, action: Action):
-        if action.cancel_action_id in self._pending_orders:
-            self._pending_orders.remove(action.cancel_action_id)
-            print(f'Order canceled :{action.cancel_action_id}')
+    def cancel_order(self, action: Action, tick: int):
+        action.action.state = ActionState.canceled
+        action.action.finish_tick = tick
+        action.action.life_time = 0
+        if action.action in self._pending_orders:
+            self._pending_orders.remove(action.action)
+        action.state = ActionState.success
+        action.finish_tick = tick
 
     def _action_scope(self, action_type: ActionType, stock_index: int):
         if action_type == ActionType.order:
@@ -493,6 +497,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             ret = TradeResult(excuting_volume, excuting_price, excuting_commission)
         else:
             ret = None
+        
         return ret
 
     def validate_constrant(self, holding: int, direction: OrderDirection, excuting_price: float, excuting_volume: int):

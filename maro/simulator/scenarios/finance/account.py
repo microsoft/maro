@@ -16,22 +16,21 @@ class Account(NodeBase):
         self._money = init_money
         self.remaining_money = self._money
         self.total_money = self._money
-        self._last_total_money = self._money
 
     def take_trade(self, order: Order, trade_result: TradeResult, cur_data: list):
-        self._last_total_money = self.total_money
         if trade_result:
-            cur_position = 0
-            for stock in cur_data:
-                cur_position += stock.closing_price * stock.account_hold_num
             if order.direction == OrderDirection.buy:
                 self.remaining_money -= trade_result.trade_number * trade_result.price_per_item + trade_result.tax
             else:
                 self.remaining_money += trade_result.trade_number * trade_result.price_per_item - trade_result.tax
-            self.total_money = self.remaining_money + cur_position
+
+    def update_position(self, cur_data: list):
+        cur_position = 0
+        for stock in cur_data:
+            cur_position += stock.last_closeing * stock.account_hold_num
+        self.total_money = self.remaining_money + cur_position
 
     def reset(self):
-        self._last_total_money = 0
         self.remaining_money = self._money
         self.total_money = self._money
         self.action_history.clear()
