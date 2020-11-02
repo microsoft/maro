@@ -41,16 +41,15 @@ class AbsAgent(ABC):
         """Underlying experience pool where the agent stores experiences."""
         return self._experience_pool
 
-    def choose_action(self, model_state, epsilon: float = .0):
+    def choose_action(self, model_state, **kwargs):
         """Choose an action using the underlying algorithm based on a preprocessed env state.
 
         Args:
             model_state: State vector as accepted by the underlying algorithm.
-            epsilon (float): Exploration rate.
         Returns:
             Action given by the underlying policy model.
         """
-        return self._algorithm.choose_action(model_state, epsilon)
+        return self._algorithm.choose_action(model_state, **kwargs)
 
     @abstractmethod
     def train(self, *args, **kwargs):

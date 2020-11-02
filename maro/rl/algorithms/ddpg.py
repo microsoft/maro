@@ -85,7 +85,7 @@ class DDPG(AbsAlgorithm):
         self._policy_train_cnt = 0
         self._value_train_cnt = 0
 
-    def choose_action(self, state, epsilon=None):
+    def choose_action(self, state):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)  # (1, state_dim)
         self._model_dict["policy"].eval()
         with torch.no_grad():
