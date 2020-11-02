@@ -43,11 +43,6 @@ namespace maro
         auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
         auto index_pair = _mapping.find(key);
 
-        //cout << "paramters" << endl;
-        //cout << node_id << ", " << node_index << ", " << attr_id << ", " << slot_index << endl;
-        //cout << "key" << endl;
-        //cout << key << endl;
-
         if (index_pair == _mapping.end())
         {
           throw BadAttributeIndexing();
@@ -116,6 +111,8 @@ namespace maro
 
       void AttributeStore::copy_to(void* p)
       {
+        // arrange before copy
+
       }
 
       size_t AttributeStore::size()

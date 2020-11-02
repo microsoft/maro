@@ -149,6 +149,39 @@ const lest::test specification[] =
     // remove with invalid attribute slot number;
     EXPECT_NO_THROW(ats.remove(0, 0, 0, 20));
   },
+
+  CASE("Arrange should fill empty slots with attribute at the end.")
+  {
+    auto ats = AttributeStore();
+
+    ats.add(0, 2, 0, 10);
+
+    // after adding node attributes, last index should be 20
+    EXPECT(20 == ats.last_index());
+
+    // set value for last attribute of 2nd node
+    auto& attr = ats(0, 1, 0, 9);
+
+    attr = 10;
+
+    // remove 1st node to gen empty slots
+    ats.remove(0, 0, 0, 10);
+
+    // arrange should work without exception
+    EXPECT_NO_THROW(ats.arrange());
+
+    // last index should be 10, as we will fill 10 empty slots
+    EXPECT(10 == ats.last_index());
+
+    // and our last node will be moved to 1st slot, but with updated index
+    attr = ats(0, 1, 0, 9);
+
+    // so value should not be changed
+    EXPECT(10 == attr.get_int());
+
+    // size will not change too
+
+  },
 }
 ;
 int main(int argc, char* argv[])
