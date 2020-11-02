@@ -52,8 +52,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # Our stations list used for quick accessing.
         self._stocks: List[Stock] = []
 
-        self._total_order_num: int = 0
-
         self._load_configs()
         self._register_events()
         self._finance_data_pipeline = None
@@ -108,7 +106,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._action_scope_max = self._conf["action_scope"]["max"]
 
         self._pending_orders = []  # the orders that can be canceled
-        self._excuting_orders = []
+        self._executing_orders = []
         self._finished_action = OrderedDict()
 
     @property
@@ -128,7 +126,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     @property
     def supported_orders(self) -> list:
-        return self._order_handlers.keys()
+        return self._support_order_mode
 
     def step(self, tick: int):
         """Push business engine to next step.
@@ -154,6 +152,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
         self._event_buffer.insert_event(evt)
 
+        # append panding orders still not triggered in the available life time
+        for action in self._pending_orders:
+            self._event_buffer.gen_atom_event(tick, DecisionEvent, action)
+
         # append order event
         for valid_stock in valid_stocks:
             decision_event = DecisionEvent(
@@ -166,10 +168,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def post_step(self, tick: int):
         if (not self._conf["trade_constraint"]["allow_day_trade"]) and self.is_market_closed():
             # not allowed day trade, add stock buy amount to hold here
-            for order in self._excuting_orders:
+            for order in self._executing_orders:
                 if order.direction == OrderDirection.buy:
                     self._stocks[order.item].account_hold_num += order.action_result.trade_number
-            self._excuting_orders.clear()
+            self._executing_orders.clear()
         # We following the snapshot_resolution settings to take snapshot.
         if (tick + 1) % self._snapshot_resolution == 0:
             # NOTE: We should use frame_index method to get correct index in snapshot list.
@@ -191,8 +193,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
-        self._total_order_num = 0
-
         self._frame.reset()
 
         self._snapshots.reset()
@@ -209,9 +209,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         # self._matrices_node.reset()
 
-        self._pending_orders = []
-        self._canceled_orders = []
-        self._finished_action = OrderedDict()
+        self._pending_orders.clear()
+        self._executing_orders.clear()
+        self._finished_action.clear()
 
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index.
@@ -233,7 +233,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
-            operation_number=self._total_order_num
+            operation_number=len(self._finished_action)
         )
 
     def __del__(self):
@@ -348,7 +348,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             else:
                 if action.life_time != 1:
                     action.life_time -= 1
-                    self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
+                    # move to step
+                    # self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
                     if action.id not in self._pending_orders:
                         self._pending_orders.append(action.id)
                 else:
@@ -369,7 +370,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     if self._conf["trade_constraint"]["allow_day_trade"]:
                         self._stocks[action.item].account_hold_num += ret.trade_number
                     else:
-                        self._excuting_orders.append(action)
+                        self._executing_orders.append(action)
                 else:
                     self._stocks[action.item].account_hold_num -= ret.trade_number
             else:
@@ -383,11 +384,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         return ret
 
     def cancel_order(self, action: Action):
-        if action.id in self._pending_orders:
-            self._pending_orders.remove(action.id)
-        if action.id not in self._canceled_orders:
-            print(f'Order canceled :{action.id}')
-            self._canceled_orders.append(action.id)
+        if action.cancel_action_id in self._pending_orders:
+            self._pending_orders.remove(action.cancel_action_id)
+            print(f'Order canceled :{action.cancel_action_id}')
 
     def _action_scope(self, action_type: ActionType, stock_index: int):
         if action_type == ActionType.order:
