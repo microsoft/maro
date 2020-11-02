@@ -32,9 +32,9 @@ namespace maro
       {
         auto new_size = ceil_to_times<ULONG>(size);
 
-        _masks.resize(_masks.size() + new_size);
+        _masks.resize(new_size);
 
-        _bit_size += new_size * BITS_PER_MASK;
+        _bit_size = new_size * BITS_PER_MASK;
       }
 
       void Bitset::reset(bool value)

@@ -30,6 +30,7 @@ set(RAR_BACKEND_SOURCES
 
 set(TEST_SOURCES
     test_bitset
+    test_attributestore
     test_others
 )
 
