@@ -6,26 +6,14 @@ import torch.nn as nn
 
 
 class LearningModel(nn.Module):
-    """A general model abstraction that consists of representation layers and decision layers.
+    """A general NN model that consists of multiple building blocks.
 
-    Args:
-        representation_layers (nn.Module): An NN-based feature extractor.
-        decision_layers (nn.Module): An NN model that takes the output of the representation layers as input
-            and outputs values of interest in RL (e.g., state & action values).
-        clip_value (float): Threshold used to clip gradients.
+    The building blocks must be chainable, i.e., the output dimension of one block must match the input dimension of
+    its successors.
     """
-    def __init__(
-        self,
-        representation_layers: nn.Module = nn.Identity(),
-        decision_layers: nn.Module = nn.Identity(),
-        clip_value: float = None
-    ):
+    def __init__(self, *blocks):
         super().__init__()
-        self._net = nn.Sequential(representation_layers, decision_layers)
-
-        if clip_value is not None:
-            for param in self._net.parameters():
-                param.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+        self._net = nn.Sequential(*blocks)
 
     def forward(self, inputs):
         return self._net(inputs)
