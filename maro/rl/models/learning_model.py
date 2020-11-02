@@ -5,12 +5,6 @@ import torch
 import torch.nn as nn
 
 
-class IdentityLayers(nn.Module):
-    """A convenience dummy model that effects the identity transformation."""
-    def forward(self, inputs):
-        return inputs
-
-
 class LearningModel(nn.Module):
     """A general model abstraction that consists of representation layers and decision layers.
 
@@ -22,8 +16,8 @@ class LearningModel(nn.Module):
     """
     def __init__(
         self,
-        representation_layers: nn.Module = IdentityLayers(),
-        decision_layers: nn.Module = IdentityLayers(),
+        representation_layers: nn.Module = nn.Identity(),
+        decision_layers: nn.Module = nn.Identity(),
         clip_value: float = None
     ):
         super().__init__()
