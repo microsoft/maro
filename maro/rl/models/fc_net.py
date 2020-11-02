@@ -53,7 +53,8 @@ class FullyConnectedNet(nn.Module):
         self._dropout_p = dropout_p
 
         if skip_connection_enabled and input_dim != output_dim:
-            raise ValueError(f"input and output dimensions must match if skip connection is enabled")
+            raise ValueError(f"input and output dimensions must match if skip connection is enabled, "
+                             f"got {input_dim} and {output_dim}")
 
         self._skip_connection_enabled = skip_connection_enabled
 
