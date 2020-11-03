@@ -138,8 +138,8 @@ class DQN(AbsAlgorithm):
         if self._hyper_params.advantage_mode is None:
             return self._model_dict[which](states)
 
-        state_values = self._model_dict[which](states, head_key=DuelingQModelHead.STATE_VALUE)
-        advantages = self._model_dict[which](states, head_key=DuelingQModelHead.ADVANTAGE)
+        state_values = self._model_dict[which](states, head_key=DuelingQModelHead.STATE_VALUE.value)
+        advantages = self._model_dict[which](states, head_key=DuelingQModelHead.ADVANTAGE.value)
         # Use mean or max correction to address the identifiability issue
         corrections = advantages.mean(1) if self._hyper_params.advantage_mode == "mean" else advantages.max(1)[0]
         q_values = state_values + advantages - corrections.unsqueeze(1)
