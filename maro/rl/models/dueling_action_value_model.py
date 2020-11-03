@@ -6,7 +6,7 @@ import torch.nn as nn
 
 class DuelingActionValueModel(nn.Module):
     def __init__(self, value_head: nn.Module, advantage_head: nn.Module, shared_layers:nn.Module = nn.Identity(),
-                 advantage_mode: str = "mean"):
+                 ):
         super().__init__()
         self._value_head = value_head
         self._advantage_head = advantage_head
