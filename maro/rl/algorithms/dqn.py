@@ -140,7 +140,7 @@ class DQN(AbsAlgorithm):
 
     def _get_next_q_values(self, current_q_values_all, states):
         if self._hyper_params.is_double:
-            actions = current_q_values_all.max(dim=1)[1]
+            actions = current_q_values_all.max(dim=1)[1].unsqueeze(1)
             return self._get_q_values("target", states).gather(1, actions).squeeze(1)  # (N,)
         else:
             return self._get_q_values("target", states).max(dim=1)[0]   # (N,)
