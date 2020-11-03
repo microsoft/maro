@@ -26,4 +26,4 @@ trade_constraint:
   allow_split: true
   allow_day_trade: false
   max_trade_percent: 0.2  # max trading percent for stocks
-  split_trade_percent: 0.01  # max trading percent for 1 split trade
+  split_trade_percent: 0.000001  # max trading percent for 1 split trade

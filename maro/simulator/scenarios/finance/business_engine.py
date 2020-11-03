@@ -335,7 +335,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             stock = self._stocks[action.item]
             is_trigger = action.is_trigger(stock.opening_price, stock.trade_volume)
             if is_trigger:
-                print(f"  <<>>  executing order {action.id}")
+                print(f"  <<>>  executing {action}")
                 if not self._allow_split:
                     rets = self.trade(
                             action
@@ -350,6 +350,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     action.state = ActionState.success
                     action.finish_tick = tick
                     for ret in rets:
+                        print(f"  <<>>  trading: {ret}")
                         if action.direction == OrderDirection.buy:
                             self._stocks[action.item].average_cost = (
                                 (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
@@ -359,7 +360,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                             if self._conf["trade_constraint"]["allow_day_trade"]:
                                 self._stocks[action.item].account_hold_num += ret.trade_number
                             else:
-                                self._executing_orders.append(action)
+                                if action not in self._executing_orders:
+                                    self._executing_orders.append(action)
                         else:
                             self._stocks[action.item].account_hold_num -= ret.trade_number
                 else:
@@ -466,6 +468,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         
         split_volume = self._conf["trade_constraint"]["split_trade_percent"] * market_volume
         odd_shares = self._stocks[action.item].account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
+        excuting_price = market_price
 
         executing = True
         while executing:
@@ -475,7 +478,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             while adjusted:
                 adjusted = False
 
-                excuting_price = market_price
                 excuting_price = slippage.execute(action.direction, excuting_volume, excuting_price, market_volume)
 
                 excuting_commission = 0
@@ -499,14 +501,17 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
             if excuting_volume > 0:
                 ret = TradeResult(excuting_volume, excuting_price, excuting_commission)
+
                 remaining_volume -= excuting_volume
-                rets.append(ret)
                 if action.direction == OrderDirection.buy:
                     remaining_money -= ret.trade_number * ret.price_per_item + ret.tax
                 else:
                     remaining_money += ret.trade_number * ret.price_per_item - ret.tax
-                if remaining_volume <= 0 or remaining_money <= 0:
+
+                if remaining_volume < 0 or remaining_money < 0:
                     executing = False
+                else:
+                    rets.append(ret)
             else:
                 executing = False
                 ret = None
@@ -602,7 +607,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             money_needed = excuting_price * excuting_volume + excuting_commission
             if money_needed > remaining_money:
                 ret = False
-        if direction == OrderDirection.sell:
+        else:
             money_needed = excuting_commission
             if money_needed > remaining_money + excuting_price * excuting_volume:
                 ret = False
@@ -614,7 +619,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         if direction == OrderDirection.buy:
             money_needed = excuting_price * excuting_volume + excuting_commission
             ret = ret - math.ceil((money_needed - remaining_money) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])) * self._conf["trade_constraint"]["min_buy_unit"]
-        if direction == OrderDirection.sell:
+        else:
             money_needed = excuting_commission
             ret = ret - math.ceil((money_needed - (remaining_money + excuting_price * ret)) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])) * self._conf["trade_constraint"]["min_buy_unit"]
         return int(ret)

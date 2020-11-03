@@ -36,7 +36,7 @@ class TradeResult:
             self, trade_number: int,
             price_per_item: float, tax: float
         ):
-        self.trade_number = trade_number
+        self.trade_number = int(trade_number)
         self.price_per_item = price_per_item
         self.tax = tax
 
@@ -118,7 +118,7 @@ class Action(ABC):
         # print("Action id:", self.id)
 
     def __repr__(self):
-        return f"< Action decision: {self.decision_tick} finished: {self.finish_tick} state: {self.state} >"
+        return f"< Action start: {self.decision_tick} finished: {self.finish_tick} state: {self.state} >"
 
 
 class CancelOrder(Action):
@@ -145,6 +145,10 @@ class Order(Action):
     @abstractmethod
     def is_trigger(self, price, trade_volume) -> bool:
         pass
+
+    def __repr__(self):
+        
+        return f"{super().__repr__()}\n< Order item: {self.item} amount: {self.amount} direction: {self.direction} >"
 
 
 class MarketOrder(Order):
