@@ -310,7 +310,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         return (
             container_details["state"]["Status"] == "exited" and
             job_runtime_details is not None and
-            job_runtime_details.get("remove_failed_container") == "1"
+            job_runtime_details.get("is_remove_failed_container") == "1"
         )
 
     def _is_restart_container(self, container_details: dict, job_runtime_details: dict) -> bool:
