@@ -16,6 +16,20 @@ namespace maro
   {
     namespace raw
     {
+      class BadNodeIdentifier : public exception
+      {
+      };
+
+      class BadAttributeIdentifier : public exception
+      {};
+
+      class BadNodeIndex : public exception
+      {
+      };
+
+      class BadAttributeSlotIndex : public exception
+      {};
+
       struct FrameNode
       {
         IDENTIFIER id;
@@ -47,6 +61,9 @@ namespace maro
         // node information
         vector<FrameNode> _nodes;
 
+        // mapping used to get attributes by node 
+        map<IDENTIFIER, vector<IDENTIFIER>> _node_2_attrs;
+
       public:
         /// <summary>
         /// Get attribute at specified slot
@@ -75,6 +92,8 @@ namespace maro
         IDENTIFIER new_attr(IDENTIFIER node_id, string name, SLOT_INDEX slots);
 
 
+        void setup();
+
         /// <summary>
         /// Add additional node for specified id
         /// </summary>
@@ -95,8 +114,12 @@ namespace maro
         /// <param name="slots"></param>
         void set_attr_slot(IDENTIFIER attr_id, SLOT_INDEX slots);
 
+      private:
+        inline void ensure_node_id(IDENTIFIER node_id);
+        inline void ensure_attr_id(IDENTIFIER attr_id);
+        inline void ensure_node_index(FrameNode& node, NODE_INDEX node_index);
+        inline void ensure_slot_index(FrameAttribute& attr, SLOT_INDEX slot_index);
 
-        void copy_to(void* p);
       };
     }
   }
