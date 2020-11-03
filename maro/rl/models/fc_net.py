@@ -3,6 +3,7 @@
 
 from collections import OrderedDict
 
+import torch
 import torch.nn as nn
 
 
@@ -20,11 +21,24 @@ class FullyConnectedNet(nn.Module):
         softmax_enabled (bool): If true, the output of the net will be a softmax transformation of the top layer's
             output. Defaults to False.
         batch_norm_enabled (bool): If true, batch normalization will be performed at each layer.
+        skip_connection_enabled (bool): If true, a skip connection will be built between the bottom (input) layer and
+            top (output) layer. Defaults to False.
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
+        clip_value (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping is
+            performed.
     """
     def __init__(
-        self, name: str, input_dim: int, output_dim: int, hidden_dims: [int], activation=nn.LeakyReLU,
-        softmax_enabled: bool = False, batch_norm_enabled: bool = False, dropout_p: float = None
+        self,
+        name: str,
+        input_dim: int,
+        output_dim: int,
+        hidden_dims: [int],
+        activation=nn.LeakyReLU,
+        softmax_enabled: bool = False,
+        batch_norm_enabled: bool = False,
+        skip_connection_enabled: bool = False,
+        dropout_p: float = None,
+        clip_value: float = None
     ):
         super().__init__()
         self._name = name
@@ -38,6 +52,14 @@ class FullyConnectedNet(nn.Module):
         self._batch_norm_enabled = batch_norm_enabled
         self._dropout_p = dropout_p
 
+        if skip_connection_enabled and input_dim != output_dim:
+            raise ValueError(
+                f"input and output dimensions must match if skip connection is enabled, "
+                f"got {input_dim} and {output_dim}"
+            )
+
+        self._skip_connection_enabled = skip_connection_enabled
+
         # build the net
         self._layers = self._build_layers([input_dim] + self._hidden_dims)
         if len(self._hidden_dims) == 0:
@@ -46,8 +68,14 @@ class FullyConnectedNet(nn.Module):
             self._top_layer = nn.Linear(hidden_dims[-1], self._output_dim)
         self._net = nn.Sequential(*self._layers, self._top_layer)
 
+        if clip_value is not None:
+            for param in self._net.parameters():
+                param.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+
     def forward(self, x):
-        out = self._net(x).double()
+        out = self._net(x)
+        if self._skip_connection_enabled:
+            out += x
         return self._softmax(out) if self._softmax else out
 
     @property

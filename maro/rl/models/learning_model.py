@@ -1,37 +1,44 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import torch
 import torch.nn as nn
 
 
-class IdentityLayers(nn.Module):
-    """A convenience dummy model that effects the identity transformation."""
-    def forward(self, inputs):
-        return inputs
-
-
 class LearningModel(nn.Module):
-    """A general model abstraction that consists of representation layers and decision layers.
+    """NN model that consists of multiple shared blocks and multiple heads.
 
-    Args:
-        representation_layers (nn.Module): An NN-based feature extractor.
-        decision_layers (nn.Module): An NN model that takes the output of the representation layers as input
-            and outputs values of interest in RL (e.g., state & action values).
-        clip_value (float): Threshold used to clip gradients.
+    The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
+    its successor. Heads must be provided in the form of keyword arguments. If at least one head is provided, the
+    output of the model will be a dictionary with the names of the heads as keys and the corresponding head outputs
+    as values. Otherwise, the output will be the output of the last block.
     """
-    def __init__(
-        self,
-        representation_layers: nn.Module = IdentityLayers(),
-        decision_layers: nn.Module = IdentityLayers(),
-        clip_value: float = None
-    ):
+    def __init__(self, *blocks, **heads):
         super().__init__()
-        self._net = nn.Sequential(representation_layers, decision_layers)
+        self._shared = nn.Sequential(*blocks)
+        self._heads = heads
 
-        if clip_value is not None:
-            for param in self._net.parameters():
-                param.register_hook(lambda grad: torch.clamp(grad, -clip_value, clip_value))
+    def forward(self, inputs, head_key=None):
+        """Feedforward computations for the given head(s).
 
-    def forward(self, inputs):
-        return self._net(inputs)
+        Args:
+            inputs: Inputs to the model.
+            head_key: The key(s) to the head(s) from which the output is required. If this is None, the results from
+                all heads will be returned in the form of a dictionary. If this is a list, the results will be the
+                outputs from the heads contained in head_key in the form of a dictionary. If this is a single key,
+                the result will be the output from the corresponding head.
+
+        Returns:
+            Outputs from the required head(s).
+        """
+        if not self._heads:
+            return self._shared(inputs)
+
+        features = self._shared(inputs)
+
+        if head_key is None:
+            return {head_name: layers(features) for head_name, layers in self._heads.items()}
+
+        if isinstance(head_key, list):
+            return {head_name: self._heads[head_name](features) for head_name in head_key}
+        else:
+            return self._heads[head_key](features)
