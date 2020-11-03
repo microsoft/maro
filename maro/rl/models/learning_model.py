@@ -17,9 +17,28 @@ class LearningModel(nn.Module):
         self._shared = nn.Sequential(*blocks)
         self._heads = heads
 
-    def forward(self, inputs):
+    def forward(self, inputs, head_key=None):
+        """Feedforward computations for the given head(s).
+
+        Args:
+            inputs: Inputs to the model.
+            head_key: The key(s) to the head(s) from which the output is required. If this is None, the results from
+                all heads will be returned in the form of a dictionary. If this is a list, the results will be the
+                outputs from the heads contained in head_key in the form of a dictionary. If this is a single key,
+                the result will be the output from the corresponding head.
+
+        Returns:
+            Outputs from the required head(s).
+        """
         if not self._heads:
             return self._shared(inputs)
+
+        features = self._shared(inputs)
+
+        if head_key is None:
+            return {head_name: layers(features) for head_name, layers in self._heads.items()}
+
+        if isinstance(head_key, list):
+            return {head_name: self._heads[head_name](features) for head_name in head_key}
         else:
-            features = self._shared(inputs)
-            return {name: layers(features) for name, layers in self._heads.items()}
+            return self._heads[head_key](features)
