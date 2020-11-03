@@ -30,8 +30,8 @@ class LearningModel(nn.Module):
         Returns:
             Outputs from the required head(s).
         """
-        if not self._heads:
-            return self._shared(inputs)
+        if not self._net:
+            return self._representation_stack(inputs)
 
         if head_key is None:
             return {key: net(inputs) for key, net in self._net.items()}
