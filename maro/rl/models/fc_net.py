@@ -66,12 +66,12 @@ class FullyConnectedNet(nn.Module):
 
         # build the net
         dims = [self._input_dim] + self._hidden_dims
-        layers = [self._build_basic_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
+        layers = [self._build_internal_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
         if is_top:
             layers.append(self._build_top_layer(dims[-1], self._output_dim))
         else:
             layers.append(self._build_internal_layer(dims[-1], self._output_dim))
-        
+
         self._net = nn.Sequential(*layers)
 
         if clip_value is not None:
