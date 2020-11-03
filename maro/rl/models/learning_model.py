@@ -15,7 +15,7 @@ class LearningModel(nn.Module):
     def __init__(self, *blocks, **heads):
         super().__init__()
         self._representation_stack = nn.Sequential(*blocks)
-        self._task_heads = heads
+        self._net = {key: nn.Sequential(self._representation_stack, task_head) for key, task_head in heads.items()}
 
     def forward(self, inputs, head_key=None):
         """Feedforward computations for the given head(s).
@@ -30,15 +30,17 @@ class LearningModel(nn.Module):
         Returns:
             Outputs from the required head(s).
         """
-        if not self._task_heads:
+        if not self._net:
             return self._representation_stack(inputs)
 
-        representation_features = self._representation_stack(inputs)
-
         if head_key is None:
-            return {key: task_head(representation_features) for key, task_head in self._task_heads.items()}
+            return {key: net(inputs) for key, net in self._net.items()}
 
         if isinstance(head_key, list):
-            return {key: self._task_heads[key](representation_features) for key in head_key}
+            return {key: self._net[key](inputs) for key in head_key}
         else:
-            return self._task_heads[head_key](representation_features)
+            return self._net[head_key](inputs)
+
+    def eval(self):
+        for net in self._net.values():
+            net.eval()
