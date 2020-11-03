@@ -72,7 +72,7 @@ class DecisionEvent:
     def action_scope(self):
         """Action scope for items"""
         if self._action_scope is None:
-            self._action_scope = self._action_scope_func(self.action_type, self.item)
+            self._action_scope = self._action_scope_func(self.action_type, self.item, self.tick)
 
         return self._action_scope
 
