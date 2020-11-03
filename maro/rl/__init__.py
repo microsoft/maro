@@ -9,7 +9,7 @@ from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.algorithms.dqn import DQN, DQNHyperParams
+from maro.rl.algorithms.dqn import DQN, DQNHyperParams, DuelingQModelHead
 from maro.rl.models.learning_model import LearningModel
 from maro.rl.models.fc_net import FullyConnectedNet
 from maro.rl.storage.abs_store import AbsStore
