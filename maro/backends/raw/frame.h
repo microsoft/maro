@@ -41,6 +41,7 @@ namespace maro
       struct FrameAttribute
       {
         // slots would be changed
+        AttrDataType type;
         SLOT_INDEX slots;
         IDENTIFIER id;
         IDENTIFIER node_id;
@@ -89,7 +90,7 @@ namespace maro
         /// <param name="node_id"></param>
         /// <param name="name"></param>
         /// <param name="slots"></param>
-        IDENTIFIER new_attr(IDENTIFIER node_id, string name, SLOT_INDEX slots);
+        IDENTIFIER new_attr(IDENTIFIER node_id, string name, AttrDataType type, SLOT_INDEX slots=1);
 
 
         void setup();

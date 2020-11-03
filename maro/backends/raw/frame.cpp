@@ -13,7 +13,9 @@ namespace maro
         ensure_attr_id(attr_id);
 
         auto& attr = _attributes[attr_id];
+        auto& node = _nodes[attr.node_id];
 
+        ensure_node_index(node, node_index);
         ensure_slot_index(attr, slot_index);
 
         return _attr_store(attr.node_id, node_index, attr_id, slot_index);
@@ -33,13 +35,14 @@ namespace maro
         return node.id;
       }
 
-      IDENTIFIER maro::backends::raw::Frame::new_attr(IDENTIFIER node_id, string name, SLOT_INDEX slots)
+      IDENTIFIER maro::backends::raw::Frame::new_attr(IDENTIFIER node_id, string name, AttrDataType type, SLOT_INDEX slots)
       {
         ensure_node_id(node_id);
 
         auto& node = _nodes[node_id];
 
         auto attr = FrameAttribute();
+        attr.type = type;
         attr.id = IDENTIFIER(_attributes.size());
         attr.name = name;
         attr.slots = slots;
