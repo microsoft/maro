@@ -18,8 +18,9 @@ proxy = convert_dottable({
         "peers_catch_lifetime": 10,
         "minimal_peers": 1,  # int, minimal request peer number; or dict {"peer_type": int} for each peer type
         "enable_message_cache": True,
+        "max_length_for_message_cache": 1024,   # The maximum number of pending messages for each peer
         "timeout_for_minimal_peer_number": 300,  # second
-        "auto_clean_for_container": False,
+        "is_remove_failed_container": False,  # Automatically clean the failed container
         "max_rejoin_times": 5
     }
 })

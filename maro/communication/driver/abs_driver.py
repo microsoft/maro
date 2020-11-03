@@ -35,6 +35,6 @@ class AbsDriver(ABC):
         pass
 
     @abstractmethod
-    def broadcast(self, message):
+    def broadcast(self, topic, message):
         """Broadcast send message."""
         pass

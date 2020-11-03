@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 # native lib
+import pickle
 import socket
 import sys
 from typing import Dict
@@ -12,12 +13,11 @@ import zmq
 # private package
 from maro.communication import AbsDriver, Message
 from maro.communication.utils import default_parameters
-from maro.utils import DummyLogger
+from maro.utils import DummyLogger, NON_RESTART_EXIT_CODE
 from maro.utils.exception.communication_exception import PeersConnectionError, DriverReceiveError, DriverSendError, \
-    SocketTypeError, PeersDisconnectionError, SendAgain
+    SocketTypeError, PeersDisconnectionError, PendingToSend
 
 
-NON_RESTART_EXIT_CODE = 64
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout
 RECEIVE_TIMEOUT = default_parameters.driver.zmq.receive_timeout
@@ -36,9 +36,14 @@ class ZmqDriver(AbsDriver):
     """
 
     def __init__(
-        self, protocol: str = PROTOCOL, send_timeout: int = SEND_TIMEOUT,
-        receive_timeout: int = RECEIVE_TIMEOUT, logger=DummyLogger()
+        self,
+        component_type: str,
+        protocol: str = PROTOCOL,
+        send_timeout: int = SEND_TIMEOUT,
+        receive_timeout: int = RECEIVE_TIMEOUT,
+        logger=DummyLogger()
     ):
+        self._component_type = component_type
         self._protocol = protocol
         self._send_timeout = send_timeout
         self._receive_timeout = receive_timeout
@@ -69,7 +74,7 @@ class ZmqDriver(AbsDriver):
         self._broadcast_sender.setsockopt(zmq.SNDTIMEO, self._send_timeout)
 
         self._broadcast_receiver = self._zmq_context.socket(zmq.SUB)
-        self._broadcast_receiver.setsockopt_string(zmq.SUBSCRIBE, "")
+        self._broadcast_receiver.setsockopt(zmq.SUBSCRIBE, self._component_type.encode())
         broadcast_receiver_port = self._broadcast_receiver.bind_to_random_port(f"{self._protocol}://*")
         self._logger.debug(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
 
@@ -161,7 +166,8 @@ class ZmqDriver(AbsDriver):
                 recv_message = self._unicast_receiver.recv_pyobj()
                 self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
             else:
-                recv_message = self._broadcast_receiver.recv_pyobj()
+                [_, recv_message] = self._broadcast_receiver.recv_multipart()
+                recv_message = pickle.loads(recv_message)
                 self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
 
             yield recv_message
@@ -178,23 +184,25 @@ class ZmqDriver(AbsDriver):
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
             self._logger.debug(f"Send a {message.tag} message to {message.destination}.")
+            return message.session_id
         except KeyError as key_error:
             if message.destination in self._disconnected_peer_name_list:
-                return SendAgain(f"Temporary failure to send message to {message.destination}, may rejoin later.")
+                raise PendingToSend(f"Temporary failure to send message to {message.destination}, may rejoin later.")
             else:
                 self._logger.critical(f"Failure to send message caused by: {key_error}")
                 sys.exit(NON_RESTART_EXIT_CODE)
         except Exception as e:
             raise DriverSendError(f"Failure to send message caused by: {e}")
 
-    def broadcast(self, message: Message):
+    def broadcast(self, topic: str, message: Message):
         """Broadcast message.
 
         Args:
+            topic(str): The topic of broadcast.
             message(class): Message to be sent.
         """
         try:
-            self._broadcast_sender.send_pyobj(message)
-            self._logger.debug(f"Broadcast a {message.tag} message to all subscribers.")
+            self._broadcast_sender.send_multipart([topic.encode(), pickle.dumps(message)])
+            self._logger.debug(f"Broadcast a {message.tag} message to all {topic}.")
         except Exception as e:
             raise DriverSendError(f"Failure to broadcast message caused by: {e}")

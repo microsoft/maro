@@ -9,9 +9,7 @@ import uuid
 
 # private lib
 from maro.communication.utils import session_id_generator
-
-
-NON_RESTART_EXIT_CODE = 64
+from maro.utils import NON_RESTART_EXIT_CODE
 
 
 class SessionType(Enum):

@@ -42,33 +42,43 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
                         you can do something with high priority before receiving replied messages from peers.
             Sync Mode: It will block until the proxy returns all the replied messages.
     """
-    proxy = Proxy(group_name=group_name,
-                  component_type="master",
-                  expected_peers={"worker": worker_num})
+    proxy = Proxy(
+        group_name=group_name,
+        component_type="master",
+        expected_peers={"worker": worker_num}
+    )
 
     if is_immediate:
-        session_ids = proxy.ibroadcast(tag="INC",
-                                       session_type=SessionType.NOTIFICATION)
+        session_ids = proxy.ibroadcast(
+            peer_type="worker",
+            tag="INC",
+            session_type=SessionType.NOTIFICATION
+        )
         # do some tasks with higher priority here.
         replied_msgs = proxy.receive_by_id(session_ids)
     else:
-        replied_msgs = proxy.broadcast(tag="INC",
-                                       session_type=SessionType.NOTIFICATION)
+        replied_msgs = proxy.broadcast(
+            peer_type="worker",
+            tag="INC",
+            session_type=SessionType.NOTIFICATION
+        )
 
     for msg in replied_msgs:
-        print(f"{proxy.component_name} get receive notification from {msg.source} with message session stage " +
-              f"{msg.session_stage}.")
+        print(
+            f"{proxy.component_name} get receive notification from {msg.source} with "
+            f"message session stage {msg.session_stage}."
+        )
 
 
 if __name__ == "__main__":
     """
-    This is a single-host multiprocess program used to simulate the communication in the distributed system. 
+    This is a single-host multiprocess program used to simulate the communication in the distributed system.
     For the completed usage experience of the distributed cluster, please use the MARO CLI.
     """
     mp.set_start_method("spawn")
 
     group_name = "proxy_broadcast_INC_example"
-    worker_number = 5
+    worker_number = 2
     is_immediate = True
 
     workers = mp.Pool(worker_number)

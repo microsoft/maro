@@ -89,7 +89,7 @@ class TestRejoin(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         print(f"The proxy unit test finished!")
-        cls.master_proxy.ibroadcast(tag="finish", session_type=SessionType.NOTIFICATION)
+        cls.master_proxy.ibroadcast(peer_type="actor", tag="finish", session_type=SessionType.NOTIFICATION)
         if hasattr(cls, "redis_process"):
             cls.redis_process.kill()
 
