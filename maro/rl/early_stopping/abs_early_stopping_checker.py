@@ -7,10 +7,18 @@ from abc import ABC, abstractmethod
 class AbsEarlyStoppingChecker(ABC):
     """Class that checks for early stopping conditions.
 
-    Implementations of this abstract class usually involve user-defined early stopping conditions.
+    Args:
+        last_k (int): Number of the latest metric values to check for early stopping.
+        threshold (float): The threshold value against which a user-defined measure is compared to determine
+            whether early-stopping should be triggered.
     """
-    def __init__(self):
-        pass
+    def __init__(self, last_k, threshold):
+        super().__init__()
+        self._last_k = last_k
+        self._threshold = threshold
+
+    def is_valid(self, metric_series):
+        return len(metric_series) >= self._last_k
 
     @abstractmethod
     def __call__(self, metric_series) -> bool:
@@ -30,9 +38,8 @@ class AbsEarlyStoppingChecker(ABC):
 
         The resulting checker returns True iff at least one of the checkers returns True.
         """
-        class OrChecker(AbsEarlyStoppingChecker):
+        class OrChecker:
             def __init__(self, checker, other):
-                super().__init__()
                 self._checker = checker
                 self._other_checker = other
 
@@ -46,7 +53,7 @@ class AbsEarlyStoppingChecker(ABC):
 
         The resulting checker returns True iff both checkers return True.
         """
-        class AndChecker(AbsEarlyStoppingChecker):
+        class AndChecker:
             def __init__(self, checker, other):
                 super().__init__()
                 self._checker = checker
@@ -62,9 +69,8 @@ class AbsEarlyStoppingChecker(ABC):
 
         The resulting checker returns True iff one checker returns True and the other returns False.
         """
-        class XorChecker(AbsEarlyStoppingChecker):
+        class XorChecker:
             def __init__(self, checker, other):
-                super().__init__()
                 self._checker = checker
                 self._other_checker = other
 
@@ -78,7 +84,7 @@ class AbsEarlyStoppingChecker(ABC):
 
         The resulting checker returns True iff itself returns False.
         """
-        class NotChecker(AbsEarlyStoppingChecker):
+        class InverseChecker:
             def __init__(self, checker):
                 super().__init__()
                 self._checker = checker
@@ -86,4 +92,4 @@ class AbsEarlyStoppingChecker(ABC):
             def __call__(self, metric_series) -> bool:
                 return not self._checker(metric_series)
 
-        return NotChecker(self)
+        return InverseChecker(self)
