@@ -79,6 +79,7 @@ class TestProxy(unittest.TestCase):
 
             payload = ["broadcast_unit_test"]
             TestProxy.master_proxy.ibroadcast(
+                peer_type="worker",
                 tag="unit_test",
                 session_type=SessionType.NOTIFICATION,
                 payload=payload

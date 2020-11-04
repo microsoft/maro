@@ -20,14 +20,14 @@ class TestDriver(unittest.TestCase):
         print(f"The ZMQ driver unit test start!")
         cls.peer_list = ["receiver_1", "receiver_2", "receiver_3"]
         # Initial send driver.
-        cls.sender = ZmqDriver()
+        cls.sender = ZmqDriver(component_type="sender")
         sender_address = cls.sender.address
 
         # Initial receive drivers.
         cls.receivers = {}
         receiver_addresses = {}
         for peer in cls.peer_list:
-            peer_driver = ZmqDriver()
+            peer_driver = ZmqDriver(component_type="receiver")
             peer_driver.connect({"sender": sender_address})
             cls.receivers[peer] = peer_driver
             receiver_addresses[peer] = peer_driver.address
@@ -40,28 +40,32 @@ class TestDriver(unittest.TestCase):
 
     def test_send(self):
         for peer in TestDriver.peer_list:
-            message = SessionMessage(tag="unit_test",
-                                     source="sender",
-                                     destination=peer,
-                                     payload="hello_world")
+            message = SessionMessage(
+                tag="unit_test",
+                source="sender",
+                destination=peer,
+                payload="hello_world"
+                )
             TestDriver.sender.send(message)
 
             for received_message in TestDriver.receivers[peer].receive(is_continuous=False):
                 self.assertEqual(received_message.payload, message.payload)
 
     def test_broadcast(self):
-        with ThreadPoolExecutor(max_workers=len(TestDriver.peer_list)) as executor:
-            all_task = [executor.submit(message_receive, (TestDriver.receivers[peer])) for peer in TestDriver.peer_list]
+        executor = ThreadPoolExecutor(max_workers=len(TestDriver.peer_list))
+        all_task = [executor.submit(message_receive, (TestDriver.receivers[peer])) for peer in TestDriver.peer_list]
 
-            message = SessionMessage(tag="unit_test",
-                                     source="sender",
-                                     destination="*",
-                                     payload="hello_world")
-            TestDriver.sender.broadcast(message)
+        message = SessionMessage(
+            tag="unit_test",
+            source="sender",
+            destination="*",
+            payload="hello_world"
+            )
+        TestDriver.sender.broadcast(topic="receiver", message=message)
 
-            for task in all_task:
-                res = task.result()
-                self.assertEqual(res, message.payload)
+        for task in as_completed(all_task):
+            res = task.result()
+            self.assertEqual(res, message.payload)
 
 
 if __name__ == "__main__":

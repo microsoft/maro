@@ -78,7 +78,7 @@ if __name__ == "__main__":
     mp.set_start_method("spawn")
 
     group_name = "proxy_broadcast_INC_example"
-    worker_number = 2
+    worker_number = 5
     is_immediate = True
 
     workers = mp.Pool(worker_number)
