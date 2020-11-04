@@ -88,8 +88,18 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
+    # maro vispath
+    parser_vispath = subparsers.add_parser(
+        'vispath',
+        help=('Set data path'),
+        parents=[global_parser]
+    )
+    parser_vispath.set_defaults(func=_help_func(parser=parser_vispath))
+    load_parser_vispath(parser_vispath, global_parser)
+
     # Get args and parse global arguments
     args = parser.parse_args()
+    print (args)
     if args.debug:
         GlobalParams.LOG_LEVEL = logging.DEBUG
     else:
@@ -801,7 +811,6 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
 
 def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser):
     meta_cmd_sub_parsers = prev_parser.add_subparsers()
-
     # Deploy
     from maro.cli.data_pipeline.data_process import meta_deploy
     deploy_cmd_parser = meta_cmd_sub_parsers.add_parser(
@@ -811,6 +820,29 @@ def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser)
 
     deploy_cmd_parser.set_defaults(func=meta_deploy)
 
+def load_parser_vispath(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+    vispath_cmd_sub_parsers = prev_parser.add_subparsers()
+
+    # BUILD
+    from maro.cli.inspector.vis_start import start_vis
+    build_cmd_parser = vispath_cmd_sub_parsers.add_parser(
+        "process",
+        fromfile_prefix_chars="@",
+        help="Build csv file to a strong type tight binary file.",
+        parents=[global_parser])
+
+    build_cmd_parser.add_argument(
+        "--input",
+        type=str,
+        required=True,
+        help="Path (with file name) to load data.")
+    build_cmd_parser.add_argument(
+        "--conver_path",
+        type=str,
+        required=False,
+        help="Path (with file name) to load conversion relationship between id and name")
+
+    build_cmd_parser.set_defaults(func=start_vis)
 
 def _help_func(parser):
     def wrapper(*args, **kwargs):
