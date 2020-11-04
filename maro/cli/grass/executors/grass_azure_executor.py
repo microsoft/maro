@@ -7,6 +7,8 @@ import json
 import os
 import secrets
 import string
+import threading
+import time
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from shutil import rmtree
@@ -66,7 +68,7 @@ class GrassAzureExecutor:
             "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20))
         }
         with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml')) as fr:
+            f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml')) as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -81,8 +83,14 @@ class GrassAzureExecutor:
         try:
             self._set_cluster_id()
             self._create_resource_group()
-            self._create_master()
-            self._init_master()
+            self._create_vnet()
+            # Simultaneously capture image and init master
+            build_node_image_thread = threading.Thread(target=self._build_node_image, args=())
+            build_node_image_thread.start()
+            create_and_init_master_thread = threading.Thread(target=self._create_and_init_master, args=())
+            create_and_init_master_thread.start()
+            build_node_image_thread.join()
+            create_and_init_master_thread.join()
         except Exception as e:
             # If failed, remove details folder, then raise
             rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}"))
@@ -129,33 +137,124 @@ class GrassAzureExecutor:
             )
             logger.info_green(f"Resource group: {resource_group} is created")
 
-    def _create_master(self):
-        logger.info("Creating master VM")
+    def _create_vnet(self):
+        logger.info("Creating vnet")
 
         # Load details
         cluster_details = self.cluster_details
-        master_details = cluster_details['master']
-        cluster_id = cluster_details['id']
-        resource_group = cluster_details['cloud']['resource_group']
-        admin_username = cluster_details['user']['admin_username']
-        node_size = cluster_details['master']['node_size']
+        resource_group = cluster_details["cloud"]["resource_group"]
 
-        # Create ARM parameters
-        self._create_deployment_parameters(
-            node_name='master',
-            cluster_details=cluster_details,
-            node_size=node_size,
-            export_dir=os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/parameters")
+        # Create ARM parameters and start deployment
+        template_file_path = os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_vnet/template.json")
+        parameters_file_path = os.path.expanduser(
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/azure/create_vnet/parameters.json"
         )
-
-        # Start deployment
-        template_file_location = f"{GlobalPaths.MARO_GRASS_LIB}/azure/grass-create-default-node-template.json"
-        parameters_file_location = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/parameters/master.json"
+        ArmTemplateParameterBuilder.create_vnet(
+            cluster_details=cluster_details,
+            export_path=parameters_file_path
+        )
         AzureExecutor.start_deployment(
             resource_group=resource_group,
-            deployment_name='master',
-            template_file=template_file_location,
-            parameters_file=parameters_file_location
+            deployment_name="vnet",
+            template_file_path=template_file_path,
+            parameters_file_path=parameters_file_path
+        )
+
+        logger.info_green("Vnet is created")
+
+    def _build_node_image(self):
+        logger.info("Building MARO Node image")
+
+        # Load details
+        resource_name = "build-node-image"
+        cluster_details = self.cluster_details
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
+        admin_username = cluster_details["user"]["admin_username"]
+        image_name = f"{cluster_id}-node-image"
+        vm_name = f"{cluster_id}-{resource_name}-vm"
+
+        # Create ARM parameters and start deployment
+        template_file_path = os.path.expanduser(
+            f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_build_node_image_vm/template.json"
+        )
+        parameters_file_path = os.path.expanduser(
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/azure/create_build_node_image_vm/parameters.json"
+        )
+        ArmTemplateParameterBuilder.create_build_node_image_vm(
+            cluster_details=cluster_details,
+            node_size="Standard_D4_v3",
+            export_path=parameters_file_path
+        )
+        AzureExecutor.start_deployment(
+            resource_group=resource_group,
+            deployment_name=resource_name,
+            template_file_path=template_file_path,
+            parameters_file_path=parameters_file_path
+        )
+        # Gracefully wait
+        time.sleep(10)
+
+        # Get IP addresses
+        ip_addresses = AzureExecutor.list_ip_addresses(
+            resource_group=resource_group,
+            vm_name=vm_name
+        )
+        public_ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
+
+        # Make sure capture-node-image-vm is able to connect
+        self.grass_executor.retry_until_connected(node_ip_address=public_ip_address)
+
+        # Run init image script
+        copy_files_to_node(
+            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_build_node_image_vm.py",
+            remote_dir="~/",
+            admin_username=admin_username, node_ip_address=public_ip_address
+        )
+        self.grass_executor.remote_init_build_node_image_vm(vm_ip_address=public_ip_address)
+
+        # Extract image
+        AzureExecutor.deallocate_vm(resource_group=resource_group, vm_name=vm_name)
+        AzureExecutor.generalize_vm(resource_group=resource_group, vm_name=vm_name)
+        AzureExecutor.create_image_from_vm(resource_group=resource_group, image_name=image_name, vm_name=vm_name)
+
+        # Delete resources
+        self._delete_resources(resource_name=resource_name)
+
+        logger.info_green("MARO Node Image is built")
+
+    def _create_and_init_master(self):
+        logger.info("Creating MARO Master")
+        self._create_master()
+        self._init_master()
+        logger.info_green("MARO Master is created")
+
+    def _create_master(self):
+        logger.info("Creating Master VM")
+
+        # Load details
+        cluster_details = self.cluster_details
+        master_details = cluster_details["master"]
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
+        admin_username = cluster_details["user"]["admin_username"]
+        node_size = cluster_details["master"]["node_size"]
+
+        # Create ARM parameters and start deployment
+        template_file_path = os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_master/template.json")
+        parameters_file_path = os.path.expanduser(
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/azure/create_master/parameters.json"
+        )
+        ArmTemplateParameterBuilder.create_master(
+            cluster_details=cluster_details,
+            node_size=node_size,
+            export_path=parameters_file_path
+        )
+        AzureExecutor.start_deployment(
+            resource_group=resource_group,
+            deployment_name="master",
+            template_file_path=template_file_path,
+            parameters_file_path=parameters_file_path
         )
 
         # Get master IP addresses
@@ -163,13 +262,13 @@ class GrassAzureExecutor:
             resource_group=resource_group,
             vm_name=f"{cluster_id}-master-vm"
         )
-        public_ip_address = ip_addresses[0]["virtualMachine"]["network"]['publicIpAddresses'][0]['ipAddress']
-        private_ip_address = ip_addresses[0]["virtualMachine"]["network"]['privateIpAddresses'][0]
+        public_ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
+        private_ip_address = ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
         hostname = f"{cluster_id}-master-vm"
-        master_details['public_ip_address'] = public_ip_address
-        master_details['private_ip_address'] = private_ip_address
-        master_details['hostname'] = hostname
-        master_details['resource_name'] = f"{cluster_id}-master-vm"
+        master_details["public_ip_address"] = public_ip_address
+        master_details["private_ip_address"] = private_ip_address
+        master_details["hostname"] = hostname
+        master_details["resource_name"] = f"{cluster_id}-master-vm"
         logger.info_green(f"You can login to your master node with: ssh {admin_username}@{public_ip_address}")
 
         # Save details
@@ -182,7 +281,7 @@ class GrassAzureExecutor:
         logger.info_green("Master VM is created")
 
     def _init_master(self):
-        logger.info("Initializing master node")
+        logger.info("Initializing Master VM")
 
         # Load details
         cluster_details = self.cluster_details
@@ -237,34 +336,7 @@ class GrassAzureExecutor:
         )
         self.grass_executor.remote_set_master_details(master_details=cluster_details['master'])
 
-        logger.info_green("Master node is initialized")
-
-    @staticmethod
-    def _create_deployment_parameters(node_name: str, cluster_details: dict, node_size: str, export_dir: str):
-        # Extract variables
-        cluster_id = cluster_details['id']
-        location = cluster_details['cloud']['location']
-        admin_username = cluster_details['user']['admin_username']
-        admin_public_key = cluster_details['user']['admin_public_key']
-
-        # Mkdir
-        os.makedirs(export_dir, exist_ok=True)
-
-        # Load and update parameters
-        with open(os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/grass-create-parameters.json"), 'r') as f:
-            base_parameters = json.load(f)
-        with open(export_dir + f"/{node_name}.json", 'w') as fw:
-            parameters = base_parameters['parameters']
-            parameters['location']['value'] = location
-            parameters['networkInterfaceName']['value'] = f"{cluster_id}-{node_name}-nic"
-            parameters['networkSecurityGroupName']['value'] = f"{cluster_id}-{node_name}-nsg"
-            parameters['virtualNetworkName']['value'] = f"{cluster_id}-vnet"
-            parameters['publicIpAddressName']['value'] = f"{cluster_id}-{node_name}-pip"
-            parameters['virtualMachineName']['value'] = f"{cluster_id}-{node_name}-vm"
-            parameters['virtualMachineSize']['value'] = node_size
-            parameters['adminUsername']['value'] = admin_username
-            parameters['adminPublicKey']['value'] = admin_public_key
-            json.dump(base_parameters, fw, indent=4)
+        logger.info_green("Master VM is initialized")
 
     # maro grass delete
 
@@ -388,13 +460,32 @@ class GrassAzureExecutor:
         location = cluster_details['cloud']['location']
         cluster_id = cluster_details['id']
         resource_group = cluster_details['cloud']['resource_group']
+        image_name = f"{cluster_id}-node-image"
+        image_resource_id = AzureExecutor.get_image_resource_id(resource_group=resource_group, image_name=image_name)
 
-        # Create ARM parameters
-        GrassAzureExecutor._create_deployment_parameters(
+        # Create ARM parameters and start deployment
+        template_file_path = os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_node/template.json")
+        parameters_file_path = os.path.expanduser(
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/azure/create_{node_name}/parameters.json"
+        )
+        ArmTemplateParameterBuilder.create_node(
             node_name=node_name,
             cluster_details=cluster_details,
             node_size=node_size,
-            export_dir=os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/parameters")
+            image_resource_id=image_resource_id,
+            export_path=parameters_file_path
+        )
+        AzureExecutor.start_deployment(
+            resource_group=resource_group,
+            deployment_name=node_name,
+            template_file_path=template_file_path,
+            parameters_file_path=parameters_file_path
+        )
+
+        # Get node IP addresses
+        ip_addresses = AzureExecutor.list_ip_addresses(
+            resource_group=resource_group,
+            vm_name=f"{cluster_id}-{node_name}-vm"
         )
 
         # Get sku and check gpu nums
@@ -406,25 +497,6 @@ class GrassAzureExecutor:
                 if capability["name"] == "GPUs":
                     gpu_nums = int(capability["value"])
                     break
-
-        # Start deployment
-        if gpu_nums > 0:
-            template_file_location = f"{GlobalPaths.MARO_GRASS_LIB}/azure/grass-create-gpu-node-template.json"
-        else:
-            template_file_location = f"{GlobalPaths.MARO_GRASS_LIB}/azure/grass-create-default-node-template.json"
-        parameters_file_location = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/parameters/{node_name}.json"
-        AzureExecutor.start_deployment(
-            resource_group=resource_group,
-            deployment_name=node_name,
-            template_file=template_file_location,
-            parameters_file=parameters_file_location
-        )
-
-        # Get node IP addresses
-        ip_addresses = AzureExecutor.list_ip_addresses(
-            resource_group=resource_group,
-            vm_name=f"{cluster_id}-{node_name}-vm"
-        )
 
         # Save details
         node_details = {
@@ -451,21 +523,10 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        cluster_id = cluster_details['id']
-        resource_group = cluster_details['cloud']['resource_group']
-
-        # Get resource list
-        resource_list = AzureExecutor.list_resources(resource_group=resource_group)
-
-        # Filter resources
-        deletable_ids = []
-        for resource_info in resource_list:
-            if resource_info['name'].startswith(f"{cluster_id}-{node_name}"):
-                deletable_ids.append(resource_info['id'])
+        resource_group = cluster_details["cloud"]["resource_group"]
 
         # Delete resources
-        if len(deletable_ids) > 0:
-            AzureExecutor.delete_resources(resources=deletable_ids)
+        self._delete_resources(resource_name=node_name)
 
         # Delete azure deployment
         AzureExecutor.delete_deployment(
@@ -474,8 +535,8 @@ class GrassAzureExecutor:
         )
 
         # Delete parameters_file
-        parameters_file_location = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/parameters/{node_name}.json"
-        command = f"rm {parameters_file_location}"
+        parameters_folder_path = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/azure/create_{node_name}"
+        command = f"rm -r {parameters_folder_path}"
         _ = SubProcess.run(command)
 
         # Update node status
@@ -1061,3 +1122,147 @@ class GrassAzureExecutor:
         # Get templates
         command = f'cp {GlobalPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}'
         _ = SubProcess.run(command)
+
+    # Utils
+
+    def _delete_resources(self, resource_name: str):
+        # Get params
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
+
+        # Get resource list
+        resource_list = AzureExecutor.list_resources(resource_group=resource_group)
+
+        # Filter resources
+        deletable_ids = []
+        for resource_info in resource_list:
+            if resource_info["name"].startswith(f"{cluster_id}-{resource_name}"):
+                deletable_ids.append(resource_info["id"])
+
+        # Delete resources
+        if len(deletable_ids) > 0:
+            AzureExecutor.delete_resources(resources=deletable_ids)
+
+
+class ArmTemplateParameterBuilder:
+    @staticmethod
+    def create_vnet(cluster_details: dict, export_path: str) -> dict:
+        # Get params
+        cluster_id = cluster_details["id"]
+        location = cluster_details["cloud"]["location"]
+
+        # Load and update parameters
+        with open(os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_vnet/parameters.json"), "r") as f:
+            base_parameters = json.load(f)
+            parameters = base_parameters["parameters"]
+            parameters["location"]["value"] = location
+            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
+
+        # Export parameters if the path is set
+        if export_path:
+            os.makedirs(os.path.dirname(export_path), exist_ok=True)
+            with open(export_path, "w") as fw:
+                json.dump(base_parameters, fw, indent=4)
+
+        return base_parameters
+
+    @staticmethod
+    def create_master(cluster_details: dict, node_size: str, export_path: str) -> dict:
+        # Get params
+        resource_name = "master"
+        cluster_id = cluster_details["id"]
+        location = cluster_details["cloud"]["location"]
+        admin_username = cluster_details["user"]["admin_username"]
+        admin_public_key = cluster_details["user"]["admin_public_key"]
+
+        # Load and update parameters
+        with open(os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_master/parameters.json"), "r") as f:
+            base_parameters = json.load(f)
+            parameters = base_parameters["parameters"]
+            parameters["location"]["value"] = location
+            parameters["networkInterfaceName"]["value"] = f"{cluster_id}-{resource_name}-nic"
+            parameters["networkSecurityGroupName"]["value"] = f"{cluster_id}-{resource_name}-nsg"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
+            parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
+            parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
+            parameters["virtualMachineSize"]["value"] = node_size
+            parameters["adminUsername"]["value"] = admin_username
+            parameters["adminPublicKey"]["value"] = admin_public_key
+
+        # Export parameters if the path is set
+        if export_path:
+            os.makedirs(os.path.dirname(export_path), exist_ok=True)
+            with open(export_path, "w") as fw:
+                json.dump(base_parameters, fw, indent=4)
+
+        return base_parameters
+
+    @staticmethod
+    def create_build_node_image_vm(cluster_details: dict, node_size: str, export_path: str) -> dict:
+        # Get params
+        resource_name = "build-node-image"
+        cluster_id = cluster_details["id"]
+        location = cluster_details["cloud"]["location"]
+        admin_username = cluster_details["user"]["admin_username"]
+        admin_public_key = cluster_details["user"]["admin_public_key"]
+
+        # Load and update parameters
+        with open(
+            os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_build_node_image_vm/parameters.json"),
+            "r"
+        ) as f:
+            base_parameters = json.load(f)
+            parameters = base_parameters["parameters"]
+            parameters["location"]["value"] = location
+            parameters["networkInterfaceName"]["value"] = f"{cluster_id}-{resource_name}-nic"
+            parameters["networkSecurityGroupName"]["value"] = f"{cluster_id}-{resource_name}-nsg"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
+            parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
+            parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
+            parameters["virtualMachineSize"]["value"] = node_size
+            parameters["adminUsername"]["value"] = admin_username
+            parameters["adminPublicKey"]["value"] = admin_public_key
+
+        # Export parameters if the path is set
+        if export_path:
+            os.makedirs(os.path.dirname(export_path), exist_ok=True)
+            with open(export_path, "w") as fw:
+                json.dump(base_parameters, fw, indent=4)
+
+        return base_parameters
+
+    @staticmethod
+    def create_node(
+        node_name: str, cluster_details: dict,
+        node_size: str, image_resource_id: str,
+        export_path: str
+    ) -> dict:
+        # Extract variables
+        resource_name = node_name
+        cluster_id = cluster_details["id"]
+        location = cluster_details["cloud"]["location"]
+        admin_username = cluster_details["user"]["admin_username"]
+        admin_public_key = cluster_details["user"]["admin_public_key"]
+
+        # Load and update parameters
+        with open(os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/azure/create_node/parameters.json"), "r") as f:
+            base_parameters = json.load(f)
+            parameters = base_parameters["parameters"]
+            parameters["location"]["value"] = location
+            parameters["networkInterfaceName"]["value"] = f"{cluster_id}-{resource_name}-nic"
+            parameters["networkSecurityGroupName"]["value"] = f"{cluster_id}-{resource_name}-nsg"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
+            parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
+            parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
+            parameters["virtualMachineSize"]["value"] = node_size
+            parameters["imageResourceId"]["value"] = image_resource_id
+            parameters["adminUsername"]["value"] = admin_username
+            parameters["adminPublicKey"]["value"] = admin_public_key
+
+        # Export parameters if the path is set
+        if export_path:
+            os.makedirs(os.path.dirname(export_path), exist_ok=True)
+            with open(export_path, "w") as fw:
+                json.dump(base_parameters, fw, indent=4)
+
+        return base_parameters

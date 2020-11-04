@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.1.0",
+  "contentVersion": "1.0.2.0",
   "parameters": {
     "location": {
       "type": "string"
@@ -23,6 +23,9 @@
     "virtualMachineSize": {
       "type": "string"
     },
+    "imageResourceId": {
+      "type": "string"
+    },
     "adminUsername": {
       "type": "string"
     },
@@ -43,7 +46,6 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
         "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
       ],
       "properties": {
@@ -94,27 +96,6 @@
       }
     },
     {
-      "name": "[parameters('virtualNetworkName')]",
-      "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-04-01",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/24"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "default",
-            "properties": {
-              "addressPrefix": "10.0.0.0/24"
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "[parameters('publicIpAddressName')]",
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2020-04-01",
@@ -143,10 +124,7 @@
             "createOption": "FromImage"
           },
           "imageReference": {
-            "publisher": "nvidia",
-            "offer": "ngc_base_image_version_b",
-            "sku": "ngc-base-test-b-version-20-6-3",
-            "version": "20.06.3"
+            "id": "[parameters('imageResourceId')]"
           }
         },
         "networkProfile": {
@@ -171,18 +149,7 @@
             }
           }
         }
-      },
-      "plan": {
-        "name": "ngc-base-test-b-version-20-6-3",
-        "publisher": "nvidia",
-        "product": "ngc_base_image_version_b"
       }
     }
-  ],
-  "outputs": {
-    "adminUsername": {
-      "type": "string",
-      "value": "[parameters('adminUsername')]"
-    }
-  }
+  ]
 }

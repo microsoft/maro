@@ -53,9 +53,9 @@ class AzureExecutor:
     # Deployment related
 
     @staticmethod
-    def start_deployment(resource_group: str, deployment_name: str, template_file: str, parameters_file: str):
+    def start_deployment(resource_group: str, deployment_name: str, template_file_path: str, parameters_file_path: str):
         command = f"az deployment group create -g {resource_group} --name {deployment_name} " \
-                  f"--template-file {template_file} --parameters {parameters_file}"
+                  f"--template-file {template_file_path} --parameters {parameters_file_path}"
         try:
             _ = SubProcess.run(command)
         except CommandError as e:
@@ -105,6 +105,29 @@ class AzureExecutor:
                 return sku
         logger.warning_yellow(f"SKU of {vm_size} is not found")
         return None
+
+    @staticmethod
+    def deallocate_vm(resource_group: str, vm_name: str) -> None:
+        command = f"az vm deallocate --resource-group {resource_group} --name {vm_name}"
+        _ = SubProcess.run(command)
+
+    @staticmethod
+    def generalize_vm(resource_group: str, vm_name: str) -> None:
+        command = f"az vm generalize --resource-group {resource_group} --name {vm_name}"
+        _ = SubProcess.run(command)
+
+    # Image related
+
+    @staticmethod
+    def create_image_from_vm(resource_group: str, image_name: str, vm_name: str) -> None:
+        command = f"az image create --resource-group {resource_group} --name {image_name} --source {vm_name}"
+        _ = SubProcess.run(command)
+
+    @staticmethod
+    def get_image_resource_id(resource_group: str, image_name: str) -> str:
+        command = f"az image show --resource-group {resource_group} --name {image_name}"
+        return_str = SubProcess.run(command)
+        return json.loads(return_str)["id"]
 
     # AKS related
 

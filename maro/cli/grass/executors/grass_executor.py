@@ -77,6 +77,13 @@ class GrassExecutor:
         logger.debug(return_str)
         return return_str
 
+    def remote_init_build_node_image_vm(self, vm_ip_address: str):
+        command = (
+            f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{vm_ip_address} "
+            f"'python3 ~/init_build_node_image_vm.py'"
+        )
+        SubProcess.interactive_run(command)
+
     def remote_init_master(self):
         command = f"ssh -o StrictHostKeyChecking=no " \
                   f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} " \
