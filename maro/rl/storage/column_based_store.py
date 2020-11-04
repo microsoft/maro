@@ -5,10 +5,10 @@ from collections import defaultdict
 from typing import Callable, List, Sequence, Tuple
 
 import numpy as np
+from maro.utils import clone
 
 from .abs_store import AbsStore
 from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
-from maro.utils import clone
 
 
 class ColumnBasedStore(AbsStore):
@@ -136,6 +136,7 @@ class ColumnBasedStore(AbsStore):
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
                 e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+
         Returns:
             Filtered indexes and corresponding objects.
         """

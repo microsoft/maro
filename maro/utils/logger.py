@@ -13,7 +13,6 @@ from enum import Enum
 # private lib
 from maro.cli.utils.params import GlobalParams as CliGlobalParams
 
-
 cwd = os.getcwd()
 
 # For API generation, we should hide our build path for security issue.
