@@ -206,8 +206,21 @@ const lest::test specification[] =
     EXPECT(20 == ats.size());
     EXPECT(20 == ats.last_index());
 
+    {
+      // last attribute of 1st node after bellow removing operation
+      auto& a = ats(0, 0, 0, 7);
+
+      a = 100;
+
+      auto& a2 = ats(0, 0, 0, 8);
+
+      a2 = 110;
+    }
+
     // case 1: narrow down attribute slots will cause last index changed
     ats.remove_attr_slots(0, 2, 0, 8, 10); // remove 8 and 9
+
+    EXPECT_THROWS_AS(ats(0, 2, 0, 8), BadAttributeIndexing);
 
     // check last index
     EXPECT(16 == ats.size());
@@ -219,7 +232,6 @@ const lest::test specification[] =
     EXPECT(16 == ats.size());
     EXPECT(16 == ats.last_index());
 
-
     // case 2: remove 2nd node will cause there are 8 empty slots at the end
     ats.remove_node(0, 1, 0, 8); // nodes have 8 attributes left
 
@@ -228,6 +240,37 @@ const lest::test specification[] =
 
     // removing will not affect last index before arrange
     EXPECT(16 == ats.last_index());
+
+    ats.arrange();
+
+    // size should not change
+    EXPECT(8 == ats.size());
+
+    // last index will be updated
+    EXPECT(8 == ats.last_index());
+
+    // arrange will reset attributes that being removed, this should not affect exist, and new added will be 0 by default
+
+    {
+      auto& a = ats(0, 0, 0, 7);
+
+      EXPECT(100 == a.get_int());
+    }
+
+    // add 4 additional slots
+    ats.add_nodes(0, 2, 0, 12);
+
+    {
+      auto& a = ats(0, 0, 0, 8);
+
+      EXPECT(0 == a.get_int());
+    }
+
+    {
+      auto& a = ats(0, 0, 0, 11);
+
+      EXPECT(0 == a.get_int());
+    }
   },
 
   CASE("COPY should not contain empty slot.")
