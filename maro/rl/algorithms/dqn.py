@@ -19,10 +19,12 @@ class DQNHyperParams:
         reward_decay (float): Reward decay as defined in standard RL terminology.
         target_update_frequency (int): Number of training rounds between target model updates.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1-tau) * target_model.
-        is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm.
-            See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
-        is_dueling (bool): If True, the dueling Q-value model is used to compute Q values.
-        advantage_mode (str): advantage mode for the dueling Q-value model. Defaults to None, in which
+        is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
+            i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)), per ordinary
+            DQN. See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
+        is_dueling (bool): If True, the Q values will be computed using a dueling architecture with a head for
+            state values and a head for advantages. See https://arxiv.org/pdf/1511.06581.pdf for details.
+        advantage_mode (str): advantage mode for the dueling architecture. Defaults to None, in which
             case it is assumed that the regular Q-value model is used.
     """
     __slots__ = [
