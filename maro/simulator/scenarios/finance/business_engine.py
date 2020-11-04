@@ -9,21 +9,22 @@ from typing import List
 
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
+from yaml import safe_load
+
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.finance.common.commission import (
-    ByMoneyCommission, StampTaxCommission)
+from maro.simulator.scenarios.finance.common.commission import ByMoneyCommission, StampTaxCommission
 from maro.simulator.scenarios.finance.common.common import (
-    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope,
-    DecisionEvent, OrderActionScope, OrderDirection, OrderMode, TradeResult)
+    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, OrderActionScope,
+    OrderDirection, OrderMode, TradeResult
+)
 from maro.simulator.scenarios.finance.common.slippage import ByMoneySlippage
 from maro.simulator.scenarios.finance.frame_builder import build_frame
 from maro.simulator.scenarios.finance.stock.stock import Stock
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
-from yaml import safe_load
 
 logger = CliLogger(name=__name__)
 
