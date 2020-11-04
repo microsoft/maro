@@ -13,6 +13,8 @@ class BikeTransferPayload:
         number (int): How many bikes for current trip requirement.
     """
 
+    summary_key = ["from_station_idx", "to_station_idx", "number"]
+
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
         self.to_station_idx = to_station_idx
@@ -27,6 +29,8 @@ class BikeReturnPayload:
         to_station_idx (int): Which station (index) this bike to.
         number (int): How many bikes for current trip requirement.
     """
+
+    summary_key = ["from_station_idx", "to_station_idx", "number"]
 
     def __init__(self, from_station_idx: int, to_station_idx: int, number: int = 1):
         self.from_station_idx = from_station_idx
@@ -53,8 +57,11 @@ class DecisionEvent:
         decision_type (DecisionType): The type of this decision.
     """
 
-    def __init__(self, station_idx: int, tick: int,
-                 frame_index: int, action_scope_func: callable, decision_type: DecisionType):
+    summary_key = ["station_idx", "tick", "frame_index", "type", "action_scope"]
+
+    def __init__(
+        self, station_idx: int, tick: int, frame_index: int, action_scope_func: callable, decision_type: DecisionType
+    ):
         self.station_idx = station_idx
         self.tick = tick
         self.frame_index = frame_index
