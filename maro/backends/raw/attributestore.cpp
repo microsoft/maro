@@ -41,29 +41,42 @@ namespace maro
       {
         if (_is_dirty)
         {
+          auto reset_end = _last_index;
+
           for (auto i=0; i < _last_index; i++)
           {
+            // find last that is not empty
+            update_last_index();
+
             // false means empty slot
             if (!_slot_masks[i])
             {
-              _attributes[i] = _attributes[_last_index-1];
+              auto old_index = _last_index - 1;
+
+              _attributes[i] = _attributes[old_index];
 
               _slot_masks[i] = true;
-              _slot_masks[_last_index - 1] = false;
+              _slot_masks[old_index] = false;
 
-              // find last that is not empty
-              while (_last_index > 1)
-              {
-                _last_index--;
+              auto key = _i2kmaping.find(old_index);
 
-                if (_slot_masks[_last_index - 1] == true)
-                {
-                  break;
-                }
-              }
-              
+              _i2kmaping[i] = key->second;
+
+              // update mapping to new index
+              _mapping[key->second] = i;
+
+              _i2kmaping.erase(old_index);
+
+              // we moved last item, then move forward
+              _last_index--;
             }
           }
+
+          // in case there still some empty slot
+          update_last_index();
+
+          // set attributes we removed
+          memset(&_attributes[_last_index], 0, sizeof(Attribute) * (reset_end - _last_index));
 
           _is_dirty = false;
         }
@@ -101,7 +114,10 @@ namespace maro
               // only update for unexist slots, and these slots must be at the end.
               addition_num++;
 
-              _mapping[key] = _last_index++;
+              _i2kmaping[_last_index] = key;
+              _mapping[key] = _last_index;
+
+              _last_index++;
               // we do not update slot mask here, as it make out of range
             }
           }
@@ -132,13 +148,13 @@ namespace maro
           if (attr_pair != _mapping.end())
           {
             _slot_masks[attr_pair->second] = false;
+
+            _i2kmaping.erase(attr_pair->second);
             _mapping.erase(key);
 
             _is_dirty = true;
           }
         }
-
-        update_last_index();
       }
 
       void AttributeStore::remove_attr_slots(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX from, SLOT_INDEX stop)
@@ -155,14 +171,13 @@ namespace maro
             {
               _slot_masks[attr_pair->second] = false;
 
+              _i2kmaping.erase(attr_pair->second);
               _mapping.erase(key);
 
               _is_dirty = true;
             }
           }
         }
-
-        update_last_index();
       }
 
       void AttributeStore::copy_to(Attribute* p, unordered_map<ULONG, size_t>& map)

@@ -28,6 +28,8 @@ const lest::test specification[] =
     // add 1 node type 1 node, each node contains attribute 0 with 10 slots
     ats.add_nodes(0, 1, 0, 10);
 
+    EXPECT(10 == ats.last_index());
+
     // get 1st slot
 
     auto& attr = ats(0, 0, 0, 0);
@@ -53,6 +55,7 @@ const lest::test specification[] =
 
     ats.add_nodes(0, 10, 0, 1);
 
+    EXPECT(10 == ats.last_index());
 
     // get with invalid node index
     EXPECT_THROWS_AS(ats(0, 10, 0, 0), BadAttributeIndexing);
@@ -73,9 +76,12 @@ const lest::test specification[] =
 
     ats.setup(10);
 
+    EXPECT(0 == ats.last_index());
+
     // add 1 node attribute
     ats.add_nodes(0, 5, 0, 1);
 
+    EXPECT(5 == ats.last_index());
 
     // size should be same as setup specified
     EXPECT(10 == ats.capacity());
@@ -85,6 +91,8 @@ const lest::test specification[] =
 
     // 2nd attribute
     ats.add_nodes(0, 5, 1, 1);
+
+    EXPECT(10 == ats.last_index());
 
     // still within the capacity
     EXPECT(10 == ats.capacity());
@@ -186,6 +194,40 @@ const lest::test specification[] =
 
     // size will not change too
 
+  },
+
+  CASE("Last index should be at correct position after adding and removing.")
+  {
+    auto ats = AttributeStore();
+
+    // add 2 node with 10 attribute per node
+    ats.add_nodes(0, 2, 0, 10);
+
+    EXPECT(20 == ats.size());
+    EXPECT(20 == ats.last_index());
+
+    // case 1: narrow down attribute slots will cause last index changed
+    ats.remove_attr_slots(0, 2, 0, 8, 10); // remove 8 and 9
+
+    // check last index
+    EXPECT(16 == ats.size());
+    EXPECT(20 == ats.last_index());
+
+    ats.arrange();
+
+    // we have remove 8th and 9th attribute for 2 nodes, so it has 4 empty slots totally
+    EXPECT(16 == ats.size());
+    EXPECT(16 == ats.last_index());
+
+
+    // case 2: remove 2nd node will cause there are 8 empty slots at the end
+    ats.remove_node(0, 1, 0, 8); // nodes have 8 attributes left
+
+    // there should be 8 attributes left (1st node)
+    EXPECT(8 == ats.size());
+
+    // removing will not affect last index before arrange
+    EXPECT(16 == ats.last_index());
   },
 
   CASE("COPY should not contain empty slot.")

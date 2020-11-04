@@ -23,11 +23,23 @@ namespace maro
 
       const USHORT LENGTH_PER_PART = sizeof(USHORT) * BITS_PER_BYTE;
 
+      /*
+      NOTE:
+        1. removing will not change last index
+        2. adding will increase last index
+        3. arrange will update last index when filling the empty slots
+      */
+
       class AttributeStore
       {
         // attribute mapping: [node_id, node_index, attr_id, slot_index] -> attribute index
         unordered_map<ULONG, size_t> _mapping;
+
+        // attribute index -> [node_id, node_index, attr_id, slot_index]
+        unordered_map<size_t, ULONG> _i2kmaping;
+
         vector<Attribute> _attributes;
+
         //Bitset _slot_mask;
         vector<bool> _slot_masks;
 
