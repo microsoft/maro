@@ -94,6 +94,26 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(len(self.eb._pending_events), 0)
         self.assertEqual(len(self.eb._finished_events), 0)
 
+    def test_sub_events(self):
+
+        def cb1(evt):
+            self.assertEqual(1, evt.payload)
+
+        def cb2(evt):
+            self.assertEqual(2, evt.payload)
+
+        self.eb.register_event_handler(1, cb1)
+        self.eb.register_event_handler(2, cb2)
+
+        evt: Event = self.eb.gen_atom_event(1, 1, 1)
+
+        evt.immediate_event_list.append(self.eb.gen_atom_event(1, 2, 2))
+
+        self.eb.insert_event(evt)
+
+        self.eb.execute(1)
+
+
 
 if __name__ == "__main__":
     unittest.main()

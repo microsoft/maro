@@ -238,15 +238,19 @@ class EventBuffer:
                     for handler in handlers:
                         handler(event)
 
-                # 3.2. sub events
-                for sub_event in event.immediate_event_list:
-                    if sub_event.event_type in self._handlers:
-                        handlers = self._handlers[sub_event.event_type]
+                # 3.2. append sub events into current position
+                for sindex, sub_event in enumerate(event.immediate_event_list):
+                    cur_events.insert(self._current_index + 1 + sindex, sub_event)
 
-                        for handler in handlers:
-                            handler(sub_event)
+                event.immediate_event_list.clear()
+                # for sub_event in event.immediate_event_list:
+                #     if sub_event.event_type in self._handlers:
+                #         handlers = self._handlers[sub_event.event_type]
 
-                        sub_event.state = EventState.FINISHED
+                #         for handler in handlers:
+                #             handler(sub_event)
+
+                #         sub_event.state = EventState.FINISHED
 
                 event.state = EventState.FINISHED
 
