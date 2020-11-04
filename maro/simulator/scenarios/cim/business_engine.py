@@ -425,7 +425,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         # If buffer_tick is 0, we should execute it as this tick.
         if buffer_ticks == 0:
-            evt.immediate_event_list.append(laden_return_evt)
+            evt.add_immediate_event(laden_return_evt)
         else:
             self._event_buffer.insert_event(laden_return_evt)
 
@@ -500,7 +500,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                 # Generate a discharge event, as we know when the vessel will arrive at destination.
                 payload = VesselDischargePayload(vessel_idx, port_idx, next_port_idx, loaded_qty)
-                dsch_event = self._event_buffer.gen_atom_event(arrive_tick, Events.DISCHARGE_FULL, payload)
+                dsch_event = self._event_buffer.gen_cascade_event(arrive_tick, Events.DISCHARGE_FULL, payload)
 
                 self._event_buffer.insert_event(dsch_event)
 

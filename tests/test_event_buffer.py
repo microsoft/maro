@@ -123,14 +123,22 @@ class TestEventBuffer(unittest.TestCase):
 
         self.eb.insert_event(evt1)
 
-        # sub events will be unfold before parent being processed
+        # sub events will be unfold after parent being processed
         decision_events = self.eb.execute(1)
 
-        # so we will get 3 decision events
-        self.assertEqual(3, len(decision_events))
+        # so we will get 1 decision events for 1st time executing
+        self.assertEqual(1, len(decision_events))
         self.assertEqual(evt1, decision_events[0])
-        self.assertEqual(sub1, decision_events[1])
-        self.assertEqual(sub2, decision_events[2])
+
+        # mark decision event as executing to make it process folloing events
+        decision_events[0].state = EventState.EXECUTING
+
+        # then there will be 2 additional decision event from sub events
+        decision_events = self.eb.execute(1)
+
+        self.assertEqual(2, len(decision_events))
+        self.assertEqual(sub1, decision_events[0])
+        self.assertEqual(sub2, decision_events[1])
 
 
 

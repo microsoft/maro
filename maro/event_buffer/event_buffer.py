@@ -81,14 +81,17 @@ class CascadeEvent(AtomEvent):
 
         self._immediate_event_list = []
 
-    def add_immediate_event(self, event) -> bool:
+    def add_immediate_event(self, event, is_head: bool = False) -> bool:
         """Add a immediate event, that will be processed right after current event.
+
+        Immediate event only support add to the head or tail, default will append to the end.
 
         NOTE:
             Tick of immediate event must same as current event, or will fail to insert.
 
         Args:
             event (Event): Event object to insert.
+            is_head (bool): If insert into the head (0 index), or append to the end.
 
         Returns:
             bool: True if success, or False.
@@ -97,7 +100,10 @@ class CascadeEvent(AtomEvent):
         if event.tick != self.tick:
             return False
 
-        self._immediate_event_list.append(event)
+        if is_head:
+            self._immediate_event_list.insert(0, event)
+        else:
+            self._immediate_event_list.append(event)
 
         return True
 
@@ -273,13 +279,6 @@ class EventBuffer:
                 if event is None:
                     break
 
-                # append sub events after current position
-                if type(event) == CascadeEvent:
-                    for sindex, sub_event in enumerate(event._immediate_event_list):
-                        cur_events.insert(self._current_index + 1 + sindex, sub_event)
-
-                    event._immediate_event_list.clear()
-
                 # 2. check if it is a cascade event and its state,
                 #    we only process cascade events that in pending state
                 if event.event_type == MaroEvents.DECISION_EVENT and event.state == EventState.PENDING:
@@ -304,6 +303,13 @@ class EventBuffer:
 
                     for handler in handlers:
                         handler(event)
+
+                # append sub events after current position
+                if type(event) == CascadeEvent:
+                    for sindex, sub_event in enumerate(event._immediate_event_list):
+                        cur_events.insert(self._current_index + 1 + sindex, sub_event)
+
+                    event._immediate_event_list.clear()
 
                 event.state = EventState.FINISHED
 
