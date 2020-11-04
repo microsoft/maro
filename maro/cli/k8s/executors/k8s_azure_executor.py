@@ -15,7 +15,7 @@ from maro.cli.utils.details import (
     save_schedule_details
 )
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_name_with_md5
+from maro.cli.utils.naming import generate_cluster_id, generate_component_id, generate_job_id, generate_name_with_md5
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
