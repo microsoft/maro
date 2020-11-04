@@ -113,6 +113,25 @@ class TestEventBuffer(unittest.TestCase):
 
         self.eb.execute(1)
 
+    def test_sub_events_with_decision(self):
+        evt1 = self.eb.gen_decision_event(1, (1, 1, 1))
+        sub1 = self.eb.gen_decision_event(1, (2, 2, 2))
+        sub2 = self.eb.gen_decision_event(1, (3, 3, 3))
+
+        evt1.immediate_event_list.append(sub1)
+        evt1.immediate_event_list.append(sub2)
+
+        self.eb.insert_event(evt1)
+
+        # sub events will be unfold before parent being processed
+        decision_events = self.eb.execute(1)
+
+        # so we will get 3 decision events
+        self.assertEqual(3, len(decision_events))
+        self.assertEqual(evt1, decision_events[0])
+        self.assertEqual(sub1, decision_events[1])
+        self.assertEqual(sub2, decision_events[2])
+
 
 
 if __name__ == "__main__":

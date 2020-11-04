@@ -532,7 +532,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         # As we have unfold all the route stop, we can just location ++.
         vessel.next_loc_idx += 1
 
-    def _on_discharge(self, evt: AtomEvent):
+    def _on_discharge(self, evt: CascadeEvent):
         """Handler for processing event the there are some full need to be discharged.
 
 
@@ -563,7 +563,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         )
 
         if buffer_ticks == 0:
-            evt.immediate_event_list.append(mt_return_evt)
+            evt.add_immediate_event(mt_return_evt)
         else:
             self._event_buffer.insert_event(mt_return_evt)
 
