@@ -5,10 +5,11 @@ from collections import defaultdict
 from typing import Callable, List, Sequence, Tuple
 
 import numpy as np
+
 from maro.utils import clone
 
 from .abs_store import AbsStore
-from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
+from .utils import OverwriteType, check_uniformity, get_update_indexes, normalize
 
 
 class ColumnBasedStore(AbsStore):
