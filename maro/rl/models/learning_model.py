@@ -15,7 +15,7 @@ class LearningModel(nn.Module):
     def __init__(self, *blocks, **task_heads):
         super().__init__()
         self._representation_stack = nn.Sequential(*blocks)
-        for key, task_head in task_heads:
+        for key, task_head in task_heads.items():
             setattr(self, f"_{key}_head", task_head)
         self._net = {key: nn.Sequential(self._representation_stack, task_head) for key, task_head in task_heads.items()}
 
