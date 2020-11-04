@@ -107,7 +107,7 @@ class TestEventBuffer(unittest.TestCase):
 
         evt: CascadeEvent = self.eb.gen_cascade_event(1, 1, 1)
 
-        evt.immediate_event_list.append(self.eb.gen_atom_event(1, 2, 2))
+        evt.add_immediate_event(self.eb.gen_atom_event(1, 2, 2))
 
         self.eb.insert_event(evt)
 
@@ -118,8 +118,8 @@ class TestEventBuffer(unittest.TestCase):
         sub1 = self.eb.gen_decision_event(1, (2, 2, 2))
         sub2 = self.eb.gen_decision_event(1, (3, 3, 3))
 
-        evt1.immediate_event_list.append(sub1)
-        evt1.immediate_event_list.append(sub2)
+        evt1.add_immediate_event(sub1)
+        evt1.add_immediate_event(sub2)
 
         self.eb.insert_event(evt1)
 
