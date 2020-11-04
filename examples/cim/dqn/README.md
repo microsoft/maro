@@ -19,4 +19,6 @@ the configuration if you want to try out different settings.
 The examples/cim/dqn/components folder contains dist_learner.py and dist_actor.py
 for distributed training. For debugging purposes, we provide a script that
 simulates distributed mode using multi-processing. Simply go to examples/cim/dqn
-and run multi_process_launcher.py to start the learner and actor processes.
+and execute python3 multi_process_launcher.py \[GROUP_NAME\] \[NUM_ACTORS\], where 
+GROUP_NAME is the identifier for the current run and NUM_ACTORS is the number of actor 
+processes to launch.  
