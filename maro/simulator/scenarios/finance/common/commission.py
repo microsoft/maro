@@ -1,4 +1,5 @@
 from enum import Enum
+
 from maro.simulator.scenarios.finance.common.common import OrderDirection
 
 

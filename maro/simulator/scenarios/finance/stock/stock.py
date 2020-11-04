@@ -1,4 +1,4 @@
-from maro.backends.frame import node, NodeBase, NodeAttribute
+from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
 @node("stocks")

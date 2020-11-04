@@ -1,6 +1,6 @@
 from enum import Enum
 
-from maro.simulator.scenarios.finance.common.common import Action, OrderDirection
+from maro.simulator.scenarios.finance.common.common import OrderDirection
 
 
 class SlippageType(Enum):

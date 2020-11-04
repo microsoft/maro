@@ -1,6 +1,6 @@
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Callable
-from abc import ABC, abstractmethod
 
 
 class OrderMode(Enum):
@@ -35,7 +35,7 @@ class TradeResult:
     def __init__(
             self, trade_number: int,
             price_per_item: float, tax: float
-        ):
+    ):
         self.trade_number = int(trade_number)
         self.price_per_item = price_per_item
         self.tax = tax
@@ -79,6 +79,7 @@ class DecisionEvent:
     def __repr__(self):
         return f"<DecisionEvent type: {self.action_type}, tick: {self.tick}>"
 
+
 class OrderActionScope:
     def __init__(self, buy_min, buy_max, sell_min, sell_max, supported_order):
         self.buy_min = buy_min
@@ -87,9 +88,11 @@ class OrderActionScope:
         self.sell_max = sell_max
         self.supported_order = supported_order
 
+
 class CancelOrderActionScope:
     def __init__(self, available_orders):
         self.available_orders = available_orders
+
 
 class Action(ABC):
     idx = 0
@@ -141,19 +144,19 @@ class Order(Action):
         self.amount = amount
         self.mode = mode
         self.direction = direction
-    
+
     @abstractmethod
     def is_trigger(self, price, trade_volume) -> bool:
         pass
 
     def __repr__(self):
-        
         return f"{super().__repr__()}\n< Order item: {self.item} amount: {self.amount} direction: {self.direction} >"
 
 
 class MarketOrder(Order):
     def __init__(
-        self, tick: int, item: int, amount: int, direction: OrderDirection, life_time: int = 1):
+        self, tick: int, item: int, amount: int, direction: OrderDirection, life_time: int = 1
+    ):
         super().__init__(
             item=item, amount=amount, direction=direction,
             mode=OrderMode.market_order, tick=tick, life_time=life_time
@@ -201,7 +204,7 @@ class StopOrder(Order):
             mode=OrderMode.stop_order, tick=tick, life_time=life_time
         )
         self.stop = stop
-    
+
     def is_trigger(self, price, trade_volume) -> bool:
         triggered = False
         if trade_volume > 0:
@@ -226,7 +229,7 @@ class StopLimitOrder(Order):
         )
         self.stop = stop
         self.limit = limit
-    
+
     def is_trigger(self, price, trade_volume) -> bool:
         triggered = False
         if trade_volume > 0:

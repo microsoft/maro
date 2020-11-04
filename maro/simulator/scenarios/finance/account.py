@@ -1,7 +1,10 @@
 """Used to maintain stock/futures, one account per episode"""
 from collections import OrderedDict
-from maro.backends.frame import node, NodeBase, NodeAttribute
-from maro.simulator.scenarios.finance.common.common import TradeResult, Order, OrderDirection
+
+from maro.backends.frame import NodeAttribute, NodeBase, node
+from maro.simulator.scenarios.finance.common.common import (Order,
+                                                            OrderDirection,
+                                                            TradeResult)
 
 
 @node("account")

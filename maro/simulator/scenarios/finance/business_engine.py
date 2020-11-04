@@ -2,29 +2,30 @@
 # Licensed under the MIT license.
 
 import datetime
-import os
 import math
-from typing import List
+import os
 from collections import OrderedDict
+from typing import List
 
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
+from yaml import safe_load
+
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import DocableDict
-from maro.utils.logger import CliLogger
-from yaml import safe_load
-
+from maro.simulator.scenarios.finance.common.commission import (
+    ByMoneyCommission, StampTaxCommission)
+from maro.simulator.scenarios.finance.common.common import (
+    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope,
+    DecisionEvent, OrderActionScope, OrderDirection, OrderMode,
+    TradeResult)
+from maro.simulator.scenarios.finance.common.slippage import ByMoneySlippage
 from maro.simulator.scenarios.finance.frame_builder import build_frame
 from maro.simulator.scenarios.finance.stock.stock import Stock
-from maro.simulator.scenarios.finance.common.common import (
-    Action, DecisionEvent, OrderActionScope, CancelOrderActionScope, Order,
-    TradeResult, OrderMode, ActionType, ActionState, OrderDirection, CancelOrder
-)
-from maro.simulator.scenarios.finance.common.slippage import ByMoneySlippage
-from maro.simulator.scenarios.finance.common.commission import ByMoneyCommission, StampTaxCommission
+from maro.simulator.scenarios.helpers import DocableDict
+from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
 
@@ -78,7 +79,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         for idx in range(len(self._conf["stocks"])):
             self._quote_readers.append(BinaryReader(quote_data_paths[idx]))
-            print(self._quote_readers[-1].start_datetime,self._quote_readers[-1].end_datetime)
+            print(self._quote_readers[-1].start_datetime, self._quote_readers[-1].end_datetime)
             self._quote_pickers.append(
                 self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
@@ -338,14 +339,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             if is_trigger:
                 print(f"  <<>>  executing {action}")
                 if not self._allow_split:
-                    rets = self.trade(
-                            action
-                        )  
+                    rets = self.trade(action)
                 else:
                     # TODO: Split trade should be implemented
-                    rets = self.split_trade(
-                            action
-                        )
+                    rets = self.split_trade(action)
 
                 if len(rets) > 0:
                     action.state = ActionState.success
@@ -466,7 +463,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             remaining_volume = min(remaining_volume, self._stocks[action.item].account_hold_num)
 
         remaining_money = self._account.remaining_money
-        
+
         split_volume = self._conf["trade_constraint"]["split_trade_percent"] * market_volume
         odd_shares = self._stocks[action.item].account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
         excuting_price = market_price
@@ -486,16 +483,24 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     excuting_commission += commission.execute(action.direction, excuting_price, excuting_volume)
 
                 # constraint
-                if not self.validate_constrant(odd_shares, action.direction, excuting_price, excuting_volume):
-                    excuting_volume = self.adjust_constraint(odd_shares, action.direction, excuting_price, excuting_volume)
+                if not self.validate_constrant(
+                    odd_shares, action.direction, excuting_price, excuting_volume
+                ):
+                    excuting_volume = self.adjust_constraint(
+                        odd_shares, action.direction, excuting_price, excuting_volume
+                    )
                     adjusted = True
                     odd_shares = 0
                     # print(f"Adjust volume for constraint:{excuting_volume}")
                     continue
 
                 # money
-                if not self.validate_trade(action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money):
-                    excuting_volume = self.adjust_trade(action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money)
+                if not self.validate_trade(
+                    action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                ):
+                    excuting_volume = self.adjust_trade(
+                        action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                    )
                     adjusted = True
                     # print(f"Adjust volume for trade:{excuting_volume}")
                     continue
@@ -517,8 +522,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 executing = False
                 ret = None
 
-            
-        
         return rets
 
     def trade(self, action: Action):
@@ -562,8 +565,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 continue
 
             # money
-            if not self.validate_trade(action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money):
-                excuting_volume = self.adjust_trade(action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money)
+            if not self.validate_trade(
+                action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+            ):
+                excuting_volume = self.adjust_trade(
+                    action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                )
                 adjusted = True
                 # print(f"Adjust volume for trade:{excuting_volume}")
                 continue
@@ -573,10 +580,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             rets.append(ret)
         else:
             pass
-        
+
         return rets
 
-    def validate_constrant(self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int):
+    def validate_constrant(
+        self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int
+    ):
         ret = True
         if direction == OrderDirection.buy:
             if excuting_volume % self._conf["trade_constraint"]["min_buy_unit"] != 0:
@@ -588,8 +597,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     ret = False
 
         return ret
-    
-    def adjust_constraint(self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int):
+
+    def adjust_constraint(
+        self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int
+    ):
         ret = excuting_volume
         if direction == OrderDirection.buy:
             odd_volume = ret % self._conf["trade_constraint"]["min_buy_unit"]
@@ -602,7 +613,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return int(ret)
 
-    def validate_trade(self, direction: OrderDirection, excuting_price: float, excuting_volume: int, excuting_commission: float, remaining_money: float):
+    def validate_trade(
+        self, direction: OrderDirection, excuting_price: float,
+        excuting_volume: int, excuting_commission: float, remaining_money: float
+    ):
         ret = True
         if direction == OrderDirection.buy:
             money_needed = excuting_price * excuting_volume + excuting_commission
@@ -615,12 +629,21 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return ret
 
-    def adjust_trade(self, direction: OrderDirection, excuting_price: float, excuting_volume: int, excuting_commission: float, remaining_money: float):
+    def adjust_trade(
+        self, direction: OrderDirection, excuting_price: float,
+        excuting_volume: int, excuting_commission: float, remaining_money: float
+    ):
         ret = excuting_volume
         if direction == OrderDirection.buy:
             money_needed = excuting_price * excuting_volume + excuting_commission
-            ret = ret - math.ceil((money_needed - remaining_money) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])) * self._conf["trade_constraint"]["min_buy_unit"]
+            ret = ret - math.ceil(
+                (money_needed - remaining_money) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])
+            ) * self._conf["trade_constraint"]["min_buy_unit"]
         else:
             money_needed = excuting_commission
-            ret = ret - math.ceil((money_needed - (remaining_money + excuting_price * ret)) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])) * self._conf["trade_constraint"]["min_buy_unit"]
+            ret = ret - math.ceil(
+                (money_needed - (remaining_money + excuting_price * ret)) / (
+                    excuting_price * self._conf["trade_constraint"]["min_buy_unit"]
+                )
+            ) * self._conf["trade_constraint"]["min_buy_unit"]
         return int(ret)
