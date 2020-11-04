@@ -78,6 +78,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         for idx in range(len(self._conf["stocks"])):
             self._quote_readers.append(BinaryReader(quote_data_paths[idx]))
+            print(self._quote_readers[-1].start_datetime,self._quote_readers[-1].end_datetime)
             self._quote_pickers.append(
                 self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
