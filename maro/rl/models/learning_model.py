@@ -14,17 +14,20 @@ class LearningModel(nn.Module):
     """
     def __init__(self, *blocks, **task_heads):
         super().__init__()
-        self._representation_stack = nn.Sequential(*blocks)
-        for key, task_head in task_heads.items():
-            setattr(self, f"_{key}_head", task_head)
-        self._net = {key: nn.Sequential(self._representation_stack, task_head) for key, task_head in task_heads.items()}
+        self._task_head_keys = list(task_heads.keys())
+        if not self._task_head_keys:
+            self.net = nn.Sequential(*blocks)
+        else:
+            representation_stack = nn.Sequential(*blocks)
+            for key, task_head in task_heads.items():
+                setattr(self, key, nn.Sequential(representation_stack, task_head))
 
-    def forward(self, inputs, head_key=None):
+    def forward(self, inputs, key=None):
         """Feedforward computations for the given head(s).
 
         Args:
             inputs: Inputs to the model.
-            head_key: The key(s) to the head(s) from which the output is required. If this is None, the results from
+            key: The key(s) to the head(s) from which the output is required. If this is None, the results from
                 all heads will be returned in the form of a dictionary. If this is a list, the results will be the
                 outputs from the heads contained in head_key in the form of a dictionary. If this is a single key,
                 the result will be the output from the corresponding head.
@@ -32,13 +35,13 @@ class LearningModel(nn.Module):
         Returns:
             Outputs from the required head(s).
         """
-        if not self._net:
-            return self._representation_stack(inputs)
+        if not self._task_head_keys:
+            return self.net(inputs)
 
-        if head_key is None:
-            return {key: net(inputs) for key, net in self._net.items()}
+        if key is None:
+            return {key: getattr(self, key)(inputs) for key in self._task_head_keys}
 
-        if isinstance(head_key, list):
-            return {key: self._net[key](inputs) for key in head_key}
+        if isinstance(key, list):
+            return {k: getattr(self, k)(inputs) for k in key}
         else:
-            return self._net[head_key](inputs)
+            return getattr(self, key)(inputs)
