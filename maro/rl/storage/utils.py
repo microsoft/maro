@@ -7,6 +7,8 @@ from functools import wraps
 import numpy as np
 from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
 
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
+
 
 def check_uniformity(arg_num):
     def decorator(func):
