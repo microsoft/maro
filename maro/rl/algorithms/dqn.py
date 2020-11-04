@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
+import warnings
 
 import numpy as np
 import torch
@@ -9,11 +9,6 @@ import torch.nn as nn
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.utils import clone
-
-
-class DuelingQModelHead(Enum):
-    STATE_VALUE = "state_value"
-    ADVANTAGE = "advantage"
 
 
 class DQNHyperParams:
@@ -26,10 +21,13 @@ class DQNHyperParams:
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1-tau) * target_model.
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm.
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
+        is_dueling (bool): If True, the dueling Q-value model is used to compute Q values.
         advantage_mode (str): advantage mode for the dueling Q-value model. Defaults to None, in which
             case it is assumed that the regular Q-value model is used.
     """
-    __slots__ = ["num_actions", "reward_decay", "target_update_frequency", "tau", "is_double", "advantage_mode"]
+    __slots__ = [
+        "num_actions", "reward_decay", "target_update_frequency", "tau", "is_double", "is_dueling", "advantage_mode"
+    ]
 
     def __init__(
         self,
@@ -38,6 +36,7 @@ class DQNHyperParams:
         target_update_frequency: int,
         tau: float = 1.0,
         is_double: bool = False,
+        is_dueling: bool = False,
         advantage_mode: str = None
     ):
         self.num_actions = num_actions
@@ -45,6 +44,7 @@ class DQNHyperParams:
         self.target_update_frequency = target_update_frequency
         self.tau = tau
         self.is_double = is_double
+        self.is_dueling = is_dueling
         self.advantage_mode = advantage_mode
 
 
@@ -54,79 +54,117 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        eval_model (nn.Module): Q-value model for given states and actions.
-        optimizer_cls: Torch optimizer class for the eval model. If this is None, the eval model is not trainable.
-        optimizer_params: Parameters required for the eval optimizer class.
+        value_model (nn.Module): Q-value or state value model depending on whether ``is_dueling`` is true
+            in ``hyper-params``.
+        value_optimizer_cls: Torch optimizer class for the value model. If this is None, the eval model is not
+            trainable.
+        value_optimizer_params: Parameters required for the optimizer class for the value model.
         loss_func (Callable): Loss function for the value model.
         hyper_params: Hyper-parameter set for the DQN algorithm.
-        target_model (nn.Module): Q-value model to train the ``eval_model`` against and to be updated periodically. If
-            it is None, the target model will be initialized as a deep copy of the eval model.
+        advantage_model (nn.Module): Model that estimates the advantage value. If ``is_dueling`` is true
+            in ``hyper-params``, Defaults to None.
+        advantage_optimizer_cls: Torch optimizer class for the advantage model. If this is None, the eval model is
+            not trainable.
+        advantage_optimizer_params: Parameters required for the optimizer class for the advantage model
     """
     def __init__(
         self,
-        eval_model: nn.Module,
-        optimizer_cls,
-        optimizer_params,
+        value_model: nn.Module,
+        value_optimizer_cls,
+        value_optimizer_params,
         loss_func,
         hyper_params: DQNHyperParams,
-        target_model=None
+        advantage_model: nn.Module = None,
+        advantage_optimizer_cls=None,
+        advantage_optimizer_params=None
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._model_dict = {"eval": eval_model.to(self._device)}
-        if optimizer_cls is not None:
-            self._optimizer = optimizer_cls(self._model_dict["eval"].parameters(), **optimizer_params)
-            if target_model is None:
-                self._model_dict["target"] = clone(eval_model).to(self._device)
-            else:
-                self._model_dict["target"] = target_model.to(self._device)
-        # No gradient computation required for the target model
-        for param in self._model_dict["target"].parameters():
-            param.requires_grad = False
+        self._hyper_params = hyper_params
+        self._is_training = value_optimizer_cls is not None
+        if self._hyper_params.is_dueling:
+            assert advantage_model is not None, "advantage_model cannot be None under dueling mode."
+            if self._is_training:
+                assert advantage_optimizer_cls is not None, \
+                    "advantage_optimizer_cls cannot be None under dueling mode."
+
+            self._model_dict = {
+                "state_value": value_model.to(self._device),
+                "state_value_target": clone(value_model).to(self._device) if self._is_training else None,
+                "advantage": advantage_model.to(self._device),
+                "advantage_target": clone(advantage_model).to(self._device) if self._is_training else None
+            }
+            self._value_optimizer = value_optimizer_cls(
+                self._model_dict["state_value"].parameters(), **value_optimizer_params
+            )
+            self._advantage_optimizer = advantage_optimizer_cls(
+                self._model_dict["advantage"].parameters(), **advantage_optimizer_params
+            )
+            # No gradient computation required for the target models
+            for param in self._model_dict["state_value_target"].parameters():
+                param.requires_grad = False
+            for param in self._model_dict["advantage_target"].parameters():
+                param.requires_grad = False
+        else:
+            self._model_dict = {
+                "q_value": value_model.to(self._device),
+                "q_value_target": clone(value_model).to(self._device) if self._is_training else None,
+            }
+            self._optimizer = value_optimizer_cls(
+                self._model_dict["q_value"].parameters(), **value_optimizer_params
+            )
 
         self._loss_func = loss_func
-        self._hyper_params = hyper_params
         self._train_cnt = 0
 
     @property
     def eval_model(self):
         return self._model_dict["eval"]
 
+    @property
+    def is_training(self):
+        return self._is_training
+
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         if epsilon is None or np.random.rand() > epsilon:
             state = torch.from_numpy(state).unsqueeze(0)
             self._model_dict["eval"].eval()
             with torch.no_grad():
-                q_values = self._get_q_values("eval", state)
+                q_values = self._get_q_values(state)
             return q_values.argmax(dim=1).item()
 
         return np.random.choice(self._hyper_params.num_actions)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        if hasattr(self, "_optimizer"):
-            states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
-            actions = torch.from_numpy(actions).to(self._device)  # (N,)
-            rewards = torch.from_numpy(rewards).to(self._device)   # (N,)
-            next_states = torch.from_numpy(next_states).to(self._device)  # (N, state_dim)
-            if len(actions.shape) == 1:
-                actions = actions.unsqueeze(1)   # (N, 1)
-            current_q_values_all = self._get_q_values("eval", states)
-            current_q_values = current_q_values_all.gather(1, actions).squeeze(1)   # (N,)
-            next_q_values = self._get_next_q_values(current_q_values_all, next_states)   # (N,)
-            target_q_values = (rewards + self._hyper_params.reward_decay * next_q_values).detach()   # (N,)
-            loss = self._loss_func(current_q_values, target_q_values)
-            self._model_dict["eval"].train()
-            self._optimizer.zero_grad()
-            loss.backward()
-            self._optimizer.step()
-            self._train_cnt += 1
-            if self._train_cnt % self._hyper_params.target_update_frequency == 0:
-                self._update_target_model()
+        if not self._is_training():
+            warnings.warn(
+                "DQN is not in training mode since no optimizer is provided. Did you provide optimizer_cls and "
+                "optimizer_params when instantiating the algorithm?"
+            )
 
-            return np.abs((current_q_values - target_q_values).detach().numpy())
+        states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
+        actions = torch.from_numpy(actions).to(self._device)  # (N,)
+        rewards = torch.from_numpy(rewards).to(self._device)   # (N,)
+        next_states = torch.from_numpy(next_states).to(self._device)  # (N, state_dim)
+        if len(actions.shape) == 1:
+            actions = actions.unsqueeze(1)   # (N, 1)
+        current_q_values_all = self._get_q_values(states)
+        current_q_values = current_q_values_all.gather(1, actions).squeeze(1)   # (N,)
+        next_q_values = self._get_next_q_values(current_q_values_all, next_states)   # (N,)
+        target_q_values = (rewards + self._hyper_params.reward_decay * next_q_values).detach()   # (N,)
+        loss = self._loss_func(current_q_values, target_q_values)
+        self._model_dict["eval"].train()
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        self._train_cnt += 1
+        if self._train_cnt % self._hyper_params.target_update_frequency == 0:
+            self._update_target_model()
+
+        return np.abs((current_q_values - target_q_values).detach().numpy())
 
     def _update_target_model(self):
-        if hasattr(self, "_optimizer"):
+        if self._is_training():
             for eval_params, target_params in zip(
                 self._model_dict["eval"].parameters(), self._model_dict["target"].parameters()
             ):
@@ -134,12 +172,12 @@ class DQN(AbsAlgorithm):
                     self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
                 )
 
-    def _get_q_values(self, which: str, states):
-        if self._hyper_params.advantage_mode is None:
-            return self._model_dict[which](states)
+    def _get_q_values(self, states, is_target: bool = False):
+        if not self._hyper_params.is_dueling:
+            return self._model_dict["q_value_target" if is_target else "q_value"](states)
 
-        state_values = self._model_dict[which](states, head_key=DuelingQModelHead.STATE_VALUE.value)
-        advantages = self._model_dict[which](states, head_key=DuelingQModelHead.ADVANTAGE.value)
+        state_values = self._model_dict["state_value_target" if is_target else "state_value"](states)
+        advantages = self._model_dict["advantage_target" if is_target else "advantage"](states)
         # Use mean or max correction to address the identifiability issue
         corrections = advantages.mean(1) if self._hyper_params.advantage_mode == "mean" else advantages.max(1)[0]
         q_values = state_values + advantages - corrections.unsqueeze(1)
@@ -148,9 +186,9 @@ class DQN(AbsAlgorithm):
     def _get_next_q_values(self, current_q_values_all, states):
         if self._hyper_params.is_double:
             actions = current_q_values_all.max(dim=1)[1].unsqueeze(1)
-            return self._get_q_values("target", states).gather(1, actions).squeeze(1)  # (N,)
+            return self._get_q_values(states, is_target=True).gather(1, actions).squeeze(1)  # (N,)
         else:
-            return self._get_q_values("target", states).max(dim=1)[0]   # (N,)
+            return self._get_q_values(states, is_target=True).max(dim=1)[0]   # (N,)
 
     def load_models(self, eval_model):
         """Load the eval model from memory."""
