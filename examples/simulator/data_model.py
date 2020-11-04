@@ -44,7 +44,8 @@ class RetailFrame(FrameBase):
     stores = FrameNode(Store, TOTAL_STORES)
 
     def __init__(self):
-        # If your actual frame number was more than the total snapshot number, the old snapshots would be rolling replaced.
+        # If your actual frame number was more than the total snapshot number,
+        # the old snapshots would be rolling replaced.
         super().__init__(enable_snapshot=True, total_snapshot=TOTAL_SNAPSHOT)
 
 
