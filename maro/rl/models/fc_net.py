@@ -18,6 +18,8 @@ class FullyConnectedNet(nn.Module):
         output_dim (int): Network output dimension.
         hidden_dims ([int]): Dimensions of hidden layers. Its length is the number of hidden layers.
         activation: A ``torch.nn`` activation type. If None, there will be no activation. Defaults to LeakyReLU.
+        is_top (bool): If true, this block will be the top block of the full model and the top layer of this block
+            will be the final output layer. Defaults to False.
         softmax_enabled (bool): If true, the output of the net will be a softmax transformation of the top layer's
             output. Defaults to False.
         batch_norm_enabled (bool): If true, batch normalization will be performed at each layer.
@@ -34,6 +36,7 @@ class FullyConnectedNet(nn.Module):
         output_dim: int,
         hidden_dims: [int],
         activation=nn.LeakyReLU,
+        is_top: bool = False,
         softmax_enabled: bool = False,
         batch_norm_enabled: bool = False,
         skip_connection_enabled: bool = False,
@@ -48,6 +51,7 @@ class FullyConnectedNet(nn.Module):
 
         # network features
         self._activation = activation
+        self._is_top = is_top
         self._softmax = nn.Softmax(dim=1) if softmax_enabled else None
         self._batch_norm_enabled = batch_norm_enabled
         self._dropout_p = dropout_p
@@ -61,12 +65,14 @@ class FullyConnectedNet(nn.Module):
         self._skip_connection_enabled = skip_connection_enabled
 
         # build the net
-        self._layers = self._build_layers([input_dim] + self._hidden_dims)
-        if len(self._hidden_dims) == 0:
-            self._top_layer = nn.Linear(self._input_dim, self._output_dim)
+        dims = [self._input_dim] + self._hidden_dims
+        layers = [self._build_internal_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
+        if is_top:
+            layers.append(self._build_top_layer(dims[-1], self._output_dim))
         else:
-            self._top_layer = nn.Linear(hidden_dims[-1], self._output_dim)
-        self._net = nn.Sequential(*self._layers, self._top_layer)
+            layers.append(self._build_internal_layer(dims[-1], self._output_dim))
+
+        self._net = nn.Sequential(*layers)
 
         if clip_value is not None:
             for param in self._net.parameters():
@@ -90,7 +96,7 @@ class FullyConnectedNet(nn.Module):
     def output_dim(self):
         return self._output_dim
 
-    def _build_basic_layer(self, input_dim, output_dim):
+    def _build_internal_layer(self, input_dim, output_dim):
         """Build basic layer.
 
         BN -> Linear -> Activation -> Dropout
@@ -105,12 +111,10 @@ class FullyConnectedNet(nn.Module):
             components.append(("dropout", nn.Dropout(p=self._dropout_p)))
         return nn.Sequential(OrderedDict(components))
 
-    def _build_layers(self, layer_dims: []):
-        """Build multi basic layer.
-
-        BasicLayer1 -> BasicLayer2 -> ...
-        """
-        layers = []
-        for input_dim, output_dim in zip(layer_dims, layer_dims[1:]):
-            layers.append(self._build_basic_layer(input_dim, output_dim))
-        return layers
+    def _build_top_layer(self, input_dim, output_dim):
+        """The output layer may need to be treated differently."""
+        components = []
+        if self._batch_norm_enabled:
+            components.append(("batch_norm", nn.BatchNorm1d(input_dim)))
+        components.append(("linear", nn.Linear(input_dim, output_dim)))
+        return nn.Sequential(OrderedDict(components))
