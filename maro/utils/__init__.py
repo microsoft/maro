@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .logger import Logger, InternalLogger, DummyLogger, LogFormat
-from .utils import convert_dottable, DottableDict, clone, set_seeds
+from maro.utils.logger import Logger, InternalLogger, DummyLogger, LogFormat
+from maro.utils.utils import convert_dottable, DottableDict, clone, set_seeds
 
 
 __all__ = [

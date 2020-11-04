@@ -17,7 +17,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from yaml import safe_load
 
-from .frame_builder import build_frame
+from maro.simulator.scenarios.finance.frame_builder import build_frame
 from maro.simulator.scenarios.finance.stock.stock import Stock
 from maro.simulator.scenarios.finance.common.common import (
     Action, DecisionEvent, OrderActionScope, CancelOrderActionScope, Order,

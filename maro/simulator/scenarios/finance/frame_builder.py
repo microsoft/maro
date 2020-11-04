@@ -3,7 +3,7 @@
 
 from maro.backends.frame import FrameNode, FrameBase
 
-from .stock.stock import Stock
+from maro.simulator.scenarios.finance.stock.stock import Stock
 from maro.simulator.scenarios.finance.account import Account
 
 
