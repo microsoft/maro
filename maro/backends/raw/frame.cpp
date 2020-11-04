@@ -67,7 +67,7 @@ namespace maro
           {
             auto& attr = _attributes[attr_id];
 
-            _attr_store.add(node_id, node.number, attr_id, attr.slots);
+            _attr_store.add_nodes(node_id, node.number, attr_id, attr.slots);
           }
         }
       }
@@ -91,7 +91,7 @@ namespace maro
 
           // NOTE:
           // attribute store expect that the number is the total number, it will ignore exist node indices
-          _attr_store.add(node_id, node.number, attr_id, attr.slots);
+          _attr_store.add_nodes(node_id, node.number, attr_id, attr.slots);
         }
       }
 
@@ -108,7 +108,7 @@ namespace maro
         {
           auto& attr = _attributes[attr_id];
 
-          _attr_store.remove(node_id, index, attr_id, attr.slots);
+          _attr_store.remove_node(node_id, index, attr_id, attr.slots);
         }
       }
 
@@ -124,13 +124,12 @@ namespace maro
         if (slots > attr.slots)
         {
           // extend
-          _attr_store.add(node.id, node.number, attr_id, slots);
+          _attr_store.add_nodes(node.id, node.number, attr_id, slots);
         }
         else if (slots < attr.slots)
         {
           // narrow down
-          _attr_store.remove(node.id, node.number, attr_id, attr.slots);
-          _attr_store.add(node.id, node.number, attr_id, slots);
+          _attr_store.remove_attr_slots(node.id, node.number, attr_id, attr.slots - slots + 1, attr.slots);
         }
 
         attr.slots = slots;
