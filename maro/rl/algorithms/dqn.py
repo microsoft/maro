@@ -118,17 +118,17 @@ class DQN(AbsAlgorithm):
         self._train_cnt = 0
 
     @property
-    def eval_model(self):
-        return self._model_dict["eval"]
-
-    @property
     def is_training(self):
         return self._is_training
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         if epsilon is None or np.random.rand() > epsilon:
             state = torch.from_numpy(state).unsqueeze(0)
-            self._model_dict["eval"].eval()
+            if self._hyper_params.is_dueling:
+                self._model_dict["state_value"].eval()
+                self._model_dict["advantage"].eval()
+            else:
+                self._model_dict["q_value"].eval()
             with torch.no_grad():
                 q_values = self._get_q_values(state)
             return q_values.argmax(dim=1).item()
@@ -153,24 +153,52 @@ class DQN(AbsAlgorithm):
         next_q_values = self._get_next_q_values(current_q_values_all, next_states)   # (N,)
         target_q_values = (rewards + self._hyper_params.reward_decay * next_q_values).detach()   # (N,)
         loss = self._loss_func(current_q_values, target_q_values)
-        self._model_dict["eval"].train()
-        self._optimizer.zero_grad()
-        loss.backward()
-        self._optimizer.step()
+
+        if self._hyper_params.is_dueling:
+            self._model_dict["state_value"].train()
+            self._model_dict["advantage"].train()
+            self._value_optimizer.zero_grad()
+            self._advantage_optimizer.zero_grad()
+            loss.backward()
+            self._value_optimizer.step()
+            self._advantage_optimizer.step()
+        else:
+            self._model_dict["q_value"].train()
+            self._optimizer.zero_grad()
+            loss.backward()
+            self._optimizer.step()
+
         self._train_cnt += 1
         if self._train_cnt % self._hyper_params.target_update_frequency == 0:
-            self._update_target_model()
+            self._update_targets()
 
         return np.abs((current_q_values - target_q_values).detach().numpy())
 
-    def _update_target_model(self):
+    def _update_targets(self):
         if self._is_training():
-            for eval_params, target_params in zip(
-                self._model_dict["eval"].parameters(), self._model_dict["target"].parameters()
-            ):
-                target_params.data = (
-                    self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
-                )
+            if not self._hyper_params.is_dueling:
+                for eval_params, target_params in zip(
+                    self._model_dict["q_value"].parameters(), self._model_dict["q_value_target"].parameters()
+                ):
+                    target_params.data = (
+                        self._hyper_params.tau * eval_params.data +
+                        (1 - self._hyper_params.tau) * target_params.data
+                    )
+            else:
+                for eval_params, target_params in zip(
+                    self._model_dict["state_value"].parameters(), self._model_dict["state_value_target"].parameters()
+                ):
+                    target_params.data = (
+                        self._hyper_params.tau * eval_params.data +
+                        (1 - self._hyper_params.tau) * target_params.data
+                    )
+                for eval_params, target_params in zip(
+                    self._model_dict["advantage"].parameters(), self._model_dict["advantage_target"].parameters()
+                ):
+                    target_params.data = (
+                        self._hyper_params.tau * eval_params.data +
+                        (1 - self._hyper_params.tau) * target_params.data
+                    )
 
     def _get_q_values(self, states, is_target: bool = False):
         if not self._hyper_params.is_dueling:
@@ -190,18 +218,22 @@ class DQN(AbsAlgorithm):
         else:
             return self._get_q_values(states, is_target=True).max(dim=1)[0]   # (N,)
 
-    def load_models(self, eval_model):
-        """Load the eval model from memory."""
-        self._model_dict["eval"].load_state_dict(eval_model)
+    def _get_state_dicts(self):
+        return {k: model.state_dict() for k, model in self._model_dict.items()}
+
+    def load_models(self, model_dict):
+        """Load models from memory."""
+        for key in self._model_dict:
+            self._model_dict[key].load_state_dict(model_dict[key])
 
     def dump_models(self):
         """Return the eval model."""
-        return self._model_dict["eval"].state_dict()
+        return self._get_state_dicts()
 
     def load_models_from_file(self, path):
         """Load the eval model from disk."""
-        self._model_dict["eval"] = torch.load(path)
+        self._model_dict = torch.load(path)
 
     def dump_models_to_file(self, path: str):
         """Dump the eval model to disk."""
-        torch.save(self._model_dict["eval"].state_dict(), path)
+        torch.save(self._get_state_dicts(), path)
