@@ -18,7 +18,7 @@ from maro.rl.early_stopping.simple_early_stopping_checker import (
     MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker)
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import (LinearExplorer,
-                                            TwoPhaseLinearExplorer)
+    TwoPhaseLinearExplorer)
 from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.models.fc_net import FullyConnectedNet

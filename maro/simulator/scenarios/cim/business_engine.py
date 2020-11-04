@@ -10,12 +10,12 @@ from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import (DocableDict,
-                                            MatrixAttributeAccessor)
+    MatrixAttributeAccessor)
 from yaml import safe_load
 
 from .common import (Action, ActionScope, CimEventType, DecisionEvent,
-                    EmptyReturnPayload, LadenReturnPayload,
-                    VesselDischargePayload, VesselStatePayload)
+    EmptyReturnPayload, LadenReturnPayload,
+    VesselDischargePayload, VesselStatePayload)
 from .frame_builder import gen_cim_frame
 
 metrics_desc = """

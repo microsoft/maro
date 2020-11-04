@@ -9,7 +9,6 @@ from typing import List
 
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
-
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
