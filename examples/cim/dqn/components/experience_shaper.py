@@ -28,7 +28,7 @@ class TruncatedExperienceShaper(ExperienceShaper):
             experiences["state"].append(transition["state"])
             experiences["action"].append(transition["action"])
             experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-            experiences["next_state"].append(trajectory[i+1]["state"])
+            experiences["next_state"].append(trajectory[i + 1]["state"])
 
         return experiences_by_agent
 
