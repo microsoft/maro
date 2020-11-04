@@ -19,10 +19,11 @@ success_requirements (int): Accumulative successful VM requirements until now.
 total_latency (int): Accumulative buffer time until now.
 """
 
+
 class DataCenterBusinessEngine(AbsBusinessEngine):
     def __init__(
         self, event_buffer: EventBuffer, topology: str, start_tick: int,
-        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict=None
+        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = None
     ):
         super().__init__(
             "data_center", event_buffer, topology, start_tick, max_tick,
@@ -53,7 +54,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self.machine: List[PhysicalMachine] = []
         self.vm: dict = {}
 
-
     def get_metrics(self) -> dict:
         """Get current enviornment metrics information.
 
@@ -67,7 +67,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         energy_consumption = self._energy_consumption
         success_requirements = self._success_requirements
         total_latency = self._total_latency
-        
         return DocableDict(
             metrics_desc,
             energy_consumption=energy_consumption,
@@ -83,8 +82,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _on_vm_required(self, evt: Event):
         """Callback when there is a VM requirement generated."""
-        # load VM data   
-    
+        # load VM data
+
     def _on_vm_finished(self, evt: Event):
         """Callback when there is a VM in the end cycle."""
 
@@ -97,10 +96,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
             if action.assign:
                 # update vm
-                # update pm resource 
+                # update pm resource
                 pass
             else:
                 pass
                 # check buffer time
                 # if buffer time < 1, requirement failed
-                # else buffer time -= 1 
+                # else buffer time -= 1

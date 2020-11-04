@@ -3,6 +3,7 @@
 
 from typing import List
 
+
 class PhysicalMachine:
     def __init__(self, id: int, cap_cpu: int, cap_mem: int):
         self.id = id
@@ -14,4 +15,3 @@ class PhysicalMachine:
         self.util_cpu: int = -1
         self.util_mem: int = -1
         self.util_series: List = []
-        

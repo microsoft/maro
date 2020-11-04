@@ -3,6 +3,7 @@
 
 from typing import List
 
+
 class VirtualMachine:
     def __init__(self, id: int, req_cpu: int, req_mem: int):
         self.id: int = id
@@ -14,4 +15,3 @@ class VirtualMachine:
         self.start_tick: int = -1
         self.end_tick: int = -1
         self.util_series: List = []
-        
