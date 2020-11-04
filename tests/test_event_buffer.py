@@ -3,7 +3,7 @@
 
 
 import unittest
-from maro.event_buffer import EventBuffer, Event, EventState, EventCategory
+from maro.event_buffer import EventBuffer, AtomEvent, CascadeEvent, EventState
 
 class TestEventBuffer(unittest.TestCase):
     def setUp(self):
@@ -14,16 +14,16 @@ class TestEventBuffer(unittest.TestCase):
         evt = self.eb.gen_atom_event(1, 1, (0, 0))
 
         # fields should be same as specified
-        self.assertEqual(evt.category, EventCategory.ATOM)
+        self.assertEqual(AtomEvent, type(evt))
         self.assertEqual(evt.tick, 1)
-        self.assertEqual(evt.event_type , 1)
+        self.assertEqual(evt.event_type, 1)
         self.assertEqual(evt.payload, (0, 0))
 
         evt = self.eb.gen_cascade_event(2, 2, (1, 1, 1))
 
-        self.assertEqual(evt.category, EventCategory.CASCADE)
+        self.assertEqual(CascadeEvent, type(evt))
         self.assertEqual(evt.tick, 2)
-        self.assertEqual(evt.event_type , 2)
+        self.assertEqual(evt.event_type, 2)
         self.assertEqual(evt.payload, (1, 1, 1))
 
     def test_insert_event(self):
@@ -105,7 +105,7 @@ class TestEventBuffer(unittest.TestCase):
         self.eb.register_event_handler(1, cb1)
         self.eb.register_event_handler(2, cb2)
 
-        evt: Event = self.eb.gen_atom_event(1, 1, 1)
+        evt: CascadeEvent = self.eb.gen_cascade_event(1, 1, 1)
 
         evt.immediate_event_list.append(self.eb.gen_atom_event(1, 2, 2))
 

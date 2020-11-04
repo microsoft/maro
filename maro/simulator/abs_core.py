@@ -7,7 +7,7 @@ from enum import IntEnum
 from typing import List
 
 from maro.backends.frame import SnapshotList
-from maro.event_buffer import Event, EventBuffer
+from maro.event_buffer import EventBuffer
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 
 
@@ -138,12 +138,12 @@ class AbsEnv(ABC):
         """
         return {}
 
-    def get_finished_events(self) -> List[Event]:
-        """List[Event]: All events finished so far."""
+    def get_finished_events(self) -> list:
+        """list: All events finished so far."""
         pass
 
-    def get_pending_events(self, tick: int) -> List[Event]:
-        """List[Event]: Pending events at certain tick.
+    def get_pending_events(self, tick: int) -> list:
+        """list: Pending events at certain tick.
 
         Args:
             tick (int): Specified tick.

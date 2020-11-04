@@ -8,17 +8,17 @@ from math import ceil, floor
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
-from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
+from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
+from maro.event_buffer import MaroEvents, AtomEvent, CascadeEvent, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
+from maro.simulator.scenarios.helpers import (DocableDict,
+                                              MatrixAttributeAccessor)
 
-from .common import (
-    Action, ActionScope, DecisionEvent, CimEventType,
-    VesselDischargePayload, VesselStatePayload, LadenReturnPayload, EmptyReturnPayload
-)
+from .common import (Action, ActionScope, DecisionEvent,
+                     EmptyReturnPayload, LadenReturnPayload,
+                     VesselDischargePayload, VesselStatePayload)
 from .frame_builder import gen_cim_frame
-from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
-
+from .events import Events
 
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick).
@@ -111,14 +111,15 @@ class CimBusinessEngine(AbsBusinessEngine):
         total_empty_number = sum([node.empty for node in self._ports + self._vessels])
 
         for order in self._data_cntr.get_orders(tick, total_empty_number):
-            order_evt = self._event_buffer.gen_atom_event(tick, CimEventType.ORDER, order)
+            # Use cascade event to support insert sub events.
+            order_evt = self._event_buffer.gen_cascade_event(tick, Events.ORDER, order)
 
             self._event_buffer.insert_event(order_evt)
 
-        # Used to hold cascade event of this tick, we will append this at the end
+        # Used to hold decision event of this tick, we will append this at the end
         # to make sure all the other logic finished.
         # TODO: Remove it after event priority is supported.
-        cascade_evt_list = []
+        decision_evt_list = []
 
         for vessel in self._vessels:
             vessel_idx: int = vessel.idx
@@ -135,11 +136,11 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                     # This vessel will arrive at current tick.
                     arrival_event = self._event_buffer.gen_atom_event(
-                        tick, CimEventType.VESSEL_ARRIVAL, arrival_payload)
+                        tick, Events.VESSEL_ARRIVAL, arrival_payload)
 
                     # Then it will load full.
                     load_event = self._event_buffer.gen_atom_event(
-                        tick, CimEventType.LOAD_FULL, arrival_payload)
+                        tick, Events.LOAD_FULL, arrival_payload)
 
                     self._event_buffer.insert_event(arrival_event)
                     self._event_buffer.insert_event(load_event)
@@ -149,11 +150,9 @@ class CimBusinessEngine(AbsBusinessEngine):
                         tick, port_idx, vessel_idx, self.snapshots, self.action_scope, self.early_discharge
                     )
 
-                    decision_event = self._event_buffer.gen_cascade_event(
-                        tick, CimEventType.PENDING_DECISION, decision_payload
-                    )
+                    decision_event: CascadeEvent = self._event_buffer.gen_decision_event(tick, decision_payload)
 
-                    cascade_evt_list.append(decision_event)
+                    decision_evt_list.append(decision_event)
 
                     # Update vessel location so that later logic will get correct value.
                     vessel.last_loc_idx = vessel.next_loc_idx
@@ -172,7 +171,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                 self._vessel_plans[vessel_idx, port_idx] = stop.arrive_tick
 
         # Insert the cascade events at the end.
-        for evt in cascade_evt_list:
+        for evt in decision_evt_list:
             self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
@@ -268,16 +267,16 @@ class CimBusinessEngine(AbsBusinessEngine):
     def get_event_payload_detail(self) -> dict:
         """dict: Event payload details of current scenario."""
         return {
-            CimEventType.ORDER.name: Order.summary_key,
-            CimEventType.RETURN_FULL.name: LadenReturnPayload.summary_key,
-            CimEventType.VESSEL_ARRIVAL.name: VesselStatePayload.summary_key,
-            CimEventType.LOAD_FULL.name: VesselStatePayload.summary_key,
-            CimEventType.DISCHARGE_FULL.name: VesselDischargePayload.summary_key,
-            CimEventType.PENDING_DECISION.name: DecisionEvent.summary_key,
-            CimEventType.LOAD_EMPTY.name: Action.summary_key,
-            CimEventType.DISCHARGE_EMPTY.name: Action.summary_key,
-            CimEventType.VESSEL_DEPARTURE.name: VesselStatePayload.summary_key,
-            CimEventType.RETURN_EMPTY.name: EmptyReturnPayload.summary_key
+            Events.ORDER.name: Order.summary_key,
+            Events.RETURN_FULL.name: LadenReturnPayload.summary_key,
+            Events.VESSEL_ARRIVAL.name: VesselStatePayload.summary_key,
+            Events.LOAD_FULL.name: VesselStatePayload.summary_key,
+            Events.DISCHARGE_FULL.name: VesselDischargePayload.summary_key,
+            Events.PENDING_DECISION.name: DecisionEvent.summary_key,
+            Events.LOAD_EMPTY.name: Action.summary_key,
+            Events.DISCHARGE_EMPTY.name: Action.summary_key,
+            Events.VESSEL_DEPARTURE.name: VesselStatePayload.summary_key,
+            Events.RETURN_EMPTY.name: EmptyReturnPayload.summary_key
         }
 
     def get_agent_idx_list(self) -> list:
@@ -325,13 +324,13 @@ class CimBusinessEngine(AbsBusinessEngine):
         """Register events."""
         register_handler = self._event_buffer.register_event_handler
 
-        register_handler(CimEventType.RETURN_FULL, self._on_full_return)
-        register_handler(CimEventType.RETURN_EMPTY, self._on_empty_return)
-        register_handler(CimEventType.ORDER, self._on_order_generated)
-        register_handler(CimEventType.LOAD_FULL, self._on_full_load)
-        register_handler(CimEventType.VESSEL_DEPARTURE, self._on_departure)
-        register_handler(CimEventType.DISCHARGE_FULL, self._on_discharge)
-        register_handler(DECISION_EVENT, self._on_action_received)
+        register_handler(Events.RETURN_FULL, self._on_full_return)
+        register_handler(Events.RETURN_EMPTY, self._on_empty_return)
+        register_handler(Events.ORDER, self._on_order_generated)
+        register_handler(Events.LOAD_FULL, self._on_full_load)
+        register_handler(Events.VESSEL_DEPARTURE, self._on_departure)
+        register_handler(Events.DISCHARGE_FULL, self._on_discharge)
+        register_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _load_departure_events(self):
         """Insert leaving event at the beginning as we already unpack the root to a loop at the beginning."""
@@ -339,7 +338,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         for vessel_idx, stops in enumerate(self._data_cntr.vessel_stops[:]):
             for stop in stops:
                 payload = VesselStatePayload(stop.port_idx, vessel_idx)
-                dep_evt = self._event_buffer.gen_atom_event(stop.leave_tick, CimEventType.VESSEL_DEPARTURE, payload)
+                dep_evt = self._event_buffer.gen_atom_event(stop.leave_tick, Events.VESSEL_DEPARTURE, payload)
 
                 self._event_buffer.insert_event(dep_evt)
 
@@ -383,7 +382,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         self._full_on_ports[src_port_idx, dest_port_idx] = value
 
-    def _on_order_generated(self, evt: Event):
+    def _on_order_generated(self, evt: CascadeEvent):
         """When there is an order generated, we should do:
         1. Generate a LADEN_RETURN event by configured buffer time: \
         The event will be inserted to the immediate_event_list ASAP if the configured buffer time is 0, \
@@ -391,7 +390,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         2. Update port state: on_shipper +, empty -.
 
         Args:
-            evt (Event Object): Order event object.
+            evt (CascadeEvent): Order event object.
         """
         order: Order = evt.payload
         src_port = self._ports[order.src_port_idx]
@@ -421,7 +420,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         )
 
         laden_return_evt = self._event_buffer.gen_atom_event(
-            tick=evt.tick + buffer_ticks, event_type=CimEventType.RETURN_FULL, payload=payload
+            tick=evt.tick + buffer_ticks, event_type=Events.RETURN_FULL, payload=payload
         )
 
         # If buffer_tick is 0, we should execute it as this tick.
@@ -430,7 +429,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         else:
             self._event_buffer.insert_event(laden_return_evt)
 
-    def _on_full_return(self, evt: Event):
+    def _on_full_return(self, evt: AtomEvent):
         """Handler for processing the event that full containers are returned from shipper.
 
         Once the full containers are returned, the containers are ready to be loaded. The workflow is:
@@ -447,7 +446,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         self._set_pending_full(payload.src_port_idx, payload.dest_port_idx, pending_full_number + payload.quantity)
 
-    def _on_full_load(self, evt: Event):
+    def _on_full_load(self, evt: AtomEvent):
         """Handler for processing event that a vessel need to load full containers from current port.
 
         When there is a vessel arrive at a port:
@@ -459,7 +458,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         5. Early discharge.
 
         Args:
-            evt (Event Object): Arrival event object.
+            evt (AtomEvent): Arrival event object.
         """
 
         arrival_obj: VesselStatePayload = evt.payload
@@ -501,7 +500,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
                 # Generate a discharge event, as we know when the vessel will arrive at destination.
                 payload = VesselDischargePayload(vessel_idx, port_idx, next_port_idx, loaded_qty)
-                dsch_event = self._event_buffer.gen_atom_event(arrive_tick, CimEventType.DISCHARGE_FULL, payload)
+                dsch_event = self._event_buffer.gen_atom_event(arrive_tick, Events.DISCHARGE_FULL, payload)
 
                 self._event_buffer.insert_event(dsch_event)
 
@@ -516,14 +515,14 @@ class CimBusinessEngine(AbsBusinessEngine):
             port.empty += early_discharge_number
             vessel.early_discharge = early_discharge_number
 
-    def _on_departure(self, evt: Event):
+    def _on_departure(self, evt: AtomEvent):
         """Handler for processing event when there is a vessel leaving from port.
 
         When the vessel departing from port:
         1. Update location to next stop.
 
         Args:
-            evt (Event Object): Departure event object.
+            evt (AtomEvent): Departure event object.
         """
 
         departure_payload: VesselStatePayload = evt.payload
@@ -533,7 +532,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         # As we have unfold all the route stop, we can just location ++.
         vessel.next_loc_idx += 1
 
-    def _on_discharge(self, evt: Event):
+    def _on_discharge(self, evt: AtomEvent):
         """Handler for processing event the there are some full need to be discharged.
 
 
@@ -543,7 +542,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             b. Or insert into event buffer.
 
         Args:
-            evt (Event Object): Discharge event object.
+            evt (AtomEvent): Discharge event object.
         """
         discharge_payload: VesselDischargePayload = evt.payload
         vessel_idx = discharge_payload.vessel_idx
@@ -560,7 +559,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         buffer_ticks = self._data_cntr.empty_return_buffers[port.idx]
         payload = EmptyReturnPayload(port_idx=port.idx, quantity=discharge_qty)
         mt_return_evt = self._event_buffer.gen_atom_event(
-            tick=evt.tick + buffer_ticks, event_type=CimEventType.RETURN_EMPTY, payload=payload
+            tick=evt.tick + buffer_ticks, event_type=Events.RETURN_EMPTY, payload=payload
         )
 
         if buffer_ticks == 0:
@@ -568,11 +567,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         else:
             self._event_buffer.insert_event(mt_return_evt)
 
-    def _on_empty_return(self, evt: Event):
+    def _on_empty_return(self, evt: AtomEvent):
         """Handler for processing event when there are some empty container return to port.
 
         Args:
-            evt (Event Object): Empty-return event object.
+            evt (AtomEvent): Empty-return event object.
         """
         payload: EmptyReturnPayload = evt.payload
         port = self._ports[payload.port_idx]
@@ -580,11 +579,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         port.on_consignee -= payload.quantity
         port.empty += payload.quantity
 
-    def _on_action_received(self, evt: Event):
+    def _on_action_received(self, evt: CascadeEvent):
         """Handler for processing actions from agent.
 
         Args:
-            evt (Event Object): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
+            evt (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
         """
         actions = evt.payload
 
@@ -606,7 +605,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                 port.empty = port_empty + move_num
                 vessel.empty = vessel_empty - move_num
 
-                evt.event_type = CimEventType.DISCHARGE_EMPTY if move_num > 0 else CimEventType.LOAD_EMPTY
+                evt.event_type = Events.DISCHARGE_EMPTY if move_num > 0 else Events.LOAD_EMPTY
 
                 # Update cost.
                 num = abs(move_num)
