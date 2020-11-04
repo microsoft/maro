@@ -5,7 +5,6 @@ from collections import defaultdict
 from typing import Callable, List, Sequence, Tuple
 
 import numpy as np
-
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
 
