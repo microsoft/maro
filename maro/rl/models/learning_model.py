@@ -5,17 +5,19 @@ import torch.nn as nn
 
 
 class LearningModel(nn.Module):
-    """NN model that consists of multiple shared blocks and multiple heads.
+    """NN model that consists of multiple shared blocks and multiple task heads.
 
     The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
     its successor. Heads must be provided in the form of keyword arguments. If at least one head is provided, the
     output of the model will be a dictionary with the names of the heads as keys and the corresponding head outputs
     as values. Otherwise, the output will be the output of the last block.
     """
-    def __init__(self, *blocks, **heads):
+    def __init__(self, *blocks, **task_heads):
         super().__init__()
         self._representation_stack = nn.Sequential(*blocks)
-        self._net = {key: nn.Sequential(self._representation_stack, task_head) for key, task_head in heads.items()}
+        for key, task_head in task_heads:
+            setattr(self, f"_{key}_head", task_head)
+        self._net = {key: nn.Sequential(self._representation_stack, task_head) for key, task_head in task_heads.items()}
 
     def forward(self, inputs, head_key=None):
         """Feedforward computations for the given head(s).
@@ -40,7 +42,3 @@ class LearningModel(nn.Module):
             return {key: self._net[key](inputs) for key in head_key}
         else:
             return self._net[head_key](inputs)
-
-    def eval(self):
-        for net in self._net.values():
-            net.eval()
