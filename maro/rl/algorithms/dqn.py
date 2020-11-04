@@ -141,6 +141,7 @@ class DQN(AbsAlgorithm):
                 "DQN is not in training mode since no optimizer is provided. Did you provide optimizer_cls and "
                 "optimizer_params when instantiating the algorithm?"
             )
+            return
 
         states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
         actions = torch.from_numpy(actions).to(self._device)  # (N,)
