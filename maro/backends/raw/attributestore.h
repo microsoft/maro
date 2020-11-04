@@ -60,9 +60,11 @@ namespace maro
         /// <returns>Attribute at specified place</returns>
         Attribute& operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index = 0);
 
-        void add(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num);
+        void add_nodes(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num);
 
-        void remove(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_num);
+        void remove_node(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_num);
+
+        void remove_attr_slots(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX from, SLOT_INDEX stop);
 
         /// <summary>
         /// Copy valid data to target address
@@ -73,6 +75,9 @@ namespace maro
         size_t capacity();
         size_t last_index();
         size_t size();
+
+      private:
+        void update_last_index();
       };
     }
   }

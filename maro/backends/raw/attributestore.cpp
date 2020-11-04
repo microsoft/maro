@@ -14,6 +14,21 @@ namespace maro
         return key;
       }
 
+      // update when removing
+      void AttributeStore::update_last_index()
+      {
+        // 0 means no items
+        while (_last_index > 1)
+        {
+          if (_slot_masks[_last_index - 1] == true)
+          {
+            break;
+          }
+
+          _last_index--;
+        }
+      }
+
       void AttributeStore::setup(size_t size)
       {
         auto new_size = ceil(size / BITS_PER_MASK);
@@ -36,7 +51,17 @@ namespace maro
               _slot_masks[i] = true;
               _slot_masks[_last_index - 1] = false;
 
-              _last_index--;
+              // find last that is not empty
+              while (_last_index > 1)
+              {
+                _last_index--;
+
+                if (_slot_masks[_last_index - 1] == true)
+                {
+                  break;
+                }
+              }
+              
             }
           }
 
@@ -54,11 +79,10 @@ namespace maro
           throw BadAttributeIndexing();
         }
 
-
         return _attributes[index_pair->second];
       }
 
-      void AttributeStore::add(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num)
+      void AttributeStore::add_nodes(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num)
       {
         auto addition_num = 0;
 
@@ -97,7 +121,7 @@ namespace maro
         }
       }
 
-      void AttributeStore::remove(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_num)
+      void AttributeStore::remove_node(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_num)
       {
         for (auto sindex = 0; sindex < slot_num; sindex++)
         {
@@ -113,6 +137,32 @@ namespace maro
             _is_dirty = true;
           }
         }
+
+        update_last_index();
+      }
+
+      void AttributeStore::remove_attr_slots(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX from, SLOT_INDEX stop)
+      {
+        for (auto nindex = 0; nindex < node_num; nindex++)
+        {
+          for (auto sindex = from; sindex < stop; sindex++)
+          {
+            auto key = attr_index_key(node_id, nindex, attr_id, sindex);
+
+            auto attr_pair = _mapping.find(key);
+
+            if (attr_pair != _mapping.end())
+            {
+              _slot_masks[attr_pair->second] = false;
+
+              _mapping.erase(key);
+
+              _is_dirty = true;
+            }
+          }
+        }
+
+        update_last_index();
       }
 
       void AttributeStore::copy_to(Attribute* p, unordered_map<ULONG, size_t>& map)

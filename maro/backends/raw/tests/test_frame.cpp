@@ -155,6 +155,9 @@ const lest::test specification[] =
     auto n1 = frame.new_node("n1", 10);
     auto a1 = frame.new_attr(n1, "a1", AttrDataType::AINT, 5);
 
+    // setup before accessing
+    frame.setup();
+
     // set value for 5 slots of 1st node
     {
       for (auto i = 0; i < 5; i++)
@@ -192,10 +195,10 @@ const lest::test specification[] =
 
         EXPECT(i == aa.get_int());
       }
-
-      // extended value will keep original value at that index, frame will not reset it
-      EXPECT(3 == frame(0, a1, 3).get_int());
-      EXPECT(4 == frame(0, a1, 4).get_int());
+      
+      // extended value will allocate new space, so value will be default
+      EXPECT(0 == frame(0, a1, 3).get_int());
+      EXPECT(0 == frame(0, a1, 4).get_int());
       EXPECT(0 == frame(0, a1, 5).get_int());
     }
   }

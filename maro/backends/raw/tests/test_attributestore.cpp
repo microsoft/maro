@@ -26,7 +26,7 @@ const lest::test specification[] =
     ats.setup(10);
 
     // add 1 node type 1 node, each node contains attribute 0 with 10 slots
-    ats.add(0, 1, 0, 10);
+    ats.add_nodes(0, 1, 0, 10);
 
     // get 1st slot
 
@@ -51,7 +51,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add(0, 10, 0, 1);
+    ats.add_nodes(0, 10, 0, 1);
 
 
     // get with invalid node index
@@ -74,7 +74,7 @@ const lest::test specification[] =
     ats.setup(10);
 
     // add 1 node attribute
-    ats.add(0, 5, 0, 1);
+    ats.add_nodes(0, 5, 0, 1);
 
 
     // size should be same as setup specified
@@ -84,14 +84,14 @@ const lest::test specification[] =
     EXPECT(5 == ats.size());
 
     // 2nd attribute
-    ats.add(0, 5, 1, 1);
+    ats.add_nodes(0, 5, 1, 1);
 
     // still within the capacity
     EXPECT(10 == ats.capacity());
     EXPECT(10 == ats.size());
 
     // this will extend internal space
-    ats.add(0, 5, 2, 10);
+    ats.add_nodes(0, 5, 2, 10);
 
     // the size will be changed (double size of last_index)
     EXPECT(120 == ats.capacity());
@@ -103,7 +103,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add(0, 5, 0, 1);
+    ats.add_nodes(0, 5, 0, 1);
 
     EXPECT(5 == ats.last_index());
     EXPECT(10 == ats.capacity());
@@ -117,7 +117,7 @@ const lest::test specification[] =
     ats.setup(10);
 
     // add 1 attribute for node id 0, it will take 1st 6 slots
-    ats.add(0, 2, 0, 3);
+    ats.add_nodes(0, 2, 0, 3);
 
     // set value for 2nd attribute of 1st node
     auto& attr = ats(0, 0, 0, 1);
@@ -126,7 +126,7 @@ const lest::test specification[] =
     attr = 10;
 
     // remove 2nd node
-    ats.remove(0, 1, 0, 3);
+    ats.remove_node(0, 1, 0, 3);
 
     // then getter for 2nd node should cause error
     EXPECT_THROWS_AS(ats(0, 1, 0, 1), BadAttributeIndexing);
@@ -140,26 +140,26 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add(0, 1, 0, 10);
+    ats.add_nodes(0, 1, 0, 10);
 
     // remove un-exist node_id
-    EXPECT_NO_THROW(ats.remove(1, 0, 0, 10));
+    EXPECT_NO_THROW(ats.remove_node(1, 0, 0, 10));
 
     // remove with invalid node index
-    EXPECT_NO_THROW(ats.remove(0, 1, 0, 10));
+    EXPECT_NO_THROW(ats.remove_node(0, 1, 0, 10));
 
     // remove with invalid attribute id
-    EXPECT_NO_THROW(ats.remove(0, 0, 1, 10));
+    EXPECT_NO_THROW(ats.remove_node(0, 0, 1, 10));
 
     // remove with invalid attribute slot number;
-    EXPECT_NO_THROW(ats.remove(0, 0, 0, 20));
+    EXPECT_NO_THROW(ats.remove_node(0, 0, 0, 20));
   },
 
   CASE("Arrange should fill empty slots with attribute at the end.")
   {
     auto ats = AttributeStore();
 
-    ats.add(0, 2, 0, 10);
+    ats.add_nodes(0, 2, 0, 10);
 
     // after adding node attributes, last index should be 20
     EXPECT(20 == ats.last_index());
@@ -170,7 +170,7 @@ const lest::test specification[] =
     attr = 10;
 
     // remove 1st node to gen empty slots
-    ats.remove(0, 0, 0, 10);
+    ats.remove_node(0, 0, 0, 10);
 
     // arrange should work without exception
     EXPECT_NO_THROW(ats.arrange());
@@ -192,7 +192,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add(0, 2, 0, 5);
+    ats.add_nodes(0, 2, 0, 5);
 
     // set value for 1st & last attr of 2nd node, used to validate
     auto& attr = ats(0, 1, 0, 0);
@@ -202,7 +202,7 @@ const lest::test specification[] =
     attr2 = 11;
 
     // remove node to gen empty slots
-    ats.remove(0, 0, 0, 5);
+    ats.remove_node (0, 0, 0, 5);
 
     // target to hold attrs and map
     auto attrs_dest = vector<Attribute>(ats.size());
