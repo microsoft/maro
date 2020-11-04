@@ -14,7 +14,7 @@ from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
 from .utils import seed as sim_seed
 from .utils.common import tick_to_frame_index
-from maro.data_lib.dump_csv_converter import dump_csv_converter
+from maro.data_lib.dump_csv_converter import DumpConverter
 
 
 class Env(AbsEnv):
@@ -96,10 +96,10 @@ class Env(AbsEnv):
 
         self._event_buffer.reset()
 
-        if self._additional_options.__contains__('enable-dump-snapshot'):
+        if 'enable-dump-snapshot' in self._additional_options:
             if self._business_engine._frame is not None:
                 parent_path = self._additional_options['enable-dump-snapshot']
-                converter = dump_csv_converter(parent_path)
+                converter = DumpConverter(parent_path)
                 converter.reset_folder_path()
                 self._business_engine._frame.dump(converter.dump_folder)
                 converter.start_processing()

@@ -16,16 +16,9 @@ from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
-opts = dict()
-""" enable-dump-snapshot parameter means business_engine needs dump snapshot data before reset.
-If you leave value to empty string, it will dump to current folder.
-For getting dump data, please uncomment below line and specify dump destination folder.
-"""
-# opts['enable-dump-snapshot'] = ''
-
 if __name__ == "__main__":
     # Step 1: initialize a CIM environment for using a toy dataset.
-    env = Env(config.env.scenario, config.env.topology, durations=config.env.durations, options=opts)
+    env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
     # Step 2: create state, action and experience shapers. We also need to create an explorer here due to the

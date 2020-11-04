@@ -12,7 +12,7 @@ from math import floor
 
 
 
-class dump_csv_converter:
+class DumpConverter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
 
     def __init__(self, parent_path = ''):
@@ -73,8 +73,8 @@ class dump_csv_converter:
 
     def get_column_info(self, filename):
         with open(filename, 'r') as f:
-            columns = f.readline().replace('\n', '').replace('\r\n', '')
-            elements = f.readline().replace('\n', '').replace('\r\n', '')
+            columns = f.readline().strip()
+            elements = f.readline().strip()
 
         col_dict = {}
         cols = str.split(columns, ',')
@@ -96,11 +96,11 @@ class dump_csv_converter:
         headers, colums_count = self._calc_event_headers(decision_events[0])
         array = []
         for event in decision_events:
-            attr_dict = event.__getstate__()
-            if attr_dict.__contains__('tick'):
-                frame_idx = self.tick_to_frame_index(start_tick, attr_dict['tick'], resolution)
-                attr_dict['frame_idx'] = frame_idx
-            array.append(attr_dict)
+            key = event.__getstate__()
+            if key.__contains__('tick'):
+                frame_idx = floor((key['tick'] - start_tick) / resolution)
+                key['frame_idx'] = frame_idx
+            array.append(key)
 
         dataframe = pd.DataFrame(array)
         frameidx = dataframe.frame_idx
@@ -119,19 +119,3 @@ class dump_csv_converter:
                 count = count + 1
 
         return headers, count
-
-    def tick_to_frame_index(self, start_tick: int, cur_tick: int, resolution: int) -> int:
-        """Calculate frame index in snapshot list of specified configurations, usually is used
-        when taking snapshot.
-
-        Args:
-            start_tick(int): Start tick of current simulation.
-            cur_tick(int): Current tick in simulator.
-            resolution(int): Snapshot resolution.
-
-        Returns:
-            int: Frame index in snapshot list of current tick.
-        """
-        return floor((cur_tick - start_tick) / resolution)
-
-

@@ -8,6 +8,11 @@ start_tick = 0
 durations = 100  # 100 days
 
 opts = dict()
+"""
+enable-dump-snapshot parameter means business_engine needs dump snapshot data before reset.
+If you leave value to empty string, it will dump to current folder.
+For getting dump data, please uncomment below line and specify dump destination folder.
+"""
 opts['enable-dump-snapshot'] = '/Users/micl/Documents/dumps'
 
 # Initialize an environment with a specific scenario, related topology.
