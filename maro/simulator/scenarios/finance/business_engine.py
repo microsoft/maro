@@ -2,9 +2,10 @@
 # Licensed under the MIT license.
 
 import datetime
+import math
 import os
-from typing import List
 from collections import OrderedDict
+from typing import List
 
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
@@ -12,17 +13,17 @@ from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
+from maro.simulator.scenarios.finance.common.commission import (
+    ByMoneyCommission, StampTaxCommission)
+from maro.simulator.scenarios.finance.common.common import (
+    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope,
+    DecisionEvent, OrderActionScope, OrderDirection, OrderMode, TradeResult)
+from maro.simulator.scenarios.finance.common.slippage import ByMoneySlippage
+from maro.simulator.scenarios.finance.frame_builder import build_frame
+from maro.simulator.scenarios.finance.stock.stock import Stock
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from yaml import safe_load
-
-from .frame_builder import build_frame
-from maro.simulator.scenarios.finance.stock.stock import Stock
-from maro.simulator.scenarios.finance.common.common import (
-    Action, DecisionEvent,
-    FinanceType, TradeResult, OrderMode, ActionType, ActionState
-)
-from maro.simulator.scenarios.finance.stock.stock_trader import StockTrader
 
 logger = CliLogger(name=__name__)
 
@@ -50,8 +51,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # Our stations list used for quick accessing.
         self._stocks: List[Stock] = []
 
-        self._total_order_num: int = 0
-
         self._load_configs()
         self._register_events()
         self._finance_data_pipeline = None
@@ -78,6 +77,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         for idx in range(len(self._conf["stocks"])):
             self._quote_readers.append(BinaryReader(quote_data_paths[idx]))
+            print(self._quote_readers[-1].start_datetime, self._quote_readers[-1].end_datetime)
             self._quote_pickers.append(
                 self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
@@ -97,14 +97,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._init_adj_matrix()
 
         self._order_mode = OrderMode.market_order
-        self._trader = None
+        self._support_order_mode = []
+        self._support_order_mode.append(OrderMode.market_order)
+        self._support_order_mode.append(OrderMode.stop_order)
+        self._support_order_mode.append(OrderMode.limit_order)
+        self._support_order_mode.append(OrderMode.stop_limit_order)
 
-        self._action_scope_max = self._conf["action_scope"]["max"]
-
-        self._init_trader(self._conf)
-
-        self._pending_orders = []
-        self._canceled_orders = []
+        self._pending_orders = OrderedDict()  # the orders that can be canceled
+        self._executing_orders = []
         self._finished_action = OrderedDict()
 
     @property
@@ -121,6 +121,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def configs(self) -> dict:
         """dict: Current configuration."""
         return self._conf
+
+    @property
+    def supported_orders(self) -> list:
+        return self._support_order_mode
 
     def step(self, tick: int):
         """Push business engine to next step.
@@ -141,7 +145,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         # append cancel_order event
         decision_event = DecisionEvent(
-            tick, FinanceType.stock, -2, self._action_scope, action_type=ActionType.cancel_order
+            tick, action_scope_func=self._action_scope, action_type=ActionType.cancel_order
         )
         evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
         self._event_buffer.insert_event(evt)
@@ -149,14 +153,23 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # append order event
         for valid_stock in valid_stocks:
             decision_event = DecisionEvent(
-                tick, FinanceType.stock, valid_stock,
-                self._action_scope, action_type=ActionType.order
-            )
+                tick, item=valid_stock,
+                action_scope_func=self._action_scope, action_type=ActionType.order)
             evt = self._event_buffer.gen_cascade_event(tick, DecisionEvent, decision_event)
 
             self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int):
+        if (not self._conf["trade_constraint"]["allow_day_trade"]) and self.is_market_closed():
+            # not allowed day trade, add stock buy amount to hold here
+            if len(self._executing_orders) > 0:
+                for order in self._executing_orders:
+                    if order.direction == OrderDirection.buy:
+                        if order.action_result is not None:
+                            for result in order.action_result:
+                                self._stocks[order.item].account_hold_num += result.trade_number
+                self._executing_orders.clear()
+        self._account.update_position(self._stocks)
         # We following the snapshot_resolution settings to take snapshot.
         if (tick + 1) % self._snapshot_resolution == 0:
             # NOTE: We should use frame_index method to get correct index in snapshot list.
@@ -178,8 +191,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
-        self._total_order_num = 0
-
         self._frame.reset()
 
         self._snapshots.reset()
@@ -196,9 +207,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         # self._matrices_node.reset()
 
-        self._pending_orders = []
-        self._canceled_orders = []
-        self._finished_action = OrderedDict()
+        self._pending_orders.clear()
+        self._executing_orders.clear()
+        self._finished_action.clear()
 
     def get_agent_idx_list(self) -> List[int]:
         """Get a list of agent index.
@@ -220,7 +231,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
-            operation_number=self._total_order_num
+            operation_number=len(self._finished_action)
         )
 
     def __del__(self):
@@ -282,6 +293,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # Register our own events and their callback handlers.
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
 
+    def is_market_closed(self):
+        # TODO: Implement
+        return True
+
     def _on_action_recieved(self, evt: Event):
         actions = evt.payload
         if actions is None:
@@ -291,132 +306,131 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             if action is None:
                 pass
             else:
-                if action.id not in self._account.action_history:
-                    self._account.action_history[action.id] = action
-
-                if action.action_type == ActionType.cancel_order:
-                    self.cancel_order(action)
-                elif action.action_type == ActionType.order:
-                    result: TradeResult = self.take_action(
+                if isinstance(action, CancelOrder):
+                    self.cancel_order(action, evt.tick)
+                else:
+                    results: list = self.take_action(
                         action, self._account.remaining_money, evt.tick
                     )
-                    self._account.take_trade(
-                        result, cur_data=self._stocks
-                    )
+                    for result in results:
+                        self._account.take_trade(
+                            action, result, self._stocks
+                        )
 
                 if action.state != ActionState.pending and action.id not in self._finished_action:
                     self._finished_action[action.id] = action
+        # append panding orders still not triggered in the available life time
+        if evt.tick in self._pending_orders:
+            for action in self._pending_orders[evt.tick]:
+                self._event_buffer.gen_atom_event(evt.tick, DecisionEvent, action)
+            self._pending_orders[evt.tick].clear()
 
     def take_action(self, action: Action, remaining_money: float, tick: int) -> TradeResult:
         # 1. can trade -> bool
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
-        ret = TradeResult(action.item_index, 0, tick, 0, 0, False, False)
-        if action.id not in self._canceled_orders:
+        rets = []
+        if action.state == ActionState.pending:
             # not canceled
-            out_of_scope, allow_split = self._verify_action(action)
-            if not out_of_scope:
-                if not allow_split:
-                    asset, is_success, actual_price, actual_volume, commission_charge,\
-                        is_trigger = self._trader.trade(
-                            action, self._stocks, remaining_money
-                        )  # list  index is in action # self.snapshot
-
-                elif allow_split:
-                    asset, is_success, actual_price, actual_volume, commission_charge, \
-                        is_trigger = self._trader.split_trade(
-                            action, self._stocks, remaining_money,
-                            self._stocks[action.item_index].trade_volume * self._action_scope_max
-                        )  # list  index is in action # self.snapshot
-                ret = TradeResult(
-                    action.item_index, actual_volume, tick, actual_price,
-                    commission_charge, is_success, is_trigger
-                )
-                if not is_trigger:
-                    if action.life_time != 1:
-                        action.life_time -= 1
-                        self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
-                        if action.id not in self._pending_orders:
-                            self._pending_orders.append(action.id)
-                    else:
-                        if action.id in self._pending_orders:
-                            self._pending_orders.remove(action.id)
-                            action.state = ActionState.expired
-                            action.finish_tick = tick
+            stock = self._stocks[action.item]
+            is_trigger = action.is_trigger(stock.opening_price, stock.trade_volume)
+            if is_trigger:
+                print(f"  <<>>  executing {action}")
+                if not self._allow_split:
+                    rets = self.trade(action)
                 else:
-                    if action.id in self._pending_orders:
-                        self._pending_orders.remove(action.id)
-                    if is_success:
-                        action.state = ActionState.success
-                        if actual_volume > 0:
-                            self._stocks[asset].average_cost = (
-                                (self._stocks[asset].account_hold_num * self._stocks[asset].average_cost) +
-                                (actual_price * actual_volume)
-                            ) / (self._stocks[asset].account_hold_num + actual_volume)
-                        self._stocks[asset].account_hold_num += actual_volume
-                    else:
-                        action.state = ActionState.failed
+                    # TODO: Split trade should be implemented
+                    rets = self.split_trade(action)
+
+                if len(rets) > 0:
+                    action.state = ActionState.success
                     action.finish_tick = tick
-                    action.action_result = ret
+                    for ret in rets:
+                        print(f"  <<>>  trading: {ret}")
+                        if action.direction == OrderDirection.buy:
+                            self._stocks[action.item].average_cost = (
+                                (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
+                                (ret.price_per_item * ret.trade_number)
+                            ) / (self._stocks[action.item].account_hold_num + ret.trade_number)
+                            # day trading is considered
+                            if self._conf["trade_constraint"]["allow_day_trade"]:
+                                self._stocks[action.item].account_hold_num += ret.trade_number
+                            else:
+                                if action not in self._executing_orders:
+                                    self._executing_orders.append(action)
+                        else:
+                            self._stocks[action.item].account_hold_num -= ret.trade_number
+                else:
+                    action.state = ActionState.failed
+                    action.finish_tick = tick
             else:
-                print(
-                    "Warning: out of action scope and not allow split!",
-                    self._action_scope(action.action_type, action.item_index), action.number
-                )
-                action.state = ActionState.failed
-                action.finish_tick = tick
+                if action.life_time > 1:
+                    action.life_time -= 1
+                    # move to _on_action_recieved
+                    # self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
+                    if tick + 1 not in self._pending_orders:
+                        self._pending_orders[tick + 1] = []
+                    self._pending_orders[tick + 1].append(action)
+                else:
+                    action.state = ActionState.expired
+                    action.finish_tick = tick
+            action.action_result = rets
 
         else:
             # order canceled
-            self._canceled_orders.remove(action.id)
-            action.state = ActionState.canceled
-            action.finish_tick = tick
-        return ret
+            pass
+        return rets
 
-    def cancel_order(self, action: Action):
-        if action.id in self._pending_orders:
-            self._pending_orders.remove(action.id)
-        if action.id not in self._canceled_orders:
-            print(f'Order canceled :{action.id}')
-            self._canceled_orders.append(action.id)
+    def cancel_order(self, action: Action, tick: int):
+        action.action.state = ActionState.canceled
+        action.action.finish_tick = tick
+        action.action.life_time = 0
+        if (tick in self._pending_orders) and (action.action in self._pending_orders[tick]):
+            self._pending_orders[tick].remove(action.action)
+        action.state = ActionState.success
+        action.finish_tick = tick
 
-    def _action_scope(self, action_type: ActionType, stock_index: int):
+    def _action_scope(self, action_type: ActionType, stock_index: int, tick: int):
         if action_type == ActionType.order:
             # action_scope of stock
             stock: Stock = self._stocks[stock_index]
-            if self._allow_split:
-                result = (-stock.account_hold_num, stock.trade_volume)
-            else:
-                result = (
-                    max([-stock.account_hold_num, -stock.trade_volume * self._action_scope_max]),
-                    stock.trade_volume * self._action_scope_max
-                )
-            return (result, self._trader.supported_orders, self._order_mode)
+            sell_max = 0
+            sell_min = 0
+            buy_max = 0
+            buy_min = 0
+            if stock.account_hold_num > 0:
+                sell_max = stock.account_hold_num
+                odd_shares = stock.account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
+                if odd_shares > 0:
+                    sell_min = odd_shares
+                else:
+                    sell_min = self._conf["trade_constraint"]["min_sell_unit"]
+
+            if self._account.remaining_money > stock.opening_price * self._conf["trade_constraint"]["min_buy_unit"]:
+                buy_min = self._conf["trade_constraint"]["min_buy_unit"]
+                buy_max = int(self._account.remaining_money / stock.opening_price)
+                buy_max = buy_max - buy_max % self._conf["trade_constraint"]["min_buy_unit"]
+
+            if not self._allow_split:
+                sell_max = min(sell_max, int(self._conf["trade_constraint"]["max_trade_percent"] * stock.trade_volume))
+                sell_min = min(sell_min, sell_max)
+                buy_max = min(buy_max, int(self._conf["trade_constraint"]["max_trade_percent"] * stock.trade_volume))
+                buy_min = min(buy_min, buy_max)
+
+            return OrderActionScope(buy_min, buy_max, sell_min, sell_max, self._support_order_mode)
 
         elif action_type == ActionType.cancel_order:
             # action_scope of pending orders
-            result = self._pending_orders
-
-            return result
-
-    def _init_trader(self, config):
-        trade_constrain = self._conf['trade_constrain']
-
-        self._trader = StockTrader(trade_constrain)
-
-    def _verify_action(self, action: Action):
-        ret = True
-        allow_split = self._allow_split
-        if self._action_scope(action.action_type, action.item_index)[0][0] <= action.number \
-                and self._action_scope(action.action_type, action.item_index)[0][1] >= action.number:
-            ret = False
-        return ret, allow_split
+            available_orders = []
+            if tick in self._pending_orders:
+                available_orders = self._pending_orders[tick]
+            return CancelOrderActionScope(available_orders)
 
     @property
     def _allow_split(self):
         allow_split = False
-        if "allow_split" in self._conf["trade_constrain"]:
-            allow_split = self._conf["trade_constrain"]["allow_split"]
+        if "allow_split" in self._conf["trade_constraint"]:
+            allow_split = self._conf["trade_constraint"]["allow_split"]
         return allow_split
 
     def _tick_2_date(self, tick: int):
@@ -427,3 +441,207 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     def _build_temp_data(self):
         """Build temporary data for predefined environment."""
         pass
+
+    # TODO: implement
+    def split_trade(self, action: Action):
+        rets = []
+        market_price = self._stocks[action.item].opening_price
+        market_volume = self._stocks[action.item].trade_volume
+
+        slippage = ByMoneySlippage(self._conf["trade_constraint"]["slippage"])
+        commissions = []
+        commissions.append(ByMoneyCommission(self._conf["trade_constraint"]["commission"], 5))
+        commissions.append(StampTaxCommission(self._conf["trade_constraint"]["close_tax"]))
+
+        remaining_volume = action.amount
+        max_trade_volume = self._conf["trade_constraint"]["max_trade_percent"] * market_volume
+        if remaining_volume > max_trade_volume:
+            remaining_volume = max_trade_volume
+        if action.direction == OrderDirection.sell:
+            remaining_volume = min(remaining_volume, self._stocks[action.item].account_hold_num)
+
+        remaining_money = self._account.remaining_money
+
+        split_volume = self._conf["trade_constraint"]["split_trade_percent"] * market_volume
+        odd_shares = self._stocks[action.item].account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
+        excuting_price = market_price
+
+        executing = True
+        while executing:
+            excuting_volume = min(remaining_volume, split_volume)
+
+            adjusted = True
+            while adjusted:
+                adjusted = False
+
+                excuting_price = slippage.execute(action.direction, excuting_volume, excuting_price, market_volume)
+
+                excuting_commission = 0
+                for commission in commissions:
+                    excuting_commission += commission.execute(action.direction, excuting_price, excuting_volume)
+
+                # constraint
+                if not self.validate_constrant(
+                    odd_shares, action.direction, excuting_price, excuting_volume
+                ):
+                    excuting_volume = self.adjust_constraint(
+                        odd_shares, action.direction, excuting_price, excuting_volume
+                    )
+                    adjusted = True
+                    odd_shares = 0
+                    # print(f"Adjust volume for constraint:{excuting_volume}")
+                    continue
+
+                # money
+                if not self.validate_trade(
+                    action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                ):
+                    excuting_volume = self.adjust_trade(
+                        action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                    )
+                    adjusted = True
+                    # print(f"Adjust volume for trade:{excuting_volume}")
+                    continue
+
+            if excuting_volume > 0:
+                ret = TradeResult(excuting_volume, excuting_price, excuting_commission)
+
+                remaining_volume -= excuting_volume
+                if action.direction == OrderDirection.buy:
+                    remaining_money -= ret.trade_number * ret.price_per_item + ret.tax
+                else:
+                    remaining_money += ret.trade_number * ret.price_per_item - ret.tax
+
+                if remaining_volume < 0 or remaining_money < 0:
+                    executing = False
+                else:
+                    rets.append(ret)
+            else:
+                executing = False
+                ret = None
+
+        return rets
+
+    def trade(self, action: Action):
+        rets = []
+        market_price = self._stocks[action.item].opening_price
+        market_volume = self._stocks[action.item].trade_volume
+        remaining_money = self._account.remaining_money
+
+        slippage = ByMoneySlippage(self._conf["trade_constraint"]["slippage"])
+        commissions = []
+        commissions.append(ByMoneyCommission(self._conf["trade_constraint"]["commission"], 5))
+        commissions.append(StampTaxCommission(self._conf["trade_constraint"]["close_tax"]))
+
+        excuting_volume = action.amount
+        max_trade_volume = self._conf["trade_constraint"]["max_trade_percent"] * market_volume
+        if excuting_volume > max_trade_volume:
+            excuting_volume = max_trade_volume
+        odd_shares = self._stocks[action.item].account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
+        # print("action.amount", action.amount)
+
+        if action.direction == OrderDirection.sell:
+            excuting_volume = min(excuting_volume, self._stocks[action.item].account_hold_num)
+
+        adjusted = True
+
+        while adjusted:
+            adjusted = False
+
+            excuting_price = market_price
+            excuting_price = slippage.execute(action.direction, excuting_volume, excuting_price, market_volume)
+
+            excuting_commission = 0
+            for commission in commissions:
+                excuting_commission += commission.execute(action.direction, excuting_price, excuting_volume)
+
+            # constraint
+            if not self.validate_constrant(odd_shares, action.direction, excuting_price, excuting_volume):
+                excuting_volume = self.adjust_constraint(odd_shares, action.direction, excuting_price, excuting_volume)
+                adjusted = True
+                # print(f"Adjust volume for constraint:{excuting_volume}")
+                continue
+
+            # money
+            if not self.validate_trade(
+                action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+            ):
+                excuting_volume = self.adjust_trade(
+                    action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                )
+                adjusted = True
+                # print(f"Adjust volume for trade:{excuting_volume}")
+                continue
+
+        if excuting_volume > 0:
+            ret = TradeResult(excuting_volume, excuting_price, excuting_commission)
+            rets.append(ret)
+        else:
+            pass
+
+        return rets
+
+    def validate_constrant(
+        self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int
+    ):
+        ret = True
+        if direction == OrderDirection.buy:
+            if excuting_volume % self._conf["trade_constraint"]["min_buy_unit"] != 0:
+                ret = False
+        if direction == OrderDirection.sell:
+            odd_volume = excuting_volume % self._conf["trade_constraint"]["min_sell_unit"]
+            if odd_volume != 0:
+                if odd_shares != odd_volume:
+                    ret = False
+
+        return ret
+
+    def adjust_constraint(
+        self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int
+    ):
+        ret = excuting_volume
+        if direction == OrderDirection.buy:
+            odd_volume = ret % self._conf["trade_constraint"]["min_buy_unit"]
+            ret -= odd_volume
+        if direction == OrderDirection.sell:
+            odd_volume = excuting_volume % self._conf["trade_constraint"]["min_sell_unit"]
+            if odd_volume != 0:
+                ret -= odd_volume
+                ret += odd_shares
+
+        return int(ret)
+
+    def validate_trade(
+        self, direction: OrderDirection, excuting_price: float,
+        excuting_volume: int, excuting_commission: float, remaining_money: float
+    ):
+        ret = True
+        if direction == OrderDirection.buy:
+            money_needed = excuting_price * excuting_volume + excuting_commission
+            if money_needed > remaining_money:
+                ret = False
+        else:
+            money_needed = excuting_commission
+            if money_needed > remaining_money + excuting_price * excuting_volume:
+                ret = False
+
+        return ret
+
+    def adjust_trade(
+        self, direction: OrderDirection, excuting_price: float,
+        excuting_volume: int, excuting_commission: float, remaining_money: float
+    ):
+        ret = excuting_volume
+        if direction == OrderDirection.buy:
+            money_needed = excuting_price * excuting_volume + excuting_commission
+            ret = ret - math.ceil(
+                (money_needed - remaining_money) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])
+            ) * self._conf["trade_constraint"]["min_buy_unit"]
+        else:
+            money_needed = excuting_commission
+            ret = ret - math.ceil(
+                (money_needed - (remaining_money + excuting_price * ret)) / (
+                    excuting_price * self._conf["trade_constraint"]["min_buy_unit"]
+                )
+            ) * self._conf["trade_constraint"]["min_buy_unit"]
+        return int(ret)

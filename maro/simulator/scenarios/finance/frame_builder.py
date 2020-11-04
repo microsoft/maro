@@ -1,10 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.backends.frame import FrameNode, FrameBase
-
-from .stock.stock import Stock
+from maro.backends.frame import FrameBase, FrameNode
 from maro.simulator.scenarios.finance.account import Account
+from maro.simulator.scenarios.finance.stock.stock import Stock
 
 
 def build_frame(stock_num: int, snapshots_num: int):

@@ -5,20 +5,18 @@
 import os
 from math import ceil, floor
 
-from yaml import safe_load
-
 from maro.backends.frame import FrameBase, SnapshotList
+from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import MatrixAttributeAccessor, DocableDict
+from maro.simulator.scenarios.helpers import DocableDict, \
+    MatrixAttributeAccessor
+from yaml import safe_load
 
-from .common import (
-    Action, ActionScope, DecisionEvent, CimEventType,
-    VesselDischargePayload, VesselStatePayload, LadenReturnPayload, EmptyReturnPayload
-)
+from .common import Action, ActionScope, CimEventType, \
+    DecisionEvent, EmptyReturnPayload, LadenReturnPayload, \
+    VesselDischargePayload, VesselStatePayload
 from .frame_builder import gen_cim_frame
-from maro.data_lib.cim import Stop, Order, CimDataContainerWrapper
-
 
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick).
