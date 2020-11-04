@@ -7,6 +7,7 @@ from maro.utils import DummyLogger
 
 from .abs_learner import AbsLearner
 
+
 class SimpleLearner(AbsLearner):
     """A simple implementation of ``AbsLearner``.
 

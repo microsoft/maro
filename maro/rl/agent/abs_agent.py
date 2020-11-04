@@ -6,7 +6,6 @@ import pickle
 from abc import ABC, abstractmethod
 
 import torch
-
 from maro.rl.algorithms.torch.abs_algorithm import AbsAlgorithm
 from maro.rl.storage.abs_store import AbsStore
 

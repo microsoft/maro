@@ -8,7 +8,6 @@ from copy import deepcopy
 from shutil import rmtree
 
 import yaml
-
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.details import (
     load_cluster_details, save_cluster_details,

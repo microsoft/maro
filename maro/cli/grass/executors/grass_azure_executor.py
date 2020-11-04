@@ -12,7 +12,6 @@ from multiprocessing.pool import ThreadPool
 from shutil import rmtree
 
 import yaml
-
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node, copy_files_from_node, sync_mkdir, copy_and_rename
 from maro.cli.grass.utils.hash import get_checksum
