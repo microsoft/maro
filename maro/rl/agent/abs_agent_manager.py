@@ -6,6 +6,7 @@ from enum import Enum
 
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
+from maro.rl.shaping.state_shaper import StateShaper
 from maro.utils.exception.rl_toolkit_exception import WrongAgentManagerModeError
 
 
