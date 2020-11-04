@@ -25,9 +25,9 @@ def create_dqn_agents(agent_id_list, config):
         )
 
         algorithm = DQN(
-            eval_model=eval_model,
-            optimizer_cls=RMSprop,
-            optimizer_params=config.algorithm.optimizer,
+            value_model=eval_model,
+            value_optimizer_cls=RMSprop,
+            value_optimizer_params=config.algorithm.optimizer,
             loss_func=nn.functional.smooth_l1_loss,
             hyper_params=DQNHyperParams(
                 **config.algorithm.hyper_parameters,
