@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
 import os
 import pickle
+from abc import ABC, abstractmethod
 
 import torch
 

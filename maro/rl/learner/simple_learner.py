@@ -2,8 +2,8 @@
 # Licensed under the MIT license.
 
 from .abs_learner import AbsLearner
-from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.rl.actor.simple_actor import SimpleActor
+from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.utils import DummyLogger
 
 
