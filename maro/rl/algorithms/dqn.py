@@ -136,7 +136,7 @@ class DQN(AbsAlgorithm):
         return np.random.choice(self._hyper_params.num_actions)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        if not self._is_training():
+        if not self._is_training:
             warnings.warn(
                 "DQN is not in training mode since no optimizer is provided. Did you provide optimizer_cls and "
                 "optimizer_params when instantiating the algorithm?"
@@ -175,7 +175,7 @@ class DQN(AbsAlgorithm):
         return np.abs((current_q_values - target_q_values).detach().numpy())
 
     def _update_targets(self):
-        if self._is_training():
+        if self._is_training:
             if not self._hyper_params.is_dueling:
                 for eval_params, target_params in zip(
                     self._model_dict["q_value"].parameters(), self._model_dict["q_value_target"].parameters()
