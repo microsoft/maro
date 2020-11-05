@@ -494,10 +494,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
                 # money
                 if not self.validate_trade(
-                    action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
+                    action.direction, executing_price, executing_volume,
+                    executing_commission, executing_tax, remaining_money
                 ):
                     executing_volume = self.adjust_trade(
-                        action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
+                        action.direction, executing_price, executing_volume,
+                        executing_commission, executing_tax, remaining_money
                     )
                     adjusted = True
                     # print(f"Adjust volume for trade:{executing_volume}")
@@ -557,17 +559,21 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
             # constraint
             if not self.validate_constrant(odd_shares, action.direction, executing_price, executing_volume):
-                executing_volume = self.adjust_constraint(odd_shares, action.direction, executing_price, executing_volume)
+                executing_volume = self.adjust_constraint(
+                    odd_shares, action.direction, executing_price, executing_volume
+                )
                 adjusted = True
                 # print(f"Adjust volume for constraint:{executing_volume}")
                 continue
 
             # money
             if not self.validate_trade(
-                action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
+                action.direction, executing_price, executing_volume,
+                executing_commission, executing_tax, remaining_money
             ):
                 executing_volume = self.adjust_trade(
-                    action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
+                    action.direction, executing_price, executing_volume,
+                    executing_commission, executing_tax, remaining_money
                 )
                 adjusted = True
                 # print(f"Adjust volume for trade:{executing_volume}")
