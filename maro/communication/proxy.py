@@ -86,7 +86,7 @@ class Proxy:
             self._peers_info_dict[peer_type] = _PEER_INFO(
                 hash_table_name=f"{self._group_name}:{peer_type}",
                 expected_number=number
-        )
+            )
         # Record connected peers' name.
         self._onboard_peers_name_dict = {}
         # Temporary store the message.
