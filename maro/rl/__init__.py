@@ -31,7 +31,6 @@ from maro.rl.storage.abs_store import AbsStore
 from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.rl.storage.utils import OverwriteType
 
-
 __all__ = [
     'AbsActor',
     'AbsAgent',
