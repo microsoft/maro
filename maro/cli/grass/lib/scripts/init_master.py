@@ -76,9 +76,9 @@ if __name__ == "__main__":
     )
 
     # Exec command
-    process = subprocess.Popen(command,
-                               executable='/bin/bash',
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    process = subprocess.Popen(
+        command, executable='/bin/bash', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     while True:
         nextline = process.stdout.readline()
         if nextline == '' and process.poll() is not None:
