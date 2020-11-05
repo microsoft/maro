@@ -71,8 +71,10 @@ class Event:
         self.state = EventState.PENDING
 
     def __repr__(self):
-        return f"{{ tick: {self.tick}, type: {self.event_type}, " \
-               f"category: {self.category}, state: {self.state}, payload: {self.payload} }}"
+        return (
+            f"{{ tick: {self.tick}, type: {self.event_type}, "
+            f"category: {self.category}, state: {self.state}, payload: {self.payload} }}"
+        )
 
     def __str__(self):
         return self.__repr__()

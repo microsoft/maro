@@ -14,7 +14,7 @@ MAX_TICK = 20
 class TestDataGenerator(unittest.TestCase):
     def test_data_generator_without_noise(self):
         config_path = os.path.join("tests", "data", "cim", "data_generator", "dumps", "config.yml")
-        
+
         ge = CimDataGenerator()
 
         dc: CimDataCollection = ge.gen_data(config_path, max_tick=MAX_TICK)

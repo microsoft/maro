@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from maro.utils.exception import ERROR_CODE
+from .error_code import ERROR_CODE
 
 
 class MAROException(Exception):

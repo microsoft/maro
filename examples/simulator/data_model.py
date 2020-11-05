@@ -1,5 +1,4 @@
-from maro.backends.frame import (FrameBase, FrameNode, NodeAttribute, NodeBase,
-                                 node)
+from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
 
 TOTAL_PRODUCT_CATEGORIES = 10
 TOTAL_STORES = 8

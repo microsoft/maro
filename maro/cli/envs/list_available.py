@@ -2,8 +2,7 @@
 # Licensed under the MIT license.
 
 
-from maro.simulator.utils.common import (get_available_envs, get_scenarios,
-                                         get_topologies)
+from maro.simulator.utils.common import get_available_envs, get_scenarios, get_topologies
 
 
 # maro env list

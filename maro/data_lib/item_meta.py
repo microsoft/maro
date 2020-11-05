@@ -214,8 +214,7 @@ class BinaryMeta:
         """Build item struct use field name in meta."""
         self._item_nt = namedtuple("Item", [a.name for a in self._attrs])
 
-        fmt: str = "<" + "".join([dtype_pack_map[a.dtype]
-                                  for a in self._attrs])
+        fmt: str = "<" + "".join([dtype_pack_map[a.dtype] for a in self._attrs])
 
         self._item_struct = Struct(fmt)
 
@@ -244,8 +243,7 @@ class BinaryMeta:
                     self._adjust_attrs[len(self._attrs)] = adjust_ratio
 
                 # TODO: raise error instead
-                attr = EntityAttr(attr_name, dtype, slots,
-                                  col_name, adjust_ratio, tzone)
+                attr = EntityAttr(attr_name, dtype, slots, col_name, adjust_ratio, tzone)
 
                 if attr_name == "timestamp":
                     has_timestamp_attr = True

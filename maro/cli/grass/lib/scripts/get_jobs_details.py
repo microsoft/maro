@@ -7,7 +7,8 @@ import json
 import sys
 
 from redis import Redis
-from utils import get_jobs_details, load_cluster_details
+
+from .utils import get_jobs_details, load_cluster_details
 
 if __name__ == "__main__":
     # Load args
@@ -22,9 +23,11 @@ if __name__ == "__main__":
     redis_port = cluster_details['master']['redis']['port']
 
     # Get job details
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8", decode_responses=True
+    )
     jobs_details = get_jobs_details(
         redis=redis,
         cluster_name=args.cluster_name

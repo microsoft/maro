@@ -4,9 +4,7 @@
 import torch.nn as nn
 from torch.optim import RMSprop
 
-from maro.rl import (
-    ColumnBasedStore, DQN, DQNHyperParams, FullyConnectedNet, LearningModel, SimpleAgentManager
-)
+from maro.rl import DQN, ColumnBasedStore, DQNHyperParams, FullyConnectedNet, LearningModel, SimpleAgentManager
 from maro.utils import set_seeds
 
 from .agent import CIMAgent

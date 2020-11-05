@@ -7,11 +7,11 @@ import random
 import zipfile
 from enum import Enum
 
+import geopy.distance
 import numpy as np
 import pandas as pd
 from yaml import safe_load
 
-import geopy.distance
 from maro.cli.data_pipeline.base import DataPipeline, DataTopology
 from maro.cli.data_pipeline.utils import StaticParameter, download_file
 from maro.utils.logger import CliLogger
@@ -258,10 +258,12 @@ class CitiBikePipeline(DataPipeline):
         values = {"capacity": avg_capacity}
         data_station_init.fillna(value=values, inplace=True)
         data_station_init["init"] = (data_station_init["capacity"] * avalible_bike_rate).round().apply(int)
-        data_station_init["capacity"] = pd.to_numeric(data_station_init["capacity"],
-                                                      errors="coerce", downcast="integer")
-        data_station_init["station_id"] = pd.to_numeric(data_station_init["station_id"],
-                                                        errors="coerce", downcast="integer")
+        data_station_init["capacity"] = pd.to_numeric(
+            data_station_init["capacity"], errors="coerce", downcast="integer"
+        )
+        data_station_init["station_id"] = pd.to_numeric(
+            data_station_init["station_id"], errors="coerce", downcast="integer"
+        )
 
         return data_station_init
 
@@ -520,10 +522,12 @@ class CitiBikeToyPipeline(DataPipeline):
 
         trips_df = pd.DataFrame.from_dict(trips)
 
-        trips_df["start_station_index"] = pd.to_numeric(trips_df["start_station_index"],
-                                                        errors="coerce", downcast="integer")
-        trips_df["end_station_index"] = pd.to_numeric(trips_df["end_station_index"],
-                                                      errors="coerce", downcast="integer")
+        trips_df["start_station_index"] = pd.to_numeric(
+            trips_df["start_station_index"], errors="coerce", downcast="integer"
+        )
+        trips_df["end_station_index"] = pd.to_numeric(
+            trips_df["end_station_index"], errors="coerce", downcast="integer"
+        )
         self._new_file_list.append(self._clean_file)
         with open(self._clean_file, "w", encoding="utf-8", newline="") as f:
             trips_df.to_csv(f, index=False, header=True)

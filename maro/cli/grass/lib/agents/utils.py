@@ -6,7 +6,6 @@ import json
 import os
 
 import yaml
-
 from redis import Redis
 
 """Load from files"""

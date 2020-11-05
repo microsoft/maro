@@ -10,9 +10,7 @@ from maro.data_lib import BinaryConverter
 from maro.data_lib.cim import dump_from_config, load_from_folder
 from maro.data_lib.cim.cim_data_dump import CimDataDumpUtil
 from maro.data_lib.cim.cim_data_generator import CimDataGenerator
-from maro.data_lib.cim.entities import (CimDataCollection, NoisedItem,
-                                        PortSetting, RoutePoint, Stop,
-                                        VesselSetting)
+from maro.data_lib.cim.entities import CimDataCollection, NoisedItem, PortSetting, RoutePoint, Stop, VesselSetting
 
 MAX_TICK = 20
 
@@ -25,14 +23,14 @@ class TestDumpsLoad(unittest.TestCase):
 
         # here we need to use CimDataDumpUtil manually to compare the result
         dc: CimDataCollection =  CimDataGenerator().gen_data(config_path, 20)
-        
+
         dumper = CimDataDumpUtil(dc)
 
         dumper.dump(output_folder)
 
         # convert stops.csv into binary
         bconverter = BinaryConverter(os.path.join(output_folder, "stops.bin"), stops_meta_path)
-        
+
         bconverter.add_csv(os.path.join(output_folder, "stops.csv"))
         bconverter.flush()
 
@@ -49,7 +47,7 @@ class TestDumpsLoad(unittest.TestCase):
 
     def _compare_order_proportion(self, dc1: CimDataCollection, dc2: CimDataCollection):
         self.assertListEqual(list(dc1.order_proportion), list(dc2.order_proportion))
-    
+
     def _compare_misc(self, dc1: CimDataCollection, dc2: CimDataCollection):
         self.assertEqual(dc1.max_tick, dc2.max_tick)
         self.assertEqual(dc1.order_mode, dc2.order_mode)
@@ -74,7 +72,7 @@ class TestDumpsLoad(unittest.TestCase):
 
                 self.assertTrue(p1.port_name == p2.port_name)
                 self.assertTrue(p1.distance, p2.distance)
-            
+
     def _compare_ports(self, dc1: CimDataCollection, dc2: CimDataCollection):
         ports_1 = dc1.ports_settings
         ports_2 = dc2.ports_settings
@@ -133,7 +131,7 @@ class TestDumpsLoad(unittest.TestCase):
         self.assertTrue(len(stops_1) == len(stops_2))
 
         for vessel_index in range(len(stops_1)):
-            
+
             vessel_stops_1 = stops_1[vessel_index]
             vessel_stops_2 = stops_2[vessel_index]
 

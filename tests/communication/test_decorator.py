@@ -9,6 +9,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from maro.communication import Proxy, SessionMessage, dist
+
 from utils import get_random_port, proxy_generator
 
 

@@ -5,26 +5,24 @@ import datetime
 import os
 from typing import List
 
+import holidays
 import numpy as np
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
 from yaml import safe_load
 
-import holidays
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.utils import chagne_file_path
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import (DocableDict,
-                                              MatrixAttributeAccessor)
+from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 from .adj_loader import load_adj_from_csv
-from .common import (Action, BikeReturnPayload, BikeTransferPayload,
-                     DecisionEvent)
+from .common import Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
