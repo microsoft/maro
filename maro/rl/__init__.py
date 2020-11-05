@@ -13,7 +13,9 @@ from maro.rl.dist_topologies.experience_collection import (
 )
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
 from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
-from maro.rl.early_stopping.simple_early_stopping_checker import MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker
+from maro.rl.early_stopping.simple_early_stopping_checker import (
+    MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker
+)
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
 from maro.rl.learner.abs_learner import AbsLearner
@@ -30,36 +32,36 @@ from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.rl.storage.utils import OverwriteType
 
 __all__ = [
-    "AbsActor",
-    "SimpleActor",
-    "AbsLearner",
-    "SimpleLearner",
-    "AbsAgent",
-    "AbsAgentManager",
-    "AgentManagerMode",
-    "SimpleAgentManager",
-    "AbsAlgorithm",
-    "DQN",
-    "DQNHyperParams",
-    "MultiHeadLearningModel",
-    "SingleHeadLearningModel",
-    "FullyConnectedBlock",
-    "AbsStore",
-    "ColumnBasedStore",
-    "OverwriteType",
-    "AbsShaper",
-    "StateShaper",
-    "ActionShaper",
-    "ExperienceShaper",
-    "KStepExperienceShaper",
-    "AbsExplorer",
-    "LinearExplorer",
-    "TwoPhaseLinearExplorer",
-    "AbsEarlyStoppingChecker",
-    "RSDEarlyStoppingChecker",
-    "MaxDeltaEarlyStoppingChecker",
-    "ActorProxy",
-    "ActorWorker",
-    "concat_experiences_by_agent",
-    "merge_experiences_with_trajectory_boundaries"
+    'AbsActor',
+    'AbsAgent',
+    'AbsAgentManager',
+    'AbsAlgorithm',
+    'AbsEarlyStoppingChecker',
+    'AbsExplorer',
+    'AbsLearner',
+    'AbsShaper',
+    'AbsStore',
+    'ActionShaper',
+    'ActorProxy',
+    'ActorWorker',
+    'AgentManagerMode',
+    'ColumnBasedStore',
+    'DQN',
+    'DQNHyperParams',
+    'ExperienceShaper',
+    'FullyConnectedBlock',
+    'KStepExperienceShaper',
+    'LinearExplorer',
+    'MaxDeltaEarlyStoppingChecker',
+    'MultiHeadLearningModel',
+    'OverwriteType',
+    'RSDEarlyStoppingChecker',
+    'SimpleActor',
+    'SimpleAgentManager',
+    'SimpleLearner',
+    'SingleHeadLearningModel',
+    'StateShaper',
+    'TwoPhaseLinearExplorer',
+    'concat_experiences_by_agent',
+    'merge_experiences_with_trajectory_boundaries'
 ]
