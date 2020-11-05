@@ -24,8 +24,8 @@ class FullyConnectedBlock(nn.Module):
         skip_connection_enabled (bool): If true, a skip connection will be built between the bottom (input) layer and
             top (output) layer. Defaults to False.
         dropout_p (float): Dropout probability. Defaults to None, in which case there is no drop-out.
-        gradient_threshold (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping is
-            performed.
+        gradient_threshold (float): Gradient clipping threshold. Defaults to None, in which case not gradient clipping
+            is performed.
     """
     def __init__(
         self,
