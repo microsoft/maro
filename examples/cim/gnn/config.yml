@@ -1,0 +1,36 @@
+env:
+  seed: 10
+  param:
+    durations: 1120
+    scenario: "cim"
+    topology: "global_trade.22p_l0.6"
+    # topology: "toy.4p_ssdd_l0.0"
+training:
+  enable: True
+  parallel_cnt: 24
+  device: "cuda:0"
+  batch_size: 150
+  shuffle_time: 1
+  rollout_cnt: 500
+  train_freq: 1
+  model_save_freq: 1
+  gamma: 0.99
+  learning_rate: 0.00005
+  td_steps: 100
+  entropy_loss_enable: True
+model:
+  path: "./"
+  tick_buffer: 20
+  hidden_size: 32
+  graph_output_dim: 32
+  action_dim: 21
+  feature:
+    # temporal or random, if temporal, the edges in the graph are listed in the order of event time, else in a
+    # random order.
+    attention_order: temporal
+    onehot_identity: False
+log:
+  path: "./"
+  exp:
+    enable: false
+    freq: 10
