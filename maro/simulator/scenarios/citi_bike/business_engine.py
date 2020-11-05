@@ -18,13 +18,13 @@ from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import (DocableDict,
-                                              MatrixAttributeAccessor)
+                                            MatrixAttributeAccessor)
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 from .adj_loader import load_adj_from_csv
 from .common import (Action, BikeReturnPayload, BikeTransferPayload,
-                     DecisionEvent)
+                    DecisionEvent)
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
