@@ -6,10 +6,10 @@ from typing import Callable, List, Sequence, Tuple
 
 import numpy as np
 
-from .abs_store import AbsStore
-from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
+from .abs_store import AbsStore
+from .utils import OverwriteType, check_uniformity, get_update_indexes, normalize
 
 
 class ColumnBasedStore(AbsStore):
