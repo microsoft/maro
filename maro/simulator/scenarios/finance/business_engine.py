@@ -9,21 +9,22 @@ from typing import List
 
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
+from yaml import safe_load
+
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.finance.common.commission import (
-    ByMoneyCommission, StampTaxCommission)
+from maro.simulator.scenarios.finance.common.commission import ByMoneyCommission, StampTaxCommission
 from maro.simulator.scenarios.finance.common.common import (
-    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope,
-    DecisionEvent, OrderActionScope, OrderDirection, OrderMode, TradeResult)
+    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, OrderActionScope,
+    OrderDirection, OrderMode, TradeResult
+)
 from maro.simulator.scenarios.finance.common.slippage import ByMoneySlippage
 from maro.simulator.scenarios.finance.frame_builder import build_frame
 from maro.simulator.scenarios.finance.stock.stock import Stock
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
-from yaml import safe_load
 
 logger = CliLogger(name=__name__)
 
@@ -310,7 +311,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     self.cancel_order(action, evt.tick)
                 else:
                     results: list = self.take_action(
-                        action, self._account.remaining_money, evt.tick
+                        action, evt.tick
                     )
                     for result in results:
                         self._account.take_trade(
@@ -325,7 +326,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.gen_atom_event(evt.tick, DecisionEvent, action)
             self._pending_orders[evt.tick].clear()
 
-    def take_action(self, action: Action, remaining_money: float, tick: int) -> TradeResult:
+    def take_action(self, action: Action, tick: int) -> TradeResult:
         # 1. can trade -> bool
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
@@ -449,9 +450,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         market_volume = self._stocks[action.item].trade_volume
 
         slippage = ByMoneySlippage(self._conf["trade_constraint"]["slippage"])
-        commissions = []
-        commissions.append(ByMoneyCommission(self._conf["trade_constraint"]["commission"], 5))
-        commissions.append(StampTaxCommission(self._conf["trade_constraint"]["close_tax"]))
+        commission = ByMoneyCommission(self._conf["trade_constraint"]["commission"], 5)
+        tax = StampTaxCommission(self._conf["trade_constraint"]["close_tax"])
 
         remaining_volume = action.amount
         max_trade_volume = self._conf["trade_constraint"]["max_trade_percent"] * market_volume
@@ -464,49 +464,49 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         split_volume = self._conf["trade_constraint"]["split_trade_percent"] * market_volume
         odd_shares = self._stocks[action.item].account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
-        excuting_price = market_price
+        executing_price = market_price
 
         executing = True
         while executing:
-            excuting_volume = min(remaining_volume, split_volume)
+            executing_volume = min(remaining_volume, split_volume)
 
             adjusted = True
             while adjusted:
                 adjusted = False
 
-                excuting_price = slippage.execute(action.direction, excuting_volume, excuting_price, market_volume)
+                executing_price = slippage.execute(action.direction, executing_volume, executing_price, market_volume)
 
-                excuting_commission = 0
-                for commission in commissions:
-                    excuting_commission += commission.execute(action.direction, excuting_price, excuting_volume)
+                executing_commission = commission.execute(action.direction, executing_price, executing_volume)
+
+                executing_tax = tax.execute(action.direction, executing_price, executing_volume)
 
                 # constraint
                 if not self.validate_constrant(
-                    odd_shares, action.direction, excuting_price, excuting_volume
+                    odd_shares, action.direction, executing_price, executing_volume
                 ):
-                    excuting_volume = self.adjust_constraint(
-                        odd_shares, action.direction, excuting_price, excuting_volume
+                    executing_volume = self.adjust_constraint(
+                        odd_shares, action.direction, executing_price, executing_volume
                     )
                     adjusted = True
                     odd_shares = 0
-                    # print(f"Adjust volume for constraint:{excuting_volume}")
+                    # print(f"Adjust volume for constraint:{executing_volume}")
                     continue
 
                 # money
                 if not self.validate_trade(
-                    action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                    action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
                 ):
-                    excuting_volume = self.adjust_trade(
-                        action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                    executing_volume = self.adjust_trade(
+                        action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
                     )
                     adjusted = True
-                    # print(f"Adjust volume for trade:{excuting_volume}")
+                    # print(f"Adjust volume for trade:{executing_volume}")
                     continue
 
-            if excuting_volume > 0:
-                ret = TradeResult(excuting_volume, excuting_price, excuting_commission)
+            if executing_volume > 0:
+                ret = TradeResult(executing_volume, executing_price, executing_commission, executing_tax)
 
-                remaining_volume -= excuting_volume
+                remaining_volume -= executing_volume
                 if action.direction == OrderDirection.buy:
                     remaining_money -= ret.trade_number * ret.price_per_item + ret.tax
                 else:
@@ -529,52 +529,52 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         remaining_money = self._account.remaining_money
 
         slippage = ByMoneySlippage(self._conf["trade_constraint"]["slippage"])
-        commissions = []
-        commissions.append(ByMoneyCommission(self._conf["trade_constraint"]["commission"], 5))
-        commissions.append(StampTaxCommission(self._conf["trade_constraint"]["close_tax"]))
+        commission = ByMoneyCommission(self._conf["trade_constraint"]["commission"], 5)
+        tax = StampTaxCommission(self._conf["trade_constraint"]["close_tax"])
 
-        excuting_volume = action.amount
+        executing_volume = action.amount
         max_trade_volume = self._conf["trade_constraint"]["max_trade_percent"] * market_volume
-        if excuting_volume > max_trade_volume:
-            excuting_volume = max_trade_volume
+        if executing_volume > max_trade_volume:
+            executing_volume = max_trade_volume
         odd_shares = self._stocks[action.item].account_hold_num % self._conf["trade_constraint"]["min_sell_unit"]
         # print("action.amount", action.amount)
 
         if action.direction == OrderDirection.sell:
-            excuting_volume = min(excuting_volume, self._stocks[action.item].account_hold_num)
+            executing_volume = min(executing_volume, self._stocks[action.item].account_hold_num)
 
         adjusted = True
 
         while adjusted:
             adjusted = False
 
-            excuting_price = market_price
-            excuting_price = slippage.execute(action.direction, excuting_volume, excuting_price, market_volume)
+            executing_price = market_price
 
-            excuting_commission = 0
-            for commission in commissions:
-                excuting_commission += commission.execute(action.direction, excuting_price, excuting_volume)
+            executing_price = slippage.execute(action.direction, executing_volume, executing_price, market_volume)
+
+            executing_commission = commission.execute(action.direction, executing_price, executing_volume)
+
+            executing_tax = tax.execute(action.direction, executing_price, executing_volume)
 
             # constraint
-            if not self.validate_constrant(odd_shares, action.direction, excuting_price, excuting_volume):
-                excuting_volume = self.adjust_constraint(odd_shares, action.direction, excuting_price, excuting_volume)
+            if not self.validate_constrant(odd_shares, action.direction, executing_price, executing_volume):
+                executing_volume = self.adjust_constraint(odd_shares, action.direction, executing_price, executing_volume)
                 adjusted = True
-                # print(f"Adjust volume for constraint:{excuting_volume}")
+                # print(f"Adjust volume for constraint:{executing_volume}")
                 continue
 
             # money
             if not self.validate_trade(
-                action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
             ):
-                excuting_volume = self.adjust_trade(
-                    action.direction, excuting_price, excuting_volume, excuting_commission, remaining_money
+                executing_volume = self.adjust_trade(
+                    action.direction, executing_price, executing_volume, executing_commission, executing_tax, remaining_money
                 )
                 adjusted = True
-                # print(f"Adjust volume for trade:{excuting_volume}")
+                # print(f"Adjust volume for trade:{executing_volume}")
                 continue
 
-        if excuting_volume > 0:
-            ret = TradeResult(excuting_volume, excuting_price, excuting_commission)
+        if executing_volume > 0:
+            ret = TradeResult(executing_volume, executing_price, executing_commission, executing_tax)
             rets.append(ret)
         else:
             pass
@@ -582,14 +582,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         return rets
 
     def validate_constrant(
-        self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int
+        self, odd_shares: int, direction: OrderDirection, executing_price: float, executing_volume: int
     ):
         ret = True
         if direction == OrderDirection.buy:
-            if excuting_volume % self._conf["trade_constraint"]["min_buy_unit"] != 0:
+            if executing_volume % self._conf["trade_constraint"]["min_buy_unit"] != 0:
                 ret = False
         if direction == OrderDirection.sell:
-            odd_volume = excuting_volume % self._conf["trade_constraint"]["min_sell_unit"]
+            odd_volume = executing_volume % self._conf["trade_constraint"]["min_sell_unit"]
             if odd_volume != 0:
                 if odd_shares != odd_volume:
                     ret = False
@@ -597,14 +597,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         return ret
 
     def adjust_constraint(
-        self, odd_shares: int, direction: OrderDirection, excuting_price: float, excuting_volume: int
+        self, odd_shares: int, direction: OrderDirection, executing_price: float, executing_volume: int
     ):
-        ret = excuting_volume
+        ret = executing_volume
         if direction == OrderDirection.buy:
             odd_volume = ret % self._conf["trade_constraint"]["min_buy_unit"]
             ret -= odd_volume
         if direction == OrderDirection.sell:
-            odd_volume = excuting_volume % self._conf["trade_constraint"]["min_sell_unit"]
+            odd_volume = executing_volume % self._conf["trade_constraint"]["min_sell_unit"]
             if odd_volume != 0:
                 ret -= odd_volume
                 ret += odd_shares
@@ -612,36 +612,36 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         return int(ret)
 
     def validate_trade(
-        self, direction: OrderDirection, excuting_price: float,
-        excuting_volume: int, excuting_commission: float, remaining_money: float
+        self, direction: OrderDirection, executing_price: float,
+        executing_volume: int, executing_commission: float, executing_tax: float, remaining_money: float
     ):
         ret = True
         if direction == OrderDirection.buy:
-            money_needed = excuting_price * excuting_volume + excuting_commission
+            money_needed = executing_price * executing_volume + executing_commission + executing_tax
             if money_needed > remaining_money:
                 ret = False
         else:
-            money_needed = excuting_commission
-            if money_needed > remaining_money + excuting_price * excuting_volume:
+            money_needed = executing_commission + executing_tax
+            if money_needed > remaining_money + executing_price * executing_volume:
                 ret = False
 
         return ret
 
     def adjust_trade(
-        self, direction: OrderDirection, excuting_price: float,
-        excuting_volume: int, excuting_commission: float, remaining_money: float
+        self, direction: OrderDirection, executing_price: float,
+        executing_volume: int, executing_commission: float, executing_tax: float, remaining_money: float
     ):
-        ret = excuting_volume
+        ret = executing_volume
         if direction == OrderDirection.buy:
-            money_needed = excuting_price * excuting_volume + excuting_commission
+            money_needed = executing_price * executing_volume + executing_commission + executing_tax
             ret = ret - math.ceil(
-                (money_needed - remaining_money) / (excuting_price * self._conf["trade_constraint"]["min_buy_unit"])
+                (money_needed - remaining_money) / (executing_price * self._conf["trade_constraint"]["min_buy_unit"])
             ) * self._conf["trade_constraint"]["min_buy_unit"]
         else:
-            money_needed = excuting_commission
+            money_needed = executing_commission + executing_tax
             ret = ret - math.ceil(
-                (money_needed - (remaining_money + excuting_price * ret)) / (
-                    excuting_price * self._conf["trade_constraint"]["min_buy_unit"]
+                (money_needed - (remaining_money + executing_price * ret)) / (
+                    executing_price * self._conf["trade_constraint"]["min_buy_unit"]
                 )
             ) * self._conf["trade_constraint"]["min_buy_unit"]
         return int(ret)

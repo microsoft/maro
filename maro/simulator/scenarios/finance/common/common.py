@@ -33,21 +33,22 @@ class TradeResult:
     """Result or a trade order"""
 
     def __init__(
-            self, trade_number: int,
-            price_per_item: float, tax: float
+            self, trade_number: int, price_per_item: float,
+            commission: float, tax: float
     ):
         self.trade_number = int(trade_number)
         self.price_per_item = price_per_item
+        self.commission = commission
         self.tax = tax
 
     @property
     def total_cost(self):
-        return self.trade_number * self.price_per_item + self.tax
+        return self.trade_number * self.price_per_item + self.commission + self.tax
 
     def __repr__(self):
         return f"<  \
             number: {self.trade_number} price: {self.price_per_item} \
-            tax: {self.tax} >"
+            commission: {self.commission} tax: {self.tax} >"
 
 
 class DecisionEvent:

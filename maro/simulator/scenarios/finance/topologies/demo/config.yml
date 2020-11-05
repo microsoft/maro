@@ -9,6 +9,10 @@ type: stock # stock, futures
 data_path: "./"
 stocks: # stocks to simulate
   - "000001"
+  - "000002"
+  - "000004"
+  - "000005"
+  - "000006"
 
 order_mode:
   - "market_order"

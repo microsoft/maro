@@ -2,9 +2,7 @@
 from collections import OrderedDict
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
-from maro.simulator.scenarios.finance.common.common import (Order,
-                                                            OrderDirection,
-                                                            TradeResult)
+from maro.simulator.scenarios.finance.common.common import Order, OrderDirection, TradeResult
 
 
 @node("account")
@@ -23,9 +21,9 @@ class Account(NodeBase):
     def take_trade(self, order: Order, trade_result: TradeResult, cur_data: list):
         if trade_result:
             if order.direction == OrderDirection.buy:
-                self.remaining_money -= trade_result.trade_number * trade_result.price_per_item + trade_result.tax
+                self.remaining_money -= trade_result.trade_number * trade_result.price_per_item + trade_result.commission + trade_result.tax
             else:
-                self.remaining_money += trade_result.trade_number * trade_result.price_per_item - trade_result.tax
+                self.remaining_money += trade_result.trade_number * trade_result.price_per_item - trade_result.commission - trade_result.tax
 
     def update_position(self, cur_data: list):
         cur_position = 0

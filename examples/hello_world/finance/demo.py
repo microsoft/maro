@@ -99,7 +99,7 @@ for ep in range(max_ep):
 stock_snapshots = env.snapshot_list['stocks']
 
 # query account_hold_num for specified markset
-sz_account_hold_num = stock_snapshots[::"account_hold_num"]
+sz_account_hold_num = stock_snapshots[::"account_hold_num"].reshape(-1, 5)
 
 print("volume holding of sz market.")
 print(sz_account_hold_num)
