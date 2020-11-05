@@ -36,15 +36,14 @@ Title_html = """
 """
 
 
+# generate CIM top 5 summary
 def generate_top_summary(data, snapshot_index, ports_num, CONVER_PATH):
     data_acc = data[data['frame_index'] == snapshot_index].reset_index(drop=True)
     data_acc['fulfillment_ratio'] = list(
         map(lambda x, y: float('{:.4f}'.format(x / (y + 1 / 1000))), data_acc['acc_fulfillment'],
             data_acc['acc_booking']))
-    data_acc['name'] = data_acc['name'].apply(lambda x: int(x[6:]))
-    # data_acc.rename(columns={'name': 'port name'}, inplace=True)
     name_conversion = read_name_conversion(CONVER_PATH)
-    data_acc['port name'] = data_acc['name'].apply(lambda x: name_conversion.loc[int(x)])
+    data_acc['port name'] = list(map(lambda x: name_conversion.loc[int(x[6:])][0], data_acc['name']))
     df_booking = data_acc[['port name', 'acc_booking']].sort_values(by='acc_booking', ascending=False).head(5)
     df_fulfillment = data_acc[['port name', 'acc_fulfillment']].sort_values(by='acc_fulfillment',
                                                                             ascending=False).head(5)
@@ -141,6 +140,14 @@ def generate_detail_plot_by_snapshot(info_selector, data, snapshot_index, ports_
     st.altair_chart(custom_chart_snapshot)
 
 
+def get_snapshot_sample(snapshot_num, snapshot_sample_num):
+    down_pooling = list(range(1, snapshot_num, math.floor(1 / snapshot_sample_num)))
+    down_pooling.insert(0, 0)
+    if snapshot_num - 1 not in down_pooling:
+        down_pooling.append(snapshot_num - 1)
+    return down_pooling
+
+
 # generate detail plot (comprehensive,detail,specific)
 # view info within different holders(ports,stations,etc) in the same epoch
 # change snapshot sampling num freely
@@ -148,10 +155,7 @@ def generate_detail_plot_by_ports(info_selector, data, str_temp, snapshot_num, s
     data_acc = data[info_selector]
     # delete parameter:name
     info_selector.pop(0)
-    down_pooling = list(range(1, snapshot_num, math.floor(1 / snapshot_sample_num)))
-    down_pooling.insert(0, 0)
-    if snapshot_num - 1 not in down_pooling:
-        down_pooling.append(snapshot_num - 1)
+    down_pooling = get_snapshot_sample(snapshot_num, snapshot_sample_num)
     port_filtered = data_acc[data_acc['name'] == str_temp][info_selector].reset_index(drop=True)
     port_filtered.rename(columns={'frame_index': 'snapshot_index'}, inplace=True)
 
@@ -389,10 +393,11 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
                 stations_index)
             name_conversion = read_name_conversion(CONVER_PATH)
             render_H3_title(name_conversion.loc[int(station_index)][0] + ' Detail Data')
+            # filter data by station index
             station_filtered_by_ID = data_stations[data_stations['name'] == 'stations_' + str(station_index)]
             station_sample_ratio = holder_sample_ratio(snapshot_num)
             snapshot_sample_num = st.sidebar.select_slider('Snapshot Sampling Ratio:', station_sample_ratio)
-
+            # get formula input & output
             data_genera = formula_define(station_filtered_by_ID)
             if data_genera is not None:
                 station_filtered_by_ID = data_genera['data_after']
@@ -402,10 +407,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             item_option = get_CITI_item_option(item_option, item_option_all)
             item_option.append("frame_index")
             station_filtered = station_filtered_by_ID[item_option].reset_index(drop=True)
-            down_pooling = list(range(1, snapshot_num, math.floor(1 / snapshot_sample_num)))
-            down_pooling.insert(0, 0)
-            if snapshot_num - 1 not in down_pooling:
-                down_pooling.append(snapshot_num - 1)
+            down_pooling = get_snapshot_sample(snapshot_num, snapshot_sample_num)
             station_filtered = station_filtered.iloc[down_pooling]
             station_filtered.rename(columns={'frame_index': 'snapshot_index'}, inplace=True)
             station_filtered_long_form = station_filtered.melt('snapshot_index', var_name='Attributes',
@@ -424,31 +426,34 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
         # filter by snapshot index
         # display all station information within 1 snapshot
         if option == 'by snapshot':
+            # get selected snapshot index
             snapshot_index = st.sidebar.select_slider(
                 'snapshot index',
                 snapshots_index)
             render_H3_title('Snapshot-' + str(snapshot_index) + ':  Detail Data')
+            # get according data with selected snapshot
             snapshot_filtered_by_Frame_Index = data_stations[data_stations['frame_index'] == snapshot_index]
+            # get increasing rate
             sample_ratio = holder_sample_ratio(snapshot_num)
+            # get sample rate (between 0-1)
             station_sample_num = st.sidebar.select_slider('Snapshot Sampling Ratio', sample_ratio)
+            # get formula input & output
             data_genera = formula_define(snapshot_filtered_by_Frame_Index)
             if data_genera is not None:
                 snapshot_filtered_by_Frame_Index = data_genera['data_after']
                 item_option_all.append(data_genera['name'])
+            # get selected attributes
             item_option = st.multiselect(
                 '',
                 item_option_all,
                 item_option_all)
+            # convert selected attributes into column
             item_option = get_CITI_item_option(item_option, item_option_all)
+            # get sampled data & get station name
             down_pooling = list(range(0, stations_num, math.floor(1 / station_sample_num)))
             item_option.append('name')
             snapshot_filtered = snapshot_filtered_by_Frame_Index[item_option]
-            snapshot_temp = pd.DataFrame(columns=item_option)
-            for index in down_pooling:
-                snapshot_temp = pd.concat(
-                    [snapshot_temp, snapshot_filtered[snapshot_filtered['name'] == 'stations_' + str(index)]], axis=0)
-
-            snapshot_filtered = snapshot_temp
+            snapshot_filtered = snapshot_filtered.iloc[down_pooling]
             snapshot_filtered['name'] = snapshot_filtered['name'].apply(lambda x: int(x[9:]))
             name_conversion = read_name_conversion(CONVER_PATH)
             snapshot_filtered['station'] = snapshot_filtered['name'].apply(lambda x: name_conversion.loc[int(x)])
@@ -466,11 +471,13 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             st.altair_chart(custom_chart_snapshot)
 
 
+# get the conversion between index-name with cache
 @st.cache
 def read_name_conversion(path):
     return pd.read_csv(path)
 
 
+# define formula & get output
 def formula_define(data_origin):
     st.sidebar.markdown('***')
     formula_select = st.sidebar.selectbox('formula:', ['a+b', 'a*b+sqrt(c*d)'])
@@ -507,6 +514,7 @@ def formula_define(data_origin):
     return data
 
 
+# judge whether input is feasible to selected formula
 def judge_append_data(data_head, res):
     data_right = True
     for item in res:
@@ -514,16 +522,6 @@ def judge_append_data(data_head, res):
             data_right = False
             st.warning('parameter name:' + item + ' not exist')
     return data_right
-
-
-@st.cache
-def read_single_csv(input_path):
-    df_chunk = pd.read_csv(input_path, chunksize=1000)
-    res_chunk = []
-    for chunk in df_chunk:
-        res_chunk.append(chunk)
-    res_df = pd.concat(res_chunk)
-    return res_df
 
 
 @st.cache(allow_output_mutation=False)
@@ -601,7 +599,7 @@ def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations
     else:
         data = pd.read_csv(stations_file_path)
         name_conversion = read_name_conversion(CONVER_PATH)
-        data['station name'] = list(map(lambda x: name_conversion[int(x[9:])], data['name']))
+        data['station name'] = list(map(lambda x: name_conversion.loc[int(x[9:])][0], data['name']))
         df_bikes = data[['station name', 'bikes']].sort_values(by='bikes', ascending=False).head(5)
         df_requirement = data[['station name', 'trip_requirement']].sort_values(by='trip_requirement',
                                                                             ascending=False).head(5)
