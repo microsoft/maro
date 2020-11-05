@@ -75,7 +75,7 @@ if __name__ == "__main__":
     command = INIT_COMMAND.format(
         admin_username=admin_username,
         samba_password=samba_password,
-        maro_path=os.path.expanduser(f"~/.maro"),
+        maro_path=os.path.expanduser("~/.maro"),
         redis_port=redis_port,
         fluentd_port=fluentd_port
     )
