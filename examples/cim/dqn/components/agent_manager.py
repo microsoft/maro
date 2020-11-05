@@ -4,9 +4,13 @@
 import torch.nn as nn
 from torch.optim import RMSprop
 
-from .agent import CIMAgent
-from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, DQN, DQNHyperParams, ColumnBasedStore
+from maro.rl import (
+    DQN, AbsAgentManager, ColumnBasedStore, DQNHyperParams, FullyConnectedNet, LearningModel, MLPDecisionLayers,
+    SimpleAgentManager
+)
 from maro.utils import set_seeds
+
+from .agent import CIMAgent
 
 
 def create_dqn_agents(agent_id_list, config):

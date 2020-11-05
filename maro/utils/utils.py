@@ -4,13 +4,14 @@
 
 import configparser
 import io
-import numpy as np
 import os
-from pickle import loads, dumps
 import random
 import shutil
 import time
 import warnings
+from pickle import dumps, loads
+
+import numpy as np
 
 from maro import __data_version__
 from maro.utils.logger import CliLogger
@@ -80,14 +81,22 @@ version_file_path = os.path.join(os.path.expanduser("~/.maro"), "version.ini")
 project_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 
 target_source_pairs = [
-    (os.path.expanduser("~/.maro/data/citi_bike/meta"),
-     os.path.join(project_root, "simulator/scenarios/citi_bike/meta")),
-    (os.path.expanduser("~/.maro/data/cim/meta"),
-     os.path.join(project_root, "simulator/scenarios/cim/meta")),
-    (os.path.expanduser("~/.maro/lib/k8s"),
-     os.path.join(project_root, "cli/k8s/lib")),
-    (os.path.expanduser("~/.maro/lib/grass"),
-     os.path.join(project_root, "cli/grass/lib")),
+    (
+        os.path.expanduser("~/.maro/data/citi_bike/meta"),
+        os.path.join(project_root, "simulator/scenarios/citi_bike/meta")
+    ),
+    (
+        os.path.expanduser("~/.maro/data/cim/meta"),
+        os.path.join(project_root, "simulator/scenarios/cim/meta")
+    ),
+    (
+        os.path.expanduser("~/.maro/lib/k8s"),
+        os.path.join(project_root, "cli/k8s/lib")
+    ),
+    (
+        os.path.expanduser("~/.maro/lib/grass"),
+        os.path.join(project_root, "cli/grass/lib")
+    ),
 ]
 
 
@@ -124,8 +133,10 @@ def deploy(hide_info: bool = True):
     except Exception as e:
 
         # Deployment failed.
-        error_list.append(f"An issue occured while deploying meta files for MARO."
-                          f" {e} Please run 'maro meta deploy' to deploy the data files.")
+        error_list.append(
+            "An issue occured while deploying meta files for MARO."
+            f" {e} Please run 'maro meta deploy' to deploy the data files."
+        )
         version_info["MARO_DATA"]["deploy_status"] = "failed"
         with io.open(version_file_path, "w") as version_file:
             version_info.write(version_file)

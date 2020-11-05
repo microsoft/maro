@@ -3,13 +3,15 @@
 
 import os
 
-from maro.rl import ActorProxy, AgentManagerMode, MaxDeltaEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearExplorer, \
+from maro.rl import (
+    ActorProxy, AgentManagerMode, MaxDeltaEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearExplorer,
     concat_experiences_by_agent
+)
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-from components.agent_manager import create_dqn_agents, DQNAgentManager
-from components.config import set_input_dim
+from .components.agent_manager import DQNAgentManager, create_dqn_agents
+from .components.config import set_input_dim
 
 
 def launch(config):
