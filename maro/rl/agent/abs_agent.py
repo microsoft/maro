@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
 import os
 import pickle
+from abc import ABC, abstractmethod
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.storage.abs_store import AbsStore

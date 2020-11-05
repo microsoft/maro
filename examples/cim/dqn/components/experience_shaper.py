@@ -28,7 +28,7 @@ class TruncatedExperienceShaper(ExperienceShaper):
             experiences["state"].append(transition["state"])
             experiences["action"].append(transition["action"])
             experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-            experiences["next_state"].append(trajectory[i+1]["state"])
+            experiences["next_state"].append(trajectory[i + 1]["state"])
 
         return experiences_by_agent
 
@@ -41,7 +41,7 @@ class TruncatedExperienceShaper(ExperienceShaper):
         future_fulfillment = snapshot_list["ports"][ticks::"fulfillment"]
         future_shortage = snapshot_list["ports"][ticks::"shortage"]
         decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
-                      for _ in range(future_fulfillment.shape[0]//(end_tick-start_tick))]
+                      for _ in range(future_fulfillment.shape[0] // (end_tick - start_tick))]
 
         tot_fulfillment = np.dot(future_fulfillment, decay_list)
         tot_shortage = np.dot(future_shortage, decay_list)

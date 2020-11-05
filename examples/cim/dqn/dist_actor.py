@@ -5,8 +5,8 @@ import os
 
 import numpy as np
 
-from maro.simulator import Env
 from maro.rl import AgentManagerMode, SimpleActor, ActorWorker, KStepExperienceShaper
+from maro.simulator import Env
 from maro.utils import convert_dottable
 
 from components.action_shaper import CIMActionShaper

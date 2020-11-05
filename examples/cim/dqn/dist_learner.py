@@ -17,6 +17,7 @@ def launch(config):
     config = convert_dottable(config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
+
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
