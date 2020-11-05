@@ -10,8 +10,8 @@ from maro.simulator import Env
 from maro.utils import convert_dottable
 
 from .components.action_shaper import CIMActionShaper
-from .components.agent_manager import DQNAgentManager
-from .components.config import config
+from .components.agent_manager import DQNAgentManager, create_dqn_agents
+from .components.config import config, set_input_dim
 from .components.experience_shaper import TruncatedExperienceShaper
 from .components.state_shaper import CIMStateShaper
 
@@ -27,7 +27,7 @@ def launch(config):
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
         experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1 - mt["container_shortage"]/mt["order_requirements"],
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
             **config.experience_shaping.k_step
         )
 
@@ -52,5 +52,4 @@ def launch(config):
 
 
 if __name__ == "__main__":
-    from components.config import config
     launch(config)

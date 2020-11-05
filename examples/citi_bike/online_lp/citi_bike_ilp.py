@@ -2,7 +2,7 @@ import math
 from typing import List, Tuple
 
 import numpy as np
-from pulp import GLPK, LpInteger, LpMaximize, LpProblem, LpStatus, LpVariable, lpSum
+from pulp import GLPK, LpInteger, LpMaximize, LpProblem, LpVariable, lpSum
 
 from maro.utils import DottableDict
 
@@ -170,14 +170,13 @@ class CitiBikeILP():
         self, env_tick: int, init_inventory: np.ndarray, demand: np.ndarray, supply: np.ndarray
     ):
         problem = LpProblem(
-            name = f"Citi_Bike_Repositioning_from_tick_{env_tick}",
+            name=f"Citi_Bike_Repositioning_from_tick_{env_tick}",
             sense=LpMaximize,
         )
         self._init_variables(init_inventory=init_inventory)
         self._add_constraints(problem=problem, demand=demand, supply=supply)
         self._set_objective(problem=problem)
         problem.solve(GLPK(msg=0))
-        # print(f"Problem {problem.name}: {LpStatus[problem.status]}")
 
     # ============================= private end =============================
 

@@ -21,6 +21,7 @@ PEEP_AND_USE_REAL_DATA: bool = False
 ENV: Env = None
 TRIP_PICKER: ItemTickPicker = None
 
+
 class MaIlpAgent():
     def __init__(
         self, ilp: CitiBikeILP, num_station: int, num_time_interval: int, ticks_per_interval: int, ma_window_size: int
@@ -111,7 +112,7 @@ class MaIlpAgent():
 
         return demand, supply
 
-    def __peep_at_the_future(self, env_tick:int):
+    def __peep_at_the_future(self, env_tick: int):
         demand = np.zeros((self._num_time_interval, self._num_station), dtype=np.int16)
         supply = np.zeros((self._num_time_interval, self._num_station), dtype=np.int16)
 
@@ -231,7 +232,7 @@ if __name__ == "__main__":
     ilp = CitiBikeILP(
         num_station=num_station,
         num_neighbor=min(config.ilp.num_neighbor, num_station - 1),
-        station_capacity=env.snapshot_list["stations"][env.frame_index : env.agent_idx_list : "capacity"],
+        station_capacity=env.snapshot_list["stations"][env.frame_index:env.agent_idx_list:"capacity"],
         station_neighbor_list=station_neighbor_list,
         decision_interval=decision_interval,
         config=config.ilp
@@ -252,7 +253,7 @@ if __name__ == "__main__":
             action = agent.get_action_list(
                 env_tick=env.tick,
                 init_inventory=env.snapshot_list["stations"][
-                    env.frame_index : env.agent_idx_list : "bikes"
+                    env.frame_index:env.agent_idx_list:"bikes"
                 ].astype(np.int16),
                 finished_events=env.get_finished_events()
             )
