@@ -5,7 +5,7 @@
 from functools import wraps
 
 from maro.cli.utils.details import load_cluster_details
-from maro.utils.exception.cli_exception import ParsingError, CliException
+from maro.utils.exception.cli_exception import CliException, ParsingError
 
 
 def check_details_validity(mode: str):
