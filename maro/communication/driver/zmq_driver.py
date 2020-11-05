@@ -14,9 +14,9 @@ from maro.utils.exception.communication_exception import (
     DriverReceiveError, DriverSendError, PeersConnectionError, SocketTypeError
 )
 
-from .abs_driver import AbsDriver
 from ..message import Message
 from ..utils import default_parameters
+from .abs_driver import AbsDriver
 
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout

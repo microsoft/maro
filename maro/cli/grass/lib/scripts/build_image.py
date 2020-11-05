@@ -6,7 +6,7 @@ import argparse
 import subprocess
 import sys
 
-from utils import generate_name_with_uuid
+from .utils import generate_name_with_uuid
 
 build_image_command = """\
 docker build -t {image_name} {docker_file_path}

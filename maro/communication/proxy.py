@@ -25,7 +25,6 @@ from .driver import DriverType, ZmqDriver
 from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
 from .utils import default_parameters
 
-
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
 PORT = default_parameters.proxy.redis.port

@@ -10,7 +10,7 @@ import time
 
 import redis
 
-from utils import get_node_details, set_node_details
+from .utils import get_node_details, set_node_details
 
 INSPECT_CONTAINER_COMMAND = "docker inspect {container}"
 GET_CONTAINERS_COMMAND = "docker container ls -a --format='{{.Names}}'"

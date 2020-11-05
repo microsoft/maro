@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-from utils import load_cluster_details
+from .utils import load_cluster_details
 
 INIT_COMMAND = '''\
 # create group 'docker' and add admin user
