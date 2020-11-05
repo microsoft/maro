@@ -15,17 +15,27 @@ namespace maro
     namespace raw
     {
 
+      class InvalidSnapshotTick : public exception
+      {};
+
       /**
-      When taking snapshot, ss will arrange current frame first, then check if meet the capacity:
-      1. no: copy current frame attributes to the end, copy and update the attribute mapping to related tick
-      2. yes: check if the oldest snapshot long enough to hold current frame.
-        a. yes: copy attribute into oldest place, mark leaving slots as un-used
-        b. no: check slots that marked as un-used, copy into these slots, or allocate more to hold
+      Steps to take snapshot:
+
+      1. if there is an exist tick?
+        a. yes: if (exist snapshot area + empty slots) is enough to hold current snapshot?
+          I. yes: write from exist area start
+          II. no: mark exist snapshot area as empty slots, append current snapshot to the end
+        b. no: if reach the limitation?
+          I. yes: mark oldest snapshot as empty slots, if remaining empty slots enough to hold current snapshot?
+            I). yes: write to oldest area
+            II). no: keep these empty slots there, append current snapshot to the end
+          II. no: append to the end
+
 
       */
 
       template<typename A, typename V>
-      class AttrMap : public map<A, V> {};
+      class AttrMap : public unordered_map<A, V> {};
 
       template<typename T, typename A, typename V>
       class TickAttrMap : public map<T, AttrMap<A, V>> {};
@@ -34,28 +44,43 @@ namespace maro
 
       class SnapshotList
       {
-        // reference to current frame
-        Frame* _cur_frame{ nullptr };
-
         // tick -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
         //map<INT, map<ULONG, ULONG>> _attr_map;
-        TickAttrMap<INT, ULONG, ULONG> _tick_attr_map;
+        map<INT, unordered_map<ULONG, size_t>> _tick_attr_map;
 
         // Used to hold all the in-memory snapshots
         vector<Attribute> _attr_store;
 
         // where shall we start to check empty slots to hold latest snapshot
-        size_t _first_empty_slot_index;
+        size_t _first_empty_slot_index{0};
+        size_t _empty_slots_length{0};
 
         // end index of attribute store that been used
-        size_t _end_index;
+        // we append from this point
+        size_t _end_index{0};
+
+        // max number of snapshot we should keep in memory
+        USHORT _max_size{0};
+
+        // current number of snapshot
+        USHORT _cur_snapshot_num{0};
+
+        // last tick that take snapshot
+        // used to track same tick over-writing (for last operation only)
+        INT _last_tick{-1};
+
+
+        map<INT, USHORT> _tick2index_map; // tick -> start index
+        map<INT, size_t> _tick2size_map; // size of each tick
 
       public:
+        void set_max_size(USHORT max_size);
+
         /// <summary>
         /// Take snapshot for current frame, this function will arrange current frame
         /// </summary>
         /// <param name="tick"></param>
-        void take_snapshot(INT tick);
+        void take_snapshot(INT tick, AttributeStore& frame_attr_store);
 
         /// <summary>
         /// Query
@@ -68,6 +93,11 @@ namespace maro
         /// <param name="attr_length"></param>
         void query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length);
+
+
+      private:
+        void append_to_end(AttributeStore& frame_attr_store, INT tick);
+        void write_to_empty_slots(AttributeStore& frame_attr_store, INT tick);
       };
     }
   }
