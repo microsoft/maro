@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.backends.frame import FrameNode, FrameBase
+from maro.backends.frame import FrameBase, FrameNode
 
 from .station import Station, gen_matrices_node_definition
 

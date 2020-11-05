@@ -3,15 +3,14 @@
 
 import numpy as np
 
-from maro.rl import AgentMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
+from maro.rl import ActorWorker, AgentMode, KStepExperienceShaper, SimpleActor, TwoPhaseLinearExplorer
 from maro.simulator import Env
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import DQNAgentManager
-from components.config import config
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
-
+from .components.action_shaper import CIMActionShaper
+from .components.agent_manager import DQNAgentManager
+from .components.config import config
+from .components.experience_shaper import TruncatedExperienceShaper
+from .components.state_shaper import CIMStateShaper
 
 if __name__ == "__main__":
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)

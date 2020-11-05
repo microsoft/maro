@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
 import itertools
+from abc import ABC, abstractmethod
 from typing import Union
 
 

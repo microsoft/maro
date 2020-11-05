@@ -1,10 +1,11 @@
-import time
 import os
+import time
 
-from examples.cim.gnn.agent_manager import SimpleAgentManger
-from examples.cim.gnn.actor import ParallelActor
 from maro.rl import AbsLearner
 from maro.utils import DummyLogger
+
+from .actor import ParallelActor
+from .agent_manager import SimpleAgentManger
 
 
 class GNNLearner(AbsLearner):

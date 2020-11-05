@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from struct import Struct
 from collections import namedtuple
+from struct import Struct
 
 # binary output and reader version
 VERSION = 100
@@ -14,8 +14,13 @@ COMBINE_BIN_FILE_TYPE = 2
 header_struct = Struct("<4s b I Q I QQ QQ qq")
 
 # binary file header
-FileHeader = namedtuple("FileHeader", ["name", "file_type", "version", "item_count", "item_size",
-                                       "meta_offset", "meta_size", "data_offset", "data_size", "starttime", "endtime"])
+FileHeader = namedtuple(
+    "FileHeader",
+    [
+        "name", "file_type", "version", "item_count", "item_size", "meta_offset", "meta_size",
+        "data_offset", "data_size", "starttime", "endtime"
+    ]
+)
 
 meta_item_format = "20s2s"
 

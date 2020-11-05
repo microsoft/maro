@@ -6,7 +6,7 @@ import argparse
 import subprocess
 import sys
 
-from utils import generate_name_with_uuid
+from .utils import generate_name_with_uuid
 
 build_image_command = """\
 docker build -t {image_name} {docker_file_path}
@@ -29,8 +29,9 @@ if __name__ == "__main__":
         image_name=args.image_name,
         docker_file_path=f"~/.maro/clusters/{args.cluster_name}/data/{args.docker_file_path}"
     )
-    completed_process = subprocess.run(command,
-                                       shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    completed_process = subprocess.run(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     if completed_process.returncode != 0:
         raise Exception(completed_process.stderr)
     sys.stdout.write(command)
@@ -43,8 +44,9 @@ if __name__ == "__main__":
         image_name=args.image_name,
         export_path=f"~/.maro/clusters/{args.cluster_name}/images/{image_file_name}"
     )
-    completed_process = subprocess.run(command,
-                                       shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    completed_process = subprocess.run(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     if completed_process.returncode != 0:
         raise Exception(completed_process.stderr)
     sys.stdout.write(command)

@@ -3,7 +3,8 @@
 
 
 from math import floor
-from maro.backends.frame import node, NodeBase, NodeAttribute
+
+from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
 def gen_vessel_definition(stop_nums: tuple):

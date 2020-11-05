@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import unittest
 import os
+import unittest
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from maro.communication import ZmqDriver, SessionMessage
+from maro.communication import SessionMessage, ZmqDriver
 
 
 def message_receive(driver):
