@@ -25,7 +25,7 @@ class CIMAgent(AbsAgent):
         """Implementation of the training loop for DQN.
 
         Experiences are sampled using their TD errors as weights. After training, the new TD errors are updated
-        in the experience pool.   
+        in the experience pool.
         """
         if len(self._experience_pool) < self._min_experiences_to_train:
             return
