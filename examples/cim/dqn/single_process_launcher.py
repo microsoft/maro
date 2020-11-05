@@ -6,16 +6,14 @@ import os
 
 import numpy as np
 
-from maro.simulator import Env
-from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper, TwoPhaseLinearExplorer
-from maro.utils import Logger
-
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import DQNAgentManager
 from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
-
+from maro.rl import AgentMode, KStepExperienceShaper, SimpleActor, SimpleLearner, TwoPhaseLinearExplorer
+from maro.simulator import Env
+from maro.utils import Logger
 
 if __name__ == "__main__":
     # Step 1: initialize a CIM environment for using a toy dataset.

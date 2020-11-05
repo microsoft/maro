@@ -4,15 +4,15 @@ import os
 import pickle
 import time
 from collections import OrderedDict
-from multiprocessing import Process, Pipe
+from multiprocessing import Pipe, Process
 
 import numpy as np
 import torch
 
 from examples.cim.gnn.action_shaper import DiscreteActionShaper
 from examples.cim.gnn.experience_shaper import ExperienceShaper
-from examples.cim.gnn.state_shaper import GNNStateShaper
 from examples.cim.gnn.shared_structure import SharedStructure
+from examples.cim.gnn.state_shaper import GNNStateShaper
 from examples.cim.gnn.utils import fix_seed, gnn_union
 from maro.rl import AbsActor
 from maro.simulator import Env

@@ -6,7 +6,7 @@ import argparse
 import os
 import sys
 
-from utils import get_checksum
+from .utils import get_checksum
 
 if __name__ == "__main__":
     # Load args
