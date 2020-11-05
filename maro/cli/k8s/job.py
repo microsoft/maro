@@ -45,3 +45,14 @@ def get_job_logs(cluster_name: str, job_name: str, **kwargs):
         executor.get_job_logs(
             job_name=job_name
         )
+
+
+@check_details_validity(mode='k8s')
+@lock
+def list_job(cluster_name: str, **kwargs):
+    # Load details
+    cluster_details = load_cluster_details(cluster_name=cluster_name)
+
+    if cluster_details['cloud']['infra'] == 'azure':
+        executor = K8sAzureExecutor(cluster_name=cluster_name)
+        executor.list_job()

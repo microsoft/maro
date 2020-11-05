@@ -48,6 +48,7 @@ jobs:
         python-versions: 'cp36-cp36m cp37-cp37m'
         build-requirements: 'numpy'
         pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
+        pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
 
     - name: Move valid packages to dist folder for manylinux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
