@@ -8,6 +8,11 @@ namespace maro
     {
       void SnapshotList::set_max_size(USHORT max_size)
       {
+        if (max_size == 0)
+        {
+          throw InvalidSnapshotSize();
+        }
+
         if (_max_size == 0)
         {
           _max_size = max_size;
@@ -16,6 +21,8 @@ namespace maro
 
       void SnapshotList::take_snapshot(INT tick, AttributeStore& frame_attr_store)
       {
+        ensure_max_size();
+
         // To make it easy to implement, we do not support over-write exist tick at any time,
         // tick can onlly be over-wrote if last one is same tick
 
@@ -155,8 +162,17 @@ namespace maro
         _empty_slots_length -= snapshot_size;
       }
 
+      inline void SnapshotList::ensure_max_size()
+      {
+        if (_max_size == 0)
+        {
+          throw InvalidSnapshotSize();
+        }
+      }
+
       void SnapshotList::query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length)
       {
+        ensure_max_size();
       }
 
       USHORT SnapshotList::size()

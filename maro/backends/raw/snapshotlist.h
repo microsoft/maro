@@ -18,6 +18,9 @@ namespace maro
       class InvalidSnapshotTick : public exception
       {};
 
+      class InvalidSnapshotSize : public exception
+      {};
+
       /**
       Steps to take snapshot:
 
@@ -99,6 +102,7 @@ namespace maro
       private:
         void append_to_end(AttributeStore& frame_attr_store, INT tick);
         void write_to_empty_slots(AttributeStore& frame_attr_store, INT tick);
+        inline void ensure_max_size();
       };
     }
   }
