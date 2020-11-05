@@ -31,7 +31,7 @@ class AbsAgentManager(ABC):
     Args:
         name (str): Name of agent manager.
         mode (AgentMode): An AgentMode enum member that specifies that role of the agent. Some attributes may
-                          be None under certain modes.
+            be None under certain modes.
         agent_id_list (list): List of agent identifiers.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
@@ -41,14 +41,10 @@ class AbsAgentManager(ABC):
             executable action. Cannot be None under Inference and TrainInference modes.
         explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
     """
-    def __init__(self,
-                 name: str,
-                 mode: AgentMode,
-                 agent_id_list: [str],
-                 state_shaper: StateShaper = None,
-                 action_shaper: ActionShaper = None,
-                 experience_shaper: ExperienceShaper = None,
-                 explorer: AbsExplorer = None):
+    def __init__(
+        self, name: str, mode: AgentMode, agent_id_list: [str], state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None, experience_shaper: ExperienceShaper = None, explorer: AbsExplorer = None
+    ):
         self._name = name
         if mode not in AgentMode:
             raise UnsupportedAgentModeError(msg='mode must be "train", "inference" or "train_inference"')
@@ -101,12 +97,17 @@ class AbsAgentManager(ABC):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         model_action = self._agent_dict[agent_id].choose_action(
-            model_state, self._explorer.epsilon[agent_id] if self._explorer else None)
-        self._trajectory.append({"state": model_state,
-                                 "action": model_action,
-                                 "reward": None,
-                                 "agent_id": agent_id,
-                                 "event": decision_event})
+            model_state, self._explorer.epsilon[agent_id] if self._explorer else None
+        )
+        self._trajectory.append(
+            {
+                "state": model_state,
+                "action": model_action,
+                "reward": None,
+                "agent_id": agent_id,
+                "event": decision_event
+            }
+        )
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):

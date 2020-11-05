@@ -20,8 +20,9 @@ class DQNHyperParams:
         tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
     """
     __slots__ = ["num_actions", "reward_decay", "num_training_rounds_per_target_replacement", "tau"]
-    def __init__(self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int,
-                 tau: float = 1.0):
+    def __init__(
+        self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int, tau: float = 1.0
+    ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.num_training_rounds_per_target_replacement = num_training_rounds_per_target_replacement
@@ -35,8 +36,9 @@ class DQN(AbsAlgorithm):
     provided. If the key `target` is absent or model_dict[`target`] is None, the target model will be a deep
     copy of the provided eval model.
     """
-    def __init__(self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict,
-                 hyper_params: DQNHyperParams):
+    def __init__(
+        self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict, hyper_params: DQNHyperParams
+    ):
         if model_dict.get("target", None) is None:
             model_dict["target"] = clone(model_dict["eval"])
         super().__init__(model_dict, optimizer_opt, loss_func_dict, hyper_params)

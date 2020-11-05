@@ -87,8 +87,10 @@ class CimDataGenerator:
             topology_seed,
             CIM_GENERATOR_VERSION)
 
-    def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting,
-                      ports_setting, port_mapping, routes, route_mapping):
+    def _extend_route(
+        self, future_stop_number: int, max_tick: int,
+        vessels_setting, ports_setting, port_mapping, routes, route_mapping
+    ):
         """Extend route with specified tick range."""
 
         vessels_stops: List[List[Stop]] = []

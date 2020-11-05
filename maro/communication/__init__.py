@@ -8,5 +8,7 @@ from maro.communication.message import Message, NotificationSessionStage, Sessio
 from maro.communication.proxy import Proxy
 from maro.communication.registry_table import RegisterTable
 
-__all__ = ["dist", "Proxy", "Message", "AbsDriver", "DriverType", "ZmqDriver", "SessionMessage", "SessionType",
-           "RegisterTable", "TaskSessionStage", "NotificationSessionStage"]
+__all__ = [
+    "dist", "Proxy", "Message", "AbsDriver", "DriverType", "ZmqDriver", "SessionMessage", "SessionType",
+    "RegisterTable", "TaskSessionStage", "NotificationSessionStage"
+]
