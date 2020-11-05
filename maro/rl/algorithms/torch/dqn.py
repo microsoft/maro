@@ -20,6 +20,7 @@ class DQNHyperParams:
         tau (float): soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
     """
     __slots__ = ["num_actions", "reward_decay", "num_training_rounds_per_target_replacement", "tau"]
+
     def __init__(
         self, num_actions: int, reward_decay: float, num_training_rounds_per_target_replacement: int, tau: float = 1.0
     ):

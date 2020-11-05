@@ -81,8 +81,8 @@ class AbsAgentManager(ABC):
 
         The method consists of 4 steps:
 
-        1. The decision event and snapshot list are converted by the state shaper to a model input.
-           The state shaper also finds the target agent ID.
+        1. The decision event and snapshot list are converted by the state shaper to a model input. \
+            The state shaper also finds the target agent ID.
         2. The target agent takes the model input and uses its underlying models to compute an action.
         3. Key information regarding the transition is recorded in the ``_trajectory`` attribute.
         4. The action computed by the model is converted to an environment executable action by the action shaper.

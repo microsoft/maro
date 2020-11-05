@@ -83,8 +83,10 @@ class Proxy:
         # Record the peer's redis information.
         self._peers_info_dict = {}
         for peer_type, number in expected_peers.items():
-            self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
-                                                          expected_number=number)
+            self._peers_info_dict[peer_type] = _PEER_INFO(
+                hash_table_name=f"{self._group_name}:{peer_type}",
+                expected_number=number
+        )
         # Record connected peers' name.
         self._onboard_peers_name_dict = {}
         # Temporary store the message.
@@ -177,8 +179,10 @@ class Proxy:
         peers_socket_dict = {}
         for peer_type, name_list in self._onboard_peers_name_dict.items():
             try:
-                peers_socket_value = self._redis_connection.hmget(self._peers_info_dict[peer_type].hash_table_name,
-                                                                  name_list)
+                peers_socket_value = self._redis_connection.hmget(
+                    self._peers_info_dict[peer_type].hash_table_name,
+                    name_list
+                )
                 for idx, peer_name in enumerate(name_list):
                     peers_socket_dict[peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
