@@ -15,7 +15,7 @@ import pandas as pd
 class DumpConverter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
 
-    def __init__(self, parent_path = ''):
+    def __init__(self, parent_path=''):
         super().__init__()
         self.__parent_path = parent_path
         #self.__generate_new_folder(parent_path)
