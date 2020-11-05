@@ -7,21 +7,15 @@
 # 2. event object pool, this will make get_finished_events function stop working.
 #    we can enable this to disable pooling
 
-from enum import IntEnum
+from enum import IntEnum, Enum
 from collections import defaultdict
 from typing import List, Callable
 
 
-DECISION_EVENT = 0
-"""Predefined decision event type, if business engine need to process actions from agent,
-then it must register handler with this event."""
-
-
-class EventCategory(IntEnum):
-    """Event category that mark the usage of event.
-    """
-    ATOM = 0
-    CASCADE = 1
+class MaroEvents (Enum):
+    """Predefined decision event types, that used to communicate with outside."""
+    DECISION_EVENT = "maro_event_decision_event"
+    TAKE_ACTION = "maro_event_take_action"
 
 
 class EventState(IntEnum):
@@ -32,12 +26,8 @@ class EventState(IntEnum):
     FINISHED = 2
 
 
-class Event:
-    """Event object that used to hold information that for callback.
-
-    Some times there may be some events that depend on another one,
-    then you can append these events into immediate_event_list, then
-    these events will be processed after the main event at same tick.
+class AtomEvent:
+    """Basic event object that used to hold information that for callback.
 
     Note:
         The payload of event can be any object that related with specified logic.
@@ -62,21 +52,60 @@ class Event:
                 these events will be processed after this event.
     """
 
-    def __init__(self, id: int, tick: int, event_type: object, payload, category: EventCategory):
+    def __init__(self, id: int, tick: int, event_type: object, payload: object):
         self.id = id
         self.tick = tick
         self.payload = payload
-        self.immediate_event_list = []
-        self.category = category
         self.event_type = event_type
         self.state = EventState.PENDING
 
     def __repr__(self):
         return f"{{ tick: {self.tick}, type: {self.event_type}, " \
-               f"category: {self.category}, state: {self.state}, payload: {self.payload} }}"
+               f"state: {self.state}, payload: {self.payload} }}"
 
     def __str__(self):
         return self.__repr__()
+
+
+class CascadeEvent(AtomEvent):
+    """Special event type that support add immediate events (or sub events), these
+    events will be execute right after its parent.
+
+    Some times there may be some events that depend on another one,
+    then you can append these events into immediate_event_list, then
+    these events will be processed after the main event at same tick.
+    """
+
+    def __init__(self, id: int, tick: int, event_type: object, payload: object):
+        super().__init__(id, tick, event_type, payload)
+
+        self._immediate_event_list = []
+
+    def add_immediate_event(self, event, is_head: bool = False) -> bool:
+        """Add a immediate event, that will be processed right after current event.
+
+        Immediate event only support add to the head or tail, default will append to the end.
+
+        NOTE:
+            Tick of immediate event must same as current event, or will fail to insert.
+
+        Args:
+            event (Event): Event object to insert.
+            is_head (bool): If insert into the head (0 index), or append to the end.
+
+        Returns:
+            bool: True if success, or False.
+        """
+        # Make sure immediate event's tick same as current
+        if event.tick != self.tick:
+            return False
+
+        if is_head:
+            self._immediate_event_list.insert(0, event)
+        else:
+            self._immediate_event_list.append(event)
+
+        return True
 
 
 class EventBuffer:
@@ -103,22 +132,22 @@ class EventBuffer:
         # index of current pending event
         self._current_index = 0
 
-    def get_finished_events(self) -> List[Event]:
+    def get_finished_events(self) -> list:
         """Get all the processed events, call this function before reset method.
 
         Returns:
-            List[Event]: List of Event object.
+           list: List of event object.
         """
         return self._finished_events
 
-    def get_pending_events(self, tick: int) -> List[Event]:
+    def get_pending_events(self, tick: int) -> list:
         """Get pending event at specified tick.
 
         Args:
             Tick (int): tick of events to get.
 
         Returns:
-            List[Event]: List of Event object.
+            list: List of event object.
         """
         return [evt for evt in self._pending_events[tick] if evt is not None]
 
@@ -132,46 +161,82 @@ class EventBuffer:
         self._finished_events = []
         self._current_index = 0
 
-    def gen_atom_event(self, tick: int, event_type: int, payload: object = None) -> Event:
+    def gen_atom_event(self, tick: int, event_type: object, payload: object = None) -> AtomEvent:
         """Generate an atom event, an atom event is for normal usages,
         they will not stop current event dispatching process.
 
         Args:
             tick (int): Tick that the event will be processed.
-            event_type (int): Type of this event.
+            event_type (object): Type of this event.
             payload (object): Payload of event, used to pass data to handlers.
 
         Returns:
-            Event: Event object with ATOM category.
+            AtomEvent: Atom event object
         """
         self._id += 1
 
-        return Event(self._id, tick, event_type, payload, EventCategory.ATOM)
+        return AtomEvent(self._id, tick, event_type, payload)
 
-    def gen_cascade_event(self, tick: int, event_type: int, payload: object) -> Event:
-        """Generate an cascade event that used to retrieve action from agent.
-
-        A cascade event will stop current dispatching process,
-        and simulator will try to generate a decision event to ask agent give it an action.
+    def gen_cascade_event(self, tick: int, event_type: object, payload: object) -> CascadeEvent:
+        """Generate an cascade event that used to hold immediate events that
+        run right after current event.
 
         Args:
             tick (int): Tick that the event will be processed.
-            event_type (int): Type of this event.
+            event_type (object): Type of this event.
             payload (object): Payload of event, used to pass data to handlers.
 
         Returns:
-            Event: Event object with CASCADE category.
+            CascadeEvent: Cascade event object.
         """
         self._id += 1
 
-        return Event(self._id, tick, event_type, payload, EventCategory.CASCADE)
+        return CascadeEvent(self._id, tick, event_type, payload)
+
+    def gen_decision_event(self, tick: int, payload: object) -> CascadeEvent:
+        """Generate a decision event that will stop current simulation, and ask agent for action.
+
+        Args:
+            tick (int): Tick that the event will be processed.
+            payload (object): Payload of event, used to pass data to handlers.
+        Returns:
+            Event: Event object
+        """
+        return self.gen_event(tick, MaroEvents.DECISION_EVENT, payload, True)
+
+    def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:
+        """Generate an event that used to dispatch action to business engine.
+
+        Args:
+            tick (int): Tick that the event will be processed.
+            payload (object): Payload of event, used to pass data to handlers.
+        Returns:
+            Event: Event object
+        """
+        return self.gen_event(tick, MaroEvents.TAKE_ACTION, payload, True)
+
+    def gen_event(self, tick: int, event_type: object, payload: object, is_cascade: bool):
+        """Generate an event object.
+
+        Args:
+            tick (int): Tick that the event will be processed.
+            event_type (object): Type of this event.
+            payload (object): Payload of event, used to pass data to handlers.
+            is_cascade (bool): If the event is a cascade event, default is True
+        Returns:
+            Event: Event object
+        """
+        if is_cascade:
+            return self.gen_cascade_event(tick, event_type, payload)
+        else:
+            return self.gen_atom_event(tick, event_type, payload)
 
     def register_event_handler(self, event_type: int, handler: Callable):
         """Register an event with handler, when there is an event need to be processed,
         EventBuffer will invoke the handler if there are any event's type match specified at each tick.
 
         NOTE:
-            Callback function should only hold one parameter that is Event object.
+            Callback function should only hold one parameter that is event object.
 
         Args:
             event_type (int): Type of event that the handler want to process.
@@ -179,7 +244,7 @@ class EventBuffer:
         """
         self._handlers[event_type].append(handler)
 
-    def insert_event(self, event: Event):
+    def insert_event(self, event):
         """Insert an event to the pending queue.
 
         Args:
@@ -189,7 +254,7 @@ class EventBuffer:
 
         self._pending_events[event.tick].append(event)
 
-    def execute(self, tick: int) -> List[Event]:
+    def execute(self, tick: int) -> list:
         """Process and dispatch event by tick.
 
         NOTE:
@@ -201,7 +266,7 @@ class EventBuffer:
             tick (int): Tick used to process events.
 
         Returns:
-            List[Event]: Pending cascade event list at current point.
+            list: Pending cascade event list at current point.
         """
 
         if tick in self._pending_events:
@@ -216,12 +281,12 @@ class EventBuffer:
 
                 # 2. check if it is a cascade event and its state,
                 #    we only process cascade events that in pending state
-                if event.category == EventCategory.CASCADE and event.state == EventState.PENDING:
+                if event.event_type == MaroEvents.DECISION_EVENT and event.state == EventState.PENDING:
                     # NOTE: here we return all the cascade events next to current one
                     result = []
 
                     for j in range(self._current_index, len(cur_events)):
-                        if cur_events[j].category == EventCategory.CASCADE:
+                        if cur_events[j].event_type == MaroEvents.DECISION_EVENT:
                             result.append(cur_events[j])
 
                     return result
@@ -229,6 +294,7 @@ class EventBuffer:
                 # 3. or it is an atom event, just invoke the handlers
                 if event.state == EventState.FINISHED:
                     self._current_index += 1
+
                     continue
 
                 # 3.1. if handler exist
@@ -238,15 +304,12 @@ class EventBuffer:
                     for handler in handlers:
                         handler(event)
 
-                # 3.2. sub events
-                for sub_event in event.immediate_event_list:
-                    if sub_event.event_type in self._handlers:
-                        handlers = self._handlers[sub_event.event_type]
+                # append sub events after current position
+                if type(event) == CascadeEvent:
+                    for sindex, sub_event in enumerate(event._immediate_event_list):
+                        cur_events.insert(self._current_index + 1 + sindex, sub_event)
 
-                        for handler in handlers:
-                            handler(sub_event)
-
-                        sub_event.state = EventState.FINISHED
+                    event._immediate_event_list.clear()
 
                 event.state = EventState.FINISHED
 
