@@ -15,3 +15,6 @@ class PhysicalMachine:
         self.util_cpu: int = -1
         self.util_mem: int = -1
         self.util_series: List = []
+
+    def add_vm(self, vm_id: int):
+        self.vm_list.append(vm_id)

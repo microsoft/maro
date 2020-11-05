@@ -5,9 +5,9 @@
 from enum import Enum
 
 
-class DataCenterEvents(Enum):
+class Events(Enum):
     """VM-PM pairs related events."""
     # VM requirement events
-    REQUIRE = "vm_required"
+    REQUIREMENTS = "vm_required"
     # VM finished events
     FINISHED = "vm_finished"
