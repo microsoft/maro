@@ -3,8 +3,8 @@ import math
 import torch
 import torch.nn as nn
 from torch import Tensor
-from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.nn import functional as F
+from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.nn.modules.activation import MultiheadAttention
 from torch.nn.modules.dropout import Dropout
 from torch.nn.modules.normalization import LayerNorm

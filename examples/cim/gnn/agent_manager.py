@@ -3,13 +3,14 @@ from copy import copy
 import numpy as np
 import torch
 
-from examples.cim.gnn.actor_critic import ActorCritic
-from examples.cim.gnn.agent import TrainableAgent
-from examples.cim.gnn.numpy_store import NumpyStore
-from examples.cim.gnn.simple_gnn import SharedAC
-from examples.cim.gnn.state_shaper import GNNStateShaper
 from maro.rl import AbsAgentManager, AgentMode
 from maro.utils import DummyLogger
+
+from .actor_critic import ActorCritic
+from .agent import TrainableAgent
+from .numpy_store import NumpyStore
+from .simple_gnn import SharedAC
+from .state_shaper import GNNStateShaper
 
 
 class SimpleAgentManger(AbsAgentManager):
