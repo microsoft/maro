@@ -2,27 +2,28 @@
 # Licensed under the MIT license.
 
 # native lib
-from collections import defaultdict, namedtuple
-from enum import Enum
 import itertools
 import json
-import sys
 import signal
+import sys
 import time
-from typing import List, Dict, Union
 import uuid
+from collections import defaultdict, namedtuple
+from enum import Enum
+from typing import Dict, List, Union
 
 # third party lib
 import redis
 
 # private lib
-from maro.communication import DriverType, ZmqDriver
-from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
-from maro.communication.utils import default_parameters
-from maro.utils import InternalLogger, DummyLogger
-from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
-    InformationUncompletedError
+from maro.utils import DummyLogger, InternalLogger
+from maro.utils.exception.communication_exception import (
+    DriverTypeError, InformationUncompletedError, PeersMissError, RedisConnectionError
+)
 
+from .driver import DriverType, ZmqDriver
+from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
+from .utils import default_parameters
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
@@ -54,11 +55,13 @@ class Proxy:
         log_enable (bool): Open internal logger or not. Defaults to True.
     """
 
-    def __init__(self, group_name: str, component_type: str, expected_peers: dict,
-                 driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
-                 redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
-                 base_retry_interval: float = BASE_RETRY_INTERVAL,
-                 fault_tolerant: bool = FAULT_TOLERANT, log_enable: bool = True):
+    def __init__(
+        self, group_name: str, component_type: str, expected_peers: dict,
+        driver_type: DriverType = DriverType.ZMQ, driver_parameters: dict = None,
+        redis_address=(HOST, PORT), max_retries: int = MAX_RETRIES,
+        base_retry_interval: float = BASE_RETRY_INTERVAL,
+        fault_tolerant: bool = FAULT_TOLERANT, log_enable: bool = True
+    ):
         self._group_name = group_name
         self._component_type = component_type
         self._redis_hash_name = f"{self._group_name}:{self._component_type}"
@@ -80,8 +83,10 @@ class Proxy:
         # Record the peer's redis information.
         self._peers_info_dict = {}
         for peer_type, number in expected_peers.items():
-            self._peers_info_dict[peer_type] = _PEER_INFO(hash_table_name=f"{self._group_name}:{peer_type}",
-                                                          expected_number=number)
+            self._peers_info_dict[peer_type] = _PEER_INFO(
+                hash_table_name=f"{self._group_name}:{peer_type}",
+                expected_number=number
+            )
         # Record connected peers' name.
         self._onboard_peers_name_dict = {}
         # Temporary store the message.
@@ -132,9 +137,11 @@ class Proxy:
             signal.signal(signal.SIGINT, self._signal_handler)
             signal.signal(signal.SIGTERM, self._signal_handler)
         except Exception as e:
-            self._logger.critical(f"Signal detector disable. This may cause dirty data to be left in the Redis! "
-                                  f"To avoid this, please use multiprocess or make sure it can exit successfully."
-                                  f"Due to {str(e)}.")
+            self._logger.critical(
+                "Signal detector disable. This may cause dirty data to be left in the Redis! "
+                "To avoid this, please use multiprocess or make sure it can exit successfully."
+                f"Due to {str(e)}."
+            )
 
     def _get_peers_list(self):
         """To collect all peers' name in the same group (group name) from Redis."""
@@ -154,8 +161,10 @@ class Proxy:
                     self._logger.debug(f"{self._name} successfully get all {peer_type}\'s name.")
                     break
                 else:
-                    self._logger.debug(f"{self._name} failed to get {peer_type}\'s name. Retrying in "
-                                       f"{self._retry_interval * (2 ** retry_number)} seconds.")
+                    self._logger.debug(
+                        f"{self._name} failed to get {peer_type}\'s name. Retrying in "
+                        f"{self._retry_interval * (2 ** retry_number)} seconds."
+                    )
                     time.sleep(self._retry_interval * (2 ** retry_number))
                     retry_number += 1
 
@@ -170,8 +179,10 @@ class Proxy:
         peers_socket_dict = {}
         for peer_type, name_list in self._onboard_peers_name_dict.items():
             try:
-                peers_socket_value = self._redis_connection.hmget(self._peers_info_dict[peer_type].hash_table_name,
-                                                                  name_list)
+                peers_socket_value = self._redis_connection.hmget(
+                    self._peers_info_dict[peer_type].hash_table_name,
+                    name_list
+                )
                 for idx, peer_name in enumerate(name_list):
                     peers_socket_dict[peer_name] = json.loads(peers_socket_value[idx])
                     self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
@@ -259,18 +270,21 @@ class Proxy:
 
         return received_message
 
-    def _scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
-                 session_id: str = None) -> List[str]:
+    def _scatter(
+        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+    ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
 
         for destination, payload in destination_payload_list:
-            message = SessionMessage(tag=tag,
-                                     source=self._name,
-                                     destination=destination,
-                                     session_id=session_id,
-                                     payload=payload,
-                                     session_type=session_type)
+            message = SessionMessage(
+                tag=tag,
+                source=self._name,
+                destination=destination,
+                session_id=session_id,
+                payload=payload,
+                session_type=session_type
+            )
             sending_status = self._driver.send(message)
 
             if not sending_status:
@@ -283,8 +297,9 @@ class Proxy:
 
         return session_id_list
 
-    def scatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
-                session_id: str = None) -> List[Message]:
+    def scatter(
+        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+    ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
         Args:
@@ -300,8 +315,9 @@ class Proxy:
         """
         return self.receive_by_id(self._scatter(tag, session_type, destination_payload_list, session_id))
 
-    def iscatter(self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list,
-                 session_id: str = None) -> List[str]:
+    def iscatter(
+        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+    ) -> List[str]:
         """Scatters a list of data to peers, and return list of message id.
 
         Args:
@@ -317,15 +333,18 @@ class Proxy:
         """
         return self._scatter(tag, session_type, destination_payload_list, session_id)
 
-    def _broadcast(self, tag: Union[str, Enum], session_type: SessionType,
-                   session_id: str = None, payload=None) -> List[str]:
+    def _broadcast(
+        self, tag: Union[str, Enum], session_type: SessionType, session_id: str = None, payload=None
+    ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
-        message = SessionMessage(tag=tag,
-                                 source=self._name,
-                                 destination="*",
-                                 payload=payload,
-                                 session_id=session_id,
-                                 session_type=session_type)
+        message = SessionMessage(
+            tag=tag,
+            source=self._name,
+            destination="*",
+            payload=payload,
+            session_id=session_id,
+            session_type=session_type
+        )
 
         broadcast_status = self._driver.broadcast(message)
 
@@ -336,8 +355,9 @@ class Proxy:
         else:
             raise broadcast_status
 
-    def broadcast(self, tag: Union[str, Enum], session_type: SessionType,
-                  session_id: str = None, payload=None) -> List[Message]:
+    def broadcast(
+        self, tag: Union[str, Enum], session_type: SessionType, session_id: str = None, payload=None
+    ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
         Args:
@@ -351,8 +371,9 @@ class Proxy:
         """
         return self.receive_by_id(self._broadcast(tag, session_type, session_id, payload))
 
-    def ibroadcast(self, tag: Union[str, Enum], session_type: SessionType,
-                   session_id: str = None, payload=None) -> List[str]:
+    def ibroadcast(
+        self, tag: Union[str, Enum], session_type: SessionType, session_id: str = None, payload=None
+    ) -> List[str]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
         Args:
@@ -400,12 +421,14 @@ class Proxy:
             return self.receive_by_id([message.session_id])
         elif sending_status and self._is_enable_fault_tolerant:
             self._logger.warn(
-                f"{self._name} failure to send message to {message.destination}, as {str(sending_status)}")
+                f"{self._name} failure to send message to {message.destination}, as {str(sending_status)}"
+            )
         else:
             raise sending_status
 
-    def reply(self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None,
-              ack_reply: bool = False) -> List[str]:
+    def reply(
+        self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False
+    ) -> List[str]:
         """Reply a received message.
 
         Args:
@@ -422,16 +445,19 @@ class Proxy:
         else:
             session_stage = NotificationSessionStage.RECEIVE
 
-        replied_message = SessionMessage(tag=tag if tag else received_message.tag,
-                                         source=self._name,
-                                         destination=received_message.source,
-                                         session_id=received_message.session_id,
-                                         payload=payload,
-                                         session_stage=session_stage)
+        replied_message = SessionMessage(
+            tag=tag if tag else received_message.tag,
+            source=self._name,
+            destination=received_message.source,
+            session_id=received_message.session_id,
+            payload=payload,
+            session_stage=session_stage
+        )
         return self.isend(replied_message)
 
-    def forward(self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None,
-                payload=None) -> List[str]:
+    def forward(
+        self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None, payload=None
+    ) -> List[str]:
         """Forward a received message.
 
         Args:
@@ -443,10 +469,12 @@ class Proxy:
         Returns:
             List[str]: Message belonged session id.
         """
-        forward_message = SessionMessage(tag=tag if tag else received_message.tag,
-                                         source=self._name,
-                                         destination=destination,
-                                         session_id=received_message.session_id,
-                                         payload=payload if payload else received_message.payload,
-                                         session_stage=received_message.session_stage)
+        forward_message = SessionMessage(
+            tag=tag if tag else received_message.tag,
+            source=self._name,
+            destination=destination,
+            session_id=received_message.session_id,
+            payload=payload if payload else received_message.payload,
+            session_stage=received_message.session_stage
+        )
         return self.isend(forward_message)

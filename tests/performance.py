@@ -3,6 +3,7 @@
 
 
 from time import time
+
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.frame_builder import gen_cim_frame
 

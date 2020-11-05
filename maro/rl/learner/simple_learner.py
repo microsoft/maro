@@ -4,13 +4,13 @@
 import sys
 from typing import Callable, Union
 
-from .abs_learner import AbsLearner
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
-from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
-from maro.utils import Logger, DummyLogger
-from maro.utils.exception.rl_toolkit_exception import InvalidEpisodeError, InfiniteTrainingLoopError
+from maro.rl.explorer.abs_explorer import AbsExplorer
+from maro.utils import DummyLogger, Logger
+from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError, InvalidEpisodeError
+
 from .abs_learner import AbsLearner
 
 
