@@ -10,7 +10,6 @@ from .learner import GNNLearner
 from .state_shaper import GNNStateShaper
 from .utils import decision_cnt_analysis, load_config, return_scaler, save_code, save_config
 
-
 if __name__ == "__main__":
     config_pth = "examples/cim/gnn/config.yml"
     config = load_config(config_pth)
