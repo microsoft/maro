@@ -5,6 +5,8 @@
 import os
 from math import ceil, floor
 
+from yaml import safe_load
+
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer

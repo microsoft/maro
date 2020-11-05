@@ -5,6 +5,7 @@ from enum import Enum
 from functools import wraps
 
 import numpy as np
+
 from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
 
 
