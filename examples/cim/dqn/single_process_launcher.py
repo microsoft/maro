@@ -30,7 +30,7 @@ if __name__ == "__main__":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
         experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
             **config.experience_shaping.k_step
         )
 

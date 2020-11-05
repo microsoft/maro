@@ -6,9 +6,10 @@ from typing import Callable, List, Sequence, Tuple
 
 import numpy as np
 
-from .abs_store import AbsStore
-from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
 from maro.utils import clone
+
+from .abs_store import AbsStore
+from .utils import OverwriteType, check_uniformity, get_update_indexes, normalize
 
 
 class ColumnBasedStore(AbsStore):
@@ -53,6 +54,15 @@ class ColumnBasedStore(AbsStore):
     def __getitem__(self, index: int):
         return {k: lst[index] for k, lst in self._store.items()}
 
+    def __getstate__(self):
+        """A patch for picking the object with lambda.
+        Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
+        ``defaultdict`` definition of the ``_store`` attribute.
+        """
+        obj_dict = self.__dict__
+        obj_dict["_store"] = dict(obj_dict["_store"])
+        return obj_dict
+
     @property
     def capacity(self):
         """Store capacity.
@@ -92,8 +102,9 @@ class ColumnBasedStore(AbsStore):
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
-            write_indexes = get_update_indexes(self._size, added_size, self._capacity, self._overwrite_type,
-                                               overwrite_indexes=overwrite_indexes)
+            write_indexes = get_update_indexes(
+                self._size, added_size, self._capacity, self._overwrite_type, overwrite_indexes=overwrite_indexes
+            )
             self.update(write_indexes, contents)
             self._size = min(self._capacity, self._size + added_size)
             return write_indexes
@@ -125,7 +136,8 @@ class ColumnBasedStore(AbsStore):
 
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                          e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+                e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+
         Returns:
             Filtered indexes and corresponding objects.
         """

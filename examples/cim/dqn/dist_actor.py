@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from maro.simulator import Env
 from maro.rl import AgentMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
+from maro.simulator import Env
 
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import DQNAgentManager
@@ -21,8 +21,9 @@ if __name__ == "__main__":
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
-                                                  **config.experience_shaping.k_step)
+        experience_shaper = KStepExperienceShaper(
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
+            **config.experience_shaping.k_step)
 
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},
@@ -36,10 +37,12 @@ if __name__ == "__main__":
                                     action_shaper=action_shaper,
                                     experience_shaper=experience_shaper,
                                     explorer=explorer)
-    proxy_params = {"group_name": config.distributed.group_name,
-                    "expected_peers": config.distributed.actor.peer,
-                    "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port)
-                    }
+    proxy_params = {
+        "group_name": config.distributed.group_name,
+        "expected_peers": config.distributed.actor.peer,
+        "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port),
+        "max_retries": 10
+    }
     actor_worker = ActorWorker(local_actor=SimpleActor(env=env, inference_agents=agent_manager),
                                proxy_params=proxy_params)
     actor_worker.launch()
