@@ -2,4 +2,4 @@
 # Licensed under the MIT license.
 
 
-from .event_buffer import EventBuffer, AtomEvent, CascadeEvent, EventState, MaroEvents
+from .event_buffer import AtomEvent, CascadeEvent, EventBuffer, EventState, MaroEvents

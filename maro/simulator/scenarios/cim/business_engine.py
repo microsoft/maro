@@ -9,16 +9,16 @@ from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
-from maro.event_buffer import MaroEvents, AtomEvent, CascadeEvent, EventBuffer
+from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import (DocableDict,
-                                              MatrixAttributeAccessor)
+from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
 
-from .common import (Action, ActionScope, DecisionEvent,
-                     EmptyReturnPayload, LadenReturnPayload,
-                     VesselDischargePayload, VesselStatePayload)
-from .frame_builder import gen_cim_frame
+from .common import (
+    Action, ActionScope, DecisionEvent, EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload,
+    VesselStatePayload
+)
 from .events import Events
+from .frame_builder import gen_cim_frame
 
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick).

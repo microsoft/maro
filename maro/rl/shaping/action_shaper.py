@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 from abc import abstractmethod
+
 from .abs_shaper import AbsShaper
 
 

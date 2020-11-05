@@ -9,8 +9,8 @@ from maro.simulator.scenarios.helpers import DocableDict
 
 from .common import Action
 from .events import DataCenterEvents
-from .virtual_machine import VirtualMachine
 from .physical_machine import PhysicalMachine
+from .virtual_machine import VirtualMachine
 
 metrics_desc = """
 

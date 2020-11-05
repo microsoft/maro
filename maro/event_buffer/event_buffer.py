@@ -7,9 +7,9 @@
 # 2. event object pool, this will make get_finished_events function stop working.
 #    we can enable this to disable pooling
 
-from enum import IntEnum, Enum
 from collections import defaultdict
-from typing import List, Callable
+from enum import Enum, IntEnum
+from typing import Callable
 
 
 class MaroEvents (Enum):
@@ -60,8 +60,10 @@ class AtomEvent:
         self.state = EventState.PENDING
 
     def __repr__(self):
-        return f"{{ tick: {self.tick}, type: {self.event_type}, " \
-               f"state: {self.state}, payload: {self.payload} }}"
+        return (
+            f"{{ tick: {self.tick}, type: {self.event_type}, "
+            f"category: {self.category}, state: {self.state}, payload: {self.payload} }}"
+        )
 
     def __str__(self):
         return self.__repr__()

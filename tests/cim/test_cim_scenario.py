@@ -2,14 +2,15 @@
 # Licensed under the MIT license.
 
 
-import unittest
 import os
+import unittest
 
 from maro.event_buffer import EventBuffer, EventState
 from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, Events
-from .mock_data_container import MockDataContainer
 
 from tests.utils import next_step
+
+from .mock_data_container import MockDataContainer
 
 MAX_TICK = 20
 
@@ -32,7 +33,7 @@ def mock_cim_init_func(self, event_buffer, topology_path, max_tick):
     self._event_buffer = event_buffer
     self._max_snapshots = None
     self._snapshot_resolution = 1
-    
+
     self._data_cntr = MockDataContainer(topology_path)
 
     self._vessels = []
@@ -108,7 +109,7 @@ class TestCimScenarios(unittest.TestCase):
         self.assertEqual(0, v.last_loc_idx, "last_loc_idx of vessel 1 should be 0 at tick 2")
 
         v = be.snapshots["matrices"][2::"vessel_plans"]
-        
+
         # since we already fixed the vessel plans, we just check the value
         for i in range(2):
             self.assertEqual(11, v[i*3+0])

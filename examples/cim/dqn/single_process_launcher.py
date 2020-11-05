@@ -5,16 +5,18 @@ import os
 
 import numpy as np
 
-from maro.simulator import Env
-from maro.rl import AgentManagerMode, MaxDeltaEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor, \
+from maro.rl import (
+    AgentManagerMode, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor, SimpleLearner,
     TwoPhaseLinearExplorer
+)
+from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import create_dqn_agents, DQNAgentManager
-from components.config import set_input_dim
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
+from .components.action_shaper import CIMActionShaper
+from .components.agent_manager import DQNAgentManager, create_dqn_agents
+from .components.config import set_input_dim
+from .components.experience_shaper import TruncatedExperienceShaper
+from .components.state_shaper import CIMStateShaper
 
 
 def launch(config):
@@ -33,7 +35,7 @@ def launch(config):
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
         experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
             **config.experience_shaping.k_step
         )
 

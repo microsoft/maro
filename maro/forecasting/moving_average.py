@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Iterable
-
 from collections import deque
+from typing import Iterable
 
 
 class AbsMovingAverage(ABC):

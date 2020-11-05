@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
- 
-from collections import defaultdict
+
 import unittest
+from collections import defaultdict
 
 from maro.communication import RegisterTable, SessionMessage
 
@@ -91,7 +91,7 @@ class TestRegisterTable(unittest.TestCase):
         # Accept messages from any source with tag_a until the number of message reach 60% of source number.
         unit_event_2 = "*:tag_a:50%"
         self.register_table.register_event_handler(unit_event_2, handle_function)
-        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] + 
+        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
                                   TestRegisterTable.message_dict["worker_b"]["tag_a"]):
             # The message with tag_a, it will trigger handler function until receiving 5 times.
             self.register_table.push(msg)
@@ -104,7 +104,7 @@ class TestRegisterTable(unittest.TestCase):
         # Accept the combination of two messages: one from worker_a with tag_a, and one from worker_b with tag_a.
         and_conditional_event = ("worker_a:tag_a:1", "worker_b:tag_a:1", "AND")
         self.register_table.register_event_handler(and_conditional_event, handle_function)
-        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] + 
+        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
                                   TestRegisterTable.message_dict["worker_b"]["tag_a"]):
             # The messages with tag_a from worker_a and worker_b, it will trigger handler function until the
             # combination be satisfied.
@@ -117,7 +117,7 @@ class TestRegisterTable(unittest.TestCase):
         # Accept the message from worker_a with tag_a, or from worker_b with tag_a.
         or_conditional_event = ("worker_a:tag_a:1", "worker_b:tag_a:1", "OR")
         self.register_table.register_event_handler(or_conditional_event, handle_function)
-        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] + 
+        for idx, msg in enumerate(TestRegisterTable.message_dict["worker_a"]["tag_a"] +
                                   TestRegisterTable.message_dict["worker_b"]["tag_a"]):
             # The messages with tag_a from worker_a and worker_b, it will trigger handler function each time.
             self.register_table.push(msg)

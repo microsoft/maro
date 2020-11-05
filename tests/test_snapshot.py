@@ -4,7 +4,7 @@
 import sys
 import unittest
 
-from test_frame import build_frame, DYNAMIC_NODE_NUM, STATIC_NODE_NUM
+from test_frame import DYNAMIC_NODE_NUM, STATIC_NODE_NUM, build_frame
 
 
 class TestFrame(unittest.TestCase):

@@ -46,6 +46,7 @@ jobs:
           VALIDATE_PYTHON_PYLINT: false # disable pylint, as we have not configure it
           VALIDATE_PYTHON_BLACK: false # same as above
           PYTHON_FLAKE8_CONFIG_FILE: tox.ini
+          PYTHON_ISORT_CONFIG_FILE: tox.ini
           FILTER_REGEX_INCLUDE: maro/.*
           FILTER_REGEX_EXCLUDE: tests/.*
           DEFAULT_BRANCH: master

@@ -90,7 +90,7 @@ class TestEventBuffer(unittest.TestCase):
         self.eb.insert_event(evt)
 
         self.eb.reset()
-        
+
         self.assertEqual(len(self.eb._pending_events), 0)
         self.assertEqual(len(self.eb._finished_events), 0)
 
