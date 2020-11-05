@@ -170,7 +170,8 @@ namespace maro
         }
       }
 
-      void SnapshotList::query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length)
+      void SnapshotList::query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
+        NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
         ensure_max_size();
       }
