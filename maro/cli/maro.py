@@ -99,7 +99,7 @@ def main():
 
     # Get args and parse global arguments
     args = parser.parse_args()
-    print (args)
+    print(args)
     if args.debug:
         GlobalParams.LOG_LEVEL = logging.DEBUG
     else:
@@ -843,6 +843,7 @@ def load_parser_vispath(prev_parser: ArgumentParser, global_parser: ArgumentPars
         help="Path (with file name) to load conversion relationship between id and name")
 
     build_cmd_parser.set_defaults(func=start_vis)
+
 
 def _help_func(parser):
     def wrapper(*args, **kwargs):
