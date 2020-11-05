@@ -7,7 +7,8 @@ general:
   early_stopping:
     warmup_ep: 50
     last_k: 10
-    threshold: 0.05
+    delta_threshold: 0.05
+    perf_threshold: 0.9
 state_shaping:
   look_back: 7
   max_ports_downstream: 2

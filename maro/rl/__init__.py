@@ -23,7 +23,8 @@ from maro.rl.shaping.k_step_experience_shaper import KStepExperienceShaper
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
 from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
-from maro.rl.early_stopping.simple_early_stopping_checker import RSDEarlyStoppingChecker, MaxDeltaEarlyStoppingChecker
+from maro.rl.early_stopping.simple_early_stopping_checker import SimpleEarlyStoppingChecker, RSDEarlyStoppingChecker, \
+    MaxDeltaEarlyStoppingChecker
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
 from maro.rl.dist_topologies.experience_collection import concat_experiences_by_agent, \
     merge_experiences_with_trajectory_boundaries
@@ -55,6 +56,7 @@ __all__ = [
     "LinearExplorer",
     "TwoPhaseLinearExplorer",
     "AbsEarlyStoppingChecker",
+    "SimpleEarlyStoppingChecker",
     "RSDEarlyStoppingChecker",
     "MaxDeltaEarlyStoppingChecker",
     "ActorProxy",

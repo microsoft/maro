@@ -2,12 +2,13 @@
 # Licensed under the MIT license.
 
 import os
+from statistics import mean
 
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import AgentManagerMode, MaxDeltaEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor, \
-    TwoPhaseLinearExplorer
+from maro.rl import AgentManagerMode, MaxDeltaEarlyStoppingChecker, KStepExperienceShaper, SimpleEarlyStoppingChecker,\
+    SimpleLearner, SimpleActor, TwoPhaseLinearExplorer
 from maro.utils import Logger, convert_dottable
 
 from components.action_shaper import CIMActionShaper
@@ -48,10 +49,19 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
+    early_stopping_checker_1 = SimpleEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.threshold
+        threshold=config.general.early_stopping.perf_threshold,
+        measure_func=lambda vals: mean(vals)
     )
+
+    early_stopping_checker_2 = MaxDeltaEarlyStoppingChecker(
+        last_k=config.general.early_stopping.last_k,
+        threshold=config.general.early_stopping.delta_threshold
+    )
+
+    early_stopping_checker = early_stopping_checker_1 & early_stopping_checker_2
+
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
         trainable_agents=agent_manager,

@@ -4,7 +4,6 @@
 import sys
 from typing import Callable, Union
 
-from .abs_learner import AbsLearner
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.explorer.abs_explorer import AbsExplorer
