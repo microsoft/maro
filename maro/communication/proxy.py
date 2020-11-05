@@ -59,12 +59,12 @@ class Proxy:
         log_enable (bool): Open internal logger or not. Defaults to True.
         enable_rejoin (bool): Allow peers rejoin or not. Defaults to False, and must use with maro cli.
         minimal_peers Union[int, dict]: The minimal number of peers for each peer type.
-        peers_catch_lifetime (int): The lifetime for onboard peers information.
-        enable_message_cache_for_rejoin (bool): Enable message cache for failed peers.
+        peers_catch_lifetime (int): The lifetime for onboard peers' information.
+        enable_message_cache_for_rejoin (bool): Enable message cache for failed peers or not. Default to False.
         max_length_for_message_cache (int): The maximal number of cached messages.
         timeout_for_minimal_peer_number (int): The timeout of waiting enough alive peers.
-        is_remove_failed_container (bool): Enable remove failed containers automatically or not.
-        max_rejoin_times (int): The maximal times for one peer rejoins.
+        is_remove_failed_container (bool): Enable remove failed containers automatically or not. Default to False.
+        max_rejoin_times (int): The maximal retry times for one peer rejoins.
     """
 
     def __init__(
@@ -280,6 +280,11 @@ class Proxy:
         return self._name
 
     @property
+    def component_type(self) -> str:
+        """str: Component's type in the current group."""
+        return self._component_type
+
+    @property
     def peers(self) -> Dict:
         """Dict: The ``Dict`` of all connected peers' names, stored by peer type."""
         return self._onboard_peers_name_dict
@@ -306,9 +311,13 @@ class Proxy:
         pending_session_id_list, received_messages = [], []
         if isinstance(session_ids, list):
             pending_session_id_list = session_ids[:]
-        else:
+        elif isinstance(session_ids, str):
             pending_session_id_list.append(session_ids)
             session_ids = [session_ids]
+        else:
+            # The input may be None, if enable peer rejoin.
+            self._logger.critical(f"Unrecognized session id {session_ids}.")
+            return []
 
         # Check message cache for saved messages.
         for msg_key in session_ids:
@@ -463,14 +472,15 @@ class Proxy:
 
         Returns:
             Union[str, list, None]: Message's session id;
-                If enable rejoin, it may return None when sending message to the failed peers.
+                If enable rejoin, it will return None when sending message to the failed peers;
                 If enable rejoin and message cache, it may return list of session id which from
-                the pending messages.
+                the pending messages in message cache.
         """
         if self._enable_rejoin:
             peer_type = self.get_peer_type(message.destination)
             self._rejoin(peer_type)
 
+            # Check message cache
             if (
                 self._enable_message_cache and
                 message.destination in self._onboard_peers_name_dict[peer_type] and
@@ -506,7 +516,7 @@ class Proxy:
 
         Returns:
             Union[str, list, None]: Message's session id;
-                If enable rejoin, it may return None when sending message to the failed peers.
+                If enable rejoin, it will return None when sending message to the failed peers.
                 If enable rejoin and message cache, it may return list of session id which from
                 the pending messages.
         """
@@ -520,7 +530,7 @@ class Proxy:
 
         Returns:
             Union[Message, list, None]: The received message;
-                If enable rejoin, it may return None when sending message to the failed peers.
+                If enable rejoin, it will return None when sending message to the failed peers.
                 If enable rejoin and message cache, it may return list of messages which from
                 the pending messages.
         """
@@ -557,8 +567,9 @@ class Proxy:
         )
         return self.isend(replied_message)
 
-    def forward(self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None,
-                payload=None) -> str:
+    def forward(
+        self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None, payload=None
+    ) -> str:
         """Forward a received message.
 
         Args:
@@ -586,10 +597,10 @@ class Proxy:
         If some peers only appear on Redis, the proxy will connect with those peers;
         If some peers only appear on local, the proxy will disconnect with those peers;
         If some peers' information is different between Redis and local, the proxy will update those
-        peers (disconnect with the local information and connect with the peer's information on Redis).
+        peers (driver disconnect with the local information and connect with the peer's information on Redis).
         """
         for peer_type, on_board_peer_name_list in self._onboard_peers_name_dict.items():
-            # Updated_onboard_peers_dict is the newest peers' information from the Redis.
+            # onboard_peers_dict_on_redis is the newest peers' information from the Redis.
             onboard_peers_dict_on_redis = self._redis_connection.hgetall(
                 self._peers_info_dict[peer_type].hash_table_name
             )
@@ -597,7 +608,7 @@ class Proxy:
                 key.decode(): json.loads(value) for key, value in onboard_peers_dict_on_redis.items()
             }
 
-            # Onboard_peers_dict is the peers' information which stores in local.
+            # onboard_peers_dict_on_local is the peers' information which stores on local.
             onboard_peers_dict_on_local = {
                 onboard_peer_name: self._onboard_peer_socket_dict[onboard_peer_name]
                 for onboard_peer_name in on_board_peer_name_list
@@ -628,7 +639,11 @@ class Proxy:
                 self._onboard_peers_name_dict[peer_type] = list(onboard_peers_dict_on_redis.keys())
 
     def _rejoin(self, peer_type=None):
+        """The logic about proxy rejoin.
 
+        Update onboard peers with the peers on Redis, if onboard peers expired.
+        If there are not enough peers for the given peer type, block until peers rejoin or timeout.
+        """
         current_time = time.time()
 
         if current_time - self._onboard_peers_start_time > self._peers_catch_lifetime:
@@ -639,7 +654,7 @@ class Proxy:
             self._wait_for_minimal_peer_number(peer_type)
 
     def _wait_for_minimal_peer_number(self, peer_type):
-        """ """
+        """Blocking until there are enough peers for the given peer type."""
         start_time = time.time()
 
         while time.time() - start_time < self._timeout_for_minimal_peer_number:
@@ -658,7 +673,7 @@ class Proxy:
         sys.exit(KILL_ALL_EXIT_CODE)
 
     def get_peer_type(self, peer_name: str) -> str:
-        """ Get peer type from given peer name.
+        """Get peer type from given peer name.
 
         Args:
             peer_name (str): The component name of a peer, which form by peer_type and UUID.

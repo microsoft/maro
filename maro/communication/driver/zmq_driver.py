@@ -27,6 +27,7 @@ class ZmqDriver(AbsDriver):
     """The communication driver based on ``ZMQ``.
 
     Args:
+        component_type (str): Component's type in the current group.
         protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
         send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
             Defaults to -1.
@@ -131,6 +132,15 @@ class ZmqDriver(AbsDriver):
                 self._disconnected_peer_name_list.remove(peer_name)
 
     def disconnect(self, peers_address_dict: Dict[str, Dict[str, str]]):
+        """Disconnect with all peers in peers socket address.
+
+        Disconnect and delete the unicast sender which is ``zmq.PUSH`` socket for the peers in dict.
+
+        Args:
+            peers_address_dict (Dict[str, Dict[str, str]]): Peers' socket address dict.
+                The key of dict is the peer's name, while the value of dict is the peer's socket connection address.
+                E.g. Dict{'peer1', Dict[zmq.PULL, 'tcp://0.0.0.0:1234']}.
+        """
         for peer_name, address_dict in peers_address_dict.items():
             for socket_type, address in address_dict.items():
                 try:
