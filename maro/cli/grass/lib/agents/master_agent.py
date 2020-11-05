@@ -12,11 +12,10 @@ import time
 
 import redis
 
-from utils import load_cluster_details, \
-    get_node_details, get_nodes_details, \
-    get_job_details, get_jobs_details, set_job_details, \
-    get_pending_jobs, remove_pending_job, \
-    get_killed_jobs, remove_killed_job
+from .utils import (
+    get_job_details, get_jobs_details, get_killed_jobs, get_node_details, get_nodes_details, get_pending_jobs,
+    load_cluster_details, remove_killed_job, remove_pending_job, set_job_details
+)
 
 logger = logging.getLogger(__name__)
 
@@ -270,12 +269,16 @@ class PendingJobAgent(multiprocessing.Process):
         # Init reverse PQ
         required_resources_pq = []
         for required_resource in required_resources:
-            heapq.heappush(required_resources_pq,
-                           (-required_resource[metric_index], required_resource))
+            heapq.heappush(
+                required_resources_pq,
+                (-required_resource[metric_index], required_resource)
+            )
         free_resources_pq = []
         for free_resource in free_resources:
-            heapq.heappush(free_resources_pq,
-                           (free_resource[metric_index], free_resource))
+            heapq.heappush(
+                free_resources_pq,
+                (free_resource[metric_index], free_resource)
+            )
 
         # Get allocation
         while len(required_resources_pq) > 0:
@@ -302,18 +305,26 @@ class PendingJobAgent(multiprocessing.Process):
                 curr_free_resource[1] -= required_resource[1]
                 curr_free_resource[2] -= required_resource[2]
                 curr_free_resource[3] -= required_resource[3]
-                heapq.heappush(free_resources_pq,
-                               (-curr_free_resource[metric_index], curr_free_resource))
+                heapq.heappush(
+                    free_resources_pq,
+                    (-curr_free_resource[metric_index], curr_free_resource)
+                )
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (-not_usable_free_resource[metric_index], not_usable_free_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (-not_usable_free_resource[metric_index], not_usable_free_resource)
+                    )
             else:
                 # add previous resources back, to do printing
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (-not_usable_free_resource[metric_index], not_usable_free_resource))
-                heapq.heappush(required_resources_pq,
-                               (-required_resource[metric_index], required_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (-not_usable_free_resource[metric_index], not_usable_free_resource)
+                    )
+                heapq.heappush(
+                    required_resources_pq,
+                    (-required_resource[metric_index], required_resource)
+                )
 
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
@@ -337,12 +348,16 @@ class PendingJobAgent(multiprocessing.Process):
         required_resources_pq = []
         for required_resource in required_resources:
             print(required_resource)
-            heapq.heappush(required_resources_pq,
-                           (-required_resource[metric_index], required_resource))
+            heapq.heappush(
+                required_resources_pq,
+                (-required_resource[metric_index], required_resource)
+            )
         free_resources_pq = []
         for free_resource in free_resources:
-            heapq.heappush(free_resources_pq,
-                           (-free_resource[metric_index], free_resource))
+            heapq.heappush(
+                free_resources_pq,
+                (-free_resource[metric_index], free_resource)
+            )
 
         # Get allocation
         while len(required_resources_pq) > 0:
@@ -369,18 +384,26 @@ class PendingJobAgent(multiprocessing.Process):
                 curr_free_resource[1] -= required_resource[1]
                 curr_free_resource[2] -= required_resource[2]
                 curr_free_resource[3] -= required_resource[3]
-                heapq.heappush(free_resources_pq,
-                               (-curr_free_resource[metric_index], curr_free_resource))
+                heapq.heappush(
+                    free_resources_pq,
+                    (-curr_free_resource[metric_index], curr_free_resource)
+                )
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (-not_usable_free_resource[metric_index], not_usable_free_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (-not_usable_free_resource[metric_index], not_usable_free_resource)
+                    )
             else:
                 # add previous resources back, to do printing
                 for not_usable_free_resource in not_usable_free_resources:
-                    heapq.heappush(free_resources_pq,
-                                   (-not_usable_free_resource[metric_index], not_usable_free_resource))
-                heapq.heappush(required_resources_pq,
-                               (-required_resource[metric_index], required_resource))
+                    heapq.heappush(
+                        free_resources_pq,
+                        (-not_usable_free_resource[metric_index], not_usable_free_resource)
+                    )
+                heapq.heappush(
+                    required_resources_pq,
+                    (-required_resource[metric_index], required_resource)
+                )
 
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
@@ -460,9 +483,9 @@ class PendingJobAgent(multiprocessing.Process):
                 containers=container_name
             )
 
-            completed_process = subprocess.run(command,
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               encoding='utf8')
+            completed_process = subprocess.run(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+            )
             if completed_process.returncode != 0:
                 logger.error(f"No container {container_name} in {node_name}")
             logger.info(command)
@@ -527,8 +550,9 @@ class PendingJobAgent(multiprocessing.Process):
 
         # Exec command
         logger.info(command)
-        completed_process = subprocess.run(command,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+        completed_process = subprocess.run(
+            command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        )
         if completed_process.returncode != 0:
             raise AllocationFailed(completed_process.stderr)
 
@@ -620,9 +644,9 @@ class KilledJobAgent(multiprocessing.Process):
                     node_hostname=node_hostname,
                     containers=' '.join(removable_containers)
                 )
-                completed_process = subprocess.run(command,
-                                                   shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                                   encoding='utf8')
+                completed_process = subprocess.run(
+                    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+                )
                 if completed_process.returncode != 0:
                     logger.error(completed_process.stderr)
                 logger.info(command)

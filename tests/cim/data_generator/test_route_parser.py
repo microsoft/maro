@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import yaml
 
-from maro.data_lib.cim.route_parser import RoutesParser
 from maro.data_lib.cim.entities import RoutePoint
-
+from maro.data_lib.cim.route_parser import RoutesParser
 
 conf_str = """
 routes:

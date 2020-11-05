@@ -1,5 +1,6 @@
-import numpy as np
 from typing import Sequence
+
+import numpy as np
 
 from maro.rl import AbsStore
 

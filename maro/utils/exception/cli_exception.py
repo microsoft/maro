@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from maro.utils.exception import MAROException
+from .base_exception import MAROException
 
 
 class CliException(MAROException):

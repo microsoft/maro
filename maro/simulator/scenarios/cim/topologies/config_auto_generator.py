@@ -1,10 +1,11 @@
 
 
-import os
-import yaml
 import math
-import shutil
+import os
 import random
+import shutil
+
+import yaml
 
 TOPOLOGY_LIST = ["toy.4p_ssdd", "toy.5p_ssddd", "toy.6p_sssbdd", "global_trade.22p"]
 SAILING_TIME = 7
@@ -40,16 +41,20 @@ def save_new_topology(src: str):
     def change_vessel_capacity(level):
         for vessel in src_dict["vessels"].values():
             route_proportion = route_proportions[vessel['route']['route_name']]
-            vessel["capacity"] = int(AVG_ORDER_RATIO * route_proportion * SAILING_TIME *
-                                     total_containers * VESSEL_CAPACITY_REDUNDANCY_RATIOS[level])
+            vessel["capacity"] = int(
+                AVG_ORDER_RATIO * route_proportion * SAILING_TIME * total_containers
+                * VESSEL_CAPACITY_REDUNDANCY_RATIOS[level]
+            )
 
     src_dict['container_usage_proportion']['period'] = PERIOD
     src_dict['container_usage_proportion']['sample_nodes'] = [[0, AVG_ORDER_RATIO], [PERIOD - 1, AVG_ORDER_RATIO]]
 
     total_containers = src_dict['total_containers']
     route_proportions = {route_name: 0 for route_name in src_dict["routes"].keys()}
-    ports_in_routes = {route_name: [stop['port_name'] for stop in src_dict['routes'][route_name]]
-                       for route_name in src_dict["routes"].keys()}
+    ports_in_routes = {
+        route_name: [stop['port_name'] for stop in src_dict['routes'][route_name]]
+        for route_name in src_dict["routes"].keys()
+    }
     for source_port_name, port in src_dict["ports"].items():
         if 'targets' in port['order_distribution'].keys():
             source_proportion = port['order_distribution']['source']['proportion']
@@ -67,8 +72,9 @@ def save_new_topology(src: str):
         vessel["capacity"] += int(vessel["capacity"] * VESSEL_CAPACITY_DELTA_RATIO * (i % 3 - 1))
     save_new_level(2, src_dict)
 
-    sine_distribution = [[i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA *
-                          math.cos(i / (PERIOD // 2) * math.pi)] for i in range(PERIOD)]
+    sine_distribution = [
+        [i, AVG_ORDER_RATIO - ORDER_RATIO_DELTA * math.cos(i / (PERIOD // 2) * math.pi)] for i in range(PERIOD)
+    ]
     src_dict['container_usage_proportion']['sample_nodes'] = sine_distribution
     save_new_level(3, src_dict)
 
@@ -105,8 +111,9 @@ def save_new_topology(src: str):
     valley = AVG_ORDER_RATIO - ORDER_RATIO_DELTA
     sine_fluc = sine_fluctuate
     sine_dist = sine_distribution
-    multi_sine_distribution = [[i, sine_fluc[i % (PERIOD // 4)][1] * (sine_dist[i][1] - valley) * math.pi / 2 + valley]
-                               for i in range(PERIOD)]
+    multi_sine_distribution = [
+        [i, sine_fluc[i % (PERIOD // 4)][1] * (sine_dist[i][1] - valley) * math.pi / 2 + valley] for i in range(PERIOD)
+    ]
     src_dict['container_usage_proportion']['sample_nodes'] = multi_sine_distribution
     save_new_level(8, src_dict)
 

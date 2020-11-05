@@ -2,13 +2,14 @@
 # Licensed under the MIT license.
 
 # native lib
+import uuid
 from enum import Enum
 from typing import Union
-import uuid
 
 # private lib
 from maro.utils.exception.communication_exception import MessageSessionTypeError
-from maro.communication.utils import session_id_generator
+
+from .utils import session_id_generator
 
 
 class SessionType(Enum):
@@ -77,8 +78,10 @@ class SessionMessage(Message):
         session_stage (Enum): It indicates the current session stage.
     """
 
-    def __init__(self, tag: Union[str, Enum], source: str, destination: str, payload=None,
-                 session_id: str = None, session_type: SessionType = SessionType.TASK, session_stage=None):
+    def __init__(
+        self, tag: Union[str, Enum], source: str, destination: str, payload=None,
+        session_id: str = None, session_type: SessionType = SessionType.TASK, session_stage=None
+    ):
         super().__init__(tag, source, destination, payload, session_id)
         self.session_type = session_type
 
@@ -87,5 +90,6 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            raise MessageSessionTypeError(f"Receive unrecognized session type {self.session_type}, please use "
-                                          f"the SessionType class.")
+            raise MessageSessionTypeError(
+                f"Receive unrecognized session type {self.session_type}, please use the SessionType class."
+            )
