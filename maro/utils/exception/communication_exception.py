@@ -64,6 +64,8 @@ class SocketTypeError(MAROException):
         super().__init__(1010, msg)
 
 
-__all__ = ["RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
-           "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
-           "ConditionalEventSyntaxError", "SocketTypeError"]
+__all__ = [
+    "RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
+    "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
+    "ConditionalEventSyntaxError", "SocketTypeError"
+]

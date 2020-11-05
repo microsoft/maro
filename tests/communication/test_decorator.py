@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from maro.communication import Proxy, SessionMessage, dist
 
-from .utils import get_random_port, proxy_generator
+from utils import get_random_port, proxy_generator
 
 
 def handler_function(that, proxy, message):
