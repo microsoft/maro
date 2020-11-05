@@ -20,6 +20,7 @@ namespace maro
       {
       };
 
+      inline ULONG attr_index_key(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
       const USHORT LENGTH_PER_PART = sizeof(USHORT) * BITS_PER_BYTE;
 
@@ -48,6 +49,7 @@ namespace maro
 
         // index of last attribute
         size_t _last_index{ 0ULL };
+
 
       public:
 

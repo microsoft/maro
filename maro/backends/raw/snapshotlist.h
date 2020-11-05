@@ -76,6 +76,8 @@ namespace maro
         map<INT, size_t> _tick2index_map; // tick -> start index
         map<INT, size_t> _tick2size_map; // size of each tick
 
+        Attribute _defaultAttr = Attribute(NAN);
+
       public:
         void set_max_size(USHORT max_size);
 
@@ -96,6 +98,8 @@ namespace maro
         /// <param name="attr_length"></param>
         void query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
+
+        Attribute& operator() (INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
         USHORT size();
         USHORT max_size();

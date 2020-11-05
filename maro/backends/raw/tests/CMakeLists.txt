@@ -32,6 +32,7 @@ set(TEST_SOURCES
     test_bitset
     test_attributestore
     test_frame
+    test_snapshotlist
 )
 
 
