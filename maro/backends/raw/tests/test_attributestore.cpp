@@ -26,7 +26,7 @@ const lest::test specification[] =
     ats.setup(10);
 
     // add 1 node type 1 node, each node contains attribute 0 with 10 slots
-    ats.add_nodes(0, 1, 0, 10);
+    ats.add_nodes(0, 0, 1, 0, 10);
 
     EXPECT(10 == ats.last_index());
 
@@ -53,7 +53,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add_nodes(0, 10, 0, 1);
+    ats.add_nodes(0, 0, 10, 0, 1);
 
     EXPECT(10 == ats.last_index());
 
@@ -79,7 +79,7 @@ const lest::test specification[] =
     EXPECT(0 == ats.last_index());
 
     // add 1 node attribute
-    ats.add_nodes(0, 5, 0, 1);
+    ats.add_nodes(0, 0, 5, 0, 1);
 
     EXPECT(5 == ats.last_index());
 
@@ -90,7 +90,7 @@ const lest::test specification[] =
     EXPECT(5 == ats.size());
 
     // 2nd attribute
-    ats.add_nodes(0, 5, 1, 1);
+    ats.add_nodes(0, 0, 5, 1, 1);
 
     EXPECT(10 == ats.last_index());
 
@@ -99,7 +99,7 @@ const lest::test specification[] =
     EXPECT(10 == ats.size());
 
     // this will extend internal space
-    ats.add_nodes(0, 5, 2, 10);
+    ats.add_nodes(0, 0, 5, 2, 10);
 
     // the size will be changed (double size of last_index)
     EXPECT(120 == ats.capacity());
@@ -111,7 +111,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add_nodes(0, 5, 0, 1);
+    ats.add_nodes(0, 0, 5, 0, 1);
 
     EXPECT(5 == ats.last_index());
     EXPECT(10 == ats.capacity());
@@ -125,7 +125,7 @@ const lest::test specification[] =
     ats.setup(10);
 
     // add 1 attribute for node id 0, it will take 1st 6 slots
-    ats.add_nodes(0, 2, 0, 3);
+    ats.add_nodes(0, 0, 2, 0, 3);
 
     // set value for 2nd attribute of 1st node
     auto& attr = ats(0, 0, 0, 1);
@@ -148,7 +148,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add_nodes(0, 1, 0, 10);
+    ats.add_nodes(0, 0, 1, 0, 10);
 
     // remove un-exist node_id
     EXPECT_NO_THROW(ats.remove_node(1, 0, 0, 10));
@@ -167,7 +167,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add_nodes(0, 2, 0, 10);
+    ats.add_nodes(0, 0, 2, 0, 10);
 
     // after adding node attributes, last index should be 20
     EXPECT(20 == ats.last_index());
@@ -201,7 +201,7 @@ const lest::test specification[] =
     auto ats = AttributeStore();
 
     // add 2 node with 10 attribute per node
-    ats.add_nodes(0, 2, 0, 10);
+    ats.add_nodes(0, 0, 2, 0, 10);
 
     EXPECT(20 == ats.size());
     EXPECT(20 == ats.last_index());
@@ -258,7 +258,7 @@ const lest::test specification[] =
     }
 
     // add 4 additional slots
-    ats.add_nodes(0, 2, 0, 12);
+    ats.add_nodes(0, 0, 2, 0, 12);
 
     {
       auto& a = ats(0, 0, 0, 8);
@@ -277,7 +277,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
-    ats.add_nodes(0, 2, 0, 5);
+    ats.add_nodes(0, 0, 2, 0, 5);
 
     // set value for 1st & last attr of 2nd node, used to validate
     auto& attr = ats(0, 1, 0, 0);

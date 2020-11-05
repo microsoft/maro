@@ -72,10 +72,33 @@ namespace maro
         /// <returns>Attribute at specified place</returns>
         Attribute& operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index = 0);
 
-        void add_nodes(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node_id"></param>
+        /// <param name="node_start_index"></param>
+        /// <param name="node_num"></param>
+        /// <param name="attr_id"></param>
+        /// <param name="slot_num"></param>
+        void add_nodes(IDENTIFIER node_id, NODE_INDEX node_start_index, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num);
 
+        /// <summary>
+        /// Remove specified node
+        /// </summary>
+        /// <param name="node_id"></param>
+        /// <param name="node_index"></param>
+        /// <param name="attr_id"></param>
+        /// <param name="slot_num"></param>
         void remove_node(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_num);
 
+        /// <summary>
+        /// Remove specified range of attribute slots
+        /// </summary>
+        /// <param name="node_id"></param>
+        /// <param name="node_num"></param>
+        /// <param name="attr_id"></param>
+        /// <param name="from"></param>
+        /// <param name="stop"></param>
         void remove_attr_slots(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX from, SLOT_INDEX stop);
 
         /// <summary>

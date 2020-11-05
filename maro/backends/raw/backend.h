@@ -21,9 +21,8 @@ namespace maro
         SnapshotList _snapshot;
 
       public:
-        IDENTIFIER reg_node(string name, NODE_INDEX number);
-
-        IDENTIFIER reg_attr(IDENTIFIER node_id, string name, AttrDataType type, SLOT_INDEX slots=1);
+        IDENTIFIER add_node(string node_name);
+        IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number);
 
         void setup();
 
@@ -35,12 +34,14 @@ namespace maro
         ATTR_FLOAT get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
         ATTR_DOUBLE get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
 
-        void set_value();
-
+        template<typename T>
+        void set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value);
 
         void delete_node(IDENTIFIER node_id, NODE_INDEX node_index);
 
         void append_node(IDENTIFIER node_id, NODE_INDEX number);
+
+        void resume_node(IDENTIFIER node_id, NODE_INDEX number);
 
         void set_attribute_slot(IDENTIFIER attr_id, SLOT_INDEX slots);
 
