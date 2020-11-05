@@ -52,25 +52,25 @@ namespace maro
         vector<Attribute> _attr_store;
 
         // where shall we start to check empty slots to hold latest snapshot
-        size_t _first_empty_slot_index{0};
-        size_t _empty_slots_length{0};
+        size_t _first_empty_slot_index{ 0 };
+        size_t _empty_slots_length{ 0 };
 
         // end index of attribute store that been used
         // we append from this point
-        size_t _end_index{0};
+        size_t _end_index{ 0 };
 
         // max number of snapshot we should keep in memory
-        USHORT _max_size{0};
+        USHORT _max_size{ 0 };
 
         // current number of snapshot
-        USHORT _cur_snapshot_num{0};
+        USHORT _cur_snapshot_num{ 0 };
 
         // last tick that take snapshot
         // used to track same tick over-writing (for last operation only)
-        INT _last_tick{-1};
+        INT _last_tick{ -1 };
 
 
-        map<INT, USHORT> _tick2index_map; // tick -> start index
+        map<INT, size_t> _tick2index_map; // tick -> start index
         map<INT, size_t> _tick2size_map; // size of each tick
 
       public:
@@ -94,6 +94,7 @@ namespace maro
         void query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length);
 
+        USHORT size();
 
       private:
         void append_to_end(AttributeStore& frame_attr_store, INT tick);

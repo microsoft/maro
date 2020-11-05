@@ -140,8 +140,11 @@ namespace maro
 
       void SnapshotList::write_to_empty_slots(AttributeStore& frame_attr_store, INT tick)
       {
+        auto snapshot_size = frame_attr_store.size();
+
         // write to here
         auto mapping = unordered_map<ULONG, size_t>();
+
         frame_attr_store.copy_to(&_attr_store[_first_empty_slot_index], mapping);
 
         _tick_attr_map[tick] = mapping;
@@ -152,6 +155,14 @@ namespace maro
         _empty_slots_length -= snapshot_size;
       }
 
+      void SnapshotList::query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length)
+      {
+      }
+
+      USHORT SnapshotList::size()
+      {
+        return _max_size;
+      }
     }
   }
 }
