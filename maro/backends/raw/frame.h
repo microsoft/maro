@@ -100,12 +100,14 @@ namespace maro
         /// </summary>
         /// <param name="node_id">Id of node to add</param>
         /// <param name="number">Number of nodes to add</param>
-        void add_node(IDENTIFIER node_id, NODE_INDEX number);
+        void append_nodes(IDENTIFIER node_id, NODE_INDEX number);
 
         /// <summary>
         /// Remove specified index node, this will update the node number, but other's index will not change
         /// </summary>
         void remove_node(IDENTIFIER node_id, NODE_INDEX index);
+
+        void resume_node(IDENTIFIER node_id, NODE_INDEX index);
 
 
         /// <summary>

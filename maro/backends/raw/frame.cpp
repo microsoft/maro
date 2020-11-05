@@ -72,7 +72,7 @@ namespace maro
         }
       }
 
-      void maro::backends::raw::Frame::add_node(IDENTIFIER node_id, NODE_INDEX number)
+      void maro::backends::raw::Frame::append_nodes(IDENTIFIER node_id, NODE_INDEX number)
       {
         // to add additional node, the id must exist
         ensure_node_id(node_id);
@@ -109,6 +109,22 @@ namespace maro
           auto& attr = _attributes[attr_id];
 
           _attr_store.remove_node(node_id, index, attr_id, attr.slots);
+        }
+      }
+
+      void Frame::resume_node(IDENTIFIER node_id, NODE_INDEX index)
+      {
+        ensure_node_id(node_id);
+
+        auto& node = _nodes[node_id];
+
+        ensure_node_index(node, index);
+
+        for (auto attr_id : _node_2_attrs.find(node_id)->second)
+        {
+          auto& attr = _attributes[attr_id];
+
+          _attr_store.add_nodes(node_id, index, index + 1, attr_id, attr.slots);
         }
       }
 

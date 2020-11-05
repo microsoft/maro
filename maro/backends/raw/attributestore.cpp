@@ -95,11 +95,11 @@ namespace maro
         return _attributes[index_pair->second];
       }
 
-      void AttributeStore::add_nodes(IDENTIFIER node_id, NODE_INDEX node_start_index, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num)
+      void AttributeStore::add_nodes(IDENTIFIER node_id, NODE_INDEX node_start_index, NODE_INDEX stop, IDENTIFIER attr_id, SLOT_INDEX slot_num)
       {
         auto addition_num = 0;
 
-        for (auto nindex = node_start_index; nindex < node_num; nindex++)
+        for (auto nindex = node_start_index; nindex < stop; nindex++)
         {
           for (auto sindex = 0; sindex < slot_num; sindex++)
           {

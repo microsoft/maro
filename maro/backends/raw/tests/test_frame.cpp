@@ -100,7 +100,7 @@ const lest::test specification[] =
     }
 
     // 10 additional nodes
-    frame.add_node(n1, 10);
+    frame.append_nodes(n1, 10);
 
     // existing value should not be affected.
     {

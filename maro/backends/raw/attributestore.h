@@ -80,7 +80,7 @@ namespace maro
         /// <param name="node_num"></param>
         /// <param name="attr_id"></param>
         /// <param name="slot_num"></param>
-        void add_nodes(IDENTIFIER node_id, NODE_INDEX node_start_index, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX slot_num);
+        void add_nodes(IDENTIFIER node_id, NODE_INDEX node_start_index, NODE_INDEX stop, IDENTIFIER attr_id, SLOT_INDEX slot_num);
 
         /// <summary>
         /// Remove specified node
