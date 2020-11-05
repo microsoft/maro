@@ -177,6 +177,10 @@ namespace maro
 
       USHORT SnapshotList::size()
       {
+        return _cur_snapshot_num > _max_size ? _max_size : _cur_snapshot_num;
+      }
+      USHORT SnapshotList::max_size()
+      {
         return _max_size;
       }
     }

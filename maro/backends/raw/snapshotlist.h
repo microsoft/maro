@@ -98,6 +98,7 @@ namespace maro
           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes, UINT attr_length);
 
         USHORT size();
+        USHORT max_size();
 
       private:
         void append_to_end(AttributeStore& frame_attr_store, INT tick);
