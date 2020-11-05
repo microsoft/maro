@@ -118,7 +118,7 @@ def generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num
 # generate detail plot (comprehensive,detail,specific)
 # view info within different snapshot in the same epoch
 def generate_detail_plot_by_snapshot(info_selector, data, snapshot_index, ports_num,
-                                     CONVER_PATH, sample_ratio_res, item_option=None):
+                                    CONVER_PATH, sample_ratio_res, item_option=None):
     data_acc = data[info_selector]
     # delete parameter:frame_index
     info_selector.pop(1)
@@ -137,7 +137,7 @@ def generate_detail_plot_by_snapshot(info_selector, data, snapshot_index, ports_
     name_conversion = read_name_conversion(CONVER_PATH)
     snapshot_filtered['port name'] = snapshot_filtered['name'].apply(lambda x: name_conversion.loc[int(x)])
     snapshot_filtered_long_form = snapshot_filtered.melt(['name', 'port name'], var_name='Attributes',
-                                                         value_name='count')
+                                                        value_name='count')
     custom_chart_snapshot = alt.Chart(snapshot_filtered_long_form).mark_bar().encode(
         x='name:N',
         y='count:Q',
@@ -186,7 +186,7 @@ def generate_detail_plot_by_ports(info_selector, data, str_temp, snapshot_num, s
         color='Attributes:N',
         tooltip=['Attributes', 'count', 'snapshot_index']
     ).properties(width=700,
-                 height=380)
+                height=380)
     st.altair_chart(custom_bar_chart)
 
 
@@ -216,8 +216,8 @@ def generate_hot_map(matrix_data):
     y_axis = [[row[col] for row in x_axis] for col in range(len(x_axis[0]))]
     # Convert this grid to columnar data expected by Altair
     source = pd.DataFrame({'dest_port': np.array(x_axis).ravel(),
-                           'start_port': np.array(y_axis).ravel(),
-                           'count': np.array(b).ravel()})
+                        'start_port': np.array(y_axis).ravel(),
+                        'count': np.array(b).ravel()})
     chart = alt.Chart(source).mark_rect().encode(
         x='dest_port:O',
         y='start_port:O',
@@ -309,7 +309,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
         dir = os.path.join(ROOT_PATH, 'snapshot_' + str(option_epoch))
         data_ports = read_detail_csv(os.path.join(dir, 'ports.csv'))
         data_ports['remaining_space'] = list(map(lambda x, y, z: x - y - z, data_ports['capacity'],
-                                                 data_ports['full'], data_ports['empty']))
+                                                data_ports['full'], data_ports['empty']))
         ports_num = len(data_ports['name'].unique())
         ports_index = np.arange(ports_num).tolist()
         snapshot_num = len(data_ports['frame_index'].unique())
@@ -321,9 +321,9 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             ('by ports', 'by snapshot'))
         comprehensive_info = ['name', 'frame_index', 'acc_shortage', 'acc_booking', 'acc_fulfillment']
         specific_info = ['name', 'frame_index', 'shortage', 'booking', 'fulfillment', 'on_shipper', 'on_consignee',
-                         'capacity', 'full', 'empty', 'remaining_space']
+                        'capacity', 'full', 'empty', 'remaining_space']
         item_option_all = ['All', 'Booking Info', 'Port Info', 'shortage', 'booking', 'fulfillment', 'on_shipper',
-                           'on_consignee', 'capacity', 'full', 'empty', 'remaining_space']
+                        'on_consignee', 'capacity', 'full', 'empty', 'remaining_space']
         if option_2 == 'by ports':
             port_index = st.sidebar.select_slider(
                 'Choose a Port:',
@@ -337,7 +337,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             render_H3_title('Port Acc Attributes: ' + str(port_index) + ' -  ' +
                             name_conversion.loc[int(port_index)][0])
             generate_detail_plot_by_ports(comprehensive_info, data_ports, str_port_option,
-                                          snapshot_num, snapshot_sample_num)
+                                        snapshot_num, snapshot_sample_num)
             render_H1_title('CIM Detail Data')
             data_genera = formula_define(data_ports)
             if data_genera is not None:
@@ -351,7 +351,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             render_H3_title(
                 'Port Detail Attributes: ' + str(port_index) + ' -  ' + name_conversion.loc[int(port_index)][0])
             generate_detail_plot_by_ports(specific_info, data_ports, str_temp, snapshot_num,
-                                          snapshot_sample_num, item_option)
+                                        snapshot_sample_num, item_option)
         if option_2 == 'by snapshot':
             snapshot_index = st.sidebar.select_slider(
                 'snapshot index',
@@ -362,7 +362,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             show_volume_hot_map(ROOT_PATH, senario, option_epoch, snapshot_index)
             render_H3_title('SnapShot-' + str(snapshot_index) + ': Port Acc Attributes')
             generate_detail_plot_by_snapshot(comprehensive_info, data_ports, snapshot_index, ports_num,
-                                             CONVER_PATH, sample_ratio_res)
+                                            CONVER_PATH, sample_ratio_res)
             generate_top_summary(data_ports, snapshot_index, ports_num, CONVER_PATH)
             render_H1_title('Detail Data')
             data_vessels = read_detail_csv(os.path.join(dir, 'vessels.csv'))
@@ -377,7 +377,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             item_option = st.multiselect(' ', item_option_all, item_option_all)
             item_option = get_CIM_item_option(item_option, item_option_all)
             generate_detail_plot_by_snapshot(specific_info, data_ports, snapshot_index, ports_num,
-                                             CONVER_PATH, sample_ratio_res, item_option)
+                                            CONVER_PATH, sample_ratio_res, item_option)
 
     else:
         render_H1_title(senario + ' Detail Data')
@@ -390,7 +390,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
         snapshot_num = len(data_stations['frame_index'].unique())
         snapshots_index = np.arange(snapshot_num).tolist()
         item_option_all = ['All', 'Requirement Info', 'Station Info', 'bikes',
-                           'shortage', 'trip_requirement', 'fulfillment', 'capacity', 'extra_cost', 'failed_return']
+                        'shortage', 'trip_requirement', 'fulfillment', 'capacity', 'extra_cost', 'failed_return']
         # filter by station index
         # display the change of snapshot within 1 station
         if option == 'by station':
@@ -420,7 +420,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             station_filtered = station_filtered.iloc[down_pooling]
             station_filtered.rename(columns={'frame_index': 'snapshot_index'}, inplace=True)
             station_filtered_long_form = station_filtered.melt('snapshot_index', var_name='Attributes',
-                                                               value_name='count')
+                                                            value_name='count')
             custom_chart_station = alt.Chart(station_filtered_long_form).mark_line().encode(
                 x='snapshot_index',
                 y='count',
@@ -464,7 +464,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             name_conversion = read_name_conversion(CONVER_PATH)
             snapshot_filtered['station'] = snapshot_filtered['name'].apply(lambda x: name_conversion.loc[int(x)])
             snapshot_filtered_long_form = snapshot_filtered.melt(['station', 'name'], var_name='Attributes',
-                                                                 value_name='count')
+                                                                value_name='count')
             custom_chart_snapshot = alt.Chart(snapshot_filtered_long_form).mark_bar().encode(
                 x='name:N',
                 y='count:Q',
@@ -553,7 +553,7 @@ def read_summary_data(file_path, down_pooling_range):
 def generate_summary_plot(item_option, data, down_pooling_range):
     data['epoch index'] = list(down_pooling_range)
     data_long_form = data.melt('epoch index', var_name='Attributes',
-                               value_name='count')
+                            value_name='count')
     custom_chart_port = alt.Chart(data_long_form).mark_line().encode(
         x='epoch index',
         y='count',
@@ -602,7 +602,7 @@ def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations
         down_pooling_len = math.floor(1 / down_pooling_num)
         down_pooling_range = generate_down_pooling_sample(epoch_num, down_pooling_len, start_epoch, end_epoch)
         item_option_all = ['All', 'Booking Info', 'Port Info', 'shortage', 'booking', 'fulfillment', 'on_shipper',
-                           'on_consignee', 'capacity', 'full', 'empty']
+                        'on_consignee', 'capacity', 'full', 'empty']
         data = read_summary_data(ports_file_path, down_pooling_range)
         data_genera = formula_define(data)
         if data_genera is not None:
@@ -621,7 +621,7 @@ def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations
         data['port name'] = data['name'].apply(lambda x: name_conversion.loc[int(x)])
         df_bikes = data[['port name', 'bikes']].sort_values(by='bikes', ascending=False).head(5)
         df_requirement = data[['port name', 'trip_requirement']].sort_values(by='trip_requirement',
-                                                                             ascending=False).head(5)
+                                                                            ascending=False).head(5)
         df_fulfillment = data[['port name', 'fulfillment']].sort_values(by='fulfillment', ascending=False).head(5)
         df_fulfillment_ratio = data[['port name', 'fulfillment_ratio']].sort_values(by='fulfillment_ratio',
                                                                                     ascending=False).head(5)

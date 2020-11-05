@@ -44,9 +44,9 @@ def main():
     parser_env = subparsers.add_parser(
         'env',
         help=('Get all environment-related information, '
-              'such as the supported scenarios, topologies. '
-              'And it is also responsible to generate data to the specific environment, '
-              'which has external data dependency.'),
+            'such as the supported scenarios, topologies. '
+            'And it is also responsible to generate data to the specific environment, '
+            'which has external data dependency.'),
         parents=[global_parser]
     )
     parser_env.set_defaults(func=_help_func(parser=parser_env))
@@ -803,8 +803,8 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         default=None,
         required=False,
         help=("Specified start timestamp (in UTC) for binary file, "
-              "then this timestamp will be considered as tick=0 for binary reader, "
-              "this can be used to adjust the reader pipeline."))
+            "then this timestamp will be considered as tick=0 for binary reader, "
+            "this can be used to adjust the reader pipeline."))
 
     build_cmd_parser.set_defaults(func=convert)
 
@@ -819,6 +819,7 @@ def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         parents=[global_parser])
 
     deploy_cmd_parser.set_defaults(func=meta_deploy)
+
 
 def load_parser_vispath(prev_parser: ArgumentParser, global_parser: ArgumentParser):
     vispath_cmd_sub_parsers = prev_parser.add_subparsers()

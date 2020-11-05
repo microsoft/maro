@@ -19,13 +19,14 @@ def init_csv(file_path, header):
 def generate_holder_name(senario, input_path, name_conversion, data):
     if senario == "CIM":
         data['port_name'] = list(map(lambda x: name_conversion[int(x[6:])], data['name']))
-        data.to_csv(input_path)
+        data.to_csv(input_path, chunksize=2000)
+
 
 # calculate summary info and generate corresponding csv file
 def summary_append(senario, name_conversion, dir_epoch, file_name, header, sum_dataframe, i, output_path):
     input_path = os.path.join(dir_epoch, file_name)
     data = pd.read_csv(input_path)
-    # generate_holder_name(senario, input_path, name_conversion, data)
+    generate_holder_name(senario, input_path, name_conversion, data)
     data_insert = []
     for ele in header:
         data_insert.append(np.sum(np.array(data[ele]), axis=0))
@@ -62,14 +63,14 @@ def generate_summary(senario, ROOT_PATH, CONVER_PATH, ports_file_path, vessels_f
                 continue
             if senario == 'CIM':
                 summary_append(senario, name_conversion, dir_epoch, 'ports.csv', ports_header, ports_sum_dataframe,
-                               i, ports_file_path)
+                            i, ports_file_path)
                 # summary_append(dir_epoch, 'vessels.csv', vessels_header, vessels_sum_dataframe, i,vessels_file_path)
                 i = i + 1
     elif senario == 'CITI_BIKE':
         data = pd.read_csv(os.path.join(ROOT_PATH, 'snapshot_0', 'stations.csv'))
         data = data[['bikes', 'trip_requirement', 'fulfillment', 'capacity']].groupby(data['name']).sum()
         data['fulfillment_ratio'] = list(map(lambda x, y: float('{:.4f}'.format(x/(y+1/1000))), data['fulfillment'],
-                                             data['trip_requirement']))
+                                            data['trip_requirement']))
         data.to_csv(stations_file_path)
 
 
