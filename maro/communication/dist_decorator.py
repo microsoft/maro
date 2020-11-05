@@ -6,7 +6,7 @@ from functools import partial
 from typing import Callable
 
 # private lib
-from maro.communication import Proxy, RegisterTable
+from . import Proxy, RegisterTable
 
 
 def dist(proxy: Proxy, handler_dict: {object: Callable}):

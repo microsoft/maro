@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+# native lib
 import itertools
 import json
 import signal
 import sys
 import time
 import uuid
-# native lib
 from collections import defaultdict, namedtuple
 from enum import Enum
 from typing import Dict, List, Union
@@ -16,14 +16,15 @@ from typing import Dict, List, Union
 import redis
 
 # private lib
-from maro.communication import (
-    DriverType, Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage, ZmqDriver
-)
-from maro.communication.utils import default_parameters
 from maro.utils import DummyLogger, InternalLogger
 from maro.utils.exception.communication_exception import (
     DriverTypeError, InformationUncompletedError, PeersMissError, RedisConnectionError
 )
+
+from .driver import DriverType, ZmqDriver
+from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
+from .utils import default_parameters
+
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
