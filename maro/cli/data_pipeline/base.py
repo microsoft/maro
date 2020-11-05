@@ -5,7 +5,7 @@ import os
 import shutil
 from abc import ABC
 
-from maro.cli.data_pipeline.utils import convert, download_file, generate_name_with_uuid, StaticParameter
+from maro.cli.data_pipeline.utils import StaticParameter, convert, download_file, generate_name_with_uuid
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 

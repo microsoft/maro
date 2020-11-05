@@ -2,9 +2,7 @@
 from collections import OrderedDict
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
-from maro.simulator.scenarios.finance.common.common import (Order,
-                                                            OrderDirection,
-                                                            TradeResult)
+from maro.simulator.scenarios.finance.common.common import Order, OrderDirection, TradeResult
 
 
 @node("account")

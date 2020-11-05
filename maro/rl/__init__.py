@@ -13,20 +13,20 @@ from maro.rl.dist_topologies.experience_collection import (
 )
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
 from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
-from maro.rl.early_stopping.simple_early_stopping_checker import RSDEarlyStoppingChecker, MaxDeltaEarlyStoppingChecker
+from maro.rl.early_stopping.simple_early_stopping_checker import MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
 from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.models.fc_net import FullyConnectedNet
 from maro.rl.models.learning_model import LearningModel
-from maro.rl.storage.abs_store import AbsStore
-from maro.rl.storage.column_based_store import ColumnBasedStore
-from maro.rl.storage.utils import OverwriteType
 from maro.rl.shaping.abs_shaper import AbsShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.k_step_experience_shaper import KStepExperienceShaper
+from maro.rl.storage.abs_store import AbsStore
+from maro.rl.storage.column_based_store import ColumnBasedStore
+from maro.rl.storage.utils import OverwriteType
 
 
 __all__ = [

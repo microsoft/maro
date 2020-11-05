@@ -4,10 +4,10 @@
 import os
 from abc import abstractmethod
 
-from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
+from maro.rl.shaping.state_shaper import StateShaper
 from maro.utils.exception.rl_toolkit_exception import MissingShaperError
 
 from .abs_agent_manager import AbsAgentManager, AgentManagerMode
