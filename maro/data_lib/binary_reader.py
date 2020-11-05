@@ -10,9 +10,9 @@ from typing import Union
 
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import UTC
-from maro.data_lib.common import (VERSION, FileHeader, header_struct)
-from maro.data_lib.item_meta import BinaryMeta
 
+from maro.data_lib.common import VERSION, FileHeader, header_struct
+from maro.data_lib.item_meta import BinaryMeta
 
 # used to get correct datetime with negative timestamp on Windows
 timestamp_start = datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)

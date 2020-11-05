@@ -3,6 +3,7 @@
 
 
 from enum import IntEnum
+
 from maro.backends.frame import SnapshotList
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 
-from maro.rl.shaping.state_shaper import StateShaper
 from examples.cim.gnn.utils import compute_v2p_degree_matrix
+from maro.rl.shaping.state_shaper import StateShaper
 
 
 class GNNStateShaper(StateShaper):

@@ -7,10 +7,9 @@
 # 2. event object pool, this will make get_finished_events function stop working.
 #    we can enable this to disable pooling
 
-from enum import IntEnum
 from collections import defaultdict
-from typing import List, Callable
-
+from enum import IntEnum
+from typing import Callable, List
 
 DECISION_EVENT = 0
 """Predefined decision event type, if business engine need to process actions from agent,

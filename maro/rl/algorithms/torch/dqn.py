@@ -6,7 +6,6 @@ from typing import Union
 import numpy as np
 import torch
 
-
 from maro.rl.algorithms.torch.abs_algorithm import AbsAlgorithm
 from maro.utils import clone
 

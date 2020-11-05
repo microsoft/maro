@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from .__misc__ import __version__, __data_version__
+from maro.utils.utils import check_deployment_status, deploy
 
-from maro.utils.utils import deploy, check_deployment_status
+from .__misc__ import __data_version__, __version__
 
 if not check_deployment_status():
     deploy()

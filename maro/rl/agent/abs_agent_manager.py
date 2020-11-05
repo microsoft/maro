@@ -1,15 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 from abc import ABC, abstractmethod
 from enum import Enum
-import os
 
-from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.explorer.abs_explorer import AbsExplorer
-from maro.utils.exception.rl_toolkit_exception import UnsupportedAgentModeError, MissingShaperError, WrongAgentModeError
+from maro.rl.shaping.state_shaper import StateShaper
+from maro.utils.exception.rl_toolkit_exception import MissingShaperError, UnsupportedAgentModeError, WrongAgentModeError
 
 
 class AgentMode(Enum):

@@ -9,10 +9,10 @@ from collections import namedtuple
 from struct import Struct
 from typing import List, Union
 
-from maro.data_lib.common import dtype_pack_map
-
-from maro.utils.exception.data_lib_exeption import MetaTimestampNotExist
 from yaml import SafeDumper, SafeLoader, YAMLObject, safe_dump, safe_load
+
+from maro.data_lib.common import dtype_pack_map
+from maro.utils.exception.data_lib_exeption import MetaTimestampNotExist
 
 
 class EntityAttr(YAMLObject):

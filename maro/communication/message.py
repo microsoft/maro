@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import uuid
 # native lib
 from enum import Enum
 from typing import Union
-import uuid
 
+from maro.communication.utils import session_id_generator
 # private lib
 from maro.utils.exception.communication_exception import MessageSessionTypeError
-from maro.communication.utils import session_id_generator
 
 
 class SessionType(Enum):

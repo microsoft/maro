@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import os
-from pathlib import Path
 from abc import ABC, abstractmethod
+from pathlib import Path
 
-from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
+from maro.event_buffer import EventBuffer
 from maro.simulator.utils.common import tick_to_frame_index, total_frames
 
 

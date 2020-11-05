@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import itertools
 # native lib
 from enum import Enum
-import itertools
-import numpy as np
 from typing import List, Tuple, Union
+
+import numpy as np
 
 # private lib
 from maro.communication import Message

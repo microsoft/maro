@@ -4,13 +4,14 @@
 
 import configparser
 import io
-import numpy as np
 import os
-from pickle import loads, dumps
 import random
 import shutil
 import time
 import warnings
+from pickle import dumps, loads
+
+import numpy as np
 
 from maro import __data_version__
 from maro.utils.logger import CliLogger

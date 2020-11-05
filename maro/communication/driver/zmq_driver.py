@@ -12,9 +12,9 @@ import zmq
 from maro.communication import AbsDriver, Message
 from maro.communication.utils import default_parameters
 from maro.utils import DummyLogger
-from maro.utils.exception.communication_exception import PeersConnectionError, DriverReceiveError, DriverSendError, \
-    SocketTypeError
-
+from maro.utils.exception.communication_exception import (
+    DriverReceiveError, DriverSendError, PeersConnectionError, SocketTypeError
+)
 
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout
