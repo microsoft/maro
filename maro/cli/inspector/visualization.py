@@ -1,10 +1,10 @@
-import streamlit as st
 import os
-import numpy as np
-import pandas as pd
-import altair as alt
 import math
 import argparse
+import streamlit as st
+import altair as alt
+import numpy as np
+import pandas as pd
 
 Title_html = """
         <style>
@@ -63,11 +63,9 @@ def generate_top_summary(data,snapshot_index,ports_num,CONVER_PATH):
 
 def generate_by_snapshot_top_summary(data,attribute,Need_SnapShot,snapshot_index=-1):
     if Need_SnapShot:
-        html_title=Title_html+'<div class="title"><h3>SnapShot-'+str(snapshot_index)+': '+'     Top 5 '+attribute+'</h3></div>'
-
+        render_H3_title('SnapShot-'+str(snapshot_index)+': '+'     Top 5 '+attribute)
     else:
-        html_title=Title_html+'<div class="title"><h3>'+'Top 5 '+attribute+'</h3></div>'
-    st.markdown(html_title, unsafe_allow_html=True)
+        render_H3_title('Top 5 '+attribute)
     data['counter'] = range(len(data))
     data['port'] = list(
         map(lambda x, y: str(x+1)+'-'+y, data['counter'], data['port name']))
@@ -88,8 +86,7 @@ def generate_by_snapshot_top_summary(data,attribute,Need_SnapShot,snapshot_index
     st.altair_chart(bars + text)
 
 def generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num):
-    html_title = Title_html + '<div class="title"><h3>SnapShot-'+str(snapshot_index)+': Vessel Attributes</h3></div>'
-    st.markdown(html_title, unsafe_allow_html=True)
+    render_H3_title('SnapShot-'+str(snapshot_index)+': Vessel Attributes')
     sample_ratio = get_snapshot_sampling(vessels_num)
     sample_ratio_res = st.sidebar.select_slider('Vessels Sample Ratio:', sample_ratio)
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
@@ -162,10 +159,7 @@ def generate_detail_plot_by_ports(info_selector, data, str_temp, snapshot_num,sn
     port_filtered = data_acc[data_acc['name'] == str_temp][info_selector].reset_index(drop=True)
     port_filtered.rename(columns={'frame_index': 'snapshot_index'}, inplace=True)
 
-    bar_data = []
-    for index in down_pooling:
-        bar_data.append(port_filtered.loc[index])
-    bar_data = pd.DataFrame(bar_data)
+    bar_data = port_filtered.loc[down_pooling]
     if item_option!=None:
         item_option.append('snapshot_index')
         bar_data=bar_data[item_option]
@@ -190,7 +184,6 @@ def generate_detail_plot_by_ports(info_selector, data, str_temp, snapshot_num,sn
     ).properties(width=700,
                  height=380)
     st.altair_chart(custom_bar_chart)
-
 
 @st.cache(allow_output_mutation=True)
 def read_detail_csv(path):
@@ -227,14 +220,12 @@ def generate_hot_map(matrix_data):
         width=700,
         height=380
     )
-
     st.altair_chart(chart)
 
 def show_volume_hot_map(ROOT_PATH,senario,epoch_index,snapshot_index):
     matrix_data = pd.read_csv(os.path.join(ROOT_PATH,'snapshot_'+str(epoch_index),'matrices.csv')).loc[snapshot_index]
     if senario=='CIM':
-        html_title = Title_html + '<div class="title"><h3>SnapShot-'+str(snapshot_index)+': Acc Port Transfer Volume</h3></div>'
-        st.markdown(html_title, unsafe_allow_html=True)
+        render_H3_title('SnapShot-'+str(snapshot_index)+': Acc Port Transfer Volume')
         generate_hot_map(matrix_data['full_on_ports'])
 
 def get_CITI_item_option(item_option, item_option_all):
@@ -279,6 +270,15 @@ def get_CIM_item_option(item_option,item_option_all):
         else:
             item_option_res.append(item)
     return item_option_res
+
+def render_H1_title(content):
+    html_title_acc = Title_html + '<div class="title"><h1>'+content+'</h1></div>'
+    st.markdown(html_title_acc, unsafe_allow_html=True)
+
+def render_H3_title(content):
+    html_title_acc = Title_html + '<div class="title"><h3>' + content + '</h3></div>'
+    st.markdown(html_title_acc, unsafe_allow_html=True)
+
 # entrance of detail plot
 def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
     dirs = os.listdir(ROOT_PATH)
@@ -313,18 +313,15 @@ def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
             port_index = st.sidebar.select_slider(
                 'Choose a Port:',
                 ports_index)
-            str_temp = 'ports_' + str(port_index)
+            str_port_option = 'ports_' + str(port_index)
             name_conversion = read_name_conversion(CONVER_PATH)
             sample_ratio = holder_sample_ratio(snapshot_num)
             snapshot_sample_num = st.sidebar.select_slider('Snapshot Sampling Ratio:', sample_ratio)
-            html_title_acc = Title_html + '<div class="title"><h1>CIM Acc Data</h1></div>'
-            st.markdown(html_title_acc, unsafe_allow_html=True)
-            html_title_detail = Title_html + '<div class="title"><h3>Port Acc Attributes: ' + str(port_index) + ' -  ' + \
-                                name_conversion.loc[int(port_index)][0] + '</h3></div>'
-            st.markdown(html_title_detail, unsafe_allow_html=True)
-            generate_detail_plot_by_ports(comprehensive_info, data_ports, str_temp, snapshot_num,snapshot_sample_num)
-            html_title_detail = Title_html + '<div class="title"><h1>CIM Detail Data</h1></div>'
-            st.markdown(html_title_detail, unsafe_allow_html=True)
+
+            render_H1_title('CIM Acc Data')
+            render_H3_title('Port Acc Attributes: ' + str(port_index) + ' -  ' + name_conversion.loc[int(port_index)][0])
+            generate_detail_plot_by_ports(comprehensive_info, data_ports, str_port_option, snapshot_num,snapshot_sample_num)
+            render_H1_title('CIM Detail Data')
             data_genera = formula_define(data_ports)
             if data_genera is not None:
                 specific_info.append(data_genera['name'])
@@ -333,10 +330,8 @@ def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
             item_option = st.multiselect(
                 ' ', item_option_all, item_option_all)
             item_option = get_CIM_item_option(item_option, item_option_all)
-
             str_temp = 'ports_' + str(port_index)
-            html_title_detail = Title_html + '<div class="title"><h3>Port Detail Attributes: '+str(port_index)+' -  '+name_conversion.loc[int(port_index)][0]+'</h3></div>'
-            st.markdown(html_title_detail, unsafe_allow_html=True)
+            render_H3_title('Port Detail Attributes: '+str(port_index)+' -  '+name_conversion.loc[int(port_index)][0])
             generate_detail_plot_by_ports(specific_info, data_ports, str_temp, snapshot_num, snapshot_sample_num,item_option)
         if option_2 == 'by snapshot':
             snapshot_index = st.sidebar.select_slider(
@@ -344,20 +339,16 @@ def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
                 snapshots_index)
             sample_ratio = get_snapshot_sampling(ports_num)
             sample_ratio_res = st.sidebar.select_slider('Ports Sample Ratio:', sample_ratio)
-            html_title_acc = Title_html + '<div class="title"><h1>Acc Data</h1></div>'
-            st.markdown(html_title_acc, unsafe_allow_html=True)
+            render_H1_title('Acc Data')
             show_volume_hot_map(ROOT_PATH,senario,option_epoch,snapshot_index)
-            html_title = Title_html + '<div class="title"><h3> SnapShot-'+str(snapshot_index)+': Port Acc Attributes</h3></div>'
-            st.markdown(html_title, unsafe_allow_html=True)
+            render_H3_title('SnapShot-'+str(snapshot_index)+': Port Acc Attributes')
             generate_detail_plot_by_snapshot(comprehensive_info, data_ports, snapshot_index, ports_num,CONVER_PATH,sample_ratio_res)
             generate_top_summary(data_ports,snapshot_index,ports_num,CONVER_PATH)
-            html_title_detail = Title_html + '<div class="title"><h1>Detail Data</h1></div>'
-            st.markdown(html_title_detail, unsafe_allow_html=True)
+            render_H1_title('Detail Data')
             data_vessels = read_detail_csv(os.path.join(dir, 'vessels.csv'))
             vessels_num = len(data_vessels['name'].unique())
             generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num)
-            html_title = Title_html + '<div class="title"><h3>SnapShot-'+str(snapshot_index)+': Port Detail Attributes</h3></div>'
-            st.markdown(html_title, unsafe_allow_html=True)
+            render_H3_title('SnapShot-'+str(snapshot_index)+': Port Detail Attributes')
             data_genera = formula_define(data_ports)
             if data_genera is not None:
                 specific_info.append(data_genera['name'])
@@ -370,8 +361,7 @@ def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
                                              item_option)
 
     else:
-        html_title_detail = Title_html + '<div class="title"><h1>'+senario+' Detail Data</h1></div>'
-        st.markdown(html_title_detail, unsafe_allow_html=True)
+        render_H1_title(senario+' Detail Data')
         data_stations = pd.read_csv(os.path.join(ROOT_PATH, 'snapshot_0', 'stations.csv'))
         option = st.sidebar.selectbox(
             'By stations/snapshot:',
@@ -389,9 +379,7 @@ def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
                 'station index',
                 stations_index)
             name_conversion = read_name_conversion(CONVER_PATH)
-
-            html_title_detail_station = Title_html + '<div class="title"><h3>' + name_conversion.loc[int(station_index)][0] + ' Detail Data</h3></div>'
-            st.markdown(html_title_detail_station, unsafe_allow_html=True)
+            render_H3_title(name_conversion.loc[int(station_index)][0] + ' Detail Data')
             station_filtered_by_ID = data_stations[data_stations['name'] == 'stations_'+str(station_index)]
             station_sample_ratio = holder_sample_ratio(snapshot_num)
             snapshot_sample_num = st.sidebar.select_slider('Snapshot Sampling Ratio:', station_sample_ratio)
@@ -433,8 +421,7 @@ def show_detail_plot(senario, ROOT_PATH,CONVER_PATH):
             snapshot_index = st.sidebar.select_slider(
                 'snapshot index',
                 snapshots_index)
-            html_title_detail_snapshot = Title_html + '<div class="title"><h3>Snapshot-'+str(snapshot_index) + ':  Detail Data</h3></div>'
-            st.markdown(html_title_detail_snapshot, unsafe_allow_html=True)
+            render_H3_title('Snapshot-'+str(snapshot_index) + ':  Detail Data')
             snapshot_filtered_by_Frame_Index = data_stations[data_stations['frame_index'] == snapshot_index]
             sample_ratio=holder_sample_ratio(snapshot_num)
             station_sample_num = st.sidebar.select_slider('Snapshot Sampling Ratio', sample_ratio)
@@ -570,8 +557,7 @@ def generate_summary_plot(item_option, data, down_pooling_range):
 
 # entrance of summary plot
 def show_summary_plot(senario, ROOT_PATH, CONVER_PATH,ports_file_path, stations_file_path):
-    html_title_detail = Title_html + '<div class="title"><h1>'+senario+' Summary Data</h1></div>'
-    st.markdown(html_title_detail, unsafe_allow_html=True)
+    render_H1_title(senario+' Summary Data')
     if senario == 'CIM':
         dirs = os.listdir(ROOT_PATH)
         temp_len = len(dirs)
