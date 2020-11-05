@@ -59,7 +59,7 @@ def launch(config):
 
     perf_stability_checker = MaxDeltaEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.delta_threshold
+        threshold=config.general.early_stopping.perf_stability_threshold
     )
 
     combined_checker = perf_checker & perf_stability_checker
