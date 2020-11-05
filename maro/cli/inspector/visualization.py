@@ -102,9 +102,7 @@ def generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num
             [snapshot_temp, snapshot_filtered[snapshot_filtered['name'] == 'vessels_' + str(index)]], axis=0)
     snapshot_filtered = snapshot_temp.reset_index(drop=True)
     snapshot_filtered['name'] = snapshot_filtered['name'].apply(lambda x: int(x[8:]))
-    snapshot_filtered_long_form = snapshot_filtered.melt('name', var_name='Attributes',
-                                                         value_name='count')
-
+    snapshot_filtered_long_form = snapshot_filtered.melt('name', var_name='Attributes', value_name='count')
     custom_chart_snapshot = alt.Chart(snapshot_filtered_long_form).mark_bar().encode(
         x=alt.X('name:N', axis=alt.Axis(title='vessel name')),
         y='count:Q',
@@ -560,7 +558,7 @@ def generate_summary_plot(item_option, data, down_pooling_range):
         x='epoch index',
         y='count',
         color='Attributes',
-        toolti=['Attributes', 'count', 'epoch index']
+        tooltip=['Attributes', 'count', 'epoch index']
     ).properties(
         width=700,
         height=380
@@ -627,7 +625,6 @@ def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations
         df_fulfillment = data[['port name', 'fulfillment']].sort_values(by='fulfillment', ascending=False).head(5)
         df_fulfillment_ratio = data[['port name', 'fulfillment_ratio']].sort_values(by='fulfillment_ratio',
                                                                                     ascending=False).head(5)
-
         generate_by_snapshot_top_summary(df_bikes, 'bikes', 0)
         generate_by_snapshot_top_summary(df_requirement, 'trip_requirement', 0)
         generate_by_snapshot_top_summary(df_fulfillment, 'fulfillment', 0)
@@ -636,8 +633,7 @@ def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations
 
 # generate down pooling list based on origin data and down pooling rate
 def generate_down_pooling_sample(origin_len, down_pooling_len, start_epoch, end_epoch):
-    down_pooling_range = range(start_epoch, end_epoch, down_pooling_len)
-    down_pooling_range = list(down_pooling_range)
+    down_pooling_range = list(range(start_epoch, end_epoch, down_pooling_len))
     if end_epoch not in down_pooling_range:
         down_pooling_range.append(end_epoch)
     return down_pooling_range

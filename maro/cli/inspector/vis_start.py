@@ -16,9 +16,16 @@ def init_csv(file_path, header):
         writer.writeheader()
 
 
+def generate_holder_name(senario, input_path, name_conversion, data):
+    if senario == "CIM":
+        data['port_name'] = list(map(lambda x: name_conversion[int(x[6:])], data['name']))
+        data.to_csv(input_path)
+
 # calculate summary info and generate corresponding csv file
-def summary_append(dir_epoch, file_name, header, sum_dataframe, i, output_path):
-    data = pd.read_csv(os.path.join(dir_epoch, file_name))
+def summary_append(senario, name_conversion, dir_epoch, file_name, header, sum_dataframe, i, output_path):
+    input_path = os.path.join(dir_epoch, file_name)
+    data = pd.read_csv(input_path)
+    # generate_holder_name(senario, input_path, name_conversion, data)
     data_insert = []
     for ele in header:
         data_insert.append(np.sum(np.array(data[ele]), axis=0))
@@ -27,16 +34,16 @@ def summary_append(dir_epoch, file_name, header, sum_dataframe, i, output_path):
 
 
 # generate summary info of a senario
-def generate_summary(senario, ROOT_PATH, ports_file_path, vessels_file_path, stations_file_path):
+def generate_summary(senario, ROOT_PATH, CONVER_PATH, ports_file_path, vessels_file_path, stations_file_path):
     ports_header = ['capacity', 'empty', 'full', 'on_shipper', 'on_consignee', 'shortage', 'booking', 'fulfillment']
     # vessels_header = ['capacity', 'empty', 'full', 'remaining_space', 'early_discharge']
     stations_header = ['bikes', 'shortage', 'trip_requirement', 'fulfillment', 'capacity']
     dbtype_list_all = os.listdir(ROOT_PATH)
-
+    name_conversion = np.array(pd.read_csv(CONVER_PATH)).flatten()
     temp_len = len(dbtype_list_all)
     dbtype_list = []
     for index in range(0, temp_len):
-        if (os.path.exists(os.path.join(ROOT_PATH, r'snapshot_' + str(index)))):
+        if os.path.exists(os.path.join(ROOT_PATH, r'snapshot_' + str(index))):
             dbtype_list.append(os.path.join(ROOT_PATH, r'snapshot_' + str(index)))
 
     if senario == 'CIM':
@@ -54,7 +61,8 @@ def generate_summary(senario, ROOT_PATH, ports_file_path, vessels_file_path, sta
             if not os.path.isdir(dir_epoch):
                 continue
             if senario == 'CIM':
-                summary_append(dir_epoch, 'ports.csv', ports_header, ports_sum_dataframe, i, ports_file_path)
+                summary_append(senario, name_conversion, dir_epoch, 'ports.csv', ports_header, ports_sum_dataframe,
+                               i, ports_file_path)
                 # summary_append(dir_epoch, 'vessels.csv', vessels_header, vessels_sum_dataframe, i,vessels_file_path)
                 i = i + 1
     elif senario == 'CITI_BIKE':
@@ -91,11 +99,10 @@ def generate_down_pooling_sample(origin_len, down_pooling_len, start_epoch, end_
     return down_pooling_range
 
 
-def get_holder_name_conversion(ROOT_PATH, CONVER_PATH):
+def get_holder_name_conversion(senario, ROOT_PATH, CONVER_PATH):
     if os.path.exists(os.path.join(ROOT_PATH, r'name_conversion.csv')):
         os.remove(os.path.join(ROOT_PATH, r'name_conversion.csv'))
-    filename, type = os.path.splitext(CONVER_PATH)
-    if type == '.json':
+    if senario == "CITI_BIKE":
         with open(CONVER_PATH, 'r', encoding='utf8')as fp:
             json_data = json.load(fp)
             name_list = []
@@ -103,7 +110,7 @@ def get_holder_name_conversion(ROOT_PATH, CONVER_PATH):
                 name_list.append(item['name'])
             df = pd.DataFrame(name_list)
             df.to_csv(os.path.join(ROOT_PATH, r'name_conversion.csv'), index=False)
-    else:
+    elif senario == "CIM":
         f = open(CONVER_PATH, 'r')
         ystr = f.read()
         aa = yaml.load(ystr, Loader=yaml.FullLoader)
@@ -130,23 +137,26 @@ def start_vis(input: str, conver_path: str, **kwargs):
     ports_file_path = os.path.join(ROOT_PATH, r'snapshot_ports_summary.csv')
     vessels_file_path = os.path.join(ROOT_PATH, r'snapshot_vessels_summary.csv')
     stations_file_path = os.path.join(ROOT_PATH, r'snapshot_stations_summary.csv')
+    name_conversion_path = os.path.join(ROOT_PATH, r'name_conversion.csv')
     if os.path.exists(ports_file_path) or os.path.exists(stations_file_path):
         print('Data is generated. Display charts directly.')
 
     print("rename data")
     rename_data(ROOT_PATH)
     print("rename data done")
+
     if os.path.exists(os.path.join(ROOT_PATH, 'snapshot_0', 'ports.csv')):
         senario = 'CIM'
     else:
         senario = 'CITI_BIKE'
-    print("generate summary")
-    generate_summary(senario, ROOT_PATH, ports_file_path, vessels_file_path, stations_file_path)
-    print("generate summary done")
     if CONVER_PATH is not None:
         print("generate name conversion")
-        get_holder_name_conversion(ROOT_PATH, CONVER_PATH)
+        get_holder_name_conversion(senario, ROOT_PATH, CONVER_PATH)
         print("generate name conversion done")
+    print("generate summary")
+    generate_summary(senario, ROOT_PATH, name_conversion_path, ports_file_path, vessels_file_path, stations_file_path)
+    print("generate summary done")
+
     os.system('streamlit cache clear')
     os.system(r'streamlit run ' + os.path.join(
         os.getcwd() + r'\maro\cli\inspector\visualization.py ') + r'-- ' + ROOT_PATH)
