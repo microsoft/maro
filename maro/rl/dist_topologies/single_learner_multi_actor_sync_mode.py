@@ -7,8 +7,8 @@ from typing import Callable
 
 from maro.communication import Proxy, SessionType
 from maro.communication.registry_table import RegisterTable
-from maro.rl.dist_topologies.common import PayloadKey
 from maro.rl.actor.abs_actor import AbsActor
+from maro.rl.dist_topologies.common import PayloadKey
 
 
 class MessageTag(Enum):
