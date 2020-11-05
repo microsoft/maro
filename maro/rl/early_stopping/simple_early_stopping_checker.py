@@ -19,7 +19,7 @@ class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
 
     def __call__(self, metric_series: list):
         if not self.is_triggered(metric_series):
-            return True
+            return False
         else:
             return self._measure_func(metric_series[-self._last_k:]) >= self._threshold
 
@@ -28,7 +28,7 @@ class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
     """Early stopping checker based on the mean and standard deviation of the last k metric values."""
     def __call__(self, metric_series: list):
         if not self.is_triggered(metric_series):
-            return True
+            return False
         else:
             metric_series = metric_series[-self._last_k:]
             return stdev(metric_series) / mean(metric_series) < self._threshold
@@ -42,7 +42,7 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
     """
     def __call__(self, metric_series: list):
         if not self.is_triggered(metric_series):
-            return True
+            return False
         else:
             metric_series = metric_series[-self._last_k:]
             max_delta = max(abs(val2 - val1) / val1 for val1, val2 in zip(metric_series, metric_series[1:]))
