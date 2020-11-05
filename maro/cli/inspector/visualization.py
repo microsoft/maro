@@ -36,15 +36,6 @@ Title_html = """
 """
 
 
-def get_snapshot_sampling(ports_num):
-    port_sample_origin = round(1 / ports_num, 4)
-    port_sample_ratio = np.arange(port_sample_origin, 1, port_sample_origin).tolist()
-    sample_ratio = [float('{:.4f}'.format(i)) for i in port_sample_ratio]
-    if 1 not in sample_ratio:
-        sample_ratio.append(1)
-    return sample_ratio
-
-
 def generate_top_summary(data, snapshot_index, ports_num, CONVER_PATH):
     data_acc = data[data['frame_index'] == snapshot_index].reset_index(drop=True)
     data_acc['fulfillment_ratio'] = list(
@@ -59,22 +50,22 @@ def generate_top_summary(data, snapshot_index, ports_num, CONVER_PATH):
                                                                             ascending=False).head(5)
     df_shortage = data_acc[['port name', 'acc_shortage']].sort_values(by='acc_shortage', ascending=False).head(5)
     df_ratio = data_acc[['port name', 'fulfillment_ratio']].sort_values(by='fulfillment_ratio', ascending=False).head(5)
-    generate_by_snapshot_top_summary(df_booking, 'acc_booking', True, snapshot_index)
-    generate_by_snapshot_top_summary(df_fulfillment, 'acc_fulfillment', True, snapshot_index)
-    generate_by_snapshot_top_summary(df_shortage, 'acc_shortage', True, snapshot_index)
-    generate_by_snapshot_top_summary(df_ratio, 'fulfillment_ratio', True, snapshot_index)
+    generate_by_snapshot_top_summary('port name', df_booking, 'acc_booking', True, snapshot_index)
+    generate_by_snapshot_top_summary('port name', df_fulfillment, 'acc_fulfillment', True, snapshot_index)
+    generate_by_snapshot_top_summary('port name', df_shortage, 'acc_shortage', True, snapshot_index)
+    generate_by_snapshot_top_summary('port name', df_ratio, 'fulfillment_ratio', True, snapshot_index)
 
 
-def generate_by_snapshot_top_summary(data, attribute, Need_SnapShot, snapshot_index=-1):
+def generate_by_snapshot_top_summary(attr_name, data, attribute, Need_SnapShot, snapshot_index=-1):
     if Need_SnapShot:
         render_H3_title('SnapShot-' + str(snapshot_index) + ': ' + '     Top 5 ' + attribute)
     else:
         render_H3_title('Top 5 ' + attribute)
     data['counter'] = range(len(data))
-    data['port'] = list(map(lambda x, y: str(x + 1) + '-' + y, data['counter'], data['port name']))
+    data[attr_name] = list(map(lambda x, y: str(x + 1) + '-' + y, data['counter'], data[attr_name]))
     bars = alt.Chart(data).mark_bar().encode(
         x=attribute + ':Q',
-        y="port:O",
+        y=attr_name + ":O",
     ).properties(
         width=700,
         height=240
@@ -91,7 +82,7 @@ def generate_by_snapshot_top_summary(data, attribute, Need_SnapShot, snapshot_in
 
 def generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num):
     render_H3_title('SnapShot-' + str(snapshot_index) + ': Vessel Attributes')
-    sample_ratio = get_snapshot_sampling(vessels_num)
+    sample_ratio = holder_sample_ratio(vessels_num)
     sample_ratio_res = st.sidebar.select_slider('Vessels Sample Ratio:', sample_ratio)
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
     snapshot_filtered = data_vessels[data_vessels['frame_index'] == snapshot_index].reset_index(drop=True)
@@ -238,6 +229,7 @@ def show_volume_hot_map(ROOT_PATH, senario, epoch_index, snapshot_index):
         generate_hot_map(matrix_data['full_on_ports'])
 
 
+# Convert selected CITI_BIKE option into column
 def get_CITI_item_option(item_option, item_option_all):
     item_option_res = []
     for item in item_option:
@@ -260,6 +252,7 @@ def get_CITI_item_option(item_option, item_option_all):
     return item_option_res
 
 
+# Convert selected CIM option into column
 def get_CIM_item_option(item_option, item_option_all):
     item_option_res = []
     for item in item_option:
@@ -284,23 +277,19 @@ def get_CIM_item_option(item_option, item_option_all):
 
 
 def render_H1_title(content):
-    html_title_acc = Title_html + '<div class="title"><h1>' + content + '</h1></div>'
-    st.markdown(html_title_acc, unsafe_allow_html=True)
+    html_title = Title_html + '<div class="title"><h1>' + content + '</h1></div>'
+    st.markdown(html_title, unsafe_allow_html=True)
 
 
 def render_H3_title(content):
-    html_title_acc = Title_html + '<div class="title"><h3>' + content + '</h3></div>'
-    st.markdown(html_title_acc, unsafe_allow_html=True)
+    html_title = Title_html + '<div class="title"><h3>' + content + '</h3></div>'
+    st.markdown(html_title, unsafe_allow_html=True)
 
 
 # entrance of detail plot
 def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
     dirs = os.listdir(ROOT_PATH)
-    temp_len = len(dirs)
-    epoch_num = 0
-    for index in range(0, temp_len):
-        if (os.path.exists(os.path.join(ROOT_PATH, r'snapshot_' + str(index)))):
-            epoch_num = epoch_num + 1
+    epoch_num = get_epoch_num(len(dirs), ROOT_PATH)
 
     if senario == 'CIM':
         option_epoch = st.sidebar.select_slider(
@@ -356,7 +345,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             snapshot_index = st.sidebar.select_slider(
                 'snapshot index',
                 snapshots_index)
-            sample_ratio = get_snapshot_sampling(ports_num)
+            sample_ratio = holder_sample_ratio(ports_num)
             sample_ratio_res = st.sidebar.select_slider('Ports Sample Ratio:', sample_ratio)
             render_H1_title('Acc Data')
             show_volume_hot_map(ROOT_PATH, senario, option_epoch, snapshot_index)
@@ -379,7 +368,7 @@ def show_detail_plot(senario, ROOT_PATH, CONVER_PATH):
             generate_detail_plot_by_snapshot(specific_info, data_ports, snapshot_index, ports_num,
                                             CONVER_PATH, sample_ratio_res, item_option)
 
-    else:
+    elif senario=='CITI_BIKE':
         render_H1_title(senario + ' Detail Data')
         data_stations = pd.read_csv(os.path.join(ROOT_PATH, 'snapshot_0', 'stations.csv'))
         option = st.sidebar.selectbox(
@@ -485,9 +474,9 @@ def read_name_conversion(path):
 def formula_define(data_origin):
     st.sidebar.markdown('***')
     formula_select = st.sidebar.selectbox('formula:', ['a+b', 'a*b+sqrt(c*d)'])
+    paras = st.sidebar.text_input('parameters separated by ;')
+    res = paras.split(';')
     if formula_select == 'a+b':
-        paras = st.sidebar.text_input('parameters separated by ;')
-        res = paras.split(';')
         if len(res) == 0 or res[0] == "":
             return
         elif len(res) != 2:
@@ -500,11 +489,7 @@ def formula_define(data_origin):
                     map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
             else:
                 return
-        data = {'data_after': data_origin, 'name': res[0] + '+' + res[1]}
-        return data
     if formula_select == 'a*b+sqrt(c*d)':
-        paras = st.sidebar.text_input('parameters separated by ;')
-        res = paras.split(';')
         if len(res) == 0 or res[0] == "":
             return
         elif len(res) != 4:
@@ -518,8 +503,8 @@ def formula_define(data_origin):
                         data_origin[res[0]], data_origin[res[1]], data_origin[res[2]], data_origin[res[3]]))
             else:
                 return
-        data = {'data_after': data_origin, 'name': res[0] + '*' + res[1] + '+sqrt(' + res[2] + '*+' + res[3] + ')'}
-        return data
+    data = {'data_after': data_origin, 'name': res[0] + '*' + res[1] + '+sqrt(' + res[2] + '*+' + res[3] + ')'}
+    return data
 
 
 def judge_append_data(data_head, res):
@@ -577,22 +562,22 @@ def generate_summary_plot(item_option, data, down_pooling_range):
     st.altair_chart(custom_chart_port_bar)
 
 
+# get epoch num by counting folders start with 'snapshot_'
+def get_epoch_num(origin_len, ROOT_PATH):
+    epoch_num = 0
+    for index in range(0, origin_len):
+        if os.path.exists(os.path.join(ROOT_PATH, r'snapshot_' + str(index))):
+            epoch_num = epoch_num + 1
+    return epoch_num
+
+
 # entrance of summary plot
 def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations_file_path):
     render_H1_title(senario + ' Summary Data')
     if senario == 'CIM':
         dirs = os.listdir(ROOT_PATH)
-        temp_len = len(dirs)
-        epoch_num = 0
-        for index in range(0, temp_len):
-            if os.path.exists(os.path.join(ROOT_PATH, r'snapshot_' + str(index))):
-                epoch_num = epoch_num + 1
-        sample_ratio_gap = round(1 / (epoch_num - 1), 4)
-        sample_origin_ratio = np.arange(sample_ratio_gap, 1, sample_ratio_gap).tolist()
-        sample_ratio = [float('{:.4f}'.format(i)) for i in sample_origin_ratio]
-        if 1 not in sample_ratio:
-            sample_ratio.append(1)
-
+        epoch_num = get_epoch_num(len(dirs), ROOT_PATH)
+        sample_ratio = holder_sample_ratio(epoch_num)
         start_epoch = st.sidebar.number_input('Start Epoch', 0, epoch_num - 1, 0)
         end_epoch = st.sidebar.number_input('End Epoch', 0, epoch_num - 1, epoch_num - 1)
 
@@ -615,20 +600,18 @@ def show_summary_plot(senario, ROOT_PATH, CONVER_PATH, ports_file_path, stations
         generate_summary_plot(item_option, data, down_pooling_range)
     else:
         data = pd.read_csv(stations_file_path)
-        data['name'] = data['name'].apply(lambda x: int(x[9:]))
-
         name_conversion = read_name_conversion(CONVER_PATH)
-        data['port name'] = data['name'].apply(lambda x: name_conversion.loc[int(x)])
-        df_bikes = data[['port name', 'bikes']].sort_values(by='bikes', ascending=False).head(5)
-        df_requirement = data[['port name', 'trip_requirement']].sort_values(by='trip_requirement',
+        data['station name'] = list(map(lambda x: name_conversion[int(x[9:])], data['name']))
+        df_bikes = data[['station name', 'bikes']].sort_values(by='bikes', ascending=False).head(5)
+        df_requirement = data[['station name', 'trip_requirement']].sort_values(by='trip_requirement',
                                                                             ascending=False).head(5)
-        df_fulfillment = data[['port name', 'fulfillment']].sort_values(by='fulfillment', ascending=False).head(5)
-        df_fulfillment_ratio = data[['port name', 'fulfillment_ratio']].sort_values(by='fulfillment_ratio',
+        df_fulfillment = data[['station name', 'fulfillment']].sort_values(by='fulfillment', ascending=False).head(5)
+        df_fulfillment_ratio = data[['station name', 'fulfillment_ratio']].sort_values(by='fulfillment_ratio',
                                                                                     ascending=False).head(5)
-        generate_by_snapshot_top_summary(df_bikes, 'bikes', 0)
-        generate_by_snapshot_top_summary(df_requirement, 'trip_requirement', 0)
-        generate_by_snapshot_top_summary(df_fulfillment, 'fulfillment', 0)
-        generate_by_snapshot_top_summary(df_fulfillment_ratio, 'fulfillment_ratio', False)
+        generate_by_snapshot_top_summary('station name', df_bikes, 'bikes', False)
+        generate_by_snapshot_top_summary('station name', df_requirement, 'trip_requirement', False)
+        generate_by_snapshot_top_summary('station name', df_fulfillment, 'fulfillment', False)
+        generate_by_snapshot_top_summary('station name', df_fulfillment_ratio, 'fulfillment_ratio', False)
 
 
 # generate down pooling list based on origin data and down pooling rate
@@ -665,7 +648,7 @@ if __name__ == '__main__':
             show_summary_plot(senario, ROOT_PATH, name_conversion_path, ports_file_path, stations_file_path)
         else:
             show_detail_plot(senario, ROOT_PATH, name_conversion_path)
-    else:
+    elif senario == 'CITI_BIKE':
         option = st.sidebar.selectbox(
             'Data Type',
             ('Summary', 'Detail'))
