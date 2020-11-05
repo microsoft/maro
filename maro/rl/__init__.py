@@ -10,8 +10,8 @@ from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.dqn import DQN, DQNHyperParams
-from maro.rl.models.learning_model import LearningModel
-from maro.rl.models.fc_net import FullyConnectedNet
+from maro.rl.models.learning_model import MultiHeadLearningModel, SingleHeadLearningModel
+from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.storage.abs_store import AbsStore
 from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.rl.storage.utils import OverwriteType
@@ -41,8 +41,9 @@ __all__ = [
     "AbsAlgorithm",
     "DQN",
     "DQNHyperParams",
-    "LearningModel",
-    "FullyConnectedNet",
+    "MultiHeadLearningModel",
+    "SingleHeadLearningModel",
+    "FullyConnectedBlock",
     "AbsStore",
     "ColumnBasedStore",
     "OverwriteType",
