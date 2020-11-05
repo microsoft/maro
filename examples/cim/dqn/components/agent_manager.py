@@ -23,6 +23,7 @@ def create_dqn_agents(agent_id_list, config):
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,
                 activation=nn.LeakyReLU,
+                is_head=True,
                 **config.algorithm.model
             )]
         )

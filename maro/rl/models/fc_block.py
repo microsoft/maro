@@ -64,7 +64,7 @@ class FullyConnectedBlock(nn.Module):
 
         # build the net
         dims = [self._input_dim] + self._hidden_dims
-        layers = [self._build_internal_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
+        layers = [self._build_layer(in_dim, out_dim) for in_dim, out_dim in zip(dims, dims[1:])]
         # top layer
         layers.append(self._build_layer(dims[-1], self._output_dim, is_head=self._is_head))
 
