@@ -17,7 +17,7 @@ class AbsEarlyStoppingChecker(ABC):
         self._last_k = last_k
         self._threshold = threshold
 
-    def is_valid(self, metric_series):
+    def is_triggered(self, metric_series):
         return len(metric_series) >= self._last_k
 
     @abstractmethod

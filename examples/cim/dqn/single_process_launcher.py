@@ -49,18 +49,18 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    early_stopping_checker_1 = SimpleEarlyStoppingChecker(
+    perf_checker = SimpleEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
         threshold=config.general.early_stopping.perf_threshold,
         measure_func=lambda vals: mean(vals)
     )
 
-    early_stopping_checker_2 = MaxDeltaEarlyStoppingChecker(
+    perf_stability_checker = MaxDeltaEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
         threshold=config.general.early_stopping.delta_threshold
     )
 
-    early_stopping_checker = early_stopping_checker_1 & early_stopping_checker_2
+    combined_checker = perf_checker & perf_stability_checker
 
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
@@ -71,7 +71,7 @@ def launch(config):
     )
     learner.train(
         max_episode=config.general.max_episode,
-        early_stopping_checker=early_stopping_checker,
+        early_stopping_checker=combined_checker,
         warmup_ep=config.general.early_stopping.warmup_ep,
         early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )

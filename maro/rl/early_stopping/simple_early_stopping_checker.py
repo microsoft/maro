@@ -2,26 +2,32 @@
 # Licensed under the MIT license.
 
 from statistics import mean, stdev
-from typing import Callable
+from typing import Callable, Union
 
 from .abs_early_stopping_checker import AbsEarlyStoppingChecker
 
 
 class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
-    """Early stopping checker based on the some simple measure obtained by applying a function to the last k metric
-    values."""
-    def __init__(self, last_k, threshold, measure_func: Callable):
+    """Early stopping checker based on the some simple measure obtained by applying a measure function to the last
+    k metric values.
+
+    The measure function must take a list as input and output a single number.
+    """
+    def __init__(self, last_k, threshold, measure_func: Callable[[list], Union[int, float]]):
         super().__init__(last_k, threshold)
         self._measure_func = measure_func
 
     def __call__(self, metric_series: list):
-        return self.is_valid(metric_series) and self._measure_func(metric_series[-self._last_k:]) >= self._threshold
+        if not self.is_triggered(metric_series):
+            return True
+        else:
+            return self._measure_func(metric_series[-self._last_k:]) >= self._threshold
 
 
 class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
     """Early stopping checker based on the mean and standard deviation of the last k metric values."""
     def __call__(self, metric_series: list):
-        if not self.is_valid(metric_series):
+        if not self.is_triggered(metric_series):
             return True
         else:
             metric_series = metric_series[-self._last_k:]
@@ -35,7 +41,7 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
     is compared with the threshold to determine if early stopping should be triggered.
     """
     def __call__(self, metric_series: list):
-        if not self.is_valid(metric_series):
+        if not self.is_triggered(metric_series):
             return True
         else:
             metric_series = metric_series[-self._last_k:]
