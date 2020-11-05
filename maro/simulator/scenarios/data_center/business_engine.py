@@ -8,14 +8,9 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-<<<<<<< HEAD
 from .common import Action, RequirementPayload
 from .events import Events
 from .virtual_machine import VirtualMachine
-=======
-from .common import Action
-from .events import DataCenterEvents
->>>>>>> parent of b0b6d2d... Merge from v0.2
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
 

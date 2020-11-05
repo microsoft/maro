@@ -13,7 +13,7 @@ class Action:
         buffertime (int): The buffer time to assign this VM.
     """
 
-    def __init__(self, assign: bool, vm_req: VirtualMachine, buffer_time: int, pm_id: int=None):
+    def __init__(self, assign: bool, vm_req: VirtualMachine, buffer_time: int, pm_id: int = None):
         self.assign = assign
         self.vm_req = vm_req
         self.pm_id = pm_id
