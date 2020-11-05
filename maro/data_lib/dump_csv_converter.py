@@ -18,7 +18,6 @@ class DumpConverter:
     def __init__(self, parent_path=''):
         super().__init__()
         self.__parent_path = parent_path
-        #self.__generate_new_folder(parent_path)
 
     def __generate_new_folder(self, parent_path):
         now = datetime.now()
@@ -50,7 +49,8 @@ class DumpConverter:
                     for frame in data:
                         node_idx = 0
                         for node in frame:
-                            node_dict = {'frame_index': frame_idx, 'name': file.replace('.meta', '') + '_' + str(node_idx)}
+                            node_dict = {'frame_index': frame_idx,
+                            'name': file.replace('.meta', '') + '_' + str(node_idx)}
                             col_idx = 0;
                             for key in col_info_dict.keys():
                                 if col_info_dict[key] == 1:
@@ -65,10 +65,10 @@ class DumpConverter:
                         frame_idx = frame_idx + 1
 
                     dataframe = pd.DataFrame(csv_data)
-                    dataframe.to_csv(os.path.join(curDir, file.replace('.meta', '.csv')), index = False)
+                    dataframe.to_csv(os.path.join(curDir, file.replace('.meta', '.csv')), index=False)
 
     def start_processing(self):
-        thread = threading.Thread(target = self.process_data)
+        thread = threading.Thread(target=self.process_data)
         thread.start()
 
     def get_column_info(self, filename):
@@ -104,9 +104,9 @@ class DumpConverter:
 
         dataframe = pd.DataFrame(array)
         frameidx = dataframe.frame_idx
-        dataframe = dataframe.drop('frame_idx', axis = 1)
+        dataframe = dataframe.drop('frame_idx', axis=1)
         dataframe.insert(0, 'frame_idx', frameidx)
-        dataframe.to_csv(decision_events_file, index = False)
+        dataframe.to_csv(decision_events_file, index=False)
 
     def _calc_event_headers(self, event):
         if event is None:
