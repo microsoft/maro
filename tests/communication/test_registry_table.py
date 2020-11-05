@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
  
-from collections import defaultdict
 import unittest
+from collections import defaultdict
 
 from maro.communication import RegisterTable, SessionMessage
 

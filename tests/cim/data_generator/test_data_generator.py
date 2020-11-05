@@ -3,6 +3,7 @@
 
 import os
 import unittest
+
 import yaml
 
 from maro.data_lib.cim.cim_data_generator import CimDataGenerator

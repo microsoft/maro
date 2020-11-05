@@ -2,16 +2,17 @@
 # Licensed under the MIT license.
 
 import os
-import unittest
 import tempfile
-
-from typing import List, Dict
+import unittest
+from typing import Dict, List
 
 from maro.data_lib import BinaryConverter
 from maro.data_lib.cim import dump_from_config, load_from_folder
-from maro.data_lib.cim.cim_data_generator import CimDataGenerator
 from maro.data_lib.cim.cim_data_dump import CimDataDumpUtil
-from maro.data_lib.cim.entities import CimDataCollection, NoisedItem, PortSetting, VesselSetting, Stop, RoutePoint
+from maro.data_lib.cim.cim_data_generator import CimDataGenerator
+from maro.data_lib.cim.entities import (CimDataCollection, NoisedItem,
+                                        PortSetting, RoutePoint, Stop,
+                                        VesselSetting)
 
 MAX_TICK = 20
 

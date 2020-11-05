@@ -9,7 +9,6 @@ import subprocess
 import time
 
 import redis
-
 from utils import get_node_details, set_node_details
 
 INSPECT_CONTAINER_COMMAND = "docker inspect {container}"

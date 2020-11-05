@@ -3,7 +3,9 @@
 
 
 import os
+
 from requests import get
+
 from tabulate import tabulate
 
 if os.environ.get("REMOTE_DEBUG") == "on":

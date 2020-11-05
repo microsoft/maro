@@ -6,7 +6,9 @@ Dummy business engine to test env
 """
 
 from maro.simulator.scenarios import AbsBusinessEngine
+
 from .frame_builder import build_frame
+
 
 class DummyEngine(AbsBusinessEngine):
     def __init__(self, **kwargs):

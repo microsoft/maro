@@ -2,9 +2,11 @@ import math
 from typing import List, Tuple
 
 import numpy as np
-from pulp import LpProblem, LpVariable, LpMaximize, lpSum, LpStatus, LpInteger, GLPK
 
 from maro.utils import DottableDict
+from pulp import (GLPK, LpInteger, LpMaximize, LpProblem, LpStatus, LpVariable,
+                  lpSum)
+
 
 class CitiBikeILP():
     def __init__(

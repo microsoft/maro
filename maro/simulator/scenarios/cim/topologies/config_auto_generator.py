@@ -1,10 +1,11 @@
 
 
-import os
-import yaml
 import math
-import shutil
+import os
 import random
+import shutil
+
+import yaml
 
 TOPOLOGY_LIST = ["toy.4p_ssdd", "toy.5p_ssddd", "toy.6p_sssbdd", "global_trade.22p"]
 SAILING_TIME = 7

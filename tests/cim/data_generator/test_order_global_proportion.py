@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import unittest
-
 from math import floor
 
 from maro.data_lib.cim.global_order_proportion import GlobalOrderProportion

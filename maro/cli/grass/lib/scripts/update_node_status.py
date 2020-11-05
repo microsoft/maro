@@ -5,8 +5,8 @@
 import argparse
 
 from redis import Redis
-
-from utils import load_cluster_details, get_node_details, set_node_details, delete_node_details
+from utils import (delete_node_details, get_node_details, load_cluster_details,
+                   set_node_details)
 
 if __name__ == "__main__":
     # Load args

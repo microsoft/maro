@@ -7,7 +7,6 @@ import base64
 import json
 
 from redis import Redis
-
 from utils import load_cluster_details, set_node_details
 
 if __name__ == "__main__":

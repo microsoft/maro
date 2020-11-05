@@ -1,21 +1,22 @@
+import argparse
 import io
 import math
 from typing import List, Tuple
 
-import argparse
 import numpy as np
 import yaml
 
+from citi_bike_ilp import CitiBikeILP
 from maro.data_lib import BinaryReader, ItemTickPicker
 from maro.event_buffer import Event
 from maro.forecasting import OneStepFixWindowMA as Forecaster
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.adj_loader import load_adj_from_csv
-from maro.simulator.scenarios.citi_bike.common import Action, BikeReturnPayload, DecisionEvent
+from maro.simulator.scenarios.citi_bike.common import (Action,
+                                                       BikeReturnPayload,
+                                                       DecisionEvent)
 from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
 from maro.utils import convert_dottable
-
-from citi_bike_ilp import CitiBikeILP
 
 # For debug only.
 PEEP_AND_USE_REAL_DATA: bool = False

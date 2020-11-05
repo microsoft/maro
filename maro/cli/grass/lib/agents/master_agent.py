@@ -11,12 +11,10 @@ import subprocess
 import time
 
 import redis
-
-from utils import load_cluster_details, \
-    get_node_details, get_nodes_details, \
-    get_job_details, get_jobs_details, set_job_details, \
-    get_pending_jobs, remove_pending_job, \
-    get_killed_jobs, remove_killed_job
+from utils import (get_job_details, get_jobs_details, get_killed_jobs,
+                   get_node_details, get_nodes_details, get_pending_jobs,
+                   load_cluster_details, remove_killed_job, remove_pending_job,
+                   set_job_details)
 
 logger = logging.getLogger(__name__)
 

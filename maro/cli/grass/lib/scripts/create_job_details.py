@@ -6,7 +6,6 @@ import argparse
 import json
 
 from redis import Redis
-
 from utils import load_cluster_details, load_job_details
 
 

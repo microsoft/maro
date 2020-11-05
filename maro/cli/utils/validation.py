@@ -6,7 +6,6 @@ import operator
 from functools import reduce
 
 from deepdiff import DeepDiff
-
 from maro.utils.exception.cli_exception import CliException
 
 

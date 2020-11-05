@@ -5,7 +5,8 @@
 import os
 import shutil
 
-from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
+from maro.cli.utils.copy import (get_reformatted_source_path,
+                                 get_reformatted_target_dir)
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger

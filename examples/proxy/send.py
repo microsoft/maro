@@ -3,9 +3,10 @@
 
 
 import multiprocessing as mp
+
 import numpy as np
 
-from maro.communication import Proxy, SessionType, SessionMessage
+from maro.communication import Proxy, SessionMessage, SessionType
 
 
 def worker(group_name):

@@ -5,6 +5,7 @@ from math import floor
 from typing import Dict
 
 import numpy as np
+
 from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
 
 from .common import DecisionType, ExtraCostMode

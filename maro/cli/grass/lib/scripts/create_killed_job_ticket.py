@@ -5,7 +5,6 @@
 import argparse
 
 from redis import Redis
-
 from utils import load_cluster_details
 
 

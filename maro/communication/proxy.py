@@ -1,28 +1,28 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import itertools
+import json
+import signal
+import sys
+import time
+import uuid
 # native lib
 from collections import defaultdict, namedtuple
 from enum import Enum
-import itertools
-import json
-import sys
-import signal
-import time
-from typing import List, Dict, Union
-import uuid
+from typing import Dict, List, Union
 
 # third party lib
 import redis
-
 # private lib
-from maro.communication import DriverType, ZmqDriver
-from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
+from maro.communication import (DriverType, Message, NotificationSessionStage,
+                                SessionMessage, SessionType, TaskSessionStage,
+                                ZmqDriver)
 from maro.communication.utils import default_parameters
-from maro.utils import InternalLogger, DummyLogger
-from maro.utils.exception.communication_exception import RedisConnectionError, DriverTypeError, PeersMissError, \
-    InformationUncompletedError
-
+from maro.utils import DummyLogger, InternalLogger
+from maro.utils.exception.communication_exception import (
+  DriverTypeError, InformationUncompletedError, PeersMissError,
+  RedisConnectionError)
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host

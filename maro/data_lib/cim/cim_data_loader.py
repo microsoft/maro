@@ -8,8 +8,9 @@ from collections import defaultdict
 from typing import Dict, List
 
 import numpy as np
-from maro.data_lib import BinaryReader
 from yaml import safe_load
+
+from maro.data_lib import BinaryReader
 
 from .entities import (CimDataCollection, NoisedItem, OrderGenerateMode,
                        PortSetting, RoutePoint, Stop, VesselSetting)

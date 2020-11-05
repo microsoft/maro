@@ -4,9 +4,11 @@
 from math import ceil
 from typing import List
 
-from maro.simulator.utils import seed
-from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
 from yaml import safe_load
+
+from maro.simulator.utils import seed
+from maro.utils.exception.data_lib_exeption import \
+  CimGeneratorInvalidParkingDuration
 
 from .entities import CimDataCollection, OrderGenerateMode, Stop
 from .global_order_proportion import GlobalOrderProportion

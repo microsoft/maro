@@ -2,4 +2,5 @@
 # Licensed under the MIT license.
 
 
-from .event_buffer import EventBuffer, Event, EventState, EventCategory, DECISION_EVENT
+from .event_buffer import (DECISION_EVENT, Event, EventBuffer, EventCategory,
+                           EventState)

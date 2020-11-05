@@ -9,13 +9,15 @@ from shutil import rmtree
 
 import yaml
 
-from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
-from maro.cli.utils.details import (
-    load_cluster_details, load_job_details, load_schedule_details, save_cluster_details, save_job_details,
-    save_schedule_details
-)
+from maro.cli.utils.copy import (get_reformatted_source_path,
+                                 get_reformatted_target_dir)
+from maro.cli.utils.details import (load_cluster_details, load_job_details,
+                                    load_schedule_details,
+                                    save_cluster_details, save_job_details,
+                                    save_schedule_details)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import generate_cluster_id, generate_component_id, generate_job_id, generate_name_with_md5
+from maro.cli.utils.naming import (generate_cluster_id, generate_component_id,
+                                   generate_job_id, generate_name_with_md5)
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict

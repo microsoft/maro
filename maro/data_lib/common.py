@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from struct import Struct
 from collections import namedtuple
+from struct import Struct
 
 # binary output and reader version
 VERSION = 100

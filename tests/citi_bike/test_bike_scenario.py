@@ -4,14 +4,13 @@
 import os
 import unittest
 
-from maro.simulator import Env
-from maro.event_buffer import EventBuffer
-from maro.simulator.scenarios.citi_bike.business_engine import CitibikeBusinessEngine
-from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
 from maro.data_lib import BinaryConverter
-
-from tests.utils import next_step, be_run_to_end
-
+from maro.event_buffer import EventBuffer
+from maro.simulator import Env
+from maro.simulator.scenarios.citi_bike.business_engine import \
+  CitibikeBusinessEngine
+from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
+from tests.utils import be_run_to_end, next_step
 
 
 def setup_case(case_name: str, max_tick:int):
