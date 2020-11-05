@@ -25,7 +25,7 @@ MARO is newborn for Reinforcement learning as a Service (RaaS) in the resource o
   pip install isort
 
   # Automatically re-format your imports with isort.
-  isort --settings-path .github/linters/tox.ini --filter-files
+  isort --settings-path .github/linters/tox.ini
 
   # Install flake8.
   pip install flake8
