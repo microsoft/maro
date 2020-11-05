@@ -7,33 +7,33 @@ import numpy as np
 import pandas as pd
 
 Title_html = """
-        <style>
-            .title h1{
-              font-size: 30px;
-              color: black;
-              background-size: 600vw 600vw;
-              animation: slide 10s linear infinite forwards;
-              margin-left:100px;
-              text-align:left;
-              margin-left:50px;
-            }
-            .title h3{
-              font-size: 20px;
-              color: grey;
-              background-size: 600vw 600vw;
-              animation: slide 10s linear infinite forwards;
-              text-align:center
-            }
-            @keyframes slide {
-              0%{
-                background-position-x: 0%;
-              }
-              100%{
-                background-position-x: 600vw;
-              }
-            }
-        </style>
-        """
+<style>
+    .title h1{
+        font-size: 30px;
+        color: black;
+        background-size: 600vw 600vw;
+        animation: slide 10s linear infinite forwards;
+        margin-left:100px;
+        text-align:left;
+        margin-left:50px;
+    }
+    .title h3{
+        font-size: 20px;
+        color: grey;
+        background-size: 600vw 600vw;
+        animation: slide 10s linear infinite forwards;
+        text-align:center
+    }
+    @keyframes slide {
+        0%{
+        background-position-x: 0%;
+        }
+        100%{
+        background-position-x: 600vw;
+        }
+    }
+</style>
+"""
 
 
 def get_snapshot_sampling(ports_num):
