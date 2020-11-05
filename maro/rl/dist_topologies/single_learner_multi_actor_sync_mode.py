@@ -26,7 +26,7 @@ class ActorProxy(object):
         self._proxy = Proxy(component_type="actor", **proxy_params)
 
     def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
-                 return_details: bool = True):
+                return_details: bool = True):
         """Send roll-out requests to remote actors.
 
         This method has exactly the same signature as ``SimpleActor``'s ``roll_out`` method but instead of doing
@@ -47,8 +47,8 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(tag=MessageTag.ROLLOUT,
-                                   session_type=SessionType.NOTIFICATION,
-                                   payload={PayloadKey.DONE: True})
+                                session_type=SessionType.NOTIFICATION,
+                                payload={PayloadKey.DONE: True})
             return None, None
         else:
             performance, exp_by_agent = {}, {}
@@ -58,7 +58,7 @@ class ActorProxy(object):
                         for peer in self._proxy.peers["actor_worker"]]
             # TODO: double check when ack enable
             replies = self._proxy.scatter(tag=MessageTag.ROLLOUT, session_type=SessionType.TASK,
-                                          destination_payload_list=payloads)
+                                        destination_payload_list=payloads)
             for msg in replies:
                 performance[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
                 if msg.payload[PayloadKey.EXPERIENCE] is not None:
@@ -95,14 +95,14 @@ class ActorWorker(object):
             sys.exit(0)
 
         performance, experiences = self._local_actor.roll_out(model_dict=data[PayloadKey.MODEL],
-                                                              epsilon_dict=data[PayloadKey.EPSILON],
-                                                              return_details=data[PayloadKey.RETURN_DETAILS])
+                                                            epsilon_dict=data[PayloadKey.EPSILON],
+                                                            return_details=data[PayloadKey.RETURN_DETAILS])
 
         self._proxy.reply(received_message=message,
-                          tag=MessageTag.UPDATE,
-                          payload={PayloadKey.PERFORMANCE: performance,
-                                   PayloadKey.EXPERIENCE: experiences}
-                          )
+                        tag=MessageTag.UPDATE,
+                        payload={PayloadKey.PERFORMANCE: performance,
+                                PayloadKey.EXPERIENCE: experiences}
+                        )
 
     def launch(self):
         """Entry point method.

@@ -34,7 +34,7 @@ class SimpleLearner(AbsLearner):
             if isinstance(performance, dict):
                 for actor_id, perf in performance.items():
                     self._logger.info(f"ep {current_ep} - performance: {perf},"
-                                      f"source: {actor_id}, epsilons: {epsilon_dict}")
+                                    f"source: {actor_id}, epsilons: {epsilon_dict}")
             else:
                 self._logger.info(f"ep {current_ep} - performance: {performance}, epsilons: {epsilon_dict}")
 

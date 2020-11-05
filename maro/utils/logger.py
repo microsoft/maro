@@ -113,7 +113,7 @@ class Logger(object):
     """
 
     def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
-                 extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"):
+                extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
@@ -208,8 +208,8 @@ class InternalLogger(Logger):
     """An internal logger uses for recording the internal system's log."""
 
     def __init__(self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
-                 dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
-                 auto_timestamp: bool = False):
+                dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
+                auto_timestamp: bool = False):
         current_time = f"{datetime.now().strftime('%Y%m%d%H%M')}"
         self._dump_folder = dump_folder if dump_folder else \
             os.path.join(os.path.expanduser("~"), ".maro/log", current_time, str(os.getpid()))
