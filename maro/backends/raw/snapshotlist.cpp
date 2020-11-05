@@ -128,7 +128,7 @@ namespace maro
         auto snapshot_size = frame_attr_store.size();
 
         // prepare attribute store to make sure we can hold all
-        if (_end_index + snapshot_size < _attr_store.size())
+        if (_end_index + snapshot_size > _attr_store.size())
         {
           _attr_store.resize(_end_index + snapshot_size);
         }
