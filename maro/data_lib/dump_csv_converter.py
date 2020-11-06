@@ -48,10 +48,10 @@ class DumpConverter:
                     csv_data = []
                     for frame in data:
                         node_idx = 0
+                        the_name = file.replace('.meta', '')
                         for node in frame:
-                            node_dict = {'frame_index': frame_idx,
-                            'name': file.replace('.meta', '') + '_' + str(node_idx)}
-                            col_idx = 0;
+                            node_dict = {'frame_index': frame_idx, 'name': the_name + '_' + str(node_idx)}
+                            col_idx = 0
                             for key in col_info_dict.keys():
                                 if col_info_dict[key] == 1:
                                     node_dict[key] = node[col_idx]

@@ -18,7 +18,7 @@ For getting dump data, please uncomment below line and specify dump destination 
 # opts['enable-dump-snapshot'] = ''
 
 env = Env(scenario="citi_bike", topology="toy.4s_4t", start_tick=start_tick,
-          durations=durations, snapshot_resolution=60, options = opts)
+          durations=durations, snapshot_resolution=60, options=opts)
 
 print(env.summary)
 
