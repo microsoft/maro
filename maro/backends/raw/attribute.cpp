@@ -81,6 +81,11 @@ namespace maro
 
         memcpy(_data._data, attr._data._data, sizeof(char) * 8);
       }
+
+      bool Attribute::is_nan()
+      {
+        return isnan(_data._float);
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

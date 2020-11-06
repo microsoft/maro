@@ -64,6 +64,8 @@ namespace maro
         /// Used to cast current data to float, for quering result
         /// </summary>
         operator ATTR_FLOAT();
+
+        bool is_nan();
       };
     } // namespace raw
   }   // namespace backends
