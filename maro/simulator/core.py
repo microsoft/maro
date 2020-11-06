@@ -7,6 +7,7 @@ from inspect import getmembers, isclass
 from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
+from maro.data_lib import DumpConverter
 from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
