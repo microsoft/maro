@@ -11,12 +11,14 @@ from typing import Dict
 import zmq
 
 # private package
-from maro.communication import AbsDriver, Message
-from maro.communication.utils import default_parameters
 from maro.utils import NON_RESTART_EXIT_CODE, DummyLogger
 from maro.utils.exception.communication_exception import (
     DriverReceiveError, DriverSendError, PeersConnectionError, PeersDisconnectionError, PendingToSend, SocketTypeError
 )
+
+from ..message import Message
+from ..utils import default_parameters
+from .abs_driver import AbsDriver
 
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout

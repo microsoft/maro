@@ -3,9 +3,9 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-import paramiko
-from azure.storage.blob import ContainerClient, BlobClient
+from azure.storage.blob import BlobClient, ContainerClient
 
+import paramiko
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(__name__)

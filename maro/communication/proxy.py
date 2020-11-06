@@ -17,9 +17,7 @@ import redis
 
 # private lib
 from maro.utils import KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE, DummyLogger, InternalLogger
-from maro.utils.exception.communication_exception import (
-    InformationUncompletedError, PeersMissError, PendingToSend
-)
+from maro.utils.exception.communication_exception import InformationUncompletedError, PeersMissError, PendingToSend
 
 from .driver import DriverType, ZmqDriver
 from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
