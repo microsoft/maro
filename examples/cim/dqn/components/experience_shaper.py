@@ -46,4 +46,4 @@ class TruncatedExperienceShaper(ExperienceShaper):
         tot_fulfillment = np.dot(future_fulfillment, decay_list)
         tot_shortage = np.dot(future_shortage, decay_list)
 
-        return np.float(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage)
+        return np.float32(self._fulfillment_factor * tot_fulfillment - self._shortage_factor * tot_shortage)
