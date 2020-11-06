@@ -20,7 +20,7 @@ class Action:
         self.buffer_time = buffer_time
 
 
-class RequirementPayload:
+class Payload:
     """Payload for the vm requirements postpone
 
     Args:
@@ -30,6 +30,12 @@ class RequirementPayload:
 
     summary_key = ["vm_info", "buffer_time"]
 
-    def __init__(self, vm_req: VirtualMachine, buffer_time: int):
-        self.vm_req = vm_req
+    def __init__(self, vm_info: VirtualMachine, buffer_time: int):
+        self.vm_info = vm_info
         self.buffer_time = buffer_time
+
+
+class Latency:
+    def __init__(self):
+        self.algorithm_buffer_time = 0
+        self.resource_buffer_time = 0
