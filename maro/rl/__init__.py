@@ -13,7 +13,9 @@ from maro.rl.dist_topologies.experience_collection import (
 )
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
 from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
-from maro.rl.early_stopping.simple_early_stopping_checker import MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker
+from maro.rl.early_stopping.simple_early_stopping_checker import (
+    MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker, SimpleEarlyStoppingChecker
+)
 from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
 from maro.rl.learner.abs_learner import AbsLearner
@@ -56,6 +58,7 @@ __all__ = [
     'RSDEarlyStoppingChecker',
     'SimpleActor',
     'SimpleAgentManager',
+    'SimpleEarlyStoppingChecker',
     'SimpleLearner',
     'SingleHeadLearningModel',
     'StateShaper',
