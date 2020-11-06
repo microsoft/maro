@@ -133,6 +133,15 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
             node_mapping[station.index] = station.id
         return node_mapping
 
+    def get_event_payload_detail(self) -> dict:
+        """dict: Event payload details of current scenario."""
+        return {
+            CitiBikeEvents.RequireBike.name: list(self._trip_reader.meta.columns.keys()),
+            CitiBikeEvents.ReturnBike.name: BikeReturnPayload.summary_key,
+            CitiBikeEvents.RebalanceBike.name: DecisionEvent.summary_key,
+            CitiBikeEvents.DeliverBike.name: BikeTransferPayload.summary_key
+        }
+
     def reset(self):
         """Reset internal states for episode."""
 
@@ -174,13 +183,10 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         Returns:
             dict: Metrics information.
         """
-        total_trips = self._total_trips
-        total_shortage = self._total_shortages
-
         return DocableDict(
             metrics_desc,
-            trip_requirements=total_trips,
-            bike_shortage=total_shortage,
+            trip_requirements=self._total_trips,
+            bike_shortage=self._total_shortages,
             operation_number=self._total_operate_num
         )
 

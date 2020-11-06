@@ -2,8 +2,8 @@
 # Licensed under the MIT license.
 
 import sys
-from collections import defaultdict
 from enum import Enum
+from typing import Callable
 
 from maro.communication import Proxy, SessionType
 from maro.communication.registry_table import RegisterTable
@@ -21,9 +21,11 @@ class ActorProxy(object):
 
     Args:
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
+        experience_collecting_func (Callable): A function responsible for collecting experiences from multiple sources.
     """
-    def __init__(self, proxy_params):
+    def __init__(self, proxy_params, experience_collecting_func: Callable):
         self._proxy = Proxy(component_type="learner", **proxy_params)
+        self._experience_collecting_func = experience_collecting_func
 
     def roll_out(
         self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
@@ -54,7 +56,6 @@ class ActorProxy(object):
             )
             return None, None
         else:
-            performance, exp_by_agent = {}, {}
             payloads = [(peer, {PayloadKey.MODEL: model_dict,
                                 PayloadKey.EPSILON: epsilon_dict,
                                 PayloadKey.RETURN_DETAILS: return_details})
@@ -65,16 +66,11 @@ class ActorProxy(object):
                 session_type=SessionType.TASK,
                 destination_payload_list=payloads
             )
-            for msg in replies:
-                performance[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
-                if msg.payload[PayloadKey.EXPERIENCE] is not None:
-                    for agent_id, exp_set in msg.payload[PayloadKey.EXPERIENCE].items():
-                        if agent_id not in exp_by_agent:
-                            exp_by_agent[agent_id] = defaultdict(list)
-                        for k, v in exp_set.items():
-                            exp_by_agent[agent_id][k].extend(v)
 
-            return performance, exp_by_agent
+            performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
+            experiences_by_source = {msg.source: msg.payload[PayloadKey.EXPERIENCE] for msg in replies}
+
+            return performance, self._experience_collecting_func(experiences_by_source)
 
 
 class ActorWorker(object):
@@ -109,7 +105,10 @@ class ActorWorker(object):
         self._proxy.reply(
             received_message=message,
             tag=MessageTag.UPDATE,
-            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCE: experiences}
+            payload={
+                PayloadKey.PERFORMANCE: performance,
+                PayloadKey.EXPERIENCE: experiences
+            }
         )
 
     def launch(self):
