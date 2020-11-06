@@ -47,8 +47,8 @@ class DQN(AbsAlgorithm):
 
     Args:
         q_model (nn.Module): Q-value model.
-        optimizer_cls (torch.optim.Optimizer): Torch optimizer class for the value model. If this is None, the eval model is not
-            trainable.
+        optimizer_cls (torch.optim.Optimizer): Torch optimizer class for the value model. If this is None, the eval
+            model is not trainable.
         optimizer_params (dict): Parameters required for the optimizer class for the value model.
         loss_func (Callable): Loss function for the value model.
         hyper_params: Hyper-parameter set for the DQN algorithm.
