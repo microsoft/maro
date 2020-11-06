@@ -15,7 +15,7 @@ def create_dqn_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        q_value_model = LearningModel(
+        q_model = LearningModel(
             FullyConnectedNet(
                 name=f'{agent_id}.policy',
                 input_dim=config.algorithm.input_dim,
@@ -26,9 +26,9 @@ def create_dqn_agents(agent_id_list, config):
         )
 
         algorithm = DQN(
-            value_model=q_value_model,
-            value_optimizer_cls=RMSprop,
-            value_optimizer_params=config.algorithm.optimizer,
+            q_model=q_model,
+            optimizer_cls=RMSprop,
+            optimizer_params=config.algorithm.optimizer,
             loss_func=nn.functional.smooth_l1_loss,
             hyper_params=DQNHyperParams(
                 **config.algorithm.hyper_parameters,
