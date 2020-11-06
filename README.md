@@ -95,10 +95,12 @@ of user-defined functions for message auto-handling, cluster provision, and job 
     ```powershell
     # If your environment is not clean, create a virtual environment firstly.
     python -m venv maro_venv
-    .\maro_venv\Scripts\activate
 
     # You may need this for SecurityError in PowerShell.
     Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
+
+    # Activate the virtual environment.
+    .\maro_venv\Scripts\activate
     ```
 
 - Install MARO

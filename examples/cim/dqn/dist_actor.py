@@ -3,15 +3,14 @@
 
 import numpy as np
 
+from maro.rl import ActorWorker, AgentMode, KStepExperienceShaper, SimpleActor, TwoPhaseLinearExplorer
 from maro.simulator import Env
-from maro.rl import AgentMode, SimpleActor, ActorWorker, KStepExperienceShaper, TwoPhaseLinearExplorer
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import DQNAgentManager
-from components.config import config
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
-
+from .components.action_shaper import CIMActionShaper
+from .components.agent_manager import DQNAgentManager
+from .components.config import config
+from .components.experience_shaper import TruncatedExperienceShaper
+from .components.state_shaper import CIMStateShaper
 
 if __name__ == "__main__":
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
@@ -21,8 +20,9 @@ if __name__ == "__main__":
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
-                                                  **config.experience_shaping.k_step)
+        experience_shaper = KStepExperienceShaper(
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
+            **config.experience_shaping.k_step)
 
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},
@@ -36,10 +36,12 @@ if __name__ == "__main__":
                                     action_shaper=action_shaper,
                                     experience_shaper=experience_shaper,
                                     explorer=explorer)
-    proxy_params = {"group_name": config.distributed.group_name,
-                    "expected_peers": config.distributed.actor.peer,
-                    "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port)
-                    }
+    proxy_params = {
+        "group_name": config.distributed.group_name,
+        "expected_peers": config.distributed.actor.peer,
+        "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port),
+        "max_retries": 10
+    }
     actor_worker = ActorWorker(local_actor=SimpleActor(env=env, inference_agents=agent_manager),
                                proxy_params=proxy_params)
     actor_worker.launch()

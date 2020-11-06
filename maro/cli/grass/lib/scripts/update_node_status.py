@@ -6,7 +6,7 @@ import argparse
 
 from redis import Redis
 
-from utils import load_cluster_details, get_node_details, set_node_details, delete_node_details
+from .utils import delete_node_details, get_node_details, load_cluster_details, set_node_details
 
 if __name__ == "__main__":
     # Load args
@@ -20,9 +20,11 @@ if __name__ == "__main__":
     cluster_details = load_cluster_details(cluster_name=args.cluster_name)
     master_hostname = cluster_details['master']['hostname']
     redis_port = cluster_details['master']['redis']['port']
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8", decode_responses=True
+    )
 
     if args.action == 'create':
         node_details = get_node_details(

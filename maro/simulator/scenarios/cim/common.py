@@ -3,6 +3,7 @@
 
 
 from enum import IntEnum
+
 from maro.backends.frame import SnapshotList
 
 
@@ -119,8 +120,10 @@ class DecisionEvent:
         early_discharge_func (Function): Function to fetch early discharge number of specified vessel, we
             use function here to make it getting the value as late as possible.
     """
-    def __init__(self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
-                 action_scope_func, early_discharge_func):
+    def __init__(
+        self, tick: int, port_idx: int, vessel_idx: int, snapshot_list: SnapshotList,
+        action_scope_func, early_discharge_func
+    ):
         self.tick = tick
         self.port_idx = port_idx
         self.vessel_idx = vessel_idx

@@ -8,7 +8,7 @@ import sys
 
 from redis import Redis
 
-from utils import load_cluster_details, get_nodes_details
+from .utils import get_nodes_details, load_cluster_details
 
 if __name__ == "__main__":
     # Load args
@@ -22,9 +22,11 @@ if __name__ == "__main__":
     redis_port = cluster_details['master']['redis']['port']
 
     # Get nodes details
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8", decode_responses=True
+    )
     nodes_details = get_nodes_details(
         redis=redis,
         cluster_name=args.cluster_name

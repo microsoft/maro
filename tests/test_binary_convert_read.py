@@ -5,8 +5,7 @@ import os
 import tempfile
 import unittest
 
-from maro.data_lib import BinaryConverter
-from maro.data_lib import BinaryReader
+from maro.data_lib import BinaryConverter, BinaryReader
 from maro.data_lib.item_meta import BinaryMeta
 
 

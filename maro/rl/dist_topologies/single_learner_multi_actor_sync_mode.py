@@ -1,14 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
-from collections import defaultdict
 import sys
+from collections import defaultdict
+from enum import Enum
 
 from maro.communication import Proxy, SessionType
 from maro.communication.registry_table import RegisterTable
-from maro.rl.dist_topologies.common import PayloadKey
 from maro.rl.actor.abs_actor import AbsActor
+from maro.rl.dist_topologies.common import PayloadKey
 
 
 class MessageTag(Enum):
@@ -23,10 +23,11 @@ class ActorProxy(object):
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
     """
     def __init__(self, proxy_params):
-        self._proxy = Proxy(component_type="actor", **proxy_params)
+        self._proxy = Proxy(component_type="learner", **proxy_params)
 
-    def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False,
-                 return_details: bool = True):
+    def roll_out(
+        self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
+    ):
         """Send roll-out requests to remote actors.
 
         This method has exactly the same signature as ``SimpleActor``'s ``roll_out`` method but instead of doing
@@ -46,19 +47,24 @@ class ActorProxy(object):
             Performance and per-agent experiences from the remote actor.
         """
         if done:
-            self._proxy.ibroadcast(tag=MessageTag.ROLLOUT,
-                                   session_type=SessionType.NOTIFICATION,
-                                   payload={PayloadKey.DONE: True})
+            self._proxy.ibroadcast(
+                tag=MessageTag.ROLLOUT,
+                session_type=SessionType.NOTIFICATION,
+                payload={PayloadKey.DONE: True}
+            )
             return None, None
         else:
             performance, exp_by_agent = {}, {}
             payloads = [(peer, {PayloadKey.MODEL: model_dict,
                                 PayloadKey.EPSILON: epsilon_dict,
                                 PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers["actor_worker"]]
+                        for peer in self._proxy.peers["actor"]]
             # TODO: double check when ack enable
-            replies = self._proxy.scatter(tag=MessageTag.ROLLOUT, session_type=SessionType.TASK,
-                                          destination_payload_list=payloads)
+            replies = self._proxy.scatter(
+                tag=MessageTag.ROLLOUT,
+                session_type=SessionType.TASK,
+                destination_payload_list=payloads
+            )
             for msg in replies:
                 performance[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
                 if msg.payload[PayloadKey.EXPERIENCE] is not None:
@@ -80,9 +86,9 @@ class ActorWorker(object):
     """
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
-        self._proxy = Proxy(component_type="actor_worker", **proxy_params)
+        self._proxy = Proxy(component_type="actor", **proxy_params)
         self._registry_table = RegisterTable(self._proxy.get_peers)
-        self._registry_table.register_event_handler("actor:rollout:1", self.on_rollout_request)
+        self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):
         """Perform local roll-out and send the results back to the request sender.
@@ -94,15 +100,17 @@ class ActorWorker(object):
         if data.get(PayloadKey.DONE, False):
             sys.exit(0)
 
-        performance, experiences = self._local_actor.roll_out(model_dict=data[PayloadKey.MODEL],
-                                                              epsilon_dict=data[PayloadKey.EPSILON],
-                                                              return_details=data[PayloadKey.RETURN_DETAILS])
+        performance, experiences = self._local_actor.roll_out(
+            model_dict=data[PayloadKey.MODEL],
+            epsilon_dict=data[PayloadKey.EPSILON],
+            return_details=data[PayloadKey.RETURN_DETAILS]
+        )
 
-        self._proxy.reply(received_message=message,
-                          tag=MessageTag.UPDATE,
-                          payload={PayloadKey.PERFORMANCE: performance,
-                                   PayloadKey.EXPERIENCE: experiences}
-                          )
+        self._proxy.reply(
+            received_message=message,
+            tag=MessageTag.UPDATE,
+            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCE: experiences}
+        )
 
     def launch(self):
         """Entry point method.

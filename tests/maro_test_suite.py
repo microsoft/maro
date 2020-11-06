@@ -1,14 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import sys
-import re
-
 import importlib
-import unittest
+import os
+import re
 import subprocess
-
+import sys
+import unittest
 from inspect import getmembers, isclass
 
 test_file_re = re.compile(r'^test_.*.py$')

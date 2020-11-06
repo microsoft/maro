@@ -6,15 +6,14 @@ import os
 
 import numpy as np
 
-from maro.simulator import Env
-from maro.rl import SimpleLearner, SimpleActor, AgentMode, KStepExperienceShaper, TwoPhaseLinearExplorer
-from maro.utils import Logger
-
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import DQNAgentManager
 from components.config import config
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
+from maro.rl import AgentMode, KStepExperienceShaper, SimpleActor, SimpleLearner, TwoPhaseLinearExplorer
+from maro.simulator import Env
+from maro.utils import Logger
 
 if __name__ == "__main__":
     # Step 1: initialize a CIM environment for using a toy dataset.
@@ -28,8 +27,10 @@ if __name__ == "__main__":
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
-        experience_shaper = KStepExperienceShaper(reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
-                                                  **config.experience_shaping.k_step)
+        experience_shaper = KStepExperienceShaper(
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
+            **config.experience_shaping.k_step
+        )
 
     exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
                           "split_point_dict": {"_all_": config.exploration.split_point},

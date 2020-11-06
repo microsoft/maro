@@ -3,6 +3,7 @@
 
 
 import multiprocessing as mp
+
 import numpy as np
 
 from maro.communication import Proxy, SessionType
@@ -68,7 +69,7 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
 
     sum_list = np.random.randint(0, 10, 100)
     multiple_list = np.random.randint(1, 10, 20)
-    print(f"Generate random sum/multiple list with length 100.")
+    print("Generate random sum/multiple list with length 100.")
 
     # assign sum tasks for summation workers
     destination_payload_list = []
@@ -109,7 +110,7 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
 
 if __name__ == "__main__":
     """
-    This is a single-host multiprocess program used to simulate the communication in the distributed system. 
+    This is a single-host multiprocess program used to simulate the communication in the distributed system.
     For the completed usage experience of the distributed cluster, please use the MARO CLI.
     """
     mp.set_start_method("spawn")
