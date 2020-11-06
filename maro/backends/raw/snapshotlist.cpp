@@ -191,7 +191,14 @@ namespace maro
 
         auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
 
-        auto offset = mapping.find(key)->second;
+        auto offset_pair = mapping.find(key);
+
+        if (offset_pair == mapping.end())
+        {
+          return _defaultAttr;
+        }
+
+        auto offset = offset_pair->second;
 
         return _attr_store[tick_start_index + offset];
       }
