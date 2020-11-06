@@ -31,6 +31,9 @@ namespace maro
 
         auto snapshot_size = frame_attr_store.size();
 
+        // shall we skip the step to erase oldest tick? it will be true we deleted an existing tick
+        bool skip_oldest_erase = false;
+
         {
           // 1. check tick exist
           auto tick_pair = _tick2index_map.find(tick);
@@ -70,6 +73,8 @@ namespace maro
             }
 
             _cur_snapshot_num--;
+
+            skip_oldest_erase = true;
           }
         }
 
@@ -78,32 +83,33 @@ namespace maro
         if (_cur_snapshot_num > _max_size)
         {
           // Do overlap
-
-          // find oldest tick to delete
-          auto oldest_item = _tick2index_map.begin();
-          auto oldest_tick = oldest_item->first;
-          auto oldest_index = oldest_item->second;
-          auto oldest_size = _tick2size_map.find(oldest_tick)->second;
-
-          /// remove from mappings
-          _tick2index_map.erase(oldest_tick);
-          _tick2size_map.erase(oldest_tick);
-          _tick_attr_map.erase(oldest_tick);
-
-          // update empty slots area flags
-
-          // if not empty slots in the middle, then use current as first
-          if (_empty_slots_length == 0)
+          if (!skip_oldest_erase)
           {
-            _first_empty_slot_index = oldest_index;
-            _empty_slots_length = oldest_size;
-          }
-          else
-          {
-            // or it must be right after current empty slots
-            _empty_slots_length += oldest_size;
-          }
+            // find oldest tick to delete
+            auto oldest_item = _tick2index_map.begin();
+            auto oldest_tick = oldest_item->first;
+            auto oldest_index = oldest_item->second;
+            auto oldest_size = _tick2size_map.find(oldest_tick)->second;
 
+            /// remove from mappings
+            _tick2index_map.erase(oldest_tick);
+            _tick2size_map.erase(oldest_tick);
+            _tick_attr_map.erase(oldest_tick);
+
+            // update empty slots area flags
+
+            // if not empty slots in the middle, then use current as first
+            if (_empty_slots_length == 0)
+            {
+              _first_empty_slot_index = oldest_index;
+              _empty_slots_length = oldest_size;
+            }
+            else
+            {
+              // or it must be right after current empty slots
+              _empty_slots_length += oldest_size;
+            }
+          }
           // if remaining empty slots enough?
           if (_empty_slots_length >= snapshot_size)
           {
