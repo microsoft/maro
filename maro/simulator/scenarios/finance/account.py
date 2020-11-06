@@ -7,6 +7,7 @@ from maro.simulator.scenarios.finance.common.common import Order, OrderDirection
 
 @node("account")
 class Account(NodeBase):
+    """Account node definition in frame."""
     remaining_money = NodeAttribute("f")
     total_money = NodeAttribute("f")
 
@@ -14,6 +15,11 @@ class Account(NodeBase):
         self.action_history = OrderedDict()
 
     def set_init_state(self, init_money: float):
+        """Set initialize state, that will be used after frame reset.
+
+        Args:
+            init_money (float): Initial money in the account.
+        """
         self._money = init_money
         self.remaining_money = self._money
         self.total_money = self._money

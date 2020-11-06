@@ -97,7 +97,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._init_adj_matrix()
 
-        self._order_mode = OrderMode.market_order
         self._support_order_mode = []
         self._support_order_mode.append(OrderMode.market_order)
         self._support_order_mode.append(OrderMode.stop_order)
@@ -160,7 +159,11 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
             self._event_buffer.insert_event(evt)
 
-    def post_step(self, tick: int):
+    def post_step(self, tick: int) -> bool:
+        """
+            After the events of the tick all finished,
+            take the snapshot of the frame and reset the nodes for next tick.
+        """
         if (not self._conf["trade_constraint"]["allow_day_trade"]) and self.is_market_closed():
             # not allowed day trade, add stock buy amount to hold here
             if len(self._executing_orders) > 0:
@@ -331,63 +334,60 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
         rets = []
-        if action.state == ActionState.pending:
-            # not canceled
-            stock = self._stocks[action.item]
-            is_trigger = action.is_trigger(stock.opening_price, stock.trade_volume)
-            if is_trigger:
-                print(f"  <<>>  executing {action}")
-                if not self._allow_split:
-                    rets = self.trade(action)
-                else:
-                    # TODO: Split trade should be implemented
-                    rets = self.split_trade(action)
-
-                if len(rets) > 0:
-                    action.state = ActionState.success
-                    action.finish_tick = tick
-                    for ret in rets:
-                        print(f"  <<>>  trading: {ret}")
-                        if action.direction == OrderDirection.buy:
-                            self._stocks[action.item].average_cost = (
-                                (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
-                                (ret.price_per_item * ret.trade_number)
-                            ) / (self._stocks[action.item].account_hold_num + ret.trade_number)
-                            # day trading is considered
-                            if self._conf["trade_constraint"]["allow_day_trade"]:
-                                self._stocks[action.item].account_hold_num += ret.trade_number
-                            else:
-                                if action not in self._executing_orders:
-                                    self._executing_orders.append(action)
-                        else:
-                            self._stocks[action.item].account_hold_num -= ret.trade_number
-                else:
-                    action.state = ActionState.failed
-                    action.finish_tick = tick
+        assert(action.state == ActionState.pending)
+        # not canceled
+        stock = self._stocks[action.item]
+        is_trigger = action.is_trigger(stock.opening_price, stock.trade_volume)
+        if is_trigger:
+            print(f"  <<>>  executing {action}")
+            if not self._conf["trade_constraint"]["allow_split"]:
+                rets = self.trade(action)
             else:
-                if action.life_time > 1:
-                    action.life_time -= 1
-                    # move to _on_action_recieved
-                    # self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
-                    if tick + 1 not in self._pending_orders:
-                        self._pending_orders[tick + 1] = []
-                    self._pending_orders[tick + 1].append(action)
-                else:
-                    action.state = ActionState.expired
-                    action.finish_tick = tick
-            action.action_result = rets
+                rets = self.split_trade(action)
 
+            if len(rets) > 0:
+                action.state = ActionState.success
+                action.finish_tick = tick
+                for ret in rets:
+                    print(f"  <<>>  trading: {ret}")
+                    if action.direction == OrderDirection.buy:
+                        self._stocks[action.item].average_cost = (
+                            (self._stocks[action.item].account_hold_num * self._stocks[action.item].average_cost) +
+                            (ret.price_per_item * ret.trade_number)
+                        ) / (self._stocks[action.item].account_hold_num + ret.trade_number)
+                        # day trading is considered
+                        if self._conf["trade_constraint"]["allow_day_trade"]:
+                            self._stocks[action.item].account_hold_num += ret.trade_number
+                        else:
+                            if action not in self._executing_orders:
+                                self._executing_orders.append(action)
+                    else:
+                        self._stocks[action.item].account_hold_num -= ret.trade_number
+            else:
+                action.state = ActionState.failed
+                action.finish_tick = tick
+                action.comment = "Can not execute the order"
         else:
-            # order canceled
-            pass
+            if action.life_time > 1:
+                action.life_time -= 1
+                # move to _on_action_recieved
+                # self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
+                if tick + 1 not in self._pending_orders:
+                    self._pending_orders[tick + 1] = []
+                self._pending_orders[tick + 1].append(action)
+            else:
+                action.state = ActionState.expired
+                action.finish_tick = tick
+        action.action_result = rets
+
         return rets
 
     def cancel_order(self, action: Action, tick: int):
         action.action.state = ActionState.canceled
         action.action.finish_tick = tick
         action.action.life_time = 0
-        if (tick in self._pending_orders) and (action.action in self._pending_orders[tick]):
-            self._pending_orders[tick].remove(action.action)
+        assert((tick in self._pending_orders) and (action.action in self._pending_orders[tick]))
+        self._pending_orders[tick].remove(action.action)
         action.state = ActionState.success
         action.finish_tick = tick
 
@@ -412,7 +412,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 buy_max = int(self._account.remaining_money / stock.opening_price)
                 buy_max = buy_max - buy_max % self._conf["trade_constraint"]["min_buy_unit"]
 
-            if not self._allow_split:
+            if not self._conf["trade_constraint"]["allow_split"]:
                 sell_max = min(sell_max, int(self._conf["trade_constraint"]["max_trade_percent"] * stock.trade_volume))
                 sell_min = min(sell_min, sell_max)
                 buy_max = min(buy_max, int(self._conf["trade_constraint"]["max_trade_percent"] * stock.trade_volume))
@@ -427,13 +427,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 available_orders = self._pending_orders[tick]
             return CancelOrderActionScope(available_orders)
 
-    @property
-    def _allow_split(self):
-        allow_split = False
-        if "allow_split" in self._conf["trade_constraint"]:
-            allow_split = self._conf["trade_constraint"]["allow_split"]
-        return allow_split
-
     def _tick_2_date(self, tick: int):
         # Get current date to update additional info.
         # NOTE: We do not need hour and minutes for now.
@@ -446,7 +439,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
     # TODO: implement
     def split_trade(self, action: Action):
         rets = []
-        market_price = self._stocks[action.item].opening_price
+        market_price = self.pick_market_price(self._stocks[action.item])
         market_volume = self._stocks[action.item].trade_volume
 
         slippage = ByMoneySlippage(self._conf["trade_constraint"]["slippage"])
@@ -481,10 +474,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 executing_tax = tax.execute(action.direction, executing_price, executing_volume)
 
                 # constraint
-                if not self.validate_constrant(
+                if not self.validate_trade_on_volume_unit(
                     odd_shares, action.direction, executing_price, executing_volume
                 ):
-                    executing_volume = self.adjust_constraint(
+                    executing_volume = self.adjust_trade_on_volume_unit(
                         odd_shares, action.direction, executing_price, executing_volume
                     )
                     adjusted = True
@@ -493,11 +486,11 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     continue
 
                 # money
-                if not self.validate_trade(
+                if not self.validate_trade_on_remaining_money(
                     action.direction, executing_price, executing_volume,
                     executing_commission, executing_tax, remaining_money
                 ):
-                    executing_volume = self.adjust_trade(
+                    executing_volume = self.adjust_trade_on_remaining_money(
                         action.direction, executing_price, executing_volume,
                         executing_commission, executing_tax, remaining_money
                     )
@@ -520,13 +513,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     rets.append(ret)
             else:
                 executing = False
-                ret = None
 
         return rets
 
     def trade(self, action: Action):
         rets = []
-        market_price = self._stocks[action.item].opening_price
+        market_price = self.pick_market_price(self._stocks[action.item])
         market_volume = self._stocks[action.item].trade_volume
         remaining_money = self._account.remaining_money
 
@@ -558,8 +550,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             executing_tax = tax.execute(action.direction, executing_price, executing_volume)
 
             # constraint
-            if not self.validate_constrant(odd_shares, action.direction, executing_price, executing_volume):
-                executing_volume = self.adjust_constraint(
+            if not self.validate_trade_on_volume_unit(odd_shares, action.direction, executing_price, executing_volume):
+                executing_volume = self.adjust_trade_on_volume_unit(
                     odd_shares, action.direction, executing_price, executing_volume
                 )
                 adjusted = True
@@ -567,11 +559,11 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 continue
 
             # money
-            if not self.validate_trade(
+            if not self.validate_trade_on_remaining_money(
                 action.direction, executing_price, executing_volume,
                 executing_commission, executing_tax, remaining_money
             ):
-                executing_volume = self.adjust_trade(
+                executing_volume = self.adjust_trade_on_remaining_money(
                     action.direction, executing_price, executing_volume,
                     executing_commission, executing_tax, remaining_money
                 )
@@ -582,12 +574,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         if executing_volume > 0:
             ret = TradeResult(executing_volume, executing_price, executing_commission, executing_tax)
             rets.append(ret)
-        else:
-            pass
 
         return rets
 
-    def validate_constrant(
+    def validate_trade_on_volume_unit(
         self, odd_shares: int, direction: OrderDirection, executing_price: float, executing_volume: int
     ):
         ret = True
@@ -602,7 +592,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return ret
 
-    def adjust_constraint(
+    def adjust_trade_on_volume_unit(
         self, odd_shares: int, direction: OrderDirection, executing_price: float, executing_volume: int
     ):
         ret = executing_volume
@@ -617,7 +607,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return int(ret)
 
-    def validate_trade(
+    def validate_trade_on_remaining_money(
         self, direction: OrderDirection, executing_price: float,
         executing_volume: int, executing_commission: float, executing_tax: float, remaining_money: float
     ):
@@ -633,7 +623,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return ret
 
-    def adjust_trade(
+    def adjust_trade_on_remaining_money(
         self, direction: OrderDirection, executing_price: float,
         executing_volume: int, executing_commission: float, executing_tax: float, remaining_money: float
     ):
@@ -651,3 +641,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 )
             ) * self._conf["trade_constraint"]["min_buy_unit"]
         return int(ret)
+
+    def pick_market_price(self, stock: Stock):
+        return getattr(stock, self._conf["trade_constraint"]["deal_price"], stock.opening_price)
