@@ -37,16 +37,48 @@ namespace maro
 
       */
 
-      template<typename A, typename V>
-      class AttrMap : public unordered_map<A, V> {};
+      /**
 
-      template<typename T, typename A, typename V>
-      class TickAttrMap : public map<T, AttrMap<A, V>> {};
+      Steps to query:
 
+      We expect that the result pointer (float*) is a 4d array (numpy array), and length of items for each dimension should be same.
+
+
+      */
+
+      struct SnapshotResultShape
+      {
+        /* Following 4 parts used for out-side to construct the result array */
+        INT tick_number{ 0 };
+        NODE_INDEX max_node_number{ 0 };
+        USHORT attr_number{ 0 };
+        SLOT_INDEX max_slot_number{ 0 };
+      };
 
 
       class SnapshotList
       {
+        /// <summary>
+        /// Object used to hold the parameter that used for query
+        /// </summary>
+        class SnapshotQueryParameters
+        {
+          friend SnapshotList;
+
+          // for furthur querying, these fields would be changed by prepare function
+          IDENTIFIER node_id{ 0 };
+          INT* ticks{ nullptr };
+          UINT tick_length{ 0 };
+          NODE_INDEX* node_indices{ nullptr };
+          UINT node_length{ 0 };
+          IDENTIFIER* attributes{ nullptr };
+          UINT attr_length{ 0 };
+
+        public:
+          void reset();
+        };
+
+
         // tick -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
         //map<INT, map<ULONG, ULONG>> _attr_map;
         map<INT, unordered_map<ULONG, size_t>> _tick_attr_map;
@@ -78,6 +110,8 @@ namespace maro
 
         Attribute _defaultAttr = Attribute(NAN);
 
+        SnapshotQueryParameters _query_parameters;
+
       public:
         void set_max_size(USHORT max_size);
 
@@ -87,22 +121,19 @@ namespace maro
         /// <param name="tick"></param>
         void take_snapshot(INT tick, AttributeStore& frame_attr_store);
 
-        /// <summary>
-        /// Query
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="node_id"></param>
-        /// <param name=""></param>
-        /// <param name="node_length"></param>
-        /// <param name="attributes"></param>
-        /// <param name="attr_length"></param>
-        void query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
-          NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
-
         Attribute& operator() (INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
         USHORT size();
         USHORT max_size();
+
+
+        // prepare for querying use passed parameters, this method will correct input info, and generate an parameter object for next query
+        SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
+          NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
+
+        // do query using parameters from last prepare invoking, cause exception if without prepare calling
+        void query(QUERING_FLOAT* result);
+
 
 #ifdef _DEBUG
         pair<size_t, size_t> empty_states();

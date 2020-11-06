@@ -132,6 +132,55 @@ namespace maro
 
       }
 
+      Attribute& SnapshotList::operator()(INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      {
+        auto tick_index_pair = _tick2index_map.find(tick);
+
+        if (tick_index_pair == _tick2index_map.end())
+        {
+          // return NAN if not exist
+          return _defaultAttr;
+        }
+
+        auto tick_start_index = tick_index_pair->second;
+        auto& mapping = _tick_attr_map.find(tick)->second;
+
+        auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
+
+        auto offset_pair = mapping.find(key);
+
+        if (offset_pair == mapping.end())
+        {
+          return _defaultAttr;
+        }
+
+        auto offset = offset_pair->second;
+
+        return _attr_store[tick_start_index + offset];
+      }
+
+      USHORT SnapshotList::size()
+      {
+        return _cur_snapshot_num > _max_size ? _max_size : _cur_snapshot_num;
+      }
+
+      USHORT SnapshotList::max_size()
+      {
+        return _max_size;
+      }
+
+      SnapshotResultShape SnapshotList::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+      {
+        ensure_max_size();
+
+        return SnapshotResultShape();
+      }
+
+      void SnapshotList::query(QUERING_FLOAT* result)
+      {
+        ensure_max_size();
+      }
+
       void SnapshotList::append_to_end(AttributeStore& frame_attr_store, INT tick)
       {
         auto snapshot_size = frame_attr_store.size();
@@ -177,48 +226,6 @@ namespace maro
         {
           throw InvalidSnapshotSize();
         }
-      }
-
-      void SnapshotList::query(QUERING_FLOAT* result, IDENTIFIER node_id, INT ticks[], UINT tick_length,
-        NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
-      {
-        ensure_max_size();
-      }
-
-      Attribute& SnapshotList::operator()(INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
-      {
-        auto tick_index_pair = _tick2index_map.find(tick);
-
-        if (tick_index_pair == _tick2index_map.end())
-        {
-          // return NAN if not exist
-          return _defaultAttr;
-        }
-
-        auto tick_start_index = tick_index_pair->second;
-        auto& mapping = _tick_attr_map.find(tick)->second;
-
-        auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
-
-        auto offset_pair = mapping.find(key);
-
-        if (offset_pair == mapping.end())
-        {
-          return _defaultAttr;
-        }
-
-        auto offset = offset_pair->second;
-
-        return _attr_store[tick_start_index + offset];
-      }
-
-      USHORT SnapshotList::size()
-      {
-        return _cur_snapshot_num > _max_size ? _max_size : _cur_snapshot_num;
-      }
-      USHORT SnapshotList::max_size()
-      {
-        return _max_size;
       }
 
 #ifdef _DEBUG
