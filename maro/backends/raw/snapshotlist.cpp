@@ -83,6 +83,7 @@ namespace maro
         if (_cur_snapshot_num > _max_size)
         {
           // Do overlap
+          // skip means we have delete a tick before (existing tick), so we do not need to delete oldest one here
           if (!skip_oldest_erase)
           {
             // find oldest tick to delete
