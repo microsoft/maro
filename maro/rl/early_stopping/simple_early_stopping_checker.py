@@ -2,25 +2,32 @@
 # Licensed under the MIT license.
 
 from statistics import mean, stdev
+from typing import Callable, Union
 
 from .abs_early_stopping_checker import AbsEarlyStoppingChecker
 
 
-class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
-    """Early stopping checker based on the mean and standard deviation of the last k metric values.
+class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
+    """Early stopping checker based on the some simple measure obtained by applying a measure function to the last
+    k metric values.
 
-    Args:
-        last_k (int): Number of the latest performance records to check for early stopping.
-        threshold (float): The threshold value against which the early stopping metric is compared. The early stopping
-            condition is satisfied if the metric is below this threshold.
+    The measure function must take a list as input and output a single number.
     """
-    def __init__(self, last_k: int, threshold: float):
-        super().__init__()
-        self._last_k = last_k
-        self._threshold = threshold
+    def __init__(self, last_k, threshold, measure_func: Callable[[list], Union[int, float]]):
+        super().__init__(last_k, threshold)
+        self._measure_func = measure_func
 
     def __call__(self, metric_series: list):
-        if self._last_k > len(metric_series):
+        if not self.is_triggered(metric_series):
+            return False
+        else:
+            return self._measure_func(metric_series[-self._last_k:]) >= self._threshold
+
+
+class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
+    """Early stopping checker based on the mean and standard deviation of the last k metric values."""
+    def __call__(self, metric_series: list):
+        if not self.is_triggered(metric_series):
             return False
         else:
             metric_series = metric_series[-self._last_k:]
@@ -28,23 +35,13 @@ class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
 
 
 class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
-    """Early stopping checker based on the maximum relative change over the last k metric values.
+    """Early stopping checker based on the maximum relative variation over the last k metric values.
 
     The relative change is defined as |m(i+1) - m(i)| / m[i]. The maximum of the last k-1 changes in the metric series
     is compared with the threshold to determine if early stopping should be triggered.
-
-    Args:
-        last_k (int): Number of the latest performance records to check for early stopping.
-        threshold (float): The threshold value against which the early stopping metric is compared. The early stopping
-            condition is satisfied if the metric is below this threshold.
     """
-    def __init__(self, last_k: int, threshold: float):
-        super().__init__()
-        self._last_k = last_k
-        self._threshold = threshold
-
     def __call__(self, metric_series: list):
-        if self._last_k > len(metric_series):
+        if not self.is_triggered(metric_series):
             return False
         else:
             metric_series = metric_series[-self._last_k:]
