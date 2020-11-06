@@ -121,6 +121,8 @@ namespace maro
           append_to_end(frame_attr_store, tick);
         }
 
+        _last_tick = tick;
+
       }
 
       void SnapshotList::append_to_end(AttributeStore& frame_attr_store, INT tick)
