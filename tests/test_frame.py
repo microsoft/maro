@@ -4,13 +4,10 @@
 
 import unittest
 
-from maro.backends.frame import node, NodeBase, NodeAttribute, FrameNode, FrameBase
-
+from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
 from maro.utils.exception.backends_exception import (
-    BackendsGetItemInvalidException,
-    BackendsSetItemInvalidException,
-    BackendsArrayAttributeAccessException)
-
+    BackendsArrayAttributeAccessException, BackendsGetItemInvalidException, BackendsSetItemInvalidException
+)
 
 STATIC_NODE_NUM = 5
 DYNAMIC_NODE_NUM = 10

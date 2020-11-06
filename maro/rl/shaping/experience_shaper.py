@@ -3,6 +3,7 @@
 
 from abc import abstractmethod
 from typing import Callable, Iterable, Union
+
 from .abs_shaper import AbsShaper
 
 

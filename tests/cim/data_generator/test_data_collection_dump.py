@@ -2,9 +2,10 @@
 # Licensed under the MIT license.
 
 import os
-import numpy as np
-import unittest
 import tempfile
+import unittest
+
+import numpy as np
 
 from maro.data_lib.cim.cim_data_dump import dump_from_config
 

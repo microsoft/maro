@@ -1,18 +1,18 @@
 import ast
 import io
-import numpy as np
-import random
 import os
+import random
 import shutil
 import sys
-import yaml
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 
+import numpy as np
 import torch
+import yaml
 
 from maro.simulator import Env
 from maro.simulator.scenarios.cim.common import Action
-from maro.utils import convert_dottable, clone
+from maro.utils import clone, convert_dottable
 
 
 def compute_v2p_degree_matrix(env):

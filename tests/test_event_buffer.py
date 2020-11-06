@@ -3,7 +3,9 @@
 
 
 import unittest
-from maro.event_buffer import EventBuffer, Event, EventState, EventCategory
+
+from maro.event_buffer import Event, EventBuffer, EventCategory, EventState
+
 
 class TestEventBuffer(unittest.TestCase):
     def setUp(self):

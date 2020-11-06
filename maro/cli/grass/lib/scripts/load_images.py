@@ -10,7 +10,7 @@ from multiprocessing.pool import ThreadPool
 
 from redis import Redis
 
-from utils import load_cluster_details, get_node_details, set_node_details, get_master_details
+from .utils import get_master_details, get_node_details, load_cluster_details, set_node_details
 
 LOAD_IMAGE_COMMAND = '''\
 docker load -q -i "{image_path}"
@@ -19,8 +19,9 @@ docker load -q -i "{image_path}"
 
 def load_image(image_path: str):
     command = LOAD_IMAGE_COMMAND.format(image_path=image_path)
-    completed_process = subprocess.run(command,
-                                       shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    completed_process = subprocess.run(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     if completed_process.returncode != 0:
         raise Exception(completed_process.stderr)
     sys.stdout.write(completed_process.stdout)
@@ -70,8 +71,10 @@ if __name__ == "__main__":
 
     # Parallel load
     with ThreadPool(args.parallels) as pool:
-        params = [[os.path.expanduser(f"~/.maro/clusters/{args.cluster_name}/images/{unloaded_image}")]
-                  for unloaded_image in unloaded_images]
+        params = [
+            [os.path.expanduser(f"~/.maro/clusters/{args.cluster_name}/images/{unloaded_image}")]
+            for unloaded_image in unloaded_images
+        ]
         pool.starmap(
             load_image,
             params

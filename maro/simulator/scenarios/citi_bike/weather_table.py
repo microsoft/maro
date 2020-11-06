@@ -4,7 +4,6 @@
 from datetime import date
 
 from maro.data_lib.binary_reader import BinaryReader
-
 from maro.simulator.scenarios.helpers import utc_timestamp_to_timezone
 
 
