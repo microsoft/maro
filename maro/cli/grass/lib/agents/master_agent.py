@@ -13,9 +13,9 @@ import time
 import uuid
 from resource import ContainerResource, NodeResource
 
+from exception import AllocationFailed, StartContainerFailed
 from redis import Redis
 
-from exception import AllocationFailed, StartContainerFailed
 from utils import (
     delete_rejoin_container_name_to_component_name, get_containers_details, get_job_details, get_job_runtime_details,
     get_jobs_details, get_killed_job_tickets, get_node_details, get_nodes_details, get_pending_job_tickets,

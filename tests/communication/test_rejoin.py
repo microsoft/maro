@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import multiprocessing
-import subprocess
-import unittest
 import os
+import subprocess
 import sys
 import time
+import unittest
 
 from maro.communication import Proxy, SessionMessage, SessionType
 from tests.communication.utils import get_random_port
