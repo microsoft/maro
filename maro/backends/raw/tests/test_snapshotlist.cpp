@@ -37,8 +37,6 @@ const lest::test specification[] =
     auto ats = AttributeStore();
 
     EXPECT_THROWS_AS(ss.take_snapshot(0, ats), InvalidSnapshotSize);
-
-    EXPECT_THROWS_AS(ss.query(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0), InvalidSnapshotSize);
 },
 
 CASE("Take snapshot without exist tick, no over-write.")
