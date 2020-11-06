@@ -4,16 +4,17 @@
 import os
 from copy import deepcopy
 from typing import List
+
 from yaml import safe_load
 
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import Action, Payload, Latency
+from .common import Action, Latency, Payload
 from .events import Events
-from .virtual_machine import VirtualMachine
 from .physical_machine import PhysicalMachine
+from .virtual_machine import VirtualMachine
 
 metrics_desc = """
 
