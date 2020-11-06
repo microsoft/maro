@@ -8,7 +8,7 @@ import numpy as np
 from components.action_shaper import CIMActionShaper
 from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
-from omponents.experience_shaper import TruncatedExperienceShaper
+from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
