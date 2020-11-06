@@ -1,4 +1,3 @@
-
 K8S Cluster Provisioning on Azure
 =================================
 
@@ -12,7 +11,27 @@ Prerequisites
 * `Install the Azure CLI and login <https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest>`_
 * `Install and set up kubectl <https://kubernetes.io/docs/tasks/tools/install-kubectl/>`_
 * `Install docker <https://docs.docker.com/engine/install/>`_ and
-  `Configure docker to make sure it can be managed as a non-root user <https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user>`_
+  `Configure docker to make sure it can be managed as a non-root user
+  <https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user>`_
+* `Download AzCopy <https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10>`_,
+  then move the AzCopy executable to /bin folder or
+  add the directory location of the AzCopy executable to your system path:
+
+.. code-block:: sh
+
+    # Take AzCopy version 10.6.0 as an example
+
+    # Linux
+    tar xvf ./azcopy_linux_amd64_10.6.0.tar.gz; cp ./azcopy_linux_amd64_10.6.0/azcopy /usr/local/bin
+
+    # MacOS (may required MacOS Security & Privacy setting)
+    unzip ./azcopy_darwin_amd64_10.6.0.zip; cp ./azcopy_darwin_amd64_10.6.0/azcopy /usr/local/bin
+
+    # Windows
+    # 1. Unzip ./azcopy_windows_amd64_10.6.0.zip
+    # 2. Add the path of ./azcopy_windows_amd64_10.6.0 folder to your Environment Variables
+    # Ref: https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10
+
 
 Cluster Management
 ------------------

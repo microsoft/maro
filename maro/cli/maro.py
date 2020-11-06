@@ -15,7 +15,7 @@ from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 MARO_BANNER = """
- __  __    _    ____   ___
+ ⁪⁪⁬__  __    _    ____   ___
 |  \/  |  / \  |  _ \ / _ \
 | |\/| | / _ \ | |_) | | | |
 | |  | |/ ___ \|  _ <| |_| |
@@ -43,10 +43,12 @@ def main():
     # maro env
     parser_env = subparsers.add_parser(
         'env',
-        help=('Get all environment-related information, '
+        help=(
+            'Get all environment-related information, '
             'such as the supported scenarios, topologies. '
             'And it is also responsible to generate data to the specific environment, '
-            'which has external data dependency.'),
+            'which has external data dependency.'
+        ),
         parents=[global_parser]
     )
     parser_env.set_defaults(func=_help_func(parser=parser_env))
@@ -339,7 +341,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     from maro.cli.grass.job import get_job_logs
     parser_job_logs = parser_job_subparsers.add_parser(
         'logs',
-        help='List details of jobs',
+        help='Get logs of the job',
         examples=CliExamples.MARO_GRASS_JOB_LOGS,
         parents=[global_parser]
     )
@@ -690,7 +692,7 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     from maro.cli.k8s.job import get_job_logs
     parser_job_logs = parser_job_subparsers.add_parser(
         'logs',
-        help='List details of jobs',
+        help='Get logs of the job',
         parents=[global_parser]
     )
     parser_job_logs.add_argument(
@@ -698,6 +700,17 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     parser_job_logs.add_argument(
         'job_name', help='Name of the job')
     parser_job_logs.set_defaults(func=get_job_logs)
+
+    # maro k8s job list
+    from maro.cli.k8s.job import list_job
+    parser_job_list = parser_job_subparsers.add_parser(
+        'list',
+        help='List details of jobs',
+        parents=[global_parser]
+    )
+    parser_job_list.add_argument(
+        'cluster_name', help='Name of the cluster')
+    parser_job_list.set_defaults(func=list_job)
 
     # maro k8s schedule
     parser_schedule = subparsers.add_parser(
@@ -802,9 +815,11 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         type=int,
         default=None,
         required=False,
-        help=("Specified start timestamp (in UTC) for binary file, "
-            "then this timestamp will be considered as tick=0 for binary reader, "
-            "this can be used to adjust the reader pipeline."))
+        help="""
+        Specified start timestamp (in UTC) for binary file,
+        then this timestamp will be considered as tick=0 for binary reader,
+        this can be used to adjust the reader pipeline.
+        """)
 
     build_cmd_parser.set_defaults(func=convert)
 

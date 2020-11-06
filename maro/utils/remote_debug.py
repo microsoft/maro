@@ -3,6 +3,7 @@
 
 
 import os
+
 from requests import get
 from tabulate import tabulate
 

@@ -29,7 +29,7 @@ jobs:
         pip install wheel twine
 
     - name: Install build dependencies
-      run: | 
+      run: |
         pip install -r maro/requirements.build.txt
 
     - name: Compile cython files
@@ -48,7 +48,8 @@ jobs:
         python-versions: 'cp36-cp36m cp37-cp37m'
         build-requirements: 'numpy'
         pip-wheel-args: '-w ./wheelhouse' # save wheel packages to wheelhouse folder
-    
+        pre-build-command: 'export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH'
+
     - name: Move valid packages to dist folder for manylinux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
@@ -58,7 +59,7 @@ jobs:
     - name: Build source package on linux
       if: runner.os == 'Linux' && matrix.python-version == '3.6'
       run: |
-        python setup.py sdist 
+        python setup.py sdist
 
     - name: Upload linux wheel to artifact
       uses: actions/upload-artifact@v2

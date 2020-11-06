@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import os
-from pathlib import Path
 from abc import ABC, abstractmethod
+from pathlib import Path
 
-from maro.event_buffer import EventBuffer
 from maro.backends.frame import FrameBase, SnapshotList
+from maro.event_buffer import EventBuffer
 from maro.simulator.utils.common import tick_to_frame_index, total_frames
 
 
@@ -161,6 +161,17 @@ class AbsBusinessEngine(ABC):
 
         Returns:
             dict: Key is node index, value is decided by scenario, usually is name or id.
+        """
+        return {}
+
+    def get_event_payload_detail(self) -> dict:
+        """Get payload keys for all kinds of event.
+
+        For the performance of the simulator, some event payload has no corresponding Python object.
+        This mapping is provided for your convenience in such case.
+
+        Returns:
+            dict: Key is the event type in string format, value is a list of available keys.
         """
         return {}
 

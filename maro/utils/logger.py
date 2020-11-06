@@ -13,7 +13,6 @@ from enum import Enum
 # private lib
 from maro.cli.utils.params import GlobalParams as CliGlobalParams
 
-
 cwd = os.getcwd()
 
 # For API generation, we should hide our build path for security issue.
@@ -23,7 +22,6 @@ if "APIDOC_GEN" in os.environ:
 
 class LogFormat(Enum):
     """The Enum class of the log format.
-
     Example:
         - ``LogFormat.full``: full time | host | user | pid | tag | level | msg
         - ``LogFormat.simple``: simple time | tag | level | msg
@@ -54,8 +52,8 @@ FORMAT_NAME_TO_FILE_FORMAT = {
 }
 
 FORMAT_NAME_TO_STDOUT_FORMAT = {
-    LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(tag)s | %(message)s', datefmt='%H:%M:%S'),
+    # We need to output clean messages in the INFO mode.
+    LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
 }
 
 # Progress of training, we give it a highest level.
@@ -86,17 +84,14 @@ def msgformat(logfunc):
 
 class Logger(object):
     """A simple wrapper for logging.
-
     The Logger hosts a file handler and a stdout handler. The file handler is set
     to ``DEBUG`` level and will dump all the logging info to the given ``dump_folder``.
     The logging level of the stdout handler is decided by the ``stdout_level``,
     and can be redirected by setting the environment variable ``LOG_LEVEL``.
     Supported ``LOG_LEVEL`` includes: ``DEBUG``, ``INFO``, ``WARN``, ``ERROR``,
     ``CRITICAL``, ``PROCESS``.
-
     Example:
         ``$ export LOG_LEVEL=INFO``
-
     Args:
         tag (str): Log tag for stream and file output.
         format_ (LogFormat): Predefined formatter. Defaults to ``LogFormat.full``.
@@ -112,8 +107,10 @@ class Logger(object):
             ``DEBUG``.
     """
 
-    def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
-                extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"):
+    def __init__(
+        self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
+        extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"
+    ):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
@@ -185,6 +182,7 @@ class Logger(object):
 
 class DummyLogger:
     """A dummy Logger, which is used when disabling logs."""
+
     def __init__(self):
         pass
 
@@ -207,9 +205,11 @@ class DummyLogger:
 class InternalLogger(Logger):
     """An internal logger uses for recording the internal system's log."""
 
-    def __init__(self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
-                dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
-                auto_timestamp: bool = False):
+    def __init__(
+        self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
+        dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
+        auto_timestamp: bool = False
+    ):
         current_time = f"{datetime.now().strftime('%Y%m%d%H%M')}"
         self._dump_folder = dump_folder if dump_folder else \
             os.path.join(os.path.expanduser("~"), ".maro/log", current_time, str(os.getpid()))
@@ -220,7 +220,6 @@ class InternalLogger(Logger):
 
 class CliLogger:
     """An internal logger for CLI logging.
-
     It maintains a singleton logger in a CLI command lifecycle.
     The logger is inited at the very beginning, and use different logging formats based on the ``--debug`` argument.
     """
@@ -256,7 +255,6 @@ class CliLogger:
 
     def debug(self, message: str) -> None:
         """``logger.debug()`` with passive init.
-
         Args:
             message (str): logged message.
         """
@@ -265,7 +263,6 @@ class CliLogger:
 
     def debug_yellow(self, message: str) -> None:
         """``logger.debug()`` with color yellow and passive init.
-
         Args:
             message (str): logged message.
         """
@@ -274,7 +271,6 @@ class CliLogger:
 
     def info(self, message: str) -> None:
         """``logger.info()`` with passive init.
-
         Args:
             message (str): logged message.
         """
@@ -283,7 +279,6 @@ class CliLogger:
 
     def warning(self, message: str) -> None:
         """``logger.warning()`` with passive init.
-
         Args:
             message (str): logged message.
         """
@@ -292,7 +287,6 @@ class CliLogger:
 
     def error(self, message: str) -> None:
         """``logger.error()`` with passive init.
-
         Args:
             message (str): logged message.
         """
@@ -301,7 +295,6 @@ class CliLogger:
 
     def info_green(self, message: str) -> None:
         """``logger.info()`` with color green and passive init.
-
         Args:
             message (str): logged message.
         """
@@ -310,7 +303,6 @@ class CliLogger:
 
     def warning_yellow(self, message: str) -> None:
         """``logger.warning()`` with color yellow and passive init.
-
         Args:
             message (str): logged message.
         """
@@ -319,7 +311,6 @@ class CliLogger:
 
     def error_red(self, message: str) -> None:
         """``logger.error()`` with color red and passive init.
-
         Args:
             message (str): logged message.
         """

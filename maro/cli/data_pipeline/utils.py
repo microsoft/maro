@@ -2,10 +2,11 @@
 # Licensed under the MIT license.
 
 import json
-import numpy as np
 import os
 import urllib.request
 import uuid
+
+import numpy as np
 
 from maro.cli.utils.params import GlobalPaths
 from maro.data_lib.binary_converter import BinaryConverter

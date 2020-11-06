@@ -6,20 +6,20 @@ from typing import Callable, List, Sequence, Tuple
 
 import numpy as np
 
-from .abs_store import AbsStore
-from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
 from maro.utils import clone
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
+
+from .abs_store import AbsStore
+from .utils import OverwriteType, check_uniformity, get_update_indexes, normalize
 
 
 class ColumnBasedStore(AbsStore):
     """
     An implementation of ``AbsStore`` for experience storage in RL.
-
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key
     are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
     put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
     and limited storage are supported.
-
     Args:
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
         overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
@@ -53,10 +53,18 @@ class ColumnBasedStore(AbsStore):
     def __getitem__(self, index: int):
         return {k: lst[index] for k, lst in self._store.items()}
 
+    def __getstate__(self):
+        """A patch to make the object picklable.
+        Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
+        ``defaultdict`` definition of the ``_store`` attribute.
+        """
+        obj_dict = self.__dict__
+        obj_dict["_store"] = dict(obj_dict["_store"])
+        return obj_dict
+
     @property
     def capacity(self):
         """Store capacity.
-
         If negative, the store grows without bound. Otherwise, the number of items in the store will not exceed
         this capacity.
         """
@@ -73,9 +81,9 @@ class ColumnBasedStore(AbsStore):
     @check_uniformity(arg_num=1)
     def put(self, contents: dict, overwrite_indexes: Sequence = None) -> List[int]:
         """Put new contents in the store.
-
         Args:
-            contents (Sequence): Item object list.
+            contents (dict): dictionary of items to add to the store. If the store is not empty, this must have the
+                same keys as the store itself. Otherwise an ``StoreMisalignmentError`` will be raised.
             overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
                 used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
@@ -84,16 +92,21 @@ class ColumnBasedStore(AbsStore):
             The indexes where the newly added entries reside in the store.
         """
         if len(self._store) > 0 and contents.keys() != self._store.keys():
-            raise ValueError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
-        added_size = len(contents[next(iter(contents))])
+            raise StoreMisalignmentError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
+        added = contents[next(iter(contents))]
+        added_size = len(added) if isinstance(added, list) else 1
         if self._capacity < 0:
-            for key, lst in contents.items():
-                self._store[key].extend(lst)
+            for key, val in contents.items():
+                if not isinstance(val, list):
+                    self._store[key].append(val)
+                else:
+                    self._store[key].extend(val)
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
-            write_indexes = get_update_indexes(self._size, added_size, self._capacity, self._overwrite_type,
-                                            overwrite_indexes=overwrite_indexes)
+            write_indexes = get_update_indexes(
+                self._size, added_size, self._capacity, self._overwrite_type, overwrite_indexes=overwrite_indexes
+            )
             self.update(write_indexes, contents)
             self._size = min(self._capacity, self._size + added_size)
             return write_indexes
@@ -102,12 +115,10 @@ class ColumnBasedStore(AbsStore):
     def update(self, indexes: Sequence, contents: dict) -> Sequence:
         """
         Update contents at given positions.
-
         Args:
             indexes (Sequence): Positions where updates are to be made.
             contents (dict): Contents to write to the internal store at given positions. It is subject to uniformity
                 checks to ensure that the lists for all keys have the same length.
-
         Returns:
             The indexes where store contents are updated.
         """
@@ -120,12 +131,10 @@ class ColumnBasedStore(AbsStore):
 
     def apply_multi_filters(self, filters: Sequence[Callable]):
         """Multi-filter method.
-
             The input to one filter is the output from its predecessor in the sequence.
-
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                        e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+                e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
         Returns:
             Filtered indexes and corresponding objects.
         """
@@ -137,10 +146,8 @@ class ColumnBasedStore(AbsStore):
 
     def apply_multi_samplers(self, samplers: Sequence, replace: bool = True) -> Tuple:
         """Multi-samplers method.
-
         This implements chained sampling where the input to one sampler is the output from its predecessor in
         the sequence.
-
         Args:
             samplers (Sequence): A sequence of weight functions for computing the sampling weights of the items
                 in the store,
@@ -160,7 +167,6 @@ class ColumnBasedStore(AbsStore):
     def sample(self, size, weights: Sequence = None, replace: bool = True):
         """
         Obtain a random sample from the experience pool.
-
         Args:
             size (int): sample sizes for each round of sampling in the chain. If this is a single integer, it is
                         used as the sample size for all samplers in the chain.
@@ -176,7 +182,6 @@ class ColumnBasedStore(AbsStore):
     def sample_by_key(self, key, size: int, replace: bool = True):
         """
         Obtain a random sample from the store using one of the columns as sampling weights.
-
         Args:
             key: the column whose values are to be used as sampling weights.
             size (int): sample size.
@@ -191,7 +196,6 @@ class ColumnBasedStore(AbsStore):
     def sample_by_keys(self, keys: Sequence, sizes: Sequence, replace: bool = True):
         """
         Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.
-
         Args:
             keys (Sequence): the column whose values are to be used as sampling weights.
             sizes (Sequence): sample size.

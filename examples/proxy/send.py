@@ -3,9 +3,10 @@
 
 
 import multiprocessing as mp
+
 import numpy as np
 
-from maro.communication import Proxy, SessionType, SessionMessage
+from maro.communication import Proxy, SessionMessage, SessionType
 
 
 def worker(group_name):
@@ -65,7 +66,7 @@ def master(group_name: str, is_immediate: bool = False):
 
 if __name__ == "__main__":
     """
-    This is a single-host multiprocess program used to simulate the communication in the distributed system. 
+    This is a single-host multiprocess program used to simulate the communication in the distributed system.
     For the completed usage experience of the distributed cluster, please use the MARO CLI.
     """
     mp.set_start_method("spawn")

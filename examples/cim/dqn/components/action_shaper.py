@@ -26,7 +26,10 @@ class CIMActionShaper(ActionShaper):
             actual_action = max(round(self._action_space[model_action] * port_empty), -vessel_remaining_space)
         elif model_action > self._zero_action_index:
             plan_action = self._action_space[model_action] * (scope.discharge + early_discharge) - early_discharge
-            actual_action = round(plan_action) if plan_action > 0 else round(self._action_space[model_action] * scope.discharge)
+            actual_action = (
+                round(plan_action) if plan_action > 0
+                else round(self._action_space[model_action] * scope.discharge)
+            )
         else:
             actual_action = 0
 

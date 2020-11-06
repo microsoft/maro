@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class AbsLearner(ABC):
@@ -9,16 +9,10 @@ class AbsLearner(ABC):
     def __init__(self):
         pass
 
-    @abstractmethod
-    def train(self, total_episodes):
-        """The outermost training loop logic is implemented here.
-
-        Args:
-            total_episodes (int): number of episodes to be run.
-        """
+    def train(self, *args, **kwargs):
+        """The outermost training loop logic is implemented here."""
         pass
 
-    @abstractmethod
     def test(self):
         """Test policy performance."""
         pass
