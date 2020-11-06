@@ -104,6 +104,12 @@ namespace maro
         USHORT size();
         USHORT max_size();
 
+#ifdef _DEBUG
+        pair<size_t, size_t> empty_states();
+
+        size_t end_index();
+#endif
+
       private:
         void append_to_end(AttributeStore& frame_attr_store, INT tick);
         void write_to_empty_slots(AttributeStore& frame_attr_store, INT tick);

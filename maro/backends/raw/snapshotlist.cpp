@@ -213,6 +213,18 @@ namespace maro
       {
         return _max_size;
       }
+
+#ifdef _DEBUG
+      pair<size_t, size_t> SnapshotList::empty_states()
+      {
+        return make_pair(_first_empty_slot_index, _empty_slots_length);
+      }
+
+      size_t SnapshotList::end_index()
+      {
+        return _end_index;
+      }
+#endif
     }
   }
 }
