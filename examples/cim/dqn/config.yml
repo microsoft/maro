@@ -51,6 +51,7 @@ agents:
         - 64
       softmax_enabled: false
       batch_norm_enabled: true
+      skip_connection_enabled: false
       dropout_p: 0.0
     optimizer:
       lr: 0.05
