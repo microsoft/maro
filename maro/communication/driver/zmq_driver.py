@@ -13,10 +13,10 @@ import zmq
 # private package
 from maro.communication import AbsDriver, Message
 from maro.communication.utils import default_parameters
-from maro.utils import DummyLogger, NON_RESTART_EXIT_CODE
-from maro.utils.exception.communication_exception import PeersConnectionError, DriverReceiveError, DriverSendError, \
-    SocketTypeError, PeersDisconnectionError, PendingToSend
-
+from maro.utils import NON_RESTART_EXIT_CODE, DummyLogger
+from maro.utils.exception.communication_exception import (
+    DriverReceiveError, DriverSendError, PeersConnectionError, PeersDisconnectionError, PendingToSend, SocketTypeError
+)
 
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout
@@ -61,8 +61,8 @@ class ZmqDriver(AbsDriver):
         - ``unicast_receiver``: The ``zmq.PULL`` socket, use for receiving message from one-to-one communication,
         - ``broadcast_sender``: The ``zmq.PUB`` socket, use for broadcasting message to all subscribers,
         - ``broadcast_receiver``: The ``zmq.SUB`` socket, use for listening message from broadcast.
-        - ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and
-        ``zmq.SUB`` socket.
+        - ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and \
+            ``zmq.SUB`` socket.
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")

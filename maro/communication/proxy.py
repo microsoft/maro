@@ -2,26 +2,28 @@
 # Licensed under the MIT license.
 
 # native lib
-from collections import defaultdict, namedtuple, deque
-from enum import Enum
 import json
 import os
-import sys
 import signal
+import sys
 import time
-from typing import List, Tuple, Dict, Union
 import uuid
+from collections import defaultdict, deque, namedtuple
+from enum import Enum
+from typing import Dict, List, Tuple, Union
 
 # third party lib
 import redis
 
 # private lib
-from maro.communication import DriverType, ZmqDriver
-from maro.communication import Message, SessionMessage, SessionType, TaskSessionStage, NotificationSessionStage
-from maro.communication.utils import default_parameters
-from maro.utils import InternalLogger, DummyLogger, KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE
-from maro.utils.exception.communication_exception import PeersMissError, InformationUncompletedError, PendingToSend
+from maro.utils import KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE, DummyLogger, InternalLogger
+from maro.utils.exception.communication_exception import (
+    InformationUncompletedError, PeersMissError, PendingToSend
+)
 
+from .driver import DriverType, ZmqDriver
+from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
+from .utils import default_parameters
 
 _PEER_INFO = namedtuple("PEER_INFO", ["hash_table_name", "expected_number"])
 HOST = default_parameters.proxy.redis.host
@@ -215,8 +217,9 @@ class Proxy:
             signal.signal(signal.SIGTERM, self._signal_handler)
         except Exception as e:
             self._logger.critical(
-                f"Signal detector disable. This may cause dirty data to be left in the Redis! To avoid this, please "
-                f"use multiprocess or make sure it can exit successfully. Due to {str(e)}."
+                "Signal detector disable. This may cause dirty data to be left in the Redis! "
+                "To avoid this, please use multiprocess or make sure it can exit successfully."
+                f"Due to {str(e)}."
             )
 
     def _get_peers_list(self):
@@ -241,7 +244,6 @@ class Proxy:
                         f"{self._name} failed to get {peer_type}\'s name. Retrying in "
                         f"{self._retry_interval * (2 ** retry_number)} seconds."
                     )
-
                     time.sleep(self._retry_interval * (2 ** retry_number))
                     retry_number += 1
 
@@ -259,7 +261,8 @@ class Proxy:
         for peer_type, name_list in self._onboard_peers_name_dict.items():
             try:
                 peers_socket_value = self._redis_connection.hmget(
-                    self._peers_info_dict[peer_type].hash_table_name, name_list
+                    self._peers_info_dict[peer_type].hash_table_name,
+                    name_list
                 )
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_socket_dict[peer_name] = json.loads(peers_socket_value[idx])

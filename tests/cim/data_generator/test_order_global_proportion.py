@@ -2,14 +2,13 @@
 # Licensed under the MIT license.
 
 import unittest
-
 from math import floor
 
 from maro.data_lib.cim.global_order_proportion import GlobalOrderProportion
 
 
 class TestOrderGlobalProportion(unittest.TestCase):
-    
+
     def test_orders_without_noise(self):
         total_cntrs = 100
         max_tick = 50
@@ -34,7 +33,7 @@ class TestOrderGlobalProportion(unittest.TestCase):
 
         # check proportion, it should be a line
         self.assertListEqual([floor(total_cntrs * ratio)] * max_tick, list(prop))
-    
+
     def test_orders_with_noise(self):
         total_cntrs = 100
         max_tick = 50

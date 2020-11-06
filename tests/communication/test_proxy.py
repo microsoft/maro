@@ -1,13 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 import subprocess
 import unittest
-import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from maro.communication import SessionMessage, SessionType
-from tests.communication.utils import get_random_port, proxy_generator
+from maro.communication import Proxy, SessionMessage, SessionType
+
+from utils import get_random_port, proxy_generator
 
 
 def message_receive(proxy):

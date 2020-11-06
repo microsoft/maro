@@ -2,14 +2,16 @@
 # Licensed under the MIT license.
 
 # native lib
-from enum import Enum
 import itertools
-import numpy as np
+from enum import Enum
 from typing import List, Tuple, Union
 
+import numpy as np
+
 # private lib
-from maro.communication import Message
 from maro.utils.exception.communication_exception import ConditionalEventSyntaxError, PeersMissError
+
+from .message import Message
 
 
 class Operation(Enum):

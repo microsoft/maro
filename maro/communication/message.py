@@ -2,14 +2,15 @@
 # Licensed under the MIT license.
 
 # native lib
-from enum import Enum
 import sys
-from typing import Union
 import uuid
+from enum import Enum
+from typing import Union
 
 # private lib
-from maro.communication.utils import session_id_generator
 from maro.utils import NON_RESTART_EXIT_CODE
+
+from .utils import session_id_generator
 
 
 class SessionType(Enum):
@@ -79,8 +80,8 @@ class SessionMessage(Message):
     """
 
     def __init__(
-        self, tag: Union[str, Enum], source: str, destination: str, payload=None, session_id: str = None,
-        session_type: SessionType = SessionType.TASK, session_stage=None
+        self, tag: Union[str, Enum], source: str, destination: str, payload=None,
+        session_id: str = None, session_type: SessionType = SessionType.TASK, session_stage=None
     ):
         super().__init__(tag, source, destination, payload, session_id)
         self.session_type = session_type

@@ -3,6 +3,7 @@
 
 
 import multiprocessing as mp
+
 import numpy as np
 
 from maro.communication import Proxy, SessionType

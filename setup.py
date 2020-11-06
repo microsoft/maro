@@ -3,12 +3,14 @@
 
 import io
 import os
-from setuptools import setup, find_packages, Extension
+
+from setuptools import Extension, find_packages, setup
+
+from maro import __version__
 
 # Set environment variable to skip deployment process of MARO
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
 
-from maro import __version__
 
 # root path to backend
 BASE_SRC_PATH = "./maro/backends"

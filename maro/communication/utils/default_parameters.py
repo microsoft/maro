@@ -3,7 +3,6 @@
 
 from maro.utils import convert_dottable
 
-
 proxy = convert_dottable({
     "fault_tolerant": False,
     "delay_for_slow_joiner": 3,

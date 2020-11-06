@@ -9,10 +9,10 @@ from collections import namedtuple
 from struct import Struct
 from typing import List, Union
 
-from maro.data_lib.common import dtype_pack_map
-
-from maro.utils.exception.data_lib_exeption import MetaTimestampNotExist
 from yaml import SafeDumper, SafeLoader, YAMLObject, safe_dump, safe_load
+
+from maro.data_lib.common import dtype_pack_map
+from maro.utils.exception.data_lib_exeption import MetaTimestampNotExist
 
 
 class EntityAttr(YAMLObject):
@@ -214,8 +214,7 @@ class BinaryMeta:
         """Build item struct use field name in meta."""
         self._item_nt = namedtuple("Item", [a.name for a in self._attrs])
 
-        fmt: str = "<" + "".join([dtype_pack_map[a.dtype]
-                                  for a in self._attrs])
+        fmt: str = "<" + "".join([dtype_pack_map[a.dtype] for a in self._attrs])
 
         self._item_struct = Struct(fmt)
 
@@ -244,8 +243,7 @@ class BinaryMeta:
                     self._adjust_attrs[len(self._attrs)] = adjust_ratio
 
                 # TODO: raise error instead
-                attr = EntityAttr(attr_name, dtype, slots,
-                                  col_name, adjust_ratio, tzone)
+                attr = EntityAttr(attr_name, dtype, slots, col_name, adjust_ratio, tzone)
 
                 if attr_name == "timestamp":
                     has_timestamp_attr = True

@@ -1,14 +1,14 @@
-import os
 import datetime
+import os
 
-from examples.cim.gnn.actor import ParallelActor
-from examples.cim.gnn.learner import GNNLearner
-from examples.cim.gnn.state_shaper import GNNStateShaper
-from examples.cim.gnn.utils import decision_cnt_analysis, load_config, save_config, save_code, return_scaler
-from examples.cim.gnn.agent_manager import SimpleAgentManger
 from maro.simulator import Env
 from maro.utils import Logger
 
+from .actor import ParallelActor
+from .agent_manager import SimpleAgentManger
+from .learner import GNNLearner
+from .state_shaper import GNNStateShaper
+from .utils import decision_cnt_analysis, load_config, return_scaler, save_code, save_config
 
 if __name__ == "__main__":
     config_pth = "examples/cim/gnn/config.yml"
