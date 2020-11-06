@@ -144,6 +144,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
+
         self._total_trips = 0
         self._total_operate_num = 0
         self._total_shortages = 0
