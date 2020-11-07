@@ -87,7 +87,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     @property
     def name_mapping_file_path(self) -> str:
-        """name mapping file path: Return a file path which contains mapping of entity_id->real_name in specified scenario."""
+        """name mapping file path: Return a file path which contains mapping in specified scenario."""
         citi_bike_process = CitiBikeProcess(is_temp=True)
         if self._topology.startswith("toy"):
             return citi_bike_process.topologies[self._topology]._data_pipeline["trip"]._station_meta_file

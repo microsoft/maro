@@ -68,7 +68,7 @@ class AbsBusinessEngine(ABC):
     @property
     @abstractmethod
     def name_mapping_file_path(self) -> str:
-        """name mapping file path: Return a file path which contains mapping of entity_id->real_name in specified scenario."""
+        """name mapping file path: Return a file path which contains mapping in specified scenario."""
         pass
 
     def frame_index(self, tick: int) -> int:

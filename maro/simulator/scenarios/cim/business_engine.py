@@ -97,7 +97,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     @property
     def name_mapping_file_path(self) -> str:
-        """name mapping file path: Return a file path which contains mapping of entity_id->real_name in specified scenario."""
+        """name mapping file path: Return a file path which contains mapping in specified scenario."""
         return os.path.join(self._config_path, "config.yml")
 
     def step(self, tick: int):
