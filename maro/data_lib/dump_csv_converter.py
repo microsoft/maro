@@ -4,9 +4,11 @@
 
 import os
 import threading
+import urllib
 from datetime import datetime
 from math import floor
 from pathlib import Path
+from shutil import copyfile
 
 import numpy as np
 import pandas as pd
@@ -15,9 +17,11 @@ import pandas as pd
 class DumpConverter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
 
-    def __init__(self, parent_path=''):
+    def __init__(self, parent_path='', scenario_name='', serial=0):
         super().__init__()
-        self.__parent_path = parent_path
+        self._parent_path = parent_path
+        self._serial = serial
+        self._scenario_name = scenario_name
 
     def __generate_new_folder(self, parent_path):
         now = datetime.now()
@@ -34,11 +38,27 @@ class DumpConverter:
     def dump_folder(self):
         return self._foldername
 
+    @property
+    def current_serial(self):
+        return self._serial
+
+    @property
+    def scenario_name(self):
+        return self._scenario_name
+
     def reset_folder_path(self):
-        self.__generate_new_folder(self.__parent_path)
+        self.__generate_new_folder(self._parent_path)
+        self._serial = 0
+
+    def get_new_snapshot_folder(self):
+        folder = os.path.join(self._foldername, 'snapshot_' + str(self._serial))
+        os.mkdir(folder)
+        self._serial = self._serial + 1
+        self._last_snapshot_folder = folder
+        return folder
 
     def process_data(self):
-        for curDir, dirs, files in os.walk(self._foldername):
+        for curDir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
                 if file.endswith('.meta'):
                     col_info_dict = self.get_column_info(os.path.join(curDir, file))
@@ -67,6 +87,8 @@ class DumpConverter:
                     dataframe = pd.DataFrame(csv_data)
                     dataframe.to_csv(os.path.join(curDir, file.replace('.meta', '.csv')), index=False)
 
+        self.save_manifest_file()
+
     def start_processing(self):
         thread = threading.Thread(target=self.process_data)
         thread.start()
@@ -75,6 +97,7 @@ class DumpConverter:
         with open(filename, 'r') as f:
             columns = f.readline().strip()
             elements = f.readline().strip()
+            f.close()
 
         col_dict = {}
         cols = str.split(columns, ',')
@@ -92,7 +115,7 @@ class DumpConverter:
                     os.remove(file)
 
     def dump_descsion_events(self, decision_events, start_tick: int, resolution: int):
-        decision_events_file = os.path.join(self._foldername, 'decision_events.csv')
+        decision_events_file = os.path.join(self._last_snapshot_folder, 'decision_events.csv')
         headers, colums_count = self._calc_event_headers(decision_events[0])
         array = []
         for event in decision_events:
@@ -119,3 +142,38 @@ class DumpConverter:
                 count = count + 1
 
         return headers, count
+
+    def save_manifest_file(self):
+        if self._scenario_name == '':
+            return
+        outputfile = os.path.join(self._last_snapshot_folder, 'snapshot.manifest')
+        content = []
+        content.append('scenario:' + self._scenario_name + '\r\n')
+        for curDir, dirs, files in os.walk(self._last_snapshot_folder):
+            for file in files:
+                if file.endswith('.csv'):
+                    content.append(file + '\r\n')
+        with open(outputfile, 'w') as f:
+            f.writelines(content)
+            f.close()
+
+    def dump_mapping_file(self, filesource: str):
+        if filesource.startswith('http'):
+            # Download file from web
+            source_data = urllib.request.urlopen(filesource)
+            file_name = os.path.basename(filesource)
+            file_name = os.path.join(self._last_snapshot_folder, file_name)
+            res_data = source_data.read()
+            with open(file_name, "wb") as f:
+                f.write(res_data)
+                f.close()
+        else:
+            # copy file to folder.
+            if os.path.exists(filesource):
+                local_file = os.path.basename(filesource)
+                local_file = os.path.join(self._last_snapshot_folder, local_file)
+                copyfile(filesource, local_file)
+
+    def start_dump_mapping_file(self, filesource: str):
+        thread = threading.Thread(target=self.dump_mapping_file, args=(filesource,))
+        thread.start()

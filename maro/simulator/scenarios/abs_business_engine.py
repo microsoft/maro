@@ -65,6 +65,12 @@ class AbsBusinessEngine(ABC):
         """SnapshotList: Snapshot list of current frame, this is used to expose querying interface for outside."""
         pass
 
+    @property
+    @abstractmethod
+    def name_mapping_file_path(self) -> str:
+        """name mapping file path: Return a file path which contains mapping of entity_id->real_name in specified scenario."""
+        pass
+
     def frame_index(self, tick: int) -> int:
         """Helper method for child class, used to get index of frame in snapshot list for specified tick.
 

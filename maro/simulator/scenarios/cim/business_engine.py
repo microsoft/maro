@@ -95,6 +95,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current frame."""
         return self._snapshots
 
+    @property
+    def name_mapping_file_path(self) -> str:
+        """name mapping file path: Return a file path which contains mapping of entity_id->real_name in specified scenario."""
+        return os.path.join(self._config_path, "config.yml")
+
     def step(self, tick: int):
         """Called at each tick to generate orders and arrival events.
 
