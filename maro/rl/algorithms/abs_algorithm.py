@@ -38,23 +38,3 @@ class AbsAlgorithm(ABC):
         algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).
         """
         return NotImplementedError
-
-    @abstractmethod
-    def load_models(self, *models, **model_dict):
-        """Load trainable models from memory."""
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_models(self):
-        """Return the algorithm's trainable models."""
-        return NotImplementedError
-
-    @abstractmethod
-    def load_models_from_file(self, path):
-        """Load trainable models from disk."""
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_models_to_file(self, path: str):
-        """Dump the algorithm's trainable models to disk."""
-        return NotImplementedError
