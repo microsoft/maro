@@ -39,48 +39,20 @@ namespace maro
         _is_setup = true;
       }
 
-      ATTR_BYTE Backend::get_byte(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-      {
-        ensure_setup_state(true);
-
-        return _frame(node_index, attr_id, slot_index).get_byte();
+#define ATTR_GETTER(m_return_type, m_func_type)                                                                   \
+       m_return_type Backend::get_##m_func_type(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) \
+      {                                                                                                           \
+        ensure_setup_state(true);                                                                                 \
+        return _frame(node_index, attr_id, slot_index).get_##m_func_type();                                       \
       }
 
-      ATTR_SHORT Backend::get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-      {
-        ensure_setup_state(true);
-
-        return _frame(node_index, attr_id, slot_index).get_short();
-      }
-
-      ATTR_INT Backend::get_int(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-      {
-        ensure_setup_state(true);
-
-        return _frame(node_index, attr_id, slot_index).get_int();
-      }
-
-      ATTR_LONG Backend::get_long(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-      {
-        ensure_setup_state(true);
-
-        return _frame(node_index, attr_id, slot_index).get_long();
-      }
-
-      ATTR_FLOAT Backend::get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-      {
-        ensure_setup_state(true);
-
-        return _frame(node_index, attr_id, slot_index).get_float();
-      }
-
-      ATTR_DOUBLE Backend::get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-      {
-        ensure_setup_state(true);
-
-        return _frame(node_index, attr_id, slot_index).get_double();
-      }
-
+      ATTR_GETTER(ATTR_BYTE, byte);
+      ATTR_GETTER(ATTR_SHORT, short);
+      ATTR_GETTER(ATTR_INT, int);
+      ATTR_GETTER(ATTR_LONG, long);
+      ATTR_GETTER(ATTR_FLOAT, float);
+      ATTR_GETTER(ATTR_DOUBLE, double);
+      
       void Backend::enable_snapshot(USHORT number)
       {
         ensure_setup_state(false);
