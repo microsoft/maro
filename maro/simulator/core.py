@@ -104,9 +104,8 @@ class Env(AbsEnv):
         if 'enable-dump-snapshot' in self._additional_options:
             if self._business_engine._frame is not None:
                 self._business_engine._frame.dump(self._converter.get_new_snapshot_folder())
-                self._converter.start_processing()
+                self._converter.start_processing(self._business_engine.name_mapping_file_path)
                 self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
-                self._converter.start_dump_mapping_file(self._business_engine.name_mapping_file_path)
 
         self._decision_events.clear()
 
