@@ -207,7 +207,7 @@ namespace maro
         _tick2size_map.clear();
         _tick_attr_map.clear();
 
-        _attr_store.clear();
+        //_attr_store.clear();
 
         _first_empty_slot_index = 0;
         _empty_slots_length = 0;
@@ -393,7 +393,7 @@ namespace maro
         // prepare attribute store to make sure we can hold all
         if (_end_index + snapshot_size > _attr_store.size())
         {
-          _attr_store.resize(_end_index + snapshot_size);
+          _attr_store.resize((_end_index + snapshot_size) * 2);
         }
 
         // copy

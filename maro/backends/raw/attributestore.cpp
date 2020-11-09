@@ -218,7 +218,8 @@ namespace maro
 
         _mapping.clear();
         _i2kmaping.clear();
-        _attributes.clear();
+        // _attributes.clear();
+        memset(&_attributes[0], 0, sizeof(Attribute) * _attributes.size());
 
         _slot_masks.clear();
       }
