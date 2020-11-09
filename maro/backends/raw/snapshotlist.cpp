@@ -212,40 +212,57 @@ namespace maro
 
         ensure_max_size();
 
-        if (_frame != nullptr)
+        if (_frame == nullptr)
         {
-          _frame->ensure_node_id(node_id);
-
-          auto srs = SnapshotResultShape();
-
-          // get max length of slot for all attribute
-          for (auto attr_index = 0; attr_index < attr_length; attr_index++)
-          {
-            auto& attr = _frame->_attributes[attributes[attr_index]];
-
-            srs.max_slot_number = max(attr.slots, srs.max_slot_number);
-          }
-
-          // Choose what we need
-          // TODO: validate attributes
-          _query_parameters.attributes = attributes;
-          _query_parameters.attr_length = attr_length;
-          _query_parameters.node_id = node_id;
-          _query_parameters.node_indices = node_indices;
-          _query_parameters.node_length = node_length;
-          _query_parameters.ticks = ticks;
-          _query_parameters.tick_length = tick_length;
-
-          _is_prepared = true;
-
-
-          // fill others
-          srs.max_node_number = node_length;
-          srs.tick_number = tick_length;
-          srs.attr_number = attr_length;
+          throw SnapshotInvalidFrameState();
         }
 
-        throw SnapshotInvalidFrameState();
+        _frame->ensure_node_id(node_id);
+
+        auto& node = _frame->_nodes[node_id];
+
+        auto srs = SnapshotResultShape();
+
+        // get max length of slot for all attribute
+        for (auto attr_index = 0; attr_index < attr_length; attr_index++)
+        {
+          auto& attr = _frame->_attributes[attributes[attr_index]];
+
+          srs.max_slot_number = max(attr.slots, srs.max_slot_number);
+        }
+
+        // correct node number
+        if (node_indices == nullptr)
+        {
+          node_length = node.number;
+        }
+
+        if (ticks == nullptr)
+        {
+          tick_length = _tick2index_map.size();
+        }
+
+        // Choose what we need
+        // TODO: validate attributes
+        _query_parameters.attributes = attributes;
+        _query_parameters.attr_length = attr_length;
+        _query_parameters.node_id = node_id;
+        _query_parameters.node_indices = node_indices;
+        _query_parameters.node_length = node_length;
+        _query_parameters.ticks = ticks;
+        _query_parameters.tick_length = tick_length;
+
+        _is_prepared = true;
+
+
+        // fill others
+        srs.max_node_number = node_length;
+        srs.tick_number = tick_length;
+        srs.attr_number = attr_length;
+
+        return srs;
+
+
       }
 
       void SnapshotList::query(QUERING_FLOAT* result, SnapshotResultShape shape)
@@ -263,69 +280,71 @@ namespace maro
 
         ensure_max_size();
 
-        if (_frame != nullptr)
+        if (_frame == nullptr)
         {
-          auto node_id = _query_parameters.node_id;
+          throw SnapshotInvalidFrameState();
+        }
 
-          auto& node = _frame->_nodes[node_id];
+        auto node_id = _query_parameters.node_id;
 
-          auto* ticks = _query_parameters.ticks;
-          auto* node_indices = _query_parameters.node_indices;
-          auto* attrs = _query_parameters.attributes;
-          auto tick_length = _query_parameters.tick_length;
-          auto node_length = _query_parameters.node_length;
-          auto attr_length = _query_parameters.attr_length;
+        auto& node = _frame->_nodes[node_id];
 
-          vector<INT> _ticks;
+        auto* ticks = _query_parameters.ticks;
+        auto* node_indices = _query_parameters.node_indices;
+        auto* attrs = _query_parameters.attributes;
+        auto tick_length = _query_parameters.tick_length;
+        auto node_length = _query_parameters.node_length;
+        auto attr_length = _query_parameters.attr_length;
 
-          // Prepare ticks if no one passed
-          if (_query_parameters.ticks == nullptr)
+        vector<INT> _ticks;
+
+        // Prepare ticks if no one passed
+        if (_query_parameters.ticks == nullptr)
+        {
+          tick_length = _tick2index_map.size();
+
+          for (auto iter = _tick2index_map.begin(); iter != _tick2index_map.end(); iter++)
           {
-            tick_length = _tick2index_map.size();
-
-            for (auto iter = _tick2index_map.begin(); iter != _tick2index_map.end(); iter++)
-            {
-              _ticks.push_back(iter->first);
-            }
+            _ticks.push_back(iter->first);
           }
+        }
 
-          vector<NODE_INDEX> _node_indices;
+        vector<NODE_INDEX> _node_indices;
 
-          if (node_indices == nullptr)
+        if (node_indices == nullptr)
+        {
+          node_length = node.number;
+
+          for (auto i = 0; i < node.number; i++)
           {
-            node_length = node.number;
-
-            for (auto i = 0; i < node.number; i++)
-            {
-              _node_indices.push_back(i);
-            }
+            _node_indices.push_back(i);
           }
+        }
 
-          const INT* __ticks = ticks == nullptr ? &_ticks[0] : ticks;
-          const NODE_INDEX* __node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
+        const INT* __ticks = ticks == nullptr ? &_ticks[0] : ticks;
+        const NODE_INDEX* __node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
 
-          auto i = 0;
+        auto i = 0;
 
-          for (auto i = 0; i < tick_length; i++)
+        for (auto i = 0; i < tick_length; i++)
+        {
+          auto tick = __ticks[i];
+
+          for (auto j = 0; j < node_length; j++)
           {
-            auto tick = __ticks[i];
+            auto node_index = __node_indices[j];
 
-            for (auto j = 0; j < node_length; j++)
+            for (auto k = 0; k < attr_length; k++)
             {
-              auto node_index = __node_indices[j];
+              auto attr_id = attrs[k];
 
-              for (auto k = 0; k < attr_length; j++)
+              for (auto slot_index = 0; slot_index < shape.max_slot_number; slot_index++)
               {
-                auto attr_id = attrs[k];
+                auto& attr = operator()(tick, node_id, node_index, attr_id, slot_index);
 
-                for (auto slot_index = 0; slot_index < shape.max_slot_number; slot_index++)
-                {
-                  auto& attr = operator()(tick, _query_parameters.node_id, node_index, attr_id, slot_index);
+                result[i] = ATTR_FLOAT(attr);
 
-                  result[i] = ATTR_FLOAT(attr);
-
-                  i++;
-                }
+                i++;
               }
             }
           }
