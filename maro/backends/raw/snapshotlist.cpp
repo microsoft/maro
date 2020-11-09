@@ -21,9 +21,9 @@ namespace maro
       }
 
 
-      void SnapshotList::set_frame(weak_ptr<Frame> frame)
+      void SnapshotList::set_frame(Frame* frame)
       {
-        _frame_ptr = frame;
+        _frame = frame;
       }
 
       void SnapshotList::set_max_size(USHORT max_size)
@@ -44,11 +44,13 @@ namespace maro
         if (frame_attr_store == nullptr)
         {
           // try to use frame
-
-          if (auto frame = _frame_ptr.lock())
+          if (_frame == nullptr)
           {
-            frame_attr_store = &(frame->_attr_store);
+            throw SnapshotInvalidFrameState();
           }
+
+          frame_attr_store = &(_frame->_attr_store);
+
         }
 
         ensure_max_size();
@@ -210,16 +212,16 @@ namespace maro
 
         ensure_max_size();
 
-        if (auto frame = _frame_ptr.lock())
+        if (_frame != nullptr)
         {
-          frame->ensure_node_id(node_id);
+          _frame->ensure_node_id(node_id);
 
           auto srs = SnapshotResultShape();
 
           // get max length of slot for all attribute
           for (auto attr_index = 0; attr_index < attr_length; attr_index++)
           {
-            auto& attr = frame->_attributes[attributes[attr_index]];
+            auto& attr = _frame->_attributes[attributes[attr_index]];
 
             srs.max_slot_number = max(attr.slots, srs.max_slot_number);
           }
@@ -261,11 +263,11 @@ namespace maro
 
         ensure_max_size();
 
-        if (auto frame = _frame_ptr.lock())
+        if (_frame != nullptr)
         {
           auto node_id = _query_parameters.node_id;
 
-          auto& node = frame->_nodes[node_id];
+          auto& node = _frame->_nodes[node_id];
 
           auto* ticks = _query_parameters.ticks;
           auto* node_indices = _query_parameters.node_indices;

@@ -88,7 +88,7 @@ namespace maro
           void reset();
         };
 
-        weak_ptr<Frame> _frame_ptr;
+        Frame* _frame;
 
         // tick -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
         //map<INT, map<ULONG, ULONG>> _attr_map;
@@ -126,7 +126,7 @@ namespace maro
 
       public:
 
-        void set_frame(weak_ptr<Frame> frame);
+        void set_frame(Frame* frame);
 
         void set_max_size(USHORT max_size);
 
