@@ -107,14 +107,14 @@ const lest::test specification[] =
       }
     },
 
-    CASE("Extend should not destroy current states.")
+    CASE("Resize should not destroy current states.")
     {
         auto bs = Bitset(1);
 
         bs.reset(true);
 
         // we have 2 mask items
-        bs.extend(128);
+        bs.resize(128);
 
         // first 64 should be true by 1st reset
         for (auto i = 0; i < 64; i++)

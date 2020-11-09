@@ -201,6 +201,36 @@ const lest::test specification[] =
       EXPECT(0 == frame(0, a1, 4).get_int());
       EXPECT(0 == frame(0, a1, 5).get_int());
     }
+  },
+
+    CASE("Reset should keep memory allocated, only reset internal states, clear all value to 0.")
+  {
+    auto frame = Frame();
+
+    auto n1 = frame.new_node("n1", 5);
+    auto a1 = frame.new_attr(n1, "a1", AttrDataType::AINT, 1);
+
+    auto n2 = frame.new_node("n1", 1);
+    auto a2 = frame.new_attr(n2, "a2", AttrDataType::AINT, 10);
+
+    frame.setup();
+
+    // valud for validation
+    {
+      auto& attr = frame(0, a1, 0);
+
+      attr = 112233;
+    }
+
+    // values should be set to 0 after reset
+
+    frame.reset();
+
+    {
+      auto& a = frame(0, a1, 0);
+
+      EXPECT(0 == a.get_int());
+    }
   }
 };
 

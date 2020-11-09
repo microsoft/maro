@@ -29,7 +29,7 @@ namespace maro
         /// </summary>
         class BitsetIterateObject
         {
-          friend Bitset;
+          friend class Bitset;
 
           ULONG _mask_index{0};
           // when offset == 0, iterator will check if current mask equals to MAX_ULONG
@@ -41,18 +41,19 @@ namespace maro
         vector<ULONG> _masks;
 
         //size of bits
-        ULONG _bit_size;
+        ULONG _bit_size{0};
 
         BitsetIterateObject _iter_obj;
 
       public:
+        Bitset();
         Bitset(UINT size);
 
         /// <summary>
         /// Extend mask with spcified size
         /// </summary>
         /// <param name="size">Size to extend, it should be 64 times</param>
-        void extend(UINT size);
+        void resize(UINT size);
 
         /// <summary>
         /// reset all bit to specified value

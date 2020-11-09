@@ -20,7 +20,7 @@ namespace maro
         // 0 means no items
         while (_last_index > 1)
         {
-          if (_slot_masks[_last_index - 1] == true)
+          if (_slot_masks.get(_last_index - 1) == true)
           {
             break;
           }
@@ -49,14 +49,14 @@ namespace maro
             update_last_index();
 
             // false means empty slot
-            if (!_slot_masks[i])
+            if (!_slot_masks.get(i))
             {
               auto old_index = _last_index - 1;
 
               _attributes[i] = _attributes[old_index];
 
-              _slot_masks[i] = true;
-              _slot_masks[old_index] = false;
+              _slot_masks.set(i, true);
+              _slot_masks.set(old_index, false);
 
               auto key = _i2kmaping.find(old_index);
 
@@ -133,7 +133,7 @@ namespace maro
         // update mask
         for (auto i = addition_num - 1; i >= 0; i--)
         {
-          _slot_masks[_last_index - i - 1] = true;
+          _slot_masks.set(_last_index - i - 1, true);
         }
       }
 
@@ -147,7 +147,7 @@ namespace maro
 
           if (attr_pair != _mapping.end())
           {
-            _slot_masks[attr_pair->second] = false;
+            _slot_masks.set(attr_pair->second, false);
 
             _i2kmaping.erase(attr_pair->second);
             _mapping.erase(key);
@@ -169,7 +169,7 @@ namespace maro
 
             if (attr_pair != _mapping.end())
             {
-              _slot_masks[attr_pair->second] = false;
+              _slot_masks.set(attr_pair->second, false);
 
               _i2kmaping.erase(attr_pair->second);
               _mapping.erase(key);
@@ -196,16 +196,6 @@ namespace maro
         }
       }
 
-      size_t AttributeStore::capacity()
-      {
-        return _attributes.size();
-      }
-
-      size_t AttributeStore::last_index()
-      {
-        return _last_index;
-      }
-
       size_t AttributeStore::size()
       {
         return _mapping.size();
@@ -218,12 +208,23 @@ namespace maro
 
         _mapping.clear();
         _i2kmaping.clear();
-        // _attributes.clear();
+
         memset(&_attributes[0], 0, sizeof(Attribute) * _attributes.size());
 
-        _slot_masks.clear();
+        _slot_masks.reset();
       }
 
+#ifdef _DEBUG
+      size_t AttributeStore::capacity()
+      {
+        return _attributes.size();
+      }
+
+      size_t AttributeStore::last_index()
+      {
+        return _last_index;
+      }
+#endif
     }
   }
 }

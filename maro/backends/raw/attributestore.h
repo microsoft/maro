@@ -42,7 +42,7 @@ namespace maro
         vector<Attribute> _attributes;
 
         //Bitset _slot_mask;
-        vector<bool> _slot_masks;
+        Bitset _slot_masks;
 
         // arrange if dirty
         bool _is_dirty{ false };
@@ -108,12 +108,14 @@ namespace maro
         /// </summary>
         void copy_to(Attribute* p, unordered_map<ULONG, size_t> &map);
 
-
-        size_t capacity();
-        size_t last_index();
         size_t size();
 
         void reset();
+
+#ifdef _DEBUG
+        size_t capacity();
+        size_t last_index();
+#endif
 
       private:
         void update_last_index();

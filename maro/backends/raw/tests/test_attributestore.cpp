@@ -167,6 +167,7 @@ const lest::test specification[] =
   {
     auto ats = AttributeStore();
 
+    
     ats.add_nodes(0, 0, 2, 0, 10);
 
     // after adding node attributes, last index should be 20
@@ -179,10 +180,10 @@ const lest::test specification[] =
 
     // remove 1st node to gen empty slots
     ats.remove_node(0, 0, 0, 10);
-
+   
     // arrange should work without exception
     EXPECT_NO_THROW(ats.arrange());
-
+   
     // last index should be 10, as we will fill 10 empty slots
     EXPECT(10 == ats.last_index());
 
@@ -193,9 +194,10 @@ const lest::test specification[] =
     EXPECT(10 == attr2.get_int());
 
     // size will not change too
-
+    
   },
 
+    
   CASE("Last index should be at correct position after adding and removing.")
   {
     auto ats = AttributeStore();
@@ -273,7 +275,7 @@ const lest::test specification[] =
     }
   },
 
-  CASE("COPY should not contain empty slot.")
+    CASE("COPY should not contain empty slot.")
   {
     auto ats = AttributeStore();
 
@@ -340,6 +342,7 @@ const lest::test specification[] =
     // NOTE: attributestore need to be setup again after reset
     EXPECT_THROWS_AS(ats(0, 1, 0, 0), BadAttributeIndexing);
   }
+  
 }
 ;
 int main(int argc, char* argv[])

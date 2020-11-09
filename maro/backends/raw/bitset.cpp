@@ -19,6 +19,11 @@ namespace maro
         return n % b == 0 ? n / b : (floorl(n / b) + 1);
       }
 
+      Bitset::Bitset()
+      {
+
+      }
+
       Bitset::Bitset(UINT size)
       {
         auto vector_size = ceil_to_times<ULONG>(size);
@@ -28,7 +33,7 @@ namespace maro
         _bit_size = vector_size * BITS_PER_MASK;
       }
 
-      void Bitset::extend(UINT size)
+      void Bitset::resize(UINT size)
       {
         auto new_size = ceil_to_times<ULONG>(size);
 
@@ -89,7 +94,7 @@ namespace maro
         }
         else
         {
-          _masks[i] &= !(0x1ULL << offset);
+          _masks[i] &= ~(0x1ULL << offset);
         }
       }
 
