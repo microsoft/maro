@@ -141,6 +141,9 @@ namespace maro
         USHORT size();
         USHORT max_size();
 
+        void reset();
+
+        void get_ticks(INT* result);
 
         // prepare for querying use passed parameters, this method will correct input info, and generate an parameter object for next query
         SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,

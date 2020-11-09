@@ -113,6 +113,8 @@ namespace maro
         size_t last_index();
         size_t size();
 
+        void reset();
+
       private:
         void update_last_index();
       };

@@ -35,6 +35,7 @@ namespace maro
         IDENTIFIER id;
         // would be changed
         USHORT number;
+        USHORT origin_number; // used to reset
         string name;
       };
 
@@ -43,6 +44,7 @@ namespace maro
         // slots would be changed
         AttrDataType type;
         SLOT_INDEX slots;
+        SLOT_INDEX origin_slots; // used to reset
         IDENTIFIER id;
         IDENTIFIER node_id;
         string name;
@@ -118,6 +120,8 @@ namespace maro
         /// <param name="attr_id"></param>
         /// <param name="slots"></param>
         void set_attr_slot(IDENTIFIER attr_id, SLOT_INDEX slots);
+
+        void reset();
 
       private:
         inline void ensure_node_id(IDENTIFIER node_id);

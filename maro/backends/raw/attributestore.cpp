@@ -43,7 +43,7 @@ namespace maro
         {
           auto reset_end = _last_index;
 
-          for (auto i=0; i < _last_index; i++)
+          for (auto i = 0; i < _last_index; i++)
           {
             // find last that is not empty
             update_last_index();
@@ -209,6 +209,18 @@ namespace maro
       size_t AttributeStore::size()
       {
         return _mapping.size();
+      }
+
+      void AttributeStore::reset()
+      {
+        _is_dirty = false;
+        _last_index = 0ULL;
+
+        _mapping.clear();
+        _i2kmaping.clear();
+        _attributes.clear();
+
+        _slot_masks.clear();
       }
 
     }

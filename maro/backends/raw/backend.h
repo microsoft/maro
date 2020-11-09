@@ -50,10 +50,17 @@ namespace maro
 
         void take_snapshot(INT tick);
 
+        void reset_frame();
+        void reset_snapshots();
+
         SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
 
         void query(QUERING_FLOAT* result, SnapshotResultShape shape);
+
+        USHORT get_max_snapshot_number();
+        USHORT get_valid_tick_number();
+        void get_ticks(INT* result);
 
         void dump(string path);
 

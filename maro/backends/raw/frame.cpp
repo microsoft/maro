@@ -26,6 +26,7 @@ namespace maro
         auto node = FrameNode();
         node.name = name;
         node.number = number;
+        node.origin_number = number;
         node.id = IDENTIFIER(_nodes.size());
 
         _nodes.push_back(node);
@@ -46,6 +47,7 @@ namespace maro
         attr.id = IDENTIFIER(_attributes.size());
         attr.name = name;
         attr.slots = slots;
+        attr.origin_slots = slots;
         attr.node_id = node.id;
 
         _attributes.push_back(attr);
@@ -149,6 +151,25 @@ namespace maro
         }
 
         attr.slots = slots;
+      }
+
+      void Frame::reset()
+      {
+        _attr_store.reset();
+
+        // reset node and attr info
+        for (auto& node : _nodes)
+        {
+          node.number = node.origin_number;
+        }
+
+        for (auto& attr : _attributes)
+        {
+          attr.slots = attr.origin_slots;
+        }
+
+        // setup again
+        setup();
       }
 
       inline void Frame::ensure_node_id(IDENTIFIER node_id)

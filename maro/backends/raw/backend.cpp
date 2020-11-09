@@ -67,6 +67,16 @@ namespace maro
         _snapshot.take_snapshot(tick);
       }
 
+      void Backend::reset_frame()
+      {
+        _frame.reset();
+      }
+
+      void Backend::reset_snapshots()
+      {
+        _snapshot.reset();
+      }
+
       SnapshotResultShape Backend::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
         NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
@@ -80,6 +90,21 @@ namespace maro
         ensure_setup_state(true);
 
         return _snapshot.query(result, shape);
+      }
+
+      USHORT Backend::get_max_snapshot_number()
+      {
+        return _snapshot.max_size();
+      }
+
+      USHORT Backend::get_valid_tick_number()
+      {
+        return _snapshot.size();
+      }
+
+      void Backend::get_ticks(INT* result)
+      {
+        _snapshot.get_ticks(result);
       }
 
       void Backend::dump(string path)

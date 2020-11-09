@@ -201,6 +201,35 @@ namespace maro
         return _max_size;
       }
 
+      void SnapshotList::reset()
+      {
+        _tick2index_map.clear();
+        _tick2size_map.clear();
+        _tick_attr_map.clear();
+
+        _attr_store.clear();
+
+        _first_empty_slot_index = 0;
+        _empty_slots_length = 0;
+        _end_index = 0;
+        _max_size = 0;
+        _cur_snapshot_num = 0;
+        _last_tick = -1;
+        _is_prepared = false;
+        _query_parameters.reset();
+      }
+
+      void SnapshotList::get_ticks(INT* result)
+      {
+        auto i = 0;
+
+        for (auto iter : _tick2index_map)
+        {
+          result[0] = iter.first;
+          i++;
+        }
+      }
+
       SnapshotResultShape SnapshotList::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[],
         UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
