@@ -34,6 +34,8 @@ namespace maro
 
         _frame.setup();
 
+        _snapshot.set_frame(&_frame);
+
         _is_setup = true;
       }
 
@@ -77,6 +79,39 @@ namespace maro
         ensure_setup_state(true);
 
         return _frame(node_index, attr_id, slot_index).get_double();
+      }
+
+      void Backend::enable_snapshot(USHORT number)
+      {
+        ensure_setup_state(false);
+
+        _snapshot.set_max_size(number);
+      }
+
+      void Backend::take_snapshot(INT tick)
+      {
+        ensure_setup_state(true);
+
+        _snapshot.take_snapshot(tick);
+      }
+
+      SnapshotResultShape Backend::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
+        NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+      {
+        ensure_setup_state(true);
+
+        return _snapshot.prepare(node_id, ticks, tick_length, node_indices, node_length, attributes, attr_length);
+      }
+
+      void Backend::query(QUERING_FLOAT* result, SnapshotResultShape shape)
+      {
+        ensure_setup_state(true);
+
+        return _snapshot.query(result, shape);
+      }
+
+      void Backend::dump(string path)
+      {
       }
 
       template<typename T>

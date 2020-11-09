@@ -439,6 +439,54 @@ CASE("Take snapshot for exist tick, with over-write.")
   }
 },
 
+CASE("Pass null ptr without set frame before, will cause exception.")
+{
+  auto ss = SnapshotList();
+
+  ss.set_max_size(2);
+
+  EXPECT_THROWS_AS(ss.take_snapshot(0, nullptr), SnapshotInvalidFrameState);
+},
+
+CASE("Pass null ptr with set frame before, will use frame's attributes to to take snapshot")
+{
+  auto frame = Frame();
+
+  auto n1 = frame.new_node("n1", 10);
+  auto a1 = frame.new_attr(n1, "a1", AttrDataType::AINT, 10);
+
+  {
+    auto& aa1 = frame(0, a1, 0);
+
+    aa1 = 1111;
+
+    auto& aa2 = frame(9, a1, 9);
+
+    aa2 = 9999;
+  }
+
+
+  auto ss = SnapshotList();
+
+  ss.set_frame(&frame);
+
+  // default attribute store is nullptr
+  EXPECT_NO_THROW(ss.take_snapshot(0));
+
+  // validate values
+  {
+    auto& aa1 = ss(0, n1, 0, a1, 0);
+
+    EXPECT(1111 == aa1.get_int());
+
+    auto& aa2 = ss(0, n1, 9, a1, 9);
+
+    EXPECT(9999 == aa2.get_int());
+  }
+},
+
+
+
 };
 
 int main(int argc, char* argv[])
