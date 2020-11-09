@@ -137,18 +137,18 @@ class DQN(AbsAlgorithm):
         else:
             return self._get_q_values(next_states, is_target=True).max(dim=1)[0]   # (N,)
 
-    def load_eval_model(self, eval_model):
+    def load_models(self, eval_model):
         """Load evaluation model from memory."""
         self._eval_model.load_state_dict(eval_model)
 
-    def dump_eval_model(self):
+    def dump_models(self):
         """Return the eval model."""
         return self._eval_model.state_dict()
 
-    def load_eval_model_from_file(self, path):
+    def load_models_from_file(self, path):
         """Load the eval model from disk."""
         self._eval_model.load_state_dict(torch.load(path))
 
-    def dump_eval_model_to_file(self, path: str):
+    def dump_models_to_file(self, path: str):
         """Dump the eval model to disk."""
         torch.save(self._eval_model.state_dict(), path)
