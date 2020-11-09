@@ -24,6 +24,7 @@ namespace maro
         SnapshotList _snapshot;
 
         bool _is_setup{ false };
+        bool _is_snapshot_enabled{ false };
 
       public:
         IDENTIFIER add_node(string node_name, NODE_INDEX node_num);
@@ -34,7 +35,7 @@ namespace maro
         ///
         /// But can dynamically add existing node type
         /// </summary>
-        void setup();
+        void setup(bool enable_snapshot, USHORT snapshot_number);
 
         ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
         ATTR_SHORT get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
@@ -45,8 +46,6 @@ namespace maro
 
         template<typename T>
         void set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value);
-
-        void enable_snapshot(USHORT number);
 
         void take_snapshot(INT tick);
 

@@ -14,7 +14,7 @@ namespace maro
         }
       }
 
-      IDENTIFIER Backend::add_node(string node_name, USHORT node_num)
+      IDENTIFIER Backend::add_node(string node_name, NODE_INDEX node_num)
       {
         ensure_setup_state(false);
 
@@ -28,14 +28,20 @@ namespace maro
         return _frame.new_attr(node_id, attr_name, attr_type, slot_number);
       }
 
-      void Backend::setup()
+      void Backend::setup(bool enable_snapshot, USHORT snapshot_number)
       {
         ensure_setup_state(false);
 
         _frame.setup();
 
-        _snapshot.set_frame(&_frame);
+        if (enable_snapshot)
+        {
+          _snapshot.set_frame(&_frame);
 
+          _snapshot.set_max_size(snapshot_number);
+        }
+
+        _is_snapshot_enabled = enable_snapshot;
         _is_setup = true;
       }
 
@@ -52,13 +58,6 @@ namespace maro
       ATTR_GETTER(ATTR_LONG, long);
       ATTR_GETTER(ATTR_FLOAT, float);
       ATTR_GETTER(ATTR_DOUBLE, double);
-      
-      void Backend::enable_snapshot(USHORT number)
-      {
-        ensure_setup_state(false);
-
-        _snapshot.set_max_size(number);
-      }
 
       void Backend::take_snapshot(INT tick)
       {
