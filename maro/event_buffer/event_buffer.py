@@ -138,7 +138,7 @@ class EventBuffer:
         """Get all the processed events, call this function before reset method.
 
         Returns:
-           list: List of event object.
+            list: List of event object.
         """
         return self._finished_events
 
