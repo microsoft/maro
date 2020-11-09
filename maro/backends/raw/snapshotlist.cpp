@@ -294,7 +294,7 @@ namespace maro
 
       }
 
-      void SnapshotList::query(QUERING_FLOAT* result, SnapshotResultShape shape)
+      void SnapshotList::query(ATTR_FLOAT* result, SnapshotResultShape shape)
       {
         if (result == nullptr)
         {

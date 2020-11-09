@@ -97,9 +97,7 @@ cdef class RawBackend(BackendAbc):
         self.snapshots = RawSnapshotList(self)
 
     cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +:
-        cdef IDENTIFIER id = self._backend.add_node(name.encode())
-
-        self._backend.set_node_number(id, number)
+        cdef IDENTIFIER id = self._backend.add_node(name.encode(), number)
 
         self._node_info[id] = {"number": number, "name": name, "attrs":{}}
 
@@ -225,16 +223,16 @@ cdef class RawSnapshotList(SnapshotListAbc):
             attr_id_list[index] = attr_list[index]
 
         # Calc 1 frame length
-        cdef UINT per_frame_length = self._raw._backend.query_one_tick_length(node_id, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
+        cdef SnapshotResultShape shape = self._raw._backend.prepare(node_id, &tick_list[0], ticks_length, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
         # Result holder
-        cdef ATTR_FLOAT[:] result = view.array(shape=(per_frame_length * ticks_length, ), itemsize=sizeof(ATTR_FLOAT), format="f")
+        cdef ATTR_FLOAT[:] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(ATTR_FLOAT), format="f")
 
         # Default result value
         result[:] = 0
 
         # Do query
-        self._raw._backend.query(&result[0], node_id, &tick_list[0], ticks_length, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
+        self._raw._backend.query(&result[0], shape)
 
         return np.array(result)
 
