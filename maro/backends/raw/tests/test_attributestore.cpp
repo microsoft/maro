@@ -310,6 +310,36 @@ const lest::test specification[] =
     // there should be 5 keys in map
     EXPECT(5 == map_dest.size());
   },
+
+    CASE("Reset will clear internal states, but keep allocated memory to avoid furthur allocation.")
+  {
+    auto ats = AttributeStore();
+
+    //
+    ats.add_nodes(0, 0, 10, 0, 1);
+    ats.add_nodes(0, 0, 5, 1, 1);
+
+    ats.remove_node(0, 0, 0, 1);
+
+    {
+      auto& a = ats(0, 1, 0, 0);
+
+      a = 111;
+    }
+
+    EXPECT(15 == ats.last_index());
+    EXPECT(14 == ats.size());
+    EXPECT(20 == ats.capacity());
+
+    ats.reset();
+
+    EXPECT(0 == ats.last_index());
+    EXPECT(0 == ats.size());
+    EXPECT(20 == ats.capacity());
+
+    // NOTE: attributestore need to be setup again after reset
+    EXPECT_THROWS_AS(ats(0, 1, 0, 0), BadAttributeIndexing);
+  }
 }
 ;
 int main(int argc, char* argv[])
