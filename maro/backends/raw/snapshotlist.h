@@ -134,7 +134,7 @@ namespace maro
         /// Take snapshot for current frame, this function will arrange current frame
         /// </summary>
         /// <param name="tick"></param>
-        void take_snapshot(INT tick, AttributeStore* frame_attr_store);
+        void take_snapshot(INT tick, AttributeStore* frame_attr_store = nullptr);
 
         Attribute& operator() (INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
