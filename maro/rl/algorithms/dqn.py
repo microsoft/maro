@@ -16,7 +16,7 @@ class DQNHyperParams:
         num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
         target_update_frequency (int): Number of training rounds between target model updates.
-        tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1-tau) * target_model.
+        tau (float): Soft update coefficient, i.e., target_model = tau * q_model + (1-tau) * target_model.
     """
     __slots__ = ["num_actions", "reward_decay", "target_update_frequency", "tau"]
 
@@ -39,30 +39,27 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        eval_model (nn.Module): Q-value model for given states and actions.
+        q_model (nn.Module): Q-value model for given states and actions.
         optimizer_cls: Torch optimizer class for the eval model. If this is None, the eval model is not trainable.
         optimizer_params: Parameters required for the eval optimizer class.
         loss_func (Callable): Loss function for the value model.
         hyper_params: Hyper-parameter set for the DQN algorithm.
-        target_model (nn.Module): Q-value model to train the ``eval_model`` against and to be updated periodically. If
+        target_model (nn.Module): Q-value model to train the ``q_model`` against and to be updated periodically. If
             it is None, the target model will be initialized as a deep copy of the eval model.
     """
     def __init__(
         self,
-        eval_model: nn.Module,
-        optimizer_cls,
-        optimizer_params,
+        q_model: nn.Module,
         loss_func,
         hyper_params: DQNHyperParams,
-        target_model=None
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._model_dict = {"eval": eval_model.to(self._device)}
+        self._model_dict = {"eval": q_model.to(self._device)}
         if optimizer_cls is not None:
             self._optimizer = optimizer_cls(self._model_dict["eval"].parameters(), **optimizer_params)
             if target_model is None:
-                self._model_dict["target"] = clone(eval_model).to(self._device)
+                self._model_dict["target"] = clone(q_model).to(self._device)
             else:
                 self._model_dict["target"] = target_model.to(self._device)
         # No gradient computation required for the target model
@@ -74,7 +71,7 @@ class DQN(AbsAlgorithm):
         self._train_cnt = 0
 
     @property
-    def eval_model(self):
+    def q_model(self):
         return self._model_dict["eval"]
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
@@ -118,9 +115,9 @@ class DQN(AbsAlgorithm):
                     self._hyper_params.tau * eval_params.data + (1 - self._hyper_params.tau) * target_params.data
                 )
 
-    def load_models(self, eval_model):
+    def load_models(self, q_model):
         """Load the eval model from memory."""
-        self._model_dict["eval"].load_state_dict(eval_model)
+        self._model_dict["eval"].load_state_dict(q_model)
 
     def dump_models(self):
         """Return the eval model."""

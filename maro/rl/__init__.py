@@ -20,6 +20,7 @@ from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
 from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
+from maro.rl.models.abs_learning_model import AbsLearningModel
 from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import MultiHeadLearningModel, SingleHeadLearningModel
 from maro.rl.shaping.abs_shaper import AbsShaper
@@ -39,6 +40,7 @@ __all__ = [
     'AbsEarlyStoppingChecker',
     'AbsExplorer',
     'AbsLearner',
+    'AbsLearningModel',
     'AbsShaper',
     'AbsStore',
     'ActionShaper',

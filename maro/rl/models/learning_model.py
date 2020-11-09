@@ -1,20 +1,31 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import Dict, Tuple
+
 import torch
 import torch.nn as nn
 
+from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
+from .abs_learning_model import AbsLearningModel
 
-class SingleHeadLearningModel(nn.Module):
+
+class SingleHeadLearningModel(AbsLearningModel):
     """NN model that consists of shared blocks and multiple task heads.
 
     The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
     its successor.
     """
-    def __init__(self, block_list: list, optimizer_cls, optimizer_params: dict):
+    def __init__(self, block_list: list, optimizer_opt: Tuple = None):
         super().__init__()
         self._net = nn.Sequential(*block_list)
-        self._optimizer = optimizer_cls(self._net.parameters(), **optimizer_params)
+        self._is_trainable = optimizer_opt is not None
+        if self._is_trainable:
+            self._optimizer = optimizer_opt[0](self._net.parameters(), **optimizer_opt[1])
+
+    @property
+    def is_trainable(self):
+        return self._is_trainable
 
     def forward(self, inputs):
         """Feedforward computation.
@@ -28,20 +39,13 @@ class SingleHeadLearningModel(nn.Module):
         return self._net(inputs)
 
     def step(self, loss: torch.tensor):
-        """Feedforward computation.
-
-        Args:
-            loss: loss tensor
-
-        Returns:
-            Outputs from the model.
-        """
+        """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
 
 
-class MultiHeadLearningModel(nn.Module):
+class MultiHeadLearningModel(AbsLearningModel):
     """NN model that consists of shared blocks and multiple task heads.
 
     The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
@@ -49,12 +53,55 @@ class MultiHeadLearningModel(nn.Module):
     output of the model will be a dictionary with the names of the heads as keys and the corresponding head outputs
     as values. Otherwise, the output will be the output of the last block.
     """
-    def __init__(self, shared_block_list: list, task_head_block_dict: dict):
+    def __init__(
+        self,
+        head_block_dict: dict,
+        head_optimizer_opt_dict: Dict[Tuple[torch.optim.Optimizer, dict]] = None,
+        shared_block_list: list = None,
+        shared_stack_optimizer_opt: Tuple[torch.optim.Optimizer, dict] = None
+    ):
         super().__init__()
-        self._task_head_keys = list(task_head_block_dict.keys())
-        shared_stack = nn.Sequential(*shared_block_list)
-        for key, head in task_head_block_dict.items():
-            setattr(self, key, nn.Sequential(shared_stack, head))
+        self._has_shared_layers = shared_block_list is not None
+        self._has_trainable_shared_layers = self._has_shared_layers and shared_stack_optimizer_opt is not None
+        self._has_trainable_heads = head_optimizer_opt_dict is not None
+        # shared stack
+        if self._has_shared_layers:
+            self._shared_stack = nn.Sequential(*shared_block_list)
+            if self._has_trainable_shared_layers:
+                self._shared_stack_optimizer = shared_stack_optimizer_opt[0](
+                    self._shared_stack.parameters(), **shared_stack_optimizer_opt[1]
+                )
+
+        # heads
+        self._head_keys = list(head_block_dict.keys())
+        if self._has_shared_layers:
+            self._net = nn.ModuleDict({
+                key: nn.Sequential(self._shared_stack, head) for key, head in head_block_dict.items()
+            })
+        else:
+            self._net = head_block_dict
+
+        if self._has_trainable_heads:
+            self._head_optimizer_dict = {
+                key: head_optimizer_opt_dict[key][0](head.parameters(), **head_optimizer_opt_dict[key][1])
+                for key, head in head_block_dict.items()
+            }
+
+    @property
+    def has_shared_layers(self):
+        return self._has_shared_layers
+
+    @property
+    def has_trainable_shared_layers(self):
+        return self._has_trainable_shared_layers
+
+    @property
+    def has_trainable_heads(self):
+        return self._has_trainable_heads
+
+    @property
+    def head_keys(self):
+        return self._head_keys
 
     def forward(self, inputs, key=None):
         """Feedforward computations for the given head(s).
@@ -70,9 +117,32 @@ class MultiHeadLearningModel(nn.Module):
             Outputs from the required head(s).
         """
         if key is None:
-            return {key: getattr(self, key)(inputs) for key in self._task_head_keys}
+            return {key: getattr(self, key)(inputs) for key in self._head_keys}
 
         if isinstance(key, list):
             return {k: getattr(self, k)(inputs) for k in key}
         else:
             return getattr(self, key)(inputs)
+
+    def step(self, *losses):
+        """Use the losses to back-propagate gradients and apply them to the underlying parameters."""
+        if not self._has_trainable_shared_layers and not self._has_trainable_heads:
+            raise MissingOptimizerError("No optimizer registered to the model")
+
+        # Zero all gradients
+        if self._has_trainable_shared_layers:
+            self._shared_stack_optimizer.zero_grad()
+        if self._has_trainable_heads:
+            for optim in self._head_optimizer_dict.values():
+                optim.zero_grad()
+
+        # Accumulate gradients from all losses
+        for loss in losses:
+            loss.backward()
+
+        # Apply gradients
+        if self._has_trainable_shared_layers:
+            self._shared_stack_optimizer.step()
+        if self._has_trainable_heads:
+            for optim in self._head_optimizer_dict.values():
+                optim.step()
