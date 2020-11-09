@@ -324,7 +324,7 @@ namespace maro
         const INT* __ticks = ticks == nullptr ? &_ticks[0] : ticks;
         const NODE_INDEX* __node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
 
-        auto i = 0;
+        auto result_index = 0;
 
         for (auto i = 0; i < tick_length; i++)
         {
@@ -342,9 +342,10 @@ namespace maro
               {
                 auto& attr = operator()(tick, node_id, node_index, attr_id, slot_index);
 
-                result[i] = ATTR_FLOAT(attr);
+                //cout << tick << ", " << node_index << ", " << attr_id << ", " << slot_index << ", " << attr.is_nan() << endl;
+                result[result_index] = ATTR_FLOAT(attr);
 
-                i++;
+                result_index++;
               }
             }
           }

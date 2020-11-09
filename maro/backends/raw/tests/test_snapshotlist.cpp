@@ -455,6 +455,8 @@ CASE("Pass null ptr with set frame before, will use frame's attributes to to tak
   auto n1 = frame.new_node("n1", 10);
   auto a1 = frame.new_attr(n1, "a1", AttrDataType::AINT, 10);
 
+  frame.setup();
+
   {
     auto& aa1 = frame(0, a1, 0);
 
@@ -469,6 +471,8 @@ CASE("Pass null ptr with set frame before, will use frame's attributes to to tak
   auto ss = SnapshotList();
 
   ss.set_frame(&frame);
+
+  ss.set_max_size(10);
 
   // default attribute store is nullptr
   EXPECT_NO_THROW(ss.take_snapshot(0));
@@ -485,7 +489,92 @@ CASE("Pass null ptr with set frame before, will use frame's attributes to to tak
   }
 },
 
+CASE("Query shape should take max slot number")
+{
+  // NOTE: query need frame
+  auto frame = Frame();
 
+  auto n1 = frame.new_node("n1", 10);
+  auto a11 = frame.new_attr(n1, "a1", AttrDataType::AINT, 10);
+  auto a12 = frame.new_attr(n1, "a2", AttrDataType::AINT, 1);
+
+  EXPECT(a11 == 0);
+  EXPECT(a12 == 1);
+
+  auto n2 = frame.new_node("n2", 5);
+  auto a21 = frame.new_attr(n2, "a2", AttrDataType::AINT, 1);
+
+  // NOTE: must setup before accessing
+  frame.setup();
+
+  // set values for later validation
+  {
+    auto& a1 = frame(0, a11, 0);
+    a1 = 1111;
+
+    auto& a2 = frame(0, a11, 9);
+    a2 = 2222;
+
+    auto& a3 = frame(9, a11, 9);
+    a3 = 3333;
+
+    auto& a4 = frame(9, a12, 0);
+    a4 = 4444;
+
+    auto& a5 = frame(0, a21, 0);
+    a5 = 5555;
+
+    auto& a6 = frame(4, a21, 0);
+    a6 = 6666;
+
+  }
+
+  auto ticks = vector<INT>{};
+  auto nodes = vector<NODE_INDEX>{};
+  auto attrs = vector<IDENTIFIER>{ a11, a12 };
+
+  auto ss = SnapshotList();
+  ss.set_max_size(10);
+
+  //  query without set frame will cause exception
+  EXPECT_THROWS_AS(ss.prepare(n1, nullptr, 0, nullptr, 0, &attrs[0], attrs.size()), SnapshotInvalidFrameState);
+
+  ss.set_frame(&frame);
+
+  ss.take_snapshot(0);
+
+  // values for tick 1
+  {
+    auto& a1 = frame(4, a21, 0);
+    a1 = 7777;
+  }
+
+  ss.take_snapshot(1);
+
+  // do query
+  auto shape = ss.prepare(n1, nullptr, 0, nullptr, 0, &attrs[0], attrs.size());
+
+  EXPECT(shape.attr_number == attrs.size());
+  EXPECT(shape.max_node_number == 10);
+  EXPECT(shape.tick_number == 2);
+  EXPECT(shape.max_slot_number == 10);
+
+
+  // prepare a large enough list to hold result
+  auto result = vector<ATTR_FLOAT>();
+  result.resize(shape.attr_number* shape.max_node_number* shape.tick_number* shape.max_slot_number);
+
+  ss.query(&result[0], shape);
+
+  //validate result
+  EXPECT(1111 == result[0]);
+  EXPECT(2222 == result[9]);
+
+  // a12 has 1 slot, so others will be padding value
+  EXPECT(true == isnan(result[11]));
+
+
+}
 
 };
 

@@ -52,7 +52,7 @@ namespace maro
 
         _node_2_attrs[node.id].push_back(attr.id);
 
-        return attr.node_id;
+        return attr.id;
       }
 
       void Frame::setup()
