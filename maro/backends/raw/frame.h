@@ -53,6 +53,8 @@ namespace maro
       /// </summary>
       class Frame
       {
+        friend class SnapshotList;
+
         // storage of attributes
         AttributeStore _attr_store;
 

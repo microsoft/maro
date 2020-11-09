@@ -36,7 +36,7 @@ const lest::test specification[] =
 
     auto ats = AttributeStore();
 
-    EXPECT_THROWS_AS(ss.take_snapshot(0, ats), InvalidSnapshotSize);
+    EXPECT_THROWS_AS(ss.take_snapshot(0, &ats), InvalidSnapshotSize);
 },
 
 CASE("Take snapshot without exist tick, no over-write.")
@@ -60,7 +60,7 @@ CASE("Take snapshot without exist tick, no over-write.")
 
     ss.set_max_size(2);
 
-    ss.take_snapshot(0, ats);
+    ss.take_snapshot(0, &ats);
 
     // check internal states
     // NOTE: these state only available under debug mode
@@ -109,7 +109,7 @@ CASE("Take snapshot without exist tick, no over-write.")
 
     ats.arrange();
 
-    ss.take_snapshot(1, ats);
+    ss.take_snapshot(1, &ats);
 
     // check attribute values at different tick
     {
@@ -200,7 +200,7 @@ CASE("Take snapshot with exist tick, no over-write.")
 
 
   // take snapshot for tick 0 (1st time)
-  ss.take_snapshot(0, ats);
+  ss.take_snapshot(0, &ats);
 
   // change the value for next time
   {
@@ -225,7 +225,7 @@ CASE("Take snapshot with exist tick, no over-write.")
 
   // take snapshot for tick 0 (2nd time)
   // this should delete last one
-  ss.take_snapshot(0, ats);
+  ss.take_snapshot(0, &ats);
 
 
   // check if the value if latest one
@@ -257,11 +257,11 @@ CASE("Take snapshot with exist tick, no over-write.")
   }
 
   // take snapshot for another tick
-  ss.take_snapshot(1, ats);
+  ss.take_snapshot(1, &ats);
 
   // since we only support take snapshot for exist tick if this tick if same as last one,
   // so if we take snapshot for tick 0 here, should cause exception
-  EXPECT_THROWS_AS(ss.take_snapshot(0, ats), InvalidSnapshotTick);
+  EXPECT_THROWS_AS(ss.take_snapshot(0, &ats), InvalidSnapshotTick);
 },
 
 CASE("Take snapshot for exist tick, with over-write.")
@@ -295,11 +295,11 @@ CASE("Take snapshot for exist tick, with over-write.")
   ss.set_max_size(2);
 
   // normal process
-  ss.take_snapshot(0, ats);
-  ss.take_snapshot(1, ats);
+  ss.take_snapshot(0, &ats);
+  ss.take_snapshot(1, &ats);
 
   // this will over-write 1st one (tick 0)
-  ss.take_snapshot(2, ats);
+  ss.take_snapshot(2, &ats);
 
   // over-write tick 0, here will not have empty slots left, as the nodes number node changed
   {
@@ -352,7 +352,7 @@ CASE("Take snapshot for exist tick, with over-write.")
     a3 = 19191919;
   }
 
-  ss.take_snapshot(2, ats);
+  ss.take_snapshot(2, &ats);
 
   EXPECT(2 == ss.size());
 
@@ -403,7 +403,7 @@ CASE("Take snapshot for exist tick, with over-write.")
   EXPECT(10 == ats.size());
   EXPECT(10 == ats.last_index());
 
-  ss.take_snapshot(2, ats);
+  ss.take_snapshot(2, &ats);
 
   {
     size_t empty_index, empty_length;

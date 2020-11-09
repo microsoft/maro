@@ -21,6 +21,19 @@ namespace maro
       class InvalidSnapshotSize : public exception
       {};
 
+      class SnapshotQueryNotPrepared : public exception
+      {
+      };
+
+      class SnapshotQueryNoAttributes : public exception
+      {};
+
+      class SnapshotInvalidFrameState: public exception
+      {};
+
+      class SnapshotQueryResultPtrNull:public exception
+      {};
+
       /**
       Steps to take snapshot:
 
@@ -61,10 +74,8 @@ namespace maro
         /// <summary>
         /// Object used to hold the parameter that used for query
         /// </summary>
-        class SnapshotQueryParameters
+        struct SnapshotQueryParameters
         {
-          friend SnapshotList;
-
           // for furthur querying, these fields would be changed by prepare function
           IDENTIFIER node_id{ 0 };
           INT* ticks{ nullptr };
@@ -74,10 +85,10 @@ namespace maro
           IDENTIFIER* attributes{ nullptr };
           UINT attr_length{ 0 };
 
-        public:
           void reset();
         };
 
+        weak_ptr<Frame> _frame_ptr;
 
         // tick -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
         //map<INT, map<ULONG, ULONG>> _attr_map;
@@ -110,16 +121,20 @@ namespace maro
 
         Attribute _defaultAttr = Attribute(NAN);
 
+        bool _is_prepared{ false };
         SnapshotQueryParameters _query_parameters;
 
       public:
+
+        void set_frame(weak_ptr<Frame> frame);
+
         void set_max_size(USHORT max_size);
 
         /// <summary>
         /// Take snapshot for current frame, this function will arrange current frame
         /// </summary>
         /// <param name="tick"></param>
-        void take_snapshot(INT tick, AttributeStore& frame_attr_store);
+        void take_snapshot(INT tick, AttributeStore* frame_attr_store);
 
         Attribute& operator() (INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
@@ -132,7 +147,8 @@ namespace maro
           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
 
         // do query using parameters from last prepare invoking, cause exception if without prepare calling
-        void query(QUERING_FLOAT* result);
+        // it will reset prepare state to false, so DO make sure prepare for each querying
+        void query(QUERING_FLOAT* result, SnapshotResultShape shape);
 
 
 #ifdef _DEBUG
@@ -142,8 +158,8 @@ namespace maro
 #endif
 
       private:
-        void append_to_end(AttributeStore& frame_attr_store, INT tick);
-        void write_to_empty_slots(AttributeStore& frame_attr_store, INT tick);
+        void append_to_end(AttributeStore* frame_attr_store, INT tick);
+        void write_to_empty_slots(AttributeStore* frame_attr_store, INT tick);
         inline void ensure_max_size();
       };
     }
