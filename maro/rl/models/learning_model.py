@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import torch
 import torch.nn as nn
 
 
@@ -10,9 +11,10 @@ class SingleHeadLearningModel(nn.Module):
     The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
     its successor.
     """
-    def __init__(self, block_list: list):
+    def __init__(self, block_list: list, optimizer_cls, optimizer_params: dict):
         super().__init__()
         self._net = nn.Sequential(*block_list)
+        self._optimizer = optimizer_cls(self._net.parameters(), **optimizer_params)
 
     def forward(self, inputs):
         """Feedforward computation.
@@ -24,6 +26,19 @@ class SingleHeadLearningModel(nn.Module):
             Outputs from the model.
         """
         return self._net(inputs)
+
+    def step(self, loss: torch.tensor):
+        """Feedforward computation.
+
+        Args:
+            loss: loss tensor
+
+        Returns:
+            Outputs from the model.
+        """
+        self._optimizer.zero_grad()
+        loss.backward()
+        self._optimizer.step()
 
 
 class MultiHeadLearningModel(nn.Module):
