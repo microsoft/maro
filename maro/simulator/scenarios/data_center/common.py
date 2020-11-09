@@ -8,7 +8,7 @@ class Action:
     """Data center scenario action object, which was used to pass action from agent to business engine.
 
     Args:
-        vm (VirtualMachine): The virtual machine object, which only contains id, requirement resource, lifetime
+        vm (VirtualMachine): The virtual machine object, which only contains id, requirement resource, lifetime.
         pm_id (int): The physical machine id assigned to this vm.
         buffertime (int): The buffer time to assign this VM.
     """
@@ -21,7 +21,7 @@ class Action:
 
 
 class Payload:
-    """Payload for the vm requirements postpone
+    """Payload for the VM information.
 
     Args:
         vm_info (VirtualMachine): The VM information
@@ -36,6 +36,11 @@ class Payload:
 
 
 class Latency:
+    """Buffer time.
+
+    1. Triggered by the resource exhaustion (resource_buffer_time).
+    2. Triggered by the algorithm inaccurate predictions (algorithm_buffer_time).
+    """
     def __init__(self):
         self.algorithm_buffer_time = 0
         self.resource_buffer_time = 0
