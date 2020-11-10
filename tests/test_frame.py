@@ -167,6 +167,34 @@ class TestFrame(unittest.TestCase):
             # after reset
             self.assertListEqual([0, 0], list(frame.static_nodes[0].a1[:]), msg="static node's a1 should be [0, 0] after reset")
 
+    def test_append_nodes(self):
+        # NOTE: this case only support raw backend
+        frame = build_frame(backend_name="raw")
+
+        # set value for last static node
+        last_static_node = frame.static_nodes[-1]
+
+        self.assertEqual(STATIC_NODE_NUM, len(frame.static_nodes))
+
+        last_static_node.a2 = 2
+        last_static_node.a3 = 9
+
+        # append 2 new node
+        frame.append_node("static", 2)
+
+        # then there should be 2 new node instance
+        self.assertEqual(STATIC_NODE_NUM + 2, len(frame.static_nodes))
+
+        # then index should keep sequentially
+        for i in range(len(frame.static_nodes)):
+            self.assertEqual(i, frame.static_nodes[i].index)
+
+        # value should be zero
+        for node in frame.static_nodes[-2:]:
+            self.assertEqual(0, node.a3)
+            self.assertEqual(0, node.a2)
+            self.assertEqual(0, node.a1[0])
+            self.assertEqual(0, node.a1[1])
 
 if __name__ == "__main__":
     unittest.main()
