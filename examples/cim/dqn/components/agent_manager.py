@@ -31,7 +31,7 @@ def create_dqn_agents(agent_id_list, config):
 
         algorithm = DQN(
             q_model=q_model,
-            loss_func=nn.functional.smooth_l1_loss,
+            loss_cls=nn.SmoothL1Loss,
             hyper_params=DQNHyperParams(
                 **config.algorithm.hyper_parameters,
                 num_actions=num_actions
