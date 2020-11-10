@@ -1,5 +1,6 @@
-import os
 import argparse
+import os
+
 from maro.cli.inspector.cim_dashboard import start_cim_dashboard
 from maro.cli.inspector.citi_bike_dashboard import start_citi_bike_dashboard
 
@@ -16,4 +17,3 @@ if __name__ == '__main__':
 
     elif senario == 'citi_bike':
         start_citi_bike_dashboard(ROOT_PATH)
-

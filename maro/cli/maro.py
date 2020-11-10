@@ -854,7 +854,7 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         "--force",
         type=str,
         required=False,
-        default='yes',
+        default="yes",
         help="Overwrite the generated middle data or not: yes/no.")
 
     build_cmd_parser.set_defaults(func=start_vis)
