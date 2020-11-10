@@ -84,7 +84,7 @@ namespace maro
 
       bool Attribute::is_nan()
       {
-        return isnan(_data._float);
+        return _type == AttrDataType::AFLOAT && isnan(_data._float);
       }
     } // namespace raw
   }   // namespace backends

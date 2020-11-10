@@ -36,13 +36,13 @@ const lest::test specification[] =
 
     // get value
     // NOTE: this will change data type of attribute
-    attr = 10;
+    attr = -1;
 
     //
-    EXPECT(10 == attr.get_int());
+    EXPECT(-1 == attr.get_int());
 
     // get again to see if value changed
-    EXPECT(10 == ats(0, 0, 0, 0).get_int());
+    EXPECT(-1 == ats(0, 0, 0, 0).get_int());
 
 
     // invalid index will cause exception
