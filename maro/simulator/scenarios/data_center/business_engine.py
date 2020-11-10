@@ -46,8 +46,13 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         # PM initialize.
         self._machines: List[PhysicalMachine] = []
-        self._machines = [PhysicalMachine(id=i, cap_cpu=self._conf["pm_cap_cpu"], cap_mem=self._conf["pm_cap_mem"])
-                        for i in range(self._conf["pm_amount"])]
+        self._machines = [
+            PhysicalMachine(
+                id=i,
+                cap_cpu=self._conf["pm_cap_cpu"],
+                cap_mem=self._conf["pm_cap_mem"]
+            ) for i in range(self._conf["pm_amount"])
+        ]
         # VM initialize.
         self._vm: dict = {}
 
@@ -125,8 +130,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         buffer_time: int = payload.buffer_time
 
         # Check all valid PMs.
-        valid_pm_list = [pm.id for pm in self._machines
-                        if (pm.cap_cpu - (pm.cap_cpu * pm.util_cpu / 100)) >= vm_req.req_cpu]
+        valid_pm_list = [
+            pm.id
+            for pm in self._machines
+            if (pm.cap_cpu - (pm.cap_cpu * pm.util_cpu / 100)) >= vm_req.req_cpu
+        ]
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
@@ -148,7 +156,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.insert_event(postpone_evt)
             else:
                 # Fail
-                # TODO
+                # TODO Implement failure logic.
                 self._failed_requirements += 1
 
     def _on_vm_finished(self, evt: AtomEvent):
@@ -163,8 +171,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         physical_machine: PhysicalMachine = self._machines[virtual_machine.pm_id]
         physical_machine.req_cpu -= virtual_machine.req_cpu
         physical_machine.req_mem -= virtual_machine.req_mem
-        physical_machine.util_cpu = ((physical_machine.util_cpu * physical_machine.cap_cpu / 100)
-                                    - util_vm_cores) * 100 / physical_machine.cap_cpu
+        physical_machine.util_cpu = (
+            (physical_machine.cap_cpu * physical_machine.util_cpu / 100 - util_vm_cores)
+            * 100 / physical_machine.cap_cpu
+        )
         physical_machine.remove_vm(vm_id)
 
         # Remove dead VM.
@@ -214,5 +224,5 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.insert_event(postpone_evt)
             else:
                 # Fail
-                # TODO
+                # TODO Implement failure logic.
                 self._failed_requirements += 1
