@@ -78,14 +78,14 @@ def generate_summary(scenario, ROOT_PATH):
     temp_len = len(dbtype_list_all)
     dbtype_list = []
     for index in range(0, temp_len):
-        if os.path.exists(os.path.join(ROOT_PATH, r"snapshot_" + str(index))):
-            dbtype_list.append(os.path.join(ROOT_PATH, r"snapshot_" + str(index)))
+        if os.path.exists(os.path.join(ROOT_PATH, f"snapshot_{index}")):
+            dbtype_list.append(os.path.join(ROOT_PATH, f"snapshot_{index}"))
 
     if scenario == "cim":
         init_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), ports_header)
         # init_csv(vessels_file_path, vessels_header)
-        ports_sum_dataframe = pd.read_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH),
-                                            names=ports_header)
+        ports_sum_dataframe =\
+            pd.read_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
         init_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH), stations_header)
@@ -96,8 +96,9 @@ def generate_summary(scenario, ROOT_PATH):
             dir_epoch = os.path.join(ROOT_PATH, dbtype)
             if not os.path.isdir(dir_epoch):
                 continue
-            summary_append(scenario, dir_epoch, "ports.csv", ports_header, ports_sum_dataframe,
-                        i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
+            summary_append(
+                scenario, dir_epoch, "ports.csv", ports_header,
+                ports_sum_dataframe, i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
     elif scenario == "citi_bike":

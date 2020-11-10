@@ -54,7 +54,7 @@ def show_cim_summary_plot(ROOT_PATH):
     down_pooling_len = math.floor(1 / down_pooling_num)
     down_pooling_range = generate_down_pooling_sample(down_pooling_len, start_epoch, end_epoch)
     item_option_all = ["All", "Booking Info", "Port Info", "shortage", "booking", "fulfillment", "on_shipper",
-                        "on_consignee", "capacity", "full", "empty"]
+                       "on_consignee", "capacity", "full", "empty"]
     data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH))
     data = data.iloc[down_pooling_range]
     data_genera = common_helper.formula_define(data)
@@ -79,7 +79,7 @@ def generate_summary_plot(item_option, data, down_pooling_range):
     """
     data["epoch index"] = list(down_pooling_range)
     data_long_form = data.melt("epoch index", var_name="Attributes",
-                            value_name="count")
+                               value_name="count")
     custom_chart_port = alt.Chart(data_long_form).mark_line().encode(
         x="epoch index",
         y="count",
@@ -148,11 +148,11 @@ def show_cim_detail_plot(ROOT_PATH):
     option_epoch = st.sidebar.select_slider(
         "Choose an Epoch:",
         list(range(0, epoch_num)))
-    dir = os.path.join(ROOT_PATH, "snapshot_" + str(option_epoch))
+    dir = os.path.join(ROOT_PATH, f"snapshot_{option_epoch}")
     # data_ports = feather_read_data(os.path.join(dir, "ports_feather"))
     data_ports = common_helper.read_detail_csv(os.path.join(dir, "ports.csv"))
     data_ports["remaining_space"] = list(map(lambda x, y, z: x - y - z, data_ports["capacity"],
-                                            data_ports["full"], data_ports["empty"]))
+                                             data_ports["full"], data_ports["empty"]))
     ports_num = len(data_ports["name"].unique())
     ports_index = np.arange(ports_num).tolist()
     snapshot_num = len(data_ports["frame_index"].unique())
@@ -164,23 +164,22 @@ def show_cim_detail_plot(ROOT_PATH):
         ("by ports", "by snapshot"))
     comprehensive_info = ["name", "frame_index", "acc_shortage", "acc_booking", "acc_fulfillment"]
     specific_info = ["name", "frame_index", "shortage", "booking", "fulfillment", "on_shipper", "on_consignee",
-                    "capacity", "full", "empty", "remaining_space"]
+                     "capacity", "full", "empty", "remaining_space"]
     item_option_all = ["All", "Booking Info", "Port Info", "shortage", "booking", "fulfillment", "on_shipper",
-                        "on_consignee", "capacity", "full", "empty", "remaining_space"]
+                       "on_consignee", "capacity", "full", "empty", "remaining_space"]
     if option_2 == "by ports":
         port_index = st.sidebar.select_slider(
             "Choose a Port:",
             ports_index)
-        str_port_option = "ports_" + str(port_index)
+        str_port_option = f"ports_{port_index}"
         name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
         sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
         snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
 
         common_helper.render_H1_title("CIM Acc Data")
-        common_helper.render_H3_title("Port Acc Attributes: " + str(port_index) + " -  " +
-                                    name_conversion.loc[int(port_index)][0])
+        common_helper.render_H3_title(f"Port Acc Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
         generate_detail_plot_by_ports(comprehensive_info, data_ports, str_port_option,
-                                    snapshot_num, snapshot_sample_num)
+                                      snapshot_num, snapshot_sample_num)
         common_helper.render_H1_title("CIM Detail Data")
         data_genera = common_helper.formula_define(data_ports)
         if data_genera is not None:
@@ -190,11 +189,11 @@ def show_cim_detail_plot(ROOT_PATH):
         item_option = st.multiselect(
             " ", item_option_all, item_option_all)
         item_option = get_CIM_item_option(item_option, item_option_all)
-        str_temp = "ports_" + str(port_index)
+        str_temp = f"ports_{port_index}"
         common_helper.render_H3_title(
-            "Port Detail Attributes: " + str(port_index) + " -  " + name_conversion.loc[int(port_index)][0])
+            f"Port Detail Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
         generate_detail_plot_by_ports(specific_info, data_ports, str_temp, snapshot_num,
-                                    snapshot_sample_num, item_option)
+                                      snapshot_sample_num, item_option)
     if option_2 == "by snapshot":
         snapshot_index = st.sidebar.select_slider(
             "snapshot index",
@@ -203,15 +202,15 @@ def show_cim_detail_plot(ROOT_PATH):
         sample_ratio_res = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
         common_helper.render_H1_title("Acc Data")
         show_volume_hot_map(ROOT_PATH, "cim", option_epoch, snapshot_index)
-        common_helper.render_H3_title("SnapShot-" + str(snapshot_index) + ": Port Acc Attributes")
+        common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Port Acc Attributes")
         generate_detail_plot_by_snapshot(comprehensive_info, data_ports, snapshot_index, ports_num,
-                                        os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), sample_ratio_res)
+                                         os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), sample_ratio_res)
         generate_cim_top_summary(data_ports, snapshot_index, ports_num, os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
         common_helper.render_H1_title("Detail Data")
         data_vessels = common_helper.read_detail_csv(os.path.join(dir, "vessels.csv"))
         vessels_num = len(data_vessels["name"].unique())
         generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num)
-        common_helper.render_H3_title("SnapShot-" + str(snapshot_index) + ": Port Detail Attributes")
+        common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Port Detail Attributes")
         data_genera = common_helper.formula_define(data_ports)
         if data_genera is not None:
             specific_info.append(data_genera["name"])
@@ -220,7 +219,7 @@ def show_cim_detail_plot(ROOT_PATH):
         item_option = st.multiselect(" ", item_option_all, item_option_all)
         item_option = get_CIM_item_option(item_option, item_option_all)
         generate_detail_plot_by_snapshot(specific_info, data_ports, snapshot_index, ports_num,
-                                        os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), sample_ratio_res, item_option)
+                                         os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), sample_ratio_res, item_option)
 
 
 def generate_cim_top_summary(data, snapshot_index, ports_num, CONVER_PATH):
@@ -256,7 +255,7 @@ def generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num
         snapshot_index(int): User-select snapshot index.
         vessels_num(int): Number of vessels.
     """
-    common_helper.render_H3_title("SnapShot-" + str(snapshot_index) + ": Vessel Attributes")
+    common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
     sample_ratio = common_helper.holder_sample_ratio(vessels_num)
     sample_ratio_res = st.sidebar.select_slider("Vessels Sample Ratio:", sample_ratio)
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
@@ -265,7 +264,7 @@ def generate_detail_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num
     snapshot_temp = pd.DataFrame()
     for index in down_pooling:
         snapshot_temp = pd.concat(
-            [snapshot_temp, snapshot_filtered[snapshot_filtered["name"] == "vessels_" + str(index)]], axis=0)
+            [snapshot_temp, snapshot_filtered[snapshot_filtered["name"] == f"vessels_{index}"]], axis=0)
     snapshot_filtered = snapshot_temp.reset_index(drop=True)
     snapshot_filtered["name"] = snapshot_filtered["name"].apply(lambda x: int(x[8:]))
     snapshot_filtered_long_form = snapshot_filtered.melt("name", var_name="Attributes", value_name="count")
@@ -297,8 +296,8 @@ def generate_hot_map(matrix_data):
     y_axis = [[row[col] for row in x_axis] for col in range(len(x_axis[0]))]
     # Convert this grid to columnar data expected by Altair
     source = pd.DataFrame({"dest_port": np.array(x_axis).ravel(),
-                            "start_port": np.array(y_axis).ravel(),
-                            "count": np.array(b).ravel()})
+                           "start_port": np.array(y_axis).ravel(),
+                           "count": np.array(b).ravel()})
     chart = alt.Chart(source).mark_rect().encode(
         x="dest_port:O",
         y="start_port:O",
@@ -320,11 +319,9 @@ def show_volume_hot_map(ROOT_PATH, scenario, epoch_index, snapshot_index):
         epoch_index(int):  Selected epoch index.
         snapshot_index(int): Selected snapshot index.
     """
-    matrix_data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_" + str(epoch_index), "matrices.csv")).loc[
-        snapshot_index]
-    print (scenario)
+    matrix_data = pd.read_csv(os.path.join(ROOT_PATH, f"snapshot_{epoch_index}", "matrices.csv")).loc[snapshot_index]
     if scenario == "cim":
-        common_helper.render_H3_title("SnapShot-" + str(snapshot_index) + ": Acc Port Transfer Volume")
+        common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Acc Port Transfer Volume")
         generate_hot_map(matrix_data["full_on_ports"])
 
 
@@ -371,12 +368,12 @@ def generate_detail_plot_by_ports(info_selector, data, str_temp, snapshot_num, s
         color="Attributes:N",
         tooltip=["Attributes", "count", "snapshot_index"]
     ).properties(width=700,
-                height=380)
+                 height=380)
     st.altair_chart(custom_bar_chart)
 
 
 def generate_detail_plot_by_snapshot(info_selector, data, snapshot_index, ports_num,
-                                    CONVER_PATH, sample_ratio_res, item_option=None):
+                                     CONVER_PATH, sample_ratio_res, item_option=None):
     """Generate detail plot.
         View info within different snapshot in the same epoch.
 
@@ -398,7 +395,7 @@ def generate_detail_plot_by_snapshot(info_selector, data, snapshot_index, ports_
     snapshot_temp = pd.DataFrame(columns=info_selector)
     for index in down_pooling:
         snapshot_temp = pd.concat(
-            [snapshot_temp, snapshot_filtered[snapshot_filtered["name"] == "ports_" + str(index)]], axis=0)
+            [snapshot_temp, snapshot_filtered[snapshot_filtered["name"] == f"ports_{index}"]], axis=0)
     snapshot_temp["name"] = snapshot_temp["name"].apply(lambda x: int(x[6:]))
     snapshot_filtered = snapshot_temp.reset_index(drop=True)
     if item_option is not None:
@@ -408,7 +405,7 @@ def generate_detail_plot_by_snapshot(info_selector, data, snapshot_index, ports_
     name_conversion = common_helper.read_detail_csv(CONVER_PATH)
     snapshot_filtered["port name"] = snapshot_filtered["name"].apply(lambda x: name_conversion.loc[int(x)])
     snapshot_filtered_long_form = snapshot_filtered.melt(["name", "port name"], var_name="Attributes",
-    value_name="count")
+                                                         value_name="count")
     custom_chart_snapshot = alt.Chart(snapshot_filtered_long_form).mark_bar().encode(
         x="name:N",
         y="count:Q",

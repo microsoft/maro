@@ -29,8 +29,10 @@ def show_citi_bike_detail_plot(ROOT_PATH):
     stations_index = np.arange(stations_num).tolist()
     snapshot_num = len(data_stations["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
-    item_option_all = ["All", "Requirement Info", "Station Info", "bikes",
-                        "shortage", "trip_requirement", "fulfillment", "capacity", "extra_cost", "failed_return"]
+    item_option_all = [
+        "All", "Requirement Info", "Station Info",
+        "bikes", "shortage", "trip_requirement",
+        "fulfillment", "capacity", "extra_cost", "failed_return"]
     st.sidebar.markdown("***")
     # filter by station index
     # display the change of snapshot within 1 station
@@ -42,7 +44,7 @@ def show_citi_bike_detail_plot(ROOT_PATH):
         name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
         common_helper.render_H3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
         # filter data by station index
-        station_filtered_by_ID = data_stations[data_stations["name"] == "stations_" + str(station_index)]
+        station_filtered_by_ID = data_stations[data_stations["name"] == f"stations_{station_index}"]
         station_sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
         snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", station_sample_ratio)
         # get formula input & output
@@ -58,8 +60,8 @@ def show_citi_bike_detail_plot(ROOT_PATH):
         down_pooling = common_helper.get_snapshot_sample(snapshot_num, snapshot_sample_num)
         station_filtered = station_filtered.iloc[down_pooling]
         station_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
-        station_filtered_long_form = station_filtered.melt("snapshot_index", var_name="Attributes",
-                                                            value_name="count")
+        station_filtered_long_form = \
+            station_filtered.melt("snapshot_index", var_name="Attributes", value_name="count")
         custom_chart_station = alt.Chart(station_filtered_long_form).mark_line().encode(
             x="snapshot_index",
             y="count",
@@ -78,7 +80,7 @@ def show_citi_bike_detail_plot(ROOT_PATH):
         snapshot_index = st.sidebar.select_slider(
             "snapshot index",
             snapshots_index)
-        common_helper.render_H3_title("Snapshot-" + str(snapshot_index) + ":  Detail Data")
+        common_helper.render_H3_title(f"Snapshot-{snapshot_index}:  Detail Data")
         # get according data with selected snapshot
         snapshot_filtered_by_Frame_Index = data_stations[data_stations["frame_index"] == snapshot_index]
         # get increasing rate
@@ -105,8 +107,8 @@ def show_citi_bike_detail_plot(ROOT_PATH):
         snapshot_filtered["name"] = snapshot_filtered["name"].apply(lambda x: int(x[9:]))
         name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
         snapshot_filtered["station"] = snapshot_filtered["name"].apply(lambda x: name_conversion.loc[int(x)])
-        snapshot_filtered_long_form = snapshot_filtered.melt(["station", "name"], var_name="Attributes",
-                                                            value_name="count")
+        snapshot_filtered_long_form = \
+            snapshot_filtered.melt(["station", "name"], var_name="Attributes", value_name="count")
         custom_chart_snapshot = alt.Chart(snapshot_filtered_long_form).mark_bar().encode(
             x="name:N",
             y="count:Q",
@@ -166,8 +168,8 @@ def show_citi_bike_summary_plot(ROOT_PATH):
     df_requirement = data[["station name", "trip_requirement"]].sort_values(by="trip_requirement",
                                                                             ascending=False).head(5)
     df_fulfillment = data[["station name", "fulfillment"]].sort_values(by="fulfillment", ascending=False).head(5)
-    df_fulfillment_ratio = data[["station name", "fulfillment_ratio"]].sort_values(by="fulfillment_ratio",
-                                                                                ascending=False).head(5)
+    df_fulfillment_ratio = \
+        data[["station name", "fulfillment_ratio"]].sort_values(by="fulfillment_ratio", ascending=False).head(5)
     common_helper.generate_by_snapshot_top_summary("station name", df_bikes, "bikes", False)
     common_helper.generate_by_snapshot_top_summary("station name", df_requirement, "trip_requirement", False)
     common_helper.generate_by_snapshot_top_summary("station name", df_fulfillment, "fulfillment", False)
