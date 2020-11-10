@@ -1,6 +1,5 @@
 #include "frame.h"
 
-
 namespace maro
 {
   namespace backends
@@ -8,12 +7,12 @@ namespace maro
     namespace raw
     {
 
-      Attribute& maro::backends::raw::Frame::operator()(NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      Attribute &maro::backends::raw::Frame::operator()(NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
       {
         ensure_attr_id(attr_id);
 
-        auto& attr = _attributes[attr_id];
-        auto& node = _nodes[attr.node_id];
+        auto &attr = _attributes[attr_id];
+        auto &node = _nodes[attr.node_id];
 
         ensure_node_index(node, node_index);
         ensure_slot_index(attr, slot_index);
@@ -40,7 +39,7 @@ namespace maro
       {
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         auto attr = FrameAttribute();
         attr.type = type;
@@ -63,11 +62,11 @@ namespace maro
         {
           auto node_id = iter.first;
 
-          auto& node = _nodes[node_id];
+          auto &node = _nodes[node_id];
 
           for (auto attr_id : iter.second)
           {
-            auto& attr = _attributes[attr_id];
+            auto &attr = _attributes[attr_id];
 
             _attr_store.add_nodes(node_id, 0, node.number, attr_id, attr.slots);
           }
@@ -79,7 +78,7 @@ namespace maro
         // to add additional node, the id must exist
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         auto attrs_iter = _node_2_attrs.find(node_id);
 
@@ -101,14 +100,14 @@ namespace maro
       {
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         ensure_node_index(node, index);
 
         // remove attributes of this node
         for (auto attr_id : _node_2_attrs.find(node_id)->second)
         {
-          auto& attr = _attributes[attr_id];
+          auto &attr = _attributes[attr_id];
 
           _attr_store.remove_node(node_id, index, attr_id, attr.slots);
         }
@@ -118,13 +117,13 @@ namespace maro
       {
         ensure_node_id(node_id);
 
-        auto& node = _nodes[node_id];
+        auto &node = _nodes[node_id];
 
         ensure_node_index(node, index);
 
         for (auto attr_id : _node_2_attrs.find(node_id)->second)
         {
-          auto& attr = _attributes[attr_id];
+          auto &attr = _attributes[attr_id];
 
           _attr_store.add_nodes(node_id, index, index + 1, attr_id, attr.slots);
         }
@@ -136,8 +135,8 @@ namespace maro
         // set attributes slots will extend or narrow down from the end!
         ensure_attr_id(attr_id);
 
-        auto& attr = _attributes[attr_id];
-        auto& node = _nodes[attr.node_id];
+        auto &attr = _attributes[attr_id];
+        auto &node = _nodes[attr.node_id];
 
         if (slots > attr.slots)
         {
@@ -153,17 +152,24 @@ namespace maro
         attr.slots = slots;
       }
 
+      USHORT Frame::get_node_number(IDENTIFIER node_id)
+      {
+        ensure_node_id(node_id);
+
+        return _nodes[node_id].number;
+      }
+
       void Frame::reset()
       {
         _attr_store.reset();
 
         // reset node and attr info
-        for (auto& node : _nodes)
+        for (auto &node : _nodes)
         {
           node.number = node.origin_number;
         }
 
-        for (auto& attr : _attributes)
+        for (auto &attr : _attributes)
         {
           attr.slots = attr.origin_slots;
         }
@@ -188,7 +194,7 @@ namespace maro
         }
       }
 
-      inline void Frame::ensure_node_index(FrameNode& node, NODE_INDEX node_index)
+      inline void Frame::ensure_node_index(FrameNode &node, NODE_INDEX node_index)
       {
         if (node_index >= node.number)
         {
@@ -196,7 +202,7 @@ namespace maro
         }
       }
 
-      inline void Frame::ensure_slot_index(FrameAttribute& attr, SLOT_INDEX slot_index)
+      inline void Frame::ensure_slot_index(FrameAttribute &attr, SLOT_INDEX slot_index)
       {
         if (slot_index >= attr.slots)
         {
@@ -204,6 +210,6 @@ namespace maro
         }
       }
 
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro

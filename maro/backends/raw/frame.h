@@ -121,6 +121,8 @@ namespace maro
         /// <param name="slots"></param>
         void set_attr_slot(IDENTIFIER attr_id, SLOT_INDEX slots);
 
+        USHORT get_node_number(IDENTIFIER node_id);
+
         void reset();
 
       private:

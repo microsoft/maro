@@ -404,6 +404,11 @@ cdef class FrameBase:
 
                 node_list.append(node)
 
+            # Update node number if snapshot enabled
+            if self._snapshot_list is not None:
+                pass
+
+
     cpdef void delete_node(self, NodeBase node) except +:
         if self._backend.is_support_dynamic_features():
             self._backend.delete_node(node._id, node._index)
@@ -520,7 +525,7 @@ cdef class SnapshotNode:
 
     def __len__(self):
         """Number of current node."""
-        return self._node_number
+        return self._snapshots.get_node_number(self._node_id)
 
     def __getitem__(self, key: slice):
         """Used to support states slice querying."""

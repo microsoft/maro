@@ -69,6 +69,8 @@ namespace maro
 
         void set_attribute_slot(IDENTIFIER attr_id, SLOT_INDEX slots);
 
+        USHORT get_node_number(IDENTIFIER node_id);
+
       private:
         inline void ensure_setup_state(bool expect);
       };

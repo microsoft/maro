@@ -153,7 +153,6 @@ namespace maro
         // it will reset prepare state to false, so DO make sure prepare for each querying
         void query(ATTR_FLOAT* result, SnapshotResultShape shape);
 
-
 #ifdef _DEBUG
         pair<size_t, size_t> empty_states();
 

@@ -18,6 +18,9 @@ cdef class SnapshotListAbc:
     cdef void take_snapshot(self, INT tick) except +:
         pass
 
+    cdef USHORT get_node_number(self, IDENTIFIER node_id) except +:
+        return 0
+
     cdef void enable_history(self, str history_folder) except +:
         pass
 

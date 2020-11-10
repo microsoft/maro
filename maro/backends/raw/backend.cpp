@@ -154,6 +154,11 @@ namespace maro
 
         _frame.set_attr_slot(attr_id, slots);
       }
+
+      USHORT Backend::get_node_number(IDENTIFIER node_id)
+      {
+        return _frame.get_node_number(node_id);
+      }
     }
   }
 }

@@ -351,6 +351,11 @@ cdef class NPSnapshotList(SnapshotListAbc):
         for node in backend._nodes_list:
             self._node_name2id_dict[node.name] = node.id
 
+    cdef USHORT get_node_number(self, IDENTIFIER node_id) except +:
+        cdef NodeInfo node = self._backend._nodes_list[node_id]
+
+        return node.number
+
     cdef list get_frame_index_list(self) except +:
         return list(self._tick2index_dict.keys())
 

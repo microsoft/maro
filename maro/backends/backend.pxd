@@ -42,6 +42,9 @@ cdef class SnapshotListAbc:
     # List of available frame index in snapshot list
     cdef list get_frame_index_list(self) except +
 
+    # Get number of specified node
+    cdef USHORT get_node_number(self, IDENTIFIER node_id) except +
+
     # Enable history, history will dump backend into files each time take_snapshot called
     cdef void enable_history(self, str history_folder) except +
 

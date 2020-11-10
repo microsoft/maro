@@ -255,6 +255,9 @@ cdef class RawSnapshotList(SnapshotListAbc):
     cdef void take_snapshot(self, INT tick) except +:
         self._raw._backend.take_snapshot(tick)
 
+    cdef USHORT get_node_number(self, IDENTIFIER node_id) except +:
+        return self._raw._backend.get_node_number(node_id)
+
     # List of available frame index in snapshot list
     cdef list get_frame_index_list(self) except +:
         cdef USHORT number = self._raw._backend.get_valid_tick_number()

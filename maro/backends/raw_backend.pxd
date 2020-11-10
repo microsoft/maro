@@ -117,6 +117,7 @@ cdef extern from "raw/backend.h" namespace "maro::backends::raw":
         void delete_node(IDENTIFIER node_id, NODE_INDEX node_index)
         void resume_node(IDENTIFIER node_id, NODE_INDEX node_index)
         void set_attribute_slot(IDENTIFIER attr_id, SLOT_INDEX slots)
+        USHORT get_node_number(IDENTIFIER node_id)
 
 
 cdef class RawBackend(BackendAbc):
