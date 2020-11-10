@@ -162,10 +162,9 @@ def start_vis(input: str, force: str, **kwargs):
 
     """
     try:
-        import altair
         import streamlit
     except ImportError:
-        os.system("pip install streamlit altair")
+        os.system("pip install streamlit")
     ROOT_PATH = input
     FORCE = force
     if not os.path.exists(ROOT_PATH):
