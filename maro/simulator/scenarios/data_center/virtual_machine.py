@@ -28,7 +28,7 @@ class VirtualMachine:
         self.start_tick: int = -1
         self.end_tick: int = -1
 
-    def add_util_series(self, util_series: List):
+    def add_util_series(self, util_series: List[float]):
         """VM CPU utilization list."""
         self._util_series = util_series
 

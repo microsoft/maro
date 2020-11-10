@@ -10,7 +10,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import Action, Latency, VmRequirementPayload, VmFinishedPayload
+from .common import Action, DecisionEvent, Latency, VmFinishedPayload, VmRequirementPayload
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -47,7 +47,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # PM initialize.
         self._machines: List[PhysicalMachine] = []
         self._machines = [PhysicalMachine(id=i, cap_cpu=self._conf["pm_cap_cpu"], cap_mem=self._conf["pm_cap_mem"])
-                          for i in range(self._conf["pm_amount"])]
+                        for i in range(self._conf["pm_amount"])]
         # VM initialize.
         self._vm: dict = {}
 
@@ -112,11 +112,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             total_cpu: int = 0
             for vm_id in pm.vm_set:
                 vm = self._vm[vm_id]
-                vm.util_cpu = vm.util_series[self._tick]
                 cur_util_cores = vm.util_cpu * vm.req_cpu / 100
                 total_cpu += cur_util_cores
             pm.util_cpu = total_cpu / pm.cap_cpu * 100
-            pm.update_util_series(pm.util_cpu)
+            pm.update_util_series(self._tick)
 
     def _on_vm_required(self, evt: CascadeEvent):
         """Callback when there is a VM requirement generated."""
@@ -125,9 +124,18 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         vm_req: VirtualMachine = payload.vm_req
         buffer_time: int = payload.buffer_time
 
-        if any([(pm.cap_cpu - (pm.cap_cpu * pm.util_cpu / 100)) >= vm_req.req_cpu for pm in self._machines]):
+        # Check all valid PMs.
+        valid_pm_list = [pm.id for pm in self._machines
+                        if (pm.cap_cpu - (pm.cap_cpu * pm.util_cpu / 100)) >= vm_req.req_cpu]
+
+        if len(valid_pm_list) > 0:
             # Generate pending decision.
-            pending_decision_evt = self._event_buffer.gen_decision_event(evt.tick, payload=payload)
+            decision_payload = DecisionEvent(
+                valid_pm=valid_pm_list,
+                vm_info=vm_req,
+                buffer_time=buffer_time
+            )
+            pending_decision_evt = self._event_buffer.gen_decision_event(evt.tick, payload=decision_payload)
             evt.add_immediate_event(pending_decision_evt)
         else:
             # Postpone the buffer duration ticks by config setting.
@@ -156,8 +164,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         physical_machine.req_cpu -= virtual_machine.req_cpu
         physical_machine.req_mem -= virtual_machine.req_mem
         physical_machine.util_cpu = ((physical_machine.util_cpu * physical_machine.cap_cpu / 100)
-                                     - util_vm_cores) * 100 / physical_machine.cap_cpu
-        physical_machine.update_util_series()
+                                    - util_vm_cores) * 100 / physical_machine.cap_cpu
         physical_machine.remove_vm(vm_id)
 
         # Remove dead VM.
@@ -195,7 +202,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.req_cpu += virtual_machine.req_cpu
             pm.req_mem += virtual_machine.req_mem
             pm.util_cpu = ((pm.cap_cpu * pm.util_cpu / 100) + cur_util_vm_cores) / pm.cap_cpu
-            pm.update_util_series()
         else:
             buffer_time = action.buffer_time
             # Postpone the buffer duration ticks by config setting.

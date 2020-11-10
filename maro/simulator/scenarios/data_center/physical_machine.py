@@ -35,5 +35,7 @@ class PhysicalMachine:
     def vm_set(self) -> Set(int):
         return self._vm_set
 
-    def update_util_series(self):
-        self._util_series.append(self.util_cpu)
+    def update_util_series(self, tick: int):
+        # Check the tick is match.
+        if tick == len(self._util_series):
+            self._util_series.append(self.util_cpu)

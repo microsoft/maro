@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import List
+
 from .virtual_machine import VirtualMachine
 
 
@@ -48,6 +50,18 @@ class VmFinishedPayload:
         self.vm_id = vm_id
 
 
+class DecisionEvent:
+    """Decision event in Data center scenario that contains information for agent to choose action.
+
+
+    """
+
+    def __init__(self, valid_pm: List[int], vm_info: VirtualMachine, buffer_time: int):
+        self.valid_pm = valid_pm
+        self.vm_info = vm_info
+        self.buffer_time = buffer_time
+
+
 class Latency:
     """Accumulated latency.
 
@@ -55,5 +69,5 @@ class Latency:
     2. Triggered by the algorithm inaccurate predictions (algorithm_buffer_time).
     """
     def __init__(self):
-        self.latency_due_to_agent = 0
-        self.latency_due_to_resource = 0
+        self.latency_due_to_agent: int = 0
+        self.latency_due_to_resource: int = 0
