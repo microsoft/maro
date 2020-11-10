@@ -1,5 +1,4 @@
 import argparse
-import os
 
 from maro.cli.inspector.cim_dashboard import start_cim_dashboard
 from maro.cli.inspector.citi_bike_dashboard import start_citi_bike_dashboard

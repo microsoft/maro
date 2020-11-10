@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-#Pre-defined CSS style of inserted HTML elements.
+# Pre-defined CSS style of inserted HTML elements.
 Title_html = """
 <style>
     .title h1{
@@ -52,6 +52,7 @@ def get_epoch_num(origin_len, ROOT_PATH):
         if os.path.exists(os.path.join(ROOT_PATH, r"snapshot_" + str(index))):
             epoch_num = epoch_num + 1
     return epoch_num
+
 
 def render_H1_title(content):
     """Flexible display of content according to predefined styles.
