@@ -5,6 +5,8 @@ from abc import abstractmethod
 
 import torch.nn as nn
 
+from maro.utils import clone
+
 
 class AbsLearningModel(nn.Module):
     def __init__(self):
@@ -19,3 +21,6 @@ class AbsLearningModel(nn.Module):
     def step(self, *losses):
         """Use losses to back-propagate gradients and apply the gradients to the underlying parameters."""
         return NotImplemented
+
+    def copy(self):
+        return clone(self)

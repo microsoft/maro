@@ -6,6 +6,7 @@ from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 
+from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
 from .abs_learning_model import AbsLearningModel
 
@@ -22,6 +23,18 @@ class SingleHeadLearningModel(AbsLearningModel):
         self._is_trainable = optimizer_opt is not None
         if self._is_trainable:
             self._optimizer = optimizer_opt[0](self._net.parameters(), **optimizer_opt[1])
+        else:
+            for param in self._net.parameters():
+                param.requires_grad = False
+
+    def __getstate__(self):
+        return {
+            "_net": self.__dict__["_net"],
+            "_is_trainable": self.__dict__["_is_trainable"],
+        }
+
+    def __setstate__(self, dic: dict):
+        self.__dict__ = dic
 
     @property
     def is_trainable(self):
@@ -44,6 +57,9 @@ class SingleHeadLearningModel(AbsLearningModel):
         loss.backward()
         self._optimizer.step()
 
+    def copy(self):
+        return clone(self)
+
 
 class MultiHeadLearningModel(AbsLearningModel):
     """NN model that consists of shared blocks and multiple task heads.
@@ -64,6 +80,7 @@ class MultiHeadLearningModel(AbsLearningModel):
         self._has_shared_layers = shared_block_list is not None
         self._has_trainable_shared_layers = self._has_shared_layers and shared_stack_optimizer_opt is not None
         self._has_trainable_heads = head_optimizer_opt_dict is not None
+
         # shared stack
         if self._has_shared_layers:
             self._shared_stack = nn.Sequential(*shared_block_list)
@@ -71,21 +88,38 @@ class MultiHeadLearningModel(AbsLearningModel):
                 self._shared_stack_optimizer = shared_stack_optimizer_opt[0](
                     self._shared_stack.parameters(), **shared_stack_optimizer_opt[1]
                 )
+            else:
+                for param in self._shared_stack.parameters():
+                    param.requires_grad = False
 
         # heads
         self._head_keys = list(head_block_dict.keys())
-        if self._has_shared_layers:
-            self._net = nn.ModuleDict({
-                key: nn.Sequential(self._shared_stack, head) for key, head in head_block_dict.items()
-            })
-        else:
-            self._net = head_block_dict
+        self._net = nn.ModuleDict({
+            key: nn.Sequential(self._shared_stack, head) if self._has_shared_layers else head
+            for key, head in head_block_dict.items()
+        })
 
         if self._has_trainable_heads:
             self._head_optimizer_dict = {
                 key: head_optimizer_opt_dict[key][0](head.parameters(), **head_optimizer_opt_dict[key][1])
                 for key, head in head_block_dict.items()
             }
+        else:
+            for key, head in head_block_dict.items():
+                for param in head.parameters():
+                    param.requires_grad = False
+
+    def __getstate__(self):
+        return {
+            "_net": self.__dict__["_net"],
+            "_head_keys": self.__dict__["_head_keys"],
+            "_has_shared_layers": self.__dict__["_has_shared_layers"],
+            "_has_trainable_shared_layers": self.__dict__["_has_trainable_shared_layers"],
+            "_has_trainable_heads": self.__dict__["_has_trainable_heads"]
+        }
+
+    def __setstate__(self, dic: dict):
+        self.__dict__ = dic
 
     @property
     def has_shared_layers(self):
@@ -95,12 +129,24 @@ class MultiHeadLearningModel(AbsLearningModel):
     def has_trainable_shared_layers(self):
         return self._has_trainable_shared_layers
 
+    @has_trainable_shared_layers.setter
+    def has_trainable_shared_layers(self, value: bool):
+        self._has_trainable_shared_layers = value
+
     @property
     def has_trainable_heads(self):
         return self._has_trainable_heads
 
+    @has_trainable_heads.setter
+    def has_trainable_heads(self, value: bool):
+        self._has_trainable_heads = value
+
     @property
-    def head_keys(self):
+    def is_trainable(self):
+        return self._has_trainable_shared_layers or self._has_trainable_heads
+
+    @property
+    def heads(self) -> [str]:
         return self._head_keys
 
     def forward(self, inputs, key=None):
@@ -117,12 +163,12 @@ class MultiHeadLearningModel(AbsLearningModel):
             Outputs from the required head(s).
         """
         if key is None:
-            return {key: getattr(self, key)(inputs) for key in self._head_keys}
+            return {key: self._net[key](inputs) for key in self._head_keys}
 
         if isinstance(key, list):
-            return {k: getattr(self, k)(inputs) for k in key}
+            return {k: self._net[k](inputs) for k in key}
         else:
-            return getattr(self, key)(inputs)
+            return self._net[key](inputs)
 
     def step(self, *losses):
         """Use the losses to back-propagate gradients and apply them to the underlying parameters."""
@@ -146,3 +192,6 @@ class MultiHeadLearningModel(AbsLearningModel):
         if self._has_trainable_heads:
             for optim in self._head_optimizer_dict.values():
                 optim.step()
+
+    def copy(self):
+        return clone(self)
