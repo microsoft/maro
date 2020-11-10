@@ -3,6 +3,8 @@
 
 import os
 import unittest
+import numpy as np
+
 from dummy.dummy_business_engine import DummyEngine
 from maro.simulator.core import Env, BusinessEngineNotFoundError
 
@@ -106,14 +108,17 @@ class TestEnv(unittest.TestCase):
             vals_before_reset = dummies_ss[env.frame_index::"val"]
 
             # before reset, snapshot should have value
-            self.assertListEqual(list(vals_before_reset), [env.tick]*dummy_number, msg=f"we should have val value same as last tick, got {vals_before_reset}")
+            self.assertListEqual(list(vals_before_reset.flatten()), [env.tick]*dummy_number, msg=f"we should have val value same as last tick, got {vals_before_reset}")
 
             env.reset()
 
             # after reset, it should 0
             vals_after_reset = dummies_ss[env.frame_index::"val"]
 
-            self.assertListEqual(list(vals_after_reset), [0]*dummy_number, msg=f"we should have val value same as last tick, got {vals_after_reset}")
+            if backend_name == "raw":
+                self.assertTrue(np.isnan(vals_after_reset).all())
+            else:
+                self.assertListEqual(list(vals_after_reset.flatten()), [0]*dummy_number, msg=f"we should have padding values")
 
     def test_snapshot_resolution(self):
         """Test env with snapshot_resolution, it should take snapshot every snapshot_resolution ticks"""
