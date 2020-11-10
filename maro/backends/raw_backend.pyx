@@ -162,6 +162,18 @@ cdef class RawBackend(BackendAbc):
 
         return result
 
+    cdef void append_node(self, IDENTIFIER node_id, NODE_INDEX number) except +:
+        self._backend.append_node(node_id, number)
+
+    cdef void delete_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +:
+        self._backend.delete_node(node_id, node_index)
+
+    cdef void resume_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +:
+        self._backend.resume_node(node_id, node_index)
+
+    cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +:
+        self._backend.set_attribute_slot(attr_id, slots)
+
     cdef void reset(self) except +:
         self._backend.reset_frame()
 
