@@ -207,12 +207,11 @@ namespace maro
         _tick2size_map.clear();
         _tick_attr_map.clear();
 
-        //_attr_store.clear();
+        memset(&_attr_store[0], 0, sizeof(Attribute) * _attr_store.size());
 
         _first_empty_slot_index = 0;
         _empty_slots_length = 0;
         _end_index = 0;
-        _max_size = 0;
         _cur_snapshot_num = 0;
         _last_tick = -1;
         _is_prepared = false;
@@ -305,6 +304,12 @@ namespace maro
         if (!_is_prepared)
         {
           throw SnapshotQueryNotPrepared();
+        }
+
+        // ensure shape not zero
+        if(shape.attr_number == 0 || shape.max_node_number == 0 || shape.max_slot_number == 0 || shape.tick_number == 0)
+        {
+          return;
         }
 
         ensure_max_size();
