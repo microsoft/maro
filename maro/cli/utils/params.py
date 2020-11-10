@@ -17,3 +17,7 @@ class GlobalPaths:
     MARO_CLUSTERS = '~/.maro/clusters'
     MARO_DATA = '~/.maro/data'
     MARO_TEST = '~/.maro/test'
+    MARO_INSPECTOR_FILE_PATH = {'ports_file_path': r'snapshot_ports_summary.csv',
+                              'vessels_file_path': r'snapshot_vessels_summary.csv',
+                              'stations_file_path': r'snapshot_stations_summary.csv',
+                                'name_conversion_path': r'name_conversion.csv'}

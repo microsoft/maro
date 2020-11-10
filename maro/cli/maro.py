@@ -90,18 +90,17 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
-    # maro vispath
-    parser_vispath = subparsers.add_parser(
-        'vispath',
-        help=('Set data path'),
+    # maro inspector
+    parser_inspector = subparsers.add_parser(
+        'inspector',
+        help=('Provide the environment dumped data path.'),
         parents=[global_parser]
     )
-    parser_vispath.set_defaults(func=_help_func(parser=parser_vispath))
-    load_parser_vispath(parser_vispath, global_parser)
+    parser_inspector.set_defaults(func=_help_func(parser=parser_inspector))
+    load_parser_inspector(parser_inspector, global_parser)
 
     # Get args and parse global arguments
     args = parser.parse_args()
-    print(args)
     if args.debug:
         GlobalParams.LOG_LEVEL = logging.DEBUG
     else:
@@ -836,15 +835,14 @@ def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser)
     deploy_cmd_parser.set_defaults(func=meta_deploy)
 
 
-def load_parser_vispath(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentParser):
     vispath_cmd_sub_parsers = prev_parser.add_subparsers()
 
-    # BUILD
-    from maro.cli.inspector.vis_start import start_vis
+    from maro.cli.inspector.env_data_process import start_vis
     build_cmd_parser = vispath_cmd_sub_parsers.add_parser(
-        "process",
+        "env",
         fromfile_prefix_chars="@",
-        help="Build csv file to a strong type tight binary file.",
+        help="Show dashboard.",
         parents=[global_parser])
 
     build_cmd_parser.add_argument(
@@ -853,10 +851,11 @@ def load_parser_vispath(prev_parser: ArgumentParser, global_parser: ArgumentPars
         required=True,
         help="Path (with file name) to load data.")
     build_cmd_parser.add_argument(
-        "--conver_path",
+        "--force",
         type=str,
         required=False,
-        help="Path (with file name) to load conversion relationship between id and name")
+        default='yes',
+        help="Overwrite the generated middle data or not: yes/no.")
 
     build_cmd_parser.set_defaults(func=start_vis)
 
