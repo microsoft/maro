@@ -225,7 +225,7 @@ namespace maro
 
         for (auto iter : _tick2index_map)
         {
-          result[0] = iter.first;
+          result[i] = iter.first;
           i++;
         }
       }
@@ -371,8 +371,10 @@ namespace maro
               {
                 auto& attr = operator()(tick, node_id, node_index, attr_id, slot_index);
 
-                //cout << tick << ", " << node_index << ", " << attr_id << ", " << slot_index << ", " << attr.is_nan() << endl;
-                result[result_index] = ATTR_FLOAT(attr);
+                if (!attr.is_nan())
+                {
+                  result[result_index] = ATTR_FLOAT(attr);
+                }
 
                 result_index++;
               }
