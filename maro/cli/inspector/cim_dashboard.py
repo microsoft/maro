@@ -167,15 +167,15 @@ def show_cim_detail_plot(ROOT_PATH):
     ch_info = ["name", "frame_index", "acc_shortage", "acc_booking", "acc_fulfillment"]
     # specific info
     sf_info = [
-                "name", "frame_index", "shortage", "booking",
-                "fulfillment", "on_shipper", "on_consignee",
-                "capacity", "full",
-                "empty", "remaining_space"]
+            "name", "frame_index", "shortage", "booking",
+            "fulfillment", "on_shipper", "on_consignee",
+            "capacity", "full",
+            "empty", "remaining_space"]
     item_option_all = [
-                        "All", "Booking Info", "Port Info",
-                        "shortage", "booking", "fulfillment", "on_shipper",
-                        "on_consignee", "capacity",
-                        "full", "empty", "remaining_space"]
+            "All", "Booking Info", "Port Info",
+            "shortage", "booking", "fulfillment", "on_shipper",
+            "on_consignee", "capacity",
+            "full", "empty", "remaining_space"]
     if option_2 == "by ports":
         port_index = st.sidebar.select_slider(
             "Choose a Port:",
