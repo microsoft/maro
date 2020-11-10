@@ -131,6 +131,8 @@ cdef class FrameBase:
 
         SnapshotList _snapshot_list
 
+        str _backend_name
+
         # enable dynamic fields
         dict __dict__
 

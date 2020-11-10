@@ -226,13 +226,13 @@ cdef class RawSnapshotList(SnapshotListAbc):
         cdef SnapshotResultShape shape = self._raw._backend.prepare(node_id, &tick_list[0], ticks_length, &node_indices[0], len(node_indices), &attr_id_list[0], len(attr_id_list))
 
         # Result holder
-        cdef ATTR_FLOAT[:] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(ATTR_FLOAT), format="f")
+        cdef ATTR_FLOAT[:, :, :, :] result = view.array(shape=(shape.tick_number, shape.max_node_number, shape.attr_number, shape.max_slot_number), itemsize=sizeof(ATTR_FLOAT), format="f")
 
         # Default result value
-        result[:] = 0
+        result[:, :, :, :] = np.nan
 
         # Do query
-        self._raw._backend.query(&result[0], shape)
+        self._raw._backend.query(&result[0][0][0][0], shape)
 
         return np.array(result)
 
