@@ -47,14 +47,14 @@ class DQN(AbsAlgorithm):
 
     Args:
         q_model (nn.Module): Q-value model.
-        loss_func (Callable): Loss function for the value model.
+        loss_cls (Callable): Loss function class for computing TD error.
         hyper_params: Hyper-parameter set for the DQN algorithm.
     """
-    def __init__(self, q_model: AbsLearningModel, loss_func: Callable, hyper_params: DQNHyperParams):
+    def __init__(self, q_model: AbsLearningModel, loss_cls: Callable, hyper_params: DQNHyperParams):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._hyper_params = hyper_params
-        self._loss_func = loss_func
+        self._loss_func = loss_cls(reduction="none")
         self._training_counter = 0
 
         self._eval_model = q_model.to(self._device)
@@ -70,7 +70,9 @@ class DQN(AbsAlgorithm):
 
         return np.random.choice(self._hyper_params.num_actions)
 
-    def _compute_loss(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+    def _compute_td_errors(
+        self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray
+    ):
         states = torch.from_numpy(states).to(self._device)  # (N, state_dim)
         actions = torch.from_numpy(actions).to(self._device)  # (N,)
         rewards = torch.from_numpy(rewards).to(self._device)  # (N,)
@@ -84,14 +86,14 @@ class DQN(AbsAlgorithm):
         return self._loss_func(current_q_values, target_q_values)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
-        loss = self._compute_loss(states, actions, rewards, next_states)
-        self._eval_model.step(loss)
+        td_errors = self._compute_td_errors(states, actions, rewards, next_states)
+        self._eval_model.step(td_errors.mean())
 
         self._training_counter += 1
         if self._training_counter % self._hyper_params.target_update_frequency == 0:
             self._update_targets()
 
-        return loss.detach().numpy()
+        return td_errors.detach().numpy()
 
     def _update_targets(self):
         for eval_params, target_params in zip(
