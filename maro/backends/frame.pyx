@@ -437,8 +437,6 @@ cdef class FrameBase:
 
         cdef list node_instance_list
 
-        # node name -> node number dict
-        cdef dict node_name_num_dict = {}
         # attr name -> id
         cdef dict attr_name_id_dict = {}
         # node -> attr -> id
@@ -462,8 +460,6 @@ cdef class FrameBase:
 
                 # temp list to hold current node instances
                 node_instance_list = [None] * node_number
-
-                node_name_num_dict[node_name] = node_number
 
                 # Register node
                 node_id = self._backend.add_node(node_name, node_number)
@@ -498,16 +494,13 @@ cdef class FrameBase:
         self._backend.setup(enable_snapshot, total_snapshots, options)
 
         if enable_snapshot:
-            self._snapshot_list = SnapshotList(node_name_num_dict, node_id_dict, node_attr_id_dict, self._backend.snapshots)
+            self._snapshot_list = SnapshotList(node_id_dict, node_attr_id_dict, self._backend.snapshots)
 
 
 # Wrapper to access specified node in snapshots (read-only), to provide quick way for querying.
 # All the slice interface will start from here to construct final parameters.
 cdef class SnapshotNode:
     cdef:
-        # Target node number, used for empty node list
-        NODE_INDEX _node_number
-
         # Target node id
         IDENTIFIER _node_id
 
@@ -517,9 +510,8 @@ cdef class SnapshotNode:
         # reference to snapshots for querying
         SnapshotListAbc _snapshots
 
-    def __cinit__(self, IDENTIFIER node_id, NODE_INDEX node_number, dict attributes, SnapshotListAbc snapshots):
+    def __cinit__(self, IDENTIFIER node_id, dict attributes, SnapshotListAbc snapshots):
         self._node_id = node_id
-        self._node_number = node_number
         self._snapshots = snapshots
         self._attributes = attributes
 
@@ -575,19 +567,16 @@ cdef class SnapshotNode:
 
 
 cdef class SnapshotList:
-    def __cinit__(self, dict node_name_num_dict, dict node_id_dict, dict node_attr_id_dict, SnapshotListAbc snapshots):
+    def __cinit__(self, dict node_id_dict, dict node_attr_id_dict, SnapshotListAbc snapshots):
         cdef str node_name
-        cdef NODE_INDEX node_number
         cdef IDENTIFIER node_id
 
         self._snapshots = snapshots
 
         self._nodes_dict = {}
 
-        for node_name, node_number in node_name_num_dict.items():
-            node_id = node_id_dict[node_name]
-
-            self._nodes_dict[node_name] = SnapshotNode(node_id, node_number, node_attr_id_dict[node_name], snapshots)
+        for node_name, node_id in node_id_dict.items():
+            self._nodes_dict[node_name] = SnapshotNode(node_id, node_attr_id_dict[node_name], snapshots)
 
     def get_frame_index_list(self)->list:
         """Get list of available frame index in snapshot list.
