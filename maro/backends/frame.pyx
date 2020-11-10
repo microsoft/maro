@@ -381,6 +381,8 @@ cdef class FrameBase:
 
     cpdef void append_node(self, str node_name, NODE_INDEX number) except +:
         cdef IDENTIFIER node_id
+        cdef NodeBase node
+        cdef NodeBase first_node
 
         if self._backend.is_support_dynamic_features() and number > 0:
             node_list = self.__dict__.get(self._node_name2attrname_dict[node_name], None)
@@ -388,7 +390,8 @@ cdef class FrameBase:
             if node_list is None:
                 raise Exception("Node not exist.")
 
-            node_id = node_list[0]._id
+            first_node = node_list[0]
+            node_id = first_node._id
 
             # Same node type shared one node id
             self._backend.append_node(node_id, number)
@@ -397,7 +400,7 @@ cdef class FrameBase:
             for i in range(number):
                 node = self._node_cls_dict[node_name]()
 
-                node.setup(self._backend, len(node_list), node_id, node_list[0]._attributes)
+                node.setup(self._backend, len(node_list), node_id, first_node._attributes)
 
                 node_list.append(node)
 
