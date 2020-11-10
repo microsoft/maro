@@ -84,7 +84,7 @@ def generate_summary(scenario, ROOT_PATH):
         init_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), ports_header)
         # init_csv(vessels_file_path, vessels_header)
         ports_sum_dataframe = pd.read_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH),
-                                          names=ports_header)
+                                        names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
         init_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH), stations_header)
@@ -96,14 +96,14 @@ def generate_summary(scenario, ROOT_PATH):
             if not os.path.isdir(dir_epoch):
                 continue
             summary_append(scenario, dir_epoch, "ports.csv", ports_header, ports_sum_dataframe,
-                           i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
+                            i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
     elif scenario == "CITI_BIKE":
         data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_0", "stations.csv"))
         data = data[["bikes", "trip_requirement", "fulfillment", "capacity"]].groupby(data["name"]).sum()
         data["fulfillment_ratio"] = list(map(lambda x, y: float("{:.4f}".format(x/(y+1/1000))), data["fulfillment"],
-                                             data["trip_requirement"]))
+                                            data["trip_requirement"]))
         data.to_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH))
 
 
