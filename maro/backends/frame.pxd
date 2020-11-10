@@ -133,6 +133,10 @@ cdef class FrameBase:
 
         str _backend_name
 
+        dict _node_cls_dict
+        dict _node_name2attrname_dict
+        dict _node_origin_number_dict
+
         # enable dynamic fields
         dict __dict__
 
@@ -142,6 +146,14 @@ cdef class FrameBase:
     cpdef void take_snapshot(self, UINT tick) except *
 
     cpdef void enable_history(self, str path) except *
+
+    cpdef void append_node(self, str node_name, NODE_INDEX number) except +
+
+    cpdef void delete_node(self, NodeBase node) except +
+
+    cpdef void resume_node(self, NodeBase node) except +
+
+    cpdef void set_attribute_slot(self, str node_name, str attr_name, SLOT_INDEX slots) except +
 
     cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshot, dict options) except *
 
@@ -262,9 +274,9 @@ cdef class NodeBase:
         # Node id, used to access backend
         IDENTIFIER _id
 
-        NODE_INDEX _node_number
-
         BackendAbc _backend
+
+        bool _is_deleted
 
         # Attriubtes: name -> id.
         dict _attributes
@@ -274,7 +286,7 @@ cdef class NodeBase:
 
     # set up the node for using with frame, and index
     # this is called by Frame after the instance is initialized
-    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, NODE_INDEX number, dict attr_name_id_dict) except *
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, dict attr_name_id_dict) except *
 
     # internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *

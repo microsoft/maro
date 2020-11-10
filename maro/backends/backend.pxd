@@ -54,6 +54,9 @@ cdef class BackendAbc:
     cdef:
         public SnapshotListAbc snapshots
 
+    # Is current backend support dynamic features
+    cdef bool is_support_dynamic_features(self)
+
     # Add a new node to current backend, with specified number (>=0)
     # Returns an ID of this new node in current backend
     cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +
@@ -83,3 +86,15 @@ cdef class BackendAbc:
 
     # Reset internal states
     cdef void reset(self) except +
+
+    # Append specified number of nodes
+    cdef void append_node(self, IDENTIFIER node_id, NODE_INDEX number) except +
+
+    # Delete a node by index
+    cdef void delete_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +
+
+    # Resume node that been deleted
+    cdef void resume_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +
+
+    # Set slot number of specified attribute
+    cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +

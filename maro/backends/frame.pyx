@@ -201,12 +201,16 @@ cdef class NodeBase:
     def index(self):
         return self._index
 
-    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, NODE_INDEX number, dict attr_name_id_dict) except *:
+    @property
+    def is_deleted(self):
+        return self._is_deleted
+
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, dict attr_name_id_dict) except *:
         """Setup frame node, and bind attributes."""
         self._index = index
         self._id = id
-        self._node_number = number
         self._backend = backend
+        self._is_deleted = False
         self._attributes = attr_name_id_dict
 
         self._bind_attributes()
@@ -239,6 +243,9 @@ cdef class NodeBase:
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
+        if self._is_deleted:
+            raise Exception("Node already been deleted.")
+
         cdef dict __dict__ = self.__dict__
         cdef str attr_name = name
 
@@ -258,6 +265,9 @@ cdef class NodeBase:
 
     def __getattribute__(self, name):
         """Provide easy way to get attribute with 1 slot."""
+        if self._is_deleted:
+            raise Exception("Node already been deleted.")
+
         cdef dict __dict__ = self.__dict__
         cdef str attr_name = name
 
@@ -293,6 +303,10 @@ cdef class FrameBase:
 
         self._backend = backend()
 
+        self._node_cls_dict = {}
+        self._node_origin_number_dict = {}
+        self._node_name2attrname_dict = {}
+
         self._setup_backend(enable_snapshot, total_snapshot, options)
 
     @property
@@ -320,6 +334,19 @@ cdef class FrameBase:
             This method will not reset states in snapshot list.
         """
         self._backend.reset()
+
+        if self._backend.is_support_dynamic_features():
+            # We need to make sure node number same as origin after reset
+            for node_name, node_number in self._node_origin_number_dict.items():
+                node_list = self.__dict__[self._node_name2attrname_dict[node_name]]
+
+                for i in range(len(node_list)-1, -1, -1):
+                    node = node_list[i]
+
+                    if i >= node_number:
+                        node_list.remove(i)
+                    else:
+                        node._is_deleted = False
 
     cpdef void take_snapshot(self, UINT tick) except *:
         """Take snapshot for specified point (tick) for current frame.
@@ -352,6 +379,45 @@ cdef class FrameBase:
         if self._backend.snapshots is not None:
             self._backend.snapshots.enable_history(path)
 
+    cpdef void append_node(self, str node_name, NODE_INDEX number) except +:
+        cdef IDENTIFIER node_id
+
+        if self._backend.is_support_dynamic_features() and number > 0:
+            node_list = self.__dict__.get(self._node_name2attrname_dict[node_name], None)
+
+            if node_list is None:
+                raise Exception("Node not exist.")
+
+            node_id = node_list[0]._id
+
+            # Same node type shared one node id
+            self._backend.append_node(node_id, number)
+
+            # Append instance to list
+            for i in range(number):
+                node = self._node_cls_dict[node_name]()
+
+                node.setup(self._backend, len(node_list), node_id, node_list[0]._attributes)
+
+                node_list.append(node)
+
+    cpdef void delete_node(self, NodeBase node) except +:
+        if self._backend.is_support_dynamic_features():
+            self._backend.delete_node(node._id, node._index)
+
+            node._is_deleted = True
+
+    cpdef void resume_node(self, NodeBase node) except +:
+        if self._backend.is_support_dynamic_features() and node._is_deleted:
+            self._backend.resume_node(node._id, node._index)
+
+            node._is_deleted = False
+
+    cpdef void set_attribute_slot(self, str node_name, str attr_name, SLOT_INDEX slots) except +:
+        pass
+        #if self._backend.is_support_dynamic_features():
+        #    self._backend.set_attribute_slot()
+
     cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshots, dict options) except *:
         """Setup Frame for further using."""
         cdef str frame_attr_name
@@ -383,6 +449,9 @@ cdef class FrameBase:
                 node_number = frame_attr._number
                 node_name = node_cls.__node_name__
 
+                self._node_cls_dict[node_name] = node_cls
+                self._node_origin_number_dict[node_name] = node_number
+
                 # temp list to hold current node instances
                 node_instance_list = [None] * node_number
 
@@ -409,12 +478,13 @@ cdef class FrameBase:
                     node = node_cls()
 
                     # pass the backend reference and index
-                    node.setup(self._backend, i, node_id, node_number, attr_name_id_dict)
+                    node.setup(self._backend, i, node_id, attr_name_id_dict)
 
                     node_instance_list[i] = node
 
                 # add dynamic fields
                 self.__dict__[frame_attr_name] = node_instance_list
+                self._node_name2attrname_dict[node_name] = frame_attr_name
 
         # setup backend to allocate memory
         self._backend.setup(enable_snapshot, total_snapshots, options)

@@ -96,6 +96,9 @@ cdef class RawBackend(BackendAbc):
         self._attr_type_dict = {}
         self.snapshots = RawSnapshotList(self)
 
+    cdef bool is_support_dynamic_features(self):
+        return True
+
     cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +:
         cdef IDENTIFIER id = self._backend.add_node(name.encode(), number)
 

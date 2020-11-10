@@ -30,6 +30,9 @@ cdef class SnapshotListAbc:
 
 cdef class BackendAbc:
 
+    cdef bool is_support_dynamic_features(self):
+        return False
+
     cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +:
         pass
 
@@ -56,3 +59,15 @@ cdef class BackendAbc:
 
     cdef dict get_node_info(self) except +:
         return {}
+
+    cdef void append_node(self, IDENTIFIER node_id, NODE_INDEX number) except +:
+        pass
+
+    cdef void delete_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +:
+        pass
+
+    cdef void resume_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +:
+        pass
+
+    cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +:
+        pass
