@@ -35,6 +35,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options
         )
 
+        # Env metrics.
         self._energy_consumption: int = 0
         self._success_requirements: int = 0
         self._failed_requirements: int = 0
@@ -45,14 +46,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
         # PM initialize.
-        self._machines: List[PhysicalMachine] = []
-        self._machines = [
-            PhysicalMachine(
-                id=i,
-                cap_cpu=self._conf["pm_cap_cpu"],
-                cap_mem=self._conf["pm_cap_mem"]
-            ) for i in range(self._conf["pm_amount"])
-        ]
+        self._init_machines()
+
         # VM initialize.
         self._vm: dict = {}
 
@@ -61,8 +56,20 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _load_configs(self):
         """Load configurations."""
+
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._conf = safe_load(fp)
+
+    def _init_machines(self):
+        """Initialize the physical machines based on the config setting. The PM id starts from 0."""
+
+        self._machines: List[PhysicalMachine] = [
+            PhysicalMachine(
+                id=i,
+                cap_cpu=self._conf["pm_cap_cpu"],
+                cap_mem=self._conf["pm_cap_mem"]
+            ) for i in range(self._conf["pm_amount"])
+        ]
 
     def step(self, tick: int):
         """Push business to next step.
@@ -71,15 +78,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             tick (int): Current tick to process.
         """
         self._tick = tick
-        # Load VM info into payload.
 
         # Update all live VMs memory utilization.
         self._update_vm_util()
         # Update all PM memory utilization.
         self._update_pm_util()
+        # TODO
         # Generate VM requirement events from data file.
         # It might be implemented by a for loop to process VMs in each tick.
-        # TODO
         vm_required_evt = self._event_buffer.gen_cascade_event(tick, Events.REQUIREMENTS, payload=None)
         self._event_buffer.insert_event(vm_required_evt)
 
@@ -107,9 +113,13 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._event_buffer.register_event_handler(MaroEvents.TAKE_ACTION, self._on_action_received)
 
     def _update_vm_util(self):
-        """Update all live VMs memory utilization."""
+        """Update all live VMs memory utilization.
+        The length of VMs utilization series could be difference among all VMs,
+        because index 0 represents the VM's CPU utilization at the tick it starts.
+        """
+
         for _, vm in self._vm.items():
-            vm.util_cpu = vm.util_series[self._tick]
+            vm.util_cpu = vm.util_series[self._tick - vm.start_tick]
 
     def _update_pm_util(self):
         """Update memory utilization occupied by total VMs on each PM."""
@@ -193,12 +203,15 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         if assign:
             pm_id = action.pm_id
             lifetime = virtual_machine.lifetime
-            cur_util_vm_cores = virtual_machine.util_series[cur_tick] * virtual_machine.req_cpu / 100
             # Update VM information.
             virtual_machine.pm_id = pm_id
-            virtual_machine.util_cpu = cur_util_vm_cores / virtual_machine.req_cpu
             virtual_machine.start_tick = cur_tick
             virtual_machine.end_tick = cur_tick + lifetime
+            # The index of the VM's utilization in util_series.
+            vm_util_index = cur_tick - virtual_machine.start_tick
+            cur_util_vm_cores = virtual_machine.util_series[vm_util_index] * virtual_machine.req_cpu / 100
+            virtual_machine.util_cpu = cur_util_vm_cores / virtual_machine.req_cpu * 100
+
             self._vm[virtual_machine.id] = virtual_machine
 
             # Generate VM finished event.
@@ -211,7 +224,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.add_vm(virtual_machine.id)
             pm.req_cpu += virtual_machine.req_cpu
             pm.req_mem += virtual_machine.req_mem
-            pm.util_cpu = ((pm.cap_cpu * pm.util_cpu / 100) + cur_util_vm_cores) / pm.cap_cpu
+            pm.util_cpu = ((pm.cap_cpu * pm.util_cpu / 100) + cur_util_vm_cores) / pm.cap_cpu * 100
         else:
             buffer_time = action.buffer_time
             # Postpone the buffer duration ticks by config setting.
