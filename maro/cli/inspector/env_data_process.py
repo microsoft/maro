@@ -96,14 +96,15 @@ def generate_summary(scenario, ROOT_PATH):
             if not os.path.isdir(dir_epoch):
                 continue
             summary_append(scenario, dir_epoch, "ports.csv", ports_header, ports_sum_dataframe,
-                            i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
+                           i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
     elif scenario == "CITI_BIKE":
         data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_0", "stations.csv"))
         data = data[["bikes", "trip_requirement", "fulfillment", "capacity"]].groupby(data["name"]).sum()
-        data["fulfillment_ratio"] = list(map(lambda x, y: float("{:.4f}".format(x/(y+1/1000))), data["fulfillment"],
-                                            data["trip_requirement"]))
+        data["fulfillment_ratio"] = list(
+            map(lambda x, y: float("{:.4f}".format(x / (y + 1 / 1000))), data["fulfillment"],
+                data["trip_requirement"]))
         data.to_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH))
 
 
@@ -138,8 +139,8 @@ def get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH):
 
 def start_vis(input: str, force: str, **kwargs):
     try:
-        import streamlit
         import altair
+        import streamlit
     except ImportError:
         os.system("pip install streamlit altair")
     ROOT_PATH = input
