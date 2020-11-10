@@ -184,7 +184,6 @@ def show_cim_detail_plot(ROOT_PATH):
         name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
         sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
         snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
-
         common_helper.render_H1_title("CIM Acc Data")
         common_helper.render_H3_title(f"Port Acc Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
         generate_detail_plot_by_ports(ch_info, data_ports, port_option, snapshot_num, snapshot_sample_num)
