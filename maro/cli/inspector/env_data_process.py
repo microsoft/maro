@@ -161,10 +161,6 @@ def start_vis(input: str, force: str, **kwargs):
         **kwargs:
 
     """
-    try:
-        import streamlit
-    except ImportError:
-        os.system("pip install streamlit")
     ROOT_PATH = input
     FORCE = force
     if not os.path.exists(ROOT_PATH):
