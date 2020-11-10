@@ -139,7 +139,7 @@ class TestCitibike(unittest.TestCase):
 
             be_run_to_end(eb, be)
 
-            states_at_tick_0 = stations_snapshots[0:0:["shortage", "bikes"]]
+            states_at_tick_0 = stations_snapshots[0:0:["shortage", "bikes"]].flatten()
 
             shortage_at_tick_0 = states_at_tick_0[0]
             bikes_at_tick_0 = states_at_tick_0[1]
@@ -149,7 +149,7 @@ class TestCitibike(unittest.TestCase):
             self.assertEqual(4, bikes_at_tick_0)
 
             # there should be 6 trips from 1st station, so there will be 2 shortage
-            states_at_tick_1 = stations_snapshots[1:0:["shortage", "bikes", "trip_requirement"]]
+            states_at_tick_1 = stations_snapshots[1:0:["shortage", "bikes", "trip_requirement"]].flatten()
 
             self.assertEqual(2, states_at_tick_1[0])
             self.assertEqual(0, states_at_tick_1[1])
