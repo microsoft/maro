@@ -168,8 +168,8 @@ def show_cim_detail_plot(ROOT_PATH):
                         "fulfillment", "on_shipper", "on_consignee",
                         "capacity", "full", "empty", "remaining_space"]
     item_option_all = ["All", "Booking Info", "Port Info",
-                        "shortage", "booking", "fulfillment", "on_shipper",
-                        "on_consignee", "capacity", "full", "empty", "remaining_space"]
+                            "shortage", "booking", "fulfillment", "on_shipper",
+                            "on_consignee", "capacity", "full", "empty", "remaining_space"]
     if option_2 == "by ports":
         port_index = st.sidebar.select_slider(
             "Choose a Port:",
@@ -182,8 +182,7 @@ def show_cim_detail_plot(ROOT_PATH):
         common_helper.render_H1_title("CIM Acc Data")
         common_helper.render_H3_title(f"Port Acc Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
         generate_detail_plot_by_ports(comprehensive_info, data_ports,
-                                    str_port_option,
-                                    snapshot_num, snapshot_sample_num)
+                                        str_port_option, snapshot_num, snapshot_sample_num)
         common_helper.render_H1_title("CIM Detail Data")
         data_genera = common_helper.formula_define(data_ports)
         if data_genera is not None:
@@ -211,7 +210,7 @@ def show_cim_detail_plot(ROOT_PATH):
         show_volume_hot_map(ROOT_PATH, "cim", option_epoch, snapshot_index)
         common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Port Acc Attributes")
         generate_detail_plot_by_snapshot(comprehensive_info, data_ports, snapshot_index, ports_num,
-                                    CONVER, sample_ratio_res)
+                                            CONVER, sample_ratio_res)
         generate_cim_top_summary(data_ports, snapshot_index, ports_num, os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
         common_helper.render_H1_title("Detail Data")
         data_vessels = common_helper.read_detail_csv(os.path.join(dir, "vessels.csv"))
@@ -226,7 +225,7 @@ def show_cim_detail_plot(ROOT_PATH):
         item_option = st.multiselect(" ", item_option_all, item_option_all)
         item_option = get_CIM_item_option(item_option, item_option_all)
         generate_detail_plot_by_snapshot(specific_info, data_ports, snapshot_index,
-                                    ports_num, CONVER, sample_ratio_res, item_option)
+                                            ports_num, CONVER, sample_ratio_res, item_option)
 
 
 def generate_cim_top_summary(data, snapshot_index, ports_num, CONVER_PATH):
