@@ -84,7 +84,7 @@ def generate_summary(scenario, ROOT_PATH):
         init_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), ports_header)
         # init_csv(vessels_file_path, vessels_header)
         ports_sum_dataframe = pd.read_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH),
-                                        names=ports_header)
+        names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
         init_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH), stations_header)

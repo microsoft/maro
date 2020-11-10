@@ -30,7 +30,7 @@ def show_citi_bike_detail_plot(ROOT_PATH):
     snapshot_num = len(data_stations["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
     item_option_all = ["All", "Requirement Info", "Station Info", "bikes",
-                        "shortage", "trip_requirement", "fulfillment", "capacity", "extra_cost", "failed_return"]
+    "shortage", "trip_requirement", "fulfillment", "capacity", "extra_cost", "failed_return"]
     # filter by station index
     # display the change of snapshot within 1 station
     if option == "by station":
