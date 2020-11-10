@@ -140,7 +140,7 @@ experience pools before training, in accordance with the DQN algorithm.
                 optimizer_cls=RMSprop,
                 optimizer_params=config.algorithm.optimizer,
                 loss_func=nn.functional.smooth_l1_loss,
-                hyper_params=DQNHyperParams(
+                hyper_params=DQNConfig(
                     **config.algorithm.hyper_parameters,
                     num_actions=num_actions
                 )

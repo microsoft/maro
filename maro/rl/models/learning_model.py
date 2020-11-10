@@ -9,10 +9,10 @@ from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
 from .abs_learning_model import AbsLearningModel
 
 
-class SingleHeadLearningModel(AbsLearningModel):
-    """NN model that consists of shared blocks and multiple task heads.
+class SingleTaskLearningModel(AbsLearningModel):
+    """NN model that consists of a sequence of chainable blocks.
 
-    The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
+    The blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
     its successor.
     """
     def __init__(self, block_list: list, optimizer_opt: tuple = None):
@@ -60,7 +60,7 @@ class SingleHeadLearningModel(AbsLearningModel):
         return clone(self)
 
 
-class MultiHeadLearningModel(AbsLearningModel):
+class MultiTaskLearningModel(AbsLearningModel):
     """NN model that consists of shared blocks and multiple task heads.
 
     The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
@@ -118,6 +118,9 @@ class MultiHeadLearningModel(AbsLearningModel):
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
+
+    def __getitem__(self, head_key):
+        return self._net[head_key]
 
     @property
     def has_shared_layers(self):

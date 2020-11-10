@@ -55,11 +55,13 @@ agents:
       dropout_p: 0.0
     optimizer:
       lr: 0.05
-    hyper_parameters:
+    config:
       reward_decay: .0
       target_update_frequency: 5
       tau: 0.1
       is_double: false
+      advantage_mode: "mean"
+      per_sample_td_error_enabled: true
   experience_pool:
     capacity: -1
   training_loop_parameters:
