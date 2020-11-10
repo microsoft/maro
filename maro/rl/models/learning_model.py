@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Dict, Tuple
-
 import torch
 import torch.nn as nn
 
@@ -17,7 +15,7 @@ class SingleHeadLearningModel(AbsLearningModel):
     The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
     its successor.
     """
-    def __init__(self, block_list: list, optimizer_opt: Tuple = None):
+    def __init__(self, block_list: list, optimizer_opt: tuple = None):
         super().__init__()
         self._net = nn.Sequential(*block_list)
         self._is_trainable = optimizer_opt is not None
@@ -72,9 +70,9 @@ class MultiHeadLearningModel(AbsLearningModel):
     def __init__(
         self,
         head_block_dict: dict,
-        head_optimizer_opt_dict: Dict[Tuple[torch.optim.Optimizer, dict]] = None,
+        head_optimizer_opt_dict: dict = None,
         shared_block_list: list = None,
-        shared_stack_optimizer_opt: Tuple[torch.optim.Optimizer, dict] = None
+        shared_stack_optimizer_opt: tuple = None
     ):
         super().__init__()
         self._has_shared_layers = shared_block_list is not None

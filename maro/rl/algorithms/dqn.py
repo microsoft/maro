@@ -9,7 +9,6 @@ import torch.nn as nn
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.abs_learning_model import AbsLearningModel
-from maro.rl.models.learning_model import MultiHeadLearningModel
 
 
 class DQNHyperParams:
