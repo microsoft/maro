@@ -404,11 +404,6 @@ cdef class FrameBase:
 
                 node_list.append(node)
 
-            # Update node number if snapshot enabled
-            if self._snapshot_list is not None:
-                pass
-
-
     cpdef void delete_node(self, NodeBase node) except +:
         if self._backend.is_support_dynamic_features():
             self._backend.delete_node(node._id, node._index)
