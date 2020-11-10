@@ -26,10 +26,11 @@ class SingleHeadLearningModel(AbsLearningModel):
                 param.requires_grad = False
 
     def __getstate__(self):
-        return {
-            "_net": self.__dict__["_net"],
-            "_is_trainable": self.__dict__["_is_trainable"],
-        }
+        dic = self.__dict__.copy()
+        if "_optimizer" in dic:
+            del dic["_optimizer"]
+
+        return dic
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
@@ -108,13 +109,12 @@ class MultiHeadLearningModel(AbsLearningModel):
                     param.requires_grad = False
 
     def __getstate__(self):
-        return {
-            "_net": self.__dict__["_net"],
-            "_head_keys": self.__dict__["_head_keys"],
-            "_has_shared_layers": self.__dict__["_has_shared_layers"],
-            "_has_trainable_shared_layers": self.__dict__["_has_trainable_shared_layers"],
-            "_has_trainable_heads": self.__dict__["_has_trainable_heads"]
-        }
+        dic = self.__dict__.copy()
+        if "_shared_stack_optimizer" in dic:
+            del dic["_shared_stack_optimizer"]
+        if "_head_optimizer_dict" in dic:
+            del dic["_head_optimizer_dict"]
+        return dic
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
