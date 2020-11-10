@@ -265,9 +265,6 @@ cdef class NodeBase:
 
     def __getattribute__(self, name):
         """Provide easy way to get attribute with 1 slot."""
-        if self._is_deleted:
-            raise Exception("Node already been deleted.")
-
         cdef dict __dict__ = self.__dict__
         cdef str attr_name = name
 
@@ -275,6 +272,9 @@ cdef class NodeBase:
             attr_acc = __dict__[attr_name]
 
             if isinstance(attr_acc, _NodeAttributeAccessor):
+                if self._is_deleted:
+                    raise Exception("Node already been deleted.")
+
                 if attr_acc._slot_number == 1:
                     return attr_acc[0]
 
