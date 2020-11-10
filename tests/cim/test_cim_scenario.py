@@ -71,6 +71,8 @@ class TestCimScenarios(unittest.TestCase):
 
     def test_vessel_moving_correct(self):
         for backend_name in backends_to_test:
+            print("backend name: ", backend_name)
+
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
             eb, be = setup_case("case_01")
             tick = 0
@@ -113,8 +115,8 @@ class TestCimScenarios(unittest.TestCase):
             self.assertEqual(1, v.next_loc_idx, "next_loc_idx of vessel 1 should be 1 at tick 2")
             self.assertEqual(0, v.last_loc_idx, "last_loc_idx of vessel 1 should be 0 at tick 2")
 
-            v = be.snapshots["matrices"][2::"vessel_plans"]
-            
+            v = be.snapshots["matrices"][2::"vessel_plans"].flatten()
+
             # since we already fixed the vessel plans, we just check the value
             for i in range(2):
                 self.assertEqual(11, v[i*3+0])
@@ -187,12 +189,12 @@ class TestCimScenarios(unittest.TestCase):
             # we have hard coded the future stops, here we just check if the value correct at each tick
             for i in range(tick - 1):
                 # check if the future stop at tick 8 (vessel 0 arrive at port 1)
-                stop_list = be.snapshots["vessels"][i:0:["past_stop_list", "past_stop_tick_list"]]
+                stop_list = be.snapshots["vessels"][i:0:["past_stop_list", "past_stop_tick_list"]].flatten()
 
                 self.assertEqual(-1, stop_list[0])
                 self.assertEqual(-1, stop_list[2])
 
-                stop_list = be.snapshots["vessels"][i:0:["future_stop_list", "future_stop_tick_list"]]
+                stop_list = be.snapshots["vessels"][i:0:["future_stop_list", "future_stop_tick_list"]].flatten()
 
                 self.assertEqual(2, stop_list[0])
                 self.assertEqual(3, stop_list[1])
@@ -202,7 +204,7 @@ class TestCimScenarios(unittest.TestCase):
                 self.assertEqual(20, stop_list[5])
 
                 # check if statistics data correct
-                order_states = be.snapshots["ports"][i:0:["shortage", "acc_shortage", "booking", "acc_booking"]]
+                order_states = be.snapshots["ports"][i:0:["shortage", "acc_shortage", "booking", "acc_booking"]].flatten()
 
                 # all the value should be 0 for this case
                 self.assertEqual(0, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
@@ -211,12 +213,12 @@ class TestCimScenarios(unittest.TestCase):
                 self.assertEqual(0, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
 
                 # check fulfillment
-                fulfill_states = be.snapshots["ports"][i:0:["fulfillment", "acc_fulfillment"]]
+                fulfill_states = be.snapshots["ports"][i:0:["fulfillment", "acc_fulfillment"]].flatten()
 
                 self.assertEqual(0, fulfill_states[0], f"fulfillment of port 0 should be 0 at tick {i}")
                 self.assertEqual(0, fulfill_states[1], f"acc_fulfillment of port 0 should be 0 until tick {i}")
 
-            v = be.snapshots["matrices"][2:: "vessel_plans"]
+            v = be.snapshots["matrices"][2:: "vessel_plans"].flatten()
 
             # since we already fixed the vessel plans, we just check the value
             for i in range(2):
@@ -290,8 +292,9 @@ class TestCimScenarios(unittest.TestCase):
                                 sum([port.full for port in be._ports]) + \
                                 sum([vessel.full for vessel in be._vessels])
 
+            # NOTE: we flatten here, as raw backend query result has 4dim shape
             # check if statistics data correct
-            order_states = be.snapshots["ports"][7:0:["shortage", "acc_shortage", "booking", "acc_booking"]]
+            order_states = be.snapshots["ports"][7:0:["shortage", "acc_shortage", "booking", "acc_booking"]].flatten()
 
             # all the value should be 0 for this case
             self.assertEqual(1, order_states[0], f"shortage of port 0 should be 0 at tick {i}")
@@ -300,7 +303,7 @@ class TestCimScenarios(unittest.TestCase):
             self.assertEqual(101, order_states[3], f"acc_booking of port 0 should be 0 until tick {i}")
 
             # check fulfillment
-            fulfill_states = be.snapshots["ports"][7:0:["fulfillment", "acc_fulfillment"]]
+            fulfill_states = be.snapshots["ports"][7:0:["fulfillment", "acc_fulfillment"]].flatten()
 
             self.assertEqual(50, fulfill_states[0], f"fulfillment of port 0 should be 50 at tick {i}")
             self.assertEqual(100, fulfill_states[1], f"acc_fulfillment of port 0 should be 100 until tick {i}")
