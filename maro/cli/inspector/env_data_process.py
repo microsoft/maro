@@ -181,7 +181,6 @@ def start_vis(input: str, force: str, **kwargs):
     if FORCE == "yes":
         logger.info("Dashboard Data Processing")
 
-        logger.info_green("[1/2]:Generate Name Conversion File.")
         get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH)
         logger.info_green("[1/2]:Generate Name Conversion File Done.")
 
