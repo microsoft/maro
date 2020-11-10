@@ -10,9 +10,6 @@ data_path: "./"
 stocks: # Stocks to simulate.
   - "000001"
   - "000002"
-  - "000004"
-  - "000005"
-  - "000006"
 
 order_mode:
   - "market_order"
