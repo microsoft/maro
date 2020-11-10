@@ -9,6 +9,7 @@ import yaml
 
 from maro.cli.inspector.launch_env_dashboard import launch_dashboard
 from maro.cli.utils.params import GlobalPaths
+from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -84,7 +85,7 @@ def generate_summary(scenario, ROOT_PATH):
         init_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), ports_header)
         # init_csv(vessels_file_path, vessels_header)
         ports_sum_dataframe = pd.read_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH),
-        names=ports_header)
+                                            names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
         init_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH), stations_header)
@@ -99,7 +100,7 @@ def generate_summary(scenario, ROOT_PATH):
                         i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
-    elif scenario == "CITI_BIKE":
+    elif scenario == "citi_bike":
         data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_0", "stations.csv"))
         data = data[["bikes", "trip_requirement", "fulfillment", "capacity"]].groupby(data["name"]).sum()
         data["fulfillment_ratio"] = list(
@@ -126,7 +127,7 @@ def get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH):
             name_list = []
             for item in json_data["data"]["stations"]:
                 name_list.append(item["name"])
-            df = pd.DataFrame(name_list)
+            df = pd.DataFrame({"name": name_list})
             df.to_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), index=False)
     elif scenario == "cim":
         f = open(CONVER_PATH, "r")
@@ -138,6 +139,27 @@ def get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH):
 
 
 def start_vis(input: str, force: str, **kwargs):
+    """Entrance of data pre-processing.
+    Generate name_conversion CSV file & summary file.
+
+    Expected File Structure:
+    -input_file_folder_path
+        --snapshot_0 : data of each epoch
+            --holder_info.csv: Attributes of current epoch
+        ………………
+        --snapshot_{epoch_num-1}
+        --snapshot.manifest: record basic info like scenario name, name of index_name_mapping file
+        --index_name_mapping file: record the relationship between an index and its name.
+        type of this file varied between scenario.
+
+        summary file would be generated after data processing.
+
+    Args:
+        input(str): Data folder path.
+        force(str): expected input is yes/no. Indicates whether regenerate data.
+        **kwargs:
+
+    """
     try:
         import altair
         import streamlit
@@ -146,16 +168,22 @@ def start_vis(input: str, force: str, **kwargs):
     ROOT_PATH = input
     FORCE = force
     if not os.path.exists(ROOT_PATH):
-        logger.warning_yellow("input path not exists")
+        raise CliException("input path is not correct. ")
         os._exit(0)
+    if not os.path.exists(os.path.join(ROOT_PATH, "snapshot_0")):
+        raise CliException("No data under input folder path. ")
+        os._exit(0)
+    if not os.path.exists(os.path.join(ROOT_PATH, "snapshot.manifest")):
+        raise CliException("Manifest file missed. ")
+        os._exit(0)
+    manifest_file = open(os.path.join(ROOT_PATH, "snapshot.manifest"), "r")
+    props_origin = manifest_file.read()
+    props = yaml.load(props_origin, Loader=yaml.FullLoader).split()
+    scenario = props[0][9:]
+    CONVER_PATH = props[1][9:]
     # path to restore summary files
     if FORCE == "yes":
         logger.info("Dashboard Data Processing")
-        manifest_file = open(os.path.join(ROOT_PATH, "snapshot.manifest"), "r")
-        props_origin = manifest_file.read()
-        props = yaml.load(props_origin, Loader=yaml.FullLoader).split()
-        scenario = props[0][9:]
-        CONVER_PATH = props[1][9:]
 
         logger.info_green("[1/2]:Generate Name Conversion File.")
         get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH)
@@ -166,4 +194,16 @@ def start_vis(input: str, force: str, **kwargs):
         logger.info_green("[2/2]:Generate Summary Done.")
     elif FORCE == "no":
         logger.info_green("Skip Data Generation")
+        if not os.path.exists(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH)):
+            raise CliException("Have to regenerate data. Name Conversion File is missed. ")
+            os._exit(0)
+        if scenario == "cim":
+            if not os.path.exists(os.path.join(ROOT_PATH, PORTS_FILE_PATH)):
+                raise CliException("Have to regenerate data. Summary File is missed. ")
+                os._exit(0)
+        if scenario == "citi_bike":
+            if not os.path.exists(os.path.join(ROOT_PATH, STATIONS_FILE_PATH)):
+                raise CliException("Have to regenerate data. Summary File is missed. ")
+                os._exit(0)
+
     launch_dashboard(ROOT_PATH, scenario)

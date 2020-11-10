@@ -54,7 +54,7 @@ def show_cim_summary_plot(ROOT_PATH):
     down_pooling_len = math.floor(1 / down_pooling_num)
     down_pooling_range = generate_down_pooling_sample(down_pooling_len, start_epoch, end_epoch)
     item_option_all = ["All", "Booking Info", "Port Info", "shortage", "booking", "fulfillment", "on_shipper",
-    "on_consignee", "capacity", "full", "empty"]
+                        "on_consignee", "capacity", "full", "empty"]
     data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH))
     data = data.iloc[down_pooling_range]
     data_genera = common_helper.formula_define(data)
@@ -202,7 +202,7 @@ def show_cim_detail_plot(ROOT_PATH):
         sample_ratio = common_helper.holder_sample_ratio(ports_num)
         sample_ratio_res = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
         common_helper.render_H1_title("Acc Data")
-        show_volume_hot_map(ROOT_PATH, "CIM", option_epoch, snapshot_index)
+        show_volume_hot_map(ROOT_PATH, "cim", option_epoch, snapshot_index)
         common_helper.render_H3_title("SnapShot-" + str(snapshot_index) + ": Port Acc Attributes")
         generate_detail_plot_by_snapshot(comprehensive_info, data_ports, snapshot_index, ports_num,
                                         os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), sample_ratio_res)
@@ -322,6 +322,7 @@ def show_volume_hot_map(ROOT_PATH, scenario, epoch_index, snapshot_index):
     """
     matrix_data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_" + str(epoch_index), "matrices.csv")).loc[
         snapshot_index]
+    print (scenario)
     if scenario == "cim":
         common_helper.render_H3_title("SnapShot-" + str(snapshot_index) + ": Acc Port Transfer Volume")
         generate_hot_map(matrix_data["full_on_ports"])

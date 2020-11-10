@@ -8,4 +8,5 @@ def launch_dashboard(ROOT_PATH, scenario):
         ROOT_PATH(str): Data folder path.
         scenario(str): Name of current scenario.
     """
-    os.system(rf"streamlit run ~\.maro\vis\template\visualization.py -- {ROOT_PATH} {scenario}")
+    vis_path = os.path.expanduser("~/.maro/vis/template/visualization.py")
+    os.system(rf"streamlit run {vis_path} -- {ROOT_PATH} {scenario}")
