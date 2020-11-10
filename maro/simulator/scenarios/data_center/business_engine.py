@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import os
-from copy import deepcopy
 from typing import List
 
 from yaml import safe_load
@@ -11,7 +10,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import Action, Latency, Payload
+from .common import Action, Latency, VmRequirementPayload, VmFinishedPayload
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -20,6 +19,7 @@ metrics_desc = """
 
 energy_consumption (int): Current total energy consumption.
 success_requirements (int): Accumulative successful VM requirements until now.
+failed_requirements (int): Accumulative failed VM requirements until now.
 total_latency (int): Accumulative buffer time until now.
 """
 
@@ -30,12 +30,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
     ):
         super().__init__(
-            "data_center", event_buffer, topology, start_tick, max_tick,
-            snapshot_resolution, max_snapshots, additional_options
+            scenario_name="data_center", event_buffer=event_buffer, topology=topology, start_tick=start_tick,
+            max_tick=max_tick, snapshot_resolution=snapshot_resolution, max_snapshots=max_snapshots,
+            additional_options=additional_options
         )
 
         self._energy_consumption: int = 0
         self._success_requirements: int = 0
+        self._failed_requirements: int = 0
         self._total_latency: Latency = Latency()
 
         # Load configurations.
@@ -43,13 +45,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
         # PM initialize.
-        self.machines: List[PhysicalMachine] = []
-        self.machines = [PhysicalMachine(id=i, cap_cpu=self._conf["pm_cap_cpu"], cap_mem=self._conf["pm_cap_mem"])
-                         for i in range(self._conf["pm_amount"])]
+        self._machines: List[PhysicalMachine] = []
+        self._machines = [PhysicalMachine(id=i, cap_cpu=self._conf["pm_cap_cpu"], cap_mem=self._conf["pm_cap_mem"])
+                          for i in range(self._conf["pm_amount"])]
         # VM initialize.
-        self.vm: dict = {}
+        self._vm: dict = {}
 
         self._tick: int = 0
+        self._delay_duration: int = self._conf["delay_duration"]
 
     def _load_configs(self):
         """Load configurations."""
@@ -69,7 +72,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._update_vm_util()
         # Update all PM memory utilization.
         self._update_pm_util()
-        # Generate VM requirement event.
+        # Generate VM requirement events from data file.
+        # It might be implemented by a for loop to process VMs in each tick.
+        # TODO
         vm_required_evt = self._event_buffer.gen_cascade_event(tick, Events.REQUIREMENTS, payload=None)
         self._event_buffer.insert_event(vm_required_evt)
 
@@ -80,14 +85,12 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             dict: Metrics information.
         """
 
-        energy_consumption = self._energy_consumption
-        success_requirements = self._success_requirements
-        total_latency = self._total_latency
         return DocableDict(
             metrics_desc,
-            energy_consumption=energy_consumption,
-            success_requirements=success_requirements,
-            total_latency=total_latency
+            energy_consumption=self._energy_consumption,
+            success_requirements=self._success_requirements,
+            failed_requirements=self._failed_requirements,
+            total_latency=self._total_latency
         )
 
     def _register_events(self):
@@ -100,101 +103,110 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _update_vm_util(self):
         """Update all live VMs memory utilization."""
-        for _, vm in self.vm.items():
-            vm.util_mem = vm.show_util_series()[self._tick]
+        for _, vm in self._vm.items():
+            vm.util_cpu = vm.util_series[self._tick]
 
     def _update_pm_util(self):
         """Update memory utilization occupied by total VMs on each PM."""
-        for pm in self.machines:
-            cur_total_mem: int = 0
-            for vm_id in pm.show_vm_set():
-                vm = self.vm[vm_id]
-                vm.util_mem = vm.show_util_series()[self._tick]
-                cur_total_mem += vm.util_mem
-            pm.util_mem = cur_total_mem
-            pm.update_util_series(cur_total_mem)
+        for pm in self._machines:
+            total_cpu: int = 0
+            for vm_id in pm.vm_set:
+                vm = self._vm[vm_id]
+                vm.util_cpu = vm.util_series[self._tick]
+                cur_util_cores = vm.util_cpu * vm.req_cpu / 100
+                total_cpu += cur_util_cores
+            pm.util_cpu = total_cpu / pm.cap_cpu * 100
+            pm.update_util_series(pm.util_cpu)
 
     def _on_vm_required(self, evt: CascadeEvent):
         """Callback when there is a VM requirement generated."""
         # Get VM data from payload.
-        payload: Payload = evt.payload
-        vm_req: VirtualMachine = payload.vm_info
+        payload: VmRequirementPayload = evt.payload
+        vm_req: VirtualMachine = payload.vm_req
         buffer_time: int = payload.buffer_time
 
-        if any([(pm.cap_mem - pm.util_mem) >= vm_req.req_mem for pm in self.machines]):
+        if any([(pm.cap_cpu - (pm.cap_cpu * pm.util_cpu / 100)) >= vm_req.req_cpu for pm in self._machines]):
             # Generate pending decision.
             pending_decision_evt = self._event_buffer.gen_decision_event(evt.tick, payload=payload)
             evt.add_immediate_event(pending_decision_evt)
         else:
-            # Postpone to next tick.
+            # Postpone the buffer duration ticks by config setting.
             if buffer_time > 0:
-                postpone_payload = deepcopy(payload)
-                postpone_payload.buffer_time -= 1
-                self._total_latency.resource_buffer_time += 1
-                postpone_evt = self._event_buffer.gen_cascade_event(evt.tick + 1, payload=postpone_payload)
+                postpone_payload = payload
+                postpone_payload.buffer_time -= self._delay_duration
+                self._total_latency.latency_due_to_resource += self._delay_duration
+                postpone_evt = self._event_buffer.gen_cascade_event(
+                    evt.tick + self._delay_duration, Events.REQUIREMENTS, payload=postpone_payload)
                 self._event_buffer.insert_event(postpone_evt)
             else:
                 # Fail
-                pass
+                # TODO
+                self._failed_requirements += 1
 
     def _on_vm_finished(self, evt: AtomEvent):
         """Callback when there is a VM in the end cycle."""
-        # Remove dead VMs.
-        vm_id: int = evt.payload
-        virtual_machine: VirtualMachine = self.vm[vm_id]
-        req_cpu = virtual_machine.req_cpu
-        req_mem = virtual_machine.req_mem
-        util_mem = virtual_machine.util_mem
-        self.vm.pop(vm_id)
+        # Get the end-cycle VM info.
+        payload: VmFinishedPayload = evt.payload
+        vm_id = payload.vm_id
+        virtual_machine: VirtualMachine = self._vm[vm_id]
+        util_vm_cores = virtual_machine.util_cpu * virtual_machine.req_cpu
+
         # Release PM resources.
-        physical_machine: PhysicalMachine = self.machines[virtual_machine.pm_id]
-        physical_machine.req_cpu -= req_cpu
-        physical_machine.req_mem -= req_mem
-        physical_machine.util_mem -= util_mem
+        physical_machine: PhysicalMachine = self._machines[virtual_machine.pm_id]
+        physical_machine.req_cpu -= virtual_machine.req_cpu
+        physical_machine.req_mem -= virtual_machine.req_mem
+        physical_machine.util_cpu = ((physical_machine.util_cpu * physical_machine.cap_cpu / 100)
+                                     - util_vm_cores) * 100 / physical_machine.cap_cpu
+        physical_machine.update_util_series()
         physical_machine.remove_vm(vm_id)
+
+        # Remove dead VM.
+        self._vm.pop(vm_id)
+
+        # VM allocation succeed.
+        self._success_requirements += 1
 
     def _on_action_received(self, evt: CascadeEvent):
         """Callback wen we get an action from agent."""
         cur_tick: int = evt.tick
         action: Action = evt.payload
         assign: bool = action.assign
-        virtual_machine: VirtualMachine = deepcopy(action.vm_req)
+        virtual_machine: VirtualMachine = action.vm_req
 
         if assign:
             pm_id = action.pm_id
-            vm_id = virtual_machine.id
-            req_cpu = virtual_machine.req_cpu
-            req_mem = virtual_machine.req_mem
             lifetime = virtual_machine.lifetime
-            cur_util_mem = virtual_machine.show_util_series()[cur_tick]
+            cur_util_vm_cores = virtual_machine.util_series[cur_tick] * virtual_machine.req_cpu / 100
             # Update VM information.
             virtual_machine.pm_id = pm_id
-            virtual_machine.util_mem = cur_util_mem
+            virtual_machine.util_cpu = cur_util_vm_cores / virtual_machine.req_cpu
             virtual_machine.start_tick = cur_tick
             virtual_machine.end_tick = cur_tick + lifetime
-            self.vm[virtual_machine.id] = virtual_machine
+            self._vm[virtual_machine.id] = virtual_machine
 
             # Generate VM finished event.
-            finished_evt = self._event_buffer.gen_atom_event(cur_tick + lifetime, payload=vm_id)
+            finished_payload: VmFinishedPayload = VmFinishedPayload(virtual_machine.id)
+            finished_evt = self._event_buffer.gen_atom_event(cur_tick + lifetime, payload=finished_payload)
             self._event_buffer.insert_event(finished_evt)
 
             # Update PM resources requested by VM.
-            pm = self.machines[pm_id]
+            pm = self._machines[pm_id]
             pm.add_vm(virtual_machine.id)
-            pm.req_cpu += req_cpu
-            pm.req_mem += req_mem
-            pm.util_mem += cur_util_mem
-            pm.add_vm(vm_id)
-            self._success_requirements += 1
+            pm.req_cpu += virtual_machine.req_cpu
+            pm.req_mem += virtual_machine.req_mem
+            pm.util_cpu = ((pm.cap_cpu * pm.util_cpu / 100) + cur_util_vm_cores) / pm.cap_cpu
+            pm.update_util_series()
         else:
             buffer_time = action.buffer_time
-            # Postpone to next tick.
+            # Postpone the buffer duration ticks by config setting.
             if buffer_time > 0:
-                requirement_payload = Payload(action.vm_req, buffer_time - 1)
-                self._total_latency.algorithm_buffer_time += 1
+                requirement_payload = VmRequirementPayload(virtual_machine, buffer_time - self._delay_duration)
+                self._total_latency.latency_due_to_agent += self._delay_duration
 
-                postpone_evt = self._event_buffer.gen_cascade_event(evt.tick + 1, payload=requirement_payload)
+                postpone_evt = self._event_buffer.gen_cascade_event(
+                    evt.tick + self._delay_duration, payload=requirement_payload)
                 self._event_buffer.insert_event(postpone_evt)
             else:
                 # Fail
-                pass
+                # TODO
+                self._failed_requirements += 1

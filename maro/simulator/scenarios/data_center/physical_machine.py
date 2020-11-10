@@ -21,8 +21,9 @@ class PhysicalMachine:
         self._vm_set: Set(int) = set()
         self.req_cpu: int = -1
         self.req_mem: int = -1
-        self.util_mem: int = -1
-        self._util_series: List[int] = []
+        # PM CPU utilizaion (%).
+        self.util_cpu: float = -1.0
+        self._util_series: List[float] = []
 
     def add_vm(self, vm_id: int):
         self._vm_set.add(vm_id)
@@ -34,5 +35,5 @@ class PhysicalMachine:
     def vm_set(self) -> Set(int):
         return self._vm_set
 
-    def update_util_series(self, cur_util_mem: int):
-        self._util_series.append(cur_util_mem)
+    def update_util_series(self):
+        self._util_series.append(self.util_cpu)
