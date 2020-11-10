@@ -50,7 +50,7 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
 
     if is_immediate:
         session_ids = proxy.ibroadcast(
-            peer_type="worker",
+            component_type="worker",
             tag="INC",
             session_type=SessionType.NOTIFICATION
         )
@@ -58,7 +58,7 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
         replied_msgs = proxy.receive_by_id(session_ids)
     else:
         replied_msgs = proxy.broadcast(
-            peer_type="worker",
+            component_type="worker",
             tag="INC",
             session_type=SessionType.NOTIFICATION
         )

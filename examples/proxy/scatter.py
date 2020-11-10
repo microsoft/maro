@@ -73,13 +73,13 @@ def master(group_name: str, sum_worker_number: int, multiply_worker_number: int,
 
     # assign sum tasks for summation workers
     destination_payload_list = []
-    for idx, peer in enumerate(proxy.peers["sum_worker"]):
-        data_length_per_peer = int(len(sum_list) / len(proxy.peers["sum_worker"]))
+    for idx, peer in enumerate(proxy.peers_name["sum_worker"]):
+        data_length_per_peer = int(len(sum_list) / len(proxy.peers_name["sum_worker"]))
         destination_payload_list.append((peer, sum_list[idx * data_length_per_peer:(idx + 1) * data_length_per_peer]))
 
     # assign multiply tasks for multiplication workers
-    for idx, peer in enumerate(proxy.peers["multiply_worker"]):
-        data_length_per_peer = int(len(multiple_list) / len(proxy.peers["multiply_worker"]))
+    for idx, peer in enumerate(proxy.peers_name["multiply_worker"]):
+        data_length_per_peer = int(len(multiple_list) / len(proxy.peers_name["multiply_worker"]))
         destination_payload_list.append(
             (peer, multiple_list[idx * data_length_per_peer:(idx + 1) * data_length_per_peer]))
 

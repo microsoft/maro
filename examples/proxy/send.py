@@ -47,7 +47,7 @@ def master(group_name: str, is_immediate: bool = False):
     random_integer_list = np.random.randint(0, 100, 5)
     print(f"generate random integer list: {random_integer_list}.")
 
-    for peer in proxy.peers["worker"]:
+    for peer in proxy.peers_name["worker"]:
         message = SessionMessage(tag="sum",
                                  source=proxy.component_name,
                                  destination=peer,
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     is_immediate = False
 
     master_process = mp.Process(target=master, args=(group_name, is_immediate,))
-    worker_process = mp.Process(target=worker, args=(group_name, ))
+    worker_process = mp.Process(target=worker, args=(group_name,))
     master_process.start()
     worker_process.start()
 

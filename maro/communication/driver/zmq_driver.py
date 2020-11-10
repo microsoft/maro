@@ -11,7 +11,8 @@ from typing import Dict
 import zmq
 
 # private package
-from maro.utils import NON_RESTART_EXIT_CODE, DummyLogger
+from maro.utils import DummyLogger
+from maro.utils.exception import NON_RESTART_EXIT_CODE
 from maro.utils.exception.communication_exception import (
     DriverReceiveError, DriverSendError, PeersConnectionError, PeersDisconnectionError, PendingToSend, SocketTypeError
 )
@@ -29,7 +30,7 @@ class ZmqDriver(AbsDriver):
     """The communication driver based on ``ZMQ``.
 
     Args:
-        component_type (str): Component's type in the current group.
+        component_type (str): Component type in the current group.
         protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
         send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
             Defaults to -1.
@@ -178,7 +179,7 @@ class ZmqDriver(AbsDriver):
                 recv_message = self._unicast_receiver.recv_pyobj()
                 self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
             else:
-                [_, recv_message] = self._broadcast_receiver.recv_multipart()
+                _, recv_message = self._broadcast_receiver.recv_multipart()
                 recv_message = pickle.loads(recv_message)
                 self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
 

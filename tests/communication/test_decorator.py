@@ -61,7 +61,7 @@ class TestDecorator(unittest.TestCase):
         message = SessionMessage(
             tag="unittest",
             source=TestDecorator.sender_proxy.component_name,
-            destination=TestDecorator.sender_proxy.peers["receiver"][0],
+            destination=TestDecorator.sender_proxy.peers_name["receiver"][0],
             payload={"counter": 0}
         )
         replied_message = TestDecorator.sender_proxy.send(message)
