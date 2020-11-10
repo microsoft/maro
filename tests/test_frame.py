@@ -3,7 +3,7 @@
 
 
 import unittest
-
+import numpy as np
 from maro.backends.frame import node, NodeBase, NodeAttribute, FrameNode, FrameBase
 
 from maro.utils.exception.backends_exception import (
@@ -169,7 +169,7 @@ class TestFrame(unittest.TestCase):
 
     def test_append_nodes(self):
         # NOTE: this case only support raw backend
-        frame = build_frame(backend_name="raw")
+        frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
 
         # set value for last static node
         last_static_node = frame.static_nodes[-1]
@@ -178,6 +178,9 @@ class TestFrame(unittest.TestCase):
 
         last_static_node.a2 = 2
         last_static_node.a3 = 9
+
+        # this snapshot should keep 5 static nodes
+        frame.take_snapshot(0)
 
         # append 2 new node
         frame.append_node("static", 2)
@@ -195,6 +198,127 @@ class TestFrame(unittest.TestCase):
             self.assertEqual(0, node.a2)
             self.assertEqual(0, node.a1[0])
             self.assertEqual(0, node.a1[1])
+
+        last_static_node.a3 = 12
+
+        # this snapshot should contains 7 static node
+        frame.take_snapshot(1)
+
+        static_snapshot = frame.snapshots["static"]
+
+        # snapshot only provide current number (include delete ones)
+        self.assertEqual(7, len(static_snapshot))
+
+        # query for 1st tick
+        states = static_snapshot[0::"a3"]
+
+        # the query result of raw snapshotlist has 4 dim shape
+        # (ticks, max nodes, attributes, max slots)
+        self.assertTupleEqual(states.shape, (1, 7, 1, 1))
+
+        states = states.flatten()
+
+        # there should be 7 items, 5 for 5 nodes, 2 for padding as we do not provide node index to query, 
+        # snapshotlist will padding to max_number fo node
+        self.assertEqual(7, len(states))
+        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states)[0:5])
+
+        # 2 padding (NAN) in the end
+        self.assertTrue(np.isnan(states[-2:]).all())
+
+        states = static_snapshot[1::"a3"]
+
+        self.assertTupleEqual(states.shape, (1, 7, 1, 1))
+
+        states = states.flatten()
+
+        self.assertEqual(7, len(states))
+
+        # no padding value
+        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 12.0, 0.0, 0.0], list(states))
+
+        # with specify node indices, will not padding to max node number
+        states = static_snapshot[0:[0, 1, 2, 3, 4]:"a3"]
+
+        self.assertTupleEqual(states.shape, (1, 5, 1, 1))
+
+        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states.flatten()))
+
+    def test_delete_node(self):
+        frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
+
+        # set value for last static node
+        last_static_node = frame.static_nodes[-1]
+        second_static_node = frame.static_nodes[1]
+
+        self.assertEqual(STATIC_NODE_NUM, len(frame.static_nodes))
+
+        second_static_node.a3 = 444
+        last_static_node.a2 = 2
+        last_static_node.a3 = 9
+
+        # this snapshot should keep 5 static nodes
+        frame.take_snapshot(0)
+
+        # delete 2nd node
+        frame.delete_node(second_static_node)
+
+        last_static_node.a3 = 123
+
+        frame.take_snapshot(1)
+
+        # deleted node's instance will not be removed, just mark as deleted
+        self.assertTrue(second_static_node.is_deleted)
+
+        # future setter will cause exception
+        with self.assertRaises(Exception) as ctx:
+            second_static_node.a3 = 11
+
+        # attribute getter failed too
+        with self.assertRaises(Exception) as ctx:
+            a = second_static_node.a3
+
+        static_snapshots = frame.snapshots["static"]
+
+        # snapshot will try to padding to max node number if not specify node indices
+        states = static_snapshots[0::"a3"]
+
+        self.assertTupleEqual(states.shape, (1, 5, 1, 1))
+
+        states = states.flatten()
+
+        # no nan for 1st snapshot
+        self.assertFalse(np.isnan(states).all())
+        self.assertListEqual([0.0, 444.0, 0.0, 0.0, 9.0], list(states))
+
+        states = static_snapshots[1::"a3"]
+
+        self.assertTupleEqual(states.shape, (1, 5, 1, 1))
+
+        states = states.flatten()
+
+        # 2nd is padding value
+        self.assertTrue(np.isnan(states[1]))
+
+        self.assertListEqual([0.0, 0.0, 0.0, 123.0], list(states[[0, 2, 3, 4]]))
+
+        # then we resume the deleted node, this mark it as not deleted, but values will be reset to 0
+        frame.resume_node(second_static_node)
+        
+        # DELETE node's value will be reset after deleted
+        self.assertEqual(0, second_static_node.a3)
+
+        second_static_node.a3 = 222
+
+        frame.take_snapshot(2)
+
+        states = static_snapshots[2::"a3"]
+
+        self.assertTupleEqual(states.shape, (1, 5, 1, 1))
+
+        states = states.flatten()
+
+        self.assertListEqual([0.0, 222.0, 0.0, 0.0, 123.0], list(states))
 
 if __name__ == "__main__":
     unittest.main()
