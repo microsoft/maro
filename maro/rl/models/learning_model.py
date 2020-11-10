@@ -12,8 +12,10 @@ from .abs_learning_model import AbsLearningModel
 class SingleTaskLearningModel(AbsLearningModel):
     """NN model that consists of a sequence of chainable blocks.
 
-    The blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
-    its successor.
+    Args:
+        block_list (list): List of blocks that compose the model. They must be chainable, i.e., the output dimension
+            of a block must match the input dimension of its successor.
+        optimizer_opt (tuple): Optimizer option for the model. Default to None.
     """
     def __init__(self, block_list: list, optimizer_opt: tuple = None):
         super().__init__()
@@ -61,57 +63,61 @@ class SingleTaskLearningModel(AbsLearningModel):
 
 
 class MultiTaskLearningModel(AbsLearningModel):
-    """NN model that consists of shared blocks and multiple task heads.
+    """NN model that consists of multiple task heads and an optional shared stack.
 
-    The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension of
-    its successor. Heads must be provided in the form of keyword arguments. If at least one head is provided, the
-    output of the model will be a dictionary with the names of the heads as keys and the corresponding head outputs
-    as values. Otherwise, the output will be the output of the last block.
+    Args:
+        task_block_dict (dict): Dictionary of network blocks that perform designated tasks.
+        task_optimizer_opt_dict (dict): Dictionary of optimizer options for each task block. An optimizer option
+            is specified in the form of a tuple: (optimizer class, optimizer parameters). Defaults to None.
+        shared_block_list (list): List of blocks that compose the bottom stack of the model shared by all tasks.
+            The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension
+            of its successor. Defaults to None.
+        shared_optimizer_opt (tuple): Optimizer option for the shared part of the model. Default to None.
     """
     def __init__(
         self,
-        head_block_dict: dict,
-        head_optimizer_opt_dict: dict = None,
+        task_block_dict: dict,
+        task_optimizer_opt_dict: dict = None,
         shared_block_list: list = None,
-        shared_stack_optimizer_opt: tuple = None
+        shared_optimizer_opt: tuple = None
     ):
         super().__init__()
         self._has_shared_layers = shared_block_list is not None
-        self._has_trainable_shared_layers = self._has_shared_layers and shared_stack_optimizer_opt is not None
-        self._has_trainable_heads = head_optimizer_opt_dict is not None
+        self._has_trainable_shared_layers = self._has_shared_layers and shared_optimizer_opt is not None
+        self._has_trainable_heads = task_optimizer_opt_dict is not None
 
         # shared stack
         if self._has_shared_layers:
             self._shared_stack = nn.Sequential(*shared_block_list)
             if self._has_trainable_shared_layers:
-                self._shared_stack_optimizer = shared_stack_optimizer_opt[0](
-                    self._shared_stack.parameters(), **shared_stack_optimizer_opt[1]
+                self._shared_optimizer = shared_optimizer_opt[0](
+                    self._shared_stack.parameters(), **shared_optimizer_opt[1]
                 )
             else:
                 for param in self._shared_stack.parameters():
                     param.requires_grad = False
 
         # heads
-        self._head_keys = list(head_block_dict.keys())
+        self._tasks = list(task_block_dict.keys())
         self._net = nn.ModuleDict({
             key: nn.Sequential(self._shared_stack, head) if self._has_shared_layers else head
-            for key, head in head_block_dict.items()
+            for key, head in task_block_dict.items()
         })
 
         if self._has_trainable_heads:
             self._head_optimizer_dict = {
-                key: head_optimizer_opt_dict[key][0](head.parameters(), **head_optimizer_opt_dict[key][1])
-                for key, head in head_block_dict.items()
+                key: task_optimizer_opt_dict[key][0](head.parameters(), **task_optimizer_opt_dict[key][1])
+                for key, head in task_block_dict.items()
             }
         else:
-            for key, head in head_block_dict.items():
+            for key, head in task_block_dict.items():
                 for param in head.parameters():
                     param.requires_grad = False
 
     def __getstate__(self):
         dic = self.__dict__.copy()
-        if "_shared_stack_optimizer" in dic:
-            del dic["_shared_stack_optimizer"]
+        if "_shared_optimizer" in dic:
+            del dic["_shared_optimizer"]
         if "_head_optimizer_dict" in dic:
             del dic["_head_optimizer_dict"]
         return dic
@@ -119,8 +125,8 @@ class MultiTaskLearningModel(AbsLearningModel):
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
 
-    def __getitem__(self, head_key):
-        return self._net[head_key]
+    def __getitem__(self, task):
+        return self._net[task]
 
     @property
     def has_shared_layers(self):
@@ -147,29 +153,29 @@ class MultiTaskLearningModel(AbsLearningModel):
         return self._has_trainable_shared_layers or self._has_trainable_heads
 
     @property
-    def heads(self) -> [str]:
-        return self._head_keys
+    def tasks(self) -> [str]:
+        return self._tasks
 
-    def forward(self, inputs, key=None):
+    def forward(self, inputs, task=None):
         """Feedforward computations for the given head(s).
 
         Args:
             inputs: Inputs to the model.
-            key: The key(s) to the head(s) from which the output is required. If this is None, the results from
-                all heads will be returned in the form of a dictionary. If this is a list, the results will be the
-                outputs from the heads contained in head_key in the form of a dictionary. If this is a single key,
+            task: The task for which the network output is required. If this is None, the results from all task
+                heads will be returned in the form of a dictionary. If this is a list, the results will be the
+                outputs from the heads contained in task in the form of a dictionary. If this is a single key,
                 the result will be the output from the corresponding head.
 
         Returns:
             Outputs from the required head(s).
         """
-        if key is None:
-            return {key: self._net[key](inputs) for key in self._head_keys}
+        if task is None:
+            return {key: self._net[key](inputs) for key in self._task_keys}
 
-        if isinstance(key, list):
-            return {k: self._net[k](inputs) for k in key}
+        if isinstance(task, list):
+            return {k: self._net[k](inputs) for k in task}
         else:
-            return self._net[key](inputs)
+            return self._net[task](inputs)
 
     def step(self, *losses):
         """Use the losses to back-propagate gradients and apply them to the underlying parameters."""
@@ -178,7 +184,7 @@ class MultiTaskLearningModel(AbsLearningModel):
 
         # Zero all gradients
         if self._has_trainable_shared_layers:
-            self._shared_stack_optimizer.zero_grad()
+            self._shared_optimizer.zero_grad()
         if self._has_trainable_heads:
             for optim in self._head_optimizer_dict.values():
                 optim.zero_grad()
@@ -189,7 +195,7 @@ class MultiTaskLearningModel(AbsLearningModel):
 
         # Apply gradients
         if self._has_trainable_shared_layers:
-            self._shared_stack_optimizer.step()
+            self._shared_optimizer.step()
         if self._has_trainable_heads:
             for optim in self._head_optimizer_dict.values():
                 optim.step()
