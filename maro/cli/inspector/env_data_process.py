@@ -96,7 +96,7 @@ def generate_summary(scenario, ROOT_PATH):
             if not os.path.isdir(dir_epoch):
                 continue
             summary_append(scenario, dir_epoch, "ports.csv", ports_header, ports_sum_dataframe,
-                           i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
+                        i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
     elif scenario == "CITI_BIKE":

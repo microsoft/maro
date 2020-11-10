@@ -54,7 +54,7 @@ def show_cim_summary_plot(ROOT_PATH):
     down_pooling_len = math.floor(1 / down_pooling_num)
     down_pooling_range = generate_down_pooling_sample(down_pooling_len, start_epoch, end_epoch)
     item_option_all = ["All", "Booking Info", "Port Info", "shortage", "booking", "fulfillment", "on_shipper",
-                       "on_consignee", "capacity", "full", "empty"]
+                    "on_consignee", "capacity", "full", "empty"]
     data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH))
     data = data.iloc[down_pooling_range]
     data_genera = common_helper.formula_define(data)
@@ -79,7 +79,7 @@ def generate_summary_plot(item_option, data, down_pooling_range):
     """
     data["epoch index"] = list(down_pooling_range)
     data_long_form = data.melt("epoch index", var_name="Attributes",
-                               value_name="count")
+                            value_name="count")
     custom_chart_port = alt.Chart(data_long_form).mark_line().encode(
         x="epoch index",
         y="count",
