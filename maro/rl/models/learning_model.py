@@ -6,6 +6,7 @@ import torch.nn as nn
 
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
+
 from .abs_learning_model import AbsLearningModel
 
 

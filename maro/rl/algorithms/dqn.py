@@ -6,7 +6,6 @@ from typing import Callable
 
 import numpy as np
 import torch
-import torch.nn as nn
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.abs_learning_model import AbsLearningModel
@@ -64,7 +63,7 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        core_model (nn.Module): Q-value model.
+        core_model (AbsLearningModel): Q-value model.
         loss_cls (Callable): Loss function class for computing TD error.
         config: Configuration for DQN algorithm.
     """
