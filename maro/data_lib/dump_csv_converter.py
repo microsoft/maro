@@ -89,8 +89,7 @@ class DumpConverter:
                     dataframe = pd.DataFrame(csv_data)
                     dataframe.to_csv(os.path.join(curDir, file.replace('.meta', '.csv')), index=False)
 
-        self.save_manifest_file()
-        self.dump_mapping_file(filesource)
+        self.save_manifest_file(filesource)
 
     def start_processing(self, filesource: str):
         thread = threading.Thread(target=self.process_data, args=(filesource,))
@@ -146,7 +145,7 @@ class DumpConverter:
 
         return headers, count
 
-    def save_manifest_file(self):
+    def save_manifest_file(self, filesource: str):
         if self._manifest_created:
             return
         if self._scenario_name == '':
@@ -154,6 +153,23 @@ class DumpConverter:
         outputfile = os.path.join(self._foldername, 'snapshot.manifest')
         content = []
         content.append('scenario:' + self._scenario_name + '\r\n')
+        # mapping file.
+        if '' != filesource:
+            file_name = os.path.basename(filesource)
+            file_name = os.path.join(self._foldername, file_name)
+            if filesource.lower().startswith('http'):
+                # Download file from web
+                source_data = urllib.request.urlopen(filesource)
+                res_data = source_data.read()
+                with open(file_name, "wb") as f:
+                    f.write(res_data)
+                    f.close()
+            else:
+                # copy file to folder.
+                if os.path.exists(filesource):
+                    copyfile(filesource, file_name)
+            content.append('mappings' + os.path.basename(filesource) + '\r\n')
+
         for curDir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
                 if file.endswith('.meta'):
@@ -162,33 +178,3 @@ class DumpConverter:
             f.writelines(content)
             f.close()
         self._manifest_created = True
-
-    def dump_mapping_file(self, filesource: str):
-        if self._mapping_created:
-            return
-        if filesource == '':
-            return
-        file_name = os.path.basename(filesource)
-        file_name = os.path.join(self._foldername, file_name)
-        if os.path.exists(file_name):
-            return
-
-        if filesource.lower().startswith('http'):
-            # Download file from web
-            source_data = urllib.request.urlopen(filesource)
-            res_data = source_data.read()
-            with open(file_name, "wb") as f:
-                f.write(res_data)
-                f.close()
-        else:
-            # copy file to folder.
-            if os.path.exists(filesource):
-                copyfile(filesource, file_name)
-
-        manifest_file = os.path.join(self._foldername, 'snapshot.manifest')
-        with open(manifest_file, 'a+') as mf:
-            mf.write('mappings:' + os.path.basename(filesource) + '\r\n')
-            mf.close()
-
-        self._mapping_created = True
-
