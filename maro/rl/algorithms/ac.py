@@ -31,14 +31,23 @@ class ActorCriticConfig:
         lam (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
-    __slots__ = ["num_actions", "reward_decay", "actor_train_iters", "critic_train_iters", "k", "lam"]
+    __slots__ = [
+        "num_actions", "reward_decay", "critic_loss_func", "actor_train_iters", "critic_train_iters", "k", "lam"
+    ]
 
     def __init__(
-        self, num_actions: int, reward_decay: float, actor_train_iters, critic_train_iters: int,
-        k: int = -1, lam: float = 1.0
+        self,
+        num_actions: int,
+        reward_decay: float,
+        critic_loss_func: Callable,
+        actor_train_iters: int,
+        critic_train_iters: int,
+        k: int = -1,
+        lam: float = 1.0
     ):
         self.num_actions = num_actions
         self.reward_decay = reward_decay
+        self.critic_loss_func = critic_loss_func
         self.actor_train_iters = actor_train_iters
         self.critic_train_iters = critic_train_iters
         self.k = k
@@ -58,6 +67,13 @@ class ActorCritic(AbsAlgorithm):
 
     def __init__(self, core_model: MultiTaskLearningModel, config: ActorCriticConfig):
         super().__init__(core_model, config)
+        if self._config.advantage_mode is not None:
+            assert isinstance(core_model, MultiTaskLearningModel), \
+                "core_model must be a MultiTaskLearningModel if dueling architecture is used."
+            assert ActorCriticTask.ACTOR.value in core_model.tasks, \
+                f"core_model must have a task head named '{ActorCriticTask.ACTOR.value}'"
+            assert ActorCriticTask.CRITIC.value in core_model.tasks, \
+                f"core_model must have a task head named '{ActorCriticTask.CRITIC.value}'"
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._core_model.to(self._device)
 
@@ -100,5 +116,7 @@ class ActorCritic(AbsAlgorithm):
 
             # value model training
             for _ in range(self._config.critic_train_iters):
-                critic_loss = self._critic_loss_func(self._core_model(states, task="critic").squeeze(), return_est)
+                critic_loss = self._config.critic_loss_func(
+                    self._core_model(states, task="critic").squeeze(), return_est
+                )
                 self._core_model.step(critic_loss)

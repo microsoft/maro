@@ -22,6 +22,7 @@ class DQNConfig:
     Args:
         num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
+        loss_cls: Loss function class for evaluating TD errors.
         target_update_frequency (int): Number of training rounds between target model updates.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
@@ -31,7 +32,6 @@ class DQNConfig:
             case it is assumed that the regular Q-value model is used.
         per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
-        loss_cls: Loss function class for evaluating TD errors.
     """
     __slots__ = [
         "num_actions", "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",
@@ -77,9 +77,9 @@ class DQN(AbsAlgorithm):
             assert isinstance(core_model, MultiTaskLearningModel), \
                 "core_model must be a MultiTaskLearningModel if dueling architecture is used."
             assert DuelingDQNTask.STATE_VALUE.value in core_model.tasks, \
-                "core_model must have a task head named 'state_value'"
+                f"core_model must have a task head named '{DuelingDQNTask.STATE_VALUE.value}'"
             assert DuelingDQNTask.ADVANTAGE.value in core_model.tasks, \
-                "core_model must have a task head named 'advantage'"
+                f"core_model must have a task head named '{DuelingDQNTask.ADVANTAGE.value}'"
 
         self._core_model.to(self._device)
         self._target_model = core_model.copy().to(self._device) if core_model.is_trainable else None
@@ -145,19 +145,3 @@ class DQN(AbsAlgorithm):
             return self._get_q_values(next_states, is_target=True).gather(1, actions).squeeze(1)  # (N,)
         else:
             return self._get_q_values(next_states, is_target=True).max(dim=1)[0]   # (N,)
-
-    def load_models(self, eval_model):
-        """Load the evaluation model from memory."""
-        self._core_model.load_state_dict(eval_model)
-
-    def dump_models(self):
-        """Return the evaluation model."""
-        return self._core_model.state_dict()
-
-    def load_models_from_file(self, path):
-        """Load the evaluation model from disk."""
-        self._core_model.load_state_dict(torch.load(path))
-
-    def dump_models_to_file(self, path: str):
-        """Dump the evaluation model to disk."""
-        torch.save(self._core_model.state_dict(), path)
