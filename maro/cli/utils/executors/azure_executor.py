@@ -54,13 +54,15 @@ class AzureExecutor:
 
     @staticmethod
     def start_deployment(resource_group: str, deployment_name: str, template_file_path: str, parameters_file_path: str):
-        command = f"az deployment group create -g {resource_group} --name {deployment_name} " \
-                  f"--template-file {template_file_path} --parameters {parameters_file_path}"
+        command = (
+            f"az deployment group create -g {resource_group} --name {deployment_name} "
+            f"--template-file {template_file_path} --parameters {parameters_file_path}"
+        )
         try:
             _ = SubProcess.run(command)
         except CommandError as e:
-            error = json.loads(AzureExecutor._get_valid_json(e.get_message()))['error']
-            raise DeploymentError(error['message'])
+            error = json.loads(AzureExecutor._get_valid_json(e.get_message()))["error"]
+            raise DeploymentError(error["message"])
 
     @staticmethod
     def delete_deployment(resource_group: str, deployment_name: str):
@@ -133,7 +135,7 @@ class AzureExecutor:
 
     @staticmethod
     def load_aks_context(resource_group: str, aks_name: str):
-        command = f'az aks get-credentials -g {resource_group} --name {aks_name}'
+        command = f"az aks get-credentials -g {resource_group} --name {aks_name}"
         _ = SubProcess.run(command)
 
     @staticmethod
@@ -144,32 +146,36 @@ class AzureExecutor:
 
     @staticmethod
     def attach_acr(resource_group: str, aks_name: str, acr_name: str):
-        command = f'az aks update -g {resource_group} --name {aks_name} --attach-acr {acr_name}'
+        command = f"az aks update -g {resource_group} --name {aks_name} --attach-acr {acr_name}"
         _ = SubProcess.run(command)
 
     @staticmethod
     def list_nodepool(resource_group: str, aks_name: str):
-        command = f'az aks nodepool list -g {resource_group} --cluster-name {aks_name}'
+        command = f"az aks nodepool list -g {resource_group} --cluster-name {aks_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
     @staticmethod
     def add_nodepool(resource_group: str, aks_name: str, nodepool_name: str, node_count: int, node_size: str):
-        command = f"az aks nodepool add " \
-                  f"-g {resource_group} " \
-                  f"--cluster-name {aks_name} " \
-                  f"--name {nodepool_name} " \
-                  f"--node-count {node_count} " \
-                  f"--node-vm-size {node_size}"
+        command = (
+            f"az aks nodepool add "
+            f"-g {resource_group} "
+            f"--cluster-name {aks_name} "
+            f"--name {nodepool_name} "
+            f"--node-count {node_count} "
+            f"--node-vm-size {node_size}"
+        )
         _ = SubProcess.run(command)
 
     @staticmethod
     def scale_nodepool(resource_group: str, aks_name: str, nodepool_name: str, node_count: int):
-        command = f"az aks nodepool scale " \
-                  f"-g {resource_group} " \
-                  f"--cluster-name {aks_name} " \
-                  f"--name {nodepool_name} " \
-                  f"--node-count {node_count}"
+        command = (
+            f"az aks nodepool scale "
+            f"-g {resource_group} "
+            f"--cluster-name {aks_name} "
+            f"--name {nodepool_name} "
+            f"--node-count {node_count}"
+        )
         _ = SubProcess.run(command)
 
     # ACR related
@@ -189,20 +195,24 @@ class AzureExecutor:
 
     @staticmethod
     def get_storage_account_keys(resource_group: str, storage_account_name: str):
-        command = f'az storage account keys list -g {resource_group} --account-name {storage_account_name}'
+        command = f"az storage account keys list -g {resource_group} --account-name {storage_account_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
     @staticmethod
-    def get_storage_account_sas(account_name: str,
-                                services: str = 'bqtf',
-                                resource_types: str = 'sco',
-                                permissions: str = 'rwdlacup',
-                                expiry: str = (datetime.datetime.utcnow() +
-                                               datetime.timedelta(days=365)).strftime('%Y-%m-%dT%H:%M:%S') + 'Z'):
-        command = f'az storage account generate-sas --account-name {account_name} --services {services} ' \
-                  f'--resource-types {resource_types} --permissions {permissions} --expiry {expiry}'
-        sas_str = SubProcess.run(command=command).strip('\n').replace('"', '')
+    def get_storage_account_sas(
+        account_name: str,
+        services: str = "bqtf",
+        resource_types: str = "sco",
+        permissions: str = "rwdlacup",
+        expiry: str = (datetime.datetime.utcnow() +
+                       datetime.timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%S") + "Z"
+    ):
+        command = (
+            f"az storage account generate-sas --account-name {account_name} --services {services} "
+            f"--resource-types {resource_types} --permissions {permissions} --expiry {expiry}"
+        )
+        sas_str = SubProcess.run(command=command).strip("\n").replace('"', "")
         logger.debug(sas_str)
         return sas_str
 
@@ -216,6 +226,6 @@ class AzureExecutor:
 
     @staticmethod
     def _get_valid_json(message: str):
-        left_idx = message.find('{')
-        right_idx = message.rindex('}')
+        left_idx = message.find("{")
+        right_idx = message.rindex("}")
         return message[left_idx:right_idx + 1]

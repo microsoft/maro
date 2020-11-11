@@ -50,7 +50,7 @@ class GrassAzureExecutor:
         GrassAzureExecutor._standardize_create_deployment(create_deployment=create_deployment)
 
         # Get cluster name and save details
-        cluster_name = create_deployment['name']
+        cluster_name = create_deployment["name"]
         if os.path.isdir(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}")):
             raise CliException(f"Cluster {cluster_name} is exist")
         os.makedirs(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
@@ -63,15 +63,16 @@ class GrassAzureExecutor:
     def _standardize_create_deployment(create_deployment: dict):
         alphabet = string.ascii_letters + string.digits
         optional_key_to_value = {
-            "root['master']['redis']": {'port': 6379},
+            "root['master']['redis']": {"port": 6379},
             "root['master']['redis']['port']": 6379,
-            "root['master']['fluentd']": {'port': 24224},
+            "root['master']['fluentd']": {"port": 24224},
             "root['master']['fluentd']['port']": 24224,
-            "root['master']['samba']": {'password': ''.join(secrets.choice(alphabet) for _ in range(20))},
-            "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20))
+            "root['master']['samba']": {"password": "".join(secrets.choice(alphabet) for _ in range(20))},
+            "root['master']['samba']['password']": "".join(secrets.choice(alphabet) for _ in range(20))
         }
         with open(os.path.expanduser(
-            f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml')) as fr:
+            f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml")
+        ) as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -106,7 +107,7 @@ class GrassAzureExecutor:
         cluster_details = self.cluster_details
 
         # Set cluster id
-        cluster_details['id'] = generate_cluster_id()
+        cluster_details["id"] = generate_cluster_id()
 
         # Save details
         save_cluster_details(
@@ -117,9 +118,9 @@ class GrassAzureExecutor:
     def _create_resource_group(self):
         # Load and reload details
         cluster_details = self.cluster_details
-        subscription = cluster_details['cloud']['subscription']
-        resource_group = cluster_details['cloud']['resource_group']
-        location = cluster_details['cloud']['location']
+        subscription = cluster_details["cloud"]["subscription"]
+        resource_group = cluster_details["cloud"]["resource_group"]
+        location = cluster_details["cloud"]["location"]
 
         # Check if Azure CLI is installed
         version_details = AzureExecutor.get_version()
@@ -288,9 +289,9 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        master_details = cluster_details['master']
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
+        master_details = cluster_details["master"]
+        admin_username = cluster_details["user"]["admin_username"]
+        master_public_ip_address = cluster_details["master"]["public_ip_address"]
 
         # Make sure master is able to connect
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
@@ -343,13 +344,13 @@ class GrassAzureExecutor:
         self.grass_executor.remote_load_master_agent_service()
 
         # Save details
-        master_details['public_key'] = public_key
-        master_details['image_files'] = {}
+        master_details["public_key"] = public_key
+        master_details["image_files"] = {}
         save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
-        self.grass_executor.remote_set_master_details(master_details=cluster_details['master'])
+        self.grass_executor.remote_set_master_details(master_details=cluster_details["master"])
 
         logger.info_green("Master VM is initialized")
 
@@ -359,8 +360,8 @@ class GrassAzureExecutor:
         # Load details
         cluster_name = self.cluster_name
         cluster_details = load_cluster_details(cluster_name=cluster_name)
-        cluster_id = cluster_details['id']
-        resource_group = cluster_details['cloud']['resource_group']
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
 
         logger.info(f"Deleting cluster {cluster_name}")
 
@@ -370,8 +371,8 @@ class GrassAzureExecutor:
         # Filter resources
         deletable_ids = []
         for resource_info in resource_list:
-            if resource_info['name'].startswith(cluster_id):
-                deletable_ids.append(resource_info['id'])
+            if resource_info["name"].startswith(cluster_id):
+                deletable_ids.append(resource_info["id"])
 
         # Delete resources
         if len(deletable_ids) > 0:
@@ -391,7 +392,7 @@ class GrassAzureExecutor:
         # Init node_size_to_count
         node_size_to_count = collections.defaultdict(lambda: 0)
         for node_name, node_details in nodes_details.items():
-            node_size_to_count[node_details['node_size']] += 1
+            node_size_to_count[node_details["node_size"]] += 1
 
         # Get node_size_to_spec
         node_size_to_spec = self._get_node_size_to_spec()
@@ -449,7 +450,7 @@ class GrassAzureExecutor:
         # Get deletable_nodes and check, TODO: consider to add -f
         deletable_nodes = []
         for node_name, node_details in nodes_details.items():
-            if node_details['node_size'] == node_size and len(node_details['containers']) == 0:
+            if node_details["node_size"] == node_size and len(node_details["containers"]) == 0:
                 deletable_nodes.append(node_name)
         if len(deletable_nodes) >= num:
             logger.info(f"Scaling down {num}")
@@ -472,9 +473,9 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        location = cluster_details['cloud']['location']
-        cluster_id = cluster_details['id']
-        resource_group = cluster_details['cloud']['resource_group']
+        location = cluster_details["cloud"]["location"]
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
         image_name = f"{cluster_id}-node-image"
         image_resource_id = AzureExecutor.get_image_resource_id(resource_group=resource_group, image_name=image_name)
 
@@ -515,17 +516,17 @@ class GrassAzureExecutor:
 
         # Save details
         node_details = {
-            'public_ip_address': ip_addresses[0]["virtualMachine"]["network"]['publicIpAddresses'][0]['ipAddress'],
-            'private_ip_address': ip_addresses[0]["virtualMachine"]["network"]['privateIpAddresses'][0],
-            'node_size': node_size,
-            'resource_name': f"{cluster_id}-{node_name}-vm",
-            'hostname': f"{cluster_id}-{node_name}-vm",
-            'resources': {
-                'cpu': node_size_to_spec[node_size]['numberOfCores'],
-                'memory': node_size_to_spec[node_size]['memoryInMb'],
-                'gpu': gpu_nums
+            "public_ip_address": ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"],
+            "private_ip_address": ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0],
+            "node_size": node_size,
+            "resource_name": f"{cluster_id}-{node_name}-vm",
+            "hostname": f"{cluster_id}-{node_name}-vm",
+            "resources": {
+                "cpu": node_size_to_spec[node_size]["numberOfCores"],
+                "memory": node_size_to_spec[node_size]["memoryInMb"],
+                "gpu": gpu_nums
             },
-            'containers': {}
+            "containers": {}
         }
         self.grass_executor.remote_set_node_details(
             node_name=node_name,
@@ -558,7 +559,7 @@ class GrassAzureExecutor:
         # Update node status
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
-            action='delete'
+            action="delete"
         )
 
         logger.info_green(f"Node {node_name} is deleted")
@@ -568,9 +569,9 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        admin_username = cluster_details['user']['admin_username']
+        admin_username = cluster_details["user"]["admin_username"]
         node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
-        node_public_ip_address = node_details['public_ip_address']
+        node_public_ip_address = node_details["public_ip_address"]
 
         # Make sure the node is able to connect
         self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
@@ -595,7 +596,7 @@ class GrassAzureExecutor:
         public_key = self.grass_executor.remote_get_public_key(node_ip_address=node_public_ip_address)
 
         # Save details
-        node_details['public_key'] = public_key
+        node_details["public_key"] = public_key
         self.grass_executor.remote_set_node_details(
             node_name=node_name,
             node_details=node_details
@@ -604,7 +605,7 @@ class GrassAzureExecutor:
         # Update node status
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
-            action='create'
+            action="create"
         )
 
         # Load images
@@ -629,7 +630,7 @@ class GrassAzureExecutor:
         # Get startable nodes
         startable_nodes = []
         for node_name, node_details in nodes_details.items():
-            if node_details['node_size'] == node_size and node_details['state'] == 'Stopped':
+            if node_details["node_size"] == node_size and node_details["state"] == "Stopped":
                 startable_nodes.append(node_name)
 
         # Check replicas
@@ -649,10 +650,10 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        cluster_id = cluster_details['id']
-        resource_group = cluster_details['cloud']['resource_group']
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
         node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
-        node_public_ip_address = node_details['public_ip_address']
+        node_public_ip_address = node_details["public_ip_address"]
 
         # Start node
         AzureExecutor.start_vm(
@@ -663,7 +664,7 @@ class GrassAzureExecutor:
         # Update node status
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
-            action='start'
+            action="start"
         )
 
         # Make sure the node is able to connect
@@ -693,9 +694,11 @@ class GrassAzureExecutor:
         # Get stoppable nodes
         stoppable_nodes = []
         for node_name, node_details in nodes_details.items():
-            if node_details['node_size'] == node_size and \
-                    node_details['state'] == 'Running' and \
-                    self._count_running_containers(node_details) == 0:
+            if (
+                node_details["node_size"] == node_size and
+                node_details["state"] == "Running" and
+                self._count_running_containers(node_details) == 0
+            ):
                 stoppable_nodes.append(node_name)
 
         # Check replicas
@@ -715,8 +718,8 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        cluster_id = cluster_details['id']
-        resource_group = cluster_details['cloud']['resource_group']
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
 
         # Stop node
         AzureExecutor.stop_vm(
@@ -727,7 +730,7 @@ class GrassAzureExecutor:
         # Update node status
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
-            action='stop'
+            action="stop"
         )
 
         logger.info_green(f"Node {node_name} is stopped")
@@ -735,7 +738,7 @@ class GrassAzureExecutor:
     def _get_node_size_to_spec(self) -> dict:
         # Load details
         cluster_details = self.cluster_details
-        location = cluster_details['cloud']['location']
+        location = cluster_details["cloud"]["location"]
 
         # List available sizes for VMs
         specs = AzureExecutor.list_vm_sizes(location=location)
@@ -743,7 +746,7 @@ class GrassAzureExecutor:
         # Get node_size_to_spec
         node_size_to_spec = {}
         for spec in specs:
-            node_size_to_spec[spec['name']] = spec
+            node_size_to_spec[spec["name"]] = spec
 
         return node_size_to_spec
 
@@ -762,12 +765,12 @@ class GrassAzureExecutor:
     @staticmethod
     def _count_running_containers(node_details: dict):
         # Extract details
-        containers_details = node_details['containers']
+        containers_details = node_details["containers"]
 
         # Do counting
         count = 0
         for container_details in containers_details:
-            if container_details['Status'] == 'running':
+            if container_details["Status"] == "running":
                 count += 1
 
         return count
@@ -780,8 +783,8 @@ class GrassAzureExecutor:
     ):
         # Load details
         cluster_details = self.cluster_details
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
+        admin_username = cluster_details["user"]["admin_username"]
+        master_public_ip_address = cluster_details["master"]["public_ip_address"]
 
         # Get images dir
         images_dir = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images"
@@ -851,11 +854,11 @@ class GrassAzureExecutor:
         # build params
         params = []
         for node_name, node_details in nodes_details.items():
-            if node_details['state'] == 'Running':
+            if node_details["state"] == "Running":
                 params.append([
                     node_name,
                     GlobalParams.PARALLELS,
-                    node_details['public_ip_address']
+                    node_details["public_ip_address"]
                 ])
 
         # Parallel load image
@@ -883,7 +886,7 @@ class GrassAzureExecutor:
 
     def start_job(self, deployment_path: str):
         # Load start_job_deployment
-        with open(deployment_path, 'r') as fr:
+        with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
 
         # Standardize start_job_deployment
@@ -899,9 +902,9 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
-        job_name = job_details['name']
+        admin_username = cluster_details["user"]["admin_username"]
+        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        job_name = job_details["name"]
 
         # Sync mkdir
         sync_mkdir(
@@ -951,16 +954,16 @@ class GrassAzureExecutor:
             )
         )
 
-    def get_job_logs(self, job_name: str, export_dir: str = './'):
+    def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
         cluster_details = self.cluster_details
         job_details = load_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name
         )
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
-        job_id = job_details['id']
+        admin_username = cluster_details["user"]["admin_username"]
+        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        job_id = job_details["id"]
 
         # Copy logs from master
         try:
@@ -979,7 +982,8 @@ class GrassAzureExecutor:
             "root['tags']": {}
         }
         with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-job.yml')) as fr:
+            f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-job.yml")
+        ) as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -988,9 +992,9 @@ class GrassAzureExecutor:
         )
 
         # Validate component
-        with open(os.path.expanduser(f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/component.yml'), 'r') as fr:
+        with open(os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/component.yml"), "r") as fr:
             start_job_component_template = yaml.safe_load(fr)
-        components_details = start_job_deployment['components']
+        components_details = start_job_deployment["components"]
         for _, component_details in components_details.items():
             validate_and_fill_dict(
                 template_dict=start_job_component_template,
@@ -1003,11 +1007,11 @@ class GrassAzureExecutor:
         job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
 
         # Set cluster id
-        job_details['id'] = generate_job_id()
+        job_details["id"] = generate_job_id()
 
         # Set component id
-        for component, component_details in job_details['components'].items():
-            component_details['id'] = generate_component_id()
+        for component, component_details in job_details["components"].items():
+            component_details["id"] = generate_component_id()
 
         # Save details
         save_job_details(
@@ -1020,17 +1024,17 @@ class GrassAzureExecutor:
 
     def start_schedule(self, deployment_path: str):
         # Load start_schedule_deployment
-        with open(deployment_path, 'r') as fr:
+        with open(deployment_path, "r") as fr:
             start_schedule_deployment = yaml.safe_load(fr)
 
         # Standardize start_schedule_deployment
         self._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
-        schedule_name = start_schedule_deployment['name']
+        schedule_name = start_schedule_deployment["name"]
 
         # Load details
         cluster_details = self.cluster_details
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
+        admin_username = cluster_details["user"]["admin_username"]
+        master_public_ip_address = cluster_details["master"]["public_ip_address"]
 
         # Sync mkdir
         sync_mkdir(
@@ -1046,7 +1050,7 @@ class GrassAzureExecutor:
         )
 
         # Start jobs
-        for job_name in start_schedule_deployment['job_names']:
+        for job_name in start_schedule_deployment["job_names"]:
             job_details = self._build_job_details(
                 schedule_details=start_schedule_deployment,
                 job_name=job_name
@@ -1059,12 +1063,12 @@ class GrassAzureExecutor:
     def stop_schedule(self, schedule_name: str):
         # Load details
         schedule_details = load_schedule_details(cluster_name=self.cluster_name, schedule_name=schedule_name)
-        job_names = schedule_details['job_names']
+        job_names = schedule_details["job_names"]
 
         for job_name in job_names:
             # Load job details
             job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
-            job_schedule_tag = job_details['tags']['schedule']
+            job_schedule_tag = job_details["tags"]["schedule"]
 
             # Remote stop job
             if job_schedule_tag == schedule_name:
@@ -1075,7 +1079,8 @@ class GrassAzureExecutor:
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
         # Validate grass-azure-start-job
         with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-schedule.yml')) as fr:
+            f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-azure-start-schedule.yml")
+        ) as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -1084,9 +1089,9 @@ class GrassAzureExecutor:
         )
 
         # Validate component
-        with open(os.path.expanduser(f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/component.yml')) as fr:
+        with open(os.path.expanduser(f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/component.yml")) as fr:
             start_job_component_template = yaml.safe_load(fr)
-        components_details = start_schedule_deployment['components']
+        components_details = start_schedule_deployment["components"]
         for _, component_details in components_details.items():
             validate_and_fill_dict(
                 template_dict=start_job_component_template,
@@ -1096,14 +1101,14 @@ class GrassAzureExecutor:
 
     @staticmethod
     def _build_job_details(schedule_details: dict, job_name: str) -> dict:
-        schedule_name = schedule_details['name']
+        schedule_name = schedule_details["name"]
 
         job_details = deepcopy(schedule_details)
-        job_details['name'] = job_name
-        job_details['tags'] = {
-            'schedule': schedule_name
+        job_details["name"] = job_name
+        job_details["tags"] = {
+            "schedule": schedule_name
         }
-        job_details.pop('job_names')
+        job_details.pop("job_names")
 
         return job_details
 
@@ -1138,7 +1143,7 @@ class GrassAzureExecutor:
     @staticmethod
     def template(export_path: str):
         # Get templates
-        command = f'cp {GlobalPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}'
+        command = f"cp {GlobalPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}"
         _ = SubProcess.run(command)
 
     # Utils
