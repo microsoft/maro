@@ -123,6 +123,8 @@ namespace maro
 
         USHORT get_node_number(IDENTIFIER node_id);
 
+        USHORT get_slots_number(IDENTIFIER attr_id);
+
         void reset();
 
       private:

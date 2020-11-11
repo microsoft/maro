@@ -21,6 +21,9 @@ cdef class SnapshotListAbc:
     cdef USHORT get_node_number(self, IDENTIFIER node_id) except +:
         return 0
 
+    cdef USHORT get_slots_number(self, IDENTIFIER attr_id) except +:
+        return 0
+
     cdef void enable_history(self, str history_folder) except +:
         pass
 

@@ -159,6 +159,13 @@ namespace maro
         return _nodes[node_id].number;
       }
 
+      USHORT Frame::get_slots_number(IDENTIFIER attr_id)
+      {
+        ensure_attr_id(attr_id);
+
+        return _attributes[attr_id].slots;
+      }
+
       void Frame::reset()
       {
         _attr_store.reset();

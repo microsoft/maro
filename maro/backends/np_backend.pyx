@@ -94,7 +94,7 @@ cdef class AttrInfo:
         public str dtype
         public IDENTIFIER id
         public IDENTIFIER node_id
-        public UINT slot_number
+        public SLOT_INDEX slot_number
 
     def __cinit__(self, str name, IDENTIFIER id, IDENTIFIER node_id, str dtype, SLOT_INDEX slot_number):
         self.name = name
@@ -355,6 +355,11 @@ cdef class NPSnapshotList(SnapshotListAbc):
         cdef NodeInfo node = self._backend._nodes_list[node_id]
 
         return node.number
+
+    cdef USHORT get_slots_number(self, IDENTIFIER attr_id) except +:
+        cdef AttrInfo attr = self._backend._attrs_list[attr_id]
+
+        return attr.slot_number
 
     cdef list get_frame_index_list(self) except +:
         return list(self._tick2index_dict.keys())

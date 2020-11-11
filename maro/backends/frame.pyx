@@ -383,6 +383,7 @@ cdef class FrameBase:
         cdef IDENTIFIER node_id
         cdef NodeBase node
         cdef NodeBase first_node
+        cdef list node_list
 
         if self._backend.is_support_dynamic_features() and number > 0:
             node_list = self.__dict__.get(self._node_name2attrname_dict[node_name], None)
@@ -417,9 +418,29 @@ cdef class FrameBase:
             node._is_deleted = False
 
     cpdef void set_attribute_slot(self, str node_name, str attr_name, SLOT_INDEX slots) except +:
-        pass
-        #if self._backend.is_support_dynamic_features():
-        #    self._backend.set_attribute_slot()
+        cdef NodeBase first_node
+        cdef list node_list
+        cdef IDENTIFIER attr_id
+
+        if self._backend.is_support_dynamic_features():
+            if slots == 0:
+                raise Exception("Zero slots not support.")
+
+            node_list = self.__dict__.get(self._node_name2attrname_dict[node_name], None)
+
+            if node_list is None:
+                raise Exception("Node not exist.")
+
+            # Find first instance of that node
+            first_node = node_list[0]
+
+            # Retrieve attributes
+            if attr_name not in first_node._attributes:
+                raise Exception("Attribute not exist.")
+
+            attr_id = first_node._attributes[attr_name]
+
+            self._backend.set_attribute_slot(attr_id, slots)
 
     cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshots, dict options) except *:
         """Setup Frame for further using."""
