@@ -13,7 +13,6 @@ from maro.utils.exception import NON_RESTART_EXIT_CODE
 
 from .utils import session_id_generator
 
-
 LOGGER = InternalLogger(component_name="message")
 
 
