@@ -66,17 +66,3 @@ class PolicyGradient(AbsAlgorithm):
             self._optimizer.zero_grad()
             policy_loss.backward()
             self._optimizer.step()
-
-    def load_models(self, policy_model):
-        self._policy_model.load_state_dict(policy_model)
-
-    def dump_models(self):
-        return self._policy_model.state_dict()
-
-    def load_models_from_file(self, path):
-        """Load trainable models from disk."""
-        self._policy_model = torch.load(path)
-
-    def dump_models_to_file(self, path: str):
-        """Dump the algorithm's trainable models to disk."""
-        torch.save(self._policy_model.state_dict(), path)

@@ -31,7 +31,7 @@ class DQNConfig:
             case it is assumed that the regular Q-value model is used.
         per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
-        loss_cls:
+        loss_cls: Loss function class for evaluating TD errors.
     """
     __slots__ = [
         "num_actions", "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",

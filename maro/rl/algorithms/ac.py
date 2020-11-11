@@ -22,7 +22,8 @@ class ActorCriticConfig:
 
     Args:
         num_actions (int): number of possible actions
-        reward_decay (float): reward decay as defined in standard RL terminology
+        reward_decay (float): reward decay as defined in standard RL terminology.
+        critic_loss_func (Callable): loss function for the critic model.
         actor_train_iters (int): number of gradient descent steps for the policy model per call to ``train``.
         critic_train_iters (int): number of gradient descent steps for the value model per call to ``train``.
         k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
@@ -52,16 +53,13 @@ class ActorCritic(AbsAlgorithm):
     Args:
         core_model (MultiTaskLearningModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
-        critic_loss_func (Callable): loss function for the value model.
         config: Configuration for the AC algorithm.
     """
 
-    def __init__(self, core_model: MultiTaskLearningModel, critic_loss_func: Callable, config: ActorCriticConfig):
-        super().__init__()
+    def __init__(self, core_model: MultiTaskLearningModel, config: ActorCriticConfig):
+        super().__init__(core_model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._core_model = core_model
-        self._critic_loss_func = critic_loss_func
-        self._config = config
+        self._core_model.to(self._device)
 
     @property
     def model(self):
@@ -104,15 +102,3 @@ class ActorCritic(AbsAlgorithm):
             for _ in range(self._config.critic_train_iters):
                 critic_loss = self._critic_loss_func(self._core_model(states, task="critic").squeeze(), return_est)
                 self._core_model.step(critic_loss)
-
-    def load_models(self, model):
-        self._core_model.load_state_dict(model)
-
-    def dump_models(self):
-        return self._core_model.state_dict()
-
-    def load_models_from_file(self, path):
-        self._core_model = torch.load(path)
-
-    def dump_models_to_file(self, path: str):
-        torch.save(self._core_model.state_dict(), path)

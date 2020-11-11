@@ -121,16 +121,3 @@ class PPO(AbsAlgorithm):
                 self._value_optimizer.zero_grad()
                 value_loss.backward()
                 self._value_optimizer.step()
-
-    def load_models(self, model_dict):
-        for name, model in self._model_dict.items():
-            model.load_state_dict(model_dict[name])
-
-    def dump_models(self):
-        return {name: model.state_dict() for name, model in self._model_dict.items()}
-
-    def load_models_from_file(self, path):
-        self._model_dict = torch.load(path)
-
-    def dump_models_to_file(self, path: str):
-        torch.save({name: model.state_dict() for name, model in self._model_dict.items()}, path)
