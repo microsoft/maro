@@ -39,7 +39,7 @@ In this scenario, only greedy policy is used. Since there is only 1 epoch, dashb
 
 For summary data, user could view top-5 stations with different attributes.
 
-![citi_bike_summary](C:\Users\Administrator\Desktop\images\citi_bike_summary.gif)
+![citi_bike_summary](..\images\visualization\dashboard\citi_bike_summary.gif)
 
 ###### Citi_Bike Detail Data
 
@@ -49,7 +49,7 @@ If user choose to view information by station, it means that attributes of all s
 
 
 
-![citi_bike_detail_by_station](C:\Users\Administrator\Desktop\images\citi_bike_detail_by_station.gif)
+![citi_bike_detail_by_station](..\images\visualization\dashboard\citi_bike_detail_by_station.gif)
 
 
 
@@ -59,11 +59,11 @@ By choosing the item "All", all of attributes would be displayed.  In addition, 
 
 e.g. In this scenario, item "Requirement Info"  refers to [trip_requirement, shortage, fulfillment].
 
-![citi_bike_detail_by_station_2](C:\Users\Administrator\Desktop\images\citi_bike_detail_by_station_2.gif)
+![citi_bike_detail_by_station_2](..\images\visualization\dashboard\citi_bike_detail_by_station_2.gif)
 
 Moreover, to improve the flexibility of visualizing data, user could use pre-defined formula and selected attributes to generate new attributes. Generated attributes would be treated in the same way as origin attributes.
 
-![citi_bike_detail_by_station_3](C:\Users\Administrator\Desktop\images\citi_bike_detail_by_station_3.gif)
+![citi_bike_detail_by_station_3](..\images\visualization\dashboard\citi_bike_detail_by_station_3.gif)
 
 If user choose to view information by snapshot, it means attributes of all holders within a selected snapshot would be displayed. By changing option "snapshot index", user could view data of different snapshot. By changing option "Snapshot Sampling Ratio", user could change the number of sampled data.
 
@@ -71,7 +71,7 @@ Particularly, if user want to check the name of a specific holder(station in thi
 
 Formula calculate please refer to [Citi_Bike Detail Data](#Citi_Bike Detail Data).
 
-![citi_bike_detail_by_snapshot](C:\Users\Administrator\Desktop\images\citi_bike_detail_by_snapshot.gif)
+![citi_bike_detail_by_snapshot](..\images\visualization\dashboard\citi_bike_detail_by_snapshot.gif)
 
 ##### cim
 
@@ -85,7 +85,7 @@ To change "Start Epoch" and "End Epoch",  user could specify the selected data r
 
 For description of Attributes Selection in charts and Formula Calculation, please refer to [Citi_Bike Detail Data](#Citi_Bike Detail Data).
 
-![cim_extro_epoch](C:\Users\Administrator\Desktop\images\cim_extro_epoch.gif)
+![cim_extro_epoch](..\images\visualization\dashboard\cim_extro_epoch.gif)
 
 ###### Cim Intro Epoch Data
 
@@ -95,7 +95,7 @@ If user choose to view information by ports, attributes of the selected port wou
 
 Chart characteristics and data selection method please refer to [Citi_Bike Detail Data](#Citi_Bike Detail Data).
 
-![cim_intra_epoch_by_ports](C:\Users\Administrator\Desktop\images\cim_intra_epoch_by_ports.gif)
+![cim_intra_epoch_by_ports](..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif)
 
 If user choose to view data by snapshots, attributes of selected snapshot would be displayed. The charts and data involved in this part are relatively rich, and we will introduce them by level.
 
@@ -107,7 +107,7 @@ As shown in the following example, the x-axis and y-axis of transfer volume hot 
 
 The bar chart of Port Acc Attributes displays the global change of ports.
 
-![cim_intra_epoch_by_snapshot_acc_data](C:\Users\Administrator\Desktop\images\cim_intra_epoch_by_snapshot_acc_data.gif)
+![cim_intra_epoch_by_snapshot_acc_data](..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_acc_data.gif)
 
 
 
@@ -119,7 +119,7 @@ Same as ports, user could change the sampling rate of vessels.
 
 Bar chart of Port Detail Attributes and Formula Calculation please refer to [Citi_Bike Detail Data](#Citi_Bike Detail Data).
 
-![cim_intra_epoch_by_snapshot_detail_data](C:\Users\Administrator\Desktop\images\cim_intra_epoch_by_snapshot_detail_data.gif)
+![cim_intra_epoch_by_snapshot_detail_data](..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif)
 
 ### Additional Information
 
