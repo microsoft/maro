@@ -67,7 +67,8 @@ class PPO(AbsAlgorithm):
     See https://arxiv.org/pdf/1707.06347.pdf for details.
 
     Args:
-        core_model (nn.Module): model for generating actions given states.
+        core_model (MultiTaskLearningModel): Multi-task model that computes action distributions and state values.
+            It may or may not have a shared bottom stack.
         config: Configuration for the PPO algorithm.
     """
     @validate_tasks(PPOTask)

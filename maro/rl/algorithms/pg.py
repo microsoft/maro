@@ -31,7 +31,6 @@ class PolicyGradient(AbsAlgorithm):
         core_model (SingleTaskLearningModel): Policy model.
         config: Configuration for the PG algorithm.
     """
-
     def __init__(self, core_model: SingleTaskLearningModel, config: PolicyGradientConfig):
         super().__init__(core_model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
