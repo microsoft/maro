@@ -266,7 +266,7 @@ cdef class NodeBase:
         my_nodes.my_float_array_attr[(0, 1)] = (0.1, 0.2)
     """
     cdef:
-        # index of current node in frame memory,
+        # Index of current node in frame memory,
         # all the node/frame operation will base on this property, so user should create a mapping that
         # map the business model id/name to node index
         NODE_INDEX _index
@@ -281,15 +281,18 @@ cdef class NodeBase:
         # Attriubtes: name -> id.
         dict _attributes
 
-        # enable dynamic attributes
+        # Enable dynamic attributes
         dict __dict__
 
-    # set up the node for using with frame, and index
+    # Set up the node for using with frame, and index
     # this is called by Frame after the instance is initialized
     cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, dict attr_name_id_dict) except *
 
-    # internal functions, will be called after Frame's setup, used to bind attributes to instance
+    # Internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *
+
+    # Internal update, used to support dynamic node
+    cdef void _update(self) except *
 
 
 cdef class NodeAttribute:

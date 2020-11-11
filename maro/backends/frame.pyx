@@ -67,7 +67,7 @@ cdef class _NodeAttributeAccessor:
         NODE_INDEX _node_index
 
         # Target attribute id
-        IDENTIFIER _attr_id
+        public IDENTIFIER _attr_id
 
         # Slot number of target attribute
         public SLOT_INDEX _slot_number
@@ -240,6 +240,16 @@ cdef class NodeBase:
 
                 if cb_func is not None:
                     attr_acc.on_value_changed(cb_func)
+
+    cdef void _update(self) except *:
+        cdef dict __dict__ = self.__dict__
+        cdef str attr_name
+
+        for attr_name, attr in __dict__.items():
+            attr = __dict__[attr_name]
+
+            if isinstance(attr, _NodeAttributeAccessor):
+                attr._slot_number = self._backend.snapshots.get_slots_number(attr._attr_id)
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
@@ -421,6 +431,7 @@ cdef class FrameBase:
         cdef NodeBase first_node
         cdef list node_list
         cdef IDENTIFIER attr_id
+        cdef NodeBase node
 
         if self._backend.is_support_dynamic_features():
             if slots == 0:
@@ -441,6 +452,10 @@ cdef class FrameBase:
             attr_id = first_node._attributes[attr_name]
 
             self._backend.set_attribute_slot(attr_id, slots)
+
+            # Update nodes
+            for node in node_list:
+                node._update()
 
     cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshots, dict options) except *:
         """Setup Frame for further using."""

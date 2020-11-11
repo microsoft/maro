@@ -42,6 +42,7 @@ def build_frame(enable_snapshot:bool=False, total_snapshot:int=10, backend_name=
 
 class TestFrame(unittest.TestCase):
     def test_node_number(self):
+
         """Test if node number same as defined"""
         for backend_name in backends_to_test:
             frame = build_frame(backend_name=backend_name)
@@ -319,6 +320,37 @@ class TestFrame(unittest.TestCase):
         states = states.flatten()
 
         self.assertListEqual([0.0, 222.0, 0.0, 0.0, 123.0], list(states))
+
+    def test_set_attribute_slots(self):
+        frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
+
+        # set value for last static node
+        last_static_node = frame.static_nodes[-1]
+
+        last_static_node.a2 = 2
+        last_static_node.a3 = 9
+        last_static_node.a1[:] = (0, 1)
+
+        frame.take_snapshot(0)
+
+        # change slots number
+
+        # we do not accept 0 slots
+        with self.assertRaises(Exception) as ctx:
+            frame.set_attribute_slot("static", "a1", 0)
+
+        # do not support set for not exist node
+        with self.assertRaises(Exception) as ctx:
+            frame.set_attribute_slot("no", "a1", 12)
+
+        # do not support set for not exist attribute
+        with self.assertRaises(Exception) as ctx:
+            frame.set_attribute_slot("static", "aa", 1)
+
+        # extend slots
+        frame.set_attribute_slot("static", "a2", 4)
+
+        last_static_node.a2[3] = 0
 
 if __name__ == "__main__":
     unittest.main()
