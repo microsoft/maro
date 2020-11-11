@@ -10,8 +10,10 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.abs_learning_model import AbsLearningModel
 from maro.rl.models.learning_model import MultiTaskLearningModel
 
+from .task_validator import validate_tasks
 
-class DuelingHead(Enum):
+
+class DuelingDQNTask(Enum):
     STATE_VALUE = "state_value"
     ADVANTAGE = "advantage"
 
@@ -68,6 +70,7 @@ class DQN(AbsAlgorithm):
         core_model (AbsLearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
+    @validate_tasks(DuelingDQNTask)
     def __init__(self, core_model: AbsLearningModel, config: DQNConfig):
         super().__init__(core_model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

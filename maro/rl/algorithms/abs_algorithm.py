@@ -5,8 +5,6 @@ from abc import ABC, abstractmethod
 
 from maro.rl.models.abs_learning_model import AbsLearningModel
 
-from .task_validator import validate_tasks
-
 
 class AbsAlgorithm(ABC):
     """Abstract RL algorithm class.
@@ -19,7 +17,6 @@ class AbsAlgorithm(ABC):
         core_model (AbsLearningModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
     """
-    @validate_tasks
     def __init__(self, core_model: AbsLearningModel, config):
         self._core_model = core_model
         self._config = config
