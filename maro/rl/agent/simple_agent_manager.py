@@ -88,19 +88,19 @@ class SimpleAgentManager(AbsAgentManager):
     def load_models(self, agent_model_dict):
         """Load models from memory for each agent."""
         for agent_id, models in agent_model_dict.items():
-            self.agent_dict[agent_id].load_models(models)
+            self.agent_dict[agent_id].load_model(models)
 
     def dump_models(self) -> dict:
         """Get agents' underlying models.
 
         This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
         """
-        return {agent_id: agent.dump_models() for agent_id, agent in self.agent_dict.items()}
+        return {agent_id: agent.dump_model() for agent_id, agent in self.agent_dict.items()}
 
     def load_models_from_files(self, dir_path):
         """Load models from disk for each agent."""
         for agent in self.agent_dict.values():
-            agent.load_models_from_file(dir_path)
+            agent.load_model_from_file(dir_path)
 
     def dump_models_to_files(self, dir_path: str):
         """Dump agents' models to disk.
@@ -109,4 +109,4 @@ class SimpleAgentManager(AbsAgentManager):
         """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self.agent_dict.values():
-            agent.dump_models_to_file(dir_path)
+            agent.dump_model_to_file(dir_path)
