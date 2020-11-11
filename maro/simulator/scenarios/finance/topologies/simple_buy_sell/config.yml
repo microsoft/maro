@@ -1,12 +1,13 @@
 # this is the tick=0 for all the sub-engines
 # stock/futures whoes beginning date later than this, will be filled with 0
 beginning_date: "2019-01-01"
+ending_date: "2020-01-01"
 time_zone: "Asia/Shanghai"
 account:
   money: 10000 # 1 unit
 
 type: stock # Stock, futures.
-data_path: "./"
+data_path: "../../../tests/data/finance"
 stocks: # Stocks to simulate.
   - "000001"
   - "000002"

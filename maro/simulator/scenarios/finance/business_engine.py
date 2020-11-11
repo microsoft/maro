@@ -15,9 +15,10 @@ from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
+from maro.simulator.scenarios.finance.account import Account
 from maro.simulator.scenarios.finance.common.commission import ByMoneyCommission, StampTaxCommission
 from maro.simulator.scenarios.finance.common.common import (
-    Action, ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, Order,
+    ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, Order,
     OrderActionScope, OrderDirection, OrderMode, TradeResult
 )
 from maro.simulator.scenarios.finance.common.slippage import ByMoneySlippage
@@ -38,10 +39,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
     ):
         super().__init__(
-            "finance", event_buffer, topology, start_tick, max_tick,
-            snapshot_resolution, max_snapshots, additional_options
+            scenario_name="finance", event_buffer=event_buffer, topology=topology, start_tick=start_tick, max_tick=max_tick,
+            snapshot_resolution=snapshot_resolution, max_snapshots=max_snapshots, additional_options=additional_options
         )
-        
         # 1. load_config
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
@@ -53,7 +53,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._quote_readers: list = []
         self._quote_pickers: list = []
 
-        
         # Our quote table used to query quote by tick.
         quote_data_path = self._conf["data_path"]
         if quote_data_path.startswith("~"):
@@ -73,15 +72,17 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         for idx in range(len(self._conf["stocks"])):
             self._quote_readers.append(BinaryReader(quote_data_paths[idx]))
-            print(self._quote_readers[-1].start_datetime, self._quote_readers[-1].end_datetime)
+            print(type(self._quote_readers[-1].start_datetime), self._quote_readers[-1].end_datetime)
             self._quote_pickers.append(
                 self._quote_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
         # We keep this used to calculate real datetime to get quote info.
         self._quote_start_date: datetime.datetime = datetime.datetime.fromisoformat(self._conf["beginning_date"])
+        self._quote_end_date: datetime.datetime = datetime.datetime.fromisoformat(self._conf["ending_date"])
 
         # Since binary data hold UTC timestamp, convert it into our target timezone.
         self._quote_start_date = self._quote_start_date.astimezone(self._time_zone)
+        self._quote_end_date = self._quote_start_date.astimezone(self._time_zone)
 
         # 3. init_instance
         # Time zone we used to transfer UTC to target time zone.
@@ -89,11 +90,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._init_frame()
 
-        self._support_order_mode = [OrderMode.market_order, OrderMode.stop_order, OrderMode.limit_order, OrderMode.stop_limit_order]
+        self._support_order_mode = [
+            OrderMode.market_order, OrderMode.stop_order,
+            OrderMode.limit_order, OrderMode.stop_limit_order
+        ]
 
         self._pending_orders = OrderedDict()  # The orders that can be canceled.
         self._day_trade_orders = []  # The order list for dealing with day trading
-        self._finished_action = OrderedDict() # All the actions finished, including orders, cancel orders, etc.
+        self._finished_action = OrderedDict()  # All the actions finished, including orders, cancel orders, etc.
 
     @property
     def frame(self) -> FrameBase:
@@ -146,9 +150,11 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(evt)
 
     def post_step(self, tick: int) -> bool:
-        """
-            After the events of the tick all finished,
-            take the snapshot of the frame and reset the nodes for next tick.
+        """After the events of the tick all finished,
+        take the snapshot of the frame and reset the nodes for next tick.
+
+        Args:
+            tick (int): Current tick of the step.
         """
         if (not self._conf["trade_constraint"]["allow_day_trade"]) and self.is_market_closed():
             # not allowed day trade, add stock buy amount to hold here
@@ -191,9 +197,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for idx in range(len(self._quote_pickers)):
             self._quote_pickers[idx] = self._quote_readers[idx].items_tick_picker(
                 self._start_tick, self._max_tick, time_unit="d")
-
+        self._account.reset()
+        self._account.set_init_state(init_money=self._conf['account']['money'])
         for stock in self._stocks:
             stock.reset()
+        for idx in range(len(self._conf["stocks"])):
+            self._stocks[idx].set_init_state(self._conf["stocks"][idx])
 
         # self._matrices_node.reset()
 
@@ -202,10 +211,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         self._finished_action.clear()
 
     def get_agent_idx_list(self) -> List[int]:
-        """Get a list of agent index.
+        """Get a list of stock index.
 
         Returns:
-            list: List of agent index.
+            list: List of stock index.
         """
         return [stock.code for stock in self._stocks]
 
@@ -238,19 +247,17 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         """Load configurations"""
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._conf = safe_load(fp)
-            self._beginning_timestamp = datetime.datetime.strptime(self._conf["beginning_date"], "%Y-%m-%d").timestamp()        
+            self._beginning_timestamp = datetime.datetime.strptime(self._conf["beginning_date"], "%Y-%m-%d").timestamp()
 
     def _init_frame(self):
         self._frame = build_frame(len(self._conf["stocks"]), self.calc_max_snapshots())
         self._snapshots = self._frame.snapshots
-        self._account = self._frame.account[0]
+        self._account: Account = self._frame.account[0]
         self._account.set_init_state(init_money=self._conf['account']['money'])
         self._stocks = self._frame.stocks
 
         for idx in range(len(self._conf["stocks"])):
-            # Get related station, and set the init states.
-            stock = self._stocks[idx]
-            stock.set_init_state(self._conf["stocks"][idx])
+            self._stocks[idx].set_init_state(self._conf["stocks"][idx])
 
     def _register_events(self):
         # Register our own events and their callback handlers.
@@ -269,10 +276,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             if action is None:
                 continue
             elif isinstance(action, CancelOrder):
-                self.cancel_order(action, evt.tick)
-            else: # Action is Order
-                results: list = self.take_order(
-                    action, evt.tick
+                self._cancel_order(action=action, tick=evt.tick)
+            else:  # Action is Order
+                results: list = self._take_order(
+                    order=action, tick=evt.tick
                 )
                 for result in results:
                     self._account.take_trade(
@@ -287,7 +294,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 self._event_buffer.gen_atom_event(evt.tick, DecisionEvent, action)
             self._pending_orders[evt.tick].clear()
 
-    def take_order(self, order: Order, tick: int) -> TradeResult:
+    def _take_order(self, order: Order, tick: int) -> TradeResult:
+        """Deal with the order.
+        """
         # 1. can trade -> bool
         # 2. return (stock, sell/busy, stock_price, number, tax)
         # 3. update stock.account_hold_num
@@ -300,9 +309,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         if is_trigger:
             print(f"  <<>>  executing {order}")
             if not self._conf["trade_constraint"]["allow_split"]:
-                order_succeeded, rets = self.trade(order)
+                order_succeeded, rets = self._trade(action=order)
             else:
-                order_succeeded, rets = self.split_trade(order)
+                order_succeeded, rets = self._split_trade(action=order)
 
             if order_succeeded:
                 order.state = ActionState.success
@@ -311,8 +320,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     print(f"  <<>>  trading: {ret}")
                     if order.direction == OrderDirection.buy:
                         self._stocks[order.item].average_cost = (
-                            self._stocks[order.item].account_hold_num * self._stocks[order.item].average_cost +
-                            ret.price_per_item * ret.trade_number
+                            self._stocks[order.item].account_hold_num * self._stocks[order.item].average_cost
+                            + ret.price_per_item * ret.trade_number
                         ) / (self._stocks[order.item].account_hold_num + ret.trade_number)
                         # day trading is considered
                         if self._conf["trade_constraint"]["allow_day_trade"]:
@@ -341,16 +350,20 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return rets
 
-    def cancel_order(self, action: CancelOrder, tick: int):
-        action.action.state = ActionState.canceled
-        action.action.finish_tick = tick
-        action.action.remaining_life_time = 0
-        assert((tick in self._pending_orders) and (action.action in self._pending_orders[tick]))
-        self._pending_orders[tick].remove(action.action)
+    def _cancel_order(self, action: CancelOrder, tick: int):
+        """Cancel the specified order.
+        """
+        action.order.state = ActionState.canceled
+        action.order.finish_tick = tick
+        action.order.remaining_life_time = 0
+        assert((tick in self._pending_orders) and (action.order in self._pending_orders[tick]))
+        self._pending_orders[tick].remove(action.order)
         action.state = ActionState.success
         action.finish_tick = tick
 
     def _action_scope(self, action_type: ActionType, stock_index: int, tick: int):
+        """Generate the action scope of the action
+        """
         if action_type == ActionType.order:
             # action_scope of stock
             stock: Stock = self._stocks[stock_index]
@@ -391,15 +404,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         # NOTE: We do not need hour and minutes for now.
         return (self._quote_start_date + relativedelta(minutes=tick)).date()
 
-    def _build_temp_data(self):
-        """Build temporary data for predefined environment."""
-        pass
-
-    # TODO: implement
-    def split_trade(self, action: Action):
+    def _split_trade(self, action: Order):
         rets = []
         trade_succeeded = False
-        market_price = self.pick_market_price(self._stocks[action.item])
+        market_price = self._pick_market_price(self._stocks[action.item])
         market_volume = self._stocks[action.item].trade_volume
 
         slippage = ByMoneySlippage(self._conf["trade_constraint"]["slippage"])
@@ -434,11 +442,13 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                 executing_tax = tax.execute(action.direction, executing_price, executing_volume)
 
                 # constraint
-                if not self.validate_trade_on_volume_unit(
-                    odd_shares, action.direction, executing_price, executing_volume
+                if not self._validate_trade_on_volume_unit(
+                    odd_shares=odd_shares, direction=action.direction, executing_price=executing_price,
+                    executing_volume=executing_volume
                 ):
-                    executing_volume = self.adjust_trade_on_volume_unit(
-                        odd_shares, action.direction, executing_price, executing_volume
+                    executing_volume = self._adjust_trade_on_volume_unit(
+                        odd_shares=odd_shares, direction=action.direction, executing_price=executing_price,
+                        executing_volume=executing_volume
                     )
                     adjusted = True
                     odd_shares = 0
@@ -446,20 +456,25 @@ class FinanceBusinessEngine(AbsBusinessEngine):
                     continue
 
                 # money
-                if not self.validate_trade_on_remaining_cash(
-                    action.direction, executing_price, executing_volume,
-                    executing_commission, executing_tax, remaining_cash
+                if not self._validate_trade_on_remaining_cash(
+                    direction=action.direction, executing_price=executing_price, executing_volume=executing_volume,
+                    executing_commission=executing_commission, executing_tax=executing_tax,
+                    remaining_cash=remaining_cash
                 ):
-                    executing_volume = self.adjust_trade_on_remaining_cash(
-                        action.direction, executing_price, executing_volume,
-                        executing_commission, executing_tax, remaining_cash
+                    executing_volume = self._adjust_trade_on_remaining_cash(
+                        direction=action.direction, executing_price=executing_price, executing_volume=executing_volume,
+                        executing_commission=executing_commission, executing_tax=executing_tax,
+                        remaining_cash=remaining_cash
                     )
                     adjusted = True
                     # print(f"Adjust volume for trade:{executing_volume}")
                     continue
 
             if executing_volume > 0:
-                ret = TradeResult(executing_volume, executing_price, executing_commission, executing_tax)
+                ret = TradeResult(
+                    direction=action.direction, trade_number=executing_volume,
+                    price_per_item=executing_price, commission=executing_commission, tax=executing_tax
+                )
                 trade_succeeded = True
                 remaining_volume -= executing_volume
                 if action.direction == OrderDirection.buy:
@@ -476,10 +491,10 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return trade_succeeded, rets
 
-    def trade(self, action: Action):
+    def _trade(self, action: Order):
         rets = []
         trade_succeeded = False
-        market_price = self.pick_market_price(self._stocks[action.item])
+        market_price = self._pick_market_price(self._stocks[action.item])
         market_volume = self._stocks[action.item].trade_volume
         remaining_cash = self._account.remaining_cash
 
@@ -511,35 +526,44 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             executing_tax = tax.execute(action.direction, executing_price, executing_volume)
 
             # constraint
-            if not self.validate_trade_on_volume_unit(odd_shares, action.direction, executing_price, executing_volume):
-                executing_volume = self.adjust_trade_on_volume_unit(
-                    odd_shares, action.direction, executing_price, executing_volume
+            if not self._validate_trade_on_volume_unit(
+                odd_shares=odd_shares, direction=action.direction, executing_price=executing_price,
+                executing_volume=executing_volume
+            ):
+                executing_volume = self._adjust_trade_on_volume_unit(
+                    odd_shares=odd_shares, direction=action.direction, executing_price=executing_price,
+                    executing_volume=executing_volume
                 )
                 adjusted = True
                 # print(f"Adjust volume for constraint:{executing_volume}")
                 continue
 
             # money
-            if not self.validate_trade_on_remaining_cash(
-                action.direction, executing_price, executing_volume,
-                executing_commission, executing_tax, remaining_cash
+            if not self._validate_trade_on_remaining_cash(
+                direction=action.direction, executing_price=executing_price, executing_volume=executing_volume,
+                executing_commission=executing_commission, executing_tax=executing_tax,
+                remaining_cash=remaining_cash
             ):
-                executing_volume = self.adjust_trade_on_remaining_cash(
-                    action.direction, executing_price, executing_volume,
-                    executing_commission, executing_tax, remaining_cash
+                executing_volume = self._adjust_trade_on_remaining_cash(
+                    direction=action.direction, executing_price=executing_price, executing_volume=executing_volume,
+                    executing_commission=executing_commission, executing_tax=executing_tax,
+                    remaining_cash=remaining_cash
                 )
                 adjusted = True
                 # print(f"Adjust volume for trade:{executing_volume}")
                 continue
 
         if executing_volume > 0:
-            ret = TradeResult(executing_volume, executing_price, executing_commission, executing_tax)
+            ret = TradeResult(
+                direction=action.direction, price_per_item=executing_price, trade_number=executing_volume,
+                commission=executing_commission, tax=executing_tax
+            )
             trade_succeeded = True
             rets.append(ret)
 
         return trade_succeeded, rets
 
-    def validate_trade_on_volume_unit(
+    def _validate_trade_on_volume_unit(
         self, odd_shares: int, direction: OrderDirection, executing_price: float, executing_volume: int
     ):
         ret = True
@@ -554,7 +578,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return ret
 
-    def adjust_trade_on_volume_unit(
+    def _adjust_trade_on_volume_unit(
         self, odd_shares: int, direction: OrderDirection, executing_price: float, executing_volume: int
     ):
         ret = executing_volume
@@ -569,7 +593,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return int(ret)
 
-    def validate_trade_on_remaining_cash(
+    def _validate_trade_on_remaining_cash(
         self, direction: OrderDirection, executing_price: float,
         executing_volume: int, executing_commission: float, executing_tax: float, remaining_cash: float
     ):
@@ -585,7 +609,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         return ret
 
-    def adjust_trade_on_remaining_cash(
+    def _adjust_trade_on_remaining_cash(
         self, direction: OrderDirection, executing_price: float,
         executing_volume: int, executing_commission: float, executing_tax: float, remaining_cash: float
     ):
@@ -604,5 +628,5 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             ) * self._conf["trade_constraint"]["min_buy_unit"]
         return int(ret)
 
-    def pick_market_price(self, stock: Stock):
+    def _pick_market_price(self, stock: Stock):
         return getattr(stock, self._conf["trade_constraint"]["deal_price"], stock.opening_price)

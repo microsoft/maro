@@ -103,9 +103,9 @@ for ep in range(max_ep):
                     dividends = cur_env_snap[last_frame_idx:int(decision_event.item):"dividends"][-1]
                     splits = cur_env_snap[last_frame_idx:int(decision_event.item):"splits"][-1]
                     # qurey snapshot for account information
-                    total_assets_value = env.snapshot_list['account'][last_frame_idx:0:"total_assets_value"][-1]
+                    net_assets_value = env.snapshot_list['account'][last_frame_idx:0:"net_assets_value"][-1]
                     remaining_cash = env.snapshot_list['account'][last_frame_idx:0:"remaining_cash"][-1]
-                    #print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "total_assets_value:", total_assets_value, "remaining_cash", remaining_cash)
+                    #print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "net_assets_value:", net_assets_value, "remaining_cash", remaining_cash)
 
                     if holding > 0:  # sub_engine_name -> market
                         action = MarketOrder(item=decision_event.item, amount=holding,
@@ -141,9 +141,9 @@ sz_account_hold_num = stock_snapshots[::"account_hold_num"]
 print("volume holding of sz market.")
 print(sz_account_hold_num)
 
-sz_account_total_assets_value = env.snapshot_list['account'][::"total_assets_value"]
+sz_account_net_assets_value = env.snapshot_list['account'][::"net_assets_value"]
 
-print("total_assets_value for sz market.")
-print(sz_account_total_assets_value)
+print("net_assets_value for sz market.")
+print(sz_account_net_assets_value)
 
 ```
