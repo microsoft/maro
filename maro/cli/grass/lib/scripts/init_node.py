@@ -36,17 +36,17 @@ echo "Finish node initialization"
 if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
-    parser.add_argument('cluster_name')
-    parser.add_argument('node_name')
+    parser.add_argument("cluster_name")
+    parser.add_argument("node_name")
     args = parser.parse_args()
 
     # Load details
-    with open(os.path.expanduser(f"~/details.yml"), 'r') as fr:
+    with open(os.path.expanduser("~/details.yml"), "r") as fr:
         cluster_details = yaml.safe_load(fr)
-    master_hostname = cluster_details['master']['hostname']
-    master_public_key = cluster_details['master']['public_key']
-    admin_username = cluster_details['user']['admin_username']
-    samba_password = cluster_details['master']['samba']['password']
+    master_hostname = cluster_details["master"]["hostname"]
+    master_public_key = cluster_details["master"]["public_key"]
+    admin_username = cluster_details["user"]["admin_username"]
+    samba_password = cluster_details["master"]["samba"]["password"]
 
     # Load command
     command = INIT_COMMAND.format(
@@ -60,16 +60,16 @@ if __name__ == "__main__":
     # Exec command
     process = subprocess.Popen(
         command,
-        executable='/bin/bash',
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        executable="/bin/bash",
+        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
     )
     while True:
         nextline = process.stdout.readline()
-        if nextline == '' and process.poll() is not None:
+        if nextline == "" and process.poll() is not None:
             break
         sys.stdout.write(nextline)
         sys.stdout.flush()
     stdout, stderr = process.communicate()
     if stderr:
-        sys.stderr.write(stderr.strip('\n'))
-    sys.stdout.write(stdout.strip('\n'))
+        sys.stderr.write(stderr.strip("\n"))
+    sys.stdout.write(stdout.strip("\n"))
