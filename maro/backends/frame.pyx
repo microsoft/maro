@@ -345,6 +345,8 @@ cdef class FrameBase:
         """
         self._backend.reset()
 
+        cdef NodeBase node
+
         if self._backend.is_support_dynamic_features():
             # We need to make sure node number same as origin after reset
             for node_name, node_number in self._node_origin_number_dict.items():
@@ -354,9 +356,12 @@ cdef class FrameBase:
                     node = node_list[i]
 
                     if i >= node_number:
-                        node_list.remove(i)
+                        del node_list[i]
                     else:
                         node._is_deleted = False
+
+                        # Update node internal states
+                        node._update()
 
     cpdef void take_snapshot(self, UINT tick) except *:
         """Take snapshot for specified point (tick) for current frame.
@@ -412,6 +417,7 @@ cdef class FrameBase:
                 node = self._node_cls_dict[node_name]()
 
                 node.setup(self._backend, len(node_list), node_id, first_node._attributes)
+                node._update()
 
                 node_list.append(node)
 

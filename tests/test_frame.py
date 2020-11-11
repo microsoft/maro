@@ -245,6 +245,12 @@ class TestFrame(unittest.TestCase):
 
         self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states.flatten()))
 
+        frame.snapshots.reset()
+        frame.reset()
+
+        # node number will resume to origin one after reset
+        self.assertEqual(STATIC_NODE_NUM, len(frame.static_nodes))
+
     def test_delete_node(self):
         frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
 
@@ -321,6 +327,16 @@ class TestFrame(unittest.TestCase):
 
         self.assertListEqual([0.0, 222.0, 0.0, 0.0, 123.0], list(states))
 
+        frame.snapshots.reset()
+        frame.reset()
+
+        # node number will resume to origin one after reset
+        self.assertEqual(STATIC_NODE_NUM, len(frame.static_nodes))
+
+        # and no nodes marked as deleted
+        for node in frame.static_nodes:
+            self.assertTrue(node.is_deleted == False)
+
     def test_set_attribute_slots(self):
         frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
 
@@ -350,7 +366,54 @@ class TestFrame(unittest.TestCase):
         # extend slots
         frame.set_attribute_slot("static", "a2", 4)
 
-        last_static_node.a2[3] = 0
+        # 1st value should keep same
+        self.assertEqual(2, last_static_node.a2[0])
+
+        # new slots' value should be 0
+        self.assertListEqual([0, 0, 0], last_static_node.a2[1:])
+
+        last_static_node.a2[3] = 5
+
+        frame.take_snapshot(1)
+
+        #
+        static_snapshots = frame.snapshots["static"]
+
+        states = static_snapshots[0::"a2"]
+
+        # NOTE:
+        # Currently, slots always padding to max number ever has
+        self.assertTupleEqual((1, STATIC_NODE_NUM, 1, 4), states.shape)
+
+        states = states.flatten()
+
+        # each a2 attribute contains 4 slots, 1 for real value, 3 for padding, so we pick them with 4 steps
+        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 2.0], list(states[[0, 4, 8, 12, 16]]))
+
+        states = static_snapshots[1:4:"a2"]
+
+        self.assertTupleEqual((1, 1, 1, 4), states.shape)
+
+        states = states.flatten()
+
+        self.assertListEqual([2.0, 0.0, 0.0, 5.0], list(states))
+
+        # new append nodes should have same slots
+        frame.append_node("static", 2)
+
+        self.assertEqual(STATIC_NODE_NUM + 2, len(frame.static_nodes))
+
+        frame.snapshots.reset()
+        frame.reset()
+
+        # slots number will reset to origin one (definition) after reset
+        # so it will cause exception if we use slice interface
+        with self.assertRaises(Exception) as ctx:
+            last_static_node.a2[:] = (0, 1, 2, 3)
+
+        # but works with normal way
+        self.assertEqual(0, last_static_node.a2)
+
 
 if __name__ == "__main__":
     unittest.main()
