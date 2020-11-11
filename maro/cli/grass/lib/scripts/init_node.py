@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # Load command
     command = INIT_COMMAND.format(
         admin_username=admin_username,
-        maro_path=os.path.expanduser(f"~/.maro"),
+        maro_path=os.path.expanduser("~/.maro"),
         samba_password=samba_password,
         master_hostname=master_hostname,
         master_public_key=master_public_key,
