@@ -22,6 +22,7 @@ class DQNConfig:
     Args:
         num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
+        loss_cls: Loss function class for evaluating TD errors.
         target_update_frequency (int): Number of training rounds between target model updates.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
@@ -31,7 +32,6 @@ class DQNConfig:
             case it is assumed that the regular Q-value model is used.
         per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
-        loss_cls:
     """
     __slots__ = [
         "num_actions", "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",
