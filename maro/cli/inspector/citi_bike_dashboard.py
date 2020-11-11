@@ -7,10 +7,7 @@ import pandas as pd
 import streamlit as st
 
 import maro.cli.inspector.common_helper as common_helper
-from maro.cli.utils.params import GlobalPaths
-
-NAME_CONVERSION_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["name_conversion_path"]
-STATIONS_FILE_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["stations_file_path"]
+from maro.cli.utils.params import GlobalFilePaths as Gfiles
 
 
 def show_citi_bike_detail_plot(ROOT_PATH):
@@ -41,7 +38,7 @@ def show_citi_bike_detail_plot(ROOT_PATH):
         station_index = st.sidebar.select_slider(
             "station index",
             stations_index)
-        name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
+        name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, Gfiles.name_convert))
         common_helper.render_H3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
         # filter data by station index
         station_filtered_by_ID = data_stations[data_stations["name"] == f"stations_{station_index}"]
@@ -105,7 +102,7 @@ def show_citi_bike_detail_plot(ROOT_PATH):
         snapshot_filtered = snapshot_filtered_by_Frame_Index[item_option]
         snapshot_filtered = snapshot_filtered.iloc[down_pooling]
         snapshot_filtered["name"] = snapshot_filtered["name"].apply(lambda x: int(x[9:]))
-        name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
+        name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, Gfiles.name_convert))
         snapshot_filtered["station"] = snapshot_filtered["name"].apply(lambda x: name_conversion.loc[int(x)])
         snapshot_filtered_long_form = \
             snapshot_filtered.melt(["station", "name"], var_name="Attributes", value_name="count")
@@ -161,8 +158,8 @@ def show_citi_bike_summary_plot(ROOT_PATH):
 
     """
     common_helper.render_H1_title("CITI_BIKE Summary Data")
-    data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH))
-    name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
+    data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, Gfiles.stations_sum))
+    name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, Gfiles.name_convert))
     data["station name"] = list(map(lambda x: name_conversion.loc[int(x[9:])][0], data["name"]))
     df_bikes = data[["station name", "bikes"]].sort_values(by="bikes", ascending=False).head(5)
     df_requirement = data[["station name", "trip_requirement"]].sort_values(by="trip_requirement",

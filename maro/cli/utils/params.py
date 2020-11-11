@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 import logging
+from enum import Enum
 
 
 class GlobalParams:
@@ -17,7 +17,15 @@ class GlobalPaths:
     MARO_CLUSTERS = '~/.maro/clusters'
     MARO_DATA = '~/.maro/data'
     MARO_TEST = '~/.maro/test'
-    MARO_INSPECTOR_FILE_PATH = {'ports_file_path': r'snapshot_ports_summary.csv',
-                                'vessels_file_path': r'snapshot_vessels_summary.csv',
-                                'stations_file_path': r'snapshot_stations_summary.csv',
-                                'name_conversion_path': r'name_conversion.csv'}
+
+
+class GlobalFilePaths():
+    ports_sum = "snapshot_ports_summary.csv"
+    vessels_sum = "snapshot_vessels_summary.csv"
+    stations_sum = "snapshot_stations_summary.csv"
+    name_convert = "name_conversion.csv"
+
+
+class GlobalScenaios(Enum):
+    cim = 1
+    citi_bike = 2

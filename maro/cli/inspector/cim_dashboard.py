@@ -7,11 +7,8 @@ import pandas as pd
 import streamlit as st
 
 import maro.cli.inspector.common_helper as common_helper
-from maro.cli.utils.params import GlobalPaths
-
-NAME_CONVERSION_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["name_conversion_path"]
-PORTS_FILE_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["ports_file_path"]
-VESSELS_FILE_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["vessels_file_path"]
+from maro.cli.utils.params import GlobalFilePaths as Gfiles
+from maro.cli.utils.params import GlobalScenaios
 
 
 def generate_down_pooling_sample(down_pooling_len, start_epoch, end_epoch):
@@ -57,7 +54,7 @@ def show_cim_summary_plot(ROOT_PATH):
                         "shortage", "booking",
                         "fulfillment", "on_shipper",
                         "on_consignee", "capacity", "full", "empty"]
-    data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH))
+    data = common_helper.read_detail_csv(os.path.join(ROOT_PATH, Gfiles.ports_sum))
     data = data.iloc[down_pooling_range]
     data_genera = common_helper.formula_define(data)
     if data_genera is not None:
@@ -176,7 +173,7 @@ def show_cim_detail_plot(ROOT_PATH):
             "Choose a Port:",
             ports_index)
         port_option = f"ports_{port_index}"
-        name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
+        name_conversion = common_helper.read_detail_csv(os.path.join(ROOT_PATH, Gfiles.name_convert))
         sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
         snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
         common_helper.render_H1_title("CIM Acc Data")
@@ -199,17 +196,17 @@ def show_cim_detail_plot(ROOT_PATH):
             snapshot_num,
             snapshot_sample_num, item_option)
     if option_2 == "by snapshot":
-        CONVER = os.path.join(ROOT_PATH, NAME_CONVERSION_PATH)
+        CONVER = os.path.join(ROOT_PATH, Gfiles.name_convert)
         snapshot_index = st.sidebar.select_slider(
             "snapshot index",
             snapshots_index)
         sample_ratio = common_helper.holder_sample_ratio(ports_num)
         usr_ratio = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
         common_helper.render_H1_title("Acc Data")
-        show_volume_hot_map(ROOT_PATH, "cim", option_epoch, snapshot_index)
+        show_volume_hot_map(ROOT_PATH, GlobalScenaios.cim, option_epoch, snapshot_index)
         common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Port Acc Attributes")
         generate_detail_plot_by_snapshot(ch_info, data_ports, snapshot_index, ports_num, CONVER, usr_ratio)
-        generate_cim_top_summary(data_ports, snapshot_index, ports_num, os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
+        generate_cim_top_summary(data_ports, snapshot_index, ports_num, os.path.join(ROOT_PATH, Gfiles.name_convert))
         common_helper.render_H1_title("Detail Data")
         data_vessels = common_helper.read_detail_csv(os.path.join(dir, "vessels.csv"))
         vessels_num = len(data_vessels["name"].unique())
@@ -323,7 +320,7 @@ def show_volume_hot_map(ROOT_PATH, scenario, epoch_index, snapshot_index):
         snapshot_index(int): Selected snapshot index.
     """
     matrix_data = pd.read_csv(os.path.join(ROOT_PATH, f"snapshot_{epoch_index}", "matrices.csv")).loc[snapshot_index]
-    if scenario == "cim":
+    if scenario == GlobalScenaios.cim:
         common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Acc Port Transfer Volume")
         generate_hot_map(matrix_data["full_on_ports"])
 

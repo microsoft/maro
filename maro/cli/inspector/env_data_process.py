@@ -8,16 +8,12 @@ import tqdm
 import yaml
 
 from maro.cli.inspector.launch_env_dashboard import launch_dashboard
-from maro.cli.utils.params import GlobalPaths
+from maro.cli.utils.params import GlobalFilePaths as Gfiles
+from maro.cli.utils.params import GlobalScenaios
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
-
-NAME_CONVERSION_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["name_conversion_path"]
-PORTS_FILE_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["ports_file_path"]
-VESSELS_FILE_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["vessels_file_path"]
-STATIONS_FILE_PATH = GlobalPaths.MARO_INSPECTOR_FILE_PATH["stations_file_path"]
 
 
 def init_csv(file_path, header):
@@ -81,15 +77,15 @@ def generate_summary(scenario, ROOT_PATH):
         if os.path.exists(os.path.join(ROOT_PATH, f"snapshot_{index}")):
             dbtype_list.append(os.path.join(ROOT_PATH, f"snapshot_{index}"))
 
-    if scenario == "cim":
-        init_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), ports_header)
+    if scenario == GlobalScenaios.cim:
+        init_csv(os.path.join(ROOT_PATH, Gfiles.ports_sum), ports_header)
         # init_csv(vessels_file_path, vessels_header)
         ports_sum_dataframe =\
-            pd.read_csv(os.path.join(ROOT_PATH, PORTS_FILE_PATH), names=ports_header)
+            pd.read_csv(os.path.join(ROOT_PATH, Gfiles.ports_sum), names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
-        init_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH), stations_header)
-    if scenario == "cim":
+        init_csv(os.path.join(ROOT_PATH, Gfiles.stations_sum), stations_header)
+    if scenario == GlobalScenaios.cim:
         i = 1
         for i in tqdm.tqdm(range(len(dbtype_list))):
             dbtype = dbtype_list[i]
@@ -98,16 +94,16 @@ def generate_summary(scenario, ROOT_PATH):
                 continue
             summary_append(
                 scenario, dir_epoch, "ports.csv", ports_header,
-                ports_sum_dataframe, i, os.path.join(ROOT_PATH, PORTS_FILE_PATH))
+                ports_sum_dataframe, i, os.path.join(ROOT_PATH, Gfiles.ports_sum))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
-    elif scenario == "citi_bike":
+    elif scenario == GlobalScenaios.citi_bike:
         data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_0", "stations.csv"))
         data = data[["bikes", "trip_requirement", "fulfillment", "capacity"]].groupby(data["name"]).sum()
         data["fulfillment_ratio"] = list(
             map(lambda x, y: float("{:.4f}".format(x / (y + 1 / 1000))), data["fulfillment"],
                 data["trip_requirement"]))
-        data.to_csv(os.path.join(ROOT_PATH, STATIONS_FILE_PATH))
+        data.to_csv(os.path.join(ROOT_PATH, Gfiles.stations_sum))
 
 
 def get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH):
@@ -120,23 +116,23 @@ def get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH):
 
     """
     CONVER_PATH = os.path.join(ROOT_PATH, CONVER_PATH)
-    if os.path.exists(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH)):
-        os.remove(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH))
-    if scenario == "citi_bike":
+    if os.path.exists(os.path.join(ROOT_PATH, Gfiles.name_convert)):
+        os.remove(os.path.join(ROOT_PATH, Gfiles.name_convert))
+    if scenario == GlobalScenaios.citi_bike:
         with open(CONVER_PATH, "r", encoding="utf8")as fp:
             json_data = json.load(fp)
             name_list = []
             for item in json_data["data"]["stations"]:
                 name_list.append(item["name"])
             df = pd.DataFrame({"name": name_list})
-            df.to_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), index=False)
-    elif scenario == "cim":
+            df.to_csv(os.path.join(ROOT_PATH, Gfiles.name_convert), index=False)
+    elif scenario == GlobalScenaios.cim:
         f = open(CONVER_PATH, "r")
         ystr = f.read()
         aa = yaml.load(ystr, Loader=yaml.FullLoader)
         key_list = aa["ports"].keys()
         df = pd.DataFrame(list(key_list))
-        df.to_csv(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH), index=False)
+        df.to_csv(os.path.join(ROOT_PATH, Gfiles.name_convert), index=False)
 
 
 def start_vis(input: str, force: str, **kwargs):
@@ -175,7 +171,7 @@ def start_vis(input: str, force: str, **kwargs):
     manifest_file = open(os.path.join(ROOT_PATH, "snapshot.manifest"), "r")
     props_origin = manifest_file.read()
     props = yaml.load(props_origin, Loader=yaml.FullLoader).split()
-    scenario = props[0][9:]
+    scenario = GlobalScenaios[props[0][9:]]
     CONVER_PATH = props[1][9:]
     # path to restore summary files
     if FORCE == "yes":
@@ -189,15 +185,15 @@ def start_vis(input: str, force: str, **kwargs):
         logger.info_green("[2/2]:Generate Summary Done.")
     elif FORCE == "no":
         logger.info_green("Skip Data Generation")
-        if not os.path.exists(os.path.join(ROOT_PATH, NAME_CONVERSION_PATH)):
+        if not os.path.exists(os.path.join(ROOT_PATH, Gfiles.name_convert)):
             raise CliException("Have to regenerate data. Name Conversion File is missed. ")
             os._exit(0)
-        if scenario == "cim":
-            if not os.path.exists(os.path.join(ROOT_PATH, PORTS_FILE_PATH)):
+        if scenario == GlobalScenaios.cim:
+            if not os.path.exists(os.path.join(ROOT_PATH, Gfiles.ports_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
                 os._exit(0)
-        if scenario == "citi_bike":
-            if not os.path.exists(os.path.join(ROOT_PATH, STATIONS_FILE_PATH)):
+        if scenario == GlobalScenaios.citi_bike:
+            if not os.path.exists(os.path.join(ROOT_PATH, Gfiles.stations_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
                 os._exit(0)
 
