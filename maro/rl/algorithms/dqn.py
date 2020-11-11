@@ -75,11 +75,7 @@ class DQN(AbsAlgorithm):
 
         if self._config.advantage_mode is not None:
             assert isinstance(core_model, MultiTaskLearningModel), \
-                "core_model must be a MultiTaskLearningModel if dueling architecture is used."
-            assert DuelingHead.STATE_VALUE.value in core_model.tasks, \
-                "core_model must have a task head named 'state_value'"
-            assert DuelingHead.ADVANTAGE.value in core_model.tasks, \
-                "core_model must have a task head named 'advantage'"
+                f"core_model must be a MultiTaskLearningModel if dueling architecture is used."
 
         self._core_model.to(self._device)
         self._target_model = core_model.copy().to(self._device) if core_model.is_trainable else None
