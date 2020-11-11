@@ -11,6 +11,8 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import MultiTaskLearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
+from.task_validator import validate_tasks
+
 
 class ActorCriticTask(Enum):
     ACTOR = "actor"
@@ -21,14 +23,14 @@ class ActorCriticConfig:
     """Configuration for the Actor-Critic algorithm.
 
     Args:
-        num_actions (int): number of possible actions
-        reward_decay (float): reward decay as defined in standard RL terminology.
-        critic_loss_func (Callable): loss function for the critic model.
-        actor_train_iters (int): number of gradient descent steps for the policy model per call to ``train``.
-        critic_train_iters (int): number of gradient descent steps for the value model per call to ``train``.
-        k (int): number of time steps used in computing returns or return estimates. Defaults to -1, in which case
+        num_actions (int): Number of possible actions
+        reward_decay (float): Reward decay as defined in standard RL terminology.
+        critic_loss_func (Callable): Loss function for the critic model.
+        actor_train_iters (int): Number of gradient descent steps for the policy model per call to ``train``.
+        critic_train_iters (int): Number of gradient descent steps for the value model per call to ``train``.
+        k (int): Number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
-        lam (float): lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
+        lam (float): Lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
     __slots__ = [
@@ -64,22 +66,11 @@ class ActorCritic(AbsAlgorithm):
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-
+    @validate_tasks(ActorCriticTask)
     def __init__(self, core_model: MultiTaskLearningModel, config: ActorCriticConfig):
         super().__init__(core_model, config)
-        if self._config.advantage_mode is not None:
-            assert isinstance(core_model, MultiTaskLearningModel), \
-                "core_model must be a MultiTaskLearningModel if dueling architecture is used."
-            assert ActorCriticTask.ACTOR.value in core_model.tasks, \
-                f"core_model must have a task head named '{ActorCriticTask.ACTOR.value}'"
-            assert ActorCriticTask.CRITIC.value in core_model.tasks, \
-                f"core_model must have a task head named '{ActorCriticTask.CRITIC.value}'"
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._core_model.to(self._device)
-
-    @property
-    def model(self):
-        return self._core_model
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
@@ -97,8 +88,6 @@ class ActorCritic(AbsAlgorithm):
         )
         return_est = torch.from_numpy(return_est)
         return state_values, return_est
-
-    def _compute_actor_loss(self):
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
         states = torch.from_numpy(states).to(self._device)

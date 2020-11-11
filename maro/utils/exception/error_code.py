@@ -41,5 +41,6 @@ ERROR_CODE = {
     4004: "Store Misalignment Error",
     4005: "Invalid Episode",
     4006: "Infinite Training Loop",
-    4007: "Missing Optimizer"
+    4007: "Missing Optimizer",
+    4008: "Unrecognized Task"
 }

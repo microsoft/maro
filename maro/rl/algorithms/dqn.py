@@ -10,6 +10,8 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.abs_learning_model import AbsLearningModel
 from maro.rl.models.learning_model import MultiTaskLearningModel
 
+from .task_validator import validate_tasks
+
 
 class DuelingDQNTask(Enum):
     STATE_VALUE = "state_value"
@@ -28,7 +30,7 @@ class DQNConfig:
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
-        advantage_mode (str): advantage mode for the dueling architecture. Defaults to None, in which
+        advantage_mode (str): Advantage mode for the dueling architecture. Defaults to None, in which
             case it is assumed that the regular Q-value model is used.
         per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
@@ -68,6 +70,7 @@ class DQN(AbsAlgorithm):
         core_model (AbsLearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
+    @validate_tasks(DuelingDQNTask)
     def __init__(self, core_model: AbsLearningModel, config: DQNConfig):
         super().__init__(core_model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -75,11 +78,7 @@ class DQN(AbsAlgorithm):
 
         if self._config.advantage_mode is not None:
             assert isinstance(core_model, MultiTaskLearningModel), \
-                "core_model must be a MultiTaskLearningModel if dueling architecture is used."
-            assert DuelingDQNTask.STATE_VALUE.value in core_model.tasks, \
-                f"core_model must have a task head named '{DuelingDQNTask.STATE_VALUE.value}'"
-            assert DuelingDQNTask.ADVANTAGE.value in core_model.tasks, \
-                f"core_model must have a task head named '{DuelingDQNTask.ADVANTAGE.value}'"
+                f"core_model must be a MultiTaskLearningModel if dueling architecture is used."
 
         self._core_model.to(self._device)
         self._target_model = core_model.copy().to(self._device) if core_model.is_trainable else None
