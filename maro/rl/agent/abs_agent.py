@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import os
-import pickle
 from abc import ABC, abstractmethod
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
