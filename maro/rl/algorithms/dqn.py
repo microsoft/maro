@@ -30,7 +30,7 @@ class DQNConfig:
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
             See https://arxiv.org/pdf/1509.06461.pdf for details. Defaults to False.
-        advantage_mode (str): advantage mode for the dueling architecture. Defaults to None, in which
+        advantage_mode (str): Advantage mode for the dueling architecture. Defaults to None, in which
             case it is assumed that the regular Q-value model is used.
         per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
@@ -78,7 +78,7 @@ class DQN(AbsAlgorithm):
 
         if self._config.advantage_mode is not None:
             assert isinstance(core_model, MultiTaskLearningModel), \
-                f"core_model must be a MultiTaskLearningModel if dueling architecture is used."
+                "core_model must be a MultiTaskLearningModel if dueling architecture is used."
 
         self._core_model.to(self._device)
         self._target_model = core_model.copy().to(self._device) if core_model.is_trainable else None
