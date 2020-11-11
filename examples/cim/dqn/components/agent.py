@@ -1,6 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+import pickle
+
 import numpy as np
 
 from maro.rl import AbsAgent, ColumnBasedStore
@@ -38,3 +41,9 @@ class CIMAgent(AbsAgent):
             next_state = np.asarray(sample["next_state"])
             loss = self._algorithm.train(state, action, reward, next_state)
             self._experience_pool.update(indexes, {"loss": loss})
+
+    def dump_experience_pool(self, dir_path: str):
+        """Dump the experience pool to disk."""
+        os.makedirs(dir_path, exist_ok=True)
+        with open(os.path.join(dir_path, self._name), "wb") as fp:
+            pickle.dump(self._experience_pool, fp)
