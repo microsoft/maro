@@ -6,7 +6,7 @@ from torch.optim import Adam
 
 from .agent import CIMAgent
 from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, PolicyGradient, \
-    PolicyGradientHyperParameters
+    PolicyGradientConfig
 from maro.utils import set_seeds
 
 
@@ -26,7 +26,7 @@ def create_pg_agents(agent_id_list, config):
             policy_model=policy_model,
             optimizer_cls=Adam,
             optimizer_params=config.algorithm.optimizer,
-            hyper_params=PolicyGradientHyperParameters(
+            hyper_params=PolicyGradientConfig(
                 num_actions=num_actions,
                 **config.algorithm.hyper_parameters,
             )

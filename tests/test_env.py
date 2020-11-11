@@ -3,8 +3,9 @@
 
 
 import unittest
+
 from dummy.dummy_business_engine import DummyEngine
-from maro.simulator.core import Env, BusinessEngineNotFoundError
+from maro.simulator.core import BusinessEngineNotFoundError, Env
 
 
 def run_to_end(env: Env):

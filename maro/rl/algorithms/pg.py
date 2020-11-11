@@ -8,8 +8,8 @@ import torch.nn as nn
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 
 
-class PolicyGradientHyperParameters:
-    """Hyper-parameter set for the Actor-Critic algorithm.
+class PolicyGradientConfig:
+    """Configuration for the Policy Gradient (PG) algorithm.
 
     Args:
         num_actions (int): number of possible actions
@@ -23,9 +23,9 @@ class PolicyGradientHyperParameters:
 
 
 class PolicyGradient(AbsAlgorithm):
-    """Policy gradient algorithm.
+    """Policy Gradient algorithm.
 
-    The policy gradient algorithm base on the policy gradient theorem, a.k.a. REINFORCE.
+    The Policy Gradient algorithm base on the policy gradient theorem, a.k.a. REINFORCE.
 
     Args:
         policy_model (nn.Module): model for generating actions given states.
@@ -36,7 +36,7 @@ class PolicyGradient(AbsAlgorithm):
 
     def __init__(
         self, policy_model: nn.Module, optimizer_cls, optimizer_params,
-        hyper_params: PolicyGradientHyperParameters
+        hyper_params: PolicyGradientConfig
     ):
         super().__init__()
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

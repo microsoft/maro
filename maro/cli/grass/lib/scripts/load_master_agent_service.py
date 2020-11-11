@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from utils import load_cluster_details
+from .utils import load_cluster_details
 
 START_SERVICE_COMMAND = '''\
 systemctl --user daemon-reload
@@ -30,30 +30,30 @@ if __name__ == "__main__":
     redis_port = cluster_details['master']['redis']['port']
 
     # Dump master_agent.config
-    os.makedirs(os.path.expanduser(f"~/.maro-local/agents/"), exist_ok=True)
-    with open(os.path.expanduser(f"~/.maro-local/agents/master_agent.config"), 'w') as fw:
+    os.makedirs(os.path.expanduser("~/.maro-local/agents/"), exist_ok=True)
+    with open(os.path.expanduser("~/.maro-local/agents/master_agent.config"), 'w') as fw:
         json.dump({
             'cluster_name': args.cluster_name,
             'redis_port': redis_port
         }, fw)
 
     # Load .service
-    with open(os.path.expanduser(f"~/.maro/lib/grass/agents/maro-master-agent.service"), 'r') as fr:
+    with open(os.path.expanduser("~/.maro/lib/grass/agents/maro-master-agent.service"), 'r') as fr:
         service_file = fr.read()
 
     # Rewrite data in .service and write it to systemd folder
     service_file = service_file.format(home_path=str(Path.home()))
-    os.makedirs(os.path.expanduser(f"~/.config/systemd/user/"), exist_ok=True)
-    with open(os.path.expanduser(f"~/.maro-local/agents/maro-master-agent.service"), 'w') as fw:
+    os.makedirs(os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
+    with open(os.path.expanduser("~/.maro-local/agents/maro-master-agent.service"), 'w') as fw:
         fw.write(service_file)
-    with open(os.path.expanduser(f"~/.config/systemd/user/maro-master-agent.service"), 'w') as fw:
+    with open(os.path.expanduser("~/.config/systemd/user/maro-master-agent.service"), 'w') as fw:
         fw.write(service_file)
 
     # Exec command
     command = START_SERVICE_COMMAND.format(admin_username=admin_username)
-    process = subprocess.Popen(command,
-                               executable='/bin/bash',
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    process = subprocess.Popen(
+        command, executable='/bin/bash', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     stdout, stderr = process.communicate()
     if stderr:
         sys.stderr.write(stderr.strip('\n'))

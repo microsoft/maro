@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from .agent import CIMAgent
-from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, ActorCritic, ActorCriticHyperParameters
+from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, ActorCritic, ActorCriticConfig
 from maro.utils import set_seeds
 
 
@@ -37,7 +37,7 @@ def create_ac_agents(agent_id_list, config):
             policy_optimizer_params=config.algorithm.policy_optimizer,
             value_optimizer_cls=RMSprop,
             value_optimizer_params=config.algorithm.value_optimizer,
-            hyper_params=ActorCriticHyperParameters(
+            hyper_params=ActorCriticConfig(
                 num_actions=num_actions,
                 **config.algorithm.hyper_parameters,
             )

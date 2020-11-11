@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.utils.exception import MAROException
+from .base_exception import MAROException
 
 
 class UnsupportedAgentManagerModeError(MAROException):
@@ -39,3 +39,9 @@ class InfiniteTrainingLoopError(MAROException):
     """Raised when the ``SimpleLearner``'s training loop becomes infinite."""
     def __init__(self, msg: str = None):
         super().__init__(4006, msg)
+
+
+class MissingOptimizerError(MAROException):
+    """Raised when the optimizers are missing when calling LearningModel's step() method."""
+    def __init__(self, msg: str = None):
+        super().__init__(4007, msg)

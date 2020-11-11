@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import csv
+import os
 
 
 def load_adj_from_csv(file: str, skiprows: int = 0):

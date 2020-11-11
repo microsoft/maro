@@ -1,14 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import subprocess
 import sys
 import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from maro.communication import Proxy, SessionMessage, dist
+
 from utils import get_random_port, proxy_generator
 
 
