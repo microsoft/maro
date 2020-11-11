@@ -117,7 +117,7 @@ def formula_define(data_origin):
         dict: formula name & formula output
     """
     st.sidebar.markdown("***")
-    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a*b+sqrt(c*d)"])
+    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "a*b+sqrt(c*d)"])
     paras = st.sidebar.text_input("parameters separated by ;")
     res = paras.split(";")
     if formula_select == "a+b":
@@ -134,6 +134,51 @@ def formula_define(data_origin):
             else:
                 return
         data = {"data_after": data_origin, "name": f"{res[0]}+{res[1]}"}
+        return data
+    if formula_select == "a-b":
+        if len(res) == 0 or res[0] == "":
+            return
+        elif len(res) != 2:
+            st.warning("input parameter number wrong")
+            return
+        else:
+            data_right = judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}-{res[1]}"] = list(
+                    map(lambda x, y: x - y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data_after": data_origin, "name": f"{res[0]}-{res[1]}"}
+        return data
+    if formula_select == "a*b":
+        if len(res) == 0 or res[0] == "":
+            return
+        elif len(res) != 2:
+            st.warning("input parameter number wrong")
+            return
+        else:
+            data_right = judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}*{res[1]}"] = list(
+                    map(lambda x, y: x * y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data_after": data_origin, "name": f"{res[0]}*{res[1]}"}
+        return data
+    if formula_select == "a/b":
+        if len(res) == 0 or res[0] == "":
+            return
+        elif len(res) != 2:
+            st.warning("input parameter number wrong")
+            return
+        else:
+            data_right = judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}/{res[1]}"] = list(
+                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data_after": data_origin, "name": f"{res[0]}/{res[1]}"}
         return data
     if formula_select == "a*b+sqrt(c*d)":
         if len(res) == 0 or res[0] == "":
@@ -174,6 +219,16 @@ def judge_append_data(data_head, res):
 
 @st.cache(allow_output_mutation=True)
 def read_detail_csv(path):
+    """Read detail csv with cache.
+    One thing to note: data is mutable.
+
+    Args:
+        path(str):  Path of file to be read.
+
+    Returns:
+        dataframe: Data in CSV file.
+
+    """
     data = pd.read_csv(path)
     return data
 

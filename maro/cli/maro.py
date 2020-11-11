@@ -93,7 +93,7 @@ def main():
     # maro inspector
     parser_inspector = subparsers.add_parser(
         'inspector',
-        help=('Provide the environment dumped data path.'),
+        help=("Display visualization of post-experiment data."),
         parents=[global_parser]
     )
     parser_inspector.set_defaults(func=_help_func(parser=parser_inspector))
@@ -836,20 +836,20 @@ def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser)
 
 
 def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentParser):
-    vispath_cmd_sub_parsers = prev_parser.add_subparsers()
+    inspector_cmd_sub_parsers = prev_parser.add_subparsers()
 
     from maro.cli.inspector.env_data_process import start_vis
-    build_cmd_parser = vispath_cmd_sub_parsers.add_parser(
+    build_cmd_parser = inspector_cmd_sub_parsers.add_parser(
         "env",
         fromfile_prefix_chars="@",
-        help="Show dashboard.",
+        help="Dashboard of selected env displayed.",
         parents=[global_parser])
 
     build_cmd_parser.add_argument(
         "--input",
         type=str,
         required=True,
-        help="Path (with file name) to load data.")
+        help="Folder path to load data, should be root path of snapshot folders. e.g. ~/global_trade_snapshots/")
     build_cmd_parser.add_argument(
         "--force",
         type=str,
