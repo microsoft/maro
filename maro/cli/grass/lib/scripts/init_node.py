@@ -18,7 +18,8 @@ sudo gpasswd -a {admin_username} docker
 echo 'setup samba mount'
 mkdir -p {maro_path}
 sudo mount -t cifs -o username={admin_username},password={samba_password} //{master_hostname}/sambashare {maro_path}
-echo '//{master_hostname}/sambashare  {maro_path} cifs  username={admin_username},password={samba_password}  0  0' | sudo tee -a /etc/fstab
+echo '//{master_hostname}/sambashare  {maro_path} cifs  username={admin_username},password={samba_password}  0  0' | \
+    sudo tee -a /etc/fstab
 
 # load master public key
 echo 'load master public key'
