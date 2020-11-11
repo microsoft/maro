@@ -1,6 +1,6 @@
 from enum import Enum
 
-from maro.simulator.scenarios.finance.common.common import OrderDirection
+from maro.simulator.scenarios.finance.common.common import OrderDirection, two_decimal_price
 
 
 class SlippageType(Enum):
@@ -39,4 +39,4 @@ class ByMoneySlippage(Slippage):
             actual_price = base_price + delta_price
         else:
             actual_price = base_price - delta_price
-        return actual_price
+        return two_decimal_price(actual_price)

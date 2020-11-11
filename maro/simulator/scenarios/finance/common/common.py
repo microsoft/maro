@@ -33,17 +33,19 @@ class TradeResult:
     """Result or a trade order"""
 
     def __init__(
-            self, trade_number: int, price_per_item: float,
+            self, direction: OrderDirection, trade_number: int, price_per_item: float,
             commission: float, tax: float
     ):
         self.trade_number = int(trade_number)
         self.price_per_item = price_per_item
         self.commission = commission
         self.tax = tax
+        self.direction = direction
 
     @property
-    def total_cost(self):
-        return self.trade_number * self.price_per_item + self.commission + self.tax
+    def cash_delta(self):
+        return (self.trade_number * self.price_per_item - self.commission - self.tax) * \
+            (-1 if self.direction == OrderDirection.buy else 1)
 
     def __repr__(self):
         return f"<  \
@@ -116,21 +118,13 @@ class Action(ABC):
         else:
             self.id = Action.idx
             Action.idx += 1
-        self.life_time = life_time
+        self.remaining_life_time = life_time
         self.action_result = None
         self.comment = ""
         # print("Action id:", self.id)
 
     def __repr__(self):
         return f"< Action start: {self.decision_tick} finished: {self.finish_tick} state: {self.state} >"
-
-
-class CancelOrder(Action):
-    def __init__(self, action, tick):
-        super().__init__(
-            tick=tick, life_time=1
-        )
-        self.action = action
 
 
 class Order(Action):
@@ -245,3 +239,14 @@ class StopLimitOrder(Order):
 
         # print(f'Stop Limit Order triggered: {triggered}')
         return triggered
+
+
+class CancelOrder(Action):
+    def __init__(self, order: Order, tick: int):
+        super().__init__(
+            tick=tick, life_time=1
+        )
+        self.order = order
+
+def two_decimal_price(input_price: float) -> float:
+    return int(input_price * 100) / 100

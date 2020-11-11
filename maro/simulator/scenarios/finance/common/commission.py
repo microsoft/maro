@@ -1,6 +1,6 @@
 from enum import Enum
 
-from maro.simulator.scenarios.finance.common.common import OrderDirection
+from maro.simulator.scenarios.finance.common.common import OrderDirection, two_decimal_price
 
 
 class CommissionType(Enum):
@@ -48,7 +48,7 @@ class ByMoneyCommission(Commission):
         self.min_fee = min_fee
 
     def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
-        return round(max(actual_price * actual_volume * self.fee_rate, self.min_fee), 2)
+        return two_decimal_price(max(actual_price * actual_volume * self.fee_rate, self.min_fee))
 
     @property
     def fee_rate(self):
@@ -68,7 +68,7 @@ class ByVolumeCommission(Commission):
         self.pre_volume_fee = pre_volume_fee
 
     def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
-        return round(max(actual_volume * self.pre_volume_fee, self.min_fee), 2)
+        return two_decimal_price(max(actual_volume * self.pre_volume_fee, self.min_fee))
 
     @property
     def pre_volume_fee(self):
@@ -88,7 +88,7 @@ class ByTradeCommission(Commission):
         self.pre_trade_fee = pre_trade_fee
 
     def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
-        return round(max(self.pre_trade_fee, self.min_fee), 2)
+        return two_decimal_price(max(self.pre_trade_fee, self.min_fee))
 
     @property
     def pre_trade_fee(self):
@@ -107,7 +107,7 @@ class StampTaxCommission(ByMoneyCommission):
 
     def execute(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
         if direction == OrderDirection.sell:
-            return round(max(actual_price * actual_volume * self.tax_rate, self.min_fee), 2)
+            return two_decimal_price(max(actual_price * actual_volume * self.tax_rate, self.min_fee))
         else:
             return 0
 

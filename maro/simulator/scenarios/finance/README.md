@@ -3,8 +3,8 @@
 ## Introduction
 
 The Finance scenario simulates securities trading in financial markets.
-Imagine you invest in a finance market. For example, CN Shanghai:
-You can create a strategy which decides how to buy and sell stocks.
+Imagine you invest in a finance market. For example, CN Shanghai, NASDAQ.
+You can develop a strategy for buying and selling stocks, which try to maximize revenue.
 So, your investment can keep increasing no matter how the market goes up or down.
 
 ## Environment Modeling
@@ -15,7 +15,7 @@ A typical trading process is:
 
 ![Order_Workflow](../../../../docs/source/images/order.png "Order_Workflow")
 
-So, you can focus on importing the strategy of trading. You can specify several
+So, you can focus on developing the strategy of trading. You can specify several
 episodes of a time range. In every episode, the environment step by tick(day, minute or
 event). Every tick the environment will output a group of decision events, includes the securities
 can be traded, the opening price, closing price, high and low price of the securities, the max
@@ -33,7 +33,7 @@ At present, we provide two different market, including China Shanghai, China She
 
 - **test** has 1 stock market. China Shanghai.
 Beginning trading day is 2019-01-01.
-Init money in China Shanghai is 100000 CNY.
+Init money in China Shanghai is 100,000 CNY.
 Max avaliable volumes of each market is 20% of the total volume of the trade day.
 Min buy and sell volume in China Shanghai is 100.
 Slippage is 0.00246.
@@ -103,9 +103,9 @@ for ep in range(max_ep):
                     dividends = cur_env_snap[last_frame_idx:int(decision_event.item):"dividends"][-1]
                     splits = cur_env_snap[last_frame_idx:int(decision_event.item):"splits"][-1]
                     # qurey snapshot for account information
-                    total_money = env.snapshot_list['account'][last_frame_idx:0:"total_money"][-1]
-                    remaining_money = env.snapshot_list['account'][last_frame_idx:0:"remaining_money"][-1]
-                    #print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "total_money:", total_money, "remaining_money", remaining_money)
+                    net_assets_value = env.snapshot_list['account'][last_frame_idx:0:"net_assets_value"][-1]
+                    remaining_cash = env.snapshot_list['account'][last_frame_idx:0:"remaining_cash"][-1]
+                    #print("env.tick: ", env.tick, " holding: ", holding, " cost: ", cost, "net_assets_value:", net_assets_value, "remaining_cash", remaining_cash)
 
                     if holding > 0:  # sub_engine_name -> market
                         action = MarketOrder(item=decision_event.item, amount=holding,
@@ -141,9 +141,9 @@ sz_account_hold_num = stock_snapshots[::"account_hold_num"]
 print("volume holding of sz market.")
 print(sz_account_hold_num)
 
-sz_account_total_money = env.snapshot_list['account'][::"total_money"]
+sz_account_net_assets_value = env.snapshot_list['account'][::"net_assets_value"]
 
-print("total_money for sz market.")
-print(sz_account_total_money)
+print("net_assets_value for sz market.")
+print(sz_account_net_assets_value)
 
 ```
