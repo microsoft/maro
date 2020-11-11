@@ -91,10 +91,12 @@ class TestCheckPoint(unittest.TestCase):
 
     def test_azure_blob_checkpoint(self):
         checkpoint = AzureBlobCheckpoint(conn_str=self.conn_str, container_name="test-container")
-        checkpoint.set_data("key1", b"a1234")
-        checkpoint.set_data("key2", b"a2345")
-        self.assertEqual(b"a1234", checkpoint.get_data("key1"))
-        self.assertEqual(b"a2345", checkpoint.get_data("key2"))
+        self.assertFalse(checkpoint.exists("key1"))
+        checkpoint.set("key1", b"a1234")
+        checkpoint.set("key2", b"a2345")
+        self.assertTrue(checkpoint.exists("key1"))
+        self.assertEqual(b"a1234", checkpoint.get("key1"))
+        self.assertEqual(b"a2345", checkpoint.get("key2"))
 
     def test_server_checkpoint(self):
         checkpoint = ServerCheckpoint(
@@ -102,7 +104,9 @@ class TestCheckPoint(unittest.TestCase):
             admin_username=self.admin_username,
             ip_address=self.ip_address
         )
-        checkpoint.set_data("key1", b"b1234")
-        checkpoint.set_data("key2", b"b2345")
-        self.assertEqual(b"b1234", checkpoint.get_data("key1"))
-        self.assertEqual(b"b2345", checkpoint.get_data("key2"))
+        self.assertFalse(checkpoint.exists("key1"))
+        checkpoint.set("key1", b"b1234")
+        checkpoint.set("key2", b"b2345")
+        self.assertTrue(checkpoint.exists("key1"))
+        self.assertEqual(b"b1234", checkpoint.get("key1"))
+        self.assertEqual(b"b2345", checkpoint.get("key2"))

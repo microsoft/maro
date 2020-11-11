@@ -13,7 +13,7 @@ logger = CliLogger(__name__)
 
 class AbsCheckpoint(ABC):
     @abstractmethod
-    def set_data(self, key: str, value: bytes):
+    def set(self, key: str, value: bytes):
         """Set key to hold the value in bytes.
 
         Args:
@@ -26,7 +26,7 @@ class AbsCheckpoint(ABC):
         logger.info(f"Put key: {key}")
 
     @abstractmethod
-    def get_data(self, key: str):
+    def get(self, key: str):
         """Get the value with the key.
 
         Args:
@@ -34,6 +34,18 @@ class AbsCheckpoint(ABC):
 
         Returns:
             bytes: Value in bytes.
+        """
+        logger.info(f"Get key: {key}")
+
+    @abstractmethod
+    def exists(self, key: str):
+        """Returns if key exists.
+
+        Args:
+            key (str): The key of the k-v pair.
+
+        Returns:
+            bool: True if key exists, else false.
         """
         logger.info(f"Get key: {key}")
 
@@ -58,8 +70,8 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         # Init remote container
         self._create_container_if_not_exist(container=self._container_name)
 
-    def set_data(self, key: str, value: bytes) -> None:
-        super().set_data(key, value)
+    def set(self, key: str, value: bytes) -> None:
+        super().set(key=key, value=value)
         blob_client = BlobClient.from_connection_string(
             conn_str=self._conn_str,
             container_name=self._container_name,
@@ -67,8 +79,8 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         )
         blob_client.upload_blob(value, overwrite=True)
 
-    def get_data(self, key: str) -> bytes:
-        super().get_data(key)
+    def get(self, key: str) -> bytes:
+        super().get(key=key)
         blob_client = BlobClient.from_connection_string(
             conn_str=self._conn_str,
             container_name=self._container_name,
@@ -78,6 +90,15 @@ class AzureBlobCheckpoint(AbsCheckpoint):
         bytes_io = io.BytesIO()
         blob_data.readinto(bytes_io)
         return bytes_io.getvalue()
+
+    def exists(self, key: str) -> bool:
+        super().exists(key=key)
+        blob_client = BlobClient.from_connection_string(
+            conn_str=self._conn_str,
+            container_name=self._container_name,
+            blob_name=key
+        )
+        return blob_client.exists()
 
     def _create_container_if_not_exist(self, container: str) -> None:
         """Create the container if the target container not exists.
@@ -103,6 +124,7 @@ class ServerCheckpoint(AbsCheckpoint):
 
     Make sure you have the permission to access the target folder of the target server.
     """
+
     def __init__(self, remote_dir: str, admin_username: str, ip_address: str, port: int = 22):
         """Init ServerCheckpoint.
 
@@ -125,22 +147,31 @@ class ServerCheckpoint(AbsCheckpoint):
         )
         self._sftp = paramiko.SFTPClient.from_transport(transport)
 
-        # Init remote folder
+        # Init remote folder, and cd to remote folder
         self._mkdir_if_not_exist(target_dir=self.remote_dir)
+        self._chdir(target_dir=self.remote_dir)
 
-    def set_data(self, key: str, value: bytes):
-        super().set_data(key, value)
+    def set(self, key: str, value: bytes):
+        super().set(key=key, value=value)
         bytes_io = io.BytesIO(value)
         self._sftp.putfo(bytes_io, key)
 
-    def get_data(self, key: str) -> bytes:
-        super().get_data(key)
+    def get(self, key: str) -> bytes:
+        super().get(key=key)
         bytes_io = io.BytesIO()
         self._sftp.getfo(key, bytes_io)
         return bytes_io.getvalue()
 
+    def exists(self, key: str) -> bool:
+        super().exists(key=key)
+        try:
+            self._sftp.open(key)
+            return True
+        except IOError:
+            return False
+
     def _mkdir_if_not_exist(self, target_dir: str) -> None:
-        """Mkdir if the target directory not exists.
+        """Mkdir and chdir if the target directory not exists.
 
         Args:
             target_dir (str): Target directory.
@@ -162,3 +193,14 @@ class ServerCheckpoint(AbsCheckpoint):
             self._sftp.mkdir(base_name)
             self._sftp.chdir(base_name)
             return
+
+    def _chdir(self, target_dir: str) -> None:
+        """Change directory to the target path.
+
+        Args:
+            target_dir (str): Target directory.
+
+        Returns:
+            None
+        """
+        self._sftp.chdir(target_dir)
