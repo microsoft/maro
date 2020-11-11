@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 from enum import Enum
-from typing import Callable
 
 import numpy as np
 import torch
@@ -32,16 +31,18 @@ class DQNConfig:
             case it is assumed that the regular Q-value model is used.
         per_sample_td_error_enabled (bool): If True, per-sample TD errors will be returned by the DQN's train()
             method. Defaults to False.
+        loss_cls:
     """
     __slots__ = [
-        "num_actions", "reward_decay", "target_update_frequency", "tau", "is_double", "advantage_mode",
-        "per_sample_td_error_enabled"
+        "num_actions", "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",
+        "advantage_mode", "per_sample_td_error_enabled"
     ]
 
     def __init__(
         self,
         num_actions: int,
         reward_decay: float,
+        loss_cls,
         target_update_frequency: int,
         tau: float = 0.1,
         is_double: bool = True,
@@ -55,6 +56,7 @@ class DQNConfig:
         self.is_double = is_double
         self.advantage_mode = advantage_mode
         self.per_sample_td_error_enabled = per_sample_td_error_enabled
+        self.loss_func = loss_cls(reduction="none" if per_sample_td_error_enabled else "mean")
 
 
 class DQN(AbsAlgorithm):
@@ -64,14 +66,11 @@ class DQN(AbsAlgorithm):
 
     Args:
         core_model (AbsLearningModel): Q-value model.
-        loss_cls (Callable): Loss function class for computing TD error.
         config: Configuration for DQN algorithm.
     """
-    def __init__(self, core_model: AbsLearningModel, loss_cls: Callable, config: DQNConfig):
-        super().__init__()
+    def __init__(self, core_model: AbsLearningModel, config: DQNConfig):
+        super().__init__(core_model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._config = config
-        self._loss_func = loss_cls(reduction="none" if self._config.per_sample_td_error_enabled else "mean")
         self._training_counter = 0
 
         if self._config.advantage_mode is not None:
@@ -82,13 +81,13 @@ class DQN(AbsAlgorithm):
             assert DuelingDQNTask.ADVANTAGE.value in core_model.tasks, \
                 "core_model must have a task head named 'advantage'"
 
-        self._eval_model = core_model.to(self._device)
-        self._target_model = core_model.copy().to(self._device) if self._eval_model.is_trainable else None
+        self._core_model.to(self._device)
+        self._target_model = core_model.copy().to(self._device) if core_model.is_trainable else None
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         if epsilon is None or np.random.rand() > epsilon:
             state = torch.from_numpy(state).unsqueeze(0)
-            self._eval_model.eval()
+            self._core_model.eval()
             with torch.no_grad():
                 q_values = self._get_q_values(state)
             return q_values.argmax(dim=1).item()
@@ -108,11 +107,11 @@ class DQN(AbsAlgorithm):
         current_q_values = current_q_values_for_all_actions.gather(1, actions).squeeze(1)  # (N,)
         next_q_values = self._get_next_q_values(current_q_values_for_all_actions, next_states)  # (N,)
         target_q_values = (rewards + self._config.reward_decay * next_q_values).detach()  # (N,)
-        return self._loss_func(current_q_values, target_q_values)
+        return self._config.loss_func(current_q_values, target_q_values)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         loss = self._compute_td_errors(states, actions, rewards, next_states)
-        self._eval_model.step(loss.mean() if self._config.per_sample_td_error_enabled else loss)
+        self._core_model.step(loss.mean() if self._config.per_sample_td_error_enabled else loss)
         self._training_counter += 1
         if self._training_counter % self._config.target_update_frequency == 0:
             self._update_targets()
@@ -121,7 +120,7 @@ class DQN(AbsAlgorithm):
 
     def _update_targets(self):
         for eval_params, target_params in zip(
-            self._eval_model.parameters(), self._target_model.parameters()
+            self._core_model.parameters(), self._target_model.parameters()
         ):
             target_params.data = (
                 self._config.tau * eval_params.data + (1 - self._config.tau) * target_params.data
@@ -129,7 +128,7 @@ class DQN(AbsAlgorithm):
 
     def _get_q_values(self, states, is_target: bool = False):
         if self._config.advantage_mode is not None:
-            output = self._target_model(states) if is_target else self._eval_model(states)
+            output = self._target_model(states) if is_target else self._core_model(states)
             state_values = output["state_value"]
             advantages = output["advantage"]
             # Use mean or max correction to address the identifiability issue
@@ -137,7 +136,7 @@ class DQN(AbsAlgorithm):
             q_values = state_values + advantages - corrections.unsqueeze(1)
             return q_values
         else:
-            model = self._target_model if is_target else self._eval_model
+            model = self._target_model if is_target else self._core_model
             return model(states)
 
     def _get_next_q_values(self, current_q_values_all, next_states):
@@ -149,16 +148,16 @@ class DQN(AbsAlgorithm):
 
     def load_models(self, eval_model):
         """Load the evaluation model from memory."""
-        self._eval_model.load_state_dict(eval_model)
+        self._core_model.load_state_dict(eval_model)
 
     def dump_models(self):
         """Return the evaluation model."""
-        return self._eval_model.state_dict()
+        return self._core_model.state_dict()
 
     def load_models_from_file(self, path):
         """Load the evaluation model from disk."""
-        self._eval_model.load_state_dict(torch.load(path))
+        self._core_model.load_state_dict(torch.load(path))
 
     def dump_models_to_file(self, path: str):
         """Dump the evaluation model to disk."""
-        torch.save(self._eval_model.state_dict(), path)
+        torch.save(self._core_model.state_dict(), path)

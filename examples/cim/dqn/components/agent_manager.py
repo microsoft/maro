@@ -31,9 +31,9 @@ def create_dqn_agents(agent_id_list, config):
 
         algorithm = DQN(
             core_model=q_model,
-            loss_cls=nn.SmoothL1Loss,
             config=DQNConfig(
                 **config.algorithm.config,
+                loss_cls=nn.SmoothL1Loss,
                 num_actions=num_actions
             )
         )

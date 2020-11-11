@@ -4,7 +4,6 @@
 import torch
 import torch.nn as nn
 
-from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
 
 from .abs_learning_model import AbsLearningModel
@@ -58,9 +57,6 @@ class SingleTaskLearningModel(AbsLearningModel):
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
-
-    def copy(self):
-        return clone(self)
 
 
 class MultiTaskLearningModel(AbsLearningModel):
@@ -200,6 +196,3 @@ class MultiTaskLearningModel(AbsLearningModel):
         if self._has_trainable_heads:
             for optim in self._head_optimizer_dict.values():
                 optim.step()
-
-    def copy(self):
-        return clone(self)
