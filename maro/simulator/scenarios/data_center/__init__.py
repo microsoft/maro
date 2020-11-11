@@ -9,7 +9,7 @@ from .virtual_machine import VirtualMachine
 
 __all__ = [
     "DataCenterBusinessEngine",
-    "Action", "VmFinishedPayload", "VmRequirementPayload", "Latency",
+    "Action", "Latency", "VmFinishedPayload", "VmRequirementPayload",
     "Events",
     "PhysicalMachine",
     "VirtualMachine"

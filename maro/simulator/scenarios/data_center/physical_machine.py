@@ -21,7 +21,7 @@ class PhysicalMachine:
         self._vm_set: Set(int) = set()
         self.req_cpu: int = -1
         self.req_mem: int = -1
-        # PM CPU utilizaion (%).
+        # PM CPU utilization (%).
         self.util_cpu: float = -1.0
         self._util_series: List[float] = []
 

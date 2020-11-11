@@ -35,6 +35,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options
         )
 
+        # Update self._config_path with current file path.
+        self.update_config_root_path(__file__)
+
         # Env metrics.
         self._energy_consumption: int = 0
         self._success_requirements: int = 0
@@ -53,6 +56,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         self._tick: int = 0
         self._delay_duration: int = self._conf["delay_duration"]
+
+        self._pending_action_vm_id: int = -1
 
     def _load_configs(self):
         """Load configurations."""
@@ -90,7 +95,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._event_buffer.insert_event(vm_required_evt)
 
     def get_metrics(self) -> dict:
-        """Get current enviornment metrics information.
+        """Get current environment metrics information.
 
         Returns:
             dict: Metrics information.
@@ -119,7 +124,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         """
 
         for _, vm in self._vm.items():
-            vm.util_cpu = vm.util_series[self._tick - vm.start_tick]
+            vm.util_cpu = vm.get_util(cur_tick=self._tick)
 
     def _update_pm_util(self):
         """Update memory utilization occupied by total VMs on each PM."""
@@ -132,6 +137,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.util_cpu = total_cpu / pm.cap_cpu * 100
             pm.update_util_series(self._tick)
 
+        # TODO: Energy comsumption update.
+
     def _on_vm_required(self, evt: CascadeEvent):
         """Callback when there is a VM requirement generated."""
         # Get VM data from payload.
@@ -140,6 +147,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         buffer_time: int = payload.buffer_time
 
         # Check all valid PMs.
+        # NOTE: Should we implement this logic inside the action scope?
         valid_pm_list = [
             pm.id
             for pm in self._machines
@@ -155,6 +163,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             )
             pending_decision_evt = self._event_buffer.gen_decision_event(evt.tick, payload=decision_payload)
             evt.add_immediate_event(pending_decision_evt)
+            self._pending_action_vm_id = vm_req.vm_id
         else:
             # Postpone the buffer duration ticks by config setting.
             if buffer_time > 0:
@@ -199,6 +208,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         action: Action = evt.payload
         assign: bool = action.assign
         virtual_machine: VirtualMachine = action.vm_req
+
+        if virtual_machine.id != self._pending_action_vm_id:
+            print("The VM id sent by agent is invalid.")
 
         if assign:
             pm_id = action.pm_id

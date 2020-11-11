@@ -23,7 +23,7 @@ class Action:
 
 
 class VmRequirementPayload:
-    """Payload for the VM requriement.
+    """Payload for the VM requirement.
 
     Args:
         vm_info (VirtualMachine): The VM information
