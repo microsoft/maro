@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.utils.exception import MAROException
+from .base_exception import MAROException
 
 
 class RedisConnectionError(MAROException):
@@ -64,6 +64,8 @@ class SocketTypeError(MAROException):
         super().__init__(1010, msg)
 
 
-__all__ = ["RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
-           "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
-           "ConditionalEventSyntaxError", "SocketTypeError"]
+__all__ = [
+    "RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
+    "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
+    "ConditionalEventSyntaxError", "SocketTypeError"
+]
