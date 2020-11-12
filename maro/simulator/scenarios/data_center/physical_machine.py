@@ -19,10 +19,10 @@ class PhysicalMachine:
         self.cap_mem: int = cap_mem
         # PM resource.
         self._vm_set: Set(int) = set()
-        self.req_cpu: int = -1
-        self.req_mem: int = -1
+        self.req_cpu: int = 0
+        self.req_mem: int = 0
         # PM CPU utilization (%).
-        self.util_cpu: float = -1.0
+        self.util_cpu: float = 0.0
         self._util_series: List[float] = []
 
     def add_vm(self, vm_id: int):

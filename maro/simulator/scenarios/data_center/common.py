@@ -26,8 +26,8 @@ class VmRequirementPayload:
     """Payload for the VM requirement.
 
     Args:
-        vm_info (VirtualMachine): The VM information
-        buffer_time (int): The remaining buffer time
+        vm_info (VirtualMachine): The VM information.
+        buffer_time (int): The remaining buffer time.
     """
 
     summary_key = ["vm_info", "buffer_time"]
@@ -50,10 +50,11 @@ class VmFinishedPayload:
         self.vm_id = vm_id
 
 
-class DecisionEvent:
+class DecisionPayload:
     """Decision event in Data center scenario that contains information for agent to choose action.
 
-
+    Args:
+        valid
     """
 
     def __init__(self, valid_pm: List[int], vm_info: VirtualMachine, buffer_time: int):
@@ -63,7 +64,7 @@ class DecisionEvent:
 
 
 class Latency:
-    """Accumulated latency.
+    """Accumulative latency.
 
     1. Triggered by the resource exhaustion (resource_buffer_time).
     2. Triggered by the algorithm inaccurate predictions (algorithm_buffer_time).
