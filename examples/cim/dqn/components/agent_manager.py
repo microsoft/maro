@@ -5,7 +5,8 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, SimpleAgentManager, SingleTaskLearningModel
+    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, MultiTaskLearningModel, LearningModule, SimpleAgentManager,
+    OptimizerOptions
 )
 from maro.utils import set_seeds
 
@@ -17,8 +18,8 @@ def create_dqn_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        q_model = SingleTaskLearningModel(
-            [FullyConnectedBlock(
+        q_model = MultiTaskLearningModel(
+            {"q_value": "[FullyConnectedBlock(
                 name=f'{agent_id}.policy',
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,

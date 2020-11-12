@@ -10,7 +10,7 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.abs_learning_model import AbsLearningModel
 from maro.rl.models.learning_model import MultiTaskLearningModel
 
-from .task_validator import validate_tasks
+from .task_name_validator import validate_task_names
 
 
 class DuelingDQNTask(Enum):
@@ -67,26 +67,26 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        core_model (AbsLearningModel): Q-value model.
+        model (AbsLearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    @validate_tasks(DuelingDQNTask)
-    def __init__(self, core_model: AbsLearningModel, config: DQNConfig):
-        super().__init__(core_model, config)
+    @validate_task_names(DuelingDQNTask)
+    def __init__(self, model: AbsLearningModel, config: DQNConfig):
+        super().__init__(model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._training_counter = 0
 
         if self._config.advantage_mode is not None:
-            assert isinstance(core_model, MultiTaskLearningModel), \
-                "core_model must be a MultiTaskLearningModel if dueling architecture is used."
+            assert isinstance(model, MultiTaskLearningModel), \
+                "model must be a MultiTaskLearningModel if dueling architecture is used."
 
-        self._core_model.to(self._device)
-        self._target_model = core_model.copy().to(self._device) if core_model.is_trainable else None
+        self._model.to(self._device)
+        self._target_model = model.copy().to(self._device) if model.is_trainable else None
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         if epsilon is None or np.random.rand() > epsilon:
             state = torch.from_numpy(state).unsqueeze(0)
-            self._core_model.eval()
+            self._model.eval()
             with torch.no_grad():
                 q_values = self._get_q_values(state)
             return q_values.argmax(dim=1).item()
@@ -110,7 +110,7 @@ class DQN(AbsAlgorithm):
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         loss = self._compute_td_errors(states, actions, rewards, next_states)
-        self._core_model.step(loss.mean() if self._config.per_sample_td_error_enabled else loss)
+        self._model.learn(loss.mean() if self._config.per_sample_td_error_enabled else loss)
         self._training_counter += 1
         if self._training_counter % self._config.target_update_frequency == 0:
             self._update_targets()
@@ -119,7 +119,7 @@ class DQN(AbsAlgorithm):
 
     def _update_targets(self):
         for eval_params, target_params in zip(
-            self._core_model.parameters(), self._target_model.parameters()
+            self._model.parameters(), self._target_model.parameters()
         ):
             target_params.data = (
                 self._config.tau * eval_params.data + (1 - self._config.tau) * target_params.data
@@ -127,7 +127,7 @@ class DQN(AbsAlgorithm):
 
     def _get_q_values(self, states, is_target: bool = False):
         if self._config.advantage_mode is not None:
-            output = self._target_model(states) if is_target else self._core_model(states)
+            output = self._target_model(states) if is_target else self._model(states)
             state_values = output["state_value"]
             advantages = output["advantage"]
             # Use mean or max correction to address the identifiability issue
@@ -135,7 +135,7 @@ class DQN(AbsAlgorithm):
             q_values = state_values + advantages - corrections.unsqueeze(1)
             return q_values
         else:
-            model = self._target_model if is_target else self._core_model
+            model = self._target_model if is_target else self._model
             return model(states)
 
     def _get_next_q_values(self, current_q_values_all, next_states):

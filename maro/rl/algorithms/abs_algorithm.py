@@ -14,16 +14,16 @@ class AbsAlgorithm(ABC):
     algorithms.
 
     Args:
-        core_model (AbsLearningModel): Task model or container of task models required by the algorithm.
+        model (AbsLearningModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
     """
-    def __init__(self, core_model: AbsLearningModel, config):
-        self._core_model = core_model
+    def __init__(self, model: AbsLearningModel, config):
+        self._model = model
         self._config = config
 
     @property
     def model(self):
-        return self._core_model
+        return self._model
 
     @abstractmethod
     def choose_action(self, state, epsilon: float = None):

@@ -19,8 +19,8 @@ class AbsLearningModel(nn.Module):
         return NotImplemented
 
     @abstractmethod
-    def step(self, *losses):
-        """Use losses to back-propagate gradients and apply the gradients to the underlying parameters."""
+    def learn(self, loss):
+        """Use a loss to back-propagate gradients and apply the gradients to the underlying parameters."""
         return NotImplemented
 
     def copy(self):
