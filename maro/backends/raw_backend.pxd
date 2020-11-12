@@ -111,7 +111,8 @@ cdef extern from "raw/backend.h" namespace "maro::backends::raw":
 
         void get_ticks(INT *result)
 
-        void dump(string path)
+        void dump_current_frame(string path)
+        void dump_snapshots(string path)
 
         void append_node(IDENTIFIER node_id, NODE_INDEX number)
         void delete_node(IDENTIFIER node_id, NODE_INDEX node_index)

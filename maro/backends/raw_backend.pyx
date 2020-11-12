@@ -196,6 +196,9 @@ cdef class RawBackend(BackendAbc):
 
         return node_info
 
+    cdef void dump(self, str folder) except +:
+        self._backend.dump_current_frame(folder)
+
 
 cdef class RawSnapshotList(SnapshotListAbc):
     def __cinit__(self, RawBackend raw):
@@ -277,6 +280,9 @@ cdef class RawSnapshotList(SnapshotListAbc):
     # Reset internal states
     cdef void reset(self) except +:
         self._raw._backend.reset_snapshots()
+
+    cdef void dump(self, str folder) except +:
+        self._raw._backend.dump_snapshots(folder)
 
     def __len__(self):
         return self._raw._backend.get_max_snapshot_number()

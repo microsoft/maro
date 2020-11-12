@@ -106,8 +106,14 @@ namespace maro
         _snapshot.get_ticks(result);
       }
 
-      void Backend::dump(string path)
+      void Backend::dump_current_frame(string path)
       {
+        _frame.dump(path);
+      }
+
+      void Backend::dump_snapshots(string path)
+      {
+        _snapshot.dump(path);
       }
 
       template <typename T>

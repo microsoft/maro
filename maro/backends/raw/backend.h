@@ -2,6 +2,8 @@
 #define _MARO_BACKENDS_RAW_BACKEND
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include "common.h"
 #include "frame.h"
@@ -62,7 +64,8 @@ namespace maro
         USHORT get_valid_tick_number();
         void get_ticks(INT *result);
 
-        void dump(string path);
+        void dump_current_frame(string path);
+        void dump_snapshots(string path);
 
         void append_node(IDENTIFIER node_id, NODE_INDEX number);
         void delete_node(IDENTIFIER node_id, NODE_INDEX node_index);

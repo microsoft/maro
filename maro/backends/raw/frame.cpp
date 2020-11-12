@@ -185,6 +185,11 @@ namespace maro
         setup();
       }
 
+      void Frame::dump(string path)
+      {
+        
+      }
+
       inline void Frame::ensure_node_id(IDENTIFIER node_id)
       {
         if (node_id >= _nodes.size())

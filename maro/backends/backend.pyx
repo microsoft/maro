@@ -33,6 +33,8 @@ cdef class SnapshotListAbc:
     cdef list get_frame_index_list(self) except +:
         return []
 
+    cdef void dump(self, str folder) except +:
+        pass
 
 cdef class BackendAbc:
 
@@ -77,3 +79,7 @@ cdef class BackendAbc:
 
     cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +:
         pass
+
+    cdef void dump(self, str folder) except +:
+        pass
+

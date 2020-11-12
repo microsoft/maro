@@ -215,6 +215,11 @@ namespace maro
         _query_parameters.reset();
       }
 
+      void SnapshotList::dump(string path)
+      {
+
+      }
+
       void SnapshotList::get_ticks(INT *result)
       {
         auto i = 0;

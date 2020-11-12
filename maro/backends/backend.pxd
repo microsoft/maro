@@ -51,8 +51,11 @@ cdef class SnapshotListAbc:
     # Enable history, history will dump backend into files each time take_snapshot called
     cdef void enable_history(self, str history_folder) except +
 
-    # Reset internal states
+    # Reset internal states.
     cdef void reset(self) except +
+
+    # Dump Snapshot into target folder (without filename).
+    cdef void dump(self, str folder) except +
 
 
 # Base of all backend implementation
@@ -104,3 +107,6 @@ cdef class BackendAbc:
 
     # Set slot number of specified attribute
     cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +
+
+    # Dump Snapshot into target folder (without filename).
+    cdef void dump(self, str folder) except +

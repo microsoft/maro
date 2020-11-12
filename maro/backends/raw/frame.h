@@ -126,6 +126,8 @@ namespace maro
 
         void reset();
 
+        void dump(string path);
+
       private:
         inline void ensure_node_id(IDENTIFIER node_id);
         inline void ensure_attr_id(IDENTIFIER attr_id);

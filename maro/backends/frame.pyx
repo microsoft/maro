@@ -463,6 +463,14 @@ cdef class FrameBase:
             for node in node_list:
                 node._update()
 
+    def dump(self, folder: str):
+        """Dump data of current frame into specified folder.
+
+        Args:
+            folder (str): Folder path to dump (without file name).
+        """
+        self._backend.dump(folder)
+
     cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshots, dict options) except *:
         """Setup Frame for further using."""
         cdef str frame_attr_name
@@ -636,3 +644,11 @@ cdef class SnapshotList:
     def reset(self):
         """Reset current states, this will cause all the values to be 0, make sure call it after states querying."""
         self._snapshots.reset()
+
+    def dump(self, folder: str):
+        """Dump data of current snapshots into specified folder.
+
+        Args:
+            folder (str): Folder path to dump (without file name).
+        """
+        self._snapshots.dump(folder)

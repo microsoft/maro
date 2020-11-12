@@ -145,6 +145,8 @@ namespace maro
 
         void reset();
 
+        void dump(string path);
+
         void get_ticks(INT *result);
 
         // prepare for querying use passed parameters, this method will correct input info, and generate an parameter object for next query
