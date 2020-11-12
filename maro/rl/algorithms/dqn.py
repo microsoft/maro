@@ -135,8 +135,7 @@ class DQN(AbsAlgorithm):
             q_values = state_values + advantages - corrections.unsqueeze(1)
             return q_values
         else:
-            model = self._target_model if is_target else self._model
-            return model(states)
+            return self._target_model(states) if is_target else self._model(states)
 
     def _get_next_q_values(self, current_q_values_all, next_states):
         if self._config.is_double:
