@@ -469,7 +469,8 @@ cdef class FrameBase:
         Args:
             folder (str): Folder path to dump (without file name).
         """
-        self._backend.dump(folder)
+        if os.path.exists(folder):
+            self._backend.dump(folder)
 
     cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshots, dict options) except *:
         """Setup Frame for further using."""
@@ -651,4 +652,5 @@ cdef class SnapshotList:
         Args:
             folder (str): Folder path to dump (without file name).
         """
-        self._snapshots.dump(folder)
+        if os.path.exists(folder):
+            self._snapshots.dump(folder)

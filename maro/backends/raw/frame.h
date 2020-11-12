@@ -137,7 +137,7 @@ namespace maro
         inline void ensure_node_index(FrameNode &node, NODE_INDEX node_index);
         inline void ensure_slot_index(FrameAttribute &attr, SLOT_INDEX slot_index);
 
-        inline void write_attribute(ofstream& file, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+        inline void write_attribute(ofstream& file, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
       };
     } // namespace raw
   }   // namespace backends
