@@ -309,7 +309,7 @@ cdef class FrameBase:
         # use numpy if backend name is invalid
         backend = backend_dict.get(backend_name, NumpyBackend)
 
-        self._backend_name = "numpy" if type(backend) == NumpyBackend else "raw"
+        self._backend_name = "numpy" if backend == NumpyBackend else "raw"
 
         self._backend = backend()
 
