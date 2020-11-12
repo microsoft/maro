@@ -189,10 +189,7 @@ namespace maro
 
         // copy the mapping
         // NOTE: this coppy will not change the index, others should consider it when using this
-        for (auto iter : _mapping)
-        {
-          map[iter.first] = iter.second;
-        }
+        map.insert(_mapping.begin(),_mapping.end());
       }
 
       size_t AttributeStore::size()
