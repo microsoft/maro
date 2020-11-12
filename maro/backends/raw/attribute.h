@@ -11,6 +11,10 @@ namespace maro
   {
     namespace raw
     {
+
+      class InvalidOperation: public exception
+      {}
+
       /// <summary>
       /// Attribute for a node, used to hold all supported data type
       /// </summary>

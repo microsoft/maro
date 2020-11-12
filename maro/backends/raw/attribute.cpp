@@ -74,6 +74,8 @@ namespace maro
         default:
           break;
         }
+
+        throw InvalidOperation();
       }
       void Attribute::operator=(const Attribute& attr)
       {

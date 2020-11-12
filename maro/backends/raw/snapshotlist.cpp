@@ -252,7 +252,7 @@ namespace maro
         auto srs = SnapshotResultShape();
 
         // get max length of slot for all attribute
-        for (auto attr_index = 0; attr_index < attr_length; attr_index++)
+        for (UINT attr_index = 0; attr_index < attr_length; attr_index++)
         {
           auto& attr = _frame->_attributes[attributes[attr_index]];
 

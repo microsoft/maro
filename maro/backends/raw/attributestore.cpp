@@ -43,7 +43,7 @@ namespace maro
         {
           auto reset_end = _last_index;
 
-          for (auto i = 0; i < _last_index; i++)
+          for (size_t i = 0; i < _last_index; i++)
           {
             // find last that is not empty
             update_last_index();
