@@ -174,8 +174,8 @@ class MultiTaskLearningModel(AbsLearningModel):
         else:
             return self._net[task](inputs)
 
-    def step(self, *losses):
-        """Use the losses to back-propagate gradients and apply them to the underlying parameters."""
+    def step(self, loss):
+        """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         if not self._has_trainable_shared_layers and not self._has_trainable_heads:
             raise MissingOptimizerError("No optimizer registered to the model")
 
@@ -186,9 +186,8 @@ class MultiTaskLearningModel(AbsLearningModel):
             for optim in self._head_optimizer_dict.values():
                 optim.zero_grad()
 
-        # Accumulate gradients from all losses
-        for loss in losses:
-            loss.backward()
+        # Obtain gradients through back-propagation
+        loss.backward()
 
         # Apply gradients
         if self._has_trainable_shared_layers:
