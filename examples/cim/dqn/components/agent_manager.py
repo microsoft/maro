@@ -18,20 +18,21 @@ def create_dqn_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        q_model = MultiTaskLearningModel(
-            {"q_value": "[FullyConnectedBlock(
-                name=f'{agent_id}.policy',
+        q_module = LearningModule(
+            "q_value",
+            [FullyConnectedBlock(
+                name=f'{agent_id}.q_value',
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,
                 activation=nn.LeakyReLU,
                 is_head=True,
                 **config.algorithm.model
             )],
-            optimizer_opt=(RMSprop, config.algorithm.optimizer),
+            optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
         )
 
         algorithm = DQN(
-            core_model=q_model,
+            core_model=MultiTaskLearningModel(q_module),
             config=DQNConfig(
                 **config.algorithm.config,
                 loss_cls=nn.SmoothL1Loss,

@@ -130,7 +130,7 @@ class MultiTaskLearningModel(AbsLearningModel):
             Outputs from the required head(s).
         """
         if task_name is None:
-            return {key: self._net[key](inputs) for key in self._tasks}
+            return {key: self._net[key](inputs) for key in self._task_names}
 
         if isinstance(task_name, list):
             return {k: self._net[k](inputs) for k in task_name}
