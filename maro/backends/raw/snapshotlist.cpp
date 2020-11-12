@@ -292,6 +292,8 @@ namespace maro
               file << "\n";
             }
           }
+
+          file.close();
         }
       }
 
