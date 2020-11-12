@@ -47,6 +47,7 @@ namespace maro
         attr.name = name;
         attr.slots = slots;
         attr.origin_slots = slots;
+        attr.max_slots = slots;
         attr.node_id = node.id;
 
         _attributes.push_back(attr);
@@ -150,6 +151,7 @@ namespace maro
         }
 
         attr.slots = slots;
+        attr.max_slots = max(slots, attr.max_slots);
       }
 
       USHORT Frame::get_node_number(IDENTIFIER node_id)
@@ -179,6 +181,7 @@ namespace maro
         for (auto &attr : _attributes)
         {
           attr.slots = attr.origin_slots;
+          attr.max_slots = attr.origin_slots;
         }
 
         // setup again

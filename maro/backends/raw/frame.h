@@ -50,6 +50,7 @@ namespace maro
         AttrDataType type;
         SLOT_INDEX slots;
         SLOT_INDEX origin_slots; // used to reset
+        SLOT_INDEX max_slots; // used for padding
         IDENTIFIER id;
         IDENTIFIER node_id;
         string name;
