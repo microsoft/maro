@@ -217,7 +217,82 @@ namespace maro
 
       void SnapshotList::dump(string path)
       {
+        for (auto node : _frame->_nodes)
+        {
+          auto full_path = path + "/" + "snapshots_" + node.name + ".csv";
 
+          ofstream file(full_path);
+
+          // write headers
+          file << "tick,node_index";
+
+          for (auto attr_id : _frame->_node_2_attrs.find(node.id)->second)
+          {
+            auto &attr_info = _frame->_attributes[attr_id];
+
+            file << "," << attr_info.name;
+          }
+
+          file << "\n";
+
+          // write contents
+          for (auto tick_iter : _tick2index_map)
+          {
+            auto tick = tick_iter.first;
+
+            for (NODE_INDEX node_index = 0; node_index < node.number; node_index++)
+            {
+              file << tick << "," << node_index;
+
+              for (auto attr_id : _frame->_node_2_attrs.find(node.id)->second)
+              {
+                auto &attr_info = _frame->_attributes[attr_id];
+
+                if (attr_info.max_slots == 1)
+                {
+                  file << ",";
+
+                  // write one value
+                  auto &attr = operator()(tick, node.id, node_index, attr_id, 0);
+
+                  if (attr.is_nan())
+                  {
+                    file << "nan";
+                  }
+                  else
+                  {
+                    file << ATTR_FLOAT(attr);
+                  }
+                }
+                else
+                {
+                  file << ",\"[";
+
+                  // write a list
+                  for (SLOT_INDEX slot_index = 0; slot_index < attr_info.max_slots; slot_index++)
+                  {
+                    auto &attr = operator()(tick, node.id, node_index, attr_id, slot_index);
+
+                    if (attr.is_nan())
+                    {
+                      file << "nan";
+                    }
+                    else
+                    {
+                      file << ATTR_FLOAT(attr);
+                    }
+
+                    file << ",";
+                  }
+
+                  file << "]\"";
+                }
+              }
+
+              file << "\n";
+            }
+          }
+        }
       }
 
       void SnapshotList::get_ticks(INT *result)

@@ -3,6 +3,8 @@
 
 #include <map>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include "common.h"
 #include "attribute.h"
