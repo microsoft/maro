@@ -258,7 +258,7 @@ namespace maro
         {
           auto &attr = _frame->_attributes[attributes[attr_index]];
 
-          srs.max_slot_number = max(attr.slots, srs.max_slot_number);
+          srs.max_slot_number = max(attr.max_slots, srs.max_slot_number);
         }
 
         // correct node number
