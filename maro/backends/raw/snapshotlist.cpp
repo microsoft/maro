@@ -360,19 +360,19 @@ namespace maro
 
         auto result_index = 0;
 
-        for (auto i = 0; i < tick_length; i++)
+        for (UINT i = 0; i < tick_length; i++)
         {
           auto tick = __ticks[i];
 
-          for (auto j = 0; j < node_length; j++)
+          for (UINT j = 0; j < node_length; j++)
           {
             auto node_index = __node_indices[j];
 
-            for (auto k = 0; k < attr_length; k++)
+            for (UINT k = 0; k < attr_length; k++)
             {
               auto attr_id = attrs[k];
 
-              for (auto slot_index = 0; slot_index < shape.max_slot_number; slot_index++)
+              for (SLOT_INDEX slot_index = 0; slot_index < shape.max_slot_number; slot_index++)
               {
                 auto& attr = operator()(tick, node_id, node_index, attr_id, slot_index);
 
