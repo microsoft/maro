@@ -5,10 +5,10 @@ import sys
 import unittest
 
 import numpy as np
-
-from test_frame import build_frame, DYNAMIC_NODE_NUM, STATIC_NODE_NUM
+from test_frame import DYNAMIC_NODE_NUM, STATIC_NODE_NUM, build_frame
 
 from tests.utils import backends_to_test
+
 
 class TestFrame(unittest.TestCase):
     def test_take_snapshot(self):
@@ -34,7 +34,7 @@ class TestFrame(unittest.TestCase):
             # NOTE: we use flatten here, as raw backend's snapshotlist will have 4 dim result
             # the value should be same with current
             self.assertListEqual(list(a1_at_tick_0.flatten().astype("i")), [
-                                    1, 23], msg="1st static node's a1 should be [1, 23] at tick 0")
+                1, 23], msg="1st static node's a1 should be [1, 23] at tick 0")
 
             # test if the value in snapshot will be changed after change frame
             static_node.a1[1] = 123
@@ -42,7 +42,7 @@ class TestFrame(unittest.TestCase):
             a1_at_tick_0 = frame.snapshots["static"][:0:"a1"]
 
             self.assertListEqual(list(a1_at_tick_0.flatten().astype("i")), [
-                                1, 23], msg="1st static node's a1 should be [1, 23] at tick 0 even static node value changed")
+                1, 23], msg="1st static node's a1 should be [1, 23] at tick 0 even static node value changed")
 
             frame.take_snapshot(1)
 
@@ -53,7 +53,8 @@ class TestFrame(unittest.TestCase):
     def test_slice_quering(self):
         for backend_name in backends_to_test:
             """Test if states quering result correct"""
-            frame = build_frame(True, total_snapshot=2, backend_name=backend_name)
+            frame = build_frame(True, total_snapshot=2,
+                                backend_name=backend_name)
 
             # one node changes
             static_node = frame.static_nodes[0]
@@ -70,7 +71,7 @@ class TestFrame(unittest.TestCase):
                 self.assertTrue(np.isnan(static_node_a2_states).all())
             else:
                 self.assertEqual(0, static_node_a2_states.astype("i")[0],
-                                msg="states before taking snapshot should be 0")
+                                 msg="states before taking snapshot should be 0")
 
             frame.take_snapshot(0)
 
@@ -92,7 +93,7 @@ class TestFrame(unittest.TestCase):
             # then 1st should a3 value for all static node
             # 2nd should be a2 value for all static node
             self.assertListEqual(list(states[:, 0].astype("i")), [
-                                100 * i for i in range(len(frame.static_nodes))], msg="1st row of states should be a3 value")
+                100 * i for i in range(len(frame.static_nodes))], msg="1st row of states should be a3 value")
             self.assertListEqual(list(states[:, 1].astype("i")), [100 * i + 1 for i in range(
                 len(frame.static_nodes))], msg="2nd row of states should be a2 value")
 
@@ -132,14 +133,15 @@ class TestFrame(unittest.TestCase):
 
             # check if current snapshot max size correct
             self.assertEqual(2, len(frame.snapshots),
-                            msg="snapshot list max size should be 2")
+                             msg="snapshot list max size should be 2")
 
             # and result without ticks should return 2 row: 2*len(static_nodes)
             states = frame.snapshots["static"][::"a2"]
 
             states = states.reshape(-1, len(frame.static_nodes))
 
-            self.assertEqual(2, len(states), msg="states should contains 2 row")
+            self.assertEqual(
+                2, len(states), msg="states should contains 2 row")
 
             # 1st row should be values at tick 1
             self.assertListEqual(list(states[0].astype("i")), [100 * i + 1 for i in range(
@@ -153,13 +155,14 @@ class TestFrame(unittest.TestCase):
             states = frame.snapshots["static"][(0, 1, 2)::"a2"]
             states = states.reshape(-1, len(frame.static_nodes))
 
-            self.assertEqual(3, len(states), msg="states should contains 3 row")
+            self.assertEqual(
+                3, len(states), msg="states should contains 3 row")
 
             if backend_name == "raw":
                 self.assertTrue(np.isnan(states[0]).all())
             else:
                 self.assertListEqual([0]*len(frame.static_nodes),
-                                    list(states[0].astype("i")), msg="over-wrote tick should return 0")
+                                     list(states[0].astype("i")), msg="over-wrote tick should return 0")
 
             self.assertListEqual(list(states[1].astype("i")), [100 * i + 1 for i in range(
                 len(frame.static_nodes))], msg="a2 at tick 1 for all nodes should be correct")
@@ -168,13 +171,14 @@ class TestFrame(unittest.TestCase):
                 1000, states[2][0], msg="a2 for 1st static node for 2nd row should be 1000")
 
             frame_index_list = frame.snapshots.get_frame_index_list()
-            
+
             self.assertListEqual(frame_index_list, [1, 2])
 
     def test_snapshot_length(self):
         """Test __len__ function result"""
         for backend_name in backends_to_test:
-            frm = build_frame(True, total_snapshot=10, backend_name=backend_name)
+            frm = build_frame(True, total_snapshot=10,
+                              backend_name=backend_name)
 
             self.assertEqual(10, len(frm.snapshots))
 
@@ -204,7 +208,8 @@ class TestFrame(unittest.TestCase):
                 # all should be nan
                 self.assertTrue(np.isnan(states).all())
             else:
-                self.assertListEqual(list(states.astype("I")), [0]*STATIC_NODE_NUM)
+                self.assertListEqual(list(states.astype("I")), [
+                                     0]*STATIC_NODE_NUM)
 
             # with 1 invalid index, one valid index
             states = frm.snapshots["static"][(0, 1)::"a2"]
@@ -214,12 +219,13 @@ class TestFrame(unittest.TestCase):
 
             # index 0 should be same with current value
             self.assertListEqual(list(states[0].astype("i")), [
-                                    i for i in range(STATIC_NODE_NUM)])
+                i for i in range(STATIC_NODE_NUM)])
 
             if backend_name == "raw":
                 self.assertTrue(np.isnan(states[1]).all())
             else:
-                self.assertListEqual(list(states[1].astype("i")), [0]*STATIC_NODE_NUM)
+                self.assertListEqual(list(states[1].astype("i")), [
+                                     0]*STATIC_NODE_NUM)
 
     def test_get_attribute_with_undefined_attribute(self):
         for backend_name in backends_to_test:

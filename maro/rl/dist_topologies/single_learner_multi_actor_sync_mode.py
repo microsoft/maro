@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
 import sys
+from enum import Enum
 from typing import Callable
 
 from maro.communication import Proxy, SessionType

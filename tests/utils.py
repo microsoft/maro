@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.simulator.scenarios import AbsBusinessEngine
 from maro.event_buffer import EventBuffer, EventState
+from maro.simulator.scenarios import AbsBusinessEngine
+
 
 backends_to_test = ["np", "raw"]
 

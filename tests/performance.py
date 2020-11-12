@@ -2,25 +2,12 @@
 # Licensed under the MIT license.
 
 import os
-from termgraph import termgraph as tg
 from time import time
-from timeit import timeit
 
-from maro.backends.frame import node, NodeBase, NodeAttribute, FrameNode, FrameBase
+from termgraph import termgraph as tg
 
-"""
-colors = [91, 94]
-data = [[183.32, 190.52], [231.23, 5.0], [16.43, 53.1], [50.21, 7.0],
-        [508.97, 10.45], [212.05, 20.2], [30.0, 20.0]]
-args = {'filename': 'data/ex4.dat', 'title': None, 'width': 50,
-        'format': '{:<5.2f}', 'suffix': '', 'no_labels': False,
-        'color': None, 'vertical': False, 'stacked': False,
-        'different_scale': False, 'calendar': False,
-        'start_dt': None, 'custom_tick': '', 'delim': '',
-        'verbose': False, 'version': False, 'histogram': False, 'no_values': False}
-labels = ['2007', '2008', '2009', '2010', '2011', '2012', '2014']
-tg.chart(colors, data, args, labels)
-"""
+from maro.backends.frame import (FrameBase, FrameNode, NodeAttribute, NodeBase,
+                                 node)
 
 NODE1_NUMBER = 100
 NODE2_NUMBER = 100
@@ -53,7 +40,8 @@ class TestFrame(FrameBase):
     node2 = FrameNode(TestNode2, NODE2_NUMBER)
 
     def __init__(self, backend_name):
-        super().__init__(enable_snapshot=True, total_snapshot=TAKE_SNAPSHOT_TIME, backend_name=backend_name)
+        super().__init__(enable_snapshot=True,
+                         total_snapshot=TAKE_SNAPSHOT_TIME, backend_name=backend_name)
 
 
 def build_frame(backend_name: str):
@@ -72,9 +60,10 @@ def attribute_access(frame, times: int):
 
     return time() - start_time
 
+
 def take_snapshot(frame, times: int):
     """Return times cost (in seconds) for take_snapshot operation"""
-    
+
     start_time = time()
 
     for i in range(times):
@@ -82,9 +71,10 @@ def take_snapshot(frame, times: int):
 
     return time() - start_time
 
+
 def snapshot_query(frame, times: int):
     """Return time cost (in seconds) for snapshot querying"""
-    
+
     start_time = time()
 
     for i in range(times):
@@ -97,14 +87,15 @@ if __name__ == "__main__":
     chart_colors = [91, 94]
 
     chart_args = {'filename': '-', 'title': "Performance comparison between cpp and np backends", 'width': 40,
-        'format': '{:<5.2f}', 'suffix': '', 'no_labels': False,
-        'color': None, 'vertical': False, 'stacked': False,
-        'different_scale': False, 'calendar': False,
-        'start_dt': None, 'custom_tick': '', 'delim': '',
-        'verbose': False, 'version': False, 
-        'histogram': False, 'no_values': False}
+                  'format': '{:<5.2f}', 'suffix': '', 'no_labels': False,
+                  'color': None, 'vertical': False, 'stacked': False,
+                  'different_scale': False, 'calendar': False,
+                  'start_dt': None, 'custom_tick': '', 'delim': '',
+                  'verbose': False, 'version': False,
+                  'histogram': False, 'no_values': False}
 
-    chart_labels = [f'attribute accessing ({READ_WRITE_NUMBER})', f'take snapshot ({STATES_QURING_TIME})', f'states querying ({STATES_QURING_TIME})']
+    chart_labels = [f'attribute accessing ({READ_WRITE_NUMBER})',
+                    f'take snapshot ({STATES_QURING_TIME})', f'states querying ({STATES_QURING_TIME})']
 
     chart_data = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
 
@@ -121,9 +112,9 @@ if __name__ == "__main__":
 
             chart_data[j][i] = t
 
-            j+=1
+            j += 1
 
-        i+=1
+        i += 1
 
     tg.print_categories(['np', 'raw'], chart_colors)
     tg.chart(chart_colors, chart_data, chart_args, chart_labels)

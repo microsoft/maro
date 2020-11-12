@@ -4,17 +4,16 @@
 import os
 import unittest
 
-from maro.simulator import Env
-from maro.event_buffer import EventBuffer
-from maro.simulator.scenarios.citi_bike.business_engine import CitibikeBusinessEngine
-from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
 from maro.data_lib import BinaryConverter
+from maro.event_buffer import EventBuffer
+from maro.simulator import Env
+from maro.simulator.scenarios.citi_bike.business_engine import \
+    CitibikeBusinessEngine
+from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
+from tests.utils import backends_to_test, be_run_to_end, next_step
 
-from tests.utils import next_step, be_run_to_end, backends_to_test
 
-
-
-def setup_case(case_name: str, max_tick:int):
+def setup_case(case_name: str, max_tick: int):
     config_path = os.path.join("tests/data/citi_bike", case_name)
 
     # enable binary exist
@@ -23,7 +22,8 @@ def setup_case(case_name: str, max_tick:int):
     trips_bin = os.path.join(config_path, "trips.bin")
 
     if not os.path.exists(trips_bin):
-        converter = BinaryConverter(trips_bin, os.path.join("tests/data/citi_bike", "trips.meta.yml"))
+        converter = BinaryConverter(trips_bin, os.path.join(
+            "tests/data/citi_bike", "trips.meta.yml"))
 
         converter.add_csv(os.path.join(config_path, "trips.csv"))
         converter.flush()
@@ -32,22 +32,25 @@ def setup_case(case_name: str, max_tick:int):
     weathers_bin = os.path.join("tests/data/citi_bike", "weathers.bin")
 
     if not os.path.exists(weathers_bin):
-        converter = BinaryConverter(weathers_bin, os.path.join("tests/data/citi_bike", "weather.meta.yml"))
-        
+        converter = BinaryConverter(weathers_bin, os.path.join(
+            "tests/data/citi_bike", "weather.meta.yml"))
+
         converter.add_csv(os.path.join("tests/data/citi_bike", "weather.csv"))
         converter.flush()
 
     eb = EventBuffer()
-    be = CitibikeBusinessEngine(event_buffer=eb, topology=config_path, start_tick=0, max_tick=max_tick, snapshot_resolution=1, max_snapshots=None, additional_options={})
+    be = CitibikeBusinessEngine(event_buffer=eb, topology=config_path, start_tick=0,
+                                max_tick=max_tick, snapshot_resolution=1, max_snapshots=None, additional_options={})
 
     return eb, be
+
 
 class TestCitibike(unittest.TestCase):
     def test_trips_without_shortage(self):
         """Normal case without shortage, case_1"""
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
-        
+
             eb, be = setup_case("case_1", max_tick=10)
 
             next_step(eb, be, 0)
@@ -65,7 +68,8 @@ class TestCitibike(unittest.TestCase):
 
             # check event in pending pool, there should be 1 returned event
             self.assertEqual(1, len(pending_evts))
-            self.assertEqual(CitiBikeEvents.ReturnBike, pending_evts[0].event_type)
+            self.assertEqual(CitiBikeEvents.ReturnBike,
+                             pending_evts[0].event_type)
 
             next_step(eb, be, 1)
 
@@ -78,7 +82,8 @@ class TestCitibike(unittest.TestCase):
             self.assertEqual(0, station_1.shortage)
 
             # check if snapshot correct
-            states = be.snapshots["stations"][::["shortage", "bikes", "fulfillment", "trip_requirement"]]
+            states = be.snapshots["stations"][::[
+                "shortage", "bikes", "fulfillment", "trip_requirement"]]
 
             # reshape by tick, attribute numbr and station number
             states = states.reshape(-1, station_num,  4)
@@ -89,23 +94,25 @@ class TestCitibike(unittest.TestCase):
             states_at_tick_1 = states[1]
 
             # no shortage
-            self.assertEqual(0, states_at_tick_0[:,0].sum())
-            self.assertEqual(4+10, states_at_tick_0[:,1].sum())
+            self.assertEqual(0, states_at_tick_0[:, 0].sum())
+            self.assertEqual(4+10, states_at_tick_0[:, 1].sum())
 
             # since no shortage, trips == fulfillments
-            self.assertEqual(states_at_tick_0[:,2].sum(), states_at_tick_0[:,3].sum())
+            self.assertEqual(
+                states_at_tick_0[:, 2].sum(), states_at_tick_0[:, 3].sum())
 
             #
-            self.assertEqual(0, states_at_tick_1[:,0].sum())
-            self.assertEqual(3+9, states_at_tick_1[:,1].sum())
+            self.assertEqual(0, states_at_tick_1[:, 0].sum())
+            self.assertEqual(3+9, states_at_tick_1[:, 1].sum())
 
-            self.assertEqual(states_at_tick_1[:,2].sum(), states_at_tick_1[:,3].sum())
+            self.assertEqual(
+                states_at_tick_1[:, 2].sum(), states_at_tick_1[:, 3].sum())
 
     def test_trips_on_multiple_epsiode(self):
         """Test if total trips of multiple episodes with same config are same"""
         for backend_name in backends_to_test:
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
-        
+
             max_ep = 100
 
             eb, be = setup_case("case_1", max_tick=100)
@@ -118,9 +125,11 @@ class TestCitibike(unittest.TestCase):
 
                 be_run_to_end(eb, be)
 
-                total_trips = be.snapshots["stations"][::"trip_requirement"].sum()
-                shortage_and_fulfillment = be.snapshots["stations"][::["shortage", "fulfillment"]].sum()
-                
+                total_trips = be.snapshots["stations"][::"trip_requirement"].sum(
+                )
+                shortage_and_fulfillment = be.snapshots["stations"][::[
+                    "shortage", "fulfillment"]].sum()
+
                 self.assertEqual(total_trips, shortage_and_fulfillment)
 
                 total_trips_list.append(total_trips)
@@ -139,7 +148,8 @@ class TestCitibike(unittest.TestCase):
 
             be_run_to_end(eb, be)
 
-            states_at_tick_0 = stations_snapshots[0:0:["shortage", "bikes"]].flatten()
+            states_at_tick_0 = stations_snapshots[0:0:[
+                "shortage", "bikes"]].flatten()
 
             shortage_at_tick_0 = states_at_tick_0[0]
             bikes_at_tick_0 = states_at_tick_0[1]
@@ -149,7 +159,8 @@ class TestCitibike(unittest.TestCase):
             self.assertEqual(4, bikes_at_tick_0)
 
             # there should be 6 trips from 1st station, so there will be 2 shortage
-            states_at_tick_1 = stations_snapshots[1:0:["shortage", "bikes", "trip_requirement"]].flatten()
+            states_at_tick_1 = stations_snapshots[1:0:[
+                "shortage", "bikes", "trip_requirement"]].flatten()
 
             self.assertEqual(2, states_at_tick_1[0])
             self.assertEqual(0, states_at_tick_1[1])

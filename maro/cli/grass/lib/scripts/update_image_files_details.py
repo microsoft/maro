@@ -8,7 +8,7 @@ import os
 
 from redis import Redis
 
-from utils import load_cluster_details, get_master_details, set_master_details
+from .utils import get_master_details, load_cluster_details, set_master_details
 
 
 def get_current_image_files_details(cluster_name: str) -> dict:
@@ -35,9 +35,11 @@ if __name__ == "__main__":
     cluster_details = load_cluster_details(cluster_name=args.cluster_name)
     master_hostname = cluster_details['master']['hostname']
     redis_port = cluster_details['master']['redis']['port']
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8", decode_responses=True
+    )
 
     # Get details
     curr_image_files_details = get_current_image_files_details(cluster_name=args.cluster_name)
