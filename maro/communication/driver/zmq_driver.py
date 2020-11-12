@@ -151,7 +151,7 @@ class ZmqDriver(AbsDriver):
                         self._unicast_sender_dict[peer_name].disconnect(address)
                         del self._unicast_sender_dict[peer_name]
                     elif int(socket_type) == zmq.SUB:
-                        pass
+                        self._broadcast_sender.disconnect(address)
                     else:
                         raise SocketTypeError(f"Unrecognized socket type {socket_type}.")
                 except Exception as e:
@@ -219,3 +219,17 @@ class ZmqDriver(AbsDriver):
             self._logger.debug(f"Broadcast a {message.tag} message to all {topic}.")
         except Exception as e:
             raise DriverSendError(f"Failure to broadcast message caused by: {e}")
+
+    def close(self):
+        """Close ZMQ context and sockets."""
+        # Avoid hanging infinitely
+        self._zmq_context.setsockopt(zmq.LINGER, 0)
+
+        # Close all sockets
+        self._broadcast_receiver.close()
+        self._broadcast_sender.close()
+        self._unicast_receiver.close()
+        for unicast_sender in self._unicast_sender_dict.values():
+            unicast_sender.close()
+
+        self._zmq_context.term()

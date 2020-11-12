@@ -182,6 +182,7 @@ class Proxy:
 
     def __del__(self):
         self._redis_connection.hdel(self._redis_hash_name, self._name)
+        self._driver.close()
 
     def _register_redis(self):
         """Self-registration on Redis and driver initialization.

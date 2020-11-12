@@ -38,3 +38,8 @@ class AbsDriver(ABC):
     def broadcast(self, component_type, message):
         """Broadcast send message."""
         pass
+
+    @abstractmethod
+    def close(self):
+        """Close all sockets."""
+        pass
