@@ -39,3 +39,5 @@ class PhysicalMachine:
         # Check the tick is match.
         if tick == len(self._util_series):
             self._util_series.append(self.util_cpu)
+        else:
+            print(f"The current tick, {tick}, does not match to the length of utilization series.")

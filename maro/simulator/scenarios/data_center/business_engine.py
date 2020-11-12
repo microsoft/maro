@@ -155,9 +155,13 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # NOTE: Should we implement this logic inside the action scope?
         # TODO: Oversubscribable machines should be different logic.
         valid_pm_list = [
-            pm.id
+            {
+                "id": pm.id,
+                "cpu": pm.cap_cpu - pm.req_cpu,
+                "mem": pm.cap_mem - pm.req_mem
+            }
             for pm in self._machines
-            if (pm.cap_cpu - (pm.cap_cpu * pm.req_cpu / 100)) >= vm_req.req_cpu
+            if (pm.cap_cpu - pm.req_cpu) >= vm_req.req_cpu
         ]
 
         if len(valid_pm_list) > 0:
@@ -216,27 +220,24 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         cur_tick: int = evt.tick
         action: Action = evt.payload
         assign: bool = action.assign
-        virtual_machine: VirtualMachine = action.vm_req
+        vm: VirtualMachine = action.vm_req
 
-        if virtual_machine.id != self._pending_action_vm_id:
+        if vm.id != self._pending_action_vm_id:
             print("The VM id sent by agent is invalid.")
 
         if assign:
             pm_id = action.pm_id
-            lifetime = virtual_machine.lifetime
+            lifetime = vm.lifetime
             # Update VM information.
-            virtual_machine.pm_id = pm_id
-            virtual_machine.start_tick = cur_tick
-            virtual_machine.end_tick = cur_tick + lifetime
-            # The index of the VM's utilization in util_series.
-            vm_util_index = cur_tick - virtual_machine.start_tick
-            cur_util_vm_cores = virtual_machine.util_series[vm_util_index] * virtual_machine.req_cpu / 100
-            virtual_machine.util_cpu = cur_util_vm_cores / virtual_machine.req_cpu * 100
+            vm.pm_id = pm_id
+            vm.start_tick = cur_tick
+            vm.end_tick = cur_tick + lifetime
+            vm.util_cpu = vm.get_util(cur_tick=cur_tick)
 
-            self._vm[virtual_machine.id] = virtual_machine
+            self._vm[vm.id] = vm
 
             # Generate VM finished event.
-            finished_payload: VmFinishedPayload = VmFinishedPayload(virtual_machine.id)
+            finished_payload: VmFinishedPayload = VmFinishedPayload(vm.id)
             finished_event = self._event_buffer.gen_atom_event(
                 tick=cur_tick + lifetime,
                 payload=finished_payload
@@ -245,17 +246,17 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
             # Update PM resources requested by VM.
             pm = self._machines[pm_id]
-            pm.add_vm(virtual_machine.id)
-            pm.req_cpu += virtual_machine.req_cpu
-            pm.req_mem += virtual_machine.req_mem
-            pm.util_cpu = ((pm.cap_cpu * pm.util_cpu / 100) + cur_util_vm_cores) / pm.cap_cpu * 100
+            pm.add_vm(vm.id)
+            pm.req_cpu += vm.req_cpu
+            pm.req_mem += vm.req_mem
+            pm.util_cpu = (pm.cap_cpu * pm.util_cpu + vm.req_cpu * vm.util_cpu) / pm.cap_cpu
         else:
             remaining_buffer_time = action.buffer_time
             # Postpone the buffer duration ticks by config setting.
             if remaining_buffer_time > 0:
                 requirement_payload = VmRequirementPayload(
-                    vm_req=virtual_machine,
-                    buffer_time=remaining_buffer_time  - self._delay_duration
+                    vm_req=vm,
+                    buffer_time=remaining_buffer_time - self._delay_duration
                 )
                 self._total_latency.latency_due_to_agent += self._delay_duration
 
