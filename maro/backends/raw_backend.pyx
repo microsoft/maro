@@ -197,7 +197,7 @@ cdef class RawBackend(BackendAbc):
         return node_info
 
     cdef void dump(self, str folder) except +:
-        self._backend.dump_current_frame(folder)
+        self._backend.dump_current_frame(folder.encode())
 
 
 cdef class RawSnapshotList(SnapshotListAbc):
@@ -282,7 +282,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
         self._raw._backend.reset_snapshots()
 
     cdef void dump(self, str folder) except +:
-        self._raw._backend.dump_snapshots(folder)
+        self._raw._backend.dump_snapshots(folder.encode())
 
     def __len__(self):
         return self._raw._backend.get_max_snapshot_number()

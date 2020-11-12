@@ -1,10 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+import os
 import unittest
-
+import pandas as pd
 import numpy as np
+
+from math import isnan
 
 from maro.backends.frame import (FrameBase, FrameNode, NodeAttribute, NodeBase,
                                  node)
@@ -436,6 +438,46 @@ class TestFrame(unittest.TestCase):
         # but works with normal way
         self.assertEqual(0, last_static_node.a2)
 
+    def test_frame_dump(self):
+        frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
+
+        frame.dump(".")
+
+        # there should be 2 output files
+        self.assertTrue(os.path.exists("node_static.csv"))
+        self.assertTrue(os.path.exists("node_dynamic.csv"))
+        list_parser = lambda c: c if not c.startswith("[") else [float(n) for n in c.strip('[] ,').split(",")]
+
+        # a1 is a list
+        static_df = pd.read_csv("node_static.csv", converters={"a1": list_parser})
+
+        # all value should be 0
+        for i in range(STATIC_NODE_NUM):
+            row = static_df.loc[i]
+
+            a1 = row["a1"]
+            a2 = row["a2"]
+            a3 = row["a3"]
+
+            self.assertEqual(2, len(a1))
+
+            self.assertListEqual([0.0, 0.0], a1)
+            self.assertEqual(0, a2)
+            self.assertEqual(0, a3)
+
+        # remove one node, output should padding with nan
+        frame.delete_node(frame.static_nodes[0])
+
+        frame.dump(".")
+
+        static_df = pd.read_csv("node_static.csv", converters={"a1": list_parser})
+        
+        #
+        self.assertTrue(isnan(static_df.loc[0]["a1"][0]))
+        self.assertTrue(isnan(static_df.loc[0]["a1"][1]))
+
+        self.assertTrue(isnan(static_df.loc[0]["a2"]))
+        self.assertTrue(isnan(static_df.loc[0]["a3"]))
 
 if __name__ == "__main__":
     unittest.main()

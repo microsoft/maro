@@ -185,10 +185,83 @@ namespace maro
         setup();
       }
 
+      void Frame::write_attribute(ofstream &file, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      {
+        try
+        {
+          auto &a = operator()(node_index, attr_id, 0);
+
+          file << ATTR_FLOAT(a);
+        }
+        catch (const BadAttributeIndexing &e)
+        {
+          file << "nan";
+        }
+      }
+
       void Frame::dump(string path)
       {
-        
-      }
+        // for dump, we will save for each node, named as "node_<node_name>.csv"
+        // content of the csv will follow padans' output that list will be wrapped into a "[]",
+        for (auto node : _nodes)
+        {
+          auto output_path = path + "/" + "node_" + node.name + ".csv";
+
+          ofstream file(output_path);
+
+          // write headers
+          file << "node_index";
+
+          for (IDENTIFIER attr_id : _node_2_attrs.find(node.id)->second)
+          {
+            auto attr = _attributes[attr_id];
+
+            file << "," << attr.name;
+          }
+
+          // end of headers
+          file << "\n";
+
+          // write for each node
+          for (NODE_INDEX node_index = 0; node_index < node.number; node_index++)
+          {
+            // node index
+            file << node_index;
+
+            for (IDENTIFIER attr_id : _node_2_attrs.find(node.id)->second)
+            {
+              auto attr = _attributes[attr_id];
+
+              if (attr.slots == 1)
+              {
+                file << ",";
+
+                write_attribute(file, node_index, attr_id, 0);
+              }
+              else
+              {
+                // start of list
+                file << ",\"[";
+
+                for (SLOT_INDEX slot_index = 0; slot_index < attr.slots; slot_index++)
+                {
+                  write_attribute(file, node_index, attr_id, slot_index);
+
+                  file << ",";
+                }
+
+                // end of list
+                file << "]\"";
+              }
+            }
+
+            // end of row
+            file << "\n";
+          }
+
+          file.close();
+        }
+      } // namespace raw
 
       inline void Frame::ensure_node_id(IDENTIFIER node_id)
       {
