@@ -116,6 +116,10 @@ class MultiTaskLearningModel(AbsLearningModel):
     def task_names(self) -> [str]:
         return self._task_names
 
+    @property
+    def is_trainable(self) -> bool:
+        return any(task_module.is_trainable for task_module in self._task_modules) or self._shared_module.is_trainable
+
     def forward(self, inputs, task_name=None):
         """Feedforward computations for the given head(s).
 
