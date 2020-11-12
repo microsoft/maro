@@ -17,10 +17,9 @@ namespace maro
       const USHORT BITS_PER_BYTE = 8;
       const USHORT BITS_PER_MASK = sizeof(ULONG) * BITS_PER_BYTE;
 
-      
-      class IndexOutRange: public exception
-      {};
-
+      class IndexOutRange : public exception
+      {
+      };
 
       class Bitset
       {
@@ -34,6 +33,7 @@ namespace maro
           ULONG _mask_index{0};
           // when offset == 0, iterator will check if current mask equals to MAX_ULONG
           USHORT _mask_offset{0};
+
         public:
           BitsetIterateObject();
         };
@@ -59,7 +59,7 @@ namespace maro
         /// reset all bit to specified value
         /// </summary>
         /// <param name="">Value to reset</param>
-        void reset(bool value=false);
+        void reset(bool value = false);
 
         /// <summary>
         /// Get value at specified index
@@ -77,17 +77,16 @@ namespace maro
         /// <summary>
         /// Get an iterator to go over all empty slots
         /// </summary>
-        BitsetIterateObject& empty_iter_obj();
+        BitsetIterateObject &empty_iter_obj();
 
         // if reach the end
-        bool is_end(BitsetIterateObject& iter_obj);
+        bool is_end(BitsetIterateObject &iter_obj);
 
         // get next empty index
-        ULONG empty_index(BitsetIterateObject& iter_obj);
+        ULONG empty_index(BitsetIterateObject &iter_obj);
       };
-    }
-  }
-}
-
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro
 
 #endif // !_MARO_BACKENDS_RAW_BITSET

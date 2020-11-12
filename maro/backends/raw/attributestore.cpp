@@ -1,6 +1,5 @@
 #include "attributestore.h"
 
-
 namespace maro
 {
   namespace backends
@@ -82,7 +81,7 @@ namespace maro
         }
       }
 
-      Attribute& AttributeStore::operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      Attribute &AttributeStore::operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
       {
         auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
         auto index_pair = _mapping.find(key);
@@ -180,7 +179,7 @@ namespace maro
         }
       }
 
-      void AttributeStore::copy_to(Attribute* p, unordered_map<ULONG, size_t>& map)
+      void AttributeStore::copy_to(Attribute *p, unordered_map<ULONG, size_t> &map)
       {
         // arrange before copy
         arrange();
@@ -225,6 +224,6 @@ namespace maro
         return _last_index;
       }
 #endif
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro

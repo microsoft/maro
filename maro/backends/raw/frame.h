@@ -21,14 +21,16 @@ namespace maro
       };
 
       class BadAttributeIdentifier : public exception
-      {};
+      {
+      };
 
       class BadNodeIndex : public exception
       {
       };
 
       class BadAttributeSlotIndex : public exception
-      {};
+      {
+      };
 
       struct FrameNode
       {
@@ -66,7 +68,7 @@ namespace maro
         // node information
         vector<FrameNode> _nodes;
 
-        // mapping used to get attributes by node 
+        // mapping used to get attributes by node
         map<IDENTIFIER, vector<IDENTIFIER>> _node_2_attrs;
 
       public:
@@ -78,8 +80,7 @@ namespace maro
         /// <param name="attr_id">Id of attribue</param>
         /// <param name="slot_index">Index of slot</param>
         /// <returns></returns>
-        Attribute& operator()(NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
-
+        Attribute &operator()(NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
         /// <summary>
         /// Add a new node type
@@ -94,8 +95,7 @@ namespace maro
         /// <param name="node_id"></param>
         /// <param name="name"></param>
         /// <param name="slots"></param>
-        IDENTIFIER new_attr(IDENTIFIER node_id, string name, AttrDataType type, SLOT_INDEX slots=1);
-
+        IDENTIFIER new_attr(IDENTIFIER node_id, string name, AttrDataType type, SLOT_INDEX slots = 1);
 
         void setup();
 
@@ -113,7 +113,6 @@ namespace maro
 
         void resume_node(IDENTIFIER node_id, NODE_INDEX index);
 
-
         /// <summary>
         /// Set slot number of specified attribute
         /// </summary>
@@ -130,14 +129,11 @@ namespace maro
       private:
         inline void ensure_node_id(IDENTIFIER node_id);
         inline void ensure_attr_id(IDENTIFIER attr_id);
-        inline void ensure_node_index(FrameNode& node, NODE_INDEX node_index);
-        inline void ensure_slot_index(FrameAttribute& attr, SLOT_INDEX slot_index);
-
+        inline void ensure_node_index(FrameNode &node, NODE_INDEX node_index);
+        inline void ensure_slot_index(FrameAttribute &attr, SLOT_INDEX slot_index);
       };
-    }
-  }
-}
-
-
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro
 
 #endif

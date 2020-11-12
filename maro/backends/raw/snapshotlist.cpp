@@ -20,8 +20,7 @@ namespace maro
         attr_length = 0;
       }
 
-
-      void SnapshotList::set_frame(Frame* frame)
+      void SnapshotList::set_frame(Frame *frame)
       {
         _frame = frame;
       }
@@ -39,7 +38,7 @@ namespace maro
         }
       }
 
-      void SnapshotList::take_snapshot(INT tick, AttributeStore* frame_attr_store)
+      void SnapshotList::take_snapshot(INT tick, AttributeStore *frame_attr_store)
       {
         if (frame_attr_store == nullptr)
         {
@@ -50,7 +49,6 @@ namespace maro
           }
 
           frame_attr_store = &(_frame->_attr_store);
-
         }
 
         ensure_max_size();
@@ -161,10 +159,9 @@ namespace maro
         }
 
         _last_tick = tick;
-
       }
 
-      Attribute& SnapshotList::operator()(INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      Attribute &SnapshotList::operator()(INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
       {
         auto tick_index_pair = _tick2index_map.find(tick);
 
@@ -175,7 +172,7 @@ namespace maro
         }
 
         auto tick_start_index = tick_index_pair->second;
-        auto& mapping = _tick_attr_map.find(tick)->second;
+        auto &mapping = _tick_attr_map.find(tick)->second;
 
         auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
 
@@ -218,7 +215,7 @@ namespace maro
         _query_parameters.reset();
       }
 
-      void SnapshotList::get_ticks(INT* result)
+      void SnapshotList::get_ticks(INT *result)
       {
         auto i = 0;
 
@@ -230,7 +227,7 @@ namespace maro
       }
 
       SnapshotResultShape SnapshotList::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[],
-        UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+                                                UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
         // we do not support empty attribute
         if (attributes == nullptr)
@@ -247,14 +244,14 @@ namespace maro
 
         _frame->ensure_node_id(node_id);
 
-        auto& node = _frame->_nodes[node_id];
+        auto &node = _frame->_nodes[node_id];
 
         auto srs = SnapshotResultShape();
 
         // get max length of slot for all attribute
         for (UINT attr_index = 0; attr_index < attr_length; attr_index++)
         {
-          auto& attr = _frame->_attributes[attributes[attr_index]];
+          auto &attr = _frame->_attributes[attributes[attr_index]];
 
           srs.max_slot_number = max(attr.slots, srs.max_slot_number);
         }
@@ -282,18 +279,15 @@ namespace maro
 
         _is_prepared = true;
 
-
         // fill others
         srs.max_node_number = node_length;
         srs.tick_number = tick_length;
         srs.attr_number = attr_length;
 
         return srs;
-
-
       }
 
-      void SnapshotList::query(ATTR_FLOAT* result, SnapshotResultShape shape)
+      void SnapshotList::query(ATTR_FLOAT *result, SnapshotResultShape shape)
       {
         if (result == nullptr)
         {
@@ -307,7 +301,7 @@ namespace maro
         }
 
         // ensure shape not zero
-        if(shape.attr_number == 0 || shape.max_node_number == 0 || shape.max_slot_number == 0 || shape.tick_number == 0)
+        if (shape.attr_number == 0 || shape.max_node_number == 0 || shape.max_slot_number == 0 || shape.tick_number == 0)
         {
           return;
         }
@@ -321,11 +315,11 @@ namespace maro
 
         auto node_id = _query_parameters.node_id;
 
-        auto& node = _frame->_nodes[node_id];
+        auto &node = _frame->_nodes[node_id];
 
-        auto* ticks = _query_parameters.ticks;
-        auto* node_indices = _query_parameters.node_indices;
-        auto* attrs = _query_parameters.attributes;
+        auto *ticks = _query_parameters.ticks;
+        auto *node_indices = _query_parameters.node_indices;
+        auto *attrs = _query_parameters.attributes;
         auto tick_length = _query_parameters.tick_length;
         auto node_length = _query_parameters.node_length;
         auto attr_length = _query_parameters.attr_length;
@@ -355,8 +349,8 @@ namespace maro
           }
         }
 
-        const INT* __ticks = ticks == nullptr ? &_ticks[0] : ticks;
-        const NODE_INDEX* __node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
+        const INT *__ticks = ticks == nullptr ? &_ticks[0] : ticks;
+        const NODE_INDEX *__node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
 
         auto result_index = 0;
 
@@ -374,7 +368,7 @@ namespace maro
 
               for (SLOT_INDEX slot_index = 0; slot_index < shape.max_slot_number; slot_index++)
               {
-                auto& attr = operator()(tick, node_id, node_index, attr_id, slot_index);
+                auto &attr = operator()(tick, node_id, node_index, attr_id, slot_index);
 
                 if (!attr.is_nan())
                 {
@@ -393,7 +387,7 @@ namespace maro
         _query_parameters.reset();
       }
 
-      void SnapshotList::append_to_end(AttributeStore* frame_attr_store, INT tick)
+      void SnapshotList::append_to_end(AttributeStore *frame_attr_store, INT tick)
       {
         auto snapshot_size = frame_attr_store->size();
 
@@ -415,7 +409,7 @@ namespace maro
         _end_index += snapshot_size;
       }
 
-      void SnapshotList::write_to_empty_slots(AttributeStore* frame_attr_store, INT tick)
+      void SnapshotList::write_to_empty_slots(AttributeStore *frame_attr_store, INT tick)
       {
         auto snapshot_size = frame_attr_store->size();
 
@@ -451,6 +445,6 @@ namespace maro
         return _end_index;
       }
 #endif
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro

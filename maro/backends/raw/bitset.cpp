@@ -1,6 +1,5 @@
 #include "bitset.h"
 
-
 namespace maro
 {
   namespace backends
@@ -21,7 +20,6 @@ namespace maro
 
       Bitset::Bitset()
       {
-
       }
 
       Bitset::Bitset(UINT size)
@@ -74,7 +72,6 @@ namespace maro
         auto target = mask >> offset & 0x1ULL;
 
         return target == 1;
-
       }
 
       void Bitset::set(ULONG index, bool value)
@@ -98,7 +95,7 @@ namespace maro
         }
       }
 
-      Bitset::BitsetIterateObject& Bitset::empty_iter_obj()
+      Bitset::BitsetIterateObject &Bitset::empty_iter_obj()
       {
         // reset it each time
         _iter_obj._mask_index = 0ULL;
@@ -107,7 +104,7 @@ namespace maro
         return _iter_obj;
       }
 
-      bool Bitset::is_end(BitsetIterateObject& iter_obj)
+      bool Bitset::is_end(BitsetIterateObject &iter_obj)
       {
         auto index = _iter_obj._mask_index;
         auto offset = _iter_obj._mask_offset;
@@ -144,7 +141,7 @@ namespace maro
         return false;
       }
 
-      ULONG Bitset::empty_index(BitsetIterateObject& iter_obj)
+      ULONG Bitset::empty_index(BitsetIterateObject &iter_obj)
       {
         auto index = _iter_obj._mask_index;
         auto offset = _iter_obj._mask_offset;

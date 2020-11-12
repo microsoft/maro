@@ -16,15 +16,16 @@ namespace maro
     namespace raw
     {
       class InvalidSetupState : public exception
-      {};
+      {
+      };
 
       class Backend
       {
         Frame _frame;
         SnapshotList _snapshot;
 
-        bool _is_setup{ false };
-        bool _is_snapshot_enabled{ false };
+        bool _is_setup{false};
+        bool _is_snapshot_enabled{false};
 
       public:
         IDENTIFIER add_node(string node_name, NODE_INDEX node_num);
@@ -44,7 +45,7 @@ namespace maro
         ATTR_FLOAT get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
         ATTR_DOUBLE get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index);
 
-        template<typename T>
+        template <typename T>
         void set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value);
 
         void take_snapshot(INT tick);
@@ -53,13 +54,13 @@ namespace maro
         void reset_snapshots();
 
         SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
-          NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
+                                    NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
 
-        void query(QUERING_FLOAT* result, SnapshotResultShape shape);
+        void query(QUERING_FLOAT *result, SnapshotResultShape shape);
 
         USHORT get_max_snapshot_number();
         USHORT get_valid_tick_number();
-        void get_ticks(INT* result);
+        void get_ticks(INT *result);
 
         void dump(string path);
 
@@ -75,9 +76,8 @@ namespace maro
       private:
         inline void ensure_setup_state(bool expect);
       };
-    }
-  }
-}
-
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro
 
 #endif

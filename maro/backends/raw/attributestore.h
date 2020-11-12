@@ -9,7 +9,6 @@
 #include "attribute.h"
 #include "bitset.h"
 
-
 namespace maro
 {
   namespace backends
@@ -45,14 +44,12 @@ namespace maro
         Bitset _slot_masks;
 
         // arrange if dirty
-        bool _is_dirty{ false };
+        bool _is_dirty{false};
 
         // index of last attribute
-        size_t _last_index{ 0ULL };
-
+        size_t _last_index{0ULL};
 
       public:
-
         /// <summary>
         /// Setup attributes store.
         /// </summary>
@@ -72,10 +69,10 @@ namespace maro
         /// <param name="attr_id">IDENTIFIER of attribute</param>
         /// <param name="slot_index">Slot of attribute</param>
         /// <returns>Attribute at specified place</returns>
-        Attribute& operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index = 0);
+        Attribute &operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index = 0);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="node_id"></param>
         /// <param name="node_start_index"></param>
@@ -106,7 +103,7 @@ namespace maro
         /// <summary>
         /// Copy valid data to target address
         /// </summary>
-        void copy_to(Attribute* p, unordered_map<ULONG, size_t> &map);
+        void copy_to(Attribute *p, unordered_map<ULONG, size_t> &map);
 
         size_t size();
 
@@ -120,8 +117,8 @@ namespace maro
       private:
         void update_last_index();
       };
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro
 
 #endif

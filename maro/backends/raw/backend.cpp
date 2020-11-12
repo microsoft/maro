@@ -45,12 +45,12 @@ namespace maro
         _is_setup = true;
       }
 
-#define ATTR_GETTER(m_return_type, m_func_type)                                                                   \
-       m_return_type Backend::get_##m_func_type(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) \
-      {                                                                                                           \
-        ensure_setup_state(true);                                                                                 \
-        return _frame(node_index, attr_id, slot_index).get_##m_func_type();                                       \
-      }
+#define ATTR_GETTER(m_return_type, m_func_type)                                                              \
+  m_return_type Backend::get_##m_func_type(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) \
+  {                                                                                                          \
+    ensure_setup_state(true);                                                                                \
+    return _frame(node_index, attr_id, slot_index).get_##m_func_type();                                      \
+  }
 
       ATTR_GETTER(ATTR_BYTE, byte);
       ATTR_GETTER(ATTR_SHORT, short);
@@ -77,14 +77,14 @@ namespace maro
       }
 
       SnapshotResultShape Backend::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
-        NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+                                           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
         ensure_setup_state(true);
 
         return _snapshot.prepare(node_id, ticks, tick_length, node_indices, node_length, attributes, attr_length);
       }
 
-      void Backend::query(QUERING_FLOAT* result, SnapshotResultShape shape)
+      void Backend::query(QUERING_FLOAT *result, SnapshotResultShape shape)
       {
         ensure_setup_state(true);
 
@@ -101,7 +101,7 @@ namespace maro
         return _snapshot.size();
       }
 
-      void Backend::get_ticks(INT* result)
+      void Backend::get_ticks(INT *result)
       {
         _snapshot.get_ticks(result);
       }
@@ -110,12 +110,12 @@ namespace maro
       {
       }
 
-      template<typename T>
+      template <typename T>
       void Backend::set_attr_value(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value)
       {
         ensure_setup_state(true);
 
-        auto& attr = _frame(node_index, attr_id, slot_index);
+        auto &attr = _frame(node_index, attr_id, slot_index);
 
         attr = value;
       }
@@ -164,6 +164,6 @@ namespace maro
       {
         return _frame.get_slots_number(attr_id);
       }
-    }
-  }
-}
+    } // namespace raw
+  }   // namespace backends
+} // namespace maro

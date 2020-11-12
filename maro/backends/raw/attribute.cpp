@@ -8,14 +8,14 @@ namespace maro
     {
 
 #define CONSTRUCTOR(m_type, m_field, m_internal_type) \
-  Attribute::Attribute(m_type val) noexcept         \
+  Attribute::Attribute(m_type val) noexcept           \
   {                                                   \
     _type = m_internal_type;                          \
     _data.m_field = val;                              \
   }
 
 #define DATA_ASSIGN(m_type, m_field, m_internal_type) \
-  void Attribute::operator=(m_type val)             \
+  void Attribute::operator=(m_type val)               \
   {                                                   \
     _type = m_internal_type;                          \
     _data.m_field = val;                              \
@@ -77,7 +77,7 @@ namespace maro
 
         throw InvalidOperation();
       }
-      void Attribute::operator=(const Attribute& attr)
+      void Attribute::operator=(const Attribute &attr)
       {
         _type = attr._type;
 

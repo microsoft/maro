@@ -12,8 +12,9 @@ namespace maro
     namespace raw
     {
 
-      class InvalidOperation: public exception
-      {};
+      class InvalidOperation : public exception
+      {
+      };
 
       /// <summary>
       /// Attribute for a node, used to hold all supported data type
@@ -62,7 +63,7 @@ namespace maro
         void operator=(const ATTR_LONG val);
         void operator=(const ATTR_FLOAT val);
         void operator=(const ATTR_DOUBLE val);
-        void operator=(const Attribute& attr);
+        void operator=(const Attribute &attr);
 
         /// <summary>
         /// Used to cast current data to float, for quering result
