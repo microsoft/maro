@@ -77,7 +77,7 @@ namespace maro
       }
 
       SnapshotResultShape Backend::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
-                                           NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+                            NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
         ensure_setup_state(true);
 
