@@ -1,97 +1,129 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
+import os
+from termgraph import termgraph as tg
 from time import time
-from maro.simulator import Env
-from maro.simulator.scenarios.cim.frame_builder import gen_cim_frame
+from timeit import timeit
+
+from maro.backends.frame import node, NodeBase, NodeAttribute, FrameNode, FrameBase
 
 """
-In this file we will test performance for frame, snapshotlist, and cim scenario, with following config
-
-1. ports: 100
-2. vessels: 100
-3. max_tick: 10000
-
+colors = [91, 94]
+data = [[183.32, 190.52], [231.23, 5.0], [16.43, 53.1], [50.21, 7.0],
+        [508.97, 10.45], [212.05, 20.2], [30.0, 20.0]]
+args = {'filename': 'data/ex4.dat', 'title': None, 'width': 50,
+        'format': '{:<5.2f}', 'suffix': '', 'no_labels': False,
+        'color': None, 'vertical': False, 'stacked': False,
+        'different_scale': False, 'calendar': False,
+        'start_dt': None, 'custom_tick': '', 'delim': '',
+        'verbose': False, 'version': False, 'histogram': False, 'no_values': False}
+labels = ['2007', '2008', '2009', '2010', '2011', '2012', '2014']
+tg.chart(colors, data, args, labels)
 """
 
-PORTS_NUMBER = 100
-VESSELS_NUMBER = 100
+NODE1_NUMBER = 100
+NODE2_NUMBER = 100
 MAX_TICK = 10000
-STOP_NUMBER = (6, 6)
 
-READ_WRITE_NUMBER = 1000000
-STATES_QURING_TIME = 100000
 
-def test_frame_only():
+READ_WRITE_NUMBER = 10000000
+STATES_QURING_TIME = 10000
+TAKE_SNAPSHOT_TIME = 10000
+
+AVG_TIME = 4
+
+
+@node("node1")
+class TestNode1(NodeBase):
+    a = NodeAttribute("i")
+    b = NodeAttribute("i")
+    c = NodeAttribute("i")
+    d = NodeAttribute("i")
+    e = NodeAttribute("i", 16)
+
+
+@node("node2")
+class TestNode2(NodeBase):
+    b = NodeAttribute("i", 20)
+
+
+class TestFrame(FrameBase):
+    node1 = FrameNode(TestNode1, NODE1_NUMBER)
+    node2 = FrameNode(TestNode2, NODE2_NUMBER)
+
+    def __init__(self, backend_name):
+        super().__init__(enable_snapshot=True, total_snapshot=TAKE_SNAPSHOT_TIME, backend_name=backend_name)
+
+
+def build_frame(backend_name: str):
+    return TestFrame(backend_name)
+
+
+def attribute_access(frame, times: int):
+    """Return time cost (in seconds) for attribute acceesing test"""
     start_time = time()
 
-    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
+    n1 = frame.node1[0]
 
-    static_node = frm.ports[0]
+    for _ in range(times):
+        a = n1.a
+        n1.a = 12
 
-    # read & write one attribute N times with simplified interface
-    for _ in range(READ_WRITE_NUMBER):
-        static_node.a2 = 10
-        a = static_node.a2
+    return time() - start_time
 
-    end_time = time()
-
-    print(f"node read & write {READ_WRITE_NUMBER} times: {end_time - start_time}")
-
-
-def test_snapshot_list_only():
-    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
-
+def take_snapshot(frame, times: int):
+    """Return times cost (in seconds) for take_snapshot operation"""
+    
     start_time = time()
 
-    # 1. take snapshot
-    for i in range(MAX_TICK):
-        frm.take_snapshot(i)
+    for i in range(times):
+        frame.take_snapshot(i)
 
-    end_time = time()
+    return time() - start_time
 
-    print(f"take {MAX_TICK} snapshot: {end_time - start_time}")
-
-
-def test_states_quering():
-    frm = gen_cim_frame(PORTS_NUMBER, VESSELS_NUMBER, STOP_NUMBER, MAX_TICK)
-    frm.take_snapshot(0)
-
+def snapshot_query(frame, times: int):
+    """Return time cost (in seconds) for snapshot querying"""
+    
     start_time = time()
 
-    static_ss = frm.snapshots["ports"]
+    for i in range(times):
+        states = frame.snapshots["node1"][i::"a"]
 
-    for i in range(STATES_QURING_TIME):
-        states = static_ss[::"empty"]
-
-    end_time = time()
-
-    print(f"Single state quering {STATES_QURING_TIME} times: {end_time - start_time}")
-
-
-def test_cim():
-    eps = 4
-
-    env = Env("cim", "toy.5p_ssddd_l0.0", durations=MAX_TICK)
-
-    start_time = time()
-
-    for _ in range(eps):
-        _, _, is_done = env.step(None)
-
-        while not is_done:
-            _, _, is_done = env.step(None)
-
-        env.reset()
-
-    end_time = time()
-
-    print(f"cim 5p toplogy with {MAX_TICK} total time cost: {(end_time - start_time)/eps}")
+    return time() - start_time
 
 
 if __name__ == "__main__":
-    test_frame_only()
-    test_snapshot_list_only()
-    test_states_quering()
-    test_cim()
+    chart_colors = [91, 94]
+
+    chart_args = {'filename': '-', 'title': "Performance comparison between cpp and np backends", 'width': 40,
+        'format': '{:<5.2f}', 'suffix': '', 'no_labels': False,
+        'color': None, 'vertical': False, 'stacked': False,
+        'different_scale': False, 'calendar': False,
+        'start_dt': None, 'custom_tick': '', 'delim': '',
+        'verbose': False, 'version': False, 
+        'histogram': False, 'no_values': False}
+
+    chart_labels = [f'attribute accessing ({READ_WRITE_NUMBER})', f'take snapshot ({STATES_QURING_TIME})', f'states querying ({STATES_QURING_TIME})']
+
+    chart_data = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]
+
+    i = 0
+    j = 0
+
+    for backend_name in ["np", "raw"]:
+        frame = build_frame(backend_name)
+
+        j = 0
+
+        for func, args in [(attribute_access, READ_WRITE_NUMBER), (take_snapshot, TAKE_SNAPSHOT_TIME), (snapshot_query, STATES_QURING_TIME)]:
+            t = func(frame, args)
+
+            chart_data[j][i] = t
+
+            j+=1
+
+        i+=1
+
+    tg.print_categories(['np', 'raw'], chart_colors)
+    tg.chart(chart_colors, chart_data, chart_args, chart_labels)
