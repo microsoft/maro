@@ -67,6 +67,7 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
+<<<<<<< HEAD
         model (AbsLearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """

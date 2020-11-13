@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, MultiTaskLearningModel, LearningModule, SimpleAgentManager,
+    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModel, LearningModule, SimpleAgentManager,
     OptimizerOptions
 )
 from maro.utils import set_seeds
@@ -32,7 +32,7 @@ def create_dqn_agents(agent_id_list, config):
         )
 
         algorithm = DQN(
-            core_model=MultiTaskLearningModel(q_module),
+            core_model=LearningModel(q_module),
             config=DQNConfig(
                 **config.algorithm.config,
                 loss_cls=nn.SmoothL1Loss,
