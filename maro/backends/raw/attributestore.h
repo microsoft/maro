@@ -103,11 +103,13 @@ namespace maro
         /// <summary>
         /// Copy valid data to target address
         /// </summary>
-        void copy_to(Attribute *p, unordered_map<ULONG, size_t> &map);
+        void copy_to(Attribute *p, unordered_map<ULONG, size_t> *map);
 
         size_t size();
 
         void reset();
+
+        bool is_dirty();
 
 #ifdef _DEBUG
         size_t capacity();

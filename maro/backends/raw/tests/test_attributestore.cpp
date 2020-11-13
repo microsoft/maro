@@ -296,7 +296,7 @@ const lest::test specification[] =
     auto map_dest = unordered_map<ULONG, size_t>();
 
     // no exception as we have enough space to hold attributes
-    EXPECT_NO_THROW(ats.copy_to(&attrs_dest[0], map_dest));
+    EXPECT_NO_THROW(ats.copy_to(&attrs_dest[0], &map_dest));
 
     // check if our attributes copied correct
 

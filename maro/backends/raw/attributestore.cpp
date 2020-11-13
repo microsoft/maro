@@ -179,7 +179,7 @@ namespace maro
         }
       }
 
-      void AttributeStore::copy_to(Attribute *p, unordered_map<ULONG, size_t> &map)
+      void AttributeStore::copy_to(Attribute *p, unordered_map<ULONG, size_t> *map)
       {
         // arrange before copy
         arrange();
@@ -189,7 +189,10 @@ namespace maro
 
         // copy the mapping
         // NOTE: this coppy will not change the index, others should consider it when using this
-        map.insert(_mapping.begin(),_mapping.end());
+        if (map != nullptr)
+        {
+          map->insert(_mapping.begin(), _mapping.end());
+        }
       }
 
       size_t AttributeStore::size()
@@ -208,6 +211,11 @@ namespace maro
         memset(&_attributes[0], 0, sizeof(Attribute) * _attributes.size());
 
         _slot_masks.reset();
+      }
+
+      bool AttributeStore::is_dirty()
+      {
+        return _is_dirty;
       }
 
 #ifdef _DEBUG
