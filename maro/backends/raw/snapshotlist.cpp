@@ -57,9 +57,6 @@ namespace maro
         // To make it easy to implement, we do not support over-write exist tick at any time,
         // tick can onlly be over-wrote if last one is same tick
 
-        // arrange before take snapshot
-        frame_attr_store->arrange();
-
         auto snapshot_size = frame_attr_store->size();
 
         // shall we skip the step to erase oldest tick? it will be true we deleted an existing tick
@@ -292,7 +289,7 @@ namespace maro
       }
 
       SnapshotResultShape SnapshotList::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[],
-                                          UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+                                                UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
         // we do not support empty attribute
         if (attributes == nullptr)
@@ -452,6 +449,28 @@ namespace maro
         _query_parameters.reset();
       }
 
+      void SnapshotList::copy_from_attr_store(AttributeStore *frame_attr_store, INT tick, size_t start_index)
+      {
+        auto last_tick_map = _tick_attr_map.rbegin();
+
+        // if attribute store is dirty means there is something changed, we should keep current mapping
+        if (last_tick_map == _tick_attr_map.rend() || frame_attr_store->is_dirty() || last_tick_map->second.size() != frame_attr_store->size())
+        {
+          // copy
+          auto mapping = unordered_map<ULONG, size_t>();
+
+          frame_attr_store->copy_to(&_attr_store[start_index], &mapping);
+
+          _tick_attr_map[tick] = mapping;
+        }
+        else
+        {
+          frame_attr_store->copy_to(&_attr_store[start_index], nullptr);
+
+          _tick_attr_map[tick] = last_tick_map->second;
+        }
+      }
+
       void SnapshotList::append_to_end(AttributeStore *frame_attr_store, INT tick)
       {
         auto snapshot_size = frame_attr_store->size();
@@ -463,11 +482,8 @@ namespace maro
         }
 
         // copy
-        auto mapping = unordered_map<ULONG, size_t>();
+        copy_from_attr_store(frame_attr_store, tick, _end_index);
 
-        frame_attr_store->copy_to(&_attr_store[_end_index], &mapping);
-
-        _tick_attr_map[tick] = mapping;
         _tick2size_map[tick] = snapshot_size;
         _tick2index_map[tick] = _end_index;
 
@@ -479,11 +495,8 @@ namespace maro
         auto snapshot_size = frame_attr_store->size();
 
         // write to here
-        auto mapping = unordered_map<ULONG, size_t>();
+        copy_from_attr_store(frame_attr_store, tick, _first_empty_slot_index);
 
-        frame_attr_store->copy_to(&_attr_store[_first_empty_slot_index], &mapping);
-
-        _tick_attr_map[tick] = mapping;
         _tick2index_map[tick] = _first_empty_slot_index;
         _tick2size_map[tick] = snapshot_size;
 
@@ -515,7 +528,7 @@ namespace maro
 
       inline void SnapshotList::prepare_memory()
       {
-        if(_frame != nullptr &&_attr_store.size() == 0)
+        if (_frame != nullptr && _attr_store.size() == 0)
         {
           _attr_store.resize(_frame->_attr_store.size() * _max_size);
         }
