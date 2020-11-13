@@ -253,16 +253,7 @@ namespace maro
                   file << ",";
 
                   // write one value
-                  auto &attr = operator()(tick, node.id, node_index, attr_id, 0);
-
-                  if (attr.is_nan())
-                  {
-                    file << "nan";
-                  }
-                  else
-                  {
-                    file << ATTR_FLOAT(attr);
-                  }
+                  write_attribute(file, tick, node.id, node_index, attr_id, 0);
                 }
                 else
                 {
@@ -271,16 +262,7 @@ namespace maro
                   // write a list
                   for (SLOT_INDEX slot_index = 0; slot_index < attr_info.max_slots; slot_index++)
                   {
-                    auto &attr = operator()(tick, node.id, node_index, attr_id, slot_index);
-
-                    if (attr.is_nan())
-                    {
-                      file << "nan";
-                    }
-                    else
-                    {
-                      file << ATTR_FLOAT(attr);
-                    }
+                    write_attribute(file, tick, node.id, node_index, attr_id, slot_index);
 
                     file << ",";
                   }
@@ -309,7 +291,7 @@ namespace maro
       }
 
       SnapshotResultShape SnapshotList::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[],
-                                                UINT node_length, IDENTIFIER attributes[], UINT attr_length)
+                                          UINT node_length, IDENTIFIER attributes[], UINT attr_length)
       {
         // we do not support empty attribute
         if (attributes == nullptr)
@@ -513,6 +495,20 @@ namespace maro
         if (_max_size == 0)
         {
           throw InvalidSnapshotSize();
+        }
+      }
+
+      inline void SnapshotList::write_attribute(ofstream &file, INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      {
+        auto &attr = operator()(tick, node_id, node_index, attr_id, slot_index);
+
+        if (attr.is_nan())
+        {
+          file << "nan";
+        }
+        else
+        {
+          file << ATTR_FLOAT(attr);
         }
       }
 
