@@ -8,7 +8,7 @@ import numpy as np
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 
-from .utils import add_zeroth_dim, preprocess, to_device, validate_task_names
+from .utils import expand_dim, preprocess, to_device, validate_task_names
 
 
 class DuelingDQNTask(Enum):
@@ -75,7 +75,7 @@ class DQN(AbsAlgorithm):
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
-    @add_zeroth_dim
+    @expand_dim
     def choose_action(self, state: np.ndarray, epsilon=None):
         if epsilon is None or np.random.rand() > epsilon:
             q_values = self._get_q_values(self._model, state, is_training=False)

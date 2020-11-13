@@ -51,7 +51,7 @@ def preprocess(func):
     return wrapper
 
 
-def add_zeroth_dim(func):
+def expand_dim(func):
     @wraps(func)
     def wrapper(self, state, **kwargs):
         if isinstance(state, np.ndarray):
