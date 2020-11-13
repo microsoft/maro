@@ -136,10 +136,12 @@ class LearningModel(nn.Module):
 
         Args:
             inputs: Inputs to the model.
-            task_name (str): The name of the task for which the network output is required. If this is None, the results from
-                all task heads will be returned in the form of a dictionary. If this is a list, the results will be the
-                outputs from the heads contained in task in the form of a dictionary. If this is a single key, the
-                result will be the output from the corresponding head.
+            task_name (str): The name of the task for which the network output is required. If the model contains only
+                one task module, the task_name is ignored and the output of that module will be returned. If the model
+                contains multiple task modules, then 1) if task_name is None, the output from all task modules will be
+                returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
+                specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
+                the output from the corresponding task module will be returned. 
             is_training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
                 will be turned on. Defaults to True.
 

@@ -8,7 +8,7 @@ import numpy as np
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 
-from .utils import validate_task_names, to_device, preprocess
+from .utils import preprocess, to_device, validate_task_names
 
 
 class DuelingDQNTask(Enum):

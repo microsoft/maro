@@ -9,7 +9,6 @@ import torch
 
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTaskError
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
