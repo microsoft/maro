@@ -15,18 +15,18 @@ sudo groupadd docker
 sudo gpasswd -a {admin_username} docker
 
 # setup samba mount
-echo 'setup samba mount'
+echo 'Step 1/{steps}: Setup samba mount'
 mkdir -p {maro_path}
 sudo mount -t cifs -o username={admin_username},password={samba_password} //{master_hostname}/sambashare {maro_path}
 echo '//{master_hostname}/sambashare  {maro_path} cifs  username={admin_username},password={samba_password}  0  0' | \
     sudo tee -a /etc/fstab
 
 # load master public key
-echo 'load master public key'
+echo 'Step 2/{steps}: Load master public key'
 echo '{master_public_key}' >> ~/.ssh/authorized_keys
 
 # delete outdated files
-echo 'delete outdated files'
+echo 'Step 3/{steps}: Delete outdated files'
 rm ~/details.yml
 rm ~/init_node.py
 
@@ -55,6 +55,7 @@ if __name__ == "__main__":
         samba_password=samba_password,
         master_hostname=master_hostname,
         master_public_key=master_public_key,
+        steps=3
     )
 
     # Exec command
