@@ -11,7 +11,9 @@ namespace maro
   {
     namespace raw
     {
-
+      /// <summary>
+      /// Invalid casting
+      /// </summary>
       class InvalidOperation : public exception
       {
       };
@@ -70,6 +72,10 @@ namespace maro
         /// </summary>
         operator ATTR_FLOAT();
 
+        /// <summary>
+        /// Is current value is nan, for float type only.
+        /// </summary>
+        /// <returns>True if value is nan, or false.</returns>
         bool is_nan();
       };
     } // namespace raw

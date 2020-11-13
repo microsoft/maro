@@ -15,10 +15,21 @@ namespace maro
   {
     namespace raw
     {
+      /// <summary>
+      /// Attribute not exist exception.
+      /// </summary>
       class BadAttributeIndexing : public exception
       {
       };
 
+      /// <summary>
+      /// Helper function to construct attribute key
+      /// </summary>
+      /// <param name="node_id">Id of node</param>
+      /// <param name="node_index">Index of node</param>
+      /// <param name="attr_id">Id of attribute</param>
+      /// <param name="slot_index">Index of slot</param>
+      /// <returns>Attribute key in store</returns>
       inline ULONG attr_index_key(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
 
       const USHORT LENGTH_PER_PART = sizeof(USHORT) * BITS_PER_BYTE;
@@ -30,6 +41,9 @@ namespace maro
         3. arrange will update last index when filling the empty slots
       */
 
+      /// <summary>
+      /// Attribute store used to store attributes' value and related mapping
+      /// </summary>
       class AttributeStore
       {
         // attribute mapping: [node_id, node_index, attr_id, slot_index] -> attribute index
@@ -40,7 +54,7 @@ namespace maro
 
         vector<Attribute> _attributes;
 
-        //Bitset _slot_mask;
+        // Bitset for empty slot mask
         Bitset _slot_masks;
 
         // arrange if dirty
@@ -72,13 +86,13 @@ namespace maro
         Attribute &operator()(IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index = 0);
 
         /// <summary>
-        ///
+        /// Add nodes with its attribute, this function should be called for several times if node contains more than 1 attributes.
         /// </summary>
-        /// <param name="node_id"></param>
-        /// <param name="node_start_index"></param>
-        /// <param name="node_num"></param>
-        /// <param name="attr_id"></param>
-        /// <param name="slot_num"></param>
+        /// <param name="node_id">Id of node</param>
+        /// <param name="node_start_index">Start index of not to add</param>
+        /// <param name="node_num">Number of nodes to add</param>
+        /// <param name="attr_id">Id of attribute</param>
+        /// <param name="slot_num">Number of slots</param>
         void add_nodes(IDENTIFIER node_id, NODE_INDEX node_start_index, NODE_INDEX stop, IDENTIFIER attr_id, SLOT_INDEX slot_num);
 
         /// <summary>
@@ -101,14 +115,27 @@ namespace maro
         void remove_attr_slots(IDENTIFIER node_id, NODE_INDEX node_num, IDENTIFIER attr_id, SLOT_INDEX from, SLOT_INDEX stop);
 
         /// <summary>
-        /// Copy valid data to target address
+        /// Copy data to specified dest, this function will arrange internally before copy
         /// </summary>
-        void copy_to(Attribute *p, unordered_map<ULONG, size_t> *map);
+        /// <param name="attr_dest">Dest of attributes to copy</param>
+        /// <param name="attr_map">Dest of attribute mapping, pass nullptr to skip copy mapping</param>
+        void copy_to(Attribute *attr_dest, unordered_map<ULONG, size_t> *attr_map);
 
+        /// <summary>
+        /// Size of current attributes
+        /// </summary>
+        /// <returns>Size of attributes</returns>
         size_t size();
 
+        /// <summary>
+        /// Reset all current attributes, this will clear all attributes and mapping
+        /// </summary>
         void reset();
 
+        /// <summary>
+        /// Is there is empty slots in the middle
+        /// </summary>
+        /// <returns>True if has empty slots, or false</returns>
         bool is_dirty();
 
 #ifdef _DEBUG
@@ -117,6 +144,9 @@ namespace maro
 #endif
 
       private:
+        /// <summary>
+        /// Update last index after operations that will cause last index changed
+        /// </summary>
         void update_last_index();
       };
     } // namespace raw

@@ -17,6 +17,9 @@ namespace maro
       const USHORT BITS_PER_BYTE = 8;
       const USHORT BITS_PER_MASK = sizeof(ULONG) * BITS_PER_BYTE;
 
+      /// <summary>
+      /// Query index out of range
+      /// </summary>
       class IndexOutRange : public exception
       {
       };
@@ -68,10 +71,23 @@ namespace maro
         /// <returns>True if the bit is 1, or 0</returns>
         bool get(ULONG index) const;
 
+        /// <summary>
+        /// Set value for specified position
+        /// </summary>
+        /// <param name="index">Index of item</param>
+        /// <param name="value">Value to set</param>
         void set(ULONG index, bool value);
 
+        /// <summary>
+        /// Current size of items (in bit)
+        /// </summary>
+        /// <returns>Number of bits</returns>
         ULONG size();
 
+        /// <summary>
+        /// Get size of mask items (in ULL)
+        /// </summary>
+        /// <returns>Number of mask items</returns>
         UINT mask_size();
 
         /// <summary>
@@ -79,10 +95,15 @@ namespace maro
         /// </summary>
         BitsetIterateObject &empty_iter_obj();
 
-        // if reach the end
+        /// <summary>
+        /// If reach the end
+        /// </summary>
+        /// <param name="iter_obj"></param>
         bool is_end(BitsetIterateObject &iter_obj);
 
-        // get next empty index
+        /// <summary>
+        /// Get next empty index
+        /// </summary>
         ULONG empty_index(BitsetIterateObject &iter_obj);
       };
     } // namespace raw

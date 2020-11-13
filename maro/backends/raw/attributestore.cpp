@@ -13,7 +13,6 @@ namespace maro
         return key;
       }
 
-      // update when removing
       void AttributeStore::update_last_index()
       {
         // 0 means no items
@@ -107,7 +106,6 @@ namespace maro
             // if current key exists?
             auto key_pair = _mapping.find(key);
 
-            //
             if (key_pair == _mapping.end())
             {
               // only update for unexist slots, and these slots must be at the end.
@@ -188,7 +186,7 @@ namespace maro
         memcpy(p, &_attributes[0], _last_index * sizeof(Attribute));
 
         // copy the mapping
-        // NOTE: this coppy will not change the index, others should consider it when using this
+        // NOTE: this copy will not change the index, others should consider it when using this
         if (map != nullptr)
         {
           map->insert(_mapping.begin(), _mapping.end());
