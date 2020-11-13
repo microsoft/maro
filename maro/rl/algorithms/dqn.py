@@ -77,8 +77,11 @@ class DQN(AbsAlgorithm):
 
     @add_zeroth_dim
     def choose_action(self, state: np.ndarray, epsilon=None):
-        q_values = self._get_q_values(self._model, state, is_training=False)
-        return q_values.argmax(dim=1).item()
+        if epsilon is None or np.random.rand() > epsilon:
+            q_values = self._get_q_values(self._model, state, is_training=False)
+            return q_values.argmax(dim=1).item()
+
+        return np.random.choice(self._config.num_actions)
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:
