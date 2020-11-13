@@ -54,7 +54,9 @@ def preprocess(func):
 def add_zeroth_dim(func):
     @wraps(func)
     def wrapper(self, state, **kwargs):
-        if len(state.dim) == 1:
+        if isinstance(state, np.ndarray):
+            state = torch.from_numpy(state).to(device)
+        if len(state.shape) == 1:
             state = state.unsqueeze(dim=0)
         return func(self, state, **kwargs)
 

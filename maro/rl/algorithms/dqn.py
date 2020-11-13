@@ -76,7 +76,6 @@ class DQN(AbsAlgorithm):
         self._target_model = model.copy() if model.is_trainable else None
 
     @add_zeroth_dim
-    @preprocess
     def choose_action(self, state: np.ndarray, epsilon=None):
         q_values = self._get_q_values(self._model, state, is_training=False)
         return q_values.argmax(dim=1).item()
