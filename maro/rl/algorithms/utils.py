@@ -49,3 +49,13 @@ def preprocess(func):
         return func(*converted_args, **converted_kwargs)
 
     return wrapper
+
+
+def add_zeroth_dim(func):
+    @wraps(func)
+    def wrapper(self, state, **kwargs):
+        if len(state.dim) == 1:
+            state = state.unsqueeze(dim=0)
+        return func(self, state, **kwargs)
+
+    return wrapper
