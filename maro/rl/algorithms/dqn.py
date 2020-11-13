@@ -84,6 +84,8 @@ class DQN(AbsAlgorithm):
         return np.random.choice(self._config.num_actions)
 
     def _get_q_values(self, model, states, is_training: bool = True):
+        if len(states.shape) == 1:
+            states = states.unsqueeze(dim=0)
         if self._config.advantage_mode is not None:
             output = model(states, is_training=is_training)
             state_values = output["state_value"]
