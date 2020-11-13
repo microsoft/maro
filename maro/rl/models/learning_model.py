@@ -141,7 +141,7 @@ class LearningModel(nn.Module):
                 contains multiple task modules, then 1) if task_name is None, the output from all task modules will be
                 returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
                 specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
-                the output from the corresponding task module will be returned. 
+                the output from the corresponding task module will be returned.
             is_training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
                 will be turned on. Defaults to True.
 
