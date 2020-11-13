@@ -15,9 +15,9 @@ class Action:
         buffer_time (int): The remaining buffer time to assign this VM.
     """
 
-    def __init__(self, assign: bool, vm_req: VirtualMachine, buffer_time: int, pm_id: int = None):
+    def __init__(self, assign: bool, vm_id: int, pm_id: int, buffer_time: int):
         self.assign = assign
-        self.vm_req = vm_req
+        self.vm_id = vm_id
         self.pm_id = pm_id
         self.buffer_time = buffer_time
 
@@ -41,7 +41,7 @@ class VmFinishedPayload:
     """Payload for the VM finished.
 
     Args:
-        vm_id (int): The id of the VM in the end cycle.
+        vm_id (int): The id of the VM.
     """
 
     summary_key = ["vm_id"]
@@ -54,12 +54,17 @@ class DecisionPayload:
     """Decision event in Data center scenario that contains information for agent to choose action.
 
     Args:
-        valid
+        valid_pm (List[dict]): A list contains dictionaries with 'pm_id', 'cpu', 'mem'.
+        vm_id (int): The id of the VM.
+        vm_req_cpu (int): The CPU requested by VM.
+        vm_req_mem (int): The memory requested by VM.
     """
 
-    def __init__(self, valid_pm: List[int], vm_info: VirtualMachine, buffer_time: int):
+    def __init__(self, valid_pm: List[dict], vm_id: int, vm_req_cpu: int, vm_req_mem: int, buffer_time: int):
         self.valid_pm = valid_pm
-        self.vm_info = vm_info
+        self.vm_id = vm_id
+        self.vm_req_cpu = vm_req_cpu
+        self.vm_req_mem = vm_req_mem
         self.buffer_time = buffer_time
 
 

@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 import os
-from typing import List
+from typing import Dict, List
 
 from yaml import safe_load
 
@@ -48,7 +48,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # Initialize PM.
         self._init_machines()
         # Initialize VM.
-        self._vm: dict = {}
+        self._live_vm: Dict[int, VirtualMachine] = {}
+        # NOTE: Naming suggest?
+        self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
 
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
@@ -129,7 +131,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
 
-        for vm in self._vm.values():
+        for vm in self._live_vm.values():
             vm.util_cpu = vm.get_util(cur_tick=self._tick)
 
     def _update_pm_util(self):
@@ -137,20 +139,33 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         for pm in self._machines:
             total_util_cpu: int = 0
             for vm_id in pm.vm_set:
-                vm = self._vm[vm_id]
+                vm = self._live_vm[vm_id]
                 total_util_cpu += vm.util_cpu * vm.req_cpu / 100
             pm.util_cpu = total_util_cpu / pm.cap_cpu * 100
             pm.update_util_series(self._tick)
 
         # TODO: Energy comsumption update.
 
+    def _postpone_vm_requirement(self, vm_id: int):
+        """Postpone VM requirement."""
+        postpone_payload = self._pending_vm_req_payload[vm_id]
+        postpone_payload.buffer_time -= self._delay_duration
+        postpone_event = self._event_buffer.gen_cascade_event(
+            tick=self._tick + self._delay_duration,
+            event_type=Events.REQUIREMENTS,
+            payload=postpone_payload
+        )
+        self._event_buffer.insert_event(event=postpone_event)
+
     def _on_vm_required(self, vm_requirement_event: CascadeEvent):
         """Callback when there is a VM requirement generated."""
         # Get VM data from payload.
         payload: VmRequirementPayload = vm_requirement_event.payload
+
         vm_req: VirtualMachine = payload.vm_req
         remaining_buffer_time: int = payload.buffer_time
 
+        self._pending_vm_req_payload[vm_req.id] = payload
         # Check all valid PMs.
         # NOTE: Should we implement this logic inside the action scope?
         # TODO: Oversubscribable machines should be different logic.
@@ -168,36 +183,30 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Generate pending decision.
             decision_payload = DecisionPayload(
                 valid_pm=valid_pm_list,
-                vm_info=vm_req,
+                vm_id=vm_req.id,
+                vm_req_cpu=vm_req.req_cpu,
+                vm_req_mem=vm_req.req_mem,
                 buffer_time=remaining_buffer_time
             )
             pending_decision_event = self._event_buffer.gen_decision_event(
                 tick=vm_requirement_event.tick, payload=decision_payload)
             vm_requirement_event.add_immediate_event(event=pending_decision_event)
-            self._pending_action_vm_id = vm_req.vm_id
         else:
             # Postpone the buffer duration ticks by config setting.
             if remaining_buffer_time > 0:
-                postpone_payload = payload
-                postpone_payload.buffer_time -= self._delay_duration
                 self._total_latency.latency_due_to_resource += self._delay_duration
-                postpone_event = self._event_buffer.gen_cascade_event(
-                    tick=vm_requirement_event.tick + self._delay_duration,
-                    event_type=Events.REQUIREMENTS,
-                    payload=postpone_payload
-                )
-                self._event_buffer.insert_event(event=postpone_event)
+                self._postpone_vm_requirement(vm_req.id)
             else:
                 # Fail
                 # TODO Implement failure logic.
                 self._failed_requirements += 1
 
     def _on_vm_finished(self, evt: AtomEvent):
-        """Callback when there is a VM in the end cycle."""
+        """Callback when there is a VM ready to be terminated."""
         # Get the end-cycle VM info.
         payload: VmFinishedPayload = evt.payload
         vm_id = payload.vm_id
-        virtual_machine: VirtualMachine = self._vm[vm_id]
+        virtual_machine: VirtualMachine = self._live_vm[vm_id]
 
         # Release PM resources.
         physical_machine: PhysicalMachine = self._machines[virtual_machine.pm_id]
@@ -210,31 +219,37 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         physical_machine.remove_vm(vm_id)
 
         # Remove dead VM.
-        self._vm.pop(vm_id)
+        self._live_vm.pop(vm_id)
 
-        # VM allocation succeed.
+        # VM assignment succeed.
         self._successful_requirements += 1
 
     def _on_action_received(self, evt: CascadeEvent):
         """Callback wen we get an action from agent."""
         cur_tick: int = evt.tick
-        action: Action = evt.payload
-        assign: bool = action.assign
-        vm: VirtualMachine = action.vm_req
 
-        if vm.id != self._pending_action_vm_id:
+        action: Action = evt.payload
+        vm_id: int = action.vm_id
+        assign: bool = action.assign
+
+        if vm_id not in self._pending_vm_req_payload:
             print("The VM id sent by agent is invalid.")
+
+        vm: VmRequirementPayload = self._pending_vm_req_payload[vm_id]
 
         if assign:
             pm_id = action.pm_id
             lifetime = vm.lifetime
+
             # Update VM information.
             vm.pm_id = pm_id
             vm.start_tick = cur_tick
             vm.end_tick = cur_tick + lifetime
             vm.util_cpu = vm.get_util(cur_tick=cur_tick)
 
-            self._vm[vm.id] = vm
+            # Pop out the VM from pending requirements and add to live VM dict.
+            self._pending_vm_req_payload.pop(vm.id)
+            self._live_vm[vm.id] = vm
 
             # Generate VM finished event.
             finished_payload: VmFinishedPayload = VmFinishedPayload(vm.id)
@@ -254,18 +269,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             remaining_buffer_time = action.buffer_time
             # Postpone the buffer duration ticks by config setting.
             if remaining_buffer_time > 0:
-                requirement_payload = VmRequirementPayload(
-                    vm_req=vm,
-                    buffer_time=remaining_buffer_time - self._delay_duration
-                )
                 self._total_latency.latency_due_to_agent += self._delay_duration
-
-                postpone_event = self._event_buffer.gen_cascade_event(
-                    tick=evt.tick + self._delay_duration,
-                    payload=requirement_payload
-                )
-                self._event_buffer.insert_event(event=postpone_event)
+                self._postpone_vm_requirement(vm_id)
             else:
                 # Fail
                 # TODO Implement failure logic.
+                self._pending_vm_req_payload.pop(vm.id)
                 self._failed_requirements += 1
