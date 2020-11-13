@@ -170,6 +170,7 @@ namespace maro
         void write_to_empty_slots(AttributeStore *frame_attr_store, INT tick);
         inline void ensure_max_size();
         inline void write_attribute(ofstream& file, INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
+        inline void prepare_memory();
       };
     } // namespace raw
   }   // namespace backends

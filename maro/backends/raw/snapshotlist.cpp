@@ -52,6 +52,7 @@ namespace maro
         }
 
         ensure_max_size();
+        prepare_memory();
 
         // To make it easy to implement, we do not support over-write exist tick at any time,
         // tick can onlly be over-wrote if last one is same tick
@@ -509,6 +510,14 @@ namespace maro
         else
         {
           file << ATTR_FLOAT(attr);
+        }
+      }
+
+      inline void SnapshotList::prepare_memory()
+      {
+        if(_attr_store.size() == 0)
+        {
+          _attr_store.resize(_frame->_attr_store.size() * _max_size);
         }
       }
 
