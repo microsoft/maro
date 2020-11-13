@@ -5,7 +5,9 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import SingleTaskLearningModel
+from maro.rl.models.learning_model import LearningModel
+
+from .utils import preprocess, to_device
 
 
 class PolicyGradientConfig:
@@ -28,25 +30,30 @@ class PolicyGradient(AbsAlgorithm):
     The Policy Gradient algorithm base on the policy gradient theorem, a.k.a. REINFORCE.
 
     Args:
-        core_model (SingleTaskLearningModel): Policy model.
+        model (LearningModel): Policy model.
         config: Configuration for the PG algorithm.
     """
-    def __init__(self, core_model: SingleTaskLearningModel, config: PolicyGradientConfig):
-        super().__init__(core_model, config)
+    @to_device
+    def __init__(self, model: LearningModel, config: PolicyGradientConfig):
+        super().__init__(model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._core_model.to(self._device)
+        self._model.to(self._device)
 
+    @preprocess
     def choose_action(self, state: np.ndarray, epsilon: float = None):
-        state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        self._core_model.eval()
-        with torch.no_grad():
-            action_dist = self._core_model(state).squeeze().numpy()  # (num_actions,)
-        return np.random.choice(self._config.num_actions, p=action_dist)
+        states = states.unsqueeze(dim=0)
+        action_distribution = self._get_action_distributions(state, is_training=False, to_numpy=True)  # (num_actions,)
+        return np.random.choice(self._config.num_actions, p=action_distribution)
 
+    @preprocess
     def train(self, states: np.ndarray, actions: np.ndarray, returns: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)   # (N, state_dim)
-        actions = torch.from_numpy(actions).to(self._device)  # (N,)
-        returns = torch.from_numpy(returns).to(self._device)
-        action_prob = self._core_model(states).gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
+        action_distributions = self._get_action_distributions(states)
+        action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
         loss = -(torch.log(action_prob) * returns).mean()
-        self._core_model.step(loss)
+        self._model.step(loss)
+
+    def _get_action_distributions(self, states, is_training: bool = True, to_numpy: bool = False):
+        if len(states.shape) == 1:
+
+        action_distributions = self._model(states, is_training=is_training)
+        return action_distributions.squeeze().numpy() if to_numpy else action_distributions

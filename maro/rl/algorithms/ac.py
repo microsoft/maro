@@ -8,10 +8,10 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import MultiTaskLearningModel
+from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
-from.task_validator import validate_tasks
+from .utils import preprocess, to_device, validate_task_names
 
 
 class ActorCriticTask(Enum):
@@ -62,25 +62,22 @@ class ActorCritic(AbsAlgorithm):
     The Actor-Critic algorithm base on the policy gradient theorem.
 
     Args:
-        core_model (MultiTaskLearningModel): Multi-task model that computes action distributions and state values.
+        model (LearningModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    @validate_tasks(ActorCriticTask)
-    def __init__(self, core_model: MultiTaskLearningModel, config: ActorCriticConfig):
-        super().__init__(core_model, config)
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._core_model.to(self._device)
+    @to_device
+    @validate_task_names(ActorCriticTask)
+    def __init__(self, model: LearningModel, config: ActorCriticConfig):
+        super().__init__(model, config)
 
+    @preprocess
     def choose_action(self, state: np.ndarray, epsilon: float = None):
-        state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        self._core_model.eval()
-        with torch.no_grad():
-            action_dist = self._core_model(state, task="actor").squeeze().numpy()  # (num_actions,)
+        action_dist = self._model(state, task_name="actor", is_training=False).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._config.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
-        state_values = self._core_model(state_sequence, task="critic").detach().squeeze()
+        state_values = self._model(state_sequence, task_name="critic").detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             reward_sequence, state_values_numpy, self._config.reward_decay, self._config.lam,
@@ -89,23 +86,22 @@ class ActorCritic(AbsAlgorithm):
         return_est = torch.from_numpy(return_est)
         return state_values, return_est
 
+    @preprocess
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
-        states = torch.from_numpy(states).to(self._device)
         state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
         advantages = return_est - state_values
-        actions = torch.from_numpy(actions).to(self._device)
-        if self._core_model.has_trainable_shared_layers:
+        if self._model.has_trainable_shared_layers:
             pass
         else:
             # policy model training
             for _ in range(self._config.actor_train_iters):
-                action_prob = self._core_model(states, task="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
+                action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
                 actor_loss = -(torch.log(action_prob) * advantages).mean()
-                self._core_model.step(actor_loss)
+                self._model.step(actor_loss)
 
             # value model training
             for _ in range(self._config.critic_train_iters):
                 critic_loss = self._config.critic_loss_func(
-                    self._core_model(states, task="critic").squeeze(), return_est
+                    self._model(states, task_name="critic").squeeze(), return_est
                 )
-                self._core_model.step(critic_loss)
+                self._model.step(critic_loss)

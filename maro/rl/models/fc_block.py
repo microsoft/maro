@@ -29,7 +29,6 @@ class FullyConnectedBlock(nn.Module):
     """
     def __init__(
         self,
-        name: str,
         input_dim: int,
         output_dim: int,
         hidden_dims: [int],
@@ -39,10 +38,10 @@ class FullyConnectedBlock(nn.Module):
         batch_norm_enabled: bool = False,
         skip_connection_enabled: bool = False,
         dropout_p: float = None,
-        gradient_threshold: float = None
+        gradient_threshold: float = None,
+        name: str = None
     ):
         super().__init__()
-        self._name = name
         self._input_dim = input_dim
         self._hidden_dims = hidden_dims if hidden_dims is not None else []
         self._output_dim = output_dim
@@ -74,6 +73,8 @@ class FullyConnectedBlock(nn.Module):
         if gradient_threshold is not None:
             for param in self._net.parameters():
                 param.register_hook(lambda grad: torch.clamp(grad, -gradient_threshold, gradient_threshold))
+
+        self._name = name
 
     def forward(self, x):
         out = self._net(x)

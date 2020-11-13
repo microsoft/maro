@@ -1,29 +1,34 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import namedtuple
+
 import torch
 import torch.nn as nn
 
+from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
 
-from .abs_learning_model import AbsLearningModel
+OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
 
-class SingleTaskLearningModel(AbsLearningModel):
+class LearningModule(nn.Module):
     """NN model that consists of a sequence of chainable blocks.
 
     Args:
         block_list (list): List of blocks that compose the model. They must be chainable, i.e., the output dimension
             of a block must match the input dimension of its successor.
-        optimizer_opt (tuple): Optimizer option for the model. Default to None.
+        optimizer_options (OptimizerOptions): A namedtuple of (optimizer_class, optimizer_parameters).
     """
-    def __init__(self, block_list: list, optimizer_opt: tuple = None):
+    def __init__(self, name: str, block_list: list, optimizer_options: OptimizerOptions = None):
         super().__init__()
+        self._name = name
         self._net = nn.Sequential(*block_list)
-        self._is_trainable = optimizer_opt is not None
+        self._is_trainable = optimizer_options is not None
         if self._is_trainable:
-            self._optimizer = optimizer_opt[0](self._net.parameters(), **optimizer_opt[1])
+            self._optimizer = optimizer_options.cls(self._net.parameters(), **optimizer_options.params)
         else:
+            self._net.eval()
             for param in self._net.parameters():
                 param.requires_grad = False
 
@@ -31,11 +36,15 @@ class SingleTaskLearningModel(AbsLearningModel):
         dic = self.__dict__.copy()
         if "_optimizer" in dic:
             del dic["_optimizer"]
-
+        dic["is_trainable"] = False
         return dic
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def is_trainable(self):
@@ -52,64 +61,40 @@ class SingleTaskLearningModel(AbsLearningModel):
         """
         return self._net(inputs)
 
-    def step(self, loss: torch.tensor):
-        """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
+    def zero_grad(self):
+        if not self._is_trainable:
+            raise MissingOptimizerError("No optimizer registered to the model")
         self._optimizer.zero_grad()
-        loss.backward()
+
+    def step(self):
         self._optimizer.step()
 
 
-class MultiTaskLearningModel(AbsLearningModel):
+class LearningModel(nn.Module):
     """NN model that consists of multiple task heads and an optional shared stack.
 
     Args:
-        task_block_dict (dict): Dictionary of network blocks that perform designated tasks.
-        task_optimizer_opt_dict (dict): Dictionary of optimizer options for each task block. An optimizer option
-            is specified in the form of a tuple: (optimizer class, optimizer parameters). Defaults to None.
-        shared_block_list (list): List of blocks that compose the bottom stack of the model shared by all tasks.
-            The shared blocks must be chainable, i.e., the output dimension of a block must match the input dimension
-            of its successor. Defaults to None.
-        shared_optimizer_opt (tuple): Optimizer option for the shared part of the model. Default to None.
+        task_modules (LearningModule): LearningModule instances, each of which performs a designated task.
+        shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to
+            None.
     """
     def __init__(
         self,
-        task_block_dict: dict,
-        task_optimizer_opt_dict: dict = None,
-        shared_block_list: list = None,
-        shared_optimizer_opt: tuple = None
+        *task_modules: LearningModule,
+        shared_module: LearningModule = None
     ):
         super().__init__()
-        self._has_shared_layers = shared_block_list is not None
-        self._has_trainable_shared_layers = self._has_shared_layers and shared_optimizer_opt is not None
-        self._has_trainable_heads = task_optimizer_opt_dict is not None
+        self._task_names = [module.name for module in task_modules]
 
         # shared stack
-        if self._has_shared_layers:
-            self._shared_stack = nn.Sequential(*shared_block_list)
-            if self._has_trainable_shared_layers:
-                self._shared_optimizer = shared_optimizer_opt[0](
-                    self._shared_stack.parameters(), **shared_optimizer_opt[1]
-                )
-            else:
-                for param in self._shared_stack.parameters():
-                    param.requires_grad = False
+        self._shared_module = shared_module
 
-        # heads
-        self._tasks = list(task_block_dict.keys())
+        # task_heads
+        self._task_modules = task_modules
         self._net = nn.ModuleDict({
-            key: nn.Sequential(self._shared_stack, head) if self._has_shared_layers else head
-            for key, head in task_block_dict.items()
+            task_module.name: nn.Sequential(self._shared_module, task_module) if self._shared_module else task_module
+            for task_module in self._task_modules
         })
-
-        if self._has_trainable_heads:
-            self._head_optimizer_dict = {
-                key: task_optimizer_opt_dict[key][0](head.parameters(), **task_optimizer_opt_dict[key][1])
-                for key, head in task_block_dict.items()
-            }
-        else:
-            for key, head in task_block_dict.items():
-                for param in head.parameters():
-                    param.requires_grad = False
 
     def __getstate__(self):
         dic = self.__dict__.copy()
@@ -126,72 +111,77 @@ class MultiTaskLearningModel(AbsLearningModel):
         return self._net[task]
 
     @property
-    def has_shared_layers(self):
-        return self._has_shared_layers
+    def task_names(self) -> [str]:
+        return self._task_names
 
     @property
-    def has_trainable_shared_layers(self):
-        return self._has_trainable_shared_layers
+    def is_trainable(self) -> bool:
+        return any(task_module.is_trainable for task_module in self._task_modules) or self._shared_module.is_trainable
 
-    @has_trainable_shared_layers.setter
-    def has_trainable_shared_layers(self, value: bool):
-        self._has_trainable_shared_layers = value
+    def _forward(self, inputs, task_name: str = None):
+        if len(self._task_modules) == 1:
+            task_name = self._task_modules[0].name
+            return self._net[task_name](inputs)
 
-    @property
-    def has_trainable_heads(self):
-        return self._has_trainable_heads
+        if task_name is None:
+            return {key: self._net[key](inputs) for key in self._task_names}
 
-    @has_trainable_heads.setter
-    def has_trainable_heads(self, value: bool):
-        self._has_trainable_heads = value
+        if isinstance(task_name, list):
+            return {k: self._net[k](inputs) for k in task_name}
+        else:
+            return self._net[task_name](inputs)
 
-    @property
-    def is_trainable(self):
-        return self._has_trainable_shared_layers or self._has_trainable_heads
-
-    @property
-    def tasks(self) -> [str]:
-        return self._tasks
-
-    def forward(self, inputs, task=None):
+    def forward(self, inputs, task_name: str = None, is_training: bool = True):
         """Feedforward computations for the given head(s).
 
         Args:
             inputs: Inputs to the model.
-            task: The task for which the network output is required. If this is None, the results from all task
-                heads will be returned in the form of a dictionary. If this is a list, the results will be the
-                outputs from the heads contained in task in the form of a dictionary. If this is a single key,
-                the result will be the output from the corresponding head.
+            task_name (str): The name of the task for which the network output is required. If the model contains only
+                one task module, the task_name is ignored and the output of that module will be returned. If the model
+                contains multiple task modules, then 1) if task_name is None, the output from all task modules will be
+                returned in the form of a dictionary; 2) if task_name is a list, the outputs from the task modules
+                specified in the list will be returned in the form of a dictionary; 3) if this is a single string,
+                the output from the corresponding task module will be returned.
+            is_training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
+                will be turned on. Defaults to True.
 
         Returns:
             Outputs from the required head(s).
         """
-        if task is None:
-            return {key: self._net[key](inputs) for key in self._tasks}
+        self.train(mode=is_training)
+        if is_training:
+            return self._forward(inputs, task_name)
 
-        if isinstance(task, list):
-            return {k: self._net[k](inputs) for k in task}
-        else:
-            return self._net[task](inputs)
+        with torch.no_grad():
+            return self._forward(inputs, task_name)
 
-    def step(self, loss):
+    def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
-        if not self._has_trainable_shared_layers and not self._has_trainable_heads:
-            raise MissingOptimizerError("No optimizer registered to the model")
-
-        # Zero all gradients
-        if self._has_trainable_shared_layers:
-            self._shared_optimizer.zero_grad()
-        if self._has_trainable_heads:
-            for optim in self._head_optimizer_dict.values():
-                optim.zero_grad()
+        for task_module in self._task_modules:
+            task_module.zero_grad()
+        if self._shared_module is not None:
+            self._shared_module.zero_grad()
 
         # Obtain gradients through back-propagation
         loss.backward()
 
         # Apply gradients
-        if self._has_trainable_shared_layers:
-            self._shared_optimizer.step()
-        if self._has_trainable_heads:
-            for optim in self._head_optimizer_dict.values():
-                optim.step()
+        for task_module in self._task_modules:
+            task_module.step()
+        if self._shared_module is not None:
+            self._shared_module.step()
+
+    def copy(self):
+        return clone(self)
+
+    def load(self, state_dict):
+        self.load_state_dict(state_dict)
+
+    def dump(self):
+        return self.state_dict()
+
+    def load_from_file(self, path: str):
+        self.load_state_dict(torch.load(path))
+
+    def dump_to_file(self, path: str):
+        torch.save(self.state_dict(), path)

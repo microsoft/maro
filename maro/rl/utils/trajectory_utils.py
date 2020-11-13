@@ -5,78 +5,82 @@ from functools import reduce
 from typing import Union
 
 import numpy as np
+import torch
+import torch.nn.functional as F
 
 
 def get_truncated_cumulative_reward(
-    rewards: Union[list, np.ndarray],
+    rewards: Union[list, np.ndarray, torch.tensor],
     discount: float,
     k: int = -1
 ):
     """Compute K-step cumulative rewards from a reward sequence.
     Args:
-        rewards (list or np.ndarray): reward sequence from a trajectory.
+        rewards (Union[list, np.ndarray, torch.tensor]): reward sequence from a trajectory.
         discount (float): reward discount as in standard RL.
         k (int): number of steps in computing cumulative rewards. If it is -1, returns are computed using the
             largest possible number of steps. Defaults to -1.
 
     Returns:
-        An ndarray containing the k-step cumulative rewards for each time step.
+        An ndarray or torch.tensor instance containing the k-step cumulative rewards for each time step.
     """
     if k < 0:
         k = len(rewards) - 1
+    pad = np.pad if isinstance(rewards, list) or isinstance(rewards, np.ndarray) else F.pad
     return reduce(
         lambda x, y: x * discount + y,
-        [np.pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards)) - 1, -1, -1)]
+        [pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards)) - 1, -1, -1)]
     )
 
 
 def get_k_step_returns(
-    rewards: Union[list, np.ndarray],
-    values: Union[list, np.ndarray],
+    rewards: Union[list, np.ndarray, torch.tensor],
+    values: Union[list, np.ndarray, torch.tensor],
     discount: float,
     k: int = -1
 ):
     """Compute K-step returns given reward and value sequences.
     Args:
-        rewards (list or np.ndarray): reward sequence from a trajectory.
-        values (list or np.ndarray): sequence of values for the traversed states in a trajectory.
+        rewards (Union[list, np.ndarray, torch.tensor]): reward sequence from a trajectory.
+        values (Union[list, np.ndarray, torch.tensor]): sequence of values for the traversed states in a trajectory.
         discount (float): reward discount as in standard RL.
         k (int): number of steps in computing returns. If it is -1, returns are computed using the largest possible
             number of steps. Defaults to -1.
 
     Returns:
-        An ndarray containing the k-step returns for each time step.
+        An ndarray or torch.tensor instance containing the k-step returns for each time step.
     """
     assert len(rewards) == len(values), "rewards and values should have the same length"
     assert len(values.shape) == 1, "values should be a one-dimensional array"
     rewards[-1] = values[-1]
     if k < 0:
         k = len(rewards) - 1
+    pad = np.pad if isinstance(rewards, list) or isinstance(rewards, np.ndarray) else F.pad
     return reduce(
         lambda x, y: x * discount + y,
-        [np.pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards)) - 1, -1, -1)],
-        np.pad(values[k:], (0, k))
+        [pad(rewards[i:], (0, i)) for i in range(min(k, len(rewards)) - 1, -1, -1)],
+        pad(values[k:], (0, k))
     )
 
 
 def get_lambda_returns(
-    rewards: Union[list, np.ndarray],
-    values: Union[list, np.ndarray],
+    rewards: Union[list, np.ndarray, torch.tensor],
+    values: Union[list, np.ndarray, torch.tensor],
     discount: float,
     lam: float,
     k: int = -1
 ):
     """Compute lambda returns given reward and value sequences and a k.
     Args:
-        rewards (np.ndarray): reward sequence from a trajectory.
-        values (np.ndarray): sequence of values for the traversed states in a trajectory.
+        rewards (Union[list, np.ndarray, torch.tensor]): reward sequence from a trajectory.
+        values (Union[list, np.ndarray, torch.tensor]): sequence of values for the traversed states in a trajectory.
         discount (float): reward discount as in standard RL.
         lam (float): the lambda coefficient involved in computing lambda returns.
         k (int): number of steps where the lambda return series is truncated. If it is -1, no truncating is done and
             the lambda return is carried out to the end of the sequence. Defaults to -1.
 
     Returns:
-        An ndarray containing the lambda returns for each time step.
+        An ndarray or torch.tensor instance containing the lambda returns for each time step.
     """
     if k < 0:
         k = len(rewards) - 1

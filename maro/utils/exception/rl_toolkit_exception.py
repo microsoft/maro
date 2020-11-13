@@ -48,6 +48,6 @@ class MissingOptimizerError(MAROException):
 
 
 class UnrecognizedTaskError(MAROException):
-    """Raised when a MultiTaskLearningModel has task names that are not unrecognized by an algorithm."""
+    """Raised when a LearningModel has task names that are not unrecognized by an algorithm."""
     def __init__(self, msg: str = None):
         super().__init__(4008, msg)

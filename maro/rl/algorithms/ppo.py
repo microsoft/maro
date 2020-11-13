@@ -5,14 +5,12 @@ from enum import Enum
 from typing import Callable
 
 import numpy as np
-import torch
-import torch.nn as nn
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import MultiTaskLearningModel
+from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
-from .task_validator import validate_tasks
+from .utils import preprocess, to_device, validate_task_names
 
 
 class PPOTask(Enum):
@@ -67,25 +65,25 @@ class PPO(AbsAlgorithm):
     See https://arxiv.org/pdf/1707.06347.pdf for details.
 
     Args:
-        core_model (MultiTaskLearningModel): Multi-task model that computes action distributions and state values.
+        model (LearningModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the PPO algorithm.
     """
-    @validate_tasks(PPOTask)
-    def __init__(self, core_model: MultiTaskLearningModel, config: PPOConfig):
-        super().__init__(core_model, config)
+    @validate_task_names(PPOTask)
+    def __init__(self, model: LearningModel, config: PPOConfig):
+        super().__init__(model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self._core_model.to(self._device)
+        self._model.to(self._device)
 
     def choose_action(self, state: np.ndarray, epsilon: float = None):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        self._core_model.eval()
+        self._model.eval()
         with torch.no_grad():
-            action_dist = self._core_model(state, task="actor").squeeze().numpy()  # (num_actions,)
+            action_dist = self._model(state, task_name="actor").squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._config.num_actions, p=action_dist)
 
     def _get_values_and_bootstrapped_returns(self, states: torch.tensor, rewards: np.ndarray):
-        state_values = self._core_model(states, task="critic").detach().squeeze()
+        state_values = self._model(states, task_name="critic").detach().squeeze()
         state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
             rewards, state_values_numpy, self._config.reward_decay, self._config.lam,
@@ -105,13 +103,13 @@ class PPO(AbsAlgorithm):
 
         # policy model training (with the value model fixed)
         for _ in range(self._config.policy_train_iters):
-            action_prob = self._core_model(states, task="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N, 1)
+            action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N, 1)
             ratio = torch.exp(torch.log(action_prob) - log_action_prob_old)
             clipped_ratio = torch.clamp(ratio, 1 - self._config.clip_ratio, 1 + self._config.clip_ratio)
             loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
-            self._core_model.step(loss)
+            self._model.step(loss)
 
         # value model training
         for _ in range(self._config.value_train_iters):
-            loss = self._config.lovalue_loss_func(self._core_model(states, task="critic"), return_est)
-            self._core_model.step(loss)
+            loss = self._config.lovalue_loss_func(self._model(states, task_name="critic"), return_est)
+            self._model.step(loss)

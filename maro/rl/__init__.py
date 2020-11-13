@@ -11,6 +11,7 @@ from maro.rl.algorithms.ac import ActorCritic, ActorCriticConfig
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.pg import PolicyGradient, PolicyGradientConfig
 from maro.rl.algorithms.ppo import PPO, PPOConfig
+from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
 from maro.rl.dist_topologies.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 )
@@ -23,9 +24,8 @@ from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.explorer.simple_explorer import LinearExplorer, TwoPhaseLinearExplorer
 from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
-from maro.rl.models.abs_learning_model import AbsLearningModel
 from maro.rl.models.fc_block import FullyConnectedBlock
-from maro.rl.models.learning_model import MultiTaskLearningModel, SingleTaskLearningModel
+from maro.rl.models.learning_model import LearningModel, LearningModule, OptimizerOptions
 from maro.rl.shaping.abs_shaper import AbsShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
@@ -43,7 +43,6 @@ __all__ = [
     'AbsEarlyStoppingChecker',
     'AbsExplorer',
     'AbsLearner',
-    'AbsLearningModel',
     'AbsShaper',
     'AbsStore',
     'ActionShaper',
@@ -59,9 +58,11 @@ __all__ = [
     'ExperienceShaper',
     'FullyConnectedBlock',
     'KStepExperienceShaper',
+    'LearningModel',
+    'LearningModule',
     'LinearExplorer',
     'MaxDeltaEarlyStoppingChecker',
-    'MultiTaskLearningModel',
+    'OptimizerOptions',
     'OverwriteType',
     'PolicyGradient',
     'PolicyGradientConfig',
@@ -72,9 +73,11 @@ __all__ = [
     'SimpleAgentManager',
     'SimpleEarlyStoppingChecker',
     'SimpleLearner',
-    'SingleTaskLearningModel',
     'StateShaper',
     'TwoPhaseLinearExplorer',
     'concat_experiences_by_agent',
-    'merge_experiences_with_trajectory_boundaries'
+    'merge_experiences_with_trajectory_boundaries',
+    'preprocess',
+    'to_device',
+    'validate_task_names'
 ]
