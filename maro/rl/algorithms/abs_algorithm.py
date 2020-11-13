@@ -3,7 +3,7 @@
 
 from abc import ABC, abstractmethod
 
-from maro.rl.models.abs_learning_model import AbsLearningModel
+from maro.rl.models.learning_model import LearningModel
 
 
 class AbsAlgorithm(ABC):
@@ -14,10 +14,10 @@ class AbsAlgorithm(ABC):
     algorithms.
 
     Args:
-        model (AbsLearningModel): Task model or container of task models required by the algorithm.
+        model (LearningModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
     """
-    def __init__(self, model: AbsLearningModel, config):
+    def __init__(self, model: LearningModel, config):
         self._model = model
         self._config = config
 
