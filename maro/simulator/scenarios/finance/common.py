@@ -4,29 +4,28 @@ from typing import Callable
 
 
 class OrderMode(Enum):
-    market_order = "market_order"
-    limit_order = "limit_order"
-    stop_order = "stop_order"
-    stop_limit_order = "stop_limit_order"
-    cancel_order = "cancel_order"
+    MARKET_ORDER = "market_order"
+    LIMIT_ORDER = "limit_order"
+    STOP_ORDER = "stop_order"
+    STOP_LIMIT_ORDER = "stop_limit_order"
 
 
 class OrderDirection(Enum):
-    buy = "buy"
-    sell = "sell"
+    BUY = "buy"
+    SELL = "sell"
 
 
 class ActionType(Enum):
-    order = "order"
-    cancel_order = "cancel_order"
+    ORDER = "order"
+    CANCEL_ORDER = "cancel_order"
 
 
 class ActionState(Enum):
-    pending = "pending"
-    success = "success"
-    failed = "failed"
-    expired = "expired"
-    canceled = "canceled"
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+    EXPIRED = "expired"
+    CANCELED = "canceled"
 
 
 class TradeResult:
@@ -45,7 +44,7 @@ class TradeResult:
     @property
     def cash_delta(self):
         return (self.trade_number * self.price_per_item - self.commission - self.tax) * \
-            (-1 if self.direction == OrderDirection.buy else 1)
+            (-1 if self.direction == OrderDirection.BUY else 1)
 
     def __repr__(self):
         return f"<  \
@@ -55,19 +54,19 @@ class TradeResult:
 
 class DecisionEvent:
     def __init__(
-        self, tick: int, item: int = -1,
-        action_scope_func: Callable = None, action_type: ActionType = ActionType.order
+        self, tick: int, stock_index: int = -1,
+        action_scope_func: Callable = None, action_type: ActionType = ActionType.ORDER
     ):
         """
         Parameters:
             tick (int): current tick of decision
-            item (int): available item index for action, such as a stock for StockSubEngine
+            stock_index (int): available item index for action, such as a stock for StockSubEngine
             action_scope_func (Callable): function to provide action scope
             action_type (ActionType): type of the expected action
         """
         self.tick = tick
         self.action_type = action_type
-        self.item = item
+        self.stock_index = stock_index
         self._action_scope = None
         self._action_scope_func = action_scope_func
 
@@ -75,27 +74,33 @@ class DecisionEvent:
     def action_scope(self):
         """Action scope for items"""
         if self._action_scope is None:
-            self._action_scope = self._action_scope_func(self.action_type, self.item, self.tick)
+            self._action_scope = self._action_scope_func(self.action_type, self.stock_index, self.tick)
 
         return self._action_scope
 
     def __repr__(self):
-        return f"<DecisionEvent type: {self.action_type}, tick: {self.tick}>"
+        return f"<DecisionEvent type: {self.action_type}, tick: {self.tick}, action scope: {self.action_scope}>"
 
 
 class OrderActionScope:
-    def __init__(self, buy_min, buy_max, sell_min, sell_max, supported_order):
-        self.buy_min = buy_min
-        self.buy_max = buy_max
-        self.sell_min = sell_min
-        self.sell_max = sell_max
-        self.supported_order = supported_order
+    def __init__(self, min_buy_volume, max_buy_volume, min_sell_volume, max_sell_volume, supported_order_mode):
+        self.min_buy_volume = min_buy_volume
+        self.max_buy_volume = max_buy_volume
+        self.min_sell_volume = min_sell_volume
+        self.max_sell_volume = max_sell_volume
+        self.supported_order_mode = supported_order_mode
+
+    def __repr__(self):
+        return f"buy scope: {self.min_buy_volume}~{self.max_buy_volume} \
+sell scope: {self.min_sell_volume}~{self.max_sell_volume} order types: {self.supported_order_mode}"
 
 
 class CancelOrderActionScope:
     def __init__(self, available_orders):
         self.available_orders = available_orders
 
+    def __repr__(self):
+        return f"available orders: {self.available_orders}"
 
 class Action(ABC):
     idx = 0
@@ -107,12 +112,12 @@ class Action(ABC):
     ):
         """
         Parameters:
-            item_index (int): index of the item (such as stock index), usually from DecisionEvent.items
+            item_index (int): index of the item (such as stock index), usually from DecisionEvent.stock_indexs
             number (int): number to perform, positive means buy, negitive means sell
         """
         self.decision_tick = tick
         self.finish_tick = None
-        self.state = ActionState.pending
+        self.state = ActionState.PENDING
         if id is not None:
             self.id = id
         else:
@@ -135,7 +140,7 @@ class Order(Action):
         super().__init__(
             tick=tick, life_time=life_time
         )
-        self.item = item
+        self.stock_index = item
         self.amount = amount
         self.mode = mode
         self.direction = direction
@@ -145,7 +150,7 @@ class Order(Action):
         pass
 
     def __repr__(self):
-        return f"{super().__repr__()}\n< Order item: {self.item} amount: {self.amount} direction: {self.direction} >"
+        return f"{super().__repr__()}\n< Order item: {self.stock_index} amount: {self.amount} direction: {self.direction} >"
 
 
 class MarketOrder(Order):
@@ -154,7 +159,7 @@ class MarketOrder(Order):
     ):
         super().__init__(
             item=item, amount=amount, direction=direction,
-            mode=OrderMode.market_order, tick=tick, life_time=life_time
+            mode=OrderMode.MARKET_ORDER, tick=tick, life_time=life_time
         )
 
     def is_trigger(self, price, trade_volume) -> bool:
@@ -172,14 +177,14 @@ class LimitOrder(Order):
     ):
         super().__init__(
             item=item, amount=amount, direction=direction,
-            mode=OrderMode.limit_order, tick=tick, life_time=life_time
+            mode=OrderMode.LIMIT_ORDER, tick=tick, life_time=life_time
         )
         self.limit = limit
 
     def is_trigger(self, price, trade_volume) -> bool:
         triggered = False
         if trade_volume > 0:
-            if self.direction == OrderDirection.buy:  # buy
+            if self.direction == OrderDirection.BUY:  # buy
                 if self.limit >= price:
                     triggered = True
             else:  # sell
@@ -196,14 +201,14 @@ class StopOrder(Order):
     ):
         super().__init__(
             item=item, amount=amount, direction=direction,
-            mode=OrderMode.stop_order, tick=tick, life_time=life_time
+            mode=OrderMode.STOP_ORDER, tick=tick, life_time=life_time
         )
         self.stop = stop
 
     def is_trigger(self, price, trade_volume) -> bool:
         triggered = False
         if trade_volume > 0:
-            if self.direction == OrderDirection.buy:  # buy
+            if self.direction == OrderDirection.BUY:  # buy
                 if self.stop <= price:
                     triggered = True
             else:  # sell
@@ -220,7 +225,7 @@ class StopLimitOrder(Order):
     ):
         super().__init__(
             item=item, amount=amount, direction=OrderDirection,
-            mode=OrderMode.stop_limit_order, tick=tick, life_time=life_time
+            mode=OrderMode.STOP_LIMIT_ORDER, tick=tick, life_time=life_time
         )
         self.stop = stop
         self.limit = limit
@@ -228,7 +233,7 @@ class StopLimitOrder(Order):
     def is_trigger(self, price, trade_volume) -> bool:
         triggered = False
         if trade_volume > 0:
-            if self.direction == OrderDirection.buy:  # buy
+            if self.direction == OrderDirection.BUY:  # buy
                 if self.stop <= price:
                     if self.limit >= price:
                         triggered = True

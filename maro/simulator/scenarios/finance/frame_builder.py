@@ -3,7 +3,7 @@
 
 from maro.backends.frame import FrameBase, FrameNode
 from maro.simulator.scenarios.finance.account import Account
-from maro.simulator.scenarios.finance.stock.stock import Stock
+from maro.simulator.scenarios.finance.stock import Stock
 
 
 def build_frame(stock_num: int, snapshots_num: int):

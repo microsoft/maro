@@ -1,6 +1,6 @@
 from enum import Enum
 
-from maro.simulator.scenarios.finance.common.common import OrderDirection, two_decimal_price
+from maro.simulator.scenarios.finance.common import OrderDirection, two_decimal_price
 
 
 class SlippageType(Enum):
@@ -25,7 +25,7 @@ class Slippage():
         return self.__slippage_type
 
 
-class ByMoneySlippage(Slippage):
+class FixedSlippage(Slippage):
     __slippage_rate = 0
 
     def __init__(self, slippage_rate: float = 0):
@@ -35,7 +35,7 @@ class ByMoneySlippage(Slippage):
 
     def execute(self, direction: OrderDirection, volume: int, base_price: float, market_volume: int) -> float:
         delta_price = base_price * self.__slippage_rate / 2
-        if direction == OrderDirection.buy:
+        if direction == OrderDirection.BUY:
             actual_price = base_price + delta_price
         else:
             actual_price = base_price - delta_price
