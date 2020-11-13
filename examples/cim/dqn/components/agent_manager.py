@@ -21,7 +21,6 @@ def create_dqn_agents(agent_id_list, config):
         q_module = LearningModule(
             "q_value",
             [FullyConnectedBlock(
-                name=f'{agent_id}.q_value',
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,
                 activation=nn.LeakyReLU,
@@ -32,7 +31,7 @@ def create_dqn_agents(agent_id_list, config):
         )
 
         algorithm = DQN(
-            core_model=LearningModel(q_module),
+            model=LearningModel(q_module),
             config=DQNConfig(
                 **config.algorithm.config,
                 loss_cls=nn.SmoothL1Loss,

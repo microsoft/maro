@@ -16,13 +16,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def validate_task_names(task_enum: Enum):
     def decorator(init_func):
         @wraps(init_func)
-        def wrapper(self, core_model, config):
+        def wrapper(self, model, config):
             recognized_task_names = set(member.value for member in task_enum)
-            model_task_names = set(core_model.task_names)
+            model_task_names = set(model.task_names)
             if len(model_task_names) > 1 and model_task_names != recognized_task_names:
                 raise UnrecognizedTaskError(f"Expected task names {recognized_task_names}, got {model_task_names}")
 
-            init_func(self, core_model, config)
+            init_func(self, model, config)
 
         return wrapper
 
