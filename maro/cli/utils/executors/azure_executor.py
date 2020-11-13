@@ -37,6 +37,11 @@ class AzureExecutor:
         command = f"az group create --name {resource_group} --location {location}"
         _ = SubProcess.run(command)
 
+    @staticmethod
+    def delete_resource_group(resource_group: str):
+        command = f"az group delete --yes --name {resource_group}"
+        _ = SubProcess.run(command)
+
     # Resource related
 
     @staticmethod
