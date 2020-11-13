@@ -2,14 +2,12 @@
 # Licensed under the MIT license.
 
 from collections import namedtuple
-from typing import Dict, Union
 
+import torch
 import torch.nn as nn
 
+from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
-
-from .abs_learning_model import AbsLearningModel
-
 
 OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
@@ -72,7 +70,7 @@ class LearningModule(nn.Module):
         self._optimizer.step()
 
 
-class MultiTaskLearningModel(AbsLearningModel):
+class LearningModel(nn.Module):
     """NN model that consists of multiple task heads and an optional shared stack.
 
     Args:
@@ -120,19 +118,7 @@ class MultiTaskLearningModel(AbsLearningModel):
     def is_trainable(self) -> bool:
         return any(task_module.is_trainable for task_module in self._task_modules) or self._shared_module.is_trainable
 
-    def forward(self, inputs, task_name=None):
-        """Feedforward computations for the given head(s).
-
-        Args:
-            inputs: Inputs to the model.
-            task_name: The name of the task for which the network output is required. If this is None, the results from
-                all task heads will be returned in the form of a dictionary. If this is a list, the results will be the
-                outputs from the heads contained in task in the form of a dictionary. If this is a single key, the
-                result will be the output from the corresponding head.
-
-        Returns:
-            Outputs from the required head(s).
-        """
+    def _forward(self, inputs, task_name: str = None):
         if len(self._task_modules) == 1:
             task_name = self._task_modules[0].name
             return self._net[task_name](inputs)
@@ -144,6 +130,28 @@ class MultiTaskLearningModel(AbsLearningModel):
             return {k: self._net[k](inputs) for k in task_name}
         else:
             return self._net[task_name](inputs)
+
+    def forward(self, inputs, task_name: str = None, is_training: bool = True):
+        """Feedforward computations for the given head(s).
+
+        Args:
+            inputs: Inputs to the model.
+            task_name (str): The name of the task for which the network output is required. If this is None, the results from
+                all task heads will be returned in the form of a dictionary. If this is a list, the results will be the
+                outputs from the heads contained in task in the form of a dictionary. If this is a single key, the
+                result will be the output from the corresponding head.
+            is_training (bool): If true, all torch submodules will be set to training mode, and auto-differentiation
+                will be turned on. Defaults to True.
+
+        Returns:
+            Outputs from the required head(s).
+        """
+        self.train(mode=is_training)
+        if is_training:
+            return self._forward(inputs, task_name)
+
+        with torch.no_grad():
+            return self._forward(inputs, task_name)
 
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
@@ -160,3 +168,18 @@ class MultiTaskLearningModel(AbsLearningModel):
             task_module.step()
         if self._shared_module is not None:
             self._shared_module.step()
+
+    def copy(self):
+        return clone(self)
+
+    def load(self, state_dict):
+        self.load_state_dict(state_dict)
+
+    def dump(self):
+        return self.state_dict()
+
+    def load_from_file(self, path: str):
+        self.load_state_dict(torch.load(path))
+
+    def dump_to_file(self, path: str):
+        torch.save(self.state_dict(), path)
