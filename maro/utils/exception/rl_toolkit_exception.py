@@ -48,6 +48,6 @@ class MissingExplorationScheduleError(MAROException):
 
 
 class MissingExplorerError(MAROException):
-    """Raised when a call to an agent's ``update_exploration_params`` is made but there is no explorer present."""
+    """Raised when a call to an explorer-related method is made but there is no explorer present."""
     def __init__(self, msg: str = None):
         super().__init__(4009, msg)
