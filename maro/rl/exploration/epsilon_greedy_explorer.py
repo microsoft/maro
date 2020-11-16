@@ -38,7 +38,7 @@ class EpsilonGreedyExplorer(AbsExplorer):
         return self._epsilon
 
     def update(self):
-        if self._epsilon is None:
+        if self._epsilon_schedule is None:
             raise MissingExplorationScheduleError(
                 "An iterable epsilon schedule must be registered first by calling register_schedule()."
             )
