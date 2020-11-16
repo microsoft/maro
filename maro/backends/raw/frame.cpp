@@ -22,13 +22,13 @@ namespace maro
 
       IDENTIFIER maro::backends::raw::Frame::new_node(string name, USHORT number)
       {
-        auto node = FrameNode();
+        _nodes.emplace_back();
+
+        auto &node = _nodes.back();
         node.name = name;
         node.number = number;
         node.origin_number = number;
-        node.id = IDENTIFIER(_nodes.size());
-
-        _nodes.push_back(node);
+        node.id = IDENTIFIER(_nodes.size() - 1);
 
         _node_2_attrs[node.id] = vector<IDENTIFIER>();
 
@@ -41,18 +41,20 @@ namespace maro
 
         auto &node = _nodes[node_id];
 
-        auto attr = FrameAttribute();
+        _attributes.emplace_back();
+
+        auto& attr = _attributes.back();
         attr.type = type;
-        attr.id = IDENTIFIER(_attributes.size());
+        attr.id = IDENTIFIER(_attributes.size() - 1);
         attr.name = name;
         attr.slots = slots;
         attr.origin_slots = slots;
         attr.max_slots = slots;
         attr.node_id = node.id;
 
-        _attributes.push_back(attr);
+        auto &node_attrs_list = _node_2_attrs[node.id];
 
-        _node_2_attrs[node.id].push_back(attr.id);
+        node_attrs_list.push_back(attr.id);
 
         return attr.id;
       }
