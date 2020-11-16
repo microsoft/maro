@@ -50,8 +50,10 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
     folder_name = os.path.dirname(source_path)
     target_dir = get_reformatted_target_dir(local_dir)
 
-    mkdir_script = f"mkdir -p {target_dir}"
-    _ = SubProcess.run(mkdir_script)
+    # Create local dir
+    os.makedirs(os.path.expanduser(target_dir), exist_ok=True)
+
+    # Copy from node
     copy_script = (
         f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
         f"'tar czf - -C {folder_name} {basename}' | tar xzf - -C {target_dir}"
@@ -59,18 +61,19 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
     _ = SubProcess.run(copy_script)
 
 
-def sync_mkdir(remote_path: str, admin_username: str, node_ip_address: str):
+def sync_mkdir(path: str, admin_username: str, node_ip_address: str):
     """Mkdir synchronously at local and remote.
 
     Args:
-        remote_path (str): path of the remote file
-        admin_username (str)
-        node_ip_address (str)
+        path (str): path of the file, should be a string with an initial component of ~ or ~user
+        admin_username (str): admin username of the remote node
+        node_ip_address (str): ip address of the remote node
     """
-    command = f"mkdir -p {remote_path}"
-    _ = SubProcess.run(command)
+    # Create local dir
+    os.makedirs(os.path.expanduser(path), exist_ok=True)
 
-    command = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {remote_path}'"
+    # Create remove dir
+    command = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {path}'"
     _ = SubProcess.run(command)
 
 

@@ -298,27 +298,27 @@ class GrassAzureExecutor:
 
         # Create folders
         sync_mkdir(
-            remote_path=GlobalPaths.MARO_GRASS_LIB,
+            path=GlobalPaths.MARO_GRASS_LIB,
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
 
@@ -908,7 +908,7 @@ class GrassAzureExecutor:
 
         # Sync mkdir
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
 
@@ -1038,7 +1038,7 @@ class GrassAzureExecutor:
 
         # Sync mkdir
         sync_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}",
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
 
