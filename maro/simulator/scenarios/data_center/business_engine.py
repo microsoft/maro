@@ -6,7 +6,6 @@ from typing import Dict, List
 
 from yaml import safe_load
 
-from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
@@ -56,15 +55,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
-
-    @property
-    def frame(self) -> FrameBase:
-        """FrameBase: Current frame."""
-        return self._frame
-
-    def _init_frame(self, station_num: int):
-        self._frame = None
-        self._snapshots = self._frame.snapshots
 
     def _load_configs(self):
         """Load configurations."""
