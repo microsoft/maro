@@ -90,7 +90,7 @@ class AbsAgentManager(ABC):
 
     def register_exploration_schedule(self, exploration_schedule: Union[Iterator, dict]):
         for agent_id, agent in self.agent_dict.items():
-            agent.explorer.register_schedule(
+            agent.register_exploration_schedule(
                 exploration_schedule[agent_id] if isinstance(exploration_schedule, dict) else exploration_schedule
             )
 
@@ -108,7 +108,7 @@ class AbsAgentManager(ABC):
 
     def update_exploration_params(self):
         for agent in self.agent_dict.values():
-            agent.explorer.update()
+            agent.update_exploration_params()
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:
