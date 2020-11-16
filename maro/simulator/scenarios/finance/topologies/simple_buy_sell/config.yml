@@ -1,7 +1,7 @@
-# This is the tick=0 for the simulator
+# this is the tick=0 for all the sub-engines
 # stock/futures whoes beginning date later than this, will be filled with 0
-begin_date: "2019-01-01"
-end_date: "2020-01-01"
+beginning_date: "2019-01-01"
+ending_date: "2020-01-01"
 time_zone: "Asia/Shanghai"
 account:
   money: 10000 # 1 unit

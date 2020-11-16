@@ -27,7 +27,7 @@ from maro.simulator.scenarios.finance.stock import Stock
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 
-logger = CliLogger(name=__name__)
+LOGGER = CliLogger(name=__name__)
 
 METRICS_DESC = """
 """
