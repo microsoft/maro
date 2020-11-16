@@ -472,7 +472,7 @@ namespace maro
 
         if (is_copy_mapping)
         {
-          _mappings.push_back(unordered_map<ULONG, size_t>());
+          _mappings.emplace_back();
 
           // copy
           auto &mapping = _mappings[_mappings.size() - 1];
