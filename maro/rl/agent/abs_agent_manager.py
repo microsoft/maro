@@ -89,7 +89,7 @@ class AbsAgentManager(ABC):
         return NotImplemented
 
     def register_exploration_schedule(self, exploration_schedule: Union[Iterator, dict]):
-        for agent_id, agent in self.agent_dict.values():
+        for agent_id, agent in self.agent_dict.items():
             agent.explorer.register_schedule(
                 exploration_schedule[agent_id] if isinstance(exploration_schedule, dict) else exploration_schedule
             )
