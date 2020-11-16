@@ -59,6 +59,7 @@ agents:
       reward_decay: .0
       target_update_frequency: 5
       tau: 0.1
+      is_double: true
   experience_pool:
     capacity: -1
   training_loop_parameters:
