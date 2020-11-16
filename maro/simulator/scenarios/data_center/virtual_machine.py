@@ -8,14 +8,14 @@ class VirtualMachine:
     """VM object.
 
     Args:
-        vm_id (int): VM id loaded from public data set.
+        id (int): The VM id.
         req_cpu (int): The amount of virtual core requested by VM.
         req_mem (int): The memory requested by VM.
         lifetime (int): The lifetime of VM, that is, deletion tick - creation tick.
     """
-    def __init__(self, vm_id: str, req_cpu: int, req_mem: int, lifetime: int):
+    def __init__(self, id: int, req_cpu: int, req_mem: int, lifetime: int):
         # VM Requirement parameters.
-        self.vm_id: str = vm_id
+        self.id: int = id
         self.req_cpu: int = req_cpu
         self.req_mem: int = req_mem
         # The VM lifetime which equals to the deletion tick - creation tick.

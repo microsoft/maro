@@ -6,6 +6,7 @@ from typing import Dict, List
 
 from yaml import safe_load
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
@@ -20,7 +21,7 @@ metrics_desc = """
 energy_consumption (int): Current total energy consumption.
 success_requirements (int): Accumulative successful VM requirements until now.
 failed_requirements (int): Accumulative failed VM requirements until now.
-total_latency (int): Accumulative spent/used buffer time until now.
+total_latency (int): Accumulative used buffer time until now.
 """
 
 
@@ -45,15 +46,25 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._load_configs()
         self._register_events()
 
-        # Initialize PM.
+        # PMs list used for quick accessing.
         self._init_machines()
-        # Initialize VM.
+        # All living VMs.
         self._live_vm: Dict[int, VirtualMachine] = {}
-        # NOTE: Naming suggest?
+        # All requirement payload of the pending decision VMs.
+        # NOTE: Need naming suggestestion.
         self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
 
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
+
+    @property
+    def frame(self) -> FrameBase:
+        """FrameBase: Current frame."""
+        return self._frame
+
+    def _init_frame(self, station_num: int):
+        self._frame = None
+        self._snapshots = self._frame.snapshots
 
     def _load_configs(self):
         """Load configurations."""
@@ -136,6 +147,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _update_pm_util(self):
         """Update CPU utilization occupied by total VMs on each PM."""
+
         for pm in self._machines:
             total_util_cpu: int = 0
             for vm_id in pm.vm_set:
@@ -148,8 +160,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _postpone_vm_requirement(self, vm_id: int):
         """Postpone VM requirement."""
+
         postpone_payload = self._pending_vm_req_payload[vm_id]
-        postpone_payload.buffer_time -= self._delay_duration
+        postpone_payload.remaining_buffer_time -= self._delay_duration
         postpone_event = self._event_buffer.gen_cascade_event(
             tick=self._tick + self._delay_duration,
             event_type=Events.REQUIREMENTS,
@@ -159,6 +172,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _get_valid_pm(self, vm_req_cpu: int) -> List[ValidPm]:
         """Check all valid PMs.
+
         There are three situations:
             1. All PMs are empty.
             2. Some PMs are empty but others are not.
@@ -176,11 +190,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         valid_pm_list = []
         for pm in self._machines:
             if pm.req_cpu == 0:
-                valid_pm_list.append(ValidPm(pm_id=pm.pm_id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem))
+                valid_pm_list.append(ValidPm(pm_id=pm.id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem))
                 break
             elif pm.req_cpu > 0 and (pm.cap_cpu - pm.req_cpu) >= vm_req_cpu:
                 valid_pm_list.append(ValidPm(
-                    pm_id=pm.pm_id,
+                    pm_id=pm.id,
                     remaining_cpu=pm.cap_cpu - pm.req_cpu,
                     remaining_mem=pm.cap_mem - pm.req_mem
                 ))
@@ -192,7 +206,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         payload: VmRequirementPayload = vm_requirement_event.payload
 
         vm_req: VirtualMachine = payload.vm_req
-        remaining_buffer_time: int = payload.buffer_time
+        remaining_buffer_time: int = payload.remaining_buffer_time
 
         self._pending_vm_req_payload[vm_req.id] = payload
 
@@ -202,10 +216,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Generate pending decision.
             decision_payload = DecisionPayload(
                 valid_pm=valid_pm_list,
-                vm_id=vm_req.vm_id,
+                vm_id=vm_req.id,
                 vm_req_cpu=vm_req.req_cpu,
                 vm_req_mem=vm_req.req_mem,
-                buffer_time=remaining_buffer_time
+                remaining_buffer_time=remaining_buffer_time
             )
             pending_decision_event = self._event_buffer.gen_decision_event(
                 tick=vm_requirement_event.tick, payload=decision_payload)
@@ -214,7 +228,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Postpone the buffer duration ticks by config setting.
             if remaining_buffer_time >= self._delay_duration:
                 self._total_latency.latency_due_to_resource += self._delay_duration
-                self._postpone_vm_requirement(vm_req.vm_id)
+                self._postpone_vm_requirement(vm_req.id)
             else:
                 # Fail
                 # TODO Implement failure logic.
@@ -222,20 +236,17 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _on_vm_finished(self, evt: AtomEvent):
         """Callback when there is a VM ready to be terminated."""
-        # Get the end-cycle VM info.
+        # Get the VM info.
         payload: VmFinishedPayload = evt.payload
         vm_id = payload.vm_id
-        virtual_machine: VirtualMachine = self._live_vm[vm_id]
+        vm: VirtualMachine = self._live_vm[vm_id]
 
         # Release PM resources.
-        physical_machine: PhysicalMachine = self._machines[virtual_machine.pm_id]
-        physical_machine.req_cpu -= virtual_machine.req_cpu
-        physical_machine.req_mem -= virtual_machine.req_mem
-        physical_machine.util_cpu = (
-            (physical_machine.cap_cpu * physical_machine.util_cpu - virtual_machine.req_cpu * virtual_machine.util_cpu)
-            / physical_machine.cap_cpu
-        )
-        physical_machine.remove_vm(vm_id)
+        pm: PhysicalMachine = self._machines[vm.pm_id]
+        pm.req_cpu -= vm.req_cpu
+        pm.req_mem -= vm.req_mem
+        pm.util_cpu = (pm.cap_cpu * pm.util_cpu - vm.req_cpu * vm.util_cpu) / pm.cap_cpu
+        pm.remove_vm(vm_id)
 
         # Remove dead VM.
         self._live_vm.pop(vm_id)
@@ -254,7 +265,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         if vm_id not in self._pending_vm_req_payload:
             print("The VM id sent by agent is invalid.")
 
-        vm: VmRequirementPayload = self._pending_vm_req_payload[vm_id]
+        vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_req
 
         if assign:
             pm_id = action.pm_id
@@ -267,8 +278,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             vm.util_cpu = vm.get_util(cur_tick=cur_tick)
 
             # Pop out the VM from pending requirements and add to live VM dict.
-            self._pending_vm_req_payload.pop(vm.vm_id)
-            self._live_vm[vm.vm_id] = vm
+            self._pending_vm_req_payload.pop(vm_id)
+            self._live_vm[vm_id] = vm
 
             # Generate VM finished event.
             finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
@@ -285,7 +296,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.req_mem += vm.req_mem
             pm.util_cpu = (pm.cap_cpu * pm.util_cpu + vm.req_cpu * vm.util_cpu) / pm.cap_cpu
         else:
-            remaining_buffer_time = action.buffer_time
+            remaining_buffer_time = action.remaining_buffer_time
             # Postpone the buffer duration ticks by config setting.
             if remaining_buffer_time >= self._delay_duration:
                 self._total_latency.latency_due_to_agent += self._delay_duration

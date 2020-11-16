@@ -5,4 +5,4 @@ pm_cap_cpu: 16
 pm_cap_mem: 112
 
 # The number of ticks to delay when agent decides not to assign VM.
-delay_duratioin: 1
+delay_duration: 1
