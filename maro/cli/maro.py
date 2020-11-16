@@ -846,7 +846,7 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         parents=[global_parser])
 
     build_cmd_parser.add_argument(
-        "--input",
+        "--source",
         type=str,
         required=True,
         help="Folder path to load data, should be root path of snapshot folders. e.g. ~/global_trade_snapshots/")
@@ -855,7 +855,7 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         type=str,
         required=False,
         default="yes",
-        help="Overwrite the generated middle data or not: yes/no.")
+        help="Overwrite the generated middle data or not: true/false.")
 
     build_cmd_parser.set_defaults(func=start_vis)
 

@@ -613,13 +613,13 @@ random mode, we hope this could help you learn how to use the environment interf
            ]
            decision_port_idx = decision_event.port_idx
            intr_port_infos = ["booking", "empty", "shortage"]
-
+    
            # Query the snapshot list of this environment to get the information of
            # the booking, empty, shortage of the decision port in the past week.
            past_week_info = env.snapshot_list["ports"][
                past_week_ticks : decision_port_idx : intr_port_infos
            ]
-
+    
            # Generate a random Action according to the action_scope in DecisionEvent.
            random_quantity = random.randint(
                -decision_event.action_scope.load,
@@ -630,10 +630,10 @@ random mode, we hope this could help you learn how to use the environment interf
                port_idx=decision_event.port_idx,
                quantity=random_quantity
            )
-
+    
            # Drive the environment with the random action.
            metrics, decision_event, is_done = env.step(action)
-
+    
        # Query for the environment business metrics at the end of each episode,
        # it is usually users' optimized object in CIM scenario (usually includes multi-target).
        print(f"ep: {ep}, environment metrics: {env.metrics}")
@@ -641,3 +641,93 @@ random mode, we hope this could help you learn how to use the environment interf
 
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.
+
+## Example
+
+In this scenario, the final result is generated through multiple rounds
+of iterative optimization. Basically, there are multiple
+{snapshot\_(int)} folders under the user-input root path. The
+visualization is naturally more complicated. Generally speaking, dumped
+data of this scenario is divided into two levels: Extro Epoch & Intra
+Epoch, refers to comparison of data between different epochs and display
+of data in one epoch respectively.
+
+CIM Inter Epoch Data
+''''''''''''''''''''
+
+Generally speaking, the number of epochs in this scene will be greater
+than 100. In order to facilitate users to select specific data and
+observe the overall or partial data trend, the visualization tool
+provides data selection options in two dimensions.
+
+To change "Start Epoch" and "End Epoch", user could specify the selected
+data range. To change "Epoch Sampling Ratio", user could change the
+sampling rate of selected data, similar as `Citi\_Bike Detail
+Data <#Citi_Bike%20Detail%20Data>`__.
+
+For description of Attributes Selection in charts and Formula
+Calculation, please refer to `Citi\_Bike Detail
+Data <#Citi_Bike%20Detail%20Data>`__.
+
+.. figure:: ..\images\visualization\dashboard\cim_extro_epoch.gif
+   :alt: cim\_extro\_epoch
+
+   cim\_extro\_epoch
+CIM Intra Epoch Data
+''''''''''''''''''''
+
+This part shows the data under a selected epoch. By scrolling the
+slider, users can select different epochs. Furthermore, this part of
+data is divided into two dimensions: by snapshot and by port according
+to time and space. In terms of data display, according to the different
+types of attributes, it is divided into two levels: acc data
+(accumulated attributes. e.g. acc\_fulfillment) and detail data.
+
+If user choose to view information by ports, attributes of the selected
+port would be displayed.
+
+Chart characteristics and data selection method please refer to
+`Citi\_Bike Detail Data <#Citi_Bike%20Detail%20Data>`__.
+
+.. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif
+   :alt: cim\_intra\_epoch\_by\_ports
+
+   cim\_intra\_epoch\_by\_ports
+If user choose to view data by snapshots, attributes of selected
+snapshot would be displayed. The charts and data involved in this part
+are relatively rich, and we will introduce them by level.
+
+**Acc Data**
+
+This part includes the transfer volume hot map, bar chart of port
+accumulated attributes and top-5 ports of different attributes.
+
+As shown in the following example, the x-axis and y-axis of transfer
+volume hot map refers to destinate port index and start port index
+respectively. The rect refers to the volume of cargoes transfer from
+start port to destinate port. By changing the snapshot index, user could
+view the dynamic changes in the volume of cargo delivered by the port
+over time in the current epoch.
+
+The bar chart of Port Acc Attributes displays the global change of
+ports.
+
+.. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_acc_data.gif
+   :alt: cim\_intra\_epoch\_by\_snapshot\_acc\_data
+
+   cim\_intra\_epoch\_by\_snapshot\_acc\_data
+**Detail Data**
+
+Since the cargoes is transported through vessels, information of vessels
+could be viewed by snapshot.
+
+Same as ports, user could change the sampling rate of vessels.
+
+Bar chart of Port Detail Attributes and Formula Calculation please refer
+to `Citi\_Bike Detail Data <#Citi_Bike%20Detail%20Data>`__.
+
+.. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
+   :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data
+
+   cim\_intra\_epoch\_by\_snapshot\_detail\_data
+

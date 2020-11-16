@@ -19,13 +19,13 @@ class GlobalPaths:
     MARO_TEST = '~/.maro/test'
 
 
-class GlobalFilePaths():
+class GlobalFilePaths:
     ports_sum = "snapshot_ports_summary.csv"
     vessels_sum = "snapshot_vessels_summary.csv"
     stations_sum = "snapshot_stations_summary.csv"
     name_convert = "name_conversion.csv"
 
 
-class GlobalScenaios(Enum):
-    cim = 1
-    citi_bike = 2
+class GlobalScenarios(Enum):
+    CIM = 1
+    CITI_BIKE = 2

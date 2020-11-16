@@ -1,7 +1,7 @@
 import os
 
 
-def launch_dashboard(ROOT_PATH, scenario):
+def launch_dashboard(ROOT_PATH, scenario, epoch_num):
     """Launch streamlit dashboard.
 
     Args:
@@ -9,4 +9,4 @@ def launch_dashboard(ROOT_PATH, scenario):
         scenario(str): Name of current scenario.
     """
     vis_path = os.path.expanduser("~/.maro/vis/template/visualization.py")
-    os.system(f"streamlit run {vis_path} -- {ROOT_PATH} {scenario.value}")
+    os.system(f"streamlit run {vis_path} -- {ROOT_PATH} {scenario.value} {epoch_num}")

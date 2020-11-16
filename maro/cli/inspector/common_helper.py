@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from maro.cli.inspector.common_params import CITIBIKEOption, CIMItemOption, ScenarioDetail
+from maro.cli.utils.params import GlobalScenarios
+
 # Pre-defined CSS style of inserted HTML elements.
 Title_html = """
 <style>
@@ -37,24 +40,7 @@ Title_html = """
 """
 
 
-def get_epoch_num(origin_len, ROOT_PATH):
-    """Get epoch num by counting folders start with "snapshot_"
-
-    Args:
-        origin_len(int): Length of all file&folder under root path.
-        ROOT_PATH(str):  Data folder path.
-
-    Returns:
-        int: Number of epoches.
-    """
-    epoch_num = 0
-    for index in range(0, origin_len):
-        if os.path.exists(os.path.join(ROOT_PATH, f"snapshot_{index}")):
-            epoch_num = epoch_num + 1
-    return epoch_num
-
-
-def render_H1_title(content):
+def render_h1_title(content):
     """Flexible display of content according to predefined styles.
     Args:
         content(str): Content to be showed on dashboard.
@@ -63,7 +49,7 @@ def render_H1_title(content):
     st.markdown(html_title, unsafe_allow_html=True)
 
 
-def render_H3_title(content):
+def render_h3_title(content):
     """Flexible display of content according to predefined styles.
     Args:
         content(str): Content to be showed on dashboard.
@@ -108,6 +94,96 @@ def get_snapshot_sample(snapshot_num, snapshot_sample_num):
     return down_pooling
 
 
+def get_filtered_formula_and_data(type, data, item_options_all, helper_info=None):
+    """ Get calculated formula and whole data.
+
+    Args:
+        type(Enum): Type of input scenario detail.
+        data(list): Original data.
+        item_options_all(list): All options for users to choose.
+        helper_info: If the calculated data is related to specific attribute, this parameter would be useful.
+
+    Returns:
+        dict: calculated data, options.
+    """
+    data_genera = formula_define(data)
+    if data_genera is not None:
+        data = data_genera["data_after"]
+        item_options_all.append(data_genera["name"])
+
+    if type == ScenarioDetail.CIM_Intra:
+        item_option = st.multiselect(
+            " ", item_options_all, item_options_all)
+        item_option = get_item_option(GlobalScenarios.CIM, item_option, item_options_all)
+        data = data[item_option]
+        return {"data": data, "item_option": item_option}
+
+    elif type == ScenarioDetail.CIM_Inter:
+        if data_genera is not None:
+            helper_info.append(data_genera["name"])
+        item_option = st.multiselect(
+            " ", item_options_all, item_options_all)
+        item_option = get_item_option(GlobalScenarios.CIM, item_option, item_options_all)
+        return {"data": data, "item_option": item_option, "sf_info": helper_info}
+
+    elif type == ScenarioDetail.CITI_BIKE_Detail:
+        # get selected attributes
+        item_option = st.multiselect(
+            "",
+            item_options_all,
+            item_options_all)
+        # convert selected attributes into column
+        item_option = get_item_option(GlobalScenarios.CITI_BIKE, item_option, item_options_all)
+        return {"data": data, "item_option": item_option}
+
+
+def get_item_option(scenario, item_option, item_option_all):
+    """Convert selected CITI_BIKE option into column.
+
+    Args:
+        scenario(Enum):
+        item_option(list): User selected option list.
+        item_option_all(list): Pre-defined option list.
+
+    Returns:
+        list: translated users" option.
+
+    """
+    item_option_res = []
+    if scenario == GlobalScenarios.CITI_BIKE:
+        for item in item_option:
+            if item == "All":
+                item_option_all.remove("All")
+                item_option_all.remove("Requirement Info")
+                item_option_all.remove("Station Info")
+                item_option_res = item_option_all
+                break
+            elif item == "Requirement Info":
+                item_option_res = item_option_res + CITIBIKEOption.requirement_info
+            elif item == "Station Info":
+                item_option_res = item_option_res + CITIBIKEOption.station_info
+            else:
+                item_option_res.append(item)
+        return item_option_res
+
+    if scenario == GlobalScenarios.CIM:
+        for item in item_option:
+            if item == "All":
+                item_option_all.remove("All")
+                item_option_all.remove("Booking Info")
+                item_option_all.remove("Port Info")
+                item_option_res = item_option_all
+                break
+            elif item == "Booking Info":
+                item_option_res = item_option_res + CIMItemOption.booking_info
+            elif item == "Port Info":
+                item_option_res = item_option_res + CIMItemOption.port_info
+            else:
+                item_option_res.append(item)
+
+        return item_option_res
+
+
 def formula_define(data_origin):
     """Define formula and get output
     Args:
@@ -120,6 +196,7 @@ def formula_define(data_origin):
     formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "a*b+sqrt(c*d)"])
     paras = st.sidebar.text_input("parameters separated by ;")
     res = paras.split(";")
+
     if formula_select == "a+b":
         if len(res) == 0 or res[0] == "":
             return
@@ -135,6 +212,7 @@ def formula_define(data_origin):
                 return
         data = {"data_after": data_origin, "name": f"{res[0]}+{res[1]}"}
         return data
+
     if formula_select == "a-b":
         if len(res) == 0 or res[0] == "":
             return
@@ -150,6 +228,7 @@ def formula_define(data_origin):
                 return
         data = {"data_after": data_origin, "name": f"{res[0]}-{res[1]}"}
         return data
+
     if formula_select == "a*b":
         if len(res) == 0 or res[0] == "":
             return
@@ -165,6 +244,7 @@ def formula_define(data_origin):
                 return
         data = {"data_after": data_origin, "name": f"{res[0]}*{res[1]}"}
         return data
+
     if formula_select == "a/b":
         if len(res) == 0 or res[0] == "":
             return
@@ -180,6 +260,7 @@ def formula_define(data_origin):
                 return
         data = {"data_after": data_origin, "name": f"{res[0]}/{res[1]}"}
         return data
+
     if formula_select == "a*b+sqrt(c*d)":
         if len(res) == 0 or res[0] == "":
             return
@@ -244,9 +325,10 @@ def generate_by_snapshot_top_summary(attr_name, data, attribute, Need_SnapShot, 
         snapshot_index(int): Index of snapshot.
     """
     if Need_SnapShot:
-        render_H3_title(f"SnapShot-{snapshot_index}:  Top 5 {attribute}")
+        render_h3_title(f"SnapShot-{snapshot_index}:  Top 5 {attribute}")
     else:
-        render_H3_title(f"Top 5 {attribute}")
+        render_h3_title(f"Top 5 {attribute}")
+    data = data[[attr_name, attribute]].sort_values(by=attribute, ascending=False).head(5)
     data["counter"] = range(len(data))
     data[attr_name] = list(map(lambda x, y: f"{x+1}-{y}", data["counter"], data[attr_name]))
     bars = alt.Chart(data).mark_bar().encode(

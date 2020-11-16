@@ -12,7 +12,8 @@ from yaml import safe_load
 
 from maro.data_lib import BinaryReader
 
-from .entities import CimDataCollection, NoisedItem, OrderGenerateMode, PortSetting, RoutePoint, Stop, VesselSetting
+from .entities import (CimDataCollection, NoisedItem, OrderGenerateMode,
+                       PortSetting, RoutePoint, Stop, VesselSetting)
 
 
 class CimDumpDataLoader:

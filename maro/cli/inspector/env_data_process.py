@@ -9,7 +9,7 @@ import yaml
 
 from maro.cli.inspector.launch_env_dashboard import launch_dashboard
 from maro.cli.utils.params import GlobalFilePaths as Gfiles
-from maro.cli.utils.params import GlobalScenaios
+from maro.cli.utils.params import GlobalScenarios
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
@@ -56,7 +56,7 @@ def summary_append(scenario, dir_epoch, file_name, header, sum_dataframe, i, out
     sum_dataframe.to_csv(output_path, header=True, index=True)
 
 
-def generate_summary(scenario, ROOT_PATH):
+def generate_summary(scenario, root_path):
     """Generate summary info of current scenario.
     Different scenario has different data features.
     e.g. cim has multiple epochs while citi_bike only has one.
@@ -64,78 +64,78 @@ def generate_summary(scenario, ROOT_PATH):
 
     Args:
         scenario(str): Current scenario.
-        ROOT_PATH(str): Data folder path.
+        root_path(str): Data folder path.
 
     """
     ports_header = ["capacity", "empty", "full", "on_shipper", "on_consignee", "shortage", "booking", "fulfillment"]
     # vessels_header = ["capacity", "empty", "full", "remaining_space", "early_discharge"]
     stations_header = ["bikes", "shortage", "trip_requirement", "fulfillment", "capacity"]
-    dbtype_list_all = os.listdir(ROOT_PATH)
+    dbtype_list_all = os.listdir(root_path)
     temp_len = len(dbtype_list_all)
     dbtype_list = []
     for index in range(0, temp_len):
-        if os.path.exists(os.path.join(ROOT_PATH, f"snapshot_{index}")):
-            dbtype_list.append(os.path.join(ROOT_PATH, f"snapshot_{index}"))
+        if os.path.exists(os.path.join(root_path, f"snapshot_{index}")):
+            dbtype_list.append(os.path.join(root_path, f"snapshot_{index}"))
 
-    if scenario == GlobalScenaios.cim:
-        init_csv(os.path.join(ROOT_PATH, Gfiles.ports_sum), ports_header)
+    if scenario == GlobalScenarios.CIM:
+        init_csv(os.path.join(root_path, Gfiles.ports_sum), ports_header)
         # init_csv(vessels_file_path, vessels_header)
         ports_sum_dataframe =\
-            pd.read_csv(os.path.join(ROOT_PATH, Gfiles.ports_sum), names=ports_header)
+            pd.read_csv(os.path.join(root_path, Gfiles.ports_sum), names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
-        init_csv(os.path.join(ROOT_PATH, Gfiles.stations_sum), stations_header)
-    if scenario == GlobalScenaios.cim:
+        init_csv(os.path.join(root_path, Gfiles.stations_sum), stations_header)
+    if scenario == GlobalScenarios.CIM:
         i = 1
         for i in tqdm.tqdm(range(len(dbtype_list))):
             dbtype = dbtype_list[i]
-            dir_epoch = os.path.join(ROOT_PATH, dbtype)
+            dir_epoch = os.path.join(root_path, dbtype)
             if not os.path.isdir(dir_epoch):
                 continue
             summary_append(
                 scenario, dir_epoch, "ports.csv", ports_header,
-                ports_sum_dataframe, i, os.path.join(ROOT_PATH, Gfiles.ports_sum))
+                ports_sum_dataframe, i, os.path.join(root_path, Gfiles.ports_sum))
             # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
-    elif scenario == GlobalScenaios.citi_bike:
-        data = pd.read_csv(os.path.join(ROOT_PATH, "snapshot_0", "stations.csv"))
+    elif scenario == GlobalScenarios.CITI_BIKE:
+        data = pd.read_csv(os.path.join(root_path, "snapshot_0", "stations.csv"))
         data = data[["bikes", "trip_requirement", "fulfillment", "capacity"]].groupby(data["name"]).sum()
         data["fulfillment_ratio"] = list(
             map(lambda x, y: float("{:.4f}".format(x / (y + 1 / 1000))), data["fulfillment"],
                 data["trip_requirement"]))
-        data.to_csv(os.path.join(ROOT_PATH, Gfiles.stations_sum))
+        data.to_csv(os.path.join(root_path, Gfiles.stations_sum))
 
 
-def get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH):
+def get_holder_name_conversion(scenario, root_path, CONVER_PATH):
     """ Generate a CSV File which indicates the relationship between index and holder"s name.
 
     Args:
         scenario(str): Current scenario. Different scenario has different type of mapping file.
-        ROOT_PATH(str): Data folder path.
+        root_path(str): Data folder path.
         CONVER_PATH(str): Path of origin mapping file.
 
     """
-    CONVER_PATH = os.path.join(ROOT_PATH, CONVER_PATH)
-    if os.path.exists(os.path.join(ROOT_PATH, Gfiles.name_convert)):
-        os.remove(os.path.join(ROOT_PATH, Gfiles.name_convert))
-    if scenario == GlobalScenaios.citi_bike:
+    CONVER_PATH = os.path.join(root_path, CONVER_PATH)
+    if os.path.exists(os.path.join(root_path, Gfiles.name_convert)):
+        os.remove(os.path.join(root_path, Gfiles.name_convert))
+    if scenario == GlobalScenarios.CITI_BIKE:
         with open(CONVER_PATH, "r", encoding="utf8")as fp:
             json_data = json.load(fp)
             name_list = []
             for item in json_data["data"]["stations"]:
                 name_list.append(item["name"])
             df = pd.DataFrame({"name": name_list})
-            df.to_csv(os.path.join(ROOT_PATH, Gfiles.name_convert), index=False)
-    elif scenario == GlobalScenaios.cim:
+            df.to_csv(os.path.join(root_path, Gfiles.name_convert), index=False)
+    elif scenario == GlobalScenarios.CIM:
         f = open(CONVER_PATH, "r")
         ystr = f.read()
         aa = yaml.load(ystr, Loader=yaml.FullLoader)
         key_list = aa["ports"].keys()
         df = pd.DataFrame(list(key_list))
-        df.to_csv(os.path.join(ROOT_PATH, Gfiles.name_convert), index=False)
+        df.to_csv(os.path.join(root_path, Gfiles.name_convert), index=False)
 
 
-def start_vis(input: str, force: str, **kwargs):
+def start_vis(source: str, force: str, **kwargs):
     """Entrance of data pre-processing.
     Generate name_conversion CSV file & summary file.
 
@@ -157,44 +157,46 @@ def start_vis(input: str, force: str, **kwargs):
         **kwargs:
 
     """
-    ROOT_PATH = input
+    root_path = source
     FORCE = force
-    if not os.path.exists(ROOT_PATH):
+    if not os.path.exists(root_path):
         raise CliException("input path is not correct. ")
         os._exit(0)
-    if not os.path.exists(os.path.join(ROOT_PATH, "snapshot_0")):
+    if not os.path.exists(os.path.join(root_path, "snapshot_0")):
         raise CliException("No data under input folder path. ")
         os._exit(0)
-    if not os.path.exists(os.path.join(ROOT_PATH, "snapshot.manifest")):
+    if not os.path.exists(os.path.join(root_path, "manifest.yml")):
         raise CliException("Manifest file missed. ")
         os._exit(0)
-    manifest_file = open(os.path.join(ROOT_PATH, "snapshot.manifest"), "r")
+
+    manifest_file = open(os.path.join(root_path, "manifest.yml"), "r")
     props_origin = manifest_file.read()
-    props = yaml.load(props_origin, Loader=yaml.FullLoader).split()
-    scenario = GlobalScenaios[props[0][9:]]
-    CONVER_PATH = props[1][9:]
-    # path to restore summary files
-    if FORCE == "yes":
+    props = yaml.load(props_origin, Loader=yaml.FullLoader)
+    scenario = GlobalScenarios[str(props["scenario"]).upper()]
+    CONVER_PATH = str(props["mappings"])
+    epoch_num = int(props["epoch_num"])
+
+    if FORCE == "true":
         logger.info("Dashboard Data Processing")
 
-        get_holder_name_conversion(scenario, ROOT_PATH, CONVER_PATH)
+        get_holder_name_conversion(scenario, root_path, CONVER_PATH)
         logger.info_green("[1/2]:Generate Name Conversion File Done.")
 
         logger.info_green("[2/2]:Generate Summary.")
-        generate_summary(scenario, ROOT_PATH)
+        generate_summary(scenario, root_path)
         logger.info_green("[2/2]:Generate Summary Done.")
-    elif FORCE == "no":
+    elif FORCE == "false":
         logger.info_green("Skip Data Generation")
-        if not os.path.exists(os.path.join(ROOT_PATH, Gfiles.name_convert)):
+        if not os.path.exists(os.path.join(root_path, Gfiles.name_convert)):
             raise CliException("Have to regenerate data. Name Conversion File is missed. ")
             os._exit(0)
-        if scenario == GlobalScenaios.cim:
-            if not os.path.exists(os.path.join(ROOT_PATH, Gfiles.ports_sum)):
+        if scenario == GlobalScenarios.CIM:
+            if not os.path.exists(os.path.join(root_path, Gfiles.ports_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
                 os._exit(0)
-        if scenario == GlobalScenaios.citi_bike:
-            if not os.path.exists(os.path.join(ROOT_PATH, Gfiles.stations_sum)):
+        if scenario == GlobalScenarios.CITI_BIKE:
+            if not os.path.exists(os.path.join(root_path, Gfiles.stations_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
                 os._exit(0)
 
-    launch_dashboard(ROOT_PATH, scenario)
+    launch_dashboard(root_path, scenario, epoch_num)
