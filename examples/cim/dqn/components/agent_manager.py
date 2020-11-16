@@ -1,11 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import numpy as np
+
 import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-    ColumnBasedStore, DQN, DQNHyperParams, FullyConnectedBlock, SimpleAgentManager, SingleHeadLearningModel
+    ColumnBasedStore, DQN, DQNHyperParams, EpsilonGreedyExplorer, FullyConnectedBlock, SimpleAgentManager,
+    SingleHeadLearningModel
 )
 from maro.utils import set_seeds
 
@@ -43,6 +46,7 @@ def create_dqn_agents(agent_id_list, config):
         agent_dict[agent_id] = CIMAgent(
             name=agent_id,
             algorithm=algorithm,
+            explorer=EpsilonGreedyExplorer(num_actions),
             experience_pool=experience_pool,
             **config.training_loop_parameters
         )

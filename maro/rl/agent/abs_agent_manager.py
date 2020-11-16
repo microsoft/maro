@@ -3,6 +3,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Iterator, Union
 
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
@@ -54,6 +55,11 @@ class AbsAgentManager(ABC):
     def __getitem__(self, agent_id):
         return self.agent_dict[agent_id]
 
+    @property
+    def name(self):
+        """Agent manager's name."""
+        return self._name
+
     @abstractmethod
     def choose_action(self, *args, **kwargs):
         """Generate an environment executable action given the current decision event and snapshot list.
@@ -82,10 +88,27 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    @property
-    def name(self):
-        """Agent manager's name."""
-        return self._name
+    def register_exploration_schedule(self, exploration_schedule: Union[Iterator, dict]):
+        for agent_id, agent in self.agent_dict.values():
+            agent.explorer.register_schedule(
+                exploration_schedule[agent_id] if isinstance(exploration_schedule, dict) else exploration_schedule
+            )
+
+    def load_exploration_params(self, exploration_params):
+        is_per_agent = set(exploration_params).issubset(set(self.agent_dict.keys()))
+        if is_per_agent:
+            for agent_id, params in exploration_params.items():
+                self.agent_dict[agent_id].load_exploration_params(params)
+        else:
+            for agent in self.agent_dict.values():
+                agent.load_exploration_params(exploration_params)
+
+    def dump_exploration_params(self):
+        return {agent_id: agent.dump_exploration_params() for agent_id, agent in self.agent_dict.items()}
+
+    def update_exploration_params(self):
+        for agent in self.agent_dict.values():
+            agent.explorer.update()
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

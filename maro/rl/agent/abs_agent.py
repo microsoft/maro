@@ -6,7 +6,9 @@ import pickle
 from abc import ABC, abstractmethod
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.storage.abs_store import AbsStore
+from maro.utils.exception.rl_toolkit_exception import MissingExplorerError
 
 
 class AbsAgent(ABC):
@@ -23,12 +25,20 @@ class AbsAgent(ABC):
         algorithm (AbsAlgorithm): A concrete algorithm instance that inherits from AbstractAlgorithm.
             This is the centerpiece of the Agent class and is responsible for the most important tasks of an agent:
             choosing actions and optimizing models.
+        explorer (AbsExplorer): Explorer instance to generate exploratory actions. Defaults to None.
         experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, name: str, algorithm: AbsAlgorithm, experience_pool: AbsStore = None):
+    def __init__(
+        self,
+        name: str,
+        algorithm: AbsAlgorithm,
+        explorer: AbsExplorer = None,
+        experience_pool: AbsStore = None
+    ):
         self._name = name
         self._algorithm = algorithm
+        self._explorer = explorer
         self._experience_pool = experience_pool
 
     @property
@@ -37,20 +47,39 @@ class AbsAgent(ABC):
         return self._algorithm
 
     @property
+    def explorer(self):
+        """Explorer used by the agent to generate exploratory actions."""
+        return self._explorer
+
+    @property
     def experience_pool(self):
         """Underlying experience pool where the agent stores experiences."""
         return self._experience_pool
 
-    def choose_action(self, model_state, epsilon: float = .0):
+    def choose_action(self, model_state):
         """Choose an action using the underlying algorithm based on a preprocessed env state.
 
         Args:
             model_state: State vector as accepted by the underlying algorithm.
-            epsilon (float): Exploration rate.
         Returns:
             Action given by the underlying policy model.
         """
-        return self._algorithm.choose_action(model_state, epsilon)
+        action_from_algorithm = self._algorithm.choose_action(model_state)
+        return action_from_algorithm if self._explorer is None else self._explorer(action_from_algorithm)
+
+    def load_exploration_params(self, exploration_params):
+        if self._explorer is None:
+            raise MissingExplorerError(
+                "No explorer found. Make sure to pass an explorer instance when creating the agent."
+            )
+        self._explorer.load_exploration_params(exploration_params)
+
+    def update_exploration_params(self):
+        if self._explorer is None:
+            raise MissingExplorerError(
+                "No explorer found. Make sure to pass an explorer instance when creating the agent."
+            )
+        self._explorer.update()
 
     @abstractmethod
     def train(self, *args, **kwargs):

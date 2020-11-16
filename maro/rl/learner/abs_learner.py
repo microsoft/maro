@@ -9,7 +9,7 @@ class AbsLearner(ABC):
     def __init__(self):
         pass
 
-    def train(self, *args, **kwargs):
+    def learn(self, *args, **kwargs):
         """The outermost training loop logic is implemented here."""
         pass
 

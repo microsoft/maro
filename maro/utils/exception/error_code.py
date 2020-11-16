@@ -40,5 +40,7 @@ ERROR_CODE = {
     4003: "Wrong Agent Manager Mode",
     4004: "Store Misalignment Error",
     4005: "Invalid Episode",
-    4006: "Infinite Training Loop"
+    4006: "Infinite Training Loop",
+    4009: "Missing Exploration Schedule Error",
+    4010: "Missing Explorer Error"
 }
