@@ -155,8 +155,16 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 total_util_cpu += vm.util_cpu * vm.req_cpu / 100
             pm.util_cpu = total_util_cpu / pm.cap_cpu * 100
             pm.update_util_series(self._tick)
+            self._energy_consumption += self._cpu_util_to_energy_consumption(pm.util_cpu)
 
-        # TODO: Energy comsumption update.
+    def _cpu_util_to_energy_consumption(self, cpu_util: float) -> float:
+        """Convert the CPU utilization to energy consumption."""
+
+        power: float = self._conf["calibration parameter"]
+        # NOTE: Energy comsumption parameters should refer to more research.
+        busy_power = self._conf["busy_power"]
+        idle_power = self._conf["idle_power"]
+        return idle_power + (busy_power - idle_power) * (2 * cpu_util - pow(cpu_util, power))
 
     def _postpone_vm_requirement(self, vm_id: int):
         """Postpone VM requirement."""
@@ -236,6 +244,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _on_vm_finished(self, evt: AtomEvent):
         """Callback when there is a VM ready to be terminated."""
+
         # Get the VM info.
         payload: VmFinishedPayload = evt.payload
         vm_id = payload.vm_id
