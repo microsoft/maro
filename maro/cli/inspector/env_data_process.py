@@ -106,20 +106,20 @@ def generate_summary(scenario, root_path):
         data.to_csv(os.path.join(root_path, Gfiles.stations_sum))
 
 
-def get_holder_name_conversion(scenario, root_path, CONVER_PATH):
+def get_holder_name_conversion(scenario, root_path, conver_path):
     """ Generate a CSV File which indicates the relationship between index and holder"s name.
 
     Args:
         scenario(str): Current scenario. Different scenario has different type of mapping file.
         root_path(str): Data folder path.
-        CONVER_PATH(str): Path of origin mapping file.
+        conver_path(str): Path of origin mapping file.
 
     """
-    CONVER_PATH = os.path.join(root_path, CONVER_PATH)
+    conver_path = os.path.join(root_path, conver_path)
     if os.path.exists(os.path.join(root_path, Gfiles.name_convert)):
         os.remove(os.path.join(root_path, Gfiles.name_convert))
     if scenario == GlobalScenarios.CITI_BIKE:
-        with open(CONVER_PATH, "r", encoding="utf8")as fp:
+        with open(conver_path, "r", encoding="utf8")as fp:
             json_data = json.load(fp)
             name_list = []
             for item in json_data["data"]["stations"]:
@@ -127,7 +127,7 @@ def get_holder_name_conversion(scenario, root_path, CONVER_PATH):
             df = pd.DataFrame({"name": name_list})
             df.to_csv(os.path.join(root_path, Gfiles.name_convert), index=False)
     elif scenario == GlobalScenarios.CIM:
-        f = open(CONVER_PATH, "r")
+        f = open(conver_path, "r")
         ystr = f.read()
         aa = yaml.load(ystr, Loader=yaml.FullLoader)
         key_list = aa["ports"].keys()
@@ -173,13 +173,13 @@ def start_vis(source: str, force: str, **kwargs):
     props_origin = manifest_file.read()
     props = yaml.load(props_origin, Loader=yaml.FullLoader)
     scenario = GlobalScenarios[str(props["scenario"]).upper()]
-    CONVER_PATH = str(props["mappings"])
+    conver_path = str(props["mappings"])
     epoch_num = int(props["epoch_num"])
 
     if FORCE == "true":
         logger.info("Dashboard Data Processing")
 
-        get_holder_name_conversion(scenario, root_path, CONVER_PATH)
+        get_holder_name_conversion(scenario, root_path, conver_path)
         logger.info_green("[1/2]:Generate Name Conversion File Done.")
 
         logger.info_green("[2/2]:Generate Summary.")

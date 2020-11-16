@@ -73,6 +73,7 @@ def holder_sample_ratio(snapshot_num):
     sample_ratio = [float("{:.4f}".format(i)) for i in snapshot_sample_ratio]
     if 1 not in sample_ratio:
         sample_ratio.append(1)
+
     return sample_ratio
 
 
@@ -91,6 +92,7 @@ def get_snapshot_sample(snapshot_num, snapshot_sample_num):
     down_pooling.insert(0, 0)
     if snapshot_num - 1 not in down_pooling:
         down_pooling.append(snapshot_num - 1)
+
     return down_pooling
 
 
@@ -180,7 +182,6 @@ def get_item_option(scenario, item_option, item_option_all):
                 item_option_res = item_option_res + CIMItemOption.port_info
             else:
                 item_option_res.append(item)
-
         return item_option_res
 
 
@@ -295,6 +296,7 @@ def judge_append_data(data_head, res):
         if item not in data_head:
             data_right = False
             st.warning(f"parameter name:{item} not exist")
+
     return data_right
 
 

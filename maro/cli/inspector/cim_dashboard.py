@@ -30,6 +30,7 @@ def generate_down_pooling_sample(down_pooling_num, start_epoch, end_epoch):
     down_pooling_range = list(range(start_epoch, end_epoch, down_pooling_len))
     if end_epoch not in down_pooling_range:
         down_pooling_range.append(end_epoch)
+
     return down_pooling_range
 
 
