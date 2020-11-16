@@ -40,7 +40,7 @@ jobs:
       # Run Linter against code base #
       ################################
       - name: Lint Code Base
-        uses: github/super-linter@v3
+        uses: github/super-linter@latest
         env:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON_PYLINT: false # disable pylint, as we have not configure it
