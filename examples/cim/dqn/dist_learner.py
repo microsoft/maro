@@ -3,12 +3,11 @@
 
 import os
 
-from components.agent_manager import DQNAgentManager
-from components.config import config
-from components.state_shaper import CIMStateShaper
 from maro.rl import ActorProxy, AgentMode, SimpleLearner, TwoPhaseLinearExplorer
 from maro.simulator import Env
 from maro.utils import Logger
+
+from components import CIMStateShaper, DQNAgentManager, config
 
 if __name__ == "__main__":
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
@@ -28,9 +27,15 @@ if __name__ == "__main__":
         "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port),
         "max_retries": 10
     }
-    learner = SimpleLearner(trainable_agents=agent_manager,
-                            actor=ActorProxy(proxy_params=proxy_params),
-                            logger=Logger("distributed_cim_learner", auto_timestamp=False))
+    learner = SimpleLearner(
+        trainable_agents=agent_manager,
+        actor=ActorProxy(proxy_params=proxy_params),
+        logger=Logger(
+            tag="distributed_cim_learner",
+            dump_folder=os.path.join(os.path.split(os.path.realpath(__file__))[0], "log"),
+            auto_timestamp=False
+        )
+    )
     learner.train(total_episodes=config.general.total_training_episodes)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
