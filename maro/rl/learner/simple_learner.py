@@ -101,15 +101,13 @@ class SimpleLearner(AbsLearner):
     def _sample(self):
         """Perform one episode of environment sampling through actor roll-out."""
         self._agent_manager.update_exploration_params()
+        exploration_params = self._agent_manager.dump_exploration_params()
         if self._is_shared_agent_instance():
-            model_dict, exploration_params = None, None
+            performance, exp_by_agent = self._actor.roll_out()
         else:
-            model_dict = self._agent_manager.dump_models()
-            exploration_params = self._agent_manager.dump_exploration_params()
-
-        performance, exp_by_agent = self._actor.roll_out(
-            model_dict=model_dict, exploration_params=exploration_params
-        )
+            performance, exp_by_agent = self._actor.roll_out(
+                model_dict=self._agent_manager.dump_models(), exploration_params=exploration_params
+            )
 
         self._logger.info(f"performance: {performance}, exploration_params: {exploration_params}")
         return performance, exp_by_agent
