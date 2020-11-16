@@ -25,13 +25,14 @@ class AbsActor(ABC):
 
     @abstractmethod
     def roll_out(
-        self, model_dict: dict = None, done: bool = None, return_details: bool = True
+        self, model_dict: dict = None, exploration_params=None, done: bool = None, return_details: bool = True
     ):
         """This method performs a single episode of roll-out.
 
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
                 to perform roll-out.
+            exploration_params: Exploration parameters.
             done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
                 This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return episode details (e.g., experiences) as well as performance
