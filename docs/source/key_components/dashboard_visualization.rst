@@ -58,8 +58,4 @@ When viewing data, users can interact freely, such as inputting custom
 parameters according to predefined formulas, switching parameter
 selection, etc.
 
-Examples of each scenarios please refer to links below:
-
-Citi Bike:
-
-CIM:
+Examples of each scenarios please refer to docs of each sceanarios.
