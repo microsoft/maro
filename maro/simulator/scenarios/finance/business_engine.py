@@ -18,8 +18,8 @@ from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.finance.account import Account
 from maro.simulator.scenarios.finance.commission import FixedCommission, StampTaxCommission
 from maro.simulator.scenarios.finance.common import (
-    ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, Order,
-    OrderActionScope, OrderDirection, OrderMode, TradeResult
+    ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, Order, OrderActionScope,
+    OrderDirection, OrderMode, TradeResult
 )
 from maro.simulator.scenarios.finance.slippage import FixedSlippage
 from maro.simulator.scenarios.finance.frame_builder import build_frame
@@ -39,8 +39,9 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         max_tick: int, snapshot_resolution: int, max_snapshot_num: int, additional_options: dict = {}
     ):
         super().__init__(
-            scenario_name="finance", event_buffer=event_buffer, topology=topology, start_tick=start_tick, max_tick=max_tick,
-            snapshot_resolution=snapshot_resolution, max_snapshot_num=max_snapshot_num, additional_options=additional_options
+            scenario_name="finance", event_buffer=event_buffer, topology=topology,
+            start_tick=start_tick, max_tick=max_tick, snapshot_resolution=snapshot_resolution,
+            max_snapshot_num=max_snapshot_num, additional_options=additional_options
         )
         # 1. load_config
         # Update self._config_path with current file path.
@@ -428,7 +429,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         remaining_cash = self._account.remaining_cash
 
         split_volume = self._config["trade_constraint"]["split_trade_percent"] * market_volume
-        odd_shares = self._stocks[action.stock_index].account_hold_num % self._config["trade_constraint"]["min_sell_unit"]
+        odd_shares = self._stocks[action.stock_index].account_hold_num \
+            % self._config["trade_constraint"]["min_sell_unit"]
         executing_price = market_price
 
         executing = True
@@ -510,7 +512,8 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         max_trade_volume = self._config["trade_constraint"]["max_trade_percent"] * market_volume
         if executing_volume > max_trade_volume:
             executing_volume = max_trade_volume
-        odd_shares = self._stocks[action.stock_index].account_hold_num % self._config["trade_constraint"]["min_sell_unit"]
+        odd_shares = self._stocks[action.stock_index].account_hold_num \
+            % self._config["trade_constraint"]["min_sell_unit"]
         # print("action.amount", action.amount)
 
         if action.direction == OrderDirection.SELL:

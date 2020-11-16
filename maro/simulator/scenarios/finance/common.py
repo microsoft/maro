@@ -102,6 +102,7 @@ class CancelOrderActionScope:
     def __repr__(self):
         return f"available orders: {self.available_orders}"
 
+
 class Action(ABC):
     idx = 0
 
@@ -150,7 +151,8 @@ class Order(Action):
         pass
 
     def __repr__(self):
-        return f"{super().__repr__()}\n< Order item: {self.stock_index} amount: {self.amount} direction: {self.direction} >"
+        return f"{super().__repr__()}\n< Order item: {self.stock_index} amount: {self.amount} \
+direction: {self.direction} >"
 
 
 class MarketOrder(Order):
@@ -252,6 +254,7 @@ class CancelOrder(Action):
             tick=tick, life_time=1
         )
         self.order = order
+
 
 def two_decimal_price(input_price: float) -> float:
     return int(input_price * 100) / 100
