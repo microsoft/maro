@@ -10,7 +10,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import Action, DecisionPayload, Latency, VmFinishedPayload, VmRequirementPayload
+from .common import Action, DecisionPayload, Latency, ValidPm, VmFinishedPayload, VmRequirementPayload
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -157,6 +157,35 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         )
         self._event_buffer.insert_event(event=postpone_event)
 
+    def _get_valid_pm(self, vm_req_cpu: int) -> List[ValidPm]:
+        """Check all valid PMs.
+        There are three situations:
+            1. All PMs are empty.
+            2. Some PMs are empty but others are not.
+            3. All PMs are not empty.
+        Situation 1: Return the first empty PM info.
+        Situation 2: Return all PMs with enough resources but not empty and plus the first empty PM.
+        Situation 3: Return all PMs with enough resources but not empty.
+
+        Args: vm_req_cpu (int): The CPU resource of the VM requirement.
+        """
+        # NOTE: Should we implement this logic inside the action scope?
+        # TODO: In oversubscribable scenario, we should consider more situations, like
+        #       the PM type (oversubscribable and non-oversubscribable).
+
+        valid_pm_list = []
+        for pm in self._machines:
+            if pm.req_cpu == 0:
+                valid_pm_list.append(ValidPm(pm_id=pm.pm_id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem))
+                break
+            elif pm.req_cpu > 0 and (pm.cap_cpu - pm.req_cpu) >= vm_req_cpu:
+                valid_pm_list.append(ValidPm(
+                    pm_id=pm.pm_id,
+                    remaining_cpu=pm.cap_cpu - pm.req_cpu,
+                    remaining_mem=pm.cap_mem - pm.req_mem
+                ))
+        return valid_pm_list
+
     def _on_vm_required(self, vm_requirement_event: CascadeEvent):
         """Callback when there is a VM requirement generated."""
         # Get VM data from payload.
@@ -166,24 +195,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         remaining_buffer_time: int = payload.buffer_time
 
         self._pending_vm_req_payload[vm_req.id] = payload
-        # Check all valid PMs.
-        # NOTE: Should we implement this logic inside the action scope?
-        # TODO: Oversubscribable machines should be different logic.
-        valid_pm_list = [
-            {
-                "id": pm.id,
-                "cpu": pm.cap_cpu - pm.req_cpu,
-                "mem": pm.cap_mem - pm.req_mem
-            }
-            for pm in self._machines
-            if (pm.cap_cpu - pm.req_cpu) >= vm_req.req_cpu
-        ]
+
+        valid_pm_list = self._get_valid_pm(vm_req.req_cpu)
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
             decision_payload = DecisionPayload(
                 valid_pm=valid_pm_list,
-                vm_id=vm_req.id,
+                vm_id=vm_req.vm_id,
                 vm_req_cpu=vm_req.req_cpu,
                 vm_req_mem=vm_req.req_mem,
                 buffer_time=remaining_buffer_time
@@ -193,9 +212,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             vm_requirement_event.add_immediate_event(event=pending_decision_event)
         else:
             # Postpone the buffer duration ticks by config setting.
-            if remaining_buffer_time > 0:
+            if remaining_buffer_time >= self._delay_duration:
                 self._total_latency.latency_due_to_resource += self._delay_duration
-                self._postpone_vm_requirement(vm_req.id)
+                self._postpone_vm_requirement(vm_req.vm_id)
             else:
                 # Fail
                 # TODO Implement failure logic.
@@ -248,11 +267,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             vm.util_cpu = vm.get_util(cur_tick=cur_tick)
 
             # Pop out the VM from pending requirements and add to live VM dict.
-            self._pending_vm_req_payload.pop(vm.id)
-            self._live_vm[vm.id] = vm
+            self._pending_vm_req_payload.pop(vm.vm_id)
+            self._live_vm[vm.vm_id] = vm
 
             # Generate VM finished event.
-            finished_payload: VmFinishedPayload = VmFinishedPayload(vm.id)
+            finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
             finished_event = self._event_buffer.gen_atom_event(
                 tick=cur_tick + lifetime,
                 payload=finished_payload
@@ -261,18 +280,18 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
             # Update PM resources requested by VM.
             pm = self._machines[pm_id]
-            pm.add_vm(vm.id)
+            pm.add_vm(vm.vm_id)
             pm.req_cpu += vm.req_cpu
             pm.req_mem += vm.req_mem
             pm.util_cpu = (pm.cap_cpu * pm.util_cpu + vm.req_cpu * vm.util_cpu) / pm.cap_cpu
         else:
             remaining_buffer_time = action.buffer_time
             # Postpone the buffer duration ticks by config setting.
-            if remaining_buffer_time > 0:
+            if remaining_buffer_time >= self._delay_duration:
                 self._total_latency.latency_due_to_agent += self._delay_duration
                 self._postpone_vm_requirement(vm_id)
             else:
                 # Fail
                 # TODO Implement failure logic.
-                self._pending_vm_req_payload.pop(vm.id)
+                self._pending_vm_req_payload.pop(vm.vm_id)
                 self._failed_requirements += 1

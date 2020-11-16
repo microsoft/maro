@@ -68,6 +68,14 @@ class DecisionPayload:
         self.buffer_time = buffer_time
 
 
+class ValidPm:
+    """The object for the valid PM which sent to the agent."""
+    def __init__(self, pm_id: int, remaining_cpu: int, remaining_mem: int):
+        self.pm_id = pm_id
+        self.remaining_cpu = remaining_cpu
+        self.remaining_mem = remaining_mem
+
+
 class Latency:
     """Accumulative latency.
 
