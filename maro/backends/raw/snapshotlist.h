@@ -113,8 +113,8 @@ namespace maro
 
         Frame *_frame;
 
-        // tick -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
-        map<INT, unordered_map<ULONG, size_t>> _tick_attr_map;
+        // tick -> index of mapping  -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
+        map<INT, size_t> _tick_attr_map;
 
         // Used to hold all the in-memory snapshots
         vector<Attribute> _attr_store;
@@ -144,6 +144,8 @@ namespace maro
 
         bool _is_prepared{false};
         SnapshotQueryParameters _query_parameters;
+
+        vector<unordered_map<ULONG, size_t>> _mappings;
 
       public:
         /// <summary>

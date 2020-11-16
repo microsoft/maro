@@ -170,7 +170,7 @@ namespace maro
         }
 
         auto tick_start_index = tick_index_pair->second;
-        auto &mapping = _tick_attr_map.find(tick)->second;
+        auto &mapping = _mappings[_tick_attr_map.find(tick)->second];
 
         auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
 
@@ -201,6 +201,7 @@ namespace maro
         _tick2index_map.clear();
         _tick2size_map.clear();
         _tick_attr_map.clear();
+        _mappings.clear();
 
         memset(&_attr_store[0], 0, sizeof(Attribute) * _attr_store.size());
 
@@ -452,16 +453,33 @@ namespace maro
       void SnapshotList::copy_from_attr_store(AttributeStore *frame_attr_store, INT tick, size_t start_index)
       {
         auto last_tick_map = _tick_attr_map.rbegin();
+        auto is_copy_mapping = false;
 
         // if attribute store is dirty means there is something changed, we should keep current mapping
-        if (last_tick_map == _tick_attr_map.rend() || frame_attr_store->is_dirty() || last_tick_map->second.size() != frame_attr_store->size())
+        if (last_tick_map == _tick_attr_map.rend() || frame_attr_store->is_dirty())
         {
+          is_copy_mapping = true;
+        }
+        else
+        {
+          auto &last_mapping = _mappings[last_tick_map->second];
+
+          if (last_mapping.size() != frame_attr_store->size())
+          {
+            is_copy_mapping = true;
+          }
+        }
+
+        if (is_copy_mapping)
+        {
+          _mappings.push_back(unordered_map<ULONG, size_t>());
+
           // copy
-          auto mapping = unordered_map<ULONG, size_t>();
+          auto &mapping = _mappings[_mappings.size() - 1];
 
           frame_attr_store->copy_to(&_attr_store[start_index], &mapping);
 
-          _tick_attr_map[tick] = mapping;
+          _tick_attr_map[tick] = _mappings.size() - 1;
         }
         else
         {
