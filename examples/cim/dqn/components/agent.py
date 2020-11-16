@@ -18,13 +18,13 @@ class CIMAgent(AbsAgent):
         self,
         name: str,
         algorithm,
-        explorer: EpsilonGreedyExplorer,
         experience_pool: ColumnBasedStore,
         min_experiences_to_train,
         num_batches,
-        batch_size
+        batch_size,
+        explorer: EpsilonGreedyExplorer = None
     ):
-        super().__init__(name, algorithm, explorer, experience_pool)
+        super().__init__(name, algorithm, explorer=explorer, experience_pool=experience_pool)
         self._min_experiences_to_train = min_experiences_to_train
         self._num_batches = num_batches
         self._batch_size = batch_size
