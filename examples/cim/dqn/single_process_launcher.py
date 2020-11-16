@@ -13,8 +13,8 @@ from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
-    AgentManagerMode, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor, SimpleEarlyStoppingChecker,
-    SimpleLearner, two_phase_linear_epsilon_schedule
+    AgentManagerMode, EpsilonGreedyExplorer, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor,
+    SimpleEarlyStoppingChecker, SimpleLearner, two_phase_linear_epsilon_schedule
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -48,7 +48,8 @@ def launch(config):
         agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
-        experience_shaper=experience_shaper
+        experience_shaper=experience_shaper,
+        explorer=EpsilonGreedyExplorer(config.agents.algorithm.num_actions),
     )
 
     # Step 4: Create an actor and a learner to start the training process.

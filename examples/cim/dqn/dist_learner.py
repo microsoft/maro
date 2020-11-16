@@ -7,7 +7,8 @@ from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
 
 from maro.rl import (
-    ActorProxy, AgentManagerMode, SimpleLearner, concat_experiences_by_agent, two_phase_linear_epsilon_schedule
+    ActorProxy, AgentManagerMode, EpsilonGreedyExplorer, SimpleLearner, concat_experiences_by_agent,
+    two_phase_linear_epsilon_schedule
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -24,6 +25,7 @@ def launch(config, distributed_config):
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
         agent_dict=create_dqn_agents(agent_id_list, config.agents),
+        explorer=EpsilonGreedyExplorer(config.agents.algorithm.num_actions),
     )
 
     proxy_params = {

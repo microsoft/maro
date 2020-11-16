@@ -4,6 +4,7 @@
 import os
 from abc import abstractmethod
 
+from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -21,7 +22,8 @@ class SimpleAgentManager(AbsAgentManager):
         agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None
+        experience_shaper: ExperienceShaper = None,
+        explorer: AbsExplorer = None
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
@@ -35,7 +37,8 @@ class SimpleAgentManager(AbsAgentManager):
             name, mode, agent_dict,
             state_shaper=state_shaper,
             action_shaper=action_shaper,
-            experience_shaper=experience_shaper
+            experience_shaper=experience_shaper,
+            explorer=explorer
         )
 
         # Data structures to temporarily store transitions and trajectory

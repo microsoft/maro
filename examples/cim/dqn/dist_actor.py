@@ -11,7 +11,7 @@ from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
-from maro.rl import ActorWorker, AgentManagerMode, KStepExperienceShaper, SimpleActor
+from maro.rl import ActorWorker, AgentManagerMode, EpsilonGreedyExplorer, KStepExperienceShaper, SimpleActor
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -39,6 +39,7 @@ def launch(config, distributed_config):
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
+        explorer=EpsilonGreedyExplorer(config.agents.algorithm.num_actions),
     )
     proxy_params = {
         "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
@@ -47,7 +48,7 @@ def launch(config, distributed_config):
         "max_retries": 15
     }
     actor_worker = ActorWorker(
-        local_actor=SimpleActor(env=env, inference_agents=agent_manager),
+        local_actor=SimpleActor(env, agent_manager),
         proxy_params=proxy_params
     )
     actor_worker.launch()
