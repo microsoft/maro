@@ -17,8 +17,8 @@ import redis
 
 # private lib
 from maro.utils import DummyLogger, InternalLogger
-from maro.utils.exception import KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE
 from maro.utils.exception.communication_exception import InformationUncompletedError, PeersMissError, PendingToSend
+from maro.utils.exit_code import KILL_ALL_EXIT_CODE, NON_RESTART_EXIT_CODE
 
 from .driver import DriverType, ZmqDriver
 from .message import Message, NotificationSessionStage, SessionMessage, SessionType, TaskSessionStage
@@ -140,7 +140,7 @@ class Proxy:
                     for peer_type, peer_info in self._peers_info_dict.items()
                 }
             else:
-                self._logger.critical("Unsupported minimal peers type, please use integer or dict.")
+                self._logger.error("Unsupported minimal peers type, please use integer or dict.")
                 sys.exit(NON_RESTART_EXIT_CODE)
 
         self._join()
@@ -197,14 +197,15 @@ class Proxy:
                 component_type=self._component_type, **self._driver_parameters, logger=self._logger
             ) if self._driver_parameters else ZmqDriver(component_type=self._component_type, logger=self._logger)
         else:
-            self._logger.critical(f"Unsupported driver type {self._driver_type}, please use DriverType class.")
+            self._logger.error(f"Unsupported driver type {self._driver_type}, please use DriverType class.")
             sys.exit(NON_RESTART_EXIT_CODE)
 
         driver_address = self._driver.address
+        # Temporary pass
         try:
             self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(driver_address))
         except Exception as e:
-            self._logger.critical(f"{self._name} failure to connect to redis server due to {e}")
+            self._logger.error(f"{self._name} failure to connect to redis server due to {e}")
             sys.exit(NON_RESTART_EXIT_CODE)
 
         # Handle interrupt signal for clearing Redis record.
@@ -212,7 +213,7 @@ class Proxy:
             signal.signal(signal.SIGINT, self._signal_handler)
             signal.signal(signal.SIGTERM, self._signal_handler)
         except Exception as e:
-            self._logger.critical(
+            self._logger.error(
                 "Signal detector disable. This may cause dirty data to be left in the Redis! "
                 "To avoid this, please use multiprocess or make sure it can exit successfully."
                 f"Due to {str(e)}."
@@ -233,10 +234,10 @@ class Proxy:
                     expected_peers_name = [peer.decode() for peer in expected_peers_name]
                     if len(expected_peers_name) > peer_number:
                         expected_peers_name = expected_peers_name[:peer_number]
-                    self._logger.debug(f"{self._name} successfully get all {peer_type}\'s name.")
+                    self._logger.info(f"{self._name} successfully get all {peer_type}\'s name.")
                     break
                 else:
-                    self._logger.debug(
+                    self._logger.warn(
                         f"{self._name} failed to get {peer_type}\'s name. Retrying in "
                         f"{self._retry_interval_base_value * (2 ** retry_number)} seconds."
                     )
@@ -263,7 +264,7 @@ class Proxy:
                 )
                 for idx, peer_name in enumerate(name_list):
                     self._onboard_peer_dict[peer_type][peer_name] = json.loads(peers_socket_value[idx])
-                    self._logger.debug(f"{self._name} successfully get {peer_name}\'s socket address")
+                    self._logger.info(f"{self._name} successfully get {peer_name}\'s socket address")
             except Exception as e:
                 raise InformationUncompletedError(f"{self._name} failed to get {name_list}\'s address. Due to {str(e)}")
 
@@ -315,7 +316,7 @@ class Proxy:
             pending_session_id_list = session_ids[:]
         else:
             # The input may be None, if enable peer rejoin.
-            self._logger.critical(f"Unrecognized session id {session_ids}.")
+            self._logger.warn(f"Unrecognized session id {session_ids}.")
             return []
 
         # Check message cache for saved messages.
@@ -407,7 +408,7 @@ class Proxy:
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
         if component_type not in list(self._onboard_peer_dict.keys()):
-            self._logger.critical(
+            self._logger.error(
                 f"peer_type: {component_type} cannot be recognized. Please check the input of proxy.broadcast."
             )
             sys.exit(NON_RESTART_EXIT_CODE)
@@ -487,7 +488,7 @@ class Proxy:
                 message.destination in list(self._onboard_peer_dict[peer_type].keys()) and
                 message.destination in list(self._message_cache_for_exited_peers.keys())
             ):
-                self._logger.warn(f"Sending pending message to {message.destination}.")
+                self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
                     self._driver.send(pending_message)
                     session_id.append(pending_message.session_id)
@@ -497,12 +498,9 @@ class Proxy:
             session_id.append(self._driver.send(message))
             return session_id
         except PendingToSend as e:
-            self._logger.warn(f"{e}. Peer {message.destination} exited, but still have enough peers.")
+            self._logger.warn(f"{e} Peer {message.destination} exited, but still have enough peers.")
             if self._enable_message_cache:
-                if self._push_message_to_message_cache(message.destination, message):
-                    self._logger.warn(
-                        f"Temporarily save message {message.session_id} to message cache."
-                    )
+                self._push_message_to_message_cache(message)
 
     def isend(self, message: Message) -> Union[None, List[str]]:
         """Send a message to a remote peer.
@@ -604,24 +602,26 @@ class Proxy:
                 key.decode(): json.loads(value) for key, value in onboard_peers_dict_on_redis.items()
             }
 
+            # Mappings (instances of dict) compare equal if and only if they have equal (key, value) pairs.
+            # Equality comparison of the keys and values enforces reflexivity.
             if self._onboard_peer_dict[peer_type] != onboard_peers_dict_on_redis:
                 union_peer_name = list(self._onboard_peer_dict[peer_type].keys()) + \
                     list(onboard_peers_dict_on_redis.keys())
                 for peer_name in union_peer_name:
                     # Add new peers (new key added on redis).
                     if peer_name not in list(self._onboard_peer_dict[peer_type].keys()):
-                        self._logger.warn(f"PEER_REJOIN: New peer {peer_name} join.")
+                        self._logger.info(f"PEER_REJOIN: New peer {peer_name} join.")
                         self._driver.connect({peer_name: onboard_peers_dict_on_redis[peer_name]})
                         self._onboard_peer_dict[peer_type][peer_name] = onboard_peers_dict_on_redis[peer_name]
                     # Delete out of date peers (old key deleted on local)
                     elif peer_name not in onboard_peers_dict_on_redis.keys():
-                        self._logger.warn(f"PEER_REJOIN: Peer {peer_name} exited.")
+                        self._logger.info(f"PEER_REJOIN: Peer {peer_name} exited.")
                         self._driver.disconnect({peer_name: self._onboard_peer_dict[peer_type][peer_name]})
                         del self._onboard_peer_dict[peer_type][peer_name]
                     else:
                         # Peer's ip/port updated, re-connect (value update on redis).
                         if onboard_peers_dict_on_redis[peer_name] != self._onboard_peer_dict[peer_type][peer_name]:
-                            self._logger.warn(f"PEER_REJOIN: Peer {peer_name} rejoin.")
+                            self._logger.info(f"PEER_REJOIN: Peer {peer_name} rejoin.")
                             self._driver.disconnect({peer_name: self._onboard_peer_dict[peer_type][peer_name]})
                             self._driver.connect({peer_name: onboard_peers_dict_on_redis[peer_name]})
                             self._onboard_peer_dict[peer_type][peer_name] = onboard_peers_dict_on_redis[peer_name]
@@ -646,7 +646,7 @@ class Proxy:
         start_time = time.time()
 
         while time.time() - start_time < self._timeout_for_minimal_peer_number:
-            self._logger.critical(
+            self._logger.warn(
                 f"No enough peers in {peer_type}! Wait for some peer restart. Remaining time: "
                 f"{start_time + self._timeout_for_minimal_peer_number - time.time()}"
             )
@@ -657,7 +657,7 @@ class Proxy:
 
             time.sleep(self._peers_catch_lifetime)
 
-        self._logger.critical(f"Failure to get enough peers for {peer_type}. All components will exited.")
+        self._logger.error(f"Failure to get enough peers for {peer_type}. All components will exited.")
         sys.exit(KILL_ALL_EXIT_CODE)
 
     def get_peer_type(self, peer_name: str) -> str:
@@ -674,7 +674,7 @@ class Proxy:
         peer_type = peer_name[:peer_name.rfind("_proxy_")]
 
         if peer_type not in list(self._onboard_peer_dict.keys()):
-            self._logger.critical(
+            self._logger.error(
                 f"The message's destination {peer_name} does not belong to any recognized peer type. "
                 f"Please check the input of message."
             )
@@ -682,10 +682,12 @@ class Proxy:
 
         return peer_type
 
-    def _push_message_to_message_cache(self, peer_name: str, message: Message):
+    def _push_message_to_message_cache(self, message: Message):
+        peer_name = message.destination
         for pending_message in self._message_cache_for_exited_peers[peer_name]:
             if pending_message.message_id == message.message_id:
-                return False
+                self._logger.warn(f"{message.message_id} has been added in the message cache.")
+                return
 
         self._message_cache_for_exited_peers[peer_name].append(message)
-        return True
+        self._logger.info(f"Temporarily save message {message.session_id} to message cache.")

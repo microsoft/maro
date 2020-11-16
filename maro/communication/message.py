@@ -9,11 +9,11 @@ from typing import Union
 
 # private lib
 from maro.utils import InternalLogger
-from maro.utils.exception import NON_RESTART_EXIT_CODE
+from maro.utils.exit_code import NON_RESTART_EXIT_CODE
 
 from .utils import session_id_generator
 
-LOGGER = InternalLogger(component_name="message")
+logger = InternalLogger(component_name="message")
 
 
 class SessionType(Enum):
@@ -94,7 +94,5 @@ class SessionMessage(Message):
         elif self.session_type == SessionType.NOTIFICATION:
             self.session_stage = session_stage if session_stage else NotificationSessionStage.REQUEST
         else:
-            LOGGER.critical(
-                f"Receive unrecognized session type {self.session_type}, please use the SessionType class."
-            )
+            logger.error(f"Receive unrecognized session type {self.session_type}, please use the SessionType class.")
             sys.exit(NON_RESTART_EXIT_CODE)

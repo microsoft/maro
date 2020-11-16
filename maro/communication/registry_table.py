@@ -54,7 +54,7 @@ class ConditionalEvent:
         event (str|Tuple): The description of the requisite messages' combination.
             E.g. "actor:rollout:1" or ("learner:rollout:1", "learner:update:1", "AND").
         peers_name (dict|property): The property function which returns the newest peer's name dict from proxy,
-            or the Dict with the key (peer type) and the value (peers name list).
+            or the Dict with the key (peer type) and the value (peer name list).
     """
 
     def __init__(self, event: Union[str, Tuple], peers_name: Union[property, dict]):

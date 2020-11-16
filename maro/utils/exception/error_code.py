@@ -2,11 +2,6 @@
 # Licensed under the MIT license.
 
 
-# EXIT CODE
-NON_RESTART_EXIT_CODE = 64  # If a container exited with the code 64, do not restart it.
-KILL_ALL_EXIT_CODE = 65     # If a container exited with the code 65, kill all containers with the same job_id.
-
-
 ERROR_CODE = {
     # Error code table for the MARO system.
     # 1000-1999: Error code for the communication module.
