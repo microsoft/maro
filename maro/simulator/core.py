@@ -7,6 +7,7 @@ from inspect import getmembers, isclass
 from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
+from maro.data_lib.dump_csv_converter import DumpConverter
 from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
@@ -52,11 +53,19 @@ class Env(AbsEnv):
 
         self._event_buffer = EventBuffer()
 
+        # decision_events array for dump.
+        self._decision_events = []
+
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
 
         # Initialize the business engine.
         self._init_business_engine()
+
+        if 'enable-dump-snapshot' in self._additional_options:
+            parent_path = self._additional_options['enable-dump-snapshot']
+            self._converter = DumpConverter(parent_path, self._business_engine._scenario_name)
+            self._converter.reset_folder_path()
 
     def step(self, action):
         """Push the environment to next step with action.
@@ -91,6 +100,14 @@ class Env(AbsEnv):
         self._simulate_generator = self._simulate()
 
         self._event_buffer.reset()
+
+        if 'enable-dump-snapshot' in self._additional_options:
+            if self._business_engine._frame is not None:
+                self._business_engine._frame.dump(self._converter.get_new_snapshot_folder())
+                self._converter.start_processing(self._business_engine.name_mapping_file_path)
+                self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
+
+        self._decision_events.clear()
 
         self._business_engine.reset()
 
@@ -254,6 +271,8 @@ class Env(AbsEnv):
 
                 # Yield current state first, and waiting for action.
                 actions = yield self._business_engine.get_metrics(), decision_events, False
+                # archive decision events.
+                self._decision_events.append(decision_events)
 
                 if actions is None:
                     # Make business engine easy to work.
