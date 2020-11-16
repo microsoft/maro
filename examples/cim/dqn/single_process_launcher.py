@@ -36,13 +36,15 @@ if __name__ == "__main__":
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
 
     # Step 3: create an agent manager.
-    agent_manager = DQNAgentManager(name="cim_learner",
-                                    mode=AgentMode.TRAIN_INFERENCE,
-                                    agent_id_list=agent_id_list,
-                                    state_shaper=state_shaper,
-                                    action_shaper=action_shaper,
-                                    experience_shaper=experience_shaper,
-                                    explorer=explorer)
+    agent_manager = DQNAgentManager(
+        name="cim_learner",
+        mode=AgentMode.TRAIN_INFERENCE,
+        agent_id_list=agent_id_list,
+        state_shaper=state_shaper,
+        action_shaper=action_shaper,
+        experience_shaper=experience_shaper,
+        explorer=explorer
+    )
 
     # Step 4: Create an actor and a learner to start the training process.
     actor = SimpleActor(env=env, inference_agents=agent_manager)
