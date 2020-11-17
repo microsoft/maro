@@ -10,9 +10,9 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import (
-    Action, DecisionPayload, Latency, PostponeType, ValidPhysicalMachine, VmFinishedPayload, VmRequirementPayload
-)
+from .common import (Action, DecisionPayload, Latency, PostponeType,
+                     ValidPhysicalMachine, VmFinishedPayload,
+                     VmRequirementPayload)
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
