@@ -98,7 +98,12 @@ class TestEventBuffer(unittest.TestCase):
 
         self.eb.reset()
 
-        self.assertEqual(len(self.eb._pending_events), 0)
+        # reset will not clear the tick (key), just clear the pending pool
+        self.assertEqual(len(self.eb._pending_events), 1)
+
+        for tick, pending_pool in self.eb._pending_events.items():
+            self.assertEqual(0, len(pending_pool))
+
         self.assertEqual(len(self.eb._finished_events), 0)
 
     def test_sub_events(self):
@@ -138,7 +143,7 @@ class TestEventBuffer(unittest.TestCase):
         self.assertEqual(evt1, decision_events[0])
 
         # mark decision event as executing to make it process folloing events
-        decision_events[0].state = EventState.EXECUTING
+        decision_events[0].state = EventState.FINISHED
 
         # then there will be 2 additional decision event from sub events
         decision_events = self.eb.execute(1)

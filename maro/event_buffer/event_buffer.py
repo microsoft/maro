@@ -9,6 +9,7 @@ from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
 from .event_state import EventState
 from .maro_events import MaroEvents
+from .execute_stack import ExecuteStack
 
 
 class EventBuffer:
@@ -30,10 +31,15 @@ class EventBuffer:
         self._id = 0
         self._pending_events = defaultdict(list)
         self._handlers = defaultdict(list)
-        # used to hold all the events that being processed
+
+        # used to hold all the events that been processed
         self._finished_events = []
+
         # index of current pending event
         self._current_index = 0
+
+        # stack of current executng event
+        self._exec_stack = ExecuteStack()
 
     def get_finished_events(self) -> list:
         """Get all the processed events, call this function before reset method.
@@ -60,9 +66,13 @@ class EventBuffer:
         NOTE:
             After reset the get_finished_event method will return empty list.
         """
-        self._pending_events = defaultdict(list)
+        # remove current list memory
+        for _, pending_pool in self._pending_events.items():
+            pending_pool.clear()
+
         self._finished_events = []
         self._current_index = 0
+        self._exec_stack.clear()
 
     def gen_atom_event(self, tick: int, event_type: object, payload: object = None) -> AtomEvent:
         """Generate an atom event, an atom event is for normal usages,
@@ -176,53 +186,51 @@ class EventBuffer:
             cur_events = self._pending_events[tick]
 
             # 1. check if current events match tick
-            while self._current_index < len(cur_events):
-                event = cur_events[self._current_index]
+            while self._current_index < len(cur_events) or len(self._exec_stack) != 0:
+                next_events = None
 
-                if event is None:
-                    break
+                # 2. check if executing stack if empty
+                if len(self._exec_stack) != 0:
+                    # pop from stack
+                    next_events = self._exec_stack.pop()
 
-                # 2. check if it is a cascade event and its state,
-                #    we only process cascade events that in pending state
-                if event.event_type == MaroEvents.DECISION_EVENT and event.state == EventState.PENDING:
-                    # NOTE: here we return all the cascade events next to current one
-                    result = []
+                if next_events is None and self._current_index < len(cur_events):
+                    event = cur_events[self._current_index]
+                    # 3. push into stack,
+                    #    we only process cascade events that in pending state
+                    is_decision_event = event.event_type == MaroEvents.DECISION_EVENT
+
+                    pending_exec_events = []
 
                     for j in range(self._current_index, len(cur_events)):
-                        if cur_events[j].event_type == MaroEvents.DECISION_EVENT:
-                            result.append(cur_events[j])
+                        if (cur_events[j].event_type == MaroEvents.DECISION_EVENT) == is_decision_event:
+                            pending_exec_events.append(cur_events[j])
+                            cur_events[self._current_index] = None
 
-                    return result
+                            self._current_index += 1
+                        else:
+                            break
 
-                # 3. or it is an atom event, just invoke the handlers
-                if event.state == EventState.FINISHED:
-                    self._current_index += 1
+                    for _ in range(len(pending_exec_events)):
+                        self._exec_stack.push(pending_exec_events.pop())
 
-                    continue
+                    next_events = self._exec_stack.pop()
 
-                # 3.1. if handler exist
-                if event.event_type and event.event_type in self._handlers:
-                    handlers = self._handlers[event.event_type]
+                if next_events is None:
+                    break
+
+                if isinstance(next_events, list):
+                    return next_events
+
+                if next_events.event_type and next_events.event_type in self._handlers:
+                    handlers = self._handlers[next_events.event_type]
 
                     for handler in handlers:
-                        handler(event)
+                        handler(next_events)
 
-                # append sub events after current position
-                if type(event) == CascadeEvent:
-                    for sindex, sub_event in enumerate(event._immediate_event_list):
-                        cur_events.insert(
-                            self._current_index + 1 + sindex, sub_event)
+                next_events.state = EventState.FINISHED
 
-                    event._immediate_event_list.clear()
-
-                event.state = EventState.FINISHED
-
-                # remove process event
-                # NOTE: bad performance
-                cur_events[self._current_index] = None
-                self._current_index += 1
-
-                self._finished_events.append(event)
+                self._finished_events.append(next_events)
 
             # reset
             self._current_index = 0
