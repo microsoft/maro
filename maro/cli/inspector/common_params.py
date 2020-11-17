@@ -26,10 +26,3 @@ class CITIBIKEOption:
     quick_info = ["All", "Requirement Info", "Station Info"]
     requirement_info = ["trip_requirement", "shortage", "fulfillment"]
     station_info = ["bikes", "capacity", "extra_cost", "failed_return"]
-
-
-class ScenarioDetail(Enum):
-    CIM_Inter = 1
-    CIM_Intra = 2
-    CITI_BIKE_Summary = 3
-    CITI_BIKE_Detail = 4

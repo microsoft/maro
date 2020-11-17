@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from maro.cli.inspector.common_params import CITIBIKEOption, CIMItemOption, GlobalScenarios, ScenarioDetail
+from maro.cli.inspector.common_params import CITIBIKEOption, CIMItemOption, GlobalScenarios
 
 
 # Pre-defined CSS style of inserted HTML elements.
@@ -96,14 +96,13 @@ def get_snapshot_sample(snapshot_num, snapshot_sample_num):
     return down_pooling
 
 
-def get_filtered_formula_and_data(type, data, item_options_all, helper_info=None):
+def get_filtered_formula_and_data(scenario: enumerate, data: pd.DataFrame, option_candidates: list) -> dict:
     """ Get calculated formula and whole data.
 
     Args:
-        type(Enum): Type of input scenario detail.
-        data(list): Original data.
-        item_options_all(list): All options for users to choose.
-        helper_info: If the calculated data is related to specific attribute, this parameter would be useful.
+        scenario (enumerate): Type of input scenario detail.
+        data (dataframe): Original data.
+        option_candidates (list): All options for users to choose.
 
     Returns:
         dict: calculated data, options.
@@ -111,45 +110,25 @@ def get_filtered_formula_and_data(type, data, item_options_all, helper_info=None
     data_genera = formula_define(data)
     if data_genera is not None:
         data = data_genera["data_after"]
-        item_options_all.append(data_genera["name"])
+        option_candidates.append(data_genera["name"])
 
-    if type == ScenarioDetail.CIM_Intra:
-        item_option = st.multiselect(
-            " ", item_options_all, item_options_all)
-        item_option = get_item_option(GlobalScenarios.CIM, item_option, item_options_all)
-        data = data[item_option]
-        return {"data": data, "item_option": item_option}
+    item_option = st.multiselect(
+        " ", option_candidates, option_candidates)
+    item_option = get_item_option(scenario, item_option, option_candidates)
 
-    elif type == ScenarioDetail.CIM_Inter:
-        if data_genera is not None:
-            helper_info.append(data_genera["name"])
-        item_option = st.multiselect(
-            " ", item_options_all, item_options_all)
-        item_option = get_item_option(GlobalScenarios.CIM, item_option, item_options_all)
-        return {"data": data, "item_option": item_option, "sf_info": helper_info}
-
-    elif type == ScenarioDetail.CITI_BIKE_Detail:
-        # get selected attributes
-        item_option = st.multiselect(
-            "",
-            item_options_all,
-            item_options_all)
-        # convert selected attributes into column
-        item_option = get_item_option(GlobalScenarios.CITI_BIKE, item_option, item_options_all)
-        return {"data": data, "item_option": item_option}
+    return {"data": data, "item_option": item_option}
 
 
-def get_item_option(scenario, item_option, option_candidates):
+def get_item_option(scenario, item_option, option_candidates) -> list:
     """Convert selected CITI_BIKE option into column.
 
     Args:
-        scenario(Enum):
-        item_option(list): User selected option list.
-        option_candidates(list): Pre-defined option list.
+        scenario (enumerate): Scenario name.
+        item_option (list): User selected option list.
+        option_candidates (list): Pre-defined option list.
 
     Returns:
         list: translated users" option.
-
     """
     item_option_res = []
     if scenario == GlobalScenarios.CITI_BIKE:
@@ -194,15 +173,12 @@ def formula_define(data_origin):
         dict: formula name & formula output
     """
     st.sidebar.markdown("***")
-    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "a*b+sqrt(c*d)"])
+    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "sqrt(a)"])
     paras = st.sidebar.text_input("parameters separated by ;")
     res = paras.split(";")
 
     if formula_select == "a+b":
-        if len(res) == 0 or res[0] == "":
-            return
-        elif len(res) != 2:
-            st.warning("input parameter number wrong")
+        if not judge_data_length(res):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -215,10 +191,7 @@ def formula_define(data_origin):
         return data
 
     if formula_select == "a-b":
-        if len(res) == 0 or res[0] == "":
-            return
-        elif len(res) != 2:
-            st.warning("input parameter number wrong")
+        if not judge_data_length(res):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -231,10 +204,7 @@ def formula_define(data_origin):
         return data
 
     if formula_select == "a*b":
-        if len(res) == 0 or res[0] == "":
-            return
-        elif len(res) != 2:
-            st.warning("input parameter number wrong")
+        if not judge_data_length(res):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -247,10 +217,7 @@ def formula_define(data_origin):
         return data
 
     if formula_select == "a/b":
-        if len(res) == 0 or res[0] == "":
-            return
-        elif len(res) != 2:
-            st.warning("input parameter number wrong")
+        if not judge_data_length(res):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -262,22 +229,36 @@ def formula_define(data_origin):
         data = {"data_after": data_origin, "name": f"{res[0]}/{res[1]}"}
         return data
 
-    if formula_select == "a*b+sqrt(c*d)":
-        if len(res) == 0 or res[0] == "":
-            return
-        elif len(res) != 4:
-            st.warning("input parameter number wrong")
+    if formula_select == "sqrt(a)":
+        if not judge_data_length(res):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
             if data_right:
-                data_origin[f"{res[0]}* {res[1]} + sqrt({res[2]} * {res[3]})"] = list(
-                    map(lambda x, y, z, w: int(x) * int(y) + math.sqrt(z * int(w)),
-                        data_origin[res[0]], data_origin[res[1]], data_origin[res[2]], data_origin[res[3]]))
+                data_origin[f"sqrt({res[0]})"] = list(
+                    map(lambda x: math.sqrt(x),
+                        data_origin[res[0]]))
             else:
                 return
-        data = {"data_after": data_origin, "name": f"{res[0]}* {res[1]} + sqrt({res[2]} * {res[3]})"}
+        data = {"data_after": data_origin, "name": f"sqrt({res[0]})"}
         return data
+
+
+def judge_data_length(res: list) -> bool:
+    """ Judge whether the length of input data meet the requirements
+
+    Args:
+        res (list): Input data.
+
+    Returns:
+        bool: whether the length of data meet the requirements.
+    """
+    if len(res) == 0 or res[0] == "":
+        return False
+    elif len(res) != 1:
+        st.warning("input parameter number wrong")
+        return False
+    return True
 
 
 def judge_append_data(data_head, res):

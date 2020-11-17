@@ -642,18 +642,9 @@ random mode, we hope this could help you learn how to use the environment interf
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.
 
-## Example
 
-In this scenario, the final result is generated through multiple rounds
-of iterative optimization. Basically, there are multiple
-{snapshot\_(int)} folders under the user-input root path. The
-visualization is naturally more complicated. Generally speaking, dumped
-data of this scenario is divided into two levels: Extro Epoch & Intra
-Epoch, refers to comparison of data between different epochs and display
-of data in one epoch respectively.
-
-CIM Inter Epoch Data
-''''''''''''''''''''
+Inter-view
+~~~~~~~~~~
 
 Generally speaking, the number of epochs in this scene will be greater
 than 100. In order to facilitate users to select specific data and
@@ -662,42 +653,42 @@ provides data selection options in two dimensions.
 
 To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
-sampling rate of selected data, similar as `Citi\_Bike Detail
-Data <#Citi_Bike%20Detail%20Data>`__.
+sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <../citi_bike.html>`_
 
 For description of Attributes Selection in charts and Formula
-Calculation, please refer to `Citi\_Bike Detail
-Data <#Citi_Bike%20Detail%20Data>`__.
+Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
 
-.. figure:: ..\images\visualization\dashboard\cim_extro_epoch.gif
-   :alt: cim\_extro\_epoch
+.. figure:: ..\images\visualization\dashboard\cim_inter_epoch.gif
+   :alt: cim\_inter\_epoch
 
-   cim\_extro\_epoch
-CIM Intra Epoch Data
-''''''''''''''''''''
+   cim\_inter\_epoch
+
+Intra-view
+~~~~~~~~~~
 
 This part shows the data under a selected epoch. By scrolling the
 slider, users can select different epochs. Furthermore, this part of
 data is divided into two dimensions: by snapshot and by port according
 to time and space. In terms of data display, according to the different
-types of attributes, it is divided into two levels: acc data
+types of attributes, it is divided into two levels: accumulated data
 (accumulated attributes. e.g. acc\_fulfillment) and detail data.
 
 If user choose to view information by ports, attributes of the selected
 port would be displayed.
 
-Chart characteristics and data selection method please refer to
-`Citi\_Bike Detail Data <#Citi_Bike%20Detail%20Data>`__.
+Chart characteristics and data selection method please refer to `Citi Bike Examples <../citi_bike.html>`_
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif
    :alt: cim\_intra\_epoch\_by\_ports
 
    cim\_intra\_epoch\_by\_ports
+
 If user choose to view data by snapshots, attributes of selected
 snapshot would be displayed. The charts and data involved in this part
 are relatively rich, and we will introduce them by level.
 
-**Acc Data**
+Accumulated Data
+````````````````
 
 This part includes the transfer volume hot map, bar chart of port
 accumulated attributes and top-5 ports of different attributes.
@@ -716,7 +707,9 @@ ports.
    :alt: cim\_intra\_epoch\_by\_snapshot\_acc\_data
 
    cim\_intra\_epoch\_by\_snapshot\_acc\_data
-**Detail Data**
+
+Detail Data
+```````````
 
 Since the cargoes is transported through vessels, information of vessels
 could be viewed by snapshot.
@@ -724,7 +717,7 @@ could be viewed by snapshot.
 Same as ports, user could change the sampling rate of vessels.
 
 Bar chart of Port Detail Attributes and Formula Calculation please refer
-to `Citi\_Bike Detail Data <#Citi_Bike%20Detail%20Data>`__.
+to `Citi Bike Examples <../citi_bike.html>`_
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data
