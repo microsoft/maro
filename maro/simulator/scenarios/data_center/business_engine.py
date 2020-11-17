@@ -10,7 +10,7 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import Action, DecisionPayload, Latency, ValidPm, VmFinishedPayload, VmRequirementPayload
+from .common import Action, DecisionPayload, Latency, PostponeType, ValidPhysicalMachine, VmFinishedPayload, VmRequirementPayload
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -156,19 +156,32 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         idle_power = self._conf["idle_power"]
         return idle_power + (busy_power - idle_power) * (2 * cpu_util - pow(cpu_util, power))
 
-    def _postpone_vm_requirement(self, vm_id: int):
+    def _postpone_vm_requirement(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
         """Postpone VM requirement."""
 
-        postpone_payload = self._pending_vm_req_payload[vm_id]
-        postpone_payload.remaining_buffer_time -= self._delay_duration
-        postpone_event = self._event_buffer.gen_cascade_event(
-            tick=self._tick + self._delay_duration,
-            event_type=Events.REQUIREMENTS,
-            payload=postpone_payload
-        )
-        self._event_buffer.insert_event(event=postpone_event)
+        if remaining_buffer_time >= self._delay_duration:
+            if postpone_type == PostponeType.Resource:
+                self._total_latency.latency_due_to_resource += self._delay_duration
+            elif postpone_type == PostponeType.Agent:
+                self._total_latency.latency_due_to_agent += self._delay_duration
 
-    def _get_valid_pm(self, vm_req_cpu: int) -> List[ValidPm]:
+            postpone_payload = self._pending_vm_req_payload[vm_id]
+            postpone_payload.remaining_buffer_time -= self._delay_duration
+            postpone_event = self._event_buffer.gen_cascade_event(
+                tick=self._tick + self._delay_duration,
+                event_type=Events.REQUIREMENTS,
+                payload=postpone_payload
+            )
+            self._event_buffer.insert_event(event=postpone_event)
+        else:
+            # Fail
+            # TODO Implement failure logic.
+            # Pop out VM requirement payload.
+            self._pending_vm_req_payload.pop(vm_id)
+            # Add failed requirements.
+            self._failed_requirements += 1
+
+    def _get_valid_pm(self, vm_req_cpu: int) -> List[ValidPhysicalMachine]:
         """Check all valid PMs.
 
         There are three situations:
@@ -188,10 +201,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         valid_pm_list = []
         for pm in self._machines:
             if pm.req_cpu == 0:
-                valid_pm_list.append(ValidPm(pm_id=pm.id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem))
+                valid_pm_list.append(ValidPhysicalMachine(pm_id=pm.id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem))
                 break
             elif pm.req_cpu > 0 and (pm.cap_cpu - pm.req_cpu) >= vm_req_cpu:
-                valid_pm_list.append(ValidPm(
+                valid_pm_list.append(ValidPhysicalMachine(
                     pm_id=pm.id,
                     remaining_cpu=pm.cap_cpu - pm.req_cpu,
                     remaining_mem=pm.cap_mem - pm.req_mem
@@ -223,14 +236,12 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 tick=vm_requirement_event.tick, payload=decision_payload)
             vm_requirement_event.add_immediate_event(event=pending_decision_event)
         else:
-            # Postpone the buffer duration ticks by config setting.
-            if remaining_buffer_time >= self._delay_duration:
-                self._total_latency.latency_due_to_resource += self._delay_duration
-                self._postpone_vm_requirement(vm_req.id)
-            else:
-                # Fail
-                # TODO Implement failure logic.
-                self._failed_requirements += 1
+            # Either postpone the requirement event or failed.
+            self._postpone_vm_requirement(
+                postpone_type=PostponeType.Resource,
+                vm_id=vm_req.id,
+                remaining_buffer_time=remaining_buffer_time
+            )
 
     def _on_vm_finished(self, evt: AtomEvent):
         """Callback when there is a VM ready to be terminated."""
@@ -296,12 +307,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.util_cpu = (pm.cap_cpu * pm.util_cpu + vm.req_cpu * vm.util_cpu) / pm.cap_cpu
         else:
             remaining_buffer_time = action.remaining_buffer_time
-            # Postpone the buffer duration ticks by config setting.
-            if remaining_buffer_time >= self._delay_duration:
-                self._total_latency.latency_due_to_agent += self._delay_duration
-                self._postpone_vm_requirement(vm_id)
-            else:
-                # Fail
-                # TODO Implement failure logic.
-                self._pending_vm_req_payload.pop(vm.vm_id)
-                self._failed_requirements += 1
+            # Either postpone the requirement event or failed.
+            self._postpone_vm_requirement(
+                postpone_type=PostponeType.Agent,
+                vm_id=vm.vm_id,
+                remaining_buffer_time=remaining_buffer_time
+            )

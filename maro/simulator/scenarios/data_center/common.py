@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from enum import Enum
 from typing import List
 
 from .virtual_machine import VirtualMachine
@@ -72,7 +73,7 @@ class DecisionPayload:
         self.remaining_buffer_time = remaining_buffer_time
 
 
-class ValidPm:
+class ValidPhysicalMachine:
     """The object for the valid PM which will be sent to the agent."""
 
     def __init__(self, pm_id: int, remaining_cpu: int, remaining_mem: int):
@@ -80,6 +81,12 @@ class ValidPm:
         self.remaining_cpu = remaining_cpu
         self.remaining_mem = remaining_mem
 
+class PostponeType(Enum):
+    """Postpone type."""
+    # Postpone the VM requirement due to the resource exhaustion.
+    Resource = 'resource'
+    # Postpone the VM requirement due to the agent's decision.
+    Agent = 'agent'
 
 class Latency:
     """Accumulative latency.
