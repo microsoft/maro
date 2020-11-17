@@ -45,7 +45,7 @@ def launch(config, distributed_config):
         actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.learn(exploration_schedule)
+    learner.learn_with_exploration_schedule(exploration_schedule)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
     learner.exit()

@@ -73,7 +73,7 @@ def launch(config):
         actor=actor,
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.learn(
+    learner.learn_with_exploration_schedule(
         exploration_schedule,
         early_stopping_checker=combined_checker,
         warmup_ep=config.main_loop.early_stopping.warmup_ep,

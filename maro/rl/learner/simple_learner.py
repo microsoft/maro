@@ -102,7 +102,7 @@ class SimpleLearner(AbsLearner):
                 "early_stopping_metric_func cannot be None if early_stopping_checker is provided."
 
         self._agent_manager.register_exploration_schedule(exploration_schedule)
-        ep, metric_series = 0, []
+        episode, metric_series = 0, []
         while True:
             try:
                 self._agent_manager.update_exploration_params()
@@ -113,19 +113,21 @@ class SimpleLearner(AbsLearner):
                     performance, exp_by_agent = self._actor.roll_out(
                         model_dict=self._agent_manager.dump_models(), exploration_params=exploration_params
                     )
-                self._logger.info(f"performance: {performance}, exploration_params: {exploration_params}")
+                self._logger.info(
+                    f"ep {episode} - performance: {performance}, exploration_params: {exploration_params}"
+                )
                 # Early stopping checking
                 latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
                 if early_stopping_checker is not None:
                     metric_series.extend(map(early_stopping_metric_func, latest))
-                    if warmup_ep is None or ep >= warmup_ep and early_stopping_checker(metric_series):
+                    if warmup_ep is None or episode >= warmup_ep and early_stopping_checker(metric_series):
                         self._logger.info("Early stopping condition hit. Training complete.")
                         break
             except StopIteration:
-                self._logger.info(f"Maximum number of episodes {ep + 1} reached. Training complete.")
+                self._logger.info(f"Maximum number of episodes ({episode + 1}) reached. Training complete.")
                 break
 
-            ep += 1
+            episode += 1
             self._agent_manager.train(exp_by_agent)
 
     def test(self):
