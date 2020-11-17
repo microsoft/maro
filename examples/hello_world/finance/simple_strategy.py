@@ -2,16 +2,16 @@ import random
 import time
 
 from maro.simulator import DecisionMode, Env
-from maro.simulator.scenarios.finance.common import (ActionType, CancelOrder,
-                                                     LimitOrder, MarketOrder,
-                                                     OrderDirection,
-                                                     get_cn_stock_data_tick)
+from maro.simulator.scenarios.finance.common import (
+    ActionType, CancelOrder, LimitOrder, MarketOrder, OrderDirection, get_cn_stock_data_tick
+)
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
 
 START_TICK = get_cn_stock_data_tick("2015-01-01")  # 8766
 DURATION = 100  # Env have 100 steps pre episode.
+
 
 def simple_strategy():
     env = Env(
@@ -30,9 +30,9 @@ def simple_strategy():
                 # stock trading decision
                 stock_index = decision_event.stock_index
                 action_scope = decision_event.action_scope
-                last_frame_idx = env.tick-1
-                max_amount = action_scope.max_buy_volume
-                sell_max_amount = action_scope.max_sell_volume
+                last_frame_idx = env.tick - 1
+                buy_max_volume = action_scope.max_buy_volume
+                sell_max_volume = action_scope.max_sell_volume
                 logger.info_green(
                     f"|||| trade decision_event: {decision_event}"
                 )
@@ -44,14 +44,14 @@ def simple_strategy():
                 if holding > 0:
                     # Different order types reference to TODO:
                     action = LimitOrder(
-                        item=stock_index, amount=sell_max_amount,
-                        direction=OrderDirection.SELL, tick=env.tick, limit=average_cost * 1.03
+                        stock_index=stock_index, order_volume=sell_max_volume,
+                        order_direction=OrderDirection.SELL, tick=env.tick, limit=average_cost * 1.03
                     )
                 else:
 
                     action = MarketOrder(
-                        item=stock_index, amount=max_amount,
-                        direction=OrderDirection.BUY, tick=env.tick
+                        stock_index=stock_index, order_volume=buy_max_volume,
+                        order_direction=OrderDirection.BUY, tick=env.tick
                     )
                 logger.info_green(f"---- trade order: {action.id},tick:{env.tick}")
 
@@ -79,10 +79,10 @@ def simple_strategy():
     stock_snapshots = env.snapshot_list['stocks']
 
     # query account_hold_num for specified markset
-    sz_account_hold_num = stock_snapshots[::"opening_price"].reshape(-1, 2)
+    sz_opening_price = stock_snapshots[::"opening_price"].reshape(-1, 2)
 
-    logger.info_green("Volume holding of sz market.")
-    logger.info_green(f"{sz_account_hold_num}")
+    logger.info_green("Opening price of sz market.")
+    logger.info_green(f"{sz_opening_price}")
 
     sz_account_net_assets_value = env.snapshot_list['account'][::"net_assets_value"]
 

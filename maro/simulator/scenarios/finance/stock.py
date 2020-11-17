@@ -11,7 +11,7 @@ class Stock(NodeBase):
     dividends = NodeAttribute("f")
     splits = NodeAttribute("f")
 
-    trade_volume = NodeAttribute("i8")
+    market_volume = NodeAttribute("i8")
 
     is_valid = NodeAttribute("i")
 
@@ -40,7 +40,7 @@ class Stock(NodeBase):
         self.adj_closing_price = 0
         self.dividends = 0
         self.splits = 0
-        self.trade_volume = 0
+        self.market_volume = 0
 
     def fill(self, raw_stock):
         self.opening_price = raw_stock.opening_price
@@ -50,5 +50,5 @@ class Stock(NodeBase):
         self.adj_closing_price = raw_stock.adj_closing_price
         self.dividends = raw_stock.dividends
         self.splits = raw_stock.splits
-        self.trade_volume = raw_stock.trade_volume
+        self.market_volume = raw_stock.market_volume
         self.is_valid = 1

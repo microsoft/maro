@@ -14,7 +14,7 @@ entity:
   closing_price:
     column: 'close'
     dtype: 'f'
-  trade_volume:
+  market_volume:
     column: 'volume'
     dtype: 'i8'
   highest_price:
