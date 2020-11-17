@@ -8,6 +8,7 @@ from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
 from maro.utils import DummyLogger, Logger
+from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError, InvalidEpisodeError
 
 from .abs_learner import AbsLearner
 
@@ -35,6 +36,50 @@ class SimpleLearner(AbsLearner):
 
     def learn(
         self,
+        max_episode: int,
+        early_stopping_checker: Callable = None,
+        warmup_ep: int = None,
+        early_stopping_metric_func: Callable = None,
+    ):
+        """Main loop for collecting experiences from the actor and using them to update policies.
+
+        Args:
+            max_episode (int): number of episodes to be run. If -1, the training loop will run forever unless
+                an ``early_stopping_checker`` is provided and the early stopping condition is met.
+            early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
+                terminated based on the latest performances. Defaults to None.
+            warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
+            early_stopping_metric_func (Callable): A function to extract the metric from a performance record
+                for early stopping checking. Defaults to None.
+        """
+        if max_episode < -1:
+            raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
+        if max_episode == -1 and early_stopping_checker is None:
+            raise InfiniteTrainingLoopError(
+                "The training loop will run forever since neither maximum episode nor early stopping checker "
+                "is provided. "
+            )
+        if early_stopping_checker is not None:
+            assert early_stopping_metric_func is not None, \
+                "early_stopping_metric_func cannot be None if early_stopping_checker is provided."
+
+        episode, metric_series = 0, []
+        while max_episode == -1 or episode < max_episode:
+            performance, exp_by_agent = self._actor.roll_out(
+                model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models()
+            )
+            self._logger.info(f"ep {episode} - performance: {performance}")
+            latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
+            if early_stopping_checker is not None:
+                metric_series.extend(map(early_stopping_metric_func, latest))
+                if warmup_ep is None or episode >= warmup_ep and early_stopping_checker(metric_series):
+                    self._logger.info("Early stopping condition hit. Training complete.")
+                    break
+            self._agent_manager.train(exp_by_agent)
+            episode += 1
+
+    def learn_with_exploration_schedule(
+        self,
         exploration_schedule: Union[Iterable, dict],
         early_stopping_checker: Callable = None,
         warmup_ep: int = None,
@@ -60,7 +105,16 @@ class SimpleLearner(AbsLearner):
         ep, metric_series = 0, []
         while True:
             try:
-                performance, exp_by_agent = self._sample()
+                self._agent_manager.update_exploration_params()
+                exploration_params = self._agent_manager.dump_exploration_params()
+                if self._is_shared_agent_instance():
+                    performance, exp_by_agent = self._actor.roll_out()
+                else:
+                    performance, exp_by_agent = self._actor.roll_out(
+                        model_dict=self._agent_manager.dump_models(), exploration_params=exploration_params
+                    )
+                self._logger.info(f"performance: {performance}, exploration_params: {exploration_params}")
+                # Early stopping checking
                 latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
                 if early_stopping_checker is not None:
                     metric_series.extend(map(early_stopping_metric_func, latest))
@@ -97,17 +151,3 @@ class SimpleLearner(AbsLearner):
     def _is_shared_agent_instance(self):
         """If true, the set of agents performing inference in actor is the same as self._agent_manager."""
         return isinstance(self._actor, SimpleActor) and id(self._actor.agents) == id(self._agent_manager)
-
-    def _sample(self):
-        """Perform one episode of environment sampling through actor roll-out."""
-        self._agent_manager.update_exploration_params()
-        exploration_params = self._agent_manager.dump_exploration_params()
-        if self._is_shared_agent_instance():
-            performance, exp_by_agent = self._actor.roll_out()
-        else:
-            performance, exp_by_agent = self._actor.roll_out(
-                model_dict=self._agent_manager.dump_models(), exploration_params=exploration_params
-            )
-
-        self._logger.info(f"performance: {performance}, exploration_params: {exploration_params}")
-        return performance, exp_by_agent
