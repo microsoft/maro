@@ -7,6 +7,8 @@ def launch_dashboard(source_path: str, scenario: enumerate, epoch_num: int, pref
     Args:
         source_path (str): Data folder path.
         scenario (enumerate): Name of current scenario.
+        epoch_num (int): Number of epochs.
+        prefix (str): Prefix of data folders.
     """
     #vis_path = os.path.expanduser("~/.maro/vis/template/visualization.py")
     vis_path = r"C:\Users\Administrator\source\repos\maro-vis\maro\cli\inspector\visualization.py"

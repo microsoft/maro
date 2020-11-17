@@ -849,14 +849,14 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         "--source",
         type=str,
         required=True,
-        help="Folder path to load data, should be root path of snapshot folders. e.g. ~/global_trade_snapshots/")
+        help="Folder path to load data, should be root path of snapshot folders. e.g. ~/project_root/dump_files/")
+
     build_cmd_parser.add_argument(
         "--force",
         type=str,
         required=False,
         default="yes",
         help="Overwrite the generated middle data or not: true/false.")
-
     build_cmd_parser.set_defaults(func=start_vis)
 
 

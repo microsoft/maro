@@ -40,33 +40,32 @@ title_html = """
 """
 
 
-def render_h1_title(content):
+def render_h1_title(content: str):
     """Flexible display of content according to predefined styles.
     Args:
-        content(str): Content to be showed on dashboard.
+        content (str): Content to be showed on dashboard.
     """
     html_title = f"{title_html} <div class='title'><h1>{content}</h1></div>"
     st.markdown(html_title, unsafe_allow_html=True)
 
 
-def render_h3_title(content):
+def render_h3_title(content: str):
     """Flexible display of content according to predefined styles.
     Args:
-        content(str): Content to be showed on dashboard.
+        content (str): Content to be showed on dashboard.
     """
     html_title = f"{title_html} <div class='title'><h3>{content}</h3></div>"
     st.markdown(html_title, unsafe_allow_html=True)
 
 
-def holder_sample_ratio(snapshot_num):
+def holder_sample_ratio(snapshot_num: int):
     """Get sample data of holders.
     Condition: 1 must be included.
     Args:
-        snapshot_num(int): Number of snapshots.
+        snapshot_num (int): Number of snapshots.
 
     Returns:
         list: sample data list
-
     """
     snapshot_sample_origin = round(1 / snapshot_num, 4)
     snapshot_sample_ratio = np.arange(snapshot_sample_origin, 1, snapshot_sample_origin).tolist()
@@ -77,16 +76,15 @@ def holder_sample_ratio(snapshot_num):
     return sample_ratio
 
 
-def get_snapshot_sample(snapshot_num, snapshot_sample_num):
+def get_snapshot_sample(snapshot_num: int, snapshot_sample_num: int):
     """Get sample data of snapshot.
     Condition: 0 & 1 must be included.
     Args:
-        snapshot_num(int): Number of snapshots.
-        snapshot_sample_num(int): Expected number of sample data.
+        snapshot_num (int): Number of snapshots.
+        snapshot_sample_num (int): Expected number of sample data.
 
     Returns:
         list: snapshot sample data.
-
     """
     down_pooling = list(range(1, snapshot_num, math.floor(1 / snapshot_sample_num)))
     down_pooling.insert(0, 0)
@@ -109,7 +107,7 @@ def get_filtered_formula_and_data(scenario: enumerate, data: pd.DataFrame, optio
     """
     data_genera = formula_define(data)
     if data_genera is not None:
-        data = data_genera["data_after"]
+        data = data_genera["data"]
         option_candidates.append(data_genera["name"])
 
     item_option = st.multiselect(
@@ -119,7 +117,7 @@ def get_filtered_formula_and_data(scenario: enumerate, data: pd.DataFrame, optio
     return {"data": data, "item_option": item_option}
 
 
-def get_item_option(scenario, item_option, option_candidates) -> list:
+def get_item_option(scenario: enumerate, item_option: list, option_candidates: list) -> list:
     """Convert selected CITI_BIKE option into column.
 
     Args:
@@ -164,10 +162,10 @@ def get_item_option(scenario, item_option, option_candidates) -> list:
         return item_option_res
 
 
-def formula_define(data_origin):
+def formula_define(data_origin: pd.DataFrame) -> dict:
     """Define formula and get output
     Args:
-        data_origin(list): Data to be calculated.
+        data_origin (dataframe): Data to be calculated.
 
     Returns:
         dict: formula name & formula output
@@ -178,7 +176,7 @@ def formula_define(data_origin):
     res = paras.split(";")
 
     if formula_select == "a+b":
-        if not judge_data_length(res):
+        if not judge_data_length(res, 2):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -187,11 +185,11 @@ def formula_define(data_origin):
                     map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
             else:
                 return
-        data = {"data_after": data_origin, "name": f"{res[0]}+{res[1]}"}
+        data = {"data": data_origin, "name": f"{res[0]}+{res[1]}"}
         return data
 
     if formula_select == "a-b":
-        if not judge_data_length(res):
+        if not judge_data_length(res, 2):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -200,11 +198,11 @@ def formula_define(data_origin):
                     map(lambda x, y: x - y, data_origin[res[0]], data_origin[res[1]]))
             else:
                 return
-        data = {"data_after": data_origin, "name": f"{res[0]}-{res[1]}"}
+        data = {"data": data_origin, "name": f"{res[0]}-{res[1]}"}
         return data
 
     if formula_select == "a*b":
-        if not judge_data_length(res):
+        if not judge_data_length(res, 2):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -213,11 +211,11 @@ def formula_define(data_origin):
                     map(lambda x, y: x * y, data_origin[res[0]], data_origin[res[1]]))
             else:
                 return
-        data = {"data_after": data_origin, "name": f"{res[0]}*{res[1]}"}
+        data = {"data": data_origin, "name": f"{res[0]}*{res[1]}"}
         return data
 
     if formula_select == "a/b":
-        if not judge_data_length(res):
+        if not judge_data_length(res, 2):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -226,11 +224,11 @@ def formula_define(data_origin):
                     map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
             else:
                 return
-        data = {"data_after": data_origin, "name": f"{res[0]}/{res[1]}"}
+        data = {"data": data_origin, "name": f"{res[0]}/{res[1]}"}
         return data
 
     if formula_select == "sqrt(a)":
-        if not judge_data_length(res):
+        if not judge_data_length(res, 1):
             return
         else:
             data_right = judge_append_data(data_origin.head(0), res)
@@ -240,33 +238,34 @@ def formula_define(data_origin):
                         data_origin[res[0]]))
             else:
                 return
-        data = {"data_after": data_origin, "name": f"sqrt({res[0]})"}
+        data = {"data": data_origin, "name": f"sqrt({res[0]})"}
         return data
 
 
-def judge_data_length(res: list) -> bool:
+def judge_data_length(res: list, formula_length) -> bool:
     """ Judge whether the length of input data meet the requirements
 
     Args:
         res (list): Input data.
+        formula_length (int): Supposed length of data list.
 
     Returns:
         bool: whether the length of data meet the requirements.
     """
     if len(res) == 0 or res[0] == "":
         return False
-    elif len(res) != 1:
+    elif len(res) != formula_length:
         st.warning("input parameter number wrong")
         return False
     return True
 
 
-def judge_append_data(data_head, res):
+def judge_append_data(data_head: list, res: list) -> bool:
     """Judge whether input is feasible to selected formula.
 
     Args:
-        data_head(list): Column list of origin data.
-        res: Column names texted by user.
+        data_head (list): Column list of origin data.
+        res (list): Column names texted by user.
 
     Returns:
         bool: Whether the column list texted by user is reasonable or not.
@@ -282,12 +281,12 @@ def judge_append_data(data_head, res):
 
 
 @st.cache(allow_output_mutation=True)
-def read_detail_csv(path):
+def read_detail_csv(path: str) -> pd.DataFrame:
     """Read detail csv with cache.
     One thing to note: data is mutable.
 
     Args:
-        path(str):  Path of file to be read.
+        path (str):  Path of file to be read.
 
     Returns:
         dataframe: Data in CSV file.
@@ -297,21 +296,22 @@ def read_detail_csv(path):
     return data
 
 
-def generate_by_snapshot_top_summary(attr_name, data, attribute, Need_SnapShot, snapshot_index=-1):
+def generate_by_snapshot_top_summary(attr_name: str, data: pd.DataFrame, top_number: int,
+                                     attribute: str, snapshot_index: int = -1):
     """ Generate top-5 active holders and their summary data.
 
     Args:
-        attr_name(str): Name of attributes needed to be summarized.
-        data(list): Data of selected column and snapshot_index.
-        attribute(str): Attributes needed to be displayed on plot.
-        Need_SnapShot(bool): Have a snapshot index or not.
-        snapshot_index(int): Index of snapshot.
+        attr_name (str): Name of attributes needed to be summarized.
+        data (dataframe): Data of selected column and snapshot_index.
+        top_number (int): Number of top summaries.
+        attribute (str): Attributes needed to be displayed on plot.
+        snapshot_index (int): Index of snapshot.
     """
-    if Need_SnapShot:
-        render_h3_title(f"SnapShot-{snapshot_index}:  Top 5 {attribute}")
+    if snapshot_index != -1:
+        render_h3_title(f"SnapShot-{snapshot_index}:  Top {top_number} {attribute}")
     else:
-        render_h3_title(f"Top 5 {attribute}")
-    data = data[[attr_name, attribute]].sort_values(by=attribute, ascending=False).head(5)
+        render_h3_title(f"Top {top_number} {attribute}")
+    data = data[[attr_name, attribute]].sort_values(by=attribute, ascending=False).head(top_number)
     data["counter"] = range(len(data))
     data[attr_name] = list(map(lambda x, y: f"{x+1}-{y}", data["counter"], data[attr_name]))
     bars = alt.Chart(data).mark_bar().encode(

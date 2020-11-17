@@ -418,10 +418,11 @@ def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conver
             data_acc["acc_booking"]))
 
     data_acc["port name"] = list(map(lambda x: name_conversion.loc[int(x[6:])][0], data_acc["name"]))
-
+    common_helper.render_h3_title("Select Top k")
+    top_number = st.select_slider("", list(range(0, 10)))
     top_attributes = CIMItemOption.acc_info + ["fulfillment_ratio"]
     for item in top_attributes:
-        common_helper.generate_by_snapshot_top_summary("port name", data_acc, item, True, snapshot_index)
+        common_helper.generate_by_snapshot_top_summary("port name", data_acc, int(top_number), item, snapshot_index)
 
 
 def _generate_down_pooling_sample(down_pooling_num: int, start_epoch: int, end_epoch: int) -> list:

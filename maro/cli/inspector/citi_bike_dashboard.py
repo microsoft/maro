@@ -36,33 +36,33 @@ def render_intra_view(source_path: str, prefix: str):
         source_path (str): Data folder path.
         prefix (str): Prefix of data folders.
     """
-
     common_helper.render_h1_title("CITI_BIKE Detail Data")
     data_stations = pd.read_csv(os.path.join(source_path, prefix, "stations.csv"))
     view_option = st.sidebar.selectbox(
-        "By stations/snapshot:",
+        "By station/snapshot:",
         CitiBikeIntraViewChoice._member_names_)
     stations_num = len(data_stations["id"].unique())
     stations_index = np.arange(stations_num).tolist()
     snapshot_num = len(data_stations["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
-    name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
 
+    name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
     option_candidates = CITIBIKEOption.quick_info + CITIBIKEOption.requirement_info + CITIBIKEOption.station_info
     st.sidebar.markdown("***")
     # filter by station index
     # display the change of snapshot within 1 station
 
     if view_option == CitiBikeIntraViewChoice.by_station.name:
-        _generate_inter_view_by_station(data_stations, name_conversion, option_candidates, stations_index, snapshot_num)
+        _generate_inter_view_by_station(
+            data_stations, name_conversion, option_candidates, stations_index, snapshot_num)
     # filter by snapshot index
     # display all station information within 1 snapshot
     elif view_option == CitiBikeIntraViewChoice.by_snapshot.name:
-        _generate_inter_view_by_snapshot(data_stations, name_conversion, option_candidates, snapshots_index,
-                                          snapshot_num, stations_num)
+        _generate_inter_view_by_snapshot(
+            data_stations, name_conversion, option_candidates, snapshots_index, snapshot_num, stations_num)
 
 
-def render_inter_view(source_path):
+def render_inter_view(source_path: str):
     """ Show summary plot.
 
     Args:
@@ -75,9 +75,10 @@ def render_inter_view(source_path):
     name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
     data["station name"] = list(map(lambda x: name_conversion.loc[int(x[9:])][0], data["name"]))
     # generate top summary
+    top_number = st.select_slider("Top K", list(range(0, 10)))
     top_attributes = ["bikes", "trip_requirement", "fulfillment", "fulfillment_ratio"]
     for item in top_attributes:
-        common_helper.generate_by_snapshot_top_summary("station name", data, item, False)
+        common_helper.generate_by_snapshot_top_summary("station name", data, int(top_number), item)
 
 
 def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_candidates, snapshots_index, snapshot_num, stations_num):
@@ -113,9 +114,9 @@ def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_cand
     snapshot_filtered = snapshot_filtered.iloc[down_pooling]
     snapshot_filtered["name"] = snapshot_filtered["name"].apply(lambda x: int(x[9:]))
     snapshot_filtered["Station Name"] = snapshot_filtered["name"].apply(lambda x: name_conversion.loc[int(x)])
-    snapshot_filtered_long = \
+    data_display = \
         snapshot_filtered.melt(["Station Name", "name"], var_name="Attributes", value_name="Count")
-    snapshot_line_chart = alt.Chart(snapshot_filtered_long).mark_bar().encode(
+    snapshot_line_chart = alt.Chart(data_display).mark_bar().encode(
         x=alt.X("name:N", axis=alt.Axis(title="Name")),
         y="Count:Q",
         color="Attributes:N",
@@ -127,11 +128,13 @@ def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_cand
     st.altair_chart(snapshot_line_chart)
 
 
-def _generate_inter_view_by_station(data_stations, name_conversion, option_candidates, stations_index, snapshot_num):
+def _generate_inter_view_by_station(
+    data_stations: pd.DataFrame, name_conversion: pd.DataFrame, option_candidates: list,
+    stations_index: list, snapshot_num: int):
     """ Show CITI BIKE detail data by station
 
     Args:
-        data_stations(list): Filtered data
+        data_stations(dataframe): Filtered data
         name_conversion(dataframe): Relationship between index and name.
         option_candidates(list): All options for users to choose.
         stations_index(list):  List of station index.
@@ -154,9 +157,9 @@ def _generate_inter_view_by_station(data_stations, name_conversion, option_candi
     down_pooling = common_helper.get_snapshot_sample(snapshot_num, snapshot_sample_num)
     station_filtered = station_filtered.iloc[down_pooling]
     station_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
-    station_filtered_lf = \
+    data_display = \
         station_filtered.melt("snapshot_index", var_name="Attributes", value_name="Count")
-    station_line_chart = alt.Chart(station_filtered_lf).mark_line().encode(
+    station_line_chart = alt.Chart(data_display).mark_line().encode(
         x=alt.X("snapshot_index", axis=alt.Axis(title="Snapshot Index")),
         y="Count",
         color="Attributes",
