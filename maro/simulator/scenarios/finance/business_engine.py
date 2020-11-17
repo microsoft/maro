@@ -1,13 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import datetime
 import math
 import os
 from collections import OrderedDict
 from typing import List
 
-from dateutil.relativedelta import relativedelta
 from dateutil.tz import gettz
 from yaml import safe_load
 
