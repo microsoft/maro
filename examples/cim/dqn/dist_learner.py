@@ -24,8 +24,7 @@ def launch(config, distributed_config):
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents),
-        explorer=EpsilonGreedyExplorer(config.agents.algorithm.num_actions),
+        agent_dict=create_dqn_agents(agent_id_list, config.agents)
     )
 
     proxy_params = {

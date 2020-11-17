@@ -38,8 +38,7 @@ def launch(config, distributed_config):
         agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
-        experience_shaper=experience_shaper,
-        explorer=EpsilonGreedyExplorer(config.agents.algorithm.num_actions),
+        experience_shaper=experience_shaper
     )
     proxy_params = {
         "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,

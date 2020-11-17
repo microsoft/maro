@@ -3,13 +3,11 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Iterable, Union
 
-from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
-from maro.utils.exception.rl_toolkit_exception import MissingExplorerError, WrongAgentManagerModeError
+from maro.utils.exception.rl_toolkit_exception import WrongAgentManagerModeError
 
 
 class AgentManagerMode(Enum):
@@ -36,8 +34,6 @@ class AbsAgentManager(ABC):
             executable action. Cannot be None under Inference and TrainInference modes.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
-        explorer (AbsExplorer): Shared explorer for all agents. If this is not None, the underlying agents' explorers
-            will not be used. Defaults to None.
     """
     def __init__(
         self,
@@ -47,7 +43,6 @@ class AbsAgentManager(ABC):
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None,
-        explorer: AbsExplorer = None
     ):
         self._name = name
         self._mode = mode
@@ -55,7 +50,6 @@ class AbsAgentManager(ABC):
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
-        self._explorer = explorer
 
     def __getitem__(self, agent_id):
         return self.agent_dict[agent_id]
@@ -93,32 +87,13 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    def register_exploration_schedule(self, exploration_schedule: Union[Iterable, dict]):
-        if isinstance(exploration_schedule, dict):
-            for agent_id, agent in self.agent_dict.items():
-                agent.register_exploration_schedule(exploration_schedule[agent_id])
-        else:
-            self._explorer.register_schedule(exploration_schedule)
-
     def load_exploration_params(self, exploration_params):
-        if self._explorer is None:
+        if set(exploration_params.keys()).issubset(set(self.agent_dict.keys())):
             for agent_id, params in exploration_params.items():
                 self.agent_dict[agent_id].load_exploration_params(params)
         else:
-            self._explorer.load_exploration_params(exploration_params)
-
-    def dump_exploration_params(self):
-        if self._explorer is None:
-            return {agent_id: agent.dump_exploration_params() for agent_id, agent in self.agent_dict.items()}
-        else:
-            return self._explorer.dump_exploration_params()
-
-    def update_exploration_params(self):
-        if self._explorer is None:
             for agent in self.agent_dict.values():
-                agent.update_exploration_params()
-        else:
-            self._explorer.update()
+                agent.load_exploration_params(exploration_params)
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

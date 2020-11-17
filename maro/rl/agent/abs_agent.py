@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.storage.abs_store import AbsStore
-from maro.utils.exception.rl_toolkit_exception import MissingExplorerError
 
 
 class AbsAgent(ABC):
@@ -67,21 +66,9 @@ class AbsAgent(ABC):
         action_from_algorithm = self._algorithm.choose_action(model_state)
         return action_from_algorithm if self._explorer is None else self._explorer(action_from_algorithm)
 
-    def register_exploration_schedule(self, exploration_schedule):
-        if self._explorer:
-            self._explorer.register_schedule(exploration_schedule)
-
     def load_exploration_params(self, exploration_params):
         if self._explorer:
             self._explorer.load_exploration_params(exploration_params)
-
-    def dump_exploration_params(self):
-        if self._explorer:
-            return self._explorer.dump_exploration_params()
-
-    def update_exploration_params(self):
-        if self._explorer:
-            self._explorer.update()
 
     @abstractmethod
     def train(self, *args, **kwargs):

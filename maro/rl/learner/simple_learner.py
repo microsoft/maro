@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 import sys
-from typing import Callable, Iterable, Union
+from typing import Callable, Iterator, Union
 
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
@@ -80,7 +80,7 @@ class SimpleLearner(AbsLearner):
 
     def learn_with_exploration_schedule(
         self,
-        exploration_schedule: Union[Iterable, dict],
+        exploration_schedule: Union[Iterator, dict],
         early_stopping_checker: Callable = None,
         warmup_ep: int = None,
         early_stopping_metric_func: Callable = None,
@@ -88,9 +88,9 @@ class SimpleLearner(AbsLearner):
         """Main loop for collecting experiences from the actor and using them to update policies.
 
         Args:
-            exploration_schedule (Union[Iterable, dict]): Explorations schedules for the underlying agents. If it is
+            exploration_schedule (Union[Iterator, dict]): Explorations schedules for the underlying agents. If it is
                 a dictionary, the exploration schedule will be registered on a per-agent basis based on agent ID's.
-                If it is a single iterable object, the exploration schedule will be registered for all agents.
+                If it is a single iterator object, the exploration schedule will be registered for all agents.
             early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
                 terminated based on the latest performances. Defaults to None.
             warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
@@ -101,21 +101,25 @@ class SimpleLearner(AbsLearner):
             assert early_stopping_metric_func is not None, \
                 "early_stopping_metric_func cannot be None if early_stopping_checker is provided."
 
-        self._agent_manager.register_exploration_schedule(exploration_schedule)
         episode, metric_series = 0, []
         while True:
             try:
-                self._agent_manager.update_exploration_params()
-                exploration_params = self._agent_manager.dump_exploration_params()
-                if self._is_shared_agent_instance():
-                    performance, exp_by_agent = self._actor.roll_out()
+                if isinstance(exploration_schedule, dict):
+                    exploration_params = {
+                        agent_id: next(schedule) for agent_id, schedule in exploration_schedule.items()
+                    }
                 else:
-                    performance, exp_by_agent = self._actor.roll_out(
-                        model_dict=self._agent_manager.dump_models(), exploration_params=exploration_params
-                    )
+                    exploration_params = next(exploration_schedule)
+
+                performance, exp_by_agent = self._actor.roll_out(
+                    model_dict=None if self._is_shared_agent_instance else self._agent_manager.dump_models(),
+                    exploration_params=exploration_params
+                )
+
                 self._logger.info(
                     f"ep {episode} - performance: {performance}, exploration_params: {exploration_params}"
                 )
+
                 # Early stopping checking
                 latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
                 if early_stopping_checker is not None:

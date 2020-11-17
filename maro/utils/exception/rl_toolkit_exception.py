@@ -39,15 +39,3 @@ class InfiniteTrainingLoopError(MAROException):
     """Raised when the ``SimpleLearner``'s training loop becomes infinite."""
     def __init__(self, msg: str = None):
         super().__init__(4006, msg)
-
-
-class MissingExplorationScheduleError(MAROException):
-    """Raised when calling an explorer's ``update`` method with no exploration schedule registered."""
-    def __init__(self, msg: str = None):
-        super().__init__(4009, msg)
-
-
-class MissingExplorerError(MAROException):
-    """Raised when a call to an explorer-related method is made but there is no explorer present."""
-    def __init__(self, msg: str = None):
-        super().__init__(4009, msg)

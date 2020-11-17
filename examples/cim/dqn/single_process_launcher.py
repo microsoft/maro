@@ -48,8 +48,7 @@ def launch(config):
         agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
-        experience_shaper=experience_shaper,
-        explorer=EpsilonGreedyExplorer(config.agents.algorithm.num_actions),
+        experience_shaper=experience_shaper
     )
 
     # Step 4: Create an actor and a learner to start the training process.
@@ -66,7 +65,6 @@ def launch(config):
 
     combined_checker = perf_checker & perf_stability_checker
 
-    exploration_schedule = two_phase_linear_epsilon_schedule(**config.main_loop.exploration)
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager=agent_manager,
@@ -74,7 +72,7 @@ def launch(config):
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
     learner.learn_with_exploration_schedule(
-        exploration_schedule,
+        two_phase_linear_epsilon_schedule(**config.main_loop.exploration),
         early_stopping_checker=combined_checker,
         warmup_ep=config.main_loop.early_stopping.warmup_ep,
         early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],

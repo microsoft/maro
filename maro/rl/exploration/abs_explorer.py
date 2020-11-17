@@ -12,19 +12,7 @@ class AbsExplorer(ABC):
         pass
 
     @abstractmethod
-    def register_schedule(self, exploration_param_iter):
-        return NotImplementedError
-
-    @abstractmethod
     def load_exploration_params(self, exploration_params):
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_exploration_params(self):
-        return NotImplementedError
-
-    @abstractmethod
-    def update(self):
         return NotImplementedError
 
     @abstractmethod

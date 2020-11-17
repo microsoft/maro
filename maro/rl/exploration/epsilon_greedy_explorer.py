@@ -2,9 +2,6 @@
 # Licensed under the MIT license.
 
 import random
-from typing import Generator
-
-from maro.utils.exception.rl_toolkit_exception import MissingExplorationScheduleError
 
 from .abs_explorer import AbsExplorer
 
@@ -28,18 +25,5 @@ class EpsilonGreedyExplorer(AbsExplorer):
         else:
             return random.randrange(self._num_actions)
 
-    def register_schedule(self, epsilon_schedule: Generator):
-        self._epsilon_schedule = epsilon_schedule
-
     def load_exploration_params(self, epsilon: float):
         self._epsilon = epsilon
-
-    def dump_exploration_params(self):
-        return self._epsilon
-
-    def update(self):
-        if self._epsilon_schedule is None:
-            raise MissingExplorationScheduleError(
-                "An iterable epsilon schedule must be registered first by calling register_schedule()."
-            )
-        self._epsilon = next(self._epsilon_schedule)

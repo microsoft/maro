@@ -38,7 +38,6 @@ class SimpleAgentManager(AbsAgentManager):
             state_shaper=state_shaper,
             action_shaper=action_shaper,
             experience_shaper=experience_shaper,
-            explorer=explorer
         )
 
         # Data structures to temporarily store transitions and trajectory
@@ -56,8 +55,6 @@ class SimpleAgentManager(AbsAgentManager):
             "agent_id": agent_id,
             "event": decision_event
         }
-        if self._explorer:
-            action = self._explorer(action)
         return self._action_shaper(action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
