@@ -6,11 +6,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from maro.cli.inspector.common_params import CITIBIKEOption, CIMItemOption, ScenarioDetail
-from maro.cli.utils.params import GlobalScenarios
+from maro.cli.inspector.common_params import CITIBIKEOption, CIMItemOption, GlobalScenarios, ScenarioDetail
+
 
 # Pre-defined CSS style of inserted HTML elements.
-Title_html = """
+title_html = """
 <style>
     .title h1{
         font-size: 30px;
@@ -45,7 +45,7 @@ def render_h1_title(content):
     Args:
         content(str): Content to be showed on dashboard.
     """
-    html_title = f"{Title_html} <div class='title'><h1>{content}</h1></div>"
+    html_title = f"{title_html} <div class='title'><h1>{content}</h1></div>"
     st.markdown(html_title, unsafe_allow_html=True)
 
 
@@ -54,7 +54,7 @@ def render_h3_title(content):
     Args:
         content(str): Content to be showed on dashboard.
     """
-    html_title = f"{Title_html} <div class='title'><h3>{content}</h3></div>"
+    html_title = f"{title_html} <div class='title'><h3>{content}</h3></div>"
     st.markdown(html_title, unsafe_allow_html=True)
 
 
@@ -139,13 +139,13 @@ def get_filtered_formula_and_data(type, data, item_options_all, helper_info=None
         return {"data": data, "item_option": item_option}
 
 
-def get_item_option(scenario, item_option, item_option_all):
+def get_item_option(scenario, item_option, option_candidates):
     """Convert selected CITI_BIKE option into column.
 
     Args:
         scenario(Enum):
         item_option(list): User selected option list.
-        item_option_all(list): Pre-defined option list.
+        option_candidates(list): Pre-defined option list.
 
     Returns:
         list: translated users" option.
@@ -155,10 +155,10 @@ def get_item_option(scenario, item_option, item_option_all):
     if scenario == GlobalScenarios.CITI_BIKE:
         for item in item_option:
             if item == "All":
-                item_option_all.remove("All")
-                item_option_all.remove("Requirement Info")
-                item_option_all.remove("Station Info")
-                item_option_res = item_option_all
+                option_candidates.remove("All")
+                option_candidates.remove("Requirement Info")
+                option_candidates.remove("Station Info")
+                item_option_res = option_candidates
                 break
             elif item == "Requirement Info":
                 item_option_res = item_option_res + CITIBIKEOption.requirement_info
@@ -171,10 +171,10 @@ def get_item_option(scenario, item_option, item_option_all):
     if scenario == GlobalScenarios.CIM:
         for item in item_option:
             if item == "All":
-                item_option_all.remove("All")
-                item_option_all.remove("Booking Info")
-                item_option_all.remove("Port Info")
-                item_option_res = item_option_all
+                option_candidates.remove("All")
+                option_candidates.remove("Booking Info")
+                option_candidates.remove("Port Info")
+                item_option_res = option_candidates
                 break
             elif item == "Booking Info":
                 item_option_res = item_option_res + CIMItemOption.booking_info

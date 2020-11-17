@@ -1,12 +1,13 @@
 import os
 
 
-def launch_dashboard(ROOT_PATH, scenario, epoch_num):
+def launch_dashboard(source_path: str, scenario: enumerate, epoch_num: int, prefix: str):
     """Launch streamlit dashboard.
 
     Args:
-        ROOT_PATH(str): Data folder path.
-        scenario(str): Name of current scenario.
+        source_path (str): Data folder path.
+        scenario (enumerate): Name of current scenario.
     """
     vis_path = os.path.expanduser("~/.maro/vis/template/visualization.py")
-    os.system(f"streamlit run {vis_path} -- {ROOT_PATH} {scenario.value} {epoch_num}")
+    os.system(f"streamlit run {vis_path} "
+              f"-- --source_path {source_path} --scenario {scenario.value} --epoch_num {epoch_num} --prefix {prefix}")

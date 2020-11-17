@@ -1,4 +1,17 @@
-import enum as Enum
+from enum import Enum
+
+
+class GlobalFilePaths:
+    ports_sum = "ports_summary.csv"
+    vessels_sum = "vessels_summary.csv"
+    stations_sum = "stations_summary.csv"
+    name_convert = "name_conversion.csv"
+
+
+class GlobalScenarios(Enum):
+    CIM = 1
+    CITI_BIKE = 2
+
 
 class CIMItemOption:
     basic_info = ["name", "frame_index"]

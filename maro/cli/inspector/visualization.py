@@ -2,21 +2,23 @@ import argparse
 
 from maro.cli.inspector.cim_dashboard import start_cim_dashboard
 from maro.cli.inspector.citi_bike_dashboard import start_citi_bike_dashboard
-from maro.cli.utils.params import GlobalScenarios
+from maro.cli.inspector.common_params import GlobalScenarios
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("rootpath")
-    parser.add_argument("scenario")
-    parser.add_argument("epoch_num")
+    parser.add_argument("--source_path", type=str)
+    parser.add_argument("--scenario", type=str)
+    parser.add_argument("--epoch_num", type=str)
+    parser.add_argument("--prefix", type=str)
     args = parser.parse_args()
 
-    ROOT_PATH = args.rootpath
+    source_path = args.source_path
     scenario = GlobalScenarios(int(args.scenario))
     epoch_num = int(args.epoch_num)
+    prefix = args.prefix
 
     if scenario == GlobalScenarios.CIM:
-        start_cim_dashboard(ROOT_PATH, epoch_num)
+        start_cim_dashboard(source_path, epoch_num, prefix)
 
     elif scenario == GlobalScenarios.CITI_BIKE:
-        start_citi_bike_dashboard(ROOT_PATH)
+        start_citi_bike_dashboard(source_path, prefix)

@@ -7,12 +7,10 @@ import pandas as pd
 import streamlit as st
 
 import maro.cli.inspector.common_helper as common_helper
-from maro.cli.inspector.common_params import CIMItemOption, ScenarioDetail
-from maro.cli.utils.params import GlobalFilePaths as Gfiles
-from maro.cli.utils.params import GlobalScenarios
+from maro.cli.inspector.common_params import CIMItemOption, ScenarioDetail, GlobalFilePaths as Gfiles, GlobalScenarios
 
 
-def generate_down_pooling_sample(down_pooling_num, start_epoch, end_epoch):
+def generate_down_pooling_sample(down_pooling_num: int, start_epoch: int, end_epoch: int):
     """Generate down pooling list based on original data and down pooling rate.
         This function aims to generate epoch samples.
         No requirements for the sampled data.
@@ -34,7 +32,7 @@ def generate_down_pooling_sample(down_pooling_num, start_epoch, end_epoch):
     return down_pooling_range
 
 
-def get_sampled_epoch_range(epoch_num, sample_ratio):
+def get_sampled_epoch_range(epoch_num: int, sample_ratio: float):
     """For inter plot, generate sampled data list based on range & sample ratio
 
     Args:
@@ -56,12 +54,12 @@ def get_sampled_epoch_range(epoch_num, sample_ratio):
     return down_pooling_range
 
 
-def show_cim_inter_plot(root_path, epoch_num):
+def show_cim_inter_plot(source_path: str, epoch_num: int):
     """Show CIM summary plot.
 
     Args:
-        root_path(str): Data folder path.
-        epoch_num(int): Number of snapshot folders
+        source_path (str): Data folder path.
+        epoch_num (int): Number of snapshot folders
     """
     common_helper.render_h1_title("CIM Inter Epoch Data")
     sample_ratio = common_helper.holder_sample_ratio(epoch_num)
@@ -69,7 +67,7 @@ def show_cim_inter_plot(root_path, epoch_num):
     down_pooling_range = get_sampled_epoch_range(epoch_num, sample_ratio)
     item_options_all = CIMItemOption.quick_info + CIMItemOption.port_info + CIMItemOption.booking_info
     # generate data
-    data = common_helper.read_detail_csv(os.path.join(root_path, Gfiles.ports_sum)).iloc[down_pooling_range]
+    data = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.ports_sum)).iloc[down_pooling_range]
     data["remaining_space"] = list(
         map(lambda x, y, z: x - y - z, data["capacity"], data["full"], data["empty"]))
     # get formula & selected data
@@ -77,7 +75,7 @@ def show_cim_inter_plot(root_path, epoch_num):
     generate_inter_plot(filtered_data["data"], down_pooling_range)
 
 
-def generate_inter_plot(data, down_pooling_range):
+def generate_inter_plot(data:list, down_pooling_range:list):
     """Generate summary plot.
         View info within different epochs.
 
@@ -111,7 +109,7 @@ def generate_inter_plot(data, down_pooling_range):
     st.altair_chart(cim_inter_bar_chart)
 
 
-def show_cim_intra_vessel_data(snapshot_index):
+def show_cim_intra_vessel_data(snapshot_index: int):
     """show vessel info of selected snapshot
 
     Args:
@@ -122,14 +120,16 @@ def show_cim_intra_vessel_data(snapshot_index):
     generate_intra_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num)
 
 
-def show_cim_intra_by_ports(data_ports, ports_index, name_conversion, item_option_all, ch_info, sf_info, snapshot_num):
+def show_cim_intra_by_ports(data_ports: list, ports_index: int,
+                            name_conversion: object, option_candidates: list,
+                            ch_info: list, sf_info:list, snapshot_num: int):
     """ show intra data by ports.
 
     Args:
         data_ports(list): Filtered data.
         ports_index(int):Index of port of current data.
-        name_conversion(dataframe): Relationship of index and name.
-        item_option_all(list): All options for users to choose.
+        name_conversion(Dataframe): Relationship of index and name.
+        option_candidates(list): All options for users to choose.
         ch_info(list): Comprehensive Information. = accumlated data.
         sf_info(list):  Specific Information.
         snapshot_num(int): Number of snapshots on a port.
@@ -147,7 +147,7 @@ def show_cim_intra_by_ports(data_ports, ports_index, name_conversion, item_optio
     generate_detail_plot_by_ports(ch_info, data_ports, port_option, snapshot_num, snapshot_sample_num)
     # detail data
     common_helper.render_h1_title("CIM Intra Epoch Data")
-    filtered_data = common_helper.get_filtered_formula_and_data(ScenarioDetail.CIM_Inter, data_ports, item_option_all, sf_info)
+    filtered_data = common_helper.get_filtered_formula_and_data(ScenarioDetail.CIM_Inter, data_ports, option_candidates, sf_info)
 
     common_helper.render_h3_title(
         f"Port Detail Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
@@ -157,17 +157,18 @@ def show_cim_intra_by_ports(data_ports, ports_index, name_conversion, item_optio
         snapshot_sample_num, filtered_data["item_option"])
 
 
-def show_cim_intra_by_snapshot(root_path, option_epoch, data_ports,
-                               snapshots_index, name_conversion, item_option_all, ch_info, sf_info, ports_num):
+def show_cim_intra_by_snapshot(source_path: str, option_epoch: int, data_ports: list,
+                               snapshots_index: object, name_conversion: object,
+                               option_candidates: list, ch_info: list, sf_info: list, ports_num: int):
     """
 
     Args:
-        root_path(str): Path of folder.
+        source_path(str): Path of folder.
         option_epoch(int): Index of selected epoch.
         data_ports(list): Filtered data.
         snapshots_index(object): Index of selected snapshot.
         name_conversion(dataframe): Relationship between index and name.
-        item_option_all(list): All options for users to choose.
+        option_candidates(list): All options for users to choose.
         ch_info(list): Comprehensive Information. = accumlated data.
         sf_info(list):  Specific Information.
         ports_num(int): Number of ports in current snapshot.
@@ -181,7 +182,7 @@ def show_cim_intra_by_snapshot(root_path, option_epoch, data_ports,
     usr_ratio = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
     # acc data
     common_helper.render_h1_title("Acc Data")
-    show_volume_hot_map(root_path, GlobalScenarios.CIM, option_epoch, snapshot_index)
+    show_volume_hot_map(source_path, GlobalScenarios.CIM, option_epoch, snapshot_index)
 
     common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Acc Attributes")
     generate_intra_plot_by_snapshot(ch_info, data_ports, snapshot_index, ports_num, name_conversion, usr_ratio)
@@ -191,25 +192,26 @@ def show_cim_intra_by_snapshot(root_path, option_epoch, data_ports,
     show_cim_intra_vessel_data(snapshot_index)
 
     common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Detail Attributes")
-    filtered_data = common_helper.get_filtered_formula_and_data(ScenarioDetail.CIM_Inter, data_ports, item_option_all, sf_info)
+    filtered_data = common_helper.get_filtered_formula_and_data(ScenarioDetail.CIM_Inter, data_ports, option_candidates, sf_info)
     generate_intra_plot_by_snapshot(
         filtered_data["sf_info"], filtered_data["data"], snapshot_index,
         ports_num, name_conversion, usr_ratio, filtered_data["item_option"])
 
 
-def show_cim_intra_plot(root_path, epoch_num):
+def show_cim_intra_plot(source_path: str, epoch_num: int, prefix: str):
     """Show CIM detail plot.
 
     Args:
-        root_path (str): Data folder path.
-        epoch_num(int) : Number of snapshots
+        source_path (str): Data folder path.
+        epoch_num (int) : Number of snapshots.
+        prefix (str):  Prefix of data folders.
     """
     option_epoch = st.sidebar.select_slider(
         "Choose an Epoch:",
         list(range(0, epoch_num)))
-    dir = os.path.join(root_path, f"snapshot_{option_epoch}")
+    target_path = os.path.join(source_path, f"{prefix}{option_epoch}")
     # get data of selected epoch
-    data_ports = common_helper.read_detail_csv(os.path.join(dir, "ports.csv"))
+    data_ports = common_helper.read_detail_csv(os.path.join(target_path, "ports.csv"))
     data_ports["remaining_space"] = list(
         map(lambda x, y, z: x - y - z, data_ports["capacity"], data_ports["full"], data_ports["empty"]))
     # basic data
@@ -224,9 +226,9 @@ def show_cim_intra_plot(root_path, epoch_num):
     # specific info
     sf_info = CIMItemOption.basic_info + common_info
     # item for user to select
-    item_option_all = CIMItemOption.quick_info + common_info
+    option_candidates = CIMItemOption.quick_info + common_info
     # name conversion
-    name_conversion = common_helper.read_detail_csv(os.path.join(root_path, Gfiles.name_convert))
+    name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
 
     st.sidebar.markdown("***")
     view_epoch_data_option = ["by ports", "by snapshot"]
@@ -237,15 +239,15 @@ def show_cim_intra_plot(root_path, epoch_num):
     if option_2 == "by ports":
         show_cim_intra_by_ports(
             data_ports, ports_index, name_conversion,
-            item_option_all, ch_info, sf_info, snapshot_num)
+            option_candidates, ch_info, sf_info, snapshot_num)
 
     if option_2 == "by snapshot":
         show_cim_intra_by_snapshot(
-            root_path, option_epoch,data_ports, snapshots_index,
-            name_conversion, item_option_all, ch_info, sf_info, ports_num)
+            source_path, option_epoch,data_ports, snapshots_index,
+            name_conversion, option_candidates, ch_info, sf_info, ports_num)
 
 
-def generate_cim_top_summary(data, snapshot_index, name_conversion):
+def generate_cim_top_summary(data: list, snapshot_index: int, name_conversion: object):
     """Generate CIM top 5 summary.
 
     Args:
@@ -265,7 +267,7 @@ def generate_cim_top_summary(data, snapshot_index, name_conversion):
         common_helper.generate_by_snapshot_top_summary("port name", data_acc, item, True, snapshot_index)
 
 
-def generate_intra_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num):
+def generate_intra_vessel_by_snapshot(data_vessels: list, snapshot_index: int, vessels_num: int):
     """Generate vessel detail plot.
 
     Args:
@@ -300,7 +302,7 @@ def generate_intra_vessel_by_snapshot(data_vessels, snapshot_index, vessels_num)
     st.altair_chart(vessel_chart_snapshot)
 
 
-def generate_hot_map(matrix_data):
+def generate_hot_map(matrix_data: str):
     """Filter matrix data and generate transfer volume hot map.
 
     Args:
@@ -333,22 +335,22 @@ def generate_hot_map(matrix_data):
     st.altair_chart(hot_map)
 
 
-def show_volume_hot_map(root_path, scenario, epoch_index, snapshot_index):
+def show_volume_hot_map(source_path: str, scenario: enumerate, epoch_index: int, snapshot_index: int):
     """Get matrix data and provide entrance to hot map of different scenario.
 
     Args:
-        root_path (str): Data folder path.
-        scenario (str): Name of current scenario: CIM.
+        source_path (str): Data folder path.
+        scenario (Enum): Name of current scenario: CIM.
         epoch_index(int):  Selected epoch index.
         snapshot_index(int): Selected snapshot index.
     """
-    matrix_data = pd.read_csv(os.path.join(root_path, f"snapshot_{epoch_index}", "matrices.csv")).loc[snapshot_index]
+    matrix_data = pd.read_csv(os.path.join(source_path, f"snapshot_{epoch_index}", "matrices.csv")).loc[snapshot_index]
     if scenario == GlobalScenarios.CIM:
         common_helper.render_H3_title(f"SnapShot-{snapshot_index}: Acc Port Transfer Volume")
         generate_hot_map(matrix_data["full_on_ports"])
 
 
-def generate_detail_plot_by_ports(info_selector, data, str_temp, snapshot_num, snapshot_sample_num, item_option=None):
+def generate_detail_plot_by_ports(info_selector: list, data: object, str_temp, snapshot_num, snapshot_sample_num, item_option=None):
     """Generate detail plot.
         View info within different holders(ports,stations,etc) in the same epoch.
         Change snapshot sampling num freely.
@@ -444,17 +446,17 @@ def generate_intra_plot_by_snapshot(
     st.altair_chart(custom_chart_snapshot)
 
 
-def start_cim_dashboard(root_path, epoch_num):
+def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):
     """Entrance of cim dashboard.
 
     Args:
-        root_path (str): Data folder path.
-        epoch_num(int) : Number of data folders.
+        source_path (str): Data folder path.
+        epoch_num (int) : Number of data folders.
     """
     option = st.sidebar.selectbox(
         "Data Type",
         ("Inter Epoch", "Intra Epoch"))
     if option == "Inter Epoch":
-        show_cim_inter_plot(root_path, epoch_num)
+        show_cim_inter_plot(source_path, epoch_num)
     else:
-        show_cim_intra_plot(root_path, epoch_num)
+        show_cim_intra_plot(source_path, epoch_num, prefix)
