@@ -9,7 +9,7 @@ from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
 
-START_TICK = 10226  # 2019-01-01
+START_TICK = 8766  # 2015-01-01
 DURATION = 100  # Env have 100 steps pre episode.
 
 def simple_strategy():
@@ -78,7 +78,7 @@ def simple_strategy():
     stock_snapshots = env.snapshot_list['stocks']
 
     # query account_hold_num for specified markset
-    sz_account_hold_num = stock_snapshots[::"opening_price"].reshape(-1, 5)
+    sz_account_hold_num = stock_snapshots[::"opening_price"].reshape(-1, 2)
 
     logger.info_green("Volume holding of sz market.")
     logger.info_green(f"{sz_account_hold_num}")

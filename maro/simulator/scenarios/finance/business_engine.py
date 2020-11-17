@@ -21,8 +21,8 @@ from maro.simulator.scenarios.finance.common import (
     ActionState, ActionType, CancelOrder, CancelOrderActionScope, DecisionEvent, Order, OrderActionScope,
     OrderDirection, OrderMode, TradeResult
 )
-from maro.simulator.scenarios.finance.slippage import FixedSlippage
 from maro.simulator.scenarios.finance.frame_builder import build_frame
+from maro.simulator.scenarios.finance.slippage import FixedSlippage
 from maro.simulator.scenarios.finance.stock import Stock
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
@@ -31,7 +31,12 @@ LOGGER = CliLogger(name=__name__)
 
 METRICS_DESC = """
 """
-
+SUPPORTED_ORDER_MODES = [
+    OrderMode.MARKET_ORDER,
+    OrderMode.STOP_ORDER,
+    OrderMode.LIMIT_ORDER,
+    OrderMode.STOP_LIMIT_ORDER
+]
 
 class FinanceBusinessEngine(AbsBusinessEngine):
     def __init__(
@@ -55,12 +60,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
         self._init_frame()
 
-        self._supported_order_mode = [
-            OrderMode.MARKET_ORDER,
-            OrderMode.STOP_ORDER,
-            OrderMode.LIMIT_ORDER,
-            OrderMode.STOP_LIMIT_ORDER
-        ]
+        self._supported_order_mode = SUPPORTED_ORDER_MODES
 
         self._pending_orders = OrderedDict()  # The orders that can be canceled.
         self._day_trade_orders = []
