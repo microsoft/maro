@@ -61,10 +61,11 @@ class AbsAgent(ABC):
         Args:
             model_state: State vector as accepted by the underlying algorithm.
         Returns:
-            Action given by the underlying policy model.
+            If the agent's explorer is None, the action given by the underlying model is returned. Otherwise,
+            an exploratory action is returned.
         """
-        action_from_algorithm = self._algorithm.choose_action(model_state)
-        return action_from_algorithm if self._explorer is None else self._explorer(action_from_algorithm)
+        action = self._algorithm.choose_action(model_state)
+        return action if self._explorer is None else self._explorer(action)
 
     def load_exploration_params(self, exploration_params):
         if self._explorer:
