@@ -36,7 +36,7 @@ def setup_case(case_name: str, max_tick:int):
         converter.flush()
 
     eb = EventBuffer()
-    be = CitibikeBusinessEngine(event_buffer=eb, topology=config_path, start_tick=0, max_tick=max_tick, snapshot_resolution=1, max_snapshots=None, additional_options={})
+    be = CitibikeBusinessEngine(event_buffer=eb, topology=config_path, start_tick=0, max_tick=max_tick, snapshot_resolution=1, max_snapshot_num=None, additional_options={})
 
     return eb, be
 

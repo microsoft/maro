@@ -47,7 +47,7 @@ class TestEnv(unittest.TestCase):
         num_of_snapshots = len(env.snapshot_list)
 
         self.assertEqual(max_tick, len(env.snapshot_list), msg=f"number of snapshots ({num_of_snapshots}) should be same "
-                                                         f"with max tick ({max_tick}) without specified snapshot_resolution and max_snapshots")
+                                                         f"with max tick ({max_tick}) without specified snapshot_resolution and max_snapshot_num")
 
         # check if we can reach to the end [start_tick, max_tick)
         self.assertEqual(max_tick-1, env.tick)
@@ -118,7 +118,7 @@ class TestEnv(unittest.TestCase):
 
         run_to_end(env)
 
-        # we should have 4 snapshots totally without max_snapshots speified
+        # we should have 4 snapshots totally without max_snapshot_num speified
         self.assertEqual(4, len(env.snapshot_list), msg="We should have 4 snapshots in memory")
 
         # snapshot at 2, 5, 8, 9 ticks
@@ -130,15 +130,15 @@ class TestEnv(unittest.TestCase):
             self.assertListEqual(list(states[frame_index]), [tick] * 10, msg=f"states should be {tick}")
 
 
-    def test_max_snapshots(self):
-        """Test env  with max_snapshots, it should take snapshot every tick, but should last N kept"""
+    def test_max_snapshot_num(self):
+        """Test env  with max_snapshot_num, it should take snapshot every tick, but should last N kept"""
         max_tick = 10
 
-        env = Env(business_engine_cls=DummyEngine, start_tick=0, durations=max_tick, max_snapshots=2)
+        env = Env(business_engine_cls=DummyEngine, start_tick=0, durations=max_tick, max_snapshot_num=2)
 
         run_to_end(env)  
 
-        # we should have 2 snapshots totally with max_snapshots speified
+        # we should have 2 snapshots totally with max_snapshot_num speified
         self.assertEqual(2, len(env.snapshot_list), msg="We should have 2 snapshots in memory")
 
         # and only 87 and 9 in snapshot
@@ -150,15 +150,15 @@ class TestEnv(unittest.TestCase):
         # 2nd should states at tick 9
         self.assertListEqual(list(states[1]), [9] * 10, msg="2nd snapshot should be at tick 9")
 
-    def test_snapshot_resolution_with_max_snapshots(self):
-        """Test env with both snapshot_resolution and max_snapshots parameters, and it should work as expected"""
+    def test_snapshot_resolution_with_max_snapshot_num(self):
+        """Test env with both snapshot_resolution and max_snapshot_num parameters, and it should work as expected"""
         max_tick = 10
 
-        env = Env(business_engine_cls=DummyEngine, start_tick=0, durations=max_tick, snapshot_resolution=2, max_snapshots=2)
+        env = Env(business_engine_cls=DummyEngine, start_tick=0, durations=max_tick, snapshot_resolution=2, max_snapshot_num=2)
 
         run_to_end(env)
 
-        # we should have snapshot same as max_snapshots
+        # we should have snapshot same as max_snapshot_num
         self.assertEqual(2, len(env.snapshot_list), msg="We should have 2 snapshots in memory")
 
         # and only 7 and 9 in snapshot

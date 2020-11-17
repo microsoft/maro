@@ -26,7 +26,7 @@ class Env(AbsEnv):
         start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
         durations (int): Duration ticks of this environment from start_tick.
         snapshot_resolution (int): How many ticks will take a snapshot.
-        max_snapshots(int): Max in-memory snapshot number.
+        max_snapshot_num(int): Max in-memory snapshot number.
             When the number of dumped snapshots reached the limitation, oldest one will be overwrote by new one.
             None means keeping all snapshots in memory. Defaults to None.
         business_engine_cls: Class of business engine. If specified, use it to construct the be instance,
@@ -36,14 +36,14 @@ class Env(AbsEnv):
 
     def __init__(
         self, scenario: str = None, topology: str = None,
-        start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
+        start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshot_num: int = None,
         decision_mode: DecisionMode = DecisionMode.Sequential,
         business_engine_cls: type = None,
         options: dict = {}
     ):
         super().__init__(
             scenario, topology, start_tick, durations,
-            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls, options
+            snapshot_resolution, max_snapshot_num, decision_mode, business_engine_cls, options
         )
 
         self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
@@ -212,7 +212,7 @@ class Env(AbsEnv):
             start_tick=self._start_tick,
             max_tick=max_tick,
             snapshot_resolution=self._snapshot_resolution,
-            max_snapshots=self._max_snapshots,
+            max_snapshot_num=self._max_snapshot_num,
             additional_options=self._additional_options
         )
 

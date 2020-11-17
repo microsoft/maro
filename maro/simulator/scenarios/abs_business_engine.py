@@ -30,13 +30,13 @@ class AbsBusinessEngine(ABC):
         start_tick (int): Start tick of this business engine.
         max_tick (int): Max tick of this business engine.
         snapshot_resolution (int): Frequency to take a snapshot.
-        max_snapshots(int): Max number of in-memory snapshots, default is None that means max number of snapshots.
+        max_snapshot_num(int): Max number of in-memory snapshots, default is None that means max number of snapshots.
         addition_options (dict): Additional options for this business engine from outside.
     """
 
     def __init__(
         self, scenario_name: str, event_buffer: EventBuffer, topology: str,
-        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshots: int,
+        start_tick: int, max_tick: int, snapshot_resolution: int, max_snapshot_num: int,
         additional_options: dict = None
     ):
         self._scenario_name = scenario_name
@@ -45,13 +45,13 @@ class AbsBusinessEngine(ABC):
         self._start_tick = start_tick
         self._max_tick = max_tick
         self._snapshot_resolution = snapshot_resolution
-        self._max_snapshots = max_snapshots
+        self._max_snapshot_num = max_snapshot_num
         self._additional_options = additional_options
         self._config_path = None
 
         assert start_tick >= 0
         assert max_tick > start_tick
-        assert max_snapshots is None or max_snapshots > 0
+        assert max_snapshot_num is None or max_snapshot_num > 0
 
     @property
     @abstractmethod
@@ -76,7 +76,7 @@ class AbsBusinessEngine(ABC):
         """
         return tick_to_frame_index(self._start_tick, tick, self._snapshot_resolution)
 
-    def calc_max_snapshots(self) -> int:
+    def calc_max_snapshot_num(self) -> int:
         """Helper method to calculate total snapshot should be in snapshot list with parameters passed via constructor.
 
         NOTE:
@@ -86,10 +86,10 @@ class AbsBusinessEngine(ABC):
         Returns:
             int: Max snapshot number for current configuration.
         """
-        return self._max_snapshots if self._max_snapshots is not None \
+        return self._max_snapshot_num if self._max_snapshot_num is not None \
             else total_frames(self._start_tick, self._max_tick, self._snapshot_resolution)
 
-    def update_config_root_path(self, business_engine_file_path: str):
+    def _update_config_root_path(self, business_engine_file_path: str):
         """Helper method used to update the config path with business engine path if you
         follow the way to load configuration file as built-in scenarios.
 
@@ -109,7 +109,7 @@ class AbsBusinessEngine(ABC):
                         super().__init__("my_be", *args, **kwargs)
 
                         # Use __file__ as parameter.
-                        self.update_config_root_path(__file__)
+                        self._update_config_root_path(__file__)
 
         Args:
             business_engine_file_path(str): Full path of real business engine file.

@@ -45,18 +45,18 @@ operation_number (int): Accumulative operation cost until now.
 class CitibikeBusinessEngine(AbsBusinessEngine):
     def __init__(
         self, event_buffer: EventBuffer, topology: str, start_tick: int,
-        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
+        max_tick: int, snapshot_resolution: int, max_snapshot_num: int, additional_options: dict = {}
     ):
         super().__init__(
             "citi_bike", event_buffer, topology, start_tick, max_tick,
-            snapshot_resolution, max_snapshots, additional_options
+            snapshot_resolution, max_snapshot_num, additional_options
         )
 
         # Trip binary reader.
         self._trip_reader: BinaryReader = None
 
         # Update self._config_path with current file path.
-        self.update_config_root_path(__file__)
+        self._update_config_root_path(__file__)
 
         # Holidays for US, as we are using NY data.
         self._us_holidays = holidays.US()
@@ -284,7 +284,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         self._trips_adj = MatrixAttributeAccessor(self._matrices_node, "trips_adj", station_num, station_num)
 
     def _init_frame(self, station_num: int):
-        self._frame = build_frame(station_num, self.calc_max_snapshots())
+        self._frame = build_frame(station_num, self.calc_max_snapshot_num())
         self._snapshots = self._frame.snapshots
 
     def _register_events(self):

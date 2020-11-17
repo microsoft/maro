@@ -19,7 +19,6 @@ class Stock(NodeBase):
     average_cost = NodeAttribute("f")
 
     def __init__(self):
-        self.last_closeing = 0
         pass
 
     def set_init_state(self, code: str):
@@ -30,6 +29,10 @@ class Stock(NodeBase):
         return self._code
 
     def reset(self):
+        self.is_valid = 0
+
+    def deep_reset(self):
+        self.reset()
         self.opening_price = 0
         self.closing_price = 0
         self.highest_price = 0
@@ -38,11 +41,6 @@ class Stock(NodeBase):
         self.dividends = 0
         self.splits = 0
         self.trade_volume = 0
-        self.is_valid = 0
-
-    def deep_reset(self):
-        self.reset()
-        self.last_closeing = 0
 
     def fill(self, raw_stock):
         self.opening_price = raw_stock.opening_price
@@ -54,4 +52,3 @@ class Stock(NodeBase):
         self.splits = raw_stock.splits
         self.trade_volume = raw_stock.trade_volume
         self.is_valid = 1
-        self.last_closeing = self.closing_price
