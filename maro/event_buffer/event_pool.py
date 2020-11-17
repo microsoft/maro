@@ -14,7 +14,7 @@ Event = Union[AtomEvent, CascadeEvent]
 class EventPool:
     """Event pool used to generate and pool event object.
 
-    The pooling function is disabled by default, then it is used as a Event generator with a buffer.
+    The pooling function is disabled by default, then it is used as an Event generator with a buffer.
 
     When enable pooling, it will recycle events.
     """
