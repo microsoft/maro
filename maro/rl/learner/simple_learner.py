@@ -112,7 +112,7 @@ class SimpleLearner(AbsLearner):
                     exploration_params = next(exploration_schedule)
 
                 performance, exp_by_agent = self._actor.roll_out(
-                    model_dict=None if self._is_shared_agent_instance else self._agent_manager.dump_models(),
+                    model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models(),
                     exploration_params=exploration_params
                 )
 
@@ -128,7 +128,7 @@ class SimpleLearner(AbsLearner):
                         self._logger.info("Early stopping condition hit. Training complete.")
                         break
             except StopIteration:
-                self._logger.info(f"Maximum number of episodes ({episode + 1}) reached. Training complete.")
+                self._logger.info(f"Maximum number of episodes ({episode}) reached. Training complete.")
                 break
 
             episode += 1
