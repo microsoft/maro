@@ -7,7 +7,7 @@ from inspect import getmembers, isclass
 from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
-from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
+from maro.event_buffer import EventBuffer, EventState, MaroEvents
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
@@ -263,17 +263,21 @@ class Env(AbsEnv):
                     actions = [actions]
 
                 # Generate a new atom event first.
-                action_event = self._event_buffer.gen_atom_event(self._tick, DECISION_EVENT, actions)
+                action_event = self._event_buffer.gen_action_event(
+                    self._tick, actions)
 
+                # NOTE: decision event always be a CascadeEvent
                 # We just append the action into sub event of first pending cascade event.
                 pending_events[0].state = EventState.EXECUTING
-                pending_events[0].immediate_event_list.append(action_event)
+                pending_events[0].add_immediate_event(
+                    action_event, is_head=True)
 
                 if self._decision_mode == DecisionMode.Joint:
                     # For joint event, we will disable following cascade event.
 
                     # We expect that first action contains a src_event_id to support joint event with sequential action.
-                    action_related_event_id = None if len(actions) == 1 else getattr(actions[0], "src_event_id", None)
+                    action_related_event_id = None if len(
+                        actions) == 1 else getattr(actions[0], "src_event_id", None)
 
                     # If the first action has a decision event attached, it means sequential action is supported.
                     is_support_seq_action = action_related_event_id is not None
