@@ -88,7 +88,7 @@ class AbsAgentManager(ABC):
         return NotImplemented
 
     def load_exploration_params(self, exploration_params):
-        if set(exploration_params.keys()).issubset(set(self.agent_dict.keys())):
+        if isinstance(exploration_params, dict) and exploration_params.keys() <= self.agent_dict.keys():
             for agent_id, params in exploration_params.items():
                 self.agent_dict[agent_id].load_exploration_params(params)
         else:
