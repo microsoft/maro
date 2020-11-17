@@ -38,6 +38,7 @@ SUPPORTED_ORDER_MODES = [
     OrderMode.STOP_LIMIT_ORDER
 ]
 
+
 class FinanceBusinessEngine(AbsBusinessEngine):
     def __init__(
         self, event_buffer: EventBuffer, topology: str, start_tick: int,
@@ -237,14 +238,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             self._stock_pickers.append(
                 self._stock_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
-        # We keep this used to calculate real datetime to get stock info.
-        self._stock_begin_date: datetime.datetime = datetime.datetime.fromisoformat(self._config["begin_date"])
-        self._stock_end_date: datetime.datetime = datetime.datetime.fromisoformat(self._config["end_date"])
-
-        # Since binary data hold UTC timestamp, convert it into our target timezone.
-        self._stock_begin_date = self._stock_begin_date.astimezone(self._time_zone)
-        self._stock_end_date = self._stock_end_date.astimezone(self._time_zone)
-
     def _init_frame(self):
         self._frame = build_frame(len(self._config["stocks"]), self.calc_max_snapshot_num())
         self._snapshots = self._frame.snapshots
@@ -403,11 +396,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             if tick in self._pending_orders:
                 available_orders = self._pending_orders[tick]
             return CancelOrderActionScope(available_orders)
-
-    def _tick_2_date(self, tick: int):
-        # Get current date to update additional info.
-        # NOTE: We do not need hour and minutes for now.
-        return (self._stock_begin_date + relativedelta(minutes=tick)).date()
 
     def _split_trade(self, action: Order):
         rets = []

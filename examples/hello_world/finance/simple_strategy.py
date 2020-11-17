@@ -4,12 +4,13 @@ import time
 from maro.simulator import DecisionMode, Env
 from maro.simulator.scenarios.finance.common import (ActionType, CancelOrder,
                                                      LimitOrder, MarketOrder,
-                                                     OrderDirection)
+                                                     OrderDirection,
+                                                     get_cn_stock_data_tick)
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
 
-START_TICK = 8766  # 2015-01-01
+START_TICK = get_cn_stock_data_tick("2015-01-01")  # 8766
 DURATION = 100  # Env have 100 steps pre episode.
 
 def simple_strategy():
