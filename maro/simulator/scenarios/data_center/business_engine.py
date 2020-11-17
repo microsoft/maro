@@ -10,7 +10,9 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import Action, DecisionPayload, Latency, PostponeType, ValidPhysicalMachine, VmFinishedPayload, VmRequirementPayload
+from .common import (
+    Action, DecisionPayload, Latency, PostponeType, ValidPhysicalMachine, VmFinishedPayload, VmRequirementPayload
+)
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -175,7 +177,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(event=postpone_event)
         else:
             # Fail
-            # TODO Implement failure logic.
             # Pop out VM requirement payload.
             self._pending_vm_req_payload.pop(vm_id)
             # Add failed requirements.
@@ -201,7 +202,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         valid_pm_list = []
         for pm in self._machines:
             if pm.req_cpu == 0:
-                valid_pm_list.append(ValidPhysicalMachine(pm_id=pm.id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem))
+                valid_pm_list.append(
+                    ValidPhysicalMachine(pm_id=pm.id, remaining_cpu=pm.cap_cpu, remaining_mem=pm.cap_mem)
+                )
                 break
             elif pm.req_cpu > 0 and (pm.cap_cpu - pm.req_cpu) >= vm_req_cpu:
                 valid_pm_list.append(ValidPhysicalMachine(

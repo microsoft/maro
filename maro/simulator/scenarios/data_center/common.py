@@ -81,12 +81,14 @@ class ValidPhysicalMachine:
         self.remaining_cpu = remaining_cpu
         self.remaining_mem = remaining_mem
 
+
 class PostponeType(Enum):
     """Postpone type."""
     # Postpone the VM requirement due to the resource exhaustion.
     Resource = 'resource'
     # Postpone the VM requirement due to the agent's decision.
     Agent = 'agent'
+
 
 class Latency:
     """Accumulative latency.
