@@ -22,8 +22,7 @@ class SimpleAgentManager(AbsAgentManager):
         agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None,
-        explorer: AbsExplorer = None
+        experience_shaper: ExperienceShaper = None
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
@@ -37,7 +36,7 @@ class SimpleAgentManager(AbsAgentManager):
             name, mode, agent_dict,
             state_shaper=state_shaper,
             action_shaper=action_shaper,
-            experience_shaper=experience_shaper,
+            experience_shaper=experience_shaper
         )
 
         # Data structures to temporarily store transitions and trajectory
