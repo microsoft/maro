@@ -7,8 +7,7 @@ import pandas as pd
 import altair as alt
 import maro.cli.inspector.common_helper as common_helper
 import streamlit as st
-from maro.cli.inspector.common_choice import (CIMIntraViewChoice,
-                                              PanelViewChoice)
+from maro.cli.inspector.common_choice import (CIMIntraViewChoice, PanelViewChoice)
 from maro.cli.inspector.common_params import CIMItemOption
 from maro.cli.inspector.common_params import GlobalFilePaths as Gfiles
 from maro.cli.inspector.common_params import GlobalScenarios

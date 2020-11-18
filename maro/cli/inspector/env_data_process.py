@@ -53,10 +53,8 @@ def start_vis(source: str, force: str, **kwargs):
 
     if not os.path.exists(source_path):
         raise CliException("input path is not correct. ")
-        os._exit(0)
-    if not os.path.exists(os.path.join(source_path, prefix+"0")):
+    elif not os.path.exists(os.path.join(source_path, prefix+"0")):
         raise CliException("No data under input folder path. ")
-        os._exit(0)
 
     if FORCE == "true":
         logger.info("Dashboard Data Processing")
@@ -70,15 +68,13 @@ def start_vis(source: str, force: str, **kwargs):
         logger.info_green("Skip Data Generation")
         if not os.path.exists(os.path.join(source_path, Gfiles.name_convert)):
             raise CliException("Have to regenerate data. Name Conversion File is missed. ")
-            os._exit(0)
+
         if scenario == GlobalScenarios.CIM:
             if not os.path.exists(os.path.join(source_path, Gfiles.ports_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
-                os._exit(0)
-        if scenario == GlobalScenarios.CITI_BIKE:
+        elif scenario == GlobalScenarios.CITI_BIKE:
             if not os.path.exists(os.path.join(source_path, Gfiles.stations_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
-                os._exit(0)
 
     launch_dashboard(source_path, scenario, epoch_num, prefix)
 

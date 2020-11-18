@@ -6,8 +6,8 @@ from math import ceil
 from typing import Dict, List
 
 from .entities import (
-  CimDataCollection, NoisedItem, Order, OrderGenerateMode, PortSetting,
-  VesselSetting)
+    CimDataCollection, NoisedItem, Order, OrderGenerateMode, PortSetting,
+    VesselSetting)
 from .port_buffer_tick_wrapper import PortBufferTickWrapper
 from .utils import (apply_noise, buffer_tick_rand, get_buffer_tick_seed,
                     get_order_num_seed, list_sum_normalize, order_num_rand)
