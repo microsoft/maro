@@ -9,8 +9,9 @@ from maro.rl import ExperienceShaper
 
 
 class TruncatedExperienceShaper(ExperienceShaper):
-    def __init__(self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float,
-                 shortage_factor: float):
+    def __init__(
+        self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float, shortage_factor: float
+    ):
         super().__init__(reward_func=None)
         self._time_window = time_window
         self._time_decay_factor = time_decay_factor
