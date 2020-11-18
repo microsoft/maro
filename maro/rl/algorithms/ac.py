@@ -76,8 +76,7 @@ class ActorCritic(AbsAlgorithm):
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
         state_values = self._model(state_sequence, task_name="critic").detach().squeeze()
         return_est = get_lambda_returns(
-            reward_sequence, state_values, self._config.reward_decay, self._config.lam,
-            k=self._config.k
+            reward_sequence, state_values, self._config.reward_decay, self._config.lam, k=self._config.k
         )
         return state_values, return_est
 

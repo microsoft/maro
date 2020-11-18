@@ -80,12 +80,9 @@ class PPO(AbsAlgorithm):
 
     def _get_values_and_bootstrapped_returns(self, states: torch.tensor, rewards: np.ndarray):
         state_values = self._model(states, task_name="critic").detach().squeeze()
-        state_values_numpy = state_values.numpy()
         return_est = get_lambda_returns(
-            rewards, state_values_numpy, self._config.reward_decay, self._config.lam,
-            k=self._config.k
+            rewards, state_values, self._config.reward_decay, self._config.lam, k=self._config.k
         )
-        return_est = torch.from_numpy(return_est)
         return state_values, return_est
 
     @preprocess
