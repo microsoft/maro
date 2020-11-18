@@ -277,7 +277,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         vm_id: int = action.vm_id
 
         if vm_id not in self._pending_vm_req_payload:
-            raise Exception(f"The VM id sent by agent is invalid.")
+            raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
 
         if type(action) == AssignAction:
             pm_id = action.pm_id

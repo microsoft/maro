@@ -25,7 +25,7 @@ class DataCenterPipeline(DataPipeline):
         super().download(is_force=is_force)
         if os.path.exists(self._download_file):
             # Download vm_table and cpu_reading
-            logger.info_green(f"Downloading vmtable and cpu readings.")
+            logger.info_green("Downloading vmtable and cpu readings.")
             with open(self._download_file, mode="r", encoding="utf-8") as urls:
                 for remote_url in urls.read().splitlines():
                     file_name = remote_url.split('/')[-1]

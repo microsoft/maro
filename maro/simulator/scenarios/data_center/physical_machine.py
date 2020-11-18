@@ -41,7 +41,7 @@ class PhysicalMachine:
 
     def update_util(self, tick: int, util_cpu: float):
         if tick > len(self._util_series):
-            raise Exception(f"The tick is invalid.")
+            raise Exception(f"The tick: '{tick}' is invalid.")
 
         # Update CPU utilization.
         self._util_cpu = util_cpu

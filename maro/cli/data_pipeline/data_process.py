@@ -12,6 +12,7 @@ scenario_map = {}
 scenario_map["citi_bike"] = CitiBikeProcess
 scenario_map["data_center"] = DataCenterProcess
 
+
 def generate(scenario: str, topology: str = "", forced: bool = False, **kwargs):
     logger.info_green(f"Generating data files for scenario {scenario} topology {topology}"
                       f" {'forced redownload.' if forced else ', not forced redownload.'}")
