@@ -6,8 +6,8 @@ from torch.optim import Adam, RMSprop
 
 from .agent import CIMAgent
 from maro.rl import (
-    ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModel, LearningModule,
-    OptimizerOptions, SimpleAgentManager
+    ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModel, LearningModule, OptimizerOptions,
+    SimpleAgentManager
 )
 from maro.utils import set_seeds
 
@@ -39,7 +39,7 @@ def create_ac_agents(agent_id_list, config):
                 is_head=True,
                 **config.algorithm.critic_model
             )],
-            optimizer_options=OptimizerOptions(cls=Adam, params=config.algorithm.optimizer)
+            optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
         )
 
         algorithm = ActorCritic(
