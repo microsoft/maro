@@ -53,7 +53,7 @@ def start_vis(source: str, force: str, **kwargs):
 
     if not os.path.exists(source_path):
         raise CliException("input path is not correct. ")
-    elif not os.path.exists(os.path.join(source_path, prefix+"0")):
+    elif not os.path.exists(os.path.join(source_path, prefix + "0")):
         raise CliException("No data under input folder path. ")
 
     if FORCE == "true":
