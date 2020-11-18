@@ -115,7 +115,7 @@ class LearningModel(nn.Module):
         return self._task_names
 
     @property
-    def shared(self):
+    def shared_module(self):
         return self._shared_module
 
     @property
