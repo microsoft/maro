@@ -1,5 +1,4 @@
 import math
-import os
 
 import altair as alt
 import numpy as np
@@ -58,7 +57,7 @@ def render_h3_title(content: str):
     st.markdown(html_title, unsafe_allow_html=True)
 
 
-def get_holder_sample_ratio(snapshot_num: int):
+def get_holder_sample_ratio(snapshot_num: int) -> list:
     """Get sample data of holders.
     Condition: 1 must be included.
     Args:
@@ -73,14 +72,10 @@ def get_holder_sample_ratio(snapshot_num: int):
     if 1 not in sample_ratio:
         sample_ratio.append(1)
 
-    print ("holder")
-    print (snapshot_num)
-    print (sample_ratio)
-
     return sample_ratio
 
 
-def get_snapshot_sample_num(snapshot_num: int, snapshot_sample_num: float):
+def get_snapshot_sample_num(snapshot_num: int, snapshot_sample_num: float) -> list:
     """Get sample data of snapshot.
     Condition: 0 & 1 must be included.
     Args:
@@ -90,14 +85,10 @@ def get_snapshot_sample_num(snapshot_num: int, snapshot_sample_num: float):
     Returns:
         list: snapshot sample data.
     """
-    print ("get_snapshot-sample")
     down_pooling = list(range(1, snapshot_num, math.floor(1 / snapshot_sample_num)))
     down_pooling.insert(0, 0)
     if snapshot_num - 1 not in down_pooling:
         down_pooling.append(snapshot_num - 1)
-    print (snapshot_num)
-    print (snapshot_sample_num)
-    print (down_pooling)
     return down_pooling
 
 

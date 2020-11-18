@@ -132,8 +132,8 @@ def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: list):
 
 
 def _render_intra_view_by_ports(
-    data_ports: pd.DataFrame, ports_index: int,
-    name_conversion: pd.DataFrame, option_candidates: list, snapshot_num: int):
+        data_ports: pd.DataFrame, ports_index: int,
+        name_conversion: pd.DataFrame, option_candidates: list, snapshot_num: int):
     """ show intra data by ports.
 
     Args:
@@ -169,18 +169,18 @@ def _render_intra_view_by_ports(
 
 
 def _render_intra_view_by_snapshot(
-    source_path: str, option_epoch: int, data_ports: pd.DataFrame, snapshots_index: list,
-    name_conversion: pd.DataFrame, option_candidates: list, ports_num: int, prefix: str):
+        source_path: str, option_epoch: int, data_ports: pd.DataFrame, snapshots_index: list,
+        name_conversion: pd.DataFrame, option_candidates: list, ports_num: int, prefix: str):
     """ Show intra-view by snapshot.
 
     Args:
-        source_path(str): Path of folder.
-        option_epoch(int): Index of selected epoch.
-        data_ports(dataframe): Filtered data.
-        snapshots_index(list): Index of selected snapshot.
-        name_conversion(dataframe): Relationship between index and name.
-        option_candidates(list): All options for users to choose.
-        ports_num(int): Number of ports in current snapshot.
+        source_path (str): Path of folder.
+        option_epoch (int): Index of selected epoch.
+        data_ports (dataframe): Filtered data.
+        snapshots_index (list): Index of selected snapshot.
+        name_conversion (dataframe): Relationship between index and name.
+        option_candidates (list): All options for users to choose.
+        ports_num (int): Number of ports in current snapshot.
         prefix (str): Prefix of data folders.
     """
     snapshot_index = st.sidebar.select_slider(
@@ -194,8 +194,9 @@ def _render_intra_view_by_snapshot(
     _render_intra_heat_map(source_path, GlobalScenarios.CIM, option_epoch, snapshot_index, prefix)
 
     common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Accumulated Attributes")
-    _generate_intra_panel_by_snapshot(CIMItemOption.basic_info + CIMItemOption.acc_info, data_ports, snapshot_index,
-                                    ports_num, name_conversion, usr_ratio)
+    _generate_intra_panel_by_snapshot(
+        CIMItemOption.basic_info + CIMItemOption.acc_info, data_ports, snapshot_index,
+        ports_num, name_conversion, usr_ratio)
     _generate_top_k_summary(data_ports, snapshot_index, name_conversion)
     # detail data
     common_helper.render_h1_title("Detail Data")
@@ -210,9 +211,9 @@ def _render_intra_view_by_snapshot(
         ports_num, name_conversion, usr_ratio, filtered_data["item_option"])
 
 
-def _generate_intra_panel_by_ports(info_selector: list,
-                                   data: pd.DataFrame, option_port_name: str,
-                                   snapshot_num: int, snapshot_sample_num: float, item_option: list=None):
+def _generate_intra_panel_by_ports(
+        info_selector: list, data: pd.DataFrame, option_port_name: str,
+        snapshot_num: int, snapshot_sample_num: float, item_option: list = None):
     """Generate detail plot.
         View info within different holders(ports,stations,etc) in the same epoch.
         Change snapshot sampling num freely.
@@ -261,8 +262,8 @@ def _generate_intra_panel_by_ports(info_selector: list,
 
 
 def _generate_intra_panel_by_snapshot(
-    info: list, data: pd.DataFrame, snapshot_index: int,
-    ports_num: int, name_conversion: pd.DataFrame, sample_ratio: list, item_option: list = None):
+        info: list, data: pd.DataFrame, snapshot_index: int,
+        ports_num: int, name_conversion: pd.DataFrame, sample_ratio: list, item_option: list = None):
     """Generate detail plot.
         View info within different snapshot in the same epoch.
 

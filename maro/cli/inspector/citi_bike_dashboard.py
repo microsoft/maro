@@ -81,7 +81,9 @@ def render_inter_view(source_path: str):
         common_helper.generate_by_snapshot_top_summary("station name", data, int(top_number), item)
 
 
-def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_candidates, snapshots_index, snapshot_num, stations_num):
+def _generate_inter_view_by_snapshot(
+        data_stations, name_conversion, option_candidates,
+        snapshots_index, snapshot_num, stations_num):
     """Show CITI BIKE detail data by snapshot.
 
     Args:
@@ -105,7 +107,8 @@ def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_cand
     station_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio", sample_ratio)
 
     # get formula input & output
-    filtered_data = common_helper.get_filtered_formula_and_data(GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
+    filtered_data = common_helper.get_filtered_formula_and_data(
+        GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
     # get sampled data & get station name
     down_pooling = list(range(0, stations_num, math.floor(1 / station_sample_num)))
 
@@ -129,8 +132,8 @@ def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_cand
 
 
 def _generate_inter_view_by_station(
-    data_stations: pd.DataFrame, name_conversion: pd.DataFrame, option_candidates: list,
-    stations_index: list, snapshot_num: int):
+        data_stations: pd.DataFrame, name_conversion: pd.DataFrame, option_candidates: list,
+        stations_index: list, snapshot_num: int):
     """ Show CITI BIKE detail data by station
 
     Args:
@@ -150,7 +153,8 @@ def _generate_inter_view_by_station(
     station_sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", station_sample_ratio)
     # get formula input & output
-    filtered_data = common_helper.get_filtered_formula_and_data(GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
+    filtered_data = common_helper.get_filtered_formula_and_data(
+        GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
 
     item_option = filtered_data["item_option"].append("frame_index")
     station_filtered = filtered_data["data"][item_option].reset_index(drop=True)

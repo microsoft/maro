@@ -79,7 +79,7 @@ def start_vis(source: str, force: str, **kwargs):
                 raise CliException("Have to regenerate data. Summary File is missed. ")
                 os._exit(0)
 
-    launch_dashboard(source_path, scenario, epoch_num ,prefix)
+    launch_dashboard(source_path, scenario, epoch_num, prefix)
 
 
 def _init_csv(file_path: str, header: list):
