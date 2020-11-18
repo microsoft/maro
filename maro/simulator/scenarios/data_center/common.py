@@ -11,17 +11,31 @@ class Action:
     """Data center scenario action object, which was used to pass action from agent to business engine.
 
     Args:
-        assign (bool): Assign the VM to the PM or not.
         vm_id (int): The VM id.
-        pm_id (int): The physical machine id assigned to this vm.
         remaining_buffer_time (int): The remaining buffer time to assign this VM.
     """
 
-    def __init__(self, assign: bool, vm_id: int, pm_id: int, remaining_buffer_time: int):
-        self.assign = assign
+    def __init__(self, vm_id: int, remaining_buffer_time: int):
         self.vm_id = vm_id
-        self.pm_id = pm_id
         self.remaining_buffer_time = remaining_buffer_time
+
+
+class PostponeAction(Action):
+    def __init__(self, vm_id: int, remaining_buffer_time: int):
+        super().__init__(vm_id, remaining_buffer_time)
+
+
+class AssignAction(Action):
+    """Assign action object.
+
+    Args:
+        vm_id (int): The VM id.
+        remaining_buffer_time (int): The remaining buffer time to assign this VM.
+        pm_id (int): The physical machine id assigned to the VM.
+    """
+    def __init__(self, vm_id: int, remaining_buffer_time: int, pm_id: int):
+        super().__init__(vm_id, remaining_buffer_time)
+        self.pm_id = pm_id
 
 
 class VmRequirementPayload:

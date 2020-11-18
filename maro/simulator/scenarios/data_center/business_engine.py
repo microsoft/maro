@@ -10,9 +10,10 @@ from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 
-from .common import (Action, DecisionPayload, Latency, PostponeType,
-                     ValidPhysicalMachine, VmFinishedPayload,
-                     VmRequirementPayload)
+from .common import (
+    AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine, VmFinishedPayload,
+    VmRequirementPayload
+)
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -145,8 +146,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             for vm_id in pm.vm_set:
                 vm = self._live_vm[vm_id]
                 total_util_cpu += vm.util_cpu * vm.req_cpu / 100
-            pm.util_cpu = total_util_cpu / pm.cap_cpu * 100
-            pm.update_util_series(self._tick)
+            util_cpu = total_util_cpu / pm.cap_cpu * 100
+            pm.update_util(tick=self._tick, util_cpu=util_cpu)
             self._energy_consumption += self._cpu_util_to_energy_consumption(pm.util_cpu)
 
     def _cpu_util_to_energy_consumption(self, cpu_util: float) -> float:
@@ -258,7 +259,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         pm: PhysicalMachine = self._machines[vm.pm_id]
         pm.req_cpu -= vm.req_cpu
         pm.req_mem -= vm.req_mem
-        pm.util_cpu = (pm.cap_cpu * pm.util_cpu - vm.req_cpu * vm.util_cpu) / pm.cap_cpu
+        # Calculate the PM's utilization.
+        pm_util_cpu = (pm.cap_cpu * pm.util_cpu - vm.req_cpu * vm.util_cpu) / pm.cap_cpu
+        pm.update_util(tick=evt.tick, util_cpu=pm_util_cpu)
         pm.remove_vm(vm_id)
 
         # Remove dead VM.
@@ -270,18 +273,15 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
     def _on_action_received(self, evt: CascadeEvent):
         """Callback wen we get an action from agent."""
         cur_tick: int = evt.tick
-
-        action: Action = evt.payload
+        action = evt.payload
         vm_id: int = action.vm_id
-        assign: bool = action.assign
 
         if vm_id not in self._pending_vm_req_payload:
-            print("The VM id sent by agent is invalid.")
+            raise Exception(f"The VM id sent by agent is invalid.")
 
-        vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_req
-
-        if assign:
+        if type(action) == AssignAction:
             pm_id = action.pm_id
+            vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_req
             lifetime = vm.lifetime
 
             # Update VM information.
@@ -307,12 +307,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.add_vm(vm.vm_id)
             pm.req_cpu += vm.req_cpu
             pm.req_mem += vm.req_mem
-            pm.util_cpu = (pm.cap_cpu * pm.util_cpu + vm.req_cpu * vm.util_cpu) / pm.cap_cpu
-        else:
+            # Calculate the PM's utilization.
+            pm_util_cpu = (pm.cap_cpu * pm.util_cpu + vm.req_cpu * vm.util_cpu) / pm.cap_cpu
+            pm.update_util(tick=cur_tick, util_cpu=pm_util_cpu)
+        elif type(action) == PostponeAction:
             remaining_buffer_time = action.remaining_buffer_time
             # Either postpone the requirement event or failed.
             self._postpone_vm_requirement(
                 postpone_type=PostponeType.Agent,
-                vm_id=vm.vm_id,
+                vm_id=vm_id,
                 remaining_buffer_time=remaining_buffer_time
             )
