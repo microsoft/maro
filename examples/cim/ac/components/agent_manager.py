@@ -46,7 +46,7 @@ def create_ac_agents(agent_id_list, config):
             LearningModel(actor_module, critic_module),
             config=ActorCriticConfig(
                 critic_loss_func=nn.functional.smooth_l1_loss,
-                **config.algorithm.hyper_parameters,
+                **config.algorithm.config,
             )
         )
 
