@@ -13,7 +13,7 @@ from maro.rl import (
 from maro.utils import Logger, convert_dottable
 
 from components.action_shaper import CIMActionShaper
-from components.agent_manager import create_ac_agents, ACAgentManager
+from components.agent_manager import create_po_agents, POAgentManager
 from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
@@ -35,10 +35,10 @@ def launch(config):
     experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
 
     # Step 3: create an agent manager.
-    agent_manager = ACAgentManager(
+    agent_manager = POAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_ac_agents(agent_id_list, config.agents),
+        agent_dict=create_po_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,

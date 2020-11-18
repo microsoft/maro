@@ -3,21 +3,23 @@
 
 import os
 
-from maro.rl import ActorProxy, AgentManagerMode, merge_experiences_with_trajectory_boundaries, SimpleLearner
+from maro.rl import ActorProxy, AgentManagerMode, SimpleLearner, merge_experiences_with_trajectory_boundaries
 from maro.simulator import Env
-from maro.utils import Logger
+from maro.utils import Logger, convert_dottable
 
-from components.agent_manager import create_pg_agents, PGAgentManager
-from components.config import config
+from components.agent_manager import create_po_agents, POAgentManager
+from components.config import set_input_dim
 
 
-if __name__ == "__main__":
+def launch(config):
+    set_input_dim(config)
+    config = convert_dottable(config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    agent_manager = PGAgentManager(
+    agent_manager = POAgentManager(
         name="cim_remote_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_pg_agents(agent_id_list, config.agents),
+        agent_dict=create_po_agents(agent_id_list, config.agents)
     )
 
     proxy_params = {
@@ -37,3 +39,9 @@ if __name__ == "__main__":
     learner.learn(max_episode=config.main_loop.max_episode)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
+    learner.exit()
+
+
+if __name__ == "__main__":
+    from components.config import config
+    launch(config)

@@ -18,7 +18,7 @@ def set_input_dim(config):
     num_vessel_attributes = len(config["state_shaping"]["vessel_attributes"])
 
     input_dim = (look_back + 1) * (max_ports_downstream + 1) * num_port_attributes + num_vessel_attributes
-    config["agents"]["algorithm"]["input_dim"] = input_dim
+    config["agents"]["input_dim"] = input_dim
 
     return config
 

@@ -9,8 +9,8 @@ main_loop:
     last_k: 10
     perf_threshold: 0.9   # minimum performance (fulfillment ratio) required to trigger early stopping
     perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
-                                   # over the last k episodes (where perf is short for performance). This value must
-                                   # be below this threshold to trigger early stopping
+    # over the last k episodes (where perf is short for performance). This value must
+    # be below this threshold to trigger early stopping
 state_shaping:
   look_back: 7
   max_ports_downstream: 2
@@ -32,21 +32,44 @@ experience_shaping:
   shortage_factor: 1.0
   time_decay_factor: 0.97
 agents:
-  algorithm:
-    reward_decay: .0
-    num_actions: 21
-    policy_model:
-      hidden_dims:
-        - 256
-        - 128
-        - 64
-      softmax_enabled: true
-      batch_norm_enabled: false
-    optimizer:
-      lr: 0.001
   seed: 1024   # for reproducibility
+  num_actions: 21
+  algorithm: "actor_critic"  # "actor_critic", "policy_gradient" or "ppo"
+  actor_model:
+    hidden_dims:
+      - 256
+      - 128
+      - 64
+    softmax_enabled: true
+    batch_norm_enabled: false
+  critic_model:
+    hidden_dims:
+      - 256
+      - 128
+      - 64
+    softmax_enabled: false
+    batch_norm_enabled: true
+  actor_optimizer:
+    lr: 0.001
+  critic_optimizer:
+    lr: 0.001
+  actor_critic:
+    reward_decay: .0
+    actor_train_iters: 1
+    critic_train_iters: 10
+    k: 1
+    lam: 0.0
+  policy_gradient:
+    reward_decay: .0
+  ppo:
+    reward_decay: .0
+    clip_ratio: 0.8
+    actor_train_iters: 1
+    critic_train_iters: 10
+    k: 1
+    lam: 0.0
 distributed:
-  group_name: "pg_distributed_test"
+  group_name: "ac_distributed_test"
   actor:
     peer: {"actor": 1}
   learner:
