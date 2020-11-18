@@ -26,15 +26,15 @@ class PPOConfig:
         reward_decay (float): Reward decay as defined in standard RL terminology.
         critic_loss_func (Callable): Critic loss function.
         clip_ratio (float): Clip ratio as defined in PPO's objective function.
-        policy_train_iters (int): Number of gradient descent steps for the policy model per call to ``train``.
-        value_train_iters (int): Number of gradient descent steps for the value model per call to ``train``.
+        actor_train_iters (int): Number of gradient descent steps for the policy model per call to ``train``.
+        critic_train_iters (int): Number of gradient descent steps for the value model per call to ``train``.
         k (int): Number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
         lam (float): Lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
     """
     __slots__ = [
-        "reward_decay", "critic_loss_func", "clip_ratio", "policy_train_iters", "value_train_iters", "k", "lam"
+        "reward_decay", "critic_loss_func", "clip_ratio", "actor_train_iters", "critic_train_iters", "k", "lam"
     ]
 
     def __init__(
@@ -42,16 +42,16 @@ class PPOConfig:
         reward_decay: float,
         critic_loss_func: Callable,
         clip_ratio: float,
-        policy_train_iters: int,
-        value_train_iters: int,
+        actor_train_iters: int,
+        critic_train_iters: int,
         k: int = -1,
         lam: float = 1.0
     ):
         self.reward_decay = reward_decay
         self.critic_loss_func = critic_loss_func
         self.clip_ratio = clip_ratio
-        self.policy_train_iters = policy_train_iters
-        self.value_train_iters = value_train_iters
+        self.actor_train_iters = actor_train_iters
+        self.critic_train_iters = critic_train_iters
         self.k = k
         self.lam = lam
 
