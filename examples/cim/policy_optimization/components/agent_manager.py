@@ -25,7 +25,6 @@ def create_po_agents(agent_id_list, config):
     }
     input_dim, num_actions = config.input_dim, config.num_actions
     set_seeds(config.seed)
-    config = config[config.algorithm]
     algorithm_cls, algorithm_config = algorithm_map[config.algorithm]
     agent_dict = {}
     for agent_id in agent_id_list:
@@ -56,10 +55,10 @@ def create_po_agents(agent_id_list, config):
 
             algorithm = algorithm_cls(
                 LearningModel(actor_module, critic_module),
-                algorithm_config(critic_loss_func=nn.functional.smooth_l1_loss, **config.config)
+                algorithm_config(critic_loss_func=nn.functional.smooth_l1_loss, **config[config.algorithm])
             )
         else:
-            algorithm = algorithm_cls(LearningModel(actor_module), algorithm_config(**config.config))
+            algorithm = algorithm_cls(LearningModel(actor_module), algorithm_config(**config[config.algorithm]))
 
         agent_dict[agent_id] = POAgent(name=agent_id, algorithm=algorithm)
 
