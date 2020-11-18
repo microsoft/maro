@@ -37,7 +37,8 @@ MARO is newborn for Reinforcement learning as a Service (RaaS) in the resource o
   pip install editorconfig-checker
 
   # Lint with editorconfig-checker.
-  editorconfig-checker --config .editorconfig ./
+  # PATH: Directory or file path of your changes.
+  editorconfig-checker --config .editorconfig PATH
 
   ```
 
