@@ -14,8 +14,10 @@ scenario_map["data_center"] = DataCenterProcess
 
 
 def generate(scenario: str, topology: str = "", forced: bool = False, **kwargs):
-    logger.info_green(f"Generating data files for scenario {scenario} topology {topology}"
-                      f" {'forced redownload.' if forced else ', not forced redownload.'}")
+    logger.info_green(
+        f"Generating data files for scenario {scenario} topology {topology}"
+        f" {'forced redownload.' if forced else ', not forced redownload.'}"
+    )
     if scenario in scenario_map:
         process = scenario_map[scenario]()
         if topology in process.topologies:
