@@ -79,7 +79,6 @@ class ActorCritic(AbsAlgorithm):
             reward_sequence, state_values, self._config.reward_decay, self._config.lam,
             k=self._config.k
         )
-        return_est = torch.from_numpy(return_est)
         return state_values, return_est
 
     @preprocess
