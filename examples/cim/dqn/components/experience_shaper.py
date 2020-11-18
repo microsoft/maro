@@ -40,8 +40,10 @@ class TruncatedExperienceShaper(ExperienceShaper):
         # calculate tc reward
         future_fulfillment = snapshot_list["ports"][ticks::"fulfillment"]
         future_shortage = snapshot_list["ports"][ticks::"shortage"]
-        decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
-                      for _ in range(future_fulfillment.shape[0] // (end_tick - start_tick))]
+        decay_list = [
+            self._time_decay_factor ** i for i in range(end_tick - start_tick)
+            for _ in range(future_fulfillment.shape[0] // (end_tick - start_tick))
+        ]
 
         tot_fulfillment = np.dot(future_fulfillment, decay_list)
         tot_shortage = np.dot(future_shortage, decay_list)

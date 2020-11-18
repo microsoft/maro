@@ -29,10 +29,11 @@ if __name__ == "__main__":
             **config.experience_shaping.k_step
         )
 
-    exploration_config = {"epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
-                          "split_point_dict": {"_all_": config.exploration.split_point},
-                          "with_cache": config.exploration.with_cache
-                          }
+    exploration_config = {
+        "epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
+        "split_point_dict": {"_all_": config.exploration.split_point},
+        "with_cache": config.exploration.with_cache
+    }
     explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
 
     # Step 3: create an agent manager.

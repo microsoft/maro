@@ -12,5 +12,5 @@ __all__ = [
     "DQNAgentManager",
     "config",
     "TruncatedExperienceShaper",
-    "CIMStateShaper",
+    "CIMStateShaper"
 ]
