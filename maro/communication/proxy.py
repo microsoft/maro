@@ -96,13 +96,29 @@ class Proxy:
         else:
             unique_id = str(uuid.uuid1()).replace("-", "")
             self._name = f"{self._component_type}_proxy_{unique_id}"
-        self._driver_type = driver_type
-        self._driver_parameters = driver_parameters
         self._max_retries = max_retries
         self._retry_interval_base_value = retry_interval_base_value
         self._log_enable = log_enable
         self._logger = InternalLogger(component_name=self._name) if self._log_enable else DummyLogger()
-        self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1])
+
+        # TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.
+        # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.
+        # Initial driver
+        if driver_type == DriverType.ZMQ:
+            self._driver = ZmqDriver(
+                component_type=self._component_type, **driver_parameters, logger=self._logger
+            ) if driver_parameters else ZmqDriver(component_type=self._component_type, logger=self._logger)
+        else:
+            self._logger.error(f"Unsupported driver type {driver_type}, please use DriverType class.")
+            sys.exit(NON_RESTART_EXIT_CODE)
+
+        # Initial Redis
+        self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1], socket_keepalive=True)
+        try:
+            self._redis_connection.ping()
+        except Exception as e:
+            self._logger.error(f"{self._name} failure to connect to redis server due to {e}")
+            sys.exit(NON_RESTART_EXIT_CODE)
 
         # Record the peer's redis information.
         self._peers_info_dict = {}
@@ -192,21 +208,7 @@ class Proxy:
                     table (Dict[]): The key of table is the peer's name,
                                     the value of table is the peer's socket address.
         """
-        if self._driver_type == DriverType.ZMQ:
-            self._driver = ZmqDriver(
-                component_type=self._component_type, **self._driver_parameters, logger=self._logger
-            ) if self._driver_parameters else ZmqDriver(component_type=self._component_type, logger=self._logger)
-        else:
-            self._logger.error(f"Unsupported driver type {self._driver_type}, please use DriverType class.")
-            sys.exit(NON_RESTART_EXIT_CODE)
-
-        driver_address = self._driver.address
-        # Temporary pass
-        try:
-            self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(driver_address))
-        except Exception as e:
-            self._logger.error(f"{self._name} failure to connect to redis server due to {e}")
-            sys.exit(NON_RESTART_EXIT_CODE)
+        self._redis_connection.hset(self._redis_hash_name, self._name, json.dumps(self._driver.address))
 
         # Handle interrupt signal for clearing Redis record.
         try:
