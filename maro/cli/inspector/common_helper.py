@@ -1,10 +1,10 @@
 import math
 
-import altair as alt
 import numpy as np
 import pandas as pd
-import streamlit as st
 
+import altair as alt
+import streamlit as st
 from maro.cli.inspector.common_params import (CIMItemOption, CITIBIKEOption,
                                               GlobalScenarios)
 

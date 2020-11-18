@@ -1,12 +1,12 @@
 import math
 import os
 
-import altair as alt
 import numpy as np
 import pandas as pd
-import streamlit as st
 
+import altair as alt
 import maro.cli.inspector.common_helper as common_helper
+import streamlit as st
 from maro.cli.inspector.common_choice import (CIMIntraViewChoice,
                                               PanelViewChoice)
 from maro.cli.inspector.common_params import CIMItemOption
