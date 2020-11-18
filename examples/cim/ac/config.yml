@@ -54,8 +54,8 @@ agents:
       lr: 0.001
     config:
       reward_decay: .0
-      policy_train_iters: 1
-      value_train_iters: 10
+      actor_train_iters: 1
+      critic_train_iters: 10
       k: 1
       lam: 0.0
   seed: 1024   # for reproducibility
