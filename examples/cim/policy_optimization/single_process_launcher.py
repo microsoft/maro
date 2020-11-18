@@ -31,7 +31,7 @@ def launch(config):
     # Step 2: create state, action and experience shapers. We also need to create an explorer here due to the
     # greedy nature of the DQN algorithm.
     state_shaper = CIMStateShaper(**config.state_shaping)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
+    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.num_actions)))
     experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
 
     # Step 3: create an agent manager.
