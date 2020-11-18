@@ -22,7 +22,7 @@ class SimpleAgentManager(AbsAgentManager):
         agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None,
+        experience_shaper: ExperienceShaper = None
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
