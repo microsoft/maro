@@ -18,6 +18,7 @@ class MessageTag(Enum):
 
 class ActorProxy(object):
     """A simple proxy wrapper for sending roll-out requests to remote actors.
+
     Args:
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
         experience_collecting_func (Callable): A function responsible for collecting experiences from multiple sources.
@@ -30,10 +31,12 @@ class ActorProxy(object):
         self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
     ):
         """Send roll-out requests to remote actors.
+
         This method has exactly the same signature as ``SimpleActor``'s ``roll_out`` method but instead of doing
         the roll-out itself, sends roll-out requests to remote actors and returns the results sent back. The
         ``SimpleLearner`` simply calls the actor's ``roll_out`` method without knowing whether its performed locally
         or remotely.
+
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
                 to perform roll-out.
@@ -41,6 +44,7 @@ class ActorProxy(object):
             done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
                 This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+
         Returns:
             Performance and per-agent experiences from the remote actor.
         """
@@ -71,6 +75,7 @@ class ActorProxy(object):
 
 class ActorWorker(object):
     """A ``AbsActor`` wrapper that accepts roll-out requests and performs roll-out tasks.
+
     Args:
         local_actor: An ``AbsActor`` instance.
         proxy_params: Parameters for instantiating a ``Proxy`` instance.
@@ -83,6 +88,7 @@ class ActorWorker(object):
 
     def on_rollout_request(self, message):
         """Perform local roll-out and send the results back to the request sender.
+
         Args:
             message: Message containing roll-out parameters and options.
         """
@@ -107,6 +113,7 @@ class ActorWorker(object):
 
     def launch(self):
         """Entry point method.
+
         This enters the actor into an infinite loop of listening to requests and handling them according to the
         register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
         """
