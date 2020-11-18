@@ -94,11 +94,11 @@ class ActorCritic(AbsAlgorithm):
             for _ in range(self._config.actor_train_iters):
                 action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
                 actor_loss = -(torch.log(action_prob) * advantages).mean()
-                self._model.step(actor_loss)
+                self._model.learn(actor_loss)
 
             # value model training
             for _ in range(self._config.critic_train_iters):
                 critic_loss = self._config.critic_loss_func(
                     self._model(states, task_name="critic").squeeze(), return_est
                 )
-                self._model.step(critic_loss)
+                self._model.learn(critic_loss)

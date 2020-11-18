@@ -47,4 +47,4 @@ class PolicyGradient(AbsAlgorithm):
         action_distributions = self._model(states)
         action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
         loss = -(torch.log(action_prob) * returns).mean()
-        self._model.step(loss)
+        self._model.learn(loss)

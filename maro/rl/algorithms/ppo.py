@@ -104,9 +104,9 @@ class PPO(AbsAlgorithm):
             ratio = torch.exp(torch.log(action_prob) - log_action_prob_old)
             clipped_ratio = torch.clamp(ratio, 1 - self._config.clip_ratio, 1 + self._config.clip_ratio)
             loss = -(torch.min(ratio * advantages, clipped_ratio * advantages)).mean()
-            self._model.step(loss)
+            self._model.learn(loss)
 
         # value model training
         for _ in range(self._config.value_train_iters):
             loss = self._config.lovalue_loss_func(self._model(states, task_name="critic"), return_est)
-            self._model.step(loss)
+            self._model.learn(loss)
