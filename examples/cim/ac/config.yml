@@ -2,7 +2,7 @@ env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
-general:
+main_loop:
   max_episode: 500
   early_stopping:
     warmup_ep: 50
@@ -31,14 +31,14 @@ experience_shaping:
 agents:
   algorithm:
     num_actions: 21
-    policy_model:
+    actor_model:
       hidden_dims:
         - 256
         - 128
         - 64
       softmax_enabled: true
       batch_norm_enabled: false
-    value_model:
+    critic_model:
       hidden_dims:
         - 256
         - 128
@@ -49,7 +49,7 @@ agents:
       lr: 0.001
     value_optimizer:
       lr: 0.001
-    hyper_parameters:
+    config:
       reward_decay: .0
       policy_train_iters: 1
       value_train_iters: 10

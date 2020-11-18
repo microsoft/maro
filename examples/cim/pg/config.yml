@@ -2,7 +2,7 @@ env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
-general:
+main_loop:
   max_episode: 500
   early_stopping:
     warmup_ep: 50

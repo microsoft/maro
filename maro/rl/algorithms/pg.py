@@ -14,13 +14,11 @@ class PolicyGradientConfig:
     """Configuration for the Policy Gradient (PG) algorithm.
 
     Args:
-        num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
     """
-    __slots__ = ["num_actions", "reward_decay"]
+    __slots__ = ["reward_decay"]
 
-    def __init__(self, num_actions: int, reward_decay: float):
-        self.num_actions = num_actions
+    def __init__(self, reward_decay: float):
         self.reward_decay = reward_decay
 
 
@@ -41,8 +39,8 @@ class PolicyGradient(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
-        action_distribution = self._model(state, is_training=False)  # (num_actions,)
-        return np.random.choice(self._config.num_actions, p=action_distribution)
+        action_distribution = self._model(state, is_training=False).squeeze().numpy()  # (num_actions,)
+        return np.random.choice(len(action_distribution), p=action_distribution)
 
     @preprocess
     def train(self, states: np.ndarray, actions: np.ndarray, returns: np.ndarray):

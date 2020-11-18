@@ -3,8 +3,7 @@
 
 import os
 
-from maro.rl import ActorProxy, AgentManagerMode, merge_experiences_with_trajectory_boundaries, \
-    MaxDeltaEarlyStoppingChecker, SimpleLearner
+from maro.rl import ActorProxy, AgentManagerMode, SimpleLearner, merge_experiences_with_trajectory_boundaries
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
@@ -29,25 +28,15 @@ def launch(config):
         "redis_address": ("localhost", 6379)
     }
 
-    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.threshold
-    )
-
     learner = SimpleLearner(
-        trainable_agents=agent_manager,
+        agent_manager=agent_manager,
         actor=ActorProxy(
             proxy_params=proxy_params,
             experience_collecting_func=merge_experiences_with_trajectory_boundaries
         ),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.train(
-        max_episode=config.general.max_episode,
-        early_stopping_checker=early_stopping_checker,
-        warmup_ep=config.general.early_stopping.warmup_ep,
-        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
-    )
+    learner.learn(max_episode=config.main_loop.max_episode)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
     learner.exit()

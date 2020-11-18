@@ -5,7 +5,10 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from .agent import CIMAgent
-from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, ActorCritic, ActorCriticConfig
+from maro.rl import (
+    ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModel, LearningModule,
+    OptimizerOptions, SimpleAgentManager
+)
 from maro.utils import set_seeds
 
 
@@ -15,30 +18,34 @@ def create_ac_agents(agent_id_list, config):
     agent_dict = {}
 
     for agent_id in agent_id_list:
-        policy_model = LearningModel(
-            decision_layers=FullyConnectedNet(
-                name=f'{agent_id}.policy', input_dim=config.algorithm.input_dim, output_dim=num_actions,
-                activation=nn.Tanh, **config.algorithm.policy_model
-            )
+        actor_module = LearningModule(
+            "actor",
+            [FullyConnectedBlock(
+                input_dim=config.algorithm.input_dim,
+                output_dim=num_actions,
+                activation=nn.Tanh,
+                is_head=True,
+                **config.algorithm.actor_model
+            )],
+            optimizer_options=OptimizerOptions(cls=Adam, params=config.algorithm.optimizer)
         )
 
-        value_model = LearningModel(
-            decision_layers=FullyConnectedNet(
-                name=f'{agent_id}.value', input_dim=config.algorithm.input_dim, output_dim=1,
-                activation=nn.LeakyReLU, **config.algorithm.value_model
-            )
+        critic_module = LearningModule(
+            "critic",
+            [FullyConnectedBlock(
+                input_dim=config.algorithm.input_dim,
+                output_dim=1,
+                activation=nn.LeakyReLU,
+                is_head=True,
+                **config.algorithm.critic_model
+            )],
+            optimizer_options=OptimizerOptions(cls=Adam, params=config.algorithm.optimizer)
         )
 
         algorithm = ActorCritic(
-            policy_model=policy_model,
-            value_model=value_model,
-            value_loss_func=nn.functional.smooth_l1_loss,
-            policy_optimizer_cls=Adam,
-            policy_optimizer_params=config.algorithm.policy_optimizer,
-            value_optimizer_cls=RMSprop,
-            value_optimizer_params=config.algorithm.value_optimizer,
-            hyper_params=ActorCriticConfig(
-                num_actions=num_actions,
+            LearningModel(actor_module, critic_module),
+            config=ActorCriticConfig(
+                critic_loss_func=nn.functional.smooth_l1_loss,
                 **config.algorithm.hyper_parameters,
             )
         )

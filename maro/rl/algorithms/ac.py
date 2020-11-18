@@ -23,7 +23,6 @@ class ActorCriticConfig:
     """Configuration for the Actor-Critic algorithm.
 
     Args:
-        num_actions (int): Number of possible actions
         reward_decay (float): Reward decay as defined in standard RL terminology.
         critic_loss_func (Callable): Loss function for the critic model.
         actor_train_iters (int): Number of gradient descent steps for the policy model per call to ``train``.
@@ -34,12 +33,11 @@ class ActorCriticConfig:
             k-step return is computed.
     """
     __slots__ = [
-        "num_actions", "reward_decay", "critic_loss_func", "actor_train_iters", "critic_train_iters", "k", "lam"
+        "reward_decay", "critic_loss_func", "actor_train_iters", "critic_train_iters", "k", "lam"
     ]
 
     def __init__(
         self,
-        num_actions: int,
         reward_decay: float,
         critic_loss_func: Callable,
         actor_train_iters: int,
@@ -47,7 +45,6 @@ class ActorCriticConfig:
         k: int = -1,
         lam: float = 1.0
     ):
-        self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.critic_loss_func = critic_loss_func
         self.actor_train_iters = actor_train_iters
@@ -73,8 +70,8 @@ class ActorCritic(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
-        action_dist = self._model(state, task_name="actor", is_training=False).squeeze().numpy()  # (num_actions,)
-        return np.random.choice(self._config.num_actions, p=action_dist)
+        action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
+        return np.random.choice(len(action_distribution), p=action_distribution)
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
         state_values = self._model(state_sequence, task_name="critic").detach().squeeze()

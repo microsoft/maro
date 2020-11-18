@@ -34,8 +34,7 @@ def create_dqn_agents(agent_id_list, config):
             model=LearningModel(q_module),
             config=DQNConfig(
                 **config.algorithm.config,
-                loss_cls=nn.SmoothL1Loss,
-                num_actions=num_actions
+                loss_cls=nn.SmoothL1Loss
             )
         )
 

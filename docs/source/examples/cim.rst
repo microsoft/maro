@@ -182,7 +182,7 @@ policies.
                           "split_point_dict": {"_all_": config.exploration.split_point},
                           "with_cache": config.exploration.with_cache
                           }
-    explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
+    explorer = TwoPhaseLinearExplorer(agent_id_list, config.main_loop.total_training_episodes, **exploration_config)
 
     agent_manager = DQNAgentManager(name="cim_learner",
                                     mode=AgentMode.TRAIN_INFERENCE,
@@ -196,7 +196,7 @@ policies.
     learner = SimpleLearner(trainable_agents=agent_manager, actor=actor,
                             logger=Logger("single_host_cim_learner", auto_timestamp=False))
 
-    learner.learn(total_episodes=config.general.total_training_episodes)
+    learner.learn(total_episodes=config.main_loop.total_training_episodes)
 
 
 Main Loop with Actor and Learner (Distributed / Multi-process)
@@ -251,5 +251,5 @@ inside.
     learner = SimpleLearner(trainable_agents=agent_manager,
                             actor=ActorProxy(proxy_params=proxy_params),
                             logger=Logger("distributed_cim_learner", auto_timestamp=False))
-    learner.learn(total_episodes=config.general.total_training_episodes)
+    learner.learn(total_episodes=config.main_loop.total_training_episodes)
 

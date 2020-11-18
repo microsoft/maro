@@ -23,7 +23,6 @@ class PPOConfig:
     """Configuration for the Proximal Policy Optimization (PPO) algorithm.
 
     Args:
-        num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
         critic_loss_func (Callable): Critic loss function.
         clip_ratio (float): Clip ratio as defined in PPO's objective function.
@@ -35,13 +34,11 @@ class PPOConfig:
             k-step return is computed.
     """
     __slots__ = [
-        "num_actions", "reward_decay", "critic_loss_func", "clip_ratio", "policy_train_iters", "value_train_iters",
-        "k", "lam"
+        "reward_decay", "critic_loss_func", "clip_ratio", "policy_train_iters", "value_train_iters", "k", "lam"
     ]
 
     def __init__(
         self,
-        num_actions: int,
         reward_decay: float,
         critic_loss_func: Callable,
         clip_ratio: float,
@@ -50,7 +47,6 @@ class PPOConfig:
         k: int = -1,
         lam: float = 1.0
     ):
-        self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.critic_loss_func = critic_loss_func
         self.clip_ratio = clip_ratio
@@ -79,11 +75,8 @@ class PPO(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
-        state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
-        self._model.eval()
-        with torch.no_grad():
-            action_dist = self._model(state, task_name="actor").squeeze().numpy()  # (num_actions,)
-        return np.random.choice(self._config.num_actions, p=action_dist)
+        action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
+        return np.random.choice(len(action_distribution), p=action_distribution)
 
     def _get_values_and_bootstrapped_returns(self, states: torch.tensor, rewards: np.ndarray):
         state_values = self._model(states, task_name="critic").detach().squeeze()

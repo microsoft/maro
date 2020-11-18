@@ -27,13 +27,13 @@ if __name__ == "__main__":
     }
 
     learner = SimpleLearner(
-        trainable_agents=agent_manager,
+        agent_manager=agent_manager,
         actor=ActorProxy(
             proxy_params=proxy_params,
             experience_collecting_func=merge_experiences_with_trajectory_boundaries
         ),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.max_episode)
+    learner.learn(max_episode=config.main_loop.max_episode)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))

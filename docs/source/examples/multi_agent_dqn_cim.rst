@@ -198,8 +198,8 @@ policies.
     )
 
     early_stopping_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.threshold
+        last_k=config.main_loop.early_stopping.last_k,
+        threshold=config.main_loop.early_stopping.threshold
     )
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
@@ -209,9 +209,9 @@ policies.
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
     learner.learn(
-        max_episode=config.general.max_episode,
+        max_episode=config.main_loop.max_episode,
         early_stopping_checker=early_stopping_checker,
-        warmup_ep=config.general.early_stopping.warmup_ep,
+        warmup_ep=config.main_loop.early_stopping.warmup_ep,
         early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )
 
@@ -273,8 +273,8 @@ inside.
     }
 
     early_stopping_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.threshold
+        last_k=config.main_loop.early_stopping.last_k,
+        threshold=config.main_loop.early_stopping.threshold
     )
 
     learner = SimpleLearner(
@@ -284,9 +284,9 @@ inside.
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
     learner.learn(
-        max_episode=config.general.max_episode,
+        max_episode=config.main_loop.max_episode,
         early_stopping_checker=early_stopping_checker,
-        warmup_ep=config.general.early_stopping.warmup_ep,
+        warmup_ep=config.main_loop.early_stopping.warmup_ep,
         early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )
 

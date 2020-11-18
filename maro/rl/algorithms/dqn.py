@@ -20,7 +20,6 @@ class DQNConfig:
     """Configuration for the DQN algorithm.
 
     Args:
-        num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
         loss_cls: Loss function class for evaluating TD errors.
         target_update_frequency (int): Number of training rounds between target model updates.
@@ -34,7 +33,7 @@ class DQNConfig:
             method. Defaults to False.
     """
     __slots__ = [
-        "num_actions", "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",
+        "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",
         "advantage_mode", "per_sample_td_error_enabled"
     ]
 
@@ -49,7 +48,6 @@ class DQNConfig:
         advantage_mode: str = None,
         per_sample_td_error_enabled: bool = False
     ):
-        self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.target_update_frequency = target_update_frequency
         self.tau = tau

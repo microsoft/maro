@@ -39,7 +39,7 @@ def launch(config):
         "redis_address": ("localhost", 6379)
     }
     actor_worker = ActorWorker(
-        local_actor=SimpleActor(env=env, inference_agents=agent_manager),
+        local_actor=SimpleActor(env=env, agent_manager=agent_manager),
         proxy_params=proxy_params
     )
     actor_worker.launch()
