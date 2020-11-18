@@ -34,7 +34,4 @@ flake8
 PuLP=2.1
 streamlit==0.69.1
 altair==4.1.0
-deepdiff==5.0.2
 tqdm==4.51.0
-requests==2.24.0
-setuptools==50.3.0

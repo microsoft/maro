@@ -58,7 +58,7 @@ def render_h3_title(content: str):
     st.markdown(html_title, unsafe_allow_html=True)
 
 
-def holder_sample_ratio(snapshot_num: int):
+def get_holder_sample_ratio(snapshot_num: int):
     """Get sample data of holders.
     Condition: 1 must be included.
     Args:
@@ -73,24 +73,31 @@ def holder_sample_ratio(snapshot_num: int):
     if 1 not in sample_ratio:
         sample_ratio.append(1)
 
+    print ("holder")
+    print (snapshot_num)
+    print (sample_ratio)
+
     return sample_ratio
 
 
-def get_snapshot_sample(snapshot_num: int, snapshot_sample_num: int):
+def get_snapshot_sample_num(snapshot_num: int, snapshot_sample_num: float):
     """Get sample data of snapshot.
     Condition: 0 & 1 must be included.
     Args:
         snapshot_num (int): Number of snapshots.
-        snapshot_sample_num (int): Expected number of sample data.
+        snapshot_sample_num (float): Expected number of sample data.
 
     Returns:
         list: snapshot sample data.
     """
+    print ("get_snapshot-sample")
     down_pooling = list(range(1, snapshot_num, math.floor(1 / snapshot_sample_num)))
     down_pooling.insert(0, 0)
     if snapshot_num - 1 not in down_pooling:
         down_pooling.append(snapshot_num - 1)
-
+    print (snapshot_num)
+    print (snapshot_sample_num)
+    print (down_pooling)
     return down_pooling
 
 
@@ -105,179 +112,16 @@ def get_filtered_formula_and_data(scenario: enumerate, data: pd.DataFrame, optio
     Returns:
         dict: calculated data, options.
     """
-    data_genera = formula_define(data)
-    if data_genera is not None:
-        data = data_genera["data"]
-        option_candidates.append(data_genera["name"])
+    data_generate = _formula_define(data)
+    if data_generate is not None:
+        data = data_generate["data"]
+        option_candidates.append(data_generate["name"])
 
     item_option = st.multiselect(
         " ", option_candidates, option_candidates)
-    item_option = get_item_option(scenario, item_option, option_candidates)
+    item_option = _get_item_option(scenario, item_option, option_candidates)
 
     return {"data": data, "item_option": item_option}
-
-
-def get_item_option(scenario: enumerate, item_option: list, option_candidates: list) -> list:
-    """Convert selected CITI_BIKE option into column.
-
-    Args:
-        scenario (enumerate): Scenario name.
-        item_option (list): User selected option list.
-        option_candidates (list): Pre-defined option list.
-
-    Returns:
-        list: translated users" option.
-    """
-    item_option_res = []
-    if scenario == GlobalScenarios.CITI_BIKE:
-        for item in item_option:
-            if item == "All":
-                option_candidates.remove("All")
-                option_candidates.remove("Requirement Info")
-                option_candidates.remove("Station Info")
-                item_option_res = option_candidates
-                break
-            elif item == "Requirement Info":
-                item_option_res = item_option_res + CITIBIKEOption.requirement_info
-            elif item == "Station Info":
-                item_option_res = item_option_res + CITIBIKEOption.station_info
-            else:
-                item_option_res.append(item)
-        return item_option_res
-
-    if scenario == GlobalScenarios.CIM:
-        for item in item_option:
-            if item == "All":
-                option_candidates.remove("All")
-                option_candidates.remove("Booking Info")
-                option_candidates.remove("Port Info")
-                item_option_res = option_candidates
-                break
-            elif item == "Booking Info":
-                item_option_res = item_option_res + CIMItemOption.booking_info
-            elif item == "Port Info":
-                item_option_res = item_option_res + CIMItemOption.port_info
-            else:
-                item_option_res.append(item)
-        return item_option_res
-
-
-def formula_define(data_origin: pd.DataFrame) -> dict:
-    """Define formula and get output
-    Args:
-        data_origin (dataframe): Data to be calculated.
-
-    Returns:
-        dict: formula name & formula output
-    """
-    st.sidebar.markdown("***")
-    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "sqrt(a)"])
-    paras = st.sidebar.text_input("parameters separated by ;")
-    res = paras.split(";")
-
-    if formula_select == "a+b":
-        if not judge_data_length(res, 2):
-            return
-        else:
-            data_right = judge_append_data(data_origin.head(0), res)
-            if data_right:
-                data_origin[f"{res[0]}+{res[1]}"] = list(
-                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
-            else:
-                return
-        data = {"data": data_origin, "name": f"{res[0]}+{res[1]}"}
-        return data
-
-    if formula_select == "a-b":
-        if not judge_data_length(res, 2):
-            return
-        else:
-            data_right = judge_append_data(data_origin.head(0), res)
-            if data_right:
-                data_origin[f"{res[0]}-{res[1]}"] = list(
-                    map(lambda x, y: x - y, data_origin[res[0]], data_origin[res[1]]))
-            else:
-                return
-        data = {"data": data_origin, "name": f"{res[0]}-{res[1]}"}
-        return data
-
-    if formula_select == "a*b":
-        if not judge_data_length(res, 2):
-            return
-        else:
-            data_right = judge_append_data(data_origin.head(0), res)
-            if data_right:
-                data_origin[f"{res[0]}*{res[1]}"] = list(
-                    map(lambda x, y: x * y, data_origin[res[0]], data_origin[res[1]]))
-            else:
-                return
-        data = {"data": data_origin, "name": f"{res[0]}*{res[1]}"}
-        return data
-
-    if formula_select == "a/b":
-        if not judge_data_length(res, 2):
-            return
-        else:
-            data_right = judge_append_data(data_origin.head(0), res)
-            if data_right:
-                data_origin[f"{res[0]}/{res[1]}"] = list(
-                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
-            else:
-                return
-        data = {"data": data_origin, "name": f"{res[0]}/{res[1]}"}
-        return data
-
-    if formula_select == "sqrt(a)":
-        if not judge_data_length(res, 1):
-            return
-        else:
-            data_right = judge_append_data(data_origin.head(0), res)
-            if data_right:
-                data_origin[f"sqrt({res[0]})"] = list(
-                    map(lambda x: math.sqrt(x),
-                        data_origin[res[0]]))
-            else:
-                return
-        data = {"data": data_origin, "name": f"sqrt({res[0]})"}
-        return data
-
-
-def judge_data_length(res: list, formula_length) -> bool:
-    """ Judge whether the length of input data meet the requirements
-
-    Args:
-        res (list): Input data.
-        formula_length (int): Supposed length of data list.
-
-    Returns:
-        bool: whether the length of data meet the requirements.
-    """
-    if len(res) == 0 or res[0] == "":
-        return False
-    elif len(res) != formula_length:
-        st.warning("input parameter number wrong")
-        return False
-    return True
-
-
-def judge_append_data(data_head: list, res: list) -> bool:
-    """Judge whether input is feasible to selected formula.
-
-    Args:
-        data_head (list): Column list of origin data.
-        res (list): Column names texted by user.
-
-    Returns:
-        bool: Whether the column list texted by user is reasonable or not.
-
-    """
-    data_right = True
-    for item in res:
-        if item not in data_head:
-            data_right = False
-            st.warning(f"parameter name:{item} not exist")
-
-    return data_right
 
 
 @st.cache(allow_output_mutation=True)
@@ -329,3 +173,166 @@ def generate_by_snapshot_top_summary(attr_name: str, data: pd.DataFrame, top_num
         text=attribute + ":Q"
     )
     st.altair_chart(bars + text)
+
+
+def _get_item_option(scenario: enumerate, item_option: list, option_candidates: list) -> list:
+    """Convert selected CITI_BIKE option into column.
+
+    Args:
+        scenario (enumerate): Scenario name.
+        item_option (list): User selected option list.
+        option_candidates (list): Pre-defined option list.
+
+    Returns:
+        list: translated users" option.
+    """
+    item_option_res = []
+    if scenario == GlobalScenarios.CITI_BIKE:
+        for item in item_option:
+            if item == "All":
+                option_candidates.remove("All")
+                option_candidates.remove("Requirement Info")
+                option_candidates.remove("Station Info")
+                item_option_res = option_candidates
+                break
+            elif item == "Requirement Info":
+                item_option_res = item_option_res + CITIBIKEOption.requirement_info
+            elif item == "Station Info":
+                item_option_res = item_option_res + CITIBIKEOption.station_info
+            else:
+                item_option_res.append(item)
+        return item_option_res
+
+    if scenario == GlobalScenarios.CIM:
+        for item in item_option:
+            if item == "All":
+                option_candidates.remove("All")
+                option_candidates.remove("Booking Info")
+                option_candidates.remove("Port Info")
+                item_option_res = option_candidates
+                break
+            elif item == "Booking Info":
+                item_option_res = item_option_res + CIMItemOption.booking_info
+            elif item == "Port Info":
+                item_option_res = item_option_res + CIMItemOption.port_info
+            else:
+                item_option_res.append(item)
+        return item_option_res
+
+
+def _formula_define(data_origin: pd.DataFrame) -> dict:
+    """Define formula and get output
+    Args:
+        data_origin (dataframe): Data to be calculated.
+
+    Returns:
+        dict: formula name & formula output
+    """
+    st.sidebar.markdown("***")
+    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "sqrt(a)"])
+    paras = st.sidebar.text_input("parameters separated by ;")
+    res = paras.split(";")
+
+    if formula_select == "a+b":
+        if not _judge_data_length(res, 2):
+            return
+        else:
+            data_right = _judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}+{res[1]}"] = list(
+                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data": data_origin, "name": f"{res[0]}+{res[1]}"}
+        return data
+
+    if formula_select == "a-b":
+        if not _judge_data_length(res, 2):
+            return
+        else:
+            data_right = _judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}-{res[1]}"] = list(
+                    map(lambda x, y: x - y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data": data_origin, "name": f"{res[0]}-{res[1]}"}
+        return data
+
+    if formula_select == "a*b":
+        if not _judge_data_length(res, 2):
+            return
+        else:
+            data_right = _judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}*{res[1]}"] = list(
+                    map(lambda x, y: x * y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data": data_origin, "name": f"{res[0]}*{res[1]}"}
+        return data
+
+    if formula_select == "a/b":
+        if not _judge_data_length(res, 2):
+            return
+        else:
+            data_right = _judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"{res[0]}/{res[1]}"] = list(
+                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
+            else:
+                return
+        data = {"data": data_origin, "name": f"{res[0]}/{res[1]}"}
+        return data
+
+    if formula_select == "sqrt(a)":
+        if not _judge_data_length(res, 1):
+            return
+        else:
+            data_right = _judge_append_data(data_origin.head(0), res)
+            if data_right:
+                data_origin[f"sqrt({res[0]})"] = list(
+                    map(lambda x: math.sqrt(x),
+                        data_origin[res[0]]))
+            else:
+                return
+        data = {"data": data_origin, "name": f"sqrt({res[0]})"}
+        return data
+
+
+def _judge_data_length(res: list, formula_length: int) -> bool:
+    """ Judge whether the length of input data meet the requirements
+
+    Args:
+        res (list): Input data.
+        formula_length (int): Supposed length of data list.
+
+    Returns:
+        bool: whether the length of data meet the requirements.
+    """
+    if len(res) == 0 or res[0] == "":
+        return False
+    elif len(res) != formula_length:
+        st.warning("input parameter number wrong")
+        return False
+    return True
+
+
+def _judge_append_data(data_head: list, res: list) -> bool:
+    """Judge whether input is feasible to selected formula.
+
+    Args:
+        data_head (list): Column list of origin data.
+        res (list): Column names texted by user.
+
+    Returns:
+        bool: Whether the column list texted by user is reasonable or not.
+
+    """
+    data_right = True
+    for item in res:
+        if item not in data_head:
+            data_right = False
+            st.warning(f"parameter name:{item} not exist")
+
+    return data_right

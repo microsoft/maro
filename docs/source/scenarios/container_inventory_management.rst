@@ -613,13 +613,13 @@ random mode, we hope this could help you learn how to use the environment interf
            ]
            decision_port_idx = decision_event.port_idx
            intr_port_infos = ["booking", "empty", "shortage"]
-    
+
            # Query the snapshot list of this environment to get the information of
            # the booking, empty, shortage of the decision port in the past week.
            past_week_info = env.snapshot_list["ports"][
                past_week_ticks : decision_port_idx : intr_port_infos
            ]
-    
+
            # Generate a random Action according to the action_scope in DecisionEvent.
            random_quantity = random.randint(
                -decision_event.action_scope.load,
@@ -630,7 +630,7 @@ random mode, we hope this could help you learn how to use the environment interf
                port_idx=decision_event.port_idx,
                quantity=random_quantity
            )
-    
+
            # Drive the environment with the random action.
            metrics, decision_event, is_done = env.step(action)
     
@@ -661,8 +661,6 @@ Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
 .. figure:: ..\images\visualization\dashboard\cim_inter_epoch.gif
    :alt: cim\_inter\_epoch
 
-   cim\_inter\_epoch
-
 Intra-view
 ~~~~~~~~~~
 
@@ -680,8 +678,6 @@ Chart characteristics and data selection method please refer to `Citi Bike Examp
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif
    :alt: cim\_intra\_epoch\_by\_ports
-
-   cim\_intra\_epoch\_by\_ports
 
 If user choose to view data by snapshots, attributes of selected
 snapshot would be displayed. The charts and data involved in this part
@@ -706,8 +702,6 @@ ports.
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_acc_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_acc\_data
 
-   cim\_intra\_epoch\_by\_snapshot\_acc\_data
-
 Detail Data
 ```````````
 
@@ -721,6 +715,4 @@ to `Citi Bike Examples <../citi_bike.html>`_
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data
-
-   cim\_intra\_epoch\_by\_snapshot\_detail\_data
 

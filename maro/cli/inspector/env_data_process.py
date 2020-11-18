@@ -59,10 +59,10 @@ def start_vis(source: str, force: str, **kwargs):
 
     if FORCE == "true":
         logger.info("Dashboard Data Processing")
-        get_holder_name_conversion(scenario, source_path, conversion_path)
+        _get_holder_name_conversion(scenario, source_path, conversion_path)
         logger.info_green("[1/2]:Generate Name Conversion File Done.")
         logger.info_green("[2/2]:Generate Summary.")
-        generate_summary(scenario, source_path, prefix)
+        _generate_summary(scenario, source_path, prefix)
         logger.info_green("[2/2]:Generate Summary Done.")
 
     elif FORCE == "false":
@@ -82,7 +82,7 @@ def start_vis(source: str, force: str, **kwargs):
     launch_dashboard(source_path, scenario, epoch_num ,prefix)
 
 
-def init_csv(file_path: str, header: list):
+def _init_csv(file_path: str, header: list):
     """Clean & init summary csv file.
 
     Args:
@@ -96,8 +96,10 @@ def init_csv(file_path: str, header: list):
         writer.writeheader()
 
 
-def summary_append(scenario: enumerate, dir_epoch: str, file_name: str,
-                   header: list, sum_dataframe: pd.DataFrame, i: int, output_path: str):
+def _summary_append(
+        scenario: enumerate, dir_epoch: str,
+        file_name: str, header: list,
+        sum_dataframe: pd.DataFrame, i: int, output_path: str):
     """Calculate summary info and generate corresponding csv file.
     To accelerate, change each column into numpy.array.
 
@@ -123,7 +125,7 @@ def summary_append(scenario: enumerate, dir_epoch: str, file_name: str,
     sum_dataframe.to_csv(output_path, header=True, index=True)
 
 
-def generate_summary(scenario: enumerate, source_path: str, prefix: str):
+def _generate_summary(scenario: enumerate, source_path: str, prefix: str):
     """Generate summary info of current scenario.
     Different scenario has different data features.
     e.g. cim has multiple epochs while citi_bike only has one.
@@ -146,13 +148,13 @@ def generate_summary(scenario: enumerate, source_path: str, prefix: str):
             dbtype_list.append(os.path.join(source_path, f"{prefix}{index}"))
 
     if scenario == GlobalScenarios.CIM:
-        init_csv(os.path.join(source_path, Gfiles.ports_sum), ports_header)
-        # init_csv(vessels_file_path, vessels_header)
+        _init_csv(os.path.join(source_path, Gfiles.ports_sum), ports_header)
+        # _init_csv(vessels_file_path, vessels_header)
         ports_sum_dataframe =\
             pd.read_csv(os.path.join(source_path, Gfiles.ports_sum), names=ports_header)
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
     else:
-        init_csv(os.path.join(source_path, Gfiles.stations_sum), stations_header)
+        _init_csv(os.path.join(source_path, Gfiles.stations_sum), stations_header)
     if scenario == GlobalScenarios.CIM:
         i = 1
         for i in tqdm.tqdm(range(len(dbtype_list))):
@@ -160,10 +162,10 @@ def generate_summary(scenario: enumerate, source_path: str, prefix: str):
             dir_epoch = os.path.join(source_path, dbtype)
             if not os.path.isdir(dir_epoch):
                 continue
-            summary_append(
+            _summary_append(
                 scenario, dir_epoch, "ports.csv", ports_header,
                 ports_sum_dataframe, i, os.path.join(source_path, Gfiles.ports_sum))
-            # summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
+            # _summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
             i = i + 1
     elif scenario == GlobalScenarios.CITI_BIKE:
         data = pd.read_csv(os.path.join(source_path, f"{prefix}0", "stations.csv"))
@@ -174,13 +176,13 @@ def generate_summary(scenario: enumerate, source_path: str, prefix: str):
         data.to_csv(os.path.join(source_path, Gfiles.stations_sum))
 
 
-def get_holder_name_conversion(scenario: enumerate, source_path: str, conversion_path: str):
+def _get_holder_name_conversion(scenario: enumerate, source_path: str, conversion_path: str):
     """ Generate a CSV File which indicates the relationship between index and holder"s name.
 
     Args:
-        scenario(Enum): Current scenario. Different scenario has different type of mapping file.
-        source_path(str): Data folder path.
-        conversion_path(str): Path of origin mapping file.
+        scenario (enumerate): Current scenario. Different scenario has different type of mapping file.
+        source_path (str): Data folder path.
+        conversion_path (str): Path of origin mapping file.
     """
     conversion_path = os.path.join(source_path, conversion_path)
     if os.path.exists(os.path.join(source_path, Gfiles.name_convert)):

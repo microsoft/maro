@@ -7,7 +7,7 @@ class PanelViewChoice(Enum):
 
 
 class CIMIntraViewChoice(Enum):
-    by_port =1
+    by_port = 1
     by_snapshot = 2
 
 

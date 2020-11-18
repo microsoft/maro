@@ -757,7 +757,7 @@ for a quick experience.
 ~~~~~~
 
 Inter-view
-^^^^^^^^^^
+~~~~~~~~~~
 
 For Inter-view, user could view top-k stations with different
 attributes.
@@ -765,10 +765,8 @@ attributes.
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch.gif
    :alt: citi\_bike\_inter\_epoch
 
-    citi\_bike\_inter\_epoch
-
 Intra-view
-^^^^^^^^^^
+~~~~~~~~~~
 
 Intra-view is divided into two dimensions according to time and space.
 
@@ -783,8 +781,6 @@ selected to render the chart.
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_station.gif
    :alt: citi\_bike\_inter\_epoch\_by\_station
 
-   citi\_bike\_inter\_epoch\_by\_station
-
 To be specific, the line chart could be customized with operations in
 the following example.
 
@@ -798,8 +794,6 @@ e.g. In this scenario, item "Requirement Info" refers to
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_station_2.gif
    :alt: citi\_bike\_inter\_epoch\_by\_station\_2
 
-   citi\_bike\_inter\_epoch\_by\_station\_2
-
 Moreover, to improve the flexibility of visualizing data, user could use
 pre-defined formula and selected attributes to generate new attributes.
 Generated attributes would be treated in the same way as origin
@@ -807,8 +801,6 @@ attributes.
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_station_3.gif
    :alt: citi\_bike\_inter\_epoch\_by\_station\_3
-
-   citi\_bike\_inter\_epoch\_by\_station\_3
 
 If user choose to view information by snapshot, it means attributes of
 all holders within a selected snapshot would be displayed. By changing
@@ -823,5 +815,3 @@ Formula calculate please refer to `Citi Bike Examples <#Example#Intra-view>`_
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_snapshot.gif
    :alt: citi\_bike\_inter\_epoch\_by\_snapshot
-
-   citi\_bike\_inter\_epoch\_by\_snapshot

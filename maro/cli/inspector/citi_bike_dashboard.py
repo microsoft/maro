@@ -100,7 +100,7 @@ def _generate_inter_view_by_snapshot(data_stations, name_conversion, option_cand
     # get according data with selected snapshot
     data_filtered = data_stations[data_stations["frame_index"] == snapshot_index]
     # get increasing rate
-    sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
+    sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
     # get sample rate (between 0-1)
     station_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio", sample_ratio)
 
@@ -147,14 +147,14 @@ def _generate_inter_view_by_station(
     common_helper.render_h3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
     # filter data by station index
     data_filtered = data_stations[data_stations["name"] == f"stations_{station_index}"]
-    station_sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
+    station_sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", station_sample_ratio)
     # get formula input & output
     filtered_data = common_helper.get_filtered_formula_and_data(GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
 
     item_option = filtered_data["item_option"].append("frame_index")
     station_filtered = filtered_data["data"][item_option].reset_index(drop=True)
-    down_pooling = common_helper.get_snapshot_sample(snapshot_num, snapshot_sample_num)
+    down_pooling = common_helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
     station_filtered = station_filtered.iloc[down_pooling]
     station_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
     data_display = \

@@ -38,7 +38,7 @@ def render_inter_view(source_path: str, epoch_num: int):
         epoch_num (int): Number of snapshot folders.
     """
     common_helper.render_h1_title("CIM Inter Epoch Data")
-    sample_ratio = common_helper.holder_sample_ratio(epoch_num)
+    sample_ratio = common_helper.get_holder_sample_ratio(epoch_num)
     # get epoch sample num
     down_pooling_range = _get_sampled_epoch_range(epoch_num, sample_ratio)
     option_candidates = CIMItemOption.quick_info + CIMItemOption.port_info + CIMItemOption.booking_info
@@ -146,7 +146,7 @@ def _render_intra_view_by_ports(
     port_index = st.sidebar.select_slider(
         "Choose a Port:",
         ports_index)
-    sample_ratio = common_helper.holder_sample_ratio(snapshot_num)
+    sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
     # accumulated data
     common_helper.render_h1_title("CIM Accumulated Data")
@@ -187,7 +187,7 @@ def _render_intra_view_by_snapshot(
         "snapshot index",
         snapshots_index)
     # get sample ratio
-    sample_ratio = common_helper.holder_sample_ratio(ports_num)
+    sample_ratio = common_helper.get_holder_sample_ratio(ports_num)
     usr_ratio = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
     # acc data
     common_helper.render_h1_title("Accumulated Data")
@@ -210,8 +210,9 @@ def _render_intra_view_by_snapshot(
         ports_num, name_conversion, usr_ratio, filtered_data["item_option"])
 
 
-def _generate_intra_panel_by_ports(info_selector: list, data: object, option_port_name, snapshot_num, snapshot_sample_num,
-                                 item_option=None):
+def _generate_intra_panel_by_ports(info_selector: list,
+                                   data: pd.DataFrame, option_port_name: str,
+                                   snapshot_num: int, snapshot_sample_num: float, item_option: list=None):
     """Generate detail plot.
         View info within different holders(ports,stations,etc) in the same epoch.
         Change snapshot sampling num freely.
@@ -219,16 +220,16 @@ def _generate_intra_panel_by_ports(info_selector: list, data: object, option_por
         info_selector (list): Identifies data at different levels.
                             In this scenario, it is divided into two levels: comprehensive and detail.
                             The list stores the column names that will be extracted at different levels.
-        data (list): Filtered data within selected conditions.
+        data (dataframe): Filtered data within selected conditions.
         option_port_name (str): Condition for filtering the name attribute in the data.
         snapshot_num (int): Number of snapshots
-        snapshot_sample_num (int): Number of sampled snapshots
+        snapshot_sample_num (float): Number of sampled snapshots
         item_option (list): Translated user-select option
     """
     data_acc = data[info_selector]
     # delete parameter:name
     info_selector.pop(0)
-    down_pooling = common_helper.get_snapshot_sample(snapshot_num, snapshot_sample_num)
+    down_pooling = common_helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
     port_filtered = data_acc[data_acc["name"] == option_port_name][info_selector].reset_index(drop=True)
     port_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
 
@@ -330,7 +331,7 @@ def _generate_intra_panel_vessel(data_vessels: pd.DataFrame, snapshot_index: int
     """
     common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
     # Get sampled(and down pooling) index
-    sample_ratio = common_helper.holder_sample_ratio(vessels_num)
+    sample_ratio = common_helper.get_holder_sample_ratio(vessels_num)
     sample_ratio_res = st.sidebar.select_slider("Vessels Sample Ratio:", sample_ratio)
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
 

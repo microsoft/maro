@@ -5,6 +5,30 @@ Env-dashboard is a post-experiment visualization tool, aims to provide
 more intuitive environment information, which will guide the design of
 the algorithm and continually fine-tuning.
 
+Feature List
+------------
+Basically, each scenario has 2 parts of visualization: inter epoch and intra epoch. User could switch between them freely.
+Intra-view
+~~~~~~~~~~
+Comprehensive and specific information by various types of charts like line-chart, bar-chart or heat map could be viewed under this mode.
+
+Inter-view
+~~~~~~~~~~
+Detailed information of holders and selected tick could be viewed under this mode.
+
+
+Epoch/Snapshot/holder Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+User could select the specific index of epoch/snapshot/holder to view information.
+
+Sampling Ratio
+~~~~~~~~~~~~~~
+User could select the sampling ratio of epoch/snapshot/holder by sliding to change the number of data to be displayed.
+
+Formula Calculation
+~~~~~~~~~~~~~~~~~~~
+User could generate their own attributes by using pre-defined formulas.
+
 Dependency
 ----------
 
@@ -12,7 +36,23 @@ Module **streamlit** and **altair** should be pre-installed.
 
 --streamlit: An open-source app framework.
 
+install it with:
+
+.. code-block:: sh
+
+    pip install streamlit
+
+----
+
 --altair: A declarative statistical visualization library.
+
+install it with:
+
+.. code-block:: sh
+
+    pip install altair
+
+----
 
 How to Use?
 -----------
