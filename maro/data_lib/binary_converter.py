@@ -8,7 +8,7 @@ from csv import DictReader
 from dateutil.parser import parse as parse_dt
 from dateutil.tz import UTC, gettz
 
-from maro.data_lib.common import (SINGLE_BIN_FILE_TYPE, VERSION, dtype_convert_map, header_struct)
+from maro.data_lib.common import SINGLE_BIN_FILE_TYPE, VERSION, dtype_convert_map, header_struct
 from maro.data_lib.item_meta import BinaryMeta
 
 
@@ -67,19 +67,15 @@ def convert_val(val: str, dtype: str, tzone):
 
 class BinaryConverter:
     """Convert csv file into binary with specified meta.
-
     The output binary file composed with:
-
     1. header: file type, start/end time etc.
     2. meta: meta content after validation.
     3. items.
-
     Args:
         output_file(str): Output binary file full path.
         meta_file(str): Path to the meta file (yaml).
         utc_start_timestamp(int): Start timestamp in UTC which will be considered as tick 0,
             used to adjust the data reader pipeline.
-
     """
     def __init__(self, output_file: str, meta_file: str, utc_start_timestamp: int = None):
         self._output_fp = None
@@ -115,7 +111,6 @@ class BinaryConverter:
         """Convert specified csv file into current binary file, this converter will not sort the item.
         This method can be called several times to convert multiple csv file into one binary,
         the order will be same as calling sequence.
-
         Args:
             csv_file(str): Csv to convert.
         """

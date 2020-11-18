@@ -12,7 +12,7 @@ from yaml import safe_load
 
 from maro.data_lib import BinaryReader
 
-from .entities import (CimDataCollection, NoisedItem, OrderGenerateMode, PortSetting, RoutePoint, Stop, VesselSetting)
+from .entities import CimDataCollection, NoisedItem, OrderGenerateMode, PortSetting, RoutePoint, Stop, VesselSetting
 
 
 class CimDumpDataLoader:
@@ -20,15 +20,12 @@ class CimDumpDataLoader:
 
     def load(self, dumps_folder: str) -> CimDataCollection:
         """Load data from dump folder
-
         NOTE:
         dumps folder should contains following files.
         ports.csv, vessels.csv, routes.csv, order_proportion.csv,
         global_order_proportion.txt, misc.yml, stops.bin
-
         Args:
             dumps_folders(str): folder that contains dumped files
-
         Returns:
             CimDataCollection: data collection for data container
         """
@@ -233,15 +230,12 @@ class CimDumpDataLoader:
 
 def load_from_folder(source_folder: str) -> CimDataCollection:
     """Load data from dump folder.
-
     NOTE:
         Dumps folder should contains following files:
     ports.csv, vessels.csv, routes.csv, order_proportion.csv,
     global_order_proportion.txt, misc.yml, stops.bin.
-
     Args:
         source_folder(str): Source folder container dumped files.
-
     Returns:
         CimDataCollection: Data collection for cim data container.
     """
