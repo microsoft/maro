@@ -11,7 +11,7 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
-from .utils import preprocess, to_device, validate_task_names
+from .utils import expand_dim, preprocess, to_device, validate_task_names
 
 
 class PPOTask(Enum):
@@ -70,13 +70,15 @@ class PPO(AbsAlgorithm):
             It may or may not have a shared bottom stack.
         config: Configuration for the PPO algorithm.
     """
+    @to_device
     @validate_task_names(PPOTask)
     def __init__(self, model: LearningModel, config: PPOConfig):
         super().__init__(model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model.to(self._device)
 
-    def choose_action(self, state: np.ndarray, epsilon: float = None):
+    @expand_dim
+    def choose_action(self, state: np.ndarray):
         state = torch.from_numpy(state).unsqueeze(0).to(self._device)   # (1, state_dim)
         self._model.eval()
         with torch.no_grad():
@@ -93,6 +95,7 @@ class PPO(AbsAlgorithm):
         return_est = torch.from_numpy(return_est)
         return state_values, return_est
 
+    @preprocess
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):

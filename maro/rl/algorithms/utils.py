@@ -51,4 +51,13 @@ def preprocess(func):
     return wrapper
 
 
+def expand_dim(func):
+    @wraps(func)
+    def wrapper(self, state, **kwargs):
+        if isinstance(state, np.ndarray):
+            state = torch.from_numpy(state).to(device)
+        if len(state.shape) == 1:
+            state = state.unsqueeze(dim=0)
+        return func(self, state, **kwargs)
 
+    return wrapper

@@ -11,7 +11,7 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
-from .utils import preprocess, to_device, validate_task_names
+from .utils import expand_dim, preprocess, to_device, validate_task_names
 
 
 class ActorCriticTask(Enum):
@@ -71,7 +71,7 @@ class ActorCritic(AbsAlgorithm):
     def __init__(self, model: LearningModel, config: ActorCriticConfig):
         super().__init__(model, config)
 
-    @preprocess
+    @expand_dim
     def choose_action(self, state: np.ndarray):
         action_dist = self._model(state, task_name="actor", is_training=False).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._config.num_actions, p=action_dist)
