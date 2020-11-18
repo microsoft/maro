@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.1.0",
+  "contentVersion": "1.0.2.0",
   "parameters": {
     "location": {
       "type": "string"
@@ -43,7 +43,6 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
         "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
       ],
       "properties": {
@@ -88,27 +87,6 @@
               "destinationPortRanges": [],
               "sourceAddressPrefixes": [],
               "destinationAddressPrefixes": []
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[parameters('virtualNetworkName')]",
-      "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-04-01",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/24"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "default",
-            "properties": {
-              "addressPrefix": "10.0.0.0/24"
             }
           }
         ]
@@ -173,11 +151,5 @@
         }
       }
     }
-  ],
-  "outputs": {
-    "adminUsername": {
-      "type": "string",
-      "value": "[parameters('adminUsername')]"
-    }
-  }
+  ]
 }
