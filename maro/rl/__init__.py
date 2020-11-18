@@ -57,7 +57,6 @@ __all__ = [
     'KStepExperienceShaper',
     'LearningModel',
     'LearningModule',
-    'LinearExplorer',
     'MaxDeltaEarlyStoppingChecker',
     'OptimizerOptions',
     'OverwriteType',
