@@ -756,8 +756,13 @@ for a quick experience.
 
 ~~~~~~
 
-Inter-view
-~~~~~~~~~~
+Visualization
+^^^^^^^^^^^^^
+
+The resource holder in this scenario is the bike station.
+
+Inter-epoch view
+~~~~~~~~~~~~~~~~
 
 For Inter-view, user could view top-k stations with different
 attributes.
@@ -765,8 +770,8 @@ attributes.
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch.gif
    :alt: citi\_bike\_inter\_epoch
 
-Intra-view
-~~~~~~~~~~
+Intra-epoch view
+~~~~~~~~~~~~~~~~
 
 Intra-view is divided into two dimensions according to time and space.
 
@@ -778,8 +783,8 @@ freely adjust the sampling rate. For example, if there are 100 snapshots
 and user selected 0.3 as sampling ratio, 30 snapshots data would be
 selected to render the chart.
 
-.. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_station.gif
-   :alt: citi\_bike\_inter\_epoch\_by\_station
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station
 
 To be specific, the line chart could be customized with operations in
 the following example.
@@ -791,27 +796,27 @@ will be provided with the option to quickly select a set of data.
 e.g. In this scenario, item "Requirement Info" refers to
 [trip\_requirement, shortage, fulfillment].
 
-.. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_station_2.gif
-   :alt: citi\_bike\_inter\_epoch\_by\_station\_2
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_2.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station\_2
 
 Moreover, to improve the flexibility of visualizing data, user could use
 pre-defined formula and selected attributes to generate new attributes.
 Generated attributes would be treated in the same way as origin
 attributes.
 
-.. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_station_3.gif
-   :alt: citi\_bike\_inter\_epoch\_by\_station\_3
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_3.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station\_3
 
 If user choose to view information by snapshot, it means attributes of
-all holders within a selected snapshot would be displayed. By changing
+all stations within a selected snapshot would be displayed. By changing
 option "snapshot index", user could view data of different snapshot. By
-changing option "Snapshot Sampling Ratio", user could change the number
+changing option "Station Sampling Ratio", user could change the number
 of sampled data.
 
-Particularly, if user want to check the name of a specific
-holder(station in this scenario), just hovering on the according bar.
+Particularly, if user want to check the name of a specific station,
+just hovering on the according bar.
 
-Formula calculate please refer to `Citi Bike Examples <#Example#Intra-view>`_
+Formula calculation please refer to `Citi Bike Examples <#Example#Intra-view>`_
 
-.. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch_by_snapshot.gif
-   :alt: citi\_bike\_inter\_epoch\_by\_snapshot
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_snapshot.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_snapshot

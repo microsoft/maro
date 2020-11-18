@@ -7,23 +7,28 @@ the algorithm and continually fine-tuning.
 
 Feature List
 ------------
-Basically, each scenario has 2 parts of visualization: inter epoch and intra epoch. User could switch between them freely.
-Intra-view
-~~~~~~~~~~
-Comprehensive and specific information by various types of charts like line-chart, bar-chart or heat map could be viewed under this mode.
+Basically, each scenario has 2 parts of visualization: intra-epoch view
+and inter-epoch view. User could switch between them freely.
 
-Inter-view
-~~~~~~~~~~
-Detailed information of holders and selected tick could be viewed under this mode.
+Intra-epoch view
+~~~~~~~~~~~~~~~~
+Detailed information of resource holders and selected tick could be
+viewed under this mode.
 
+Inter-epoch view
+~~~~~~~~~~~~~~~~
+Comprehensive and specific information by various types of charts like
+line chart, bar chart or heat map could be viewed under this mode.
 
-Epoch/Snapshot/holder Selection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-User could select the specific index of epoch/snapshot/holder to view information.
+Epoch/Snapshot/Resource Holder Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+User could select the specific index of epoch/snapshot/resource holder
+to view information.
 
 Sampling Ratio
 ~~~~~~~~~~~~~~
-User could select the sampling ratio of epoch/snapshot/holder by sliding to change the number of data to be displayed.
+User could select the sampling ratio of epoch/snapshot/resource holder
+by sliding to change the number of data to be displayed.
 
 Formula Calculation
 ~~~~~~~~~~~~~~~~~~~
@@ -82,11 +87,24 @@ Folder Structure
 .. code-block:: sh
 
    |-- ~/.source_folder_root
-       |-- epoch_#                    # folders to restore data of each epoch
-       |   |--{instance}_info.csv     # attributes of current epoch. Instance could be port, vessel or station
-       |-- manifest.yml               # record basic info like scenario name, epoch\_num, index\_name\_mapping file name.
-       |-- index\_name\_mapping file  # record the relationship between an index and its name. type of this file varied between scenario.
-       |-- {instance}_summary.csv     # instance could be port, vessel or station. more detailed files, which will be used directly by the visualization tool.generated after data processing.
+       |-- epoch_#                    # folders to restore data of
+                                        each epoch
+       |   |--{instance}_info.csv     # attributes of current epoch.
+                                        Instance could be port,
+                                        vessel or station
+       |-- manifest.yml               # record basic info like
+                                        scenario name, epoch\_num,
+                                        index\_name\_mapping file name.
+       |-- index\_name\_mapping file  # record the relationship between
+                                        an index and its name.
+                                        Type of this file varied
+                                        between scenarios.
+       |-- {instance}_summary.csv     # instance could be port,
+                                        vessel or station.
+                                        more detailed files,
+                                        which will be used directly
+                                        by the visualization tool.
+                                        Generated after data processing.
 
 
 
@@ -106,4 +124,4 @@ When viewing data, users can interact freely, such as inputting custom
 parameters according to predefined formulas, switching parameter
 selection, etc.
 
-Examples of each scenarios please refer to docs of each sceanarios.
+Examples of each scenarios please refer to docs of each scenarios.

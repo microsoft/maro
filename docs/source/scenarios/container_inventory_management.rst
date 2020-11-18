@@ -642,14 +642,19 @@ random mode, we hope this could help you learn how to use the environment interf
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
 for a quick experience.
 
+Visualization
+^^^^^^^^^^^^^
 
-Inter-view
-~~~~~~~~~~
+The resource holders in this scenario is the port and vessel.
 
-Generally speaking, the number of epochs in this scene will be greater
+Inter-epoch view
+~~~~~~~~~~~~~~~~
+
+Generally speaking, the number of epochs in this scenario will be greater
 than 100. In order to facilitate users to select specific data and
 observe the overall or partial data trend, the visualization tool
-provides data selection options in two dimensions.
+provides data selection options in two dimensions:
+Inter-epoch view & Intra-epoch view.
 
 To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
@@ -661,8 +666,8 @@ Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
 .. figure:: ..\images\visualization\dashboard\cim_inter_epoch.gif
    :alt: cim\_inter\_epoch
 
-Intra-view
-~~~~~~~~~~
+Intra-epoch view
+~~~~~~~~~~~~~~~~
 
 This part shows the data under a selected epoch. By scrolling the
 slider, users can select different epochs. Furthermore, this part of
@@ -686,13 +691,13 @@ are relatively rich, and we will introduce them by level.
 Accumulated Data
 ````````````````
 
-This part includes the transfer volume hot map, bar chart of port
-accumulated attributes and top-5 ports of different attributes.
+This part includes the transfer volume heat map, bar chart of port
+accumulated attributes and top-k ports of different attributes.
 
 As shown in the following example, the x-axis and y-axis of transfer
-volume hot map refers to destinate port index and start port index
+volume heat map refers to terminal port index and start port index
 respectively. The rect refers to the volume of cargoes transfer from
-start port to destinate port. By changing the snapshot index, user could
+start port to terminal port. By changing the snapshot index, user could
 view the dynamic changes in the volume of cargo delivered by the port
 over time in the current epoch.
 
