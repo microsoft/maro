@@ -30,6 +30,7 @@ experience_shaping:
   time_decay_factor: 0.97
 agents:
   algorithm:
+    reward_decay: .0
     num_actions: 21
     policy_model:
       hidden_dims:
@@ -40,8 +41,6 @@ agents:
       batch_norm_enabled: false
     optimizer:
       lr: 0.001
-    hyper_parameters:
-      reward_decay: .0
   seed: 1024   # for reproducibility
 distributed:
   group_name: "pg_distributed_test"

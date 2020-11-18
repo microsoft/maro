@@ -30,7 +30,7 @@ def create_pg_agents(agent_id_list, config):
 
         algorithm = PolicyGradient(
             model=LearningModel(policy_module),
-            hyper_params=PolicyGradientConfig(**config.algorithm.hyper_parameters)
+            config=PolicyGradientConfig(reward_decay=config.algorithm.reward_decay)
         )
 
         agent_dict[agent_id] = CIMAgent(name=agent_id, algorithm=algorithm)
