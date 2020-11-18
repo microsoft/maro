@@ -72,7 +72,7 @@ class ActorCritic(AbsAlgorithm):
         super().__init__(model, config)
 
     @preprocess
-    def choose_action(self, state: np.ndarray, epsilon: float = None):
+    def choose_action(self, state: np.ndarray):
         action_dist = self._model(state, task_name="actor", is_training=False).squeeze().numpy()  # (num_actions,)
         return np.random.choice(self._config.num_actions, p=action_dist)
 

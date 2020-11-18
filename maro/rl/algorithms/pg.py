@@ -40,8 +40,8 @@ class PolicyGradient(AbsAlgorithm):
         self._model.to(self._device)
 
     @preprocess
-    def choose_action(self, state: np.ndarray, epsilon: float = None):
-        states = states.unsqueeze(dim=0)
+    def choose_action(self, state: np.ndarray):
+        state = state.unsqueeze(dim=0)
         action_distribution = self._get_action_distributions(state, is_training=False, to_numpy=True)  # (num_actions,)
         return np.random.choice(self._config.num_actions, p=action_distribution)
 

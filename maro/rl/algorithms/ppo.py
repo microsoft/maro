@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Callable
 
 import numpy as np
+import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
