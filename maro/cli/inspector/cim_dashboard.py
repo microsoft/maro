@@ -7,8 +7,11 @@ import pandas as pd
 import streamlit as st
 
 import maro.cli.inspector.common_helper as common_helper
-from maro.cli.inspector.common_params import CIMItemOption, GlobalFilePaths as Gfiles, GlobalScenarios
-from maro.cli.inspector.common_choice import PanelViewChoice, CIMIntraViewChoice
+from maro.cli.inspector.common_choice import (CIMIntraViewChoice,
+                                              PanelViewChoice)
+from maro.cli.inspector.common_params import CIMItemOption
+from maro.cli.inspector.common_params import GlobalFilePaths as Gfiles
+from maro.cli.inspector.common_params import GlobalScenarios
 
 
 def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):

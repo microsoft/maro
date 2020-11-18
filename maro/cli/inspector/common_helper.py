@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from maro.cli.inspector.common_params import CITIBIKEOption, CIMItemOption, GlobalScenarios
-
+from maro.cli.inspector.common_params import (CIMItemOption, CITIBIKEOption,
+                                              GlobalScenarios)
 
 # Pre-defined CSS style of inserted HTML elements.
 title_html = """

@@ -7,8 +7,9 @@ import pandas as pd
 import tqdm
 import yaml
 
+from maro.cli.inspector.common_params import GlobalFilePaths as Gfiles
+from maro.cli.inspector.common_params import GlobalScenarios
 from maro.cli.inspector.launch_env_dashboard import launch_dashboard
-from maro.cli.inspector.common_params import GlobalFilePaths as Gfiles, GlobalScenarios
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 

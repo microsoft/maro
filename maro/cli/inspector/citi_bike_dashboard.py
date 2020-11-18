@@ -7,8 +7,11 @@ import pandas as pd
 import streamlit as st
 
 import maro.cli.inspector.common_helper as common_helper
-from maro.cli.inspector.common_params import CITIBIKEOption, GlobalFilePaths as Gfiles, GlobalScenarios
-from maro.cli.inspector.common_choice import CitiBikeIntraViewChoice, PanelViewChoice
+from maro.cli.inspector.common_choice import (CitiBikeIntraViewChoice,
+                                              PanelViewChoice)
+from maro.cli.inspector.common_params import CITIBIKEOption
+from maro.cli.inspector.common_params import GlobalFilePaths as Gfiles
+from maro.cli.inspector.common_params import GlobalScenarios
 
 
 def start_citi_bike_dashboard(source_path: str, prefix: str):
@@ -67,7 +70,6 @@ def render_inter_view(source_path: str):
 
     Args:
         source_path (str): Data folder path.
-
     """
     common_helper.render_h1_title("CITI_BIKE Summary Data")
     data = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.stations_sum))
@@ -82,17 +84,17 @@ def render_inter_view(source_path: str):
 
 
 def _generate_inter_view_by_snapshot(
-        data_stations, name_conversion, option_candidates,
-        snapshots_index, snapshot_num, stations_num):
+        data_stations: pd.DataFrame, name_conversion: pd.DataFrame, option_candidates: list,
+        snapshots_index: list, snapshot_num: int, stations_num: int):
     """Show CITI BIKE detail data by snapshot.
 
     Args:
-        data_stations(list): Filtered Data.
-        name_conversion(dataframe): Relationship between index and name.
-        option_candidates(list): All options for users to choose.
-        snapshots_index(list): Sampled snapshot index.
-        snapshot_num(int): Number of snapshots.
-        stations_num(int): Number of stations.
+        data_stations (dataframe): Filtered Data.
+        name_conversion (dataframe): Relationship between index and name.
+        option_candidates (list): All options for users to choose.
+        snapshots_index (list): Sampled snapshot index.
+        snapshot_num (int): Number of snapshots.
+        stations_num (int): Number of stations.
     """
     # get selected snapshot index
     snapshot_index = st.sidebar.select_slider(
@@ -137,11 +139,11 @@ def _generate_inter_view_by_station(
     """ Show CITI BIKE detail data by station
 
     Args:
-        data_stations(dataframe): Filtered data
-        name_conversion(dataframe): Relationship between index and name.
-        option_candidates(list): All options for users to choose.
-        stations_index(list):  List of station index.
-        snapshot_num(int): Number of snapshots.
+        data_stations (dataframe): Filtered data
+        name_conversion (dataframe): Relationship between index and name.
+        option_candidates (list): All options for users to choose.
+        stations_index (list):  List of station index.
+        snapshot_num (int): Number of snapshots.
 
     """
     station_index = st.sidebar.select_slider(
