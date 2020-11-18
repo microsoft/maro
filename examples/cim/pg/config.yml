@@ -7,7 +7,10 @@ main_loop:
   early_stopping:
     warmup_ep: 50
     last_k: 10
-    threshold: 0.05
+    perf_threshold: 0.9   # minimum performance (fulfillment ratio) required to trigger early stopping
+    perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
+                                   # over the last k episodes (where perf is short for performance). This value must
+                                   # be below this threshold to trigger early stopping
 state_shaping:
   look_back: 7
   max_ports_downstream: 2
