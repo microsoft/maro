@@ -234,7 +234,7 @@ class EventBuffer:
                     break
 
                 # only decision event is a list (even only one item)
-                if isinstance(next_events, list):
+                if type(next_events) == list:
                     return next_events
 
                 # 3. invoke handlers

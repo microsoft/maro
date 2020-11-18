@@ -89,7 +89,7 @@ class ExecuteStack:
         """Used to reverse following events after within current context.
 
         Returns:
-            contextlib.ContextManager: Context manager for 'with' statement.
+            AbstractContextManager: Context manager for 'with' statement.
         """
         # keep current size as reverse start
         self._reverse_start_index = len(self._cntr)
@@ -101,7 +101,10 @@ class ExecuteStack:
         stop = floor((cntr_length - self._reverse_start_index) / 2)
 
         for i in range(stop):
-            self._swap(self._reverse_start_index + i, cntr_length - i - 1)
+            start = self._reverse_start_index + i
+            end = cntr_length - i - 1
+
+            self._cntr[start], self._cntr[end] = self._cntr[end], self._cntr[start]
 
     def __len__(self) -> int:
         """Length of current stack.
@@ -110,10 +113,6 @@ class ExecuteStack:
             int: Length of current stack.
         """
         return len(self._cntr)
-
-    def _swap(self, a: int, b: int):
-        """A simple method to swap items in internal container."""
-        self._cntr[a], self._cntr[b] = self._cntr[b], self._cntr[a]
 
     def _extract_sub_events(self, evt: Event):
         """Extract specified event's immediate event list, and push to current stack."""
