@@ -115,8 +115,15 @@ class LearningModel(nn.Module):
         return self._task_names
 
     @property
+    def shared(self):
+        return self._shared_module
+
+    @property
     def is_trainable(self) -> bool:
-        return any(task_module.is_trainable for task_module in self._task_modules) or self._shared_module.is_trainable
+        return (
+            any(task_module.is_trainable for task_module in self._task_modules) or
+            (self._shared_module is not None and self._shared_module.is_trainable)
+        )
 
     def _forward(self, inputs, task_name: str = None):
         if len(self._task_modules) == 1:
