@@ -98,7 +98,7 @@ target_source_pairs = [
         os.path.join(project_root, "cli/grass/lib")
     ),
     (
-        os.path.expanduser("~/.maro/vis/template"),
+        os.path.expanduser("~/.maro/vis/templates"),
         os.path.join(project_root, "cli/inspector")
     )
 ]

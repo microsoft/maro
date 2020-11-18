@@ -7,10 +7,11 @@ import pandas as pd
 import altair as alt
 import maro.cli.inspector.dashboard_helper as common_helper
 import streamlit as st
-from maro.cli.inspector.visualization_choice import CIMIntraViewChoice, PanelViewChoice
 from maro.cli.inspector.params import CIMItemOption
 from maro.cli.inspector.params import GlobalFilePaths as Gfiles
 from maro.cli.inspector.params import GlobalScenarios
+from maro.cli.inspector.visualization_choice import (CIMIntraViewChoice,
+                                                     PanelViewChoice)
 
 
 def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):

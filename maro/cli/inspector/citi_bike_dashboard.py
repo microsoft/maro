@@ -7,10 +7,11 @@ import pandas as pd
 import altair as alt
 import maro.cli.inspector.dashboard_helper as common_helper
 import streamlit as st
-from maro.cli.inspector.visualization_choice import CitiBikeIntraViewChoice, PanelViewChoice
 from maro.cli.inspector.params import CITIBIKEOption
 from maro.cli.inspector.params import GlobalFilePaths as Gfiles
 from maro.cli.inspector.params import GlobalScenarios
+from maro.cli.inspector.visualization_choice import (CitiBikeIntraViewChoice,
+                                                     PanelViewChoice)
 
 
 def start_citi_bike_dashboard(source_path: str, prefix: str):
