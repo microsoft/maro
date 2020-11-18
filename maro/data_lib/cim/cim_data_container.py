@@ -20,12 +20,17 @@ from .vessel_stop_wrapper import VesselStopsWrapper
 class CimDataContainer:
     """Data container for cim scenario, used to provide interfaces for business engine,
     and hide the details about data source, currently we support data from generator and dump files.
+
     Example:
+
         .. code-block:: python
+
             # Get data from generator.
             data_cntr = data_from_generator(config_file, max_tick)
+
             # Get data from dumps folder (which contains several dumped files).
             data_cntr = data_from_dumps(dump_folder)
+
     Args:
         data_collection (CimDataCollection): Data collection from data source.
     """
@@ -91,12 +96,17 @@ class CimDataContainer:
     @property
     def vessel_stops(self) -> VesselStopsWrapper:
         """Accessor for vessel stops.
+
         Examples:
+
             .. code-block:: python
+
                 # Get a stop detail by vessel and location (stop) index.
                 stop = data_cntr.vessel_stops[vessel_idx, loc_idx]
+
                 # Get stop list of a vessel.
                 stop_list = data_cntr.vessel_stops[vessel_idx]
+
                 # Get all stops, NOTE: slice without parameters.
                 stops = data_cntr.vessel_stops[:]
         """
@@ -105,8 +115,11 @@ class CimDataContainer:
     @property
     def empty_return_buffers(self) -> PortBufferTickWrapper:
         """Accessor to get empty return buffer tick for specified port (with noise).
+
         Examples:
+
             .. code-block:: python
+
                 # Get empty return buffer tick of port 0.
                 buffer_tick = data_cntr.empty_return_buffers[0]
         """
@@ -115,8 +128,11 @@ class CimDataContainer:
     @property
     def full_return_buffers(self) -> PortBufferTickWrapper:
         """Accessor to get full return buffer tick for specified port (with noise).
+
         Examples:
+
             .. code-block:: python
+
                 # Get full return buffer tick of port 0.
                 buffer_tick = data_cnr.full_return_buffers[0]
         """
@@ -125,8 +141,11 @@ class CimDataContainer:
     @property
     def vessel_past_stops(self) -> VesselPastStopsWrapper:
         """Wrapper to get vessel past stops, it will be padding with None if stops number less than configured one.
+
         Examples:
+
             .. code-block:: python
+
                 # Get past stops of vessel 0.
                 stops = data_cntr.vessel_past_stops[0]
         """
@@ -135,8 +154,11 @@ class CimDataContainer:
     @property
     def vessel_future_stops(self) -> VesselFutureStopsPrediction:
         """Wrapper to get (predict, without noise) vessel future stops, the number of stops is limited by configuration.
+
         Examples:
+
             .. code-block:: python
+
                 # Get future stops of vessel 0.
                 stops = data_cntr.vessel_future_stops[0]
         """
@@ -146,8 +168,11 @@ class CimDataContainer:
     def vessel_planned_stops(self) -> VesselSailingPlanWrapper:
         """Wrapper to get vessel sailing plan, this method will return a stop list that
         within configured time period (means no same port in list)
+
         Examples:
+
             .. code-block:: python
+
                 # Get sailing plan for vessel 0.
                 stops = data_cntr.vessel_planned_stops[0]
         """
@@ -156,8 +181,11 @@ class CimDataContainer:
     @property
     def reachable_stops(self) -> VesselReachableStopsWrapper:
         """Wrapper to get a list of tuple which contains port index and arrive tick in vessel's route.
+
         Examples:
+
             .. code-block:: python
+
                 # Get reachable_stops for vessel 0.
                 stop_list = data_cntr.reachable_stops[0]
         """
@@ -166,8 +194,11 @@ class CimDataContainer:
     @property
     def vessel_period(self) -> int:
         """Wrapper to get vessel's planed sailing period (without noise to complete a whole route).
+
         Examples:
+
             .. code-block:: python
+
                 # Get planed sailing for vessel 0.
                 period = data_cntr.vessel_period[0]
         """
@@ -192,9 +223,11 @@ class CimDataContainer:
 
     def get_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         """Get order list by specified tick.
+
         Args:
             tick (int): Tick of order.
             total_empty_container (int): Empty container at tick.
+
         Returns:
             List[Order]: A list of order.
         """
@@ -222,8 +255,10 @@ class CimDataContainer:
 
     def _gen_orders(self, tick: int, total_empty_container: int) -> List[Order]:
         """Generate order for specified tick.
+
         NOTE:
             Currently we will not dump orders into file even for fixed mode.
+
         """
         # result
         order_list: List[Order] = []

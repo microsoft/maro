@@ -1,8 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+
 import logging
-from enum import Enum
 
 
 class GlobalParams:

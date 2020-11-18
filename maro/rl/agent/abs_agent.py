@@ -11,11 +11,13 @@ from maro.rl.storage.abs_store import AbsStore
 
 class AbsAgent(ABC):
     """Abstract RL agent class.
+
     It's a sandbox for the RL algorithm. Scenario-specific details will be excluded.
     We focus on the abstraction algorithm development here. Environment observation and decision events will
     be converted to a uniform format before calling in. And the output will be converted to an environment
     executable format before return back to the environment. Its key responsibility is optimizing policy based
     on interaction with the environment.
+
     Args:
         name (str): Agent's name.
         algorithm (AbsAlgorithm): A concrete algorithm instance that inherits from AbstractAlgorithm.
@@ -24,7 +26,6 @@ class AbsAgent(ABC):
         experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-
     def __init__(self, name: str, algorithm: AbsAlgorithm, experience_pool: AbsStore = None):
         self._name = name
         self._algorithm = algorithm
@@ -42,6 +43,7 @@ class AbsAgent(ABC):
 
     def choose_action(self, model_state, epsilon: float = .0):
         """Choose an action using the underlying algorithm based on a preprocessed env state.
+
         Args:
             model_state: State vector as accepted by the underlying algorithm.
             epsilon (float): Exploration rate.
@@ -53,6 +55,7 @@ class AbsAgent(ABC):
     @abstractmethod
     def train(self, *args, **kwargs):
         """Training logic to be implemented by the user.
+
         For example, this may include drawing samples from the experience pool and the algorithm training on
         these samples.
         """
@@ -73,7 +76,9 @@ class AbsAgent(ABC):
 
     def load_models_from_file(self, dir_path: str):
         """Load trainable models from disk.
+
         Load trainable models from the specified directory. The model file is always prefixed with the agent's name.
+
         Args:
             dir_path (str): path to the directory where the models are saved.
         """
@@ -81,7 +86,9 @@ class AbsAgent(ABC):
 
     def dump_models_to_file(self, dir_path: str):
         """Dump the algorithm's trainable models to disk.
+
         Dump trainable models to the specified directory. The model file is always prefixed with the agent's name.
+
         Args:
             dir_path (str): path to the directory where the models are saved.
         """
