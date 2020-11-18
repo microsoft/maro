@@ -16,10 +16,12 @@ from .utils import OverwriteType, check_uniformity, get_update_indexes, normaliz
 class ColumnBasedStore(AbsStore):
     """
     An implementation of ``AbsStore`` for experience storage in RL.
+
     This implementation uses a dictionary of lists as the internal data structure. The objects for each key
     are stored in a list. To be useful for experience storage in RL, uniformity checks are performed during
     put operations to ensure that the list lengths stay the same for all keys at all times. Both unlimited
     and limited storage are supported.
+
     Args:
         capacity (int): If negative, the store is of unlimited capacity. Defaults to -1.
         overwrite_type (OverwriteType): If storage capacity is bounded, this specifies how existing entries
@@ -55,6 +57,7 @@ class ColumnBasedStore(AbsStore):
 
     def __getstate__(self):
         """A patch to make the object picklable.
+
         Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
         ``defaultdict`` definition of the ``_store`` attribute.
         """
@@ -65,6 +68,7 @@ class ColumnBasedStore(AbsStore):
     @property
     def capacity(self):
         """Store capacity.
+
         If negative, the store grows without bound. Otherwise, the number of items in the store will not exceed
         this capacity.
         """
@@ -81,6 +85,7 @@ class ColumnBasedStore(AbsStore):
     @check_uniformity(arg_num=1)
     def put(self, contents: dict, overwrite_indexes: Sequence = None) -> List[int]:
         """Put new contents in the store.
+
         Args:
             contents (dict): dictionary of items to add to the store. If the store is not empty, this must have the
                 same keys as the store itself. Otherwise an ``StoreMisalignmentError`` will be raised.
@@ -115,10 +120,12 @@ class ColumnBasedStore(AbsStore):
     def update(self, indexes: Sequence, contents: dict) -> Sequence:
         """
         Update contents at given positions.
+
         Args:
             indexes (Sequence): Positions where updates are to be made.
             contents (dict): Contents to write to the internal store at given positions. It is subject to uniformity
                 checks to ensure that the lists for all keys have the same length.
+
         Returns:
             The indexes where store contents are updated.
         """
@@ -131,7 +138,9 @@ class ColumnBasedStore(AbsStore):
 
     def apply_multi_filters(self, filters: Sequence[Callable]):
         """Multi-filter method.
+
             The input to one filter is the output from its predecessor in the sequence.
+
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
                 e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
@@ -146,8 +155,10 @@ class ColumnBasedStore(AbsStore):
 
     def apply_multi_samplers(self, samplers: Sequence, replace: bool = True) -> Tuple:
         """Multi-samplers method.
+
         This implements chained sampling where the input to one sampler is the output from its predecessor in
         the sequence.
+
         Args:
             samplers (Sequence): A sequence of weight functions for computing the sampling weights of the items
                 in the store,
@@ -167,6 +178,7 @@ class ColumnBasedStore(AbsStore):
     def sample(self, size, weights: Sequence = None, replace: bool = True):
         """
         Obtain a random sample from the experience pool.
+
         Args:
             size (int): sample sizes for each round of sampling in the chain. If this is a single integer, it is
                         used as the sample size for all samplers in the chain.
@@ -182,6 +194,7 @@ class ColumnBasedStore(AbsStore):
     def sample_by_key(self, key, size: int, replace: bool = True):
         """
         Obtain a random sample from the store using one of the columns as sampling weights.
+
         Args:
             key: the column whose values are to be used as sampling weights.
             size (int): sample size.
@@ -196,6 +209,7 @@ class ColumnBasedStore(AbsStore):
     def sample_by_keys(self, keys: Sequence, sizes: Sequence, replace: bool = True):
         """
         Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.
+
         Args:
             keys (Sequence): the column whose values are to be used as sampling weights.
             sizes (Sequence): sample size.

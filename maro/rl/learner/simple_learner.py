@@ -16,6 +16,7 @@ from .abs_learner import AbsLearner
 
 class SimpleLearner(AbsLearner):
     """A simple implementation of ``AbsLearner``.
+
     Args:
         trainable_agents (AbsAgentManager): An AgentManager instance that manages all agents.
         actor (SimpleActor or ActorProxy): An SimpleActor or ActorProxy instance responsible for performing roll-outs
@@ -65,6 +66,7 @@ class SimpleLearner(AbsLearner):
         early_stopping_metric_func: Callable = None
     ):
         """Main loop for collecting experiences from the actor and using them to update policies.
+
         Args:
             max_episode (int): number of episodes to be run. If -1, the training loop will run forever unless
                 an ``early_stopping_checker`` is provided and the early stopping condition is met.

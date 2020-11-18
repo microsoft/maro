@@ -22,6 +22,7 @@ if "APIDOC_GEN" in os.environ:
 
 class LogFormat(Enum):
     """The Enum class of the log format.
+
     Example:
         - ``LogFormat.full``: full time | host | user | pid | tag | level | msg
         - ``LogFormat.simple``: simple time | tag | level | msg
@@ -84,14 +85,17 @@ def msgformat(logfunc):
 
 class Logger(object):
     """A simple wrapper for logging.
+
     The Logger hosts a file handler and a stdout handler. The file handler is set
     to ``DEBUG`` level and will dump all the logging info to the given ``dump_folder``.
     The logging level of the stdout handler is decided by the ``stdout_level``,
     and can be redirected by setting the environment variable ``LOG_LEVEL``.
     Supported ``LOG_LEVEL`` includes: ``DEBUG``, ``INFO``, ``WARN``, ``ERROR``,
     ``CRITICAL``, ``PROCESS``.
+
     Example:
         ``$ export LOG_LEVEL=INFO``
+
     Args:
         tag (str): Log tag for stream and file output.
         format_ (LogFormat): Predefined formatter. Defaults to ``LogFormat.full``.
@@ -182,7 +186,6 @@ class Logger(object):
 
 class DummyLogger:
     """A dummy Logger, which is used when disabling logs."""
-
     def __init__(self):
         pass
 
@@ -220,6 +223,7 @@ class InternalLogger(Logger):
 
 class CliLogger:
     """An internal logger for CLI logging.
+
     It maintains a singleton logger in a CLI command lifecycle.
     The logger is inited at the very beginning, and use different logging formats based on the ``--debug`` argument.
     """
@@ -255,6 +259,7 @@ class CliLogger:
 
     def debug(self, message: str) -> None:
         """``logger.debug()`` with passive init.
+
         Args:
             message (str): logged message.
         """
@@ -263,6 +268,7 @@ class CliLogger:
 
     def debug_yellow(self, message: str) -> None:
         """``logger.debug()`` with color yellow and passive init.
+
         Args:
             message (str): logged message.
         """
@@ -271,6 +277,7 @@ class CliLogger:
 
     def info(self, message: str) -> None:
         """``logger.info()`` with passive init.
+
         Args:
             message (str): logged message.
         """
@@ -279,6 +286,7 @@ class CliLogger:
 
     def warning(self, message: str) -> None:
         """``logger.warning()`` with passive init.
+
         Args:
             message (str): logged message.
         """
@@ -287,6 +295,7 @@ class CliLogger:
 
     def error(self, message: str) -> None:
         """``logger.error()`` with passive init.
+
         Args:
             message (str): logged message.
         """
@@ -295,6 +304,7 @@ class CliLogger:
 
     def info_green(self, message: str) -> None:
         """``logger.info()`` with color green and passive init.
+
         Args:
             message (str): logged message.
         """
@@ -303,6 +313,7 @@ class CliLogger:
 
     def warning_yellow(self, message: str) -> None:
         """``logger.warning()`` with color yellow and passive init.
+
         Args:
             message (str): logged message.
         """
@@ -311,6 +322,7 @@ class CliLogger:
 
     def error_red(self, message: str) -> None:
         """``logger.error()`` with color red and passive init.
+
         Args:
             message (str): logged message.
         """
