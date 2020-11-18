@@ -27,7 +27,7 @@ def create_ac_agents(agent_id_list, config):
                 is_head=True,
                 **config.algorithm.actor_model
             )],
-            optimizer_options=OptimizerOptions(cls=Adam, params=config.algorithm.optimizer)
+            optimizer_options=OptimizerOptions(cls=Adam, params=config.algorithm.actor_optimizer)
         )
 
         critic_module = LearningModule(
@@ -39,7 +39,7 @@ def create_ac_agents(agent_id_list, config):
                 is_head=True,
                 **config.algorithm.critic_model
             )],
-            optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
+            optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.critic_optimizer)
         )
 
         algorithm = ActorCritic(

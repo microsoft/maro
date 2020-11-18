@@ -48,9 +48,9 @@ agents:
         - 64
       softmax_enabled: false
       batch_norm_enabled: true
-    policy_optimizer:
+    actor_optimizer:
       lr: 0.001
-    value_optimizer:
+    critic_optimizer:
       lr: 0.001
     config:
       reward_decay: .0
