@@ -1,12 +1,12 @@
 import math
 import os
 
+import altair as alt
 import numpy as np
 import pandas as pd
-
-import altair as alt
-import maro.cli.inspector.dashboard_helper as helper
 import streamlit as st
+
+import maro.cli.inspector.dashboard_helper as helper
 
 from .params import CITIBIKEOption
 from .params import GlobalFilePaths as Gfiles

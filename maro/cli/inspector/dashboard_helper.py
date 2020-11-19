@@ -1,10 +1,10 @@
 import math
 
+import altair as alt
 import numpy as np
 import pandas as pd
-
-import altair as alt
 import streamlit as st
+
 from maro.cli.inspector.params import CIMItemOption, CITIBIKEOption, GlobalScenarios
 
 # Pre-defined CSS style of inserted HTML elements.
