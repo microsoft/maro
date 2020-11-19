@@ -36,7 +36,7 @@ class LearningModule(nn.Module):
         dic = self.__dict__.copy()
         if "_optimizer" in dic:
             del dic["_optimizer"]
-        dic["is_trainable"] = False
+        dic["_is_trainable"] = False
         return dic
 
     def __setstate__(self, dic: dict):
@@ -188,7 +188,6 @@ class LearningModel(nn.Module):
     def soft_update(self, other_model: nn.Module, tau: float):
         for params, other_params in zip(self.parameters(), other_model.parameters()):
             params.data = (1 - tau) * params.data + tau * other_params.data
-        return self
 
     def copy(self):
         return clone(self)
