@@ -185,6 +185,11 @@ class LearningModel(nn.Module):
         if self._shared_module is not None:
             self._shared_module.step()
 
+    def soft_update(self, other_model: nn.Module, tau: float):
+        for params, other_params in zip(self.parameters(), other_model.parameters()):
+            params.data = (1 - tau) * params.data + tau * other_params.data
+        return self
+
     def copy(self):
         return clone(self)
 
