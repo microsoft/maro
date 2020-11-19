@@ -66,8 +66,8 @@ class DQN(AbsAlgorithm):
         model (LearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    @to_device
     @validate_task_names(DuelingDQNTask)
+    @to_device
     def __init__(self, model: LearningModel, config: DQNConfig):
         super().__init__(model, config)
         self._training_counter = 0

@@ -11,7 +11,7 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
-from .utils import expand_dim, preprocess, to_device, validate_task_names
+from .utils import ActionWithLogProbability, expand_dim, preprocess, to_device, validate_task_names
 
 
 class PPOTask(Enum):
@@ -66,8 +66,8 @@ class PPO(AbsAlgorithm):
             It may or may not have a shared bottom stack.
         config: Configuration for the PPO algorithm.
     """
-    @to_device
     @validate_task_names(PPOTask)
+    @to_device
     def __init__(self, model: LearningModel, config: PPOConfig):
         super().__init__(model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -75,8 +75,17 @@ class PPO(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
+        """Use the actor (policy) model to generate a stochastic action.
+
+        Args:
+            state: Input to the actor model.
+
+        Returns:
+            A ActionWithLogProbability namedtuple instance containing the action index and the corresponding probability.
+        """
         action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
-        return np.random.choice(len(action_distribution), p=action_distribution)
+        action = np.random.choice(len(action_distribution), p=action_distribution)
+        return ActionWithLogProbability(action=action, log_probability=np.log(action_distribution[action]))
 
     def _get_values_and_bootstrapped_returns(self, states: torch.tensor, rewards: np.ndarray):
         state_values = self._model(states, task_name="critic").detach().squeeze()

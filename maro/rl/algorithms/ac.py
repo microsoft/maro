@@ -11,7 +11,7 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns
 
-from .utils import expand_dim, preprocess, to_device, validate_task_names
+from .utils import ActionWithLogProbability, expand_dim, preprocess, to_device, validate_task_names
 
 
 class ActorCriticTask(Enum):
@@ -63,15 +63,24 @@ class ActorCritic(AbsAlgorithm):
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    @to_device
     @validate_task_names(ActorCriticTask)
+    @to_device
     def __init__(self, model: LearningModel, config: ActorCriticConfig):
         super().__init__(model, config)
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
+        """Use the actor (policy) model to generate a stochastic action.
+
+        Args:
+            state: Input to the actor model.
+
+        Returns:
+            A ActionWithLogProbability namedtuple instance containing the action index and the corresponding probability.
+        """
         action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
-        return np.random.choice(len(action_distribution), p=action_distribution)
+        action = np.random.choice(len(action_distribution), p=action_distribution)
+        return ActionWithLogProbability(action=action, log_probability=np.log(action_distribution[action]))
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
         state_values = self._model(state_sequence, task_name="critic").detach().squeeze()

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import namedtuple
 from enum import Enum
 from functools import wraps
 
@@ -10,6 +11,8 @@ import torch
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTaskError
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+ActionWithLogProbability = namedtuple("action_with_probability", ["action", "log_probability"])
 
 
 def validate_task_names(task_enum: Enum):

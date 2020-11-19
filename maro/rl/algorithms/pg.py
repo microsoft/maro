@@ -7,7 +7,7 @@ import torch
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 
-from .utils import expand_dim, preprocess, to_device
+from .utils import ActionWithLogProbability, expand_dim, preprocess, to_device
 
 
 class PolicyGradientConfig:
@@ -39,8 +39,17 @@ class PolicyGradient(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
+        """Use the actor (policy) model to generate a stochastic action.
+
+        Args:
+            state: Input to the actor model.
+
+        Returns:
+            A ActionWithLogProbability namedtuple instance containing the action index and the corresponding probability.
+        """
         action_distribution = self._model(state, is_training=False).squeeze().numpy()  # (num_actions,)
-        return np.random.choice(len(action_distribution), p=action_distribution)
+        action = np.random.choice(len(action_distribution), p=action_distribution)
+        return ActionWithLogProbability(action=action, log_probability=np.log(action_distribution[action]))
 
     @preprocess
     def train(self, states: np.ndarray, actions: np.ndarray, returns: np.ndarray):

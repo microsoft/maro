@@ -114,7 +114,7 @@ algorithm, experience pool, and a set of parameters that governs the training lo
 abstraction of a port. We choose DQN as our underlying learning algorithm with a TD-error-based sampling mechanism.
 
 .. code-block:: python
-    class CIMAgent(AbsAgent):
+    class DQNAgent(AbsAgent):
         ...
         def train(self):
             if len(self._experience_pool) < self._min_experiences_to_train:
@@ -156,7 +156,7 @@ the DQN algorithm and an experience pool for each agent.
                                                             num_actions=num_actions))
 
                 experience_pool = ColumnBasedStore(**config.agents.experience_pool)
-                agent_dict[agent_id] = CIMAgent(name=agent_id, algorithm=algorithm, experience_pool=experience_pool,
+                agent_dict[agent_id] = DQNAgent(name=agent_id, algorithm=algorithm, experience_pool=experience_pool,
                                                 **config.agents.training_loop_parameters)
 
 Main Loop with Actor and Learner (Single Process)

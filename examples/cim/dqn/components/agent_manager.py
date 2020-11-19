@@ -10,7 +10,7 @@ from maro.rl import (
 )
 from maro.utils import set_seeds
 
-from .agent import CIMAgent
+from .agent import DQNAgent
 
 
 def create_dqn_agents(agent_id_list, config):
@@ -39,7 +39,7 @@ def create_dqn_agents(agent_id_list, config):
         )
 
         experience_pool = ColumnBasedStore(**config.experience_pool)
-        agent_dict[agent_id] = CIMAgent(
+        agent_dict[agent_id] = DQNAgent(
             agent_id, algorithm, EpsilonGreedyExplorer(num_actions), experience_pool,
             **config.training_loop_parameters
         )

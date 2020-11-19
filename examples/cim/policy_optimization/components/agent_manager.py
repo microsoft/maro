@@ -13,8 +13,11 @@ from maro.utils import set_seeds
 
 
 class POAgent(AbsAgent):
-    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
-        self._algorithm.train(states, actions, rewards)
+    def train(self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray):
+        if isinstance(self._algorithm, PPO):
+            self._algorithm.train(states, actions, log_action_prob, rewards)
+        else:
+            self._algorithm.train(states, actions, rewards)
 
 
 def create_po_agents(agent_id_list, config):
@@ -68,8 +71,12 @@ def create_po_agents(agent_id_list, config):
 class POAgentManager(SimpleAgentManager):
     def train(self, experiences_by_agent: dict):
         for agent_id, exp in experiences_by_agent.items():
-            if isinstance(exp, list):
-                for trajectory in exp:
-                    self.agent_dict[agent_id].train(trajectory["states"], trajectory["actions"], trajectory["rewards"])
-            else:
-                self.agent_dict[agent_id].train(exp["states"], exp["actions"], exp["rewards"])
+            if not isinstance(exp, list):
+                exp = [exp]
+            for trajectory in exp:
+                self.agent_dict[agent_id].train(
+                    trajectory["state"],
+                    trajectory["action"],
+                    trajectory["log_action_probability"],
+                    trajectory["reward"]
+                )

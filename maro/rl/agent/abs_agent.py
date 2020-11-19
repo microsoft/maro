@@ -5,6 +5,7 @@ import os
 from abc import ABC, abstractmethod
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.utils import ActionWithLogProbability
 from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.storage.abs_store import AbsStore
 
@@ -64,7 +65,10 @@ class AbsAgent(ABC):
             an exploratory action is returned.
         """
         action = self._algorithm.choose_action(model_state)
-        return action if self._explorer is None else self._explorer(action)
+        if isinstance(action, ActionWithLogProbability) or self._explorer is None:
+            return action
+        else:
+            return self._explorer(action)
 
     def load_exploration_params(self, exploration_params):
         if self._explorer:
