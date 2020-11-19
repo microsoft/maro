@@ -108,15 +108,6 @@ class LearningModel(nn.Module):
         # task_heads
         self._task_module_dict = nn.ModuleDict({task_module.name: task_module for task_module in task_modules})
 
-    def __getstate__(self):
-        dic = self.__dict__.copy()
-        dic["_shared_module"] = self._shared_module.copy() if self._shared_module else None
-        dic["_task_module_dict"] = {name: task_module.copy() for name, task_module in self._task_module_dict.items()}
-        return dic
-
-    def __setstate__(self, dic: dict):
-        self.__dict__ = dic
-
     @property
     def task_names(self) -> [str]:
         return self._task_names
