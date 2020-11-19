@@ -92,7 +92,7 @@ class LearningModel(nn.Module):
         self._shared_module = shared_module
 
         # task_heads
-        self._task_modules = task_modules
+        self._task_modules = list(task_modules)
         self._net = nn.ModuleDict({
             task_module.name: nn.Sequential(self._shared_module, task_module) if self._shared_module else task_module
             for task_module in self._task_modules
@@ -100,7 +100,7 @@ class LearningModel(nn.Module):
 
     def __getstate__(self):
         shared_module = self._shared_module.copy() if self._shared_module else None
-        task_modules = (task_module.copy() for task_module in self._task_modules)
+        task_modules = [task_module.copy() for task_module in self._task_modules]
         net = nn.ModuleDict({
             task_module.name: nn.Sequential(shared_module, task_module) if shared_module else task_module
             for task_module in task_modules
