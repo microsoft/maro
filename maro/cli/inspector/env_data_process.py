@@ -4,9 +4,9 @@ import os
 
 import numpy as np
 import pandas as pd
+import tqdm
 import yaml
 
-import tqdm
 from maro.cli.inspector.launch_env_dashboard import launch_dashboard
 from maro.cli.inspector.params import GlobalFilePaths as Gfiles
 from maro.cli.inspector.params import GlobalScenarios

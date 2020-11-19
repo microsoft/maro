@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 
 import altair as alt
-import maro.cli.inspector.dashboard_helper as common_helper
+import maro.cli.inspector.dashboard_helper as helper
 import streamlit as st
-from maro.cli.inspector.params import CITIBIKEOption
-from maro.cli.inspector.params import GlobalFilePaths as Gfiles
-from maro.cli.inspector.params import GlobalScenarios
-from maro.cli.inspector.visualization_choice import (CitiBikeIntraViewChoice,
-                                                     PanelViewChoice)
+
+from .params import CITIBIKEOption
+from .params import GlobalFilePaths as Gfiles
+from .params import GlobalScenarios
+from .visualization_choice import CitiBikeIntraViewChoice, PanelViewChoice
 
 
 def start_citi_bike_dashboard(source_path: str, prefix: str):
@@ -39,7 +39,7 @@ def render_intra_view(source_path: str, prefix: str):
         source_path (str): Data folder path.
         prefix (str): Prefix of data folders.
     """
-    common_helper.render_h1_title("CITI_BIKE Detail Data")
+    helper.render_h1_title("CITI_BIKE Detail Data")
     data_stations = pd.read_csv(os.path.join(source_path, prefix, "stations.csv"))
     view_option = st.sidebar.selectbox(
         "By station/snapshot:",
@@ -49,7 +49,7 @@ def render_intra_view(source_path: str, prefix: str):
     snapshot_num = len(data_stations["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
 
-    name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
+    name_conversion = helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
     option_candidates = CITIBIKEOption.quick_info + CITIBIKEOption.requirement_info + CITIBIKEOption.station_info
     st.sidebar.markdown("***")
     # filter by station index
@@ -71,16 +71,16 @@ def render_inter_view(source_path: str):
     Args:
         source_path (str): Data folder path.
     """
-    common_helper.render_h1_title("CITI_BIKE Summary Data")
-    data = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.stations_sum))
+    helper.render_h1_title("CITI_BIKE Summary Data")
+    data = helper.read_detail_csv(os.path.join(source_path, Gfiles.stations_sum))
     # convert index to station name
-    name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
+    name_conversion = helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
     data["station name"] = list(map(lambda x: name_conversion.loc[int(x[9:])][0], data["name"]))
     # generate top summary
     top_number = st.select_slider("Top K", list(range(0, 10)))
     top_attributes = ["bikes", "trip_requirement", "fulfillment", "fulfillment_ratio"]
     for item in top_attributes:
-        common_helper.generate_by_snapshot_top_summary("station name", data, int(top_number), item)
+        helper.generate_by_snapshot_top_summary("station name", data, int(top_number), item)
 
 
 def _generate_inter_view_by_snapshot(
@@ -100,16 +100,16 @@ def _generate_inter_view_by_snapshot(
     snapshot_index = st.sidebar.select_slider(
         "snapshot index",
         snapshots_index)
-    common_helper.render_h3_title(f"Snapshot-{snapshot_index}:  Detail Data")
+    helper.render_h3_title(f"Snapshot-{snapshot_index}:  Detail Data")
     # get according data with selected snapshot
     data_filtered = data_stations[data_stations["frame_index"] == snapshot_index]
     # get increasing rate
-    sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
+    sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
     # get sample rate (between 0-1)
     station_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio", sample_ratio)
 
     # get formula input & output
-    filtered_data = common_helper.get_filtered_formula_and_data(
+    filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
     # get sampled data & get station name
     down_pooling = list(range(0, stations_num, math.floor(1 / station_sample_num)))
@@ -149,18 +149,18 @@ def _generate_inter_view_by_station(
     station_index = st.sidebar.select_slider(
         "station index",
         stations_index)
-    common_helper.render_h3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
+    helper.render_h3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
     # filter data by station index
     data_filtered = data_stations[data_stations["name"] == f"stations_{station_index}"]
-    station_sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
+    station_sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", station_sample_ratio)
     # get formula input & output
-    filtered_data = common_helper.get_filtered_formula_and_data(
+    filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
 
     item_option = filtered_data["item_option"].append("frame_index")
     station_filtered = filtered_data["data"][item_option].reset_index(drop=True)
-    down_pooling = common_helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
+    down_pooling = helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
     station_filtered = station_filtered.iloc[down_pooling]
     station_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
     data_display = \

@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 
 import altair as alt
-import maro.cli.inspector.dashboard_helper as common_helper
+import maro.cli.inspector.dashboard_helper as helper
 import streamlit as st
-from maro.cli.inspector.params import CIMItemOption
-from maro.cli.inspector.params import GlobalFilePaths as Gfiles
-from maro.cli.inspector.params import GlobalScenarios
-from maro.cli.inspector.visualization_choice import (CIMIntraViewChoice,
-                                                     PanelViewChoice)
+
+from .params import CIMItemOption
+from .params import GlobalFilePaths as Gfiles
+from .params import GlobalScenarios
+from .visualization_choice import CIMIntraViewChoice, PanelViewChoice
 
 
 def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):
@@ -40,17 +40,17 @@ def render_inter_view(source_path: str, epoch_num: int):
         source_path (str): Data folder path.
         epoch_num (int): Number of snapshot folders.
     """
-    common_helper.render_h1_title("CIM Inter Epoch Data")
-    sample_ratio = common_helper.get_holder_sample_ratio(epoch_num)
+    helper.render_h1_title("CIM Inter Epoch Data")
+    sample_ratio = helper.get_holder_sample_ratio(epoch_num)
     # get epoch sample num
     down_pooling_range = _get_sampled_epoch_range(epoch_num, sample_ratio)
     option_candidates = CIMItemOption.quick_info + CIMItemOption.port_info + CIMItemOption.booking_info
     # generate data
-    data = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.ports_sum)).iloc[down_pooling_range]
+    data = helper.read_detail_csv(os.path.join(source_path, Gfiles.ports_sum)).iloc[down_pooling_range]
     data["remaining_space"] = list(
         map(lambda x, y, z: x - y - z, data["capacity"], data["full"], data["empty"]))
     # get formula & selected data
-    filtered_data = common_helper.get_filtered_formula_and_data(GlobalScenarios.CIM, data, option_candidates)
+    filtered_data = helper.get_filtered_formula_and_data(GlobalScenarios.CIM, data, option_candidates)
     data = filtered_data["data"]
     filtered_option = filtered_data["item_option"]
     _generate_inter_view_panel(data[filtered_option], down_pooling_range)
@@ -69,7 +69,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
         list(range(0, epoch_num)))
     target_path = os.path.join(source_path, f"{prefix}{option_epoch}")
     # get data of selected epoch
-    data_ports = common_helper.read_detail_csv(os.path.join(target_path, "ports.csv"))
+    data_ports = helper.read_detail_csv(os.path.join(target_path, "ports.csv"))
     data_ports["remaining_space"] = list(
         map(lambda x, y, z: x - y - z, data_ports["capacity"], data_ports["full"], data_ports["empty"]))
     # basic data
@@ -81,7 +81,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     # item for user to select
     option_candidates = CIMItemOption.quick_info + CIMItemOption.booking_info + CIMItemOption.port_info
     # name conversion
-    name_conversion = common_helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
+    name_conversion = helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
 
     st.sidebar.markdown("***")
     option_view = st.sidebar.selectbox(
@@ -111,7 +111,7 @@ def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: list):
     data["Epoch Index"] = list(down_pooling_range)
     data_long_form = data.melt("Epoch Index", var_name="Attributes", value_name="Count")
 
-    cim_inter_line_chart = alt.Chart(data_long_form).mark_line().encode(
+    inter_line_chart = alt.Chart(data_long_form).mark_line().encode(
         x="Epoch Index",
         y="Count",
         color="Attributes",
@@ -120,9 +120,9 @@ def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: list):
         width=700,
         height=380
     )
-    st.altair_chart(cim_inter_line_chart)
+    st.altair_chart(inter_line_chart)
 
-    cim_inter_bar_chart = alt.Chart(data_long_form).mark_bar().encode(
+    inter_bar_chart = alt.Chart(data_long_form).mark_bar().encode(
         x="Epoch Index:N",
         y="Count:Q",
         color="Attributes:N",
@@ -131,7 +131,7 @@ def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: list):
         width=700,
         height=380
     )
-    st.altair_chart(cim_inter_bar_chart)
+    st.altair_chart(inter_bar_chart)
 
 
 def _render_intra_view_by_ports(
@@ -149,21 +149,21 @@ def _render_intra_view_by_ports(
     port_index = st.sidebar.select_slider(
         "Choose a Port:",
         ports_index)
-    sample_ratio = common_helper.get_holder_sample_ratio(snapshot_num)
+    sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
     # accumulated data
-    common_helper.render_h1_title("CIM Accumulated Data")
-    common_helper.render_h3_title(
+    helper.render_h1_title("CIM Accumulated Data")
+    helper.render_h3_title(
         f"Port Accumulated Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
     _generate_intra_panel_by_ports(
         CIMItemOption.basic_info + CIMItemOption.acc_info,
         data_ports, f"ports_{port_index}", snapshot_num, snapshot_sample_num)
     # detail data
-    common_helper.render_h1_title("CIM Intra Epoch Data")
-    filtered_data = common_helper.get_filtered_formula_and_data(
+    helper.render_h1_title("CIM Intra Epoch Data")
+    filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CIM, data_ports, option_candidates)
 
-    common_helper.render_h3_title(
+    helper.render_h3_title(
         f"Port Detail Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
     _generate_intra_panel_by_ports(
         CIMItemOption.basic_info + CIMItemOption.booking_info + CIMItemOption.port_info,
@@ -190,23 +190,23 @@ def _render_intra_view_by_snapshot(
         "snapshot index",
         snapshots_index)
     # get sample ratio
-    sample_ratio = common_helper.get_holder_sample_ratio(ports_num)
+    sample_ratio = helper.get_holder_sample_ratio(ports_num)
     usr_ratio = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
     # acc data
-    common_helper.render_h1_title("Accumulated Data")
+    helper.render_h1_title("Accumulated Data")
     _render_intra_heat_map(source_path, GlobalScenarios.CIM, option_epoch, snapshot_index, prefix)
 
-    common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Accumulated Attributes")
+    helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Accumulated Attributes")
     _generate_intra_panel_by_snapshot(
         CIMItemOption.basic_info + CIMItemOption.acc_info, data_ports, snapshot_index,
         ports_num, name_conversion, usr_ratio)
     _generate_top_k_summary(data_ports, snapshot_index, name_conversion)
     # detail data
-    common_helper.render_h1_title("Detail Data")
+    helper.render_h1_title("Detail Data")
     _render_intra_panel_vessel(source_path, prefix, option_epoch, snapshot_index)
 
-    common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Detail Attributes")
-    filtered_data = common_helper.get_filtered_formula_and_data(
+    helper.render_h3_title(f"SnapShot-{snapshot_index}: Port Detail Attributes")
+    filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CIM, data_ports, option_candidates)
     _generate_intra_panel_by_snapshot(
         CIMItemOption.basic_info + CIMItemOption.booking_info + CIMItemOption.port_info,
@@ -233,7 +233,7 @@ def _generate_intra_panel_by_ports(
     data_acc = data[info_selector]
     # delete parameter:name
     info_selector.pop(0)
-    down_pooling = common_helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
+    down_pooling = helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
     port_filtered = data_acc[data_acc["name"] == option_port_name][info_selector].reset_index(drop=True)
     port_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
 
@@ -320,7 +320,7 @@ def _render_intra_panel_vessel(source_path: str, prefix: str, option_epoch: int,
         option_epoch (int): Selected index of epoch.
         snapshot_index (int): Index of selected snapshot folder.
     """
-    data_vessels = common_helper.read_detail_csv(os.path.join(source_path, f"{prefix}{option_epoch}", "vessels.csv"))
+    data_vessels = helper.read_detail_csv(os.path.join(source_path, f"{prefix}{option_epoch}", "vessels.csv"))
     vessels_num = len(data_vessels["name"].unique())
     _generate_intra_panel_vessel(data_vessels, snapshot_index, vessels_num)
 
@@ -333,9 +333,9 @@ def _generate_intra_panel_vessel(data_vessels: pd.DataFrame, snapshot_index: int
         snapshot_index (int): User-select snapshot index.
         vessels_num (int): Number of vessels.
     """
-    common_helper.render_h3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
+    helper.render_h3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
     # Get sampled(and down pooling) index
-    sample_ratio = common_helper.get_holder_sample_ratio(vessels_num)
+    sample_ratio = helper.get_holder_sample_ratio(vessels_num)
     sample_ratio_res = st.sidebar.select_slider("Vessels Sample Ratio:", sample_ratio)
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
 
@@ -372,7 +372,7 @@ def _render_intra_heat_map(source_path: str, scenario: enumerate, epoch_index: i
     """
     matrix_data = pd.read_csv(os.path.join(source_path, f"{prefix}{epoch_index}", "matrices.csv")).loc[snapshot_index]
     if scenario == GlobalScenarios.CIM:
-        common_helper.render_h3_title(f"snapshot_{snapshot_index}: Accumulated Port Transfer Volume")
+        helper.render_h3_title(f"snapshot_{snapshot_index}: Accumulated Port Transfer Volume")
         _generate_intra_heat_map(matrix_data["full_on_ports"])
 
 
@@ -423,11 +423,11 @@ def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conver
             data_acc["acc_booking"]))
 
     data_acc["port name"] = list(map(lambda x: name_conversion.loc[int(x[6:])][0], data_acc["name"]))
-    common_helper.render_h3_title("Select Top k")
+    helper.render_h3_title("Select Top k")
     top_number = st.select_slider("", list(range(0, 10)))
     top_attributes = CIMItemOption.acc_info + ["fulfillment_ratio"]
     for item in top_attributes:
-        common_helper.generate_by_snapshot_top_summary("port name", data_acc, int(top_number), item, snapshot_index)
+        helper.generate_by_snapshot_top_summary("port name", data_acc, int(top_number), item, snapshot_index)
 
 
 def _generate_down_pooling_sample(down_pooling_num: int, start_epoch: int, end_epoch: int) -> list:
