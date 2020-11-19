@@ -3,14 +3,15 @@
 
 
 from collections import defaultdict
-from typing import Callable, List
+from typing import Callable
 
-from .event_pool import EventPool
 from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
+from .event_pool import EventPool
 from .event_state import EventState
-from .maro_events import MaroEvents
 from .execute_stack import ExecuteStack
+from .maro_events import MaroEvents
+from .typings import Event, EventList
 
 
 class EventBuffer:
@@ -43,22 +44,22 @@ class EventBuffer:
 
         self._event_pool = EventPool(with_pooling)
 
-    def get_finished_events(self) -> list:
+    def get_finished_events(self) -> EventList:
         """Get all the processed events, call this function before reset method.
 
         Returns:
-           list: List of event object.
+           EventList: List of event object.
         """
         return self._finished_events
 
-    def get_pending_events(self, tick: int) -> list:
+    def get_pending_events(self, tick: int) -> EventList:
         """Get pending event at specified tick.
 
         Args:
             Tick (int): tick of events to get.
 
         Returns:
-            list: List of event object.
+            EventList: List of event object.
         """
         return [evt for evt in self._pending_events[tick] if evt is not None]
 
@@ -69,17 +70,16 @@ class EventBuffer:
             After reset the get_finished_event method will return empty list.
         """
         # collect the events from pendding and finished pool to reuse them
-        for evt in self._finished_events:
-            self._event_pool.recycle(evt, False)
+        self._event_pool.recycle(self._finished_events, False)
+
+        self._finished_events.clear()
 
         for _, pending_pool in self._pending_events.items():
-            for evt in pending_pool:
-                self._event_pool.recycle(evt, False)
+            self._event_pool.recycle(pending_pool, False)
 
             pending_pool.clear()
 
         self._event_pool.flush()
-        self._finished_events.clear()
         self._exec_stack.clear()
         self._current_index = 0
 
@@ -96,7 +96,6 @@ class EventBuffer:
             AtomEvent: Atom event object
         """
         return self._event_pool.gen(tick, event_type, payload, False)
-        # return AtomEvent(self._id, tick, event_type, payload)
 
     def gen_cascade_event(self, tick: int, event_type: object, payload: object) -> CascadeEvent:
         """Generate an cascade event that used to hold immediate events that
@@ -111,7 +110,6 @@ class EventBuffer:
             CascadeEvent: Cascade event object.
         """
         return self._event_pool.gen(tick, event_type, payload, True)
-        # return CascadeEvent(self._id, tick, event_type, payload)
 
     def gen_decision_event(self, tick: int, payload: object) -> CascadeEvent:
         """Generate a decision event that will stop current simulation, and ask agent for action.
@@ -120,10 +118,9 @@ class EventBuffer:
             tick (int): Tick that the event will be processed.
             payload (object): Payload of event, used to pass data to handlers.
         Returns:
-            Event: Event object
+            CascadeEvent: Event object
         """
         return self._event_pool.gen(tick, MaroEvents.DECISION_EVENT, payload, True)
-        # return self.gen_event(tick, MaroEvents.DECISION_EVENT, payload, True)
 
     def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:
         """Generate an event that used to dispatch action to business engine.
@@ -132,12 +129,11 @@ class EventBuffer:
             tick (int): Tick that the event will be processed.
             payload (object): Payload of event, used to pass data to handlers.
         Returns:
-            Event: Event object
+            CascadeEvent: Event object
         """
         return self._event_pool.gen(tick, MaroEvents.TAKE_ACTION, payload, True)
-        # return self.gen_event(tick, MaroEvents.TAKE_ACTION, payload, True)
 
-    def gen_event(self, tick: int, event_type: object, payload: object, is_cascade: bool):
+    def gen_event(self, tick: int, event_type: object, payload: object, is_cascade: bool) -> Event:
         """Generate an event object.
 
         Args:
@@ -149,10 +145,6 @@ class EventBuffer:
             Event: Event object
         """
         return self._event_pool.gen(tick, event_type, payload, is_cascade)
-        # if is_cascade:
-        #     return self.gen_cascade_event(tick, event_type, payload)
-        # else:
-        #     return self.gen_atom_event(tick, event_type, payload)
 
     def register_event_handler(self, event_type: int, handler: Callable):
         """Register an event with handler, when there is an event need to be processed,
@@ -167,7 +159,7 @@ class EventBuffer:
         """
         self._handlers[event_type].append(handler)
 
-    def insert_event(self, event):
+    def insert_event(self, event: Event):
         """Insert an event to the pending queue.
 
         Args:
@@ -177,7 +169,7 @@ class EventBuffer:
 
         self._pending_events[event.tick].append(event)
 
-    def execute(self, tick: int) -> list:
+    def execute(self, tick: int) -> EventList:
         """Process and dispatch event by tick.
 
         NOTE:
@@ -189,7 +181,7 @@ class EventBuffer:
             tick (int): Tick used to process events.
 
         Returns:
-            list: Pending cascade event list at current point.
+            EventList: Pending cascade event list at current point.
         """
 
         if tick in self._pending_events:
@@ -211,29 +203,37 @@ class EventBuffer:
                 if next_events is None and self._current_index < len(cur_events):
                     event = cur_events[self._current_index]
 
-                    # 3. push into stack,
-                    is_decision_event = event.event_type == MaroEvents.DECISION_EVENT
+                    # 3. push into stack
+                    # check current event type, we use this type to filter following events
+                    is_decision_event: bool = (
+                        event.event_type == MaroEvents.DECISION_EVENT)
 
-                    # push folloing events that have same feature as current one
                     # reverse pushing, executing stack will reverse these items after out of with statement
                     with self._exec_stack.reverse_push():
                         for j in range(self._current_index, len(cur_events)):
                             evt = cur_events[j]
 
+                            # push following events that have same feature as current one
+                            # check event type first, then check if this state is same with current event
                             if (evt.event_type == MaroEvents.DECISION_EVENT) == is_decision_event:
                                 self._exec_stack.push(evt)
 
                                 cur_events[self._current_index] = None
 
                                 self._current_index += 1
+                            else:
+                                # stop pushing if state not same
+                                break
 
                     next_events = self._exec_stack.pop()
 
-                # if still not events, then end of current tick
+                # if still no events, then end of current tick
                 if next_events is None:
                     break
 
                 # only decision event is a list (even only one item)
+                # NOTE: decision event do not have handlers, and simulator will set its state
+                # to finished after recieved an action.
                 if type(next_events) == list:
                     return next_events
 
@@ -247,9 +247,11 @@ class EventBuffer:
                 # finish events, so execute stack will extract its immediate events
                 if self._event_pool.enabled:
                     next_events.state = EventState.RECYCLING
+
                     self._event_pool.recycle(next_events)
                 else:
                     next_events.state = EventState.FINISHED
+
                     self._finished_events.append(next_events)
 
             # reset

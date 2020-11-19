@@ -1,14 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Union, List
-
-from .event_state import EventState
 from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
-
-
-Event = Union[AtomEvent, CascadeEvent]
+from .event_state import EventState
+from .typings import Event, EventList, List, Union
 
 
 class EventPool:
@@ -24,7 +20,7 @@ class EventPool:
         self._enabled: bool = enable
         self._atom_pool: List[AtomEvent] = []
         self._cascade_pool: List[CascadeEvent] = []
-        self._recycle_buffer: List[Event] = []
+        self._recycle_buffer: EventList = []
 
         self._event_id: int = 0
 
@@ -65,43 +61,45 @@ class EventPool:
 
         return event
 
-    def recycle(self, evt: Event, with_buffer: bool = True):
+    def recycle(self, events: Union[Event, EventList], with_buffer: bool = True):
         """Recycle specified event for further using.
 
         Args:
-            evt (Event): Event object to recycle.
+            events (Union[Event, EventList]): Event object(s) to recycle.
             with_buffer (bool): Is recycle object should put into buffer first?
         """
-        if evt is not None:
-            if with_buffer:
-                # append to the end of buffer
-                self._recycle_buffer.append(evt)
-            else:
-                self._append(evt)
+        if type(events) != list:
+            events = [events]
+
+        for event in events:
+            if event is not None:
+                if with_buffer:
+                    # append to the end of buffer
+                    self._recycle_buffer.append(event)
+                else:
+                    self._append(event)
 
     def flush(self):
         """Flush current recycle buffer, make cached events ready to use."""
         for _ in range(len(self._recycle_buffer)):
-            evt = self._recycle_buffer.pop()
+            self._append(self._recycle_buffer.pop())
 
-            self._append(evt)
-
-    def _append(self, evt: Event):
+    def _append(self, event: Event):
         """Append event to related pool"""
-        if evt:
+        if event:
             # deattach the payload before recycle
-            evt.payload = None
-            evt.state = EventState.FINISHED
+            event.payload = None
+            event.state = EventState.FINISHED
 
-            if isinstance(evt, CascadeEvent):
-                self._cascade_pool.append(evt)
+            if isinstance(event, CascadeEvent):
+                self._cascade_pool.append(event)
             else:
-                self._atom_pool.append(evt)
+                self._atom_pool.append(event)
 
-    def _pop(self, cntr: List[Event], evt_type: type):
+    def _pop(self, cntr: EventList, event_cls_type: type):
         """Pop an event from related pool, generate buffer events if not enough."""
         if len(cntr) == 0:
             for _ in range(self._capacity):
-                cntr.append(evt_type(None, None, None, None))
+                cntr.append(event_cls_type(None, None, None, None))
 
         return cntr.pop()

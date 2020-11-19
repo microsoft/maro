@@ -3,21 +3,19 @@
 
 import contextlib
 from math import floor
-from typing import List, Union
 
 from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
 from .event_state import EventState
 from .maro_events import MaroEvents
-
-Event = Union[AtomEvent, CascadeEvent]
+from .typings import Event, EventList, List, Union
 
 
 class ExecuteStack:
     """Stack used to hold events pending to execute, and extract immediate events with a better performance."""
 
     def __init__(self):
-        self._cntr: List[Event] = []
+        self._cntr: EventList = []
 
         # Used to hold start index of reversing
         self._reverse_start_index = -1
@@ -32,7 +30,7 @@ class ExecuteStack:
         # just put to the top
         self._cntr.append(evt)
 
-    def pop(self) -> Union[Event, List[Event]]:
+    def pop(self) -> Union[Event, EventList]:
         """Pop not finished event(s).
 
         NOTE:
@@ -114,9 +112,9 @@ class ExecuteStack:
         """
         return len(self._cntr)
 
-    def _extract_sub_events(self, evt: Event):
+    def _extract_sub_events(self, event: Event):
         """Extract specified event's immediate event list, and push to current stack."""
-        if isinstance(evt, CascadeEvent) and evt._immediate_event_list is not None:
+        if type(event) == CascadeEvent and event._immediate_event_list is not None:
             # push from back
-            for i in range(len(evt._immediate_event_list)):
-                self._cntr.append(evt._immediate_event_list.pop())
+            for _ in range(len(event._immediate_event_list)):
+                self._cntr.append(event._immediate_event_list.pop())
