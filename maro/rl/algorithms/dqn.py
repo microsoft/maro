@@ -113,14 +113,6 @@ class DQN(AbsAlgorithm):
         self._model.learn(loss.mean() if self._config.per_sample_td_error_enabled else loss)
         self._training_counter += 1
         if self._training_counter % self._config.target_update_frequency == 0:
-            self._update_targets()
+            self._target_model.soft_update(self._model, self._config.tau)
 
         return loss.detach().numpy()
-
-    def _update_targets(self):
-        for eval_params, target_params in zip(
-            self._model.parameters(), self._target_model.parameters()
-        ):
-            target_params.data = (
-                self._config.tau * eval_params.data + (1 - self._config.tau) * target_params.data
-            )
