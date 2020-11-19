@@ -21,7 +21,7 @@ class TruncatedExperienceShaper(ExperienceShaper):
         agent_ids = np.asarray(trajectory.get_by_key("agent_id"))
         states = np.asarray(trajectory.get_by_key("state"))
         actions = np.asarray(trajectory.get_by_key("action"))
-        log_action_probabilities = np.asarray(trajectory.get_by_key["log_action_probability"])
+        log_action_probabilities = np.asarray(trajectory.get_by_key("log_action_probability"))
         rewards = np.fromiter(
             map(self._compute_reward, trajectory.get_by_key("event"), [snapshot_list] * len(trajectory)),
             dtype=np.float32
