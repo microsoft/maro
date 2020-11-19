@@ -18,9 +18,14 @@ MARO is newborn for Reinforcement learning as a Service (RaaS) in the resource o
 
   Please make sure lint your code, and pass the code checking before pull request.
 
-  We have prepared a configuration file for flake8 to lint.
+  We have prepared a configuration file for isort and flake8 to lint.
 
   ```sh
+  # Install isort.
+  pip install isort
+
+  # Automatically re-format your imports with isort.
+  isort --settings-path .github/linters/tox.ini
 
   # Install flake8.
   pip install flake8

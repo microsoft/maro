@@ -9,12 +9,14 @@ from typing import Dict
 import zmq
 
 # private package
-from maro.communication import AbsDriver, Message
-from maro.communication.utils import default_parameters
 from maro.utils import DummyLogger
-from maro.utils.exception.communication_exception import PeersConnectionError, DriverReceiveError, DriverSendError, \
-    SocketTypeError
+from maro.utils.exception.communication_exception import (
+    DriverReceiveError, DriverSendError, PeersConnectionError, SocketTypeError
+)
 
+from ..message import Message
+from ..utils import default_parameters
+from .abs_driver import AbsDriver
 
 PROTOCOL = default_parameters.driver.zmq.protocol
 SEND_TIMEOUT = default_parameters.driver.zmq.send_timeout
@@ -33,8 +35,10 @@ class ZmqDriver(AbsDriver):
         logger: The logger instance or DummyLogger. Defaults to DummyLogger().
     """
 
-    def __init__(self, protocol: str = PROTOCOL, send_timeout: int = SEND_TIMEOUT,
-                 receive_timeout: int = RECEIVE_TIMEOUT, logger=DummyLogger()):
+    def __init__(
+        self, protocol: str = PROTOCOL, send_timeout: int = SEND_TIMEOUT,
+        receive_timeout: int = RECEIVE_TIMEOUT, logger=DummyLogger()
+    ):
         self._protocol = protocol
         self._send_timeout = send_timeout
         self._receive_timeout = receive_timeout
@@ -50,8 +54,8 @@ class ZmqDriver(AbsDriver):
         - ``unicast_receiver``: The ``zmq.PULL`` socket, use for receiving message from one-to-one communication,
         - ``broadcast_sender``: The ``zmq.PUB`` socket, use for broadcasting message to all subscribers,
         - ``broadcast_receiver``: The ``zmq.SUB`` socket, use for listening message from broadcast.
-        - ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and
-          ``zmq.SUB`` socket.
+        - ``poller``: The zmq output multiplexing, use for receiving message from ``zmq.PULL`` socket and \
+            ``zmq.SUB`` socket.
         """
         self._unicast_receiver = self._zmq_context.socket(zmq.PULL)
         unicast_receiver_port = self._unicast_receiver.bind_to_random_port(f"{self._protocol}://*")
@@ -69,8 +73,10 @@ class ZmqDriver(AbsDriver):
         self._logger.debug(f"Subscriber message at {self._ip_address}:{broadcast_receiver_port}.")
 
         # Record own sockets' address.
-        self._address = {zmq.PULL: f"{self._protocol}://{self._ip_address}:{unicast_receiver_port}",
-                         zmq.SUB: f"{self._protocol}://{self._ip_address}:{broadcast_receiver_port}"}
+        self._address = {
+            zmq.PULL: f"{self._protocol}://{self._ip_address}:{unicast_receiver_port}",
+            zmq.SUB: f"{self._protocol}://{self._ip_address}:{broadcast_receiver_port}"
+        }
 
         self._poller = zmq.Poller()
         self._poller.register(self._unicast_receiver, zmq.POLLIN)

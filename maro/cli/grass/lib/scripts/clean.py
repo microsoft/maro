@@ -9,7 +9,7 @@ from multiprocessing.pool import ThreadPool
 
 from redis import Redis
 
-from utils import load_cluster_details, get_nodes_details
+from .utils import get_nodes_details, load_cluster_details
 
 LIST_CONTAINERS_COMMAND = """\
 ssh -o StrictHostKeyChecking=no {admin_username}@{node_hostname} \
@@ -33,9 +33,11 @@ def _clean_cluster_containers(cluster_name: str, parallels: int):
     admin_username = cluster_details['user']['admin_username']
     master_hostname = cluster_details['master']['hostname']
     redis_port = cluster_details['master']['redis']['port']
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8", decode_responses=True
+    )
     nodes_details = get_nodes_details(
         redis,
         cluster_name=cluster_name
@@ -62,8 +64,9 @@ def _clean_node_containers(admin_username: str, node_hostname: str):
         admin_username=admin_username,
         node_hostname=node_hostname
     )
-    completed_process = subprocess.run(command,
-                                       shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    completed_process = subprocess.run(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     if completed_process.returncode != 0:
         raise Exception(completed_process.stderr)
     return_str = completed_process.stdout.strip('\n')
@@ -77,8 +80,9 @@ def _clean_node_containers(admin_username: str, node_hostname: str):
         node_hostname=node_hostname,
         containers=' '.join(containers)
     )
-    completed_process = subprocess.run(command,
-                                       shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    completed_process = subprocess.run(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     if completed_process.returncode != 0:
         sys.stderr.write(completed_process.stderr + '\n')
     sys.stdout.write(command + '\n')
@@ -89,8 +93,9 @@ def _clean_node_containers(admin_username: str, node_hostname: str):
         node_hostname=node_hostname,
         containers=' '.join(containers)
     )
-    completed_process = subprocess.run(command,
-                                       shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    completed_process = subprocess.run(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+    )
     if completed_process.returncode != 0:
         sys.stderr.write(completed_process.stderr + '\n')
     sys.stdout.write(command + '\n')

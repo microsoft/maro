@@ -5,6 +5,7 @@ from math import floor
 from typing import Dict
 
 import numpy as np
+
 from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
 
 from .common import DecisionType, ExtraCostMode
@@ -382,8 +383,7 @@ class BikeDecisionStrategy:
             distances = self._distance_adj[station_idx]
 
             # index is the station index
-            neighbors = [(index, dist)
-                         for index, dist in enumerate(distances) if dist != 0.0]
+            neighbors = [(index, dist) for index, dist in enumerate(distances) if dist != 0.0]
 
             # sort by distance
             neighbors = sorted(neighbors, key=lambda item: item[1])

@@ -4,9 +4,12 @@
 import torch.nn as nn
 from torch.optim import RMSprop
 
-from .agent import CIMAgent
-from maro.rl import SimpleAgentManager, LearningModel, FullyConnectedNet, DQN, DQNHyperParams, ColumnBasedStore
+from maro.rl import (
+    ColumnBasedStore, DQN, DQNHyperParams, FullyConnectedBlock, SimpleAgentManager, SingleHeadLearningModel
+)
 from maro.utils import set_seeds
+
+from .agent import CIMAgent
 
 
 def create_dqn_agents(agent_id_list, config):
@@ -14,17 +17,19 @@ def create_dqn_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        eval_model = LearningModel(
-            decision_layers=FullyConnectedNet(
+        q_model = SingleHeadLearningModel(
+            [FullyConnectedBlock(
                 name=f'{agent_id}.policy',
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,
-                activation=nn.LeakyReLU, **config.algorithm.model
-            )
+                activation=nn.LeakyReLU,
+                is_head=True,
+                **config.algorithm.model
+            )]
         )
 
         algorithm = DQN(
-            eval_model=eval_model,
+            q_model=q_model,
             optimizer_cls=RMSprop,
             optimizer_params=config.algorithm.optimizer,
             loss_func=nn.functional.smooth_l1_loss,

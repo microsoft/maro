@@ -10,10 +10,12 @@ from shutil import rmtree
 import yaml
 
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
-from maro.cli.utils.details import (load_cluster_details, save_cluster_details, load_job_details, save_job_details,
-                                    load_schedule_details, save_schedule_details)
+from maro.cli.utils.details import (
+    load_cluster_details, load_job_details, load_schedule_details, save_cluster_details, save_job_details,
+    save_schedule_details
+)
 from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import generate_cluster_id, generate_job_id, generate_component_id, generate_name_with_md5
+from maro.cli.utils.naming import generate_cluster_id, generate_component_id, generate_job_id, generate_name_with_md5
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
@@ -135,8 +137,8 @@ class K8sAzureExecutor:
         AzureExecutor.start_deployment(
             resource_group=resource_group,
             deployment_name='aks_cluster',
-            template_file=template_file_location,
-            parameters_file=parameters_file_location
+            template_file_path=template_file_location,
+            parameters_file_path=parameters_file_location
         )
 
         # Attach ACR
@@ -239,8 +241,8 @@ class K8sAzureExecutor:
 
         # Create k8s secret
         command = f'kubectl create secret generic {cluster_id}-k8s-secret ' \
-                  f'--from-literal=azurestorageaccountname={cluster_id}st ' \
-                  f'--from-literal=azurestorageaccountkey={storage_key}'
+            f'--from-literal=azurestorageaccountname={cluster_id}st ' \
+            f'--from-literal=azurestorageaccountkey={storage_key}'
         _ = SubProcess.run(command)
         logger.debug(command)
 
@@ -436,14 +438,15 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
+        local_path = os.path.expanduser(local_path)
         source_path = get_reformatted_source_path(local_path)
         target_dir = get_reformatted_target_dir(remote_dir)
         if not target_dir.startswith("/"):
             raise CliException("Invalid remote path")
         copy_command = f'azcopy copy ' \
-                       f'"{source_path}" ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{target_dir}?{sas}" ' \
-                       f'--recursive=True'
+            f'"{source_path}" ' \
+            f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{target_dir}?{sas}" ' \
+            f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def pull_data(self, local_dir: str, remote_path: str):
@@ -455,6 +458,7 @@ class K8sAzureExecutor:
         sas = self._check_and_get_account_sas()
 
         # Push data
+        local_dir = os.path.expanduser(local_dir)
         source_path = get_reformatted_source_path(remote_path)
         target_dir = get_reformatted_target_dir(local_dir)
         mkdir_script = f"mkdir -p {target_dir}"
@@ -462,9 +466,9 @@ class K8sAzureExecutor:
         if not source_path.startswith("/"):
             raise CliException("Invalid remote path")
         copy_command = f'azcopy copy ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}" ' \
-                       f'"{os.path.expanduser(target_dir)}" ' \
-                       f'--recursive=True'
+            f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}" ' \
+            f'"{os.path.expanduser(target_dir)}" ' \
+            f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def remove_data(self, remote_path: str):
@@ -479,8 +483,8 @@ class K8sAzureExecutor:
 
         # Remove data
         copy_command = f'azcopy remove ' \
-                       f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
-                       f'--recursive=True'
+            f'"https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}" ' \
+            f'--recursive=True'
         _ = SubProcess.run(copy_command)
 
     def _check_and_get_account_sas(self):
@@ -543,13 +547,13 @@ class K8sAzureExecutor:
 
         # Apply k8s config
         command = f"kubectl apply -f " \
-                  f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
         _ = SubProcess.run(command)
 
     def stop_job(self, job_name: str):
         # Stop job
         command = f"kubectl delete -f " \
-                  f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
         _ = SubProcess.run(command)
 
     @staticmethod
@@ -592,7 +596,8 @@ class K8sAzureExecutor:
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs
-        k8s_job_config['metadata']['name'] = f"{job_id}"
+        k8s_job_config['metadata']['name'] = job_id
+        k8s_job_config['metadata']['labels']['jobName'] = job_name
         azure_file_config = k8s_job_config['spec']['template']['spec']['volumes'][0]['azureFile']
         azure_file_config['secretName'] = f"{cluster_id}-k8s-secret"
         azure_file_config['shareName'] = f"{cluster_id}-fs"
@@ -610,8 +615,10 @@ class K8sAzureExecutor:
 
         return k8s_job_config
 
-    def _create_k8s_container_config(self, job_details: dict, k8s_container_config_template: dict,
-                                     component_type: str, component_index: int):
+    def _create_k8s_container_config(
+        self, job_details: dict, k8s_container_config_template: dict,
+        component_type: str, component_index: int
+    ):
         # Copy config
         k8s_container_config = deepcopy(k8s_container_config_template)
 
@@ -711,6 +718,23 @@ class K8sAzureExecutor:
             return f"{cluster_id}acr.azurecr.io/{image_name}"
         else:
             return image_name
+
+    def list_job(self):
+        # Get jobs details
+        command = "kubectl get jobs -o=json"
+        return_str = SubProcess.run(command)
+        job_details_list = json.loads(return_str)["items"]
+        jobs_details = {}
+        for job_details in job_details_list:
+            jobs_details[job_details["metadata"]["labels"]["jobName"]] = job_details
+
+        # Print details
+        logger.info(
+            json.dumps(
+                jobs_details,
+                indent=4, sort_keys=True
+            )
+        )
 
     def get_job_logs(self, job_name: str, export_dir: str = './'):
         # Load details
@@ -827,7 +851,7 @@ class K8sAzureExecutor:
         pods_details = self.get_pods_details()
 
         for pod_details in pods_details:
-            if pod_details['metadata']['labels']['app'] == 'maro-redis':
+            if "app" in pod_details['metadata']['labels'] and pod_details['metadata']['labels']['app'] == 'maro-redis':
                 return_status['redis'] = {
                     'private_ip_address': pod_details['status']['podIP']
                 }

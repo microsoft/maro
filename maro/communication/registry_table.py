@@ -2,14 +2,16 @@
 # Licensed under the MIT license.
 
 # native lib
-from enum import Enum
 import itertools
-import numpy as np
+from enum import Enum
 from typing import List, Tuple, Union
 
+import numpy as np
+
 # private lib
-from maro.communication import Message
 from maro.utils.exception.communication_exception import ConditionalEventSyntaxError, PeersMissError
+
+from .message import Message
 
 
 class Operation(Enum):
@@ -78,8 +80,9 @@ class ConditionalEvent:
             elif event[-1] in operation_or_list:
                 suffix_tree.value = Operation.OR
             else:
-                raise ConditionalEventSyntaxError("The last of the conditional event tuple must be "
-                                                  "one of ['AND', 'OR', '&&', '||]")
+                raise ConditionalEventSyntaxError(
+                    "The last of the conditional event tuple must be one of ['AND', 'OR', '&&', '||]"
+                )
 
             for slot in event[:-1]:
                 node = SuffixTree()
@@ -101,8 +104,9 @@ class ConditionalEvent:
         """
         slots = unit_event.split(":")
         if len(slots) != 3:
-            raise ConditionalEventSyntaxError(f"The conditional event: {unit_event}, "
-                                              f"must have three parts, and divided by ':'.")
+            raise ConditionalEventSyntaxError(
+                f"The conditional event: {unit_event}, must have three parts, and divided by ':'."
+            )
 
         # The third part of unit conditional event must be an integer or percentage(*%).
         if slots[-1][-1] == "%":
@@ -111,8 +115,9 @@ class ConditionalEvent:
         try:
             int(slots[-1])
         except Exception as e:
-            raise ConditionalEventSyntaxError(f"The third part of conditional event must be an integer or "
-                                              f"percentage with % in the end. {str(e)}")
+            raise ConditionalEventSyntaxError(
+                f"The third part of conditional event must be an integer or percentage with % in the end. {str(e)}"
+            )
 
     def _get_request_message_number(self, unit_event: str) -> int:
         """To get the number of request messages by the given unit event."""

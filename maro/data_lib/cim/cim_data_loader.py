@@ -8,11 +8,11 @@ from collections import defaultdict
 from typing import Dict, List
 
 import numpy as np
-from maro.data_lib import BinaryReader
 from yaml import safe_load
 
-from .entities import (CimDataCollection, NoisedItem, OrderGenerateMode,
-                       PortSetting, RoutePoint, Stop, VesselSetting)
+from maro.data_lib import BinaryReader
+
+from .entities import CimDataCollection, NoisedItem, OrderGenerateMode, PortSetting, RoutePoint, Stop, VesselSetting
 
 
 class CimDumpDataLoader:
@@ -139,14 +139,16 @@ class CimDumpDataLoader:
                 float(line["order_proportion_noise"])
             )
 
-            port = PortSetting(port_index,
-                               port_name,
-                               int(line["capacity"]),
-                               int(line["empty"]),
-                               source_order_proportion,
-                               order_target_proportion[port_index],
-                               empty_rtn_buffer,
-                               full_rtn_buffer)
+            port = PortSetting(
+                port_index,
+                port_name,
+                int(line["capacity"]),
+                int(line["empty"]),
+                source_order_proportion,
+                order_target_proportion[port_index],
+                empty_rtn_buffer,
+                full_rtn_buffer
+            )
 
             ports.append(port)
 
@@ -166,16 +168,18 @@ class CimDumpDataLoader:
             vessel_mapping[vessel_name] = vessel_index
             periods_without_noise.append(int(line["period"]))
 
-            vessel = VesselSetting(vessel_index,
-                                   vessel_name,
-                                   int(line["capacity"]),
-                                   line["route_name"],
-                                   line["start_port_name"],
-                                   float(line["sailing_speed"]),
-                                   float(line["sailing_speed_noise"]),
-                                   int(line["parking_duration"]),
-                                   float(line["parking_noise"]),
-                                   int(line["empty"]))
+            vessel = VesselSetting(
+                vessel_index,
+                vessel_name,
+                int(line["capacity"]),
+                line["route_name"],
+                line["start_port_name"],
+                float(line["sailing_speed"]),
+                float(line["sailing_speed_noise"]),
+                int(line["parking_duration"]),
+                float(line["parking_noise"]),
+                int(line["empty"])
+            )
 
             vessels.append(vessel)
 
