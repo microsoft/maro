@@ -1,9 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+import pickle
+
 import numpy as np
 
-from maro.rl import AbsAgent, ColumnBasedStore
+from maro.rl import AbsAgent, EpsilonGreedyExplorer, ColumnBasedStore
 
 
 class CIMAgent(AbsAgent):
@@ -14,9 +17,17 @@ class CIMAgent(AbsAgent):
         num_batches: number of batches to train the DQN model on per call to ``train``.
         batch_size: mini-batch size.
     """
-    def __init__(self, name, algorithm, experience_pool: ColumnBasedStore, min_experiences_to_train,
-                 num_batches, batch_size):
-        super().__init__(name, algorithm, experience_pool)
+    def __init__(
+        self,
+        name: str,
+        algorithm,
+        explorer: EpsilonGreedyExplorer,
+        experience_pool: ColumnBasedStore,
+        min_experiences_to_train,
+        num_batches,
+        batch_size
+    ):
+        super().__init__(name, algorithm, explorer=explorer, experience_pool=experience_pool)
         self._min_experiences_to_train = min_experiences_to_train
         self._num_batches = num_batches
         self._batch_size = batch_size
@@ -38,3 +49,9 @@ class CIMAgent(AbsAgent):
             next_state = np.asarray(sample["next_state"])
             loss = self._algorithm.train(state, action, reward, next_state)
             self._experience_pool.update(indexes, {"loss": loss})
+
+    def dump_experience_pool(self, dir_path: str):
+        """Dump the experience pool to disk."""
+        os.makedirs(dir_path, exist_ok=True)
+        with open(os.path.join(dir_path, self._name), "wb") as fp:
+            pickle.dump(self._experience_pool, fp)

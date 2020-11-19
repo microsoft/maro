@@ -3,6 +3,8 @@
 
 from abc import ABC, abstractmethod
 
+from maro.rl.models.learning_model import LearningModel
+
 
 class AbsAlgorithm(ABC):
     """Abstract RL algorithm class.
@@ -10,9 +12,18 @@ class AbsAlgorithm(ABC):
     The class provides uniform policy interfaces such as ``choose_action`` and ``train``. We also provide some
     predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it to customize their own
     algorithms.
+
+    Args:
+        model (LearningModel): Task model or container of task models required by the algorithm.
+        config: Settings for the algorithm.
     """
-    def __init__(self):
-        pass
+    def __init__(self, model: LearningModel, config):
+        self._model = model
+        self._config = config
+
+    @property
+    def model(self):
+        return self._model
 
     @abstractmethod
     def choose_action(self, state, epsilon: float = None):
@@ -37,24 +48,4 @@ class AbsAlgorithm(ABC):
         This method is algorithm-specific and needs to be implemented by the user. For example, for the DQN
         algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).
         """
-        return NotImplementedError
-
-    @abstractmethod
-    def load_models(self, *models, **model_dict):
-        """Load trainable models from memory."""
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_models(self):
-        """Return the algorithm's trainable models."""
-        return NotImplementedError
-
-    @abstractmethod
-    def load_models_from_file(self, path):
-        """Load trainable models from disk."""
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_models_to_file(self, path: str):
-        """Dump the algorithm's trainable models to disk."""
         return NotImplementedError

@@ -152,7 +152,7 @@ the DQN algorithm and an experience pool for each agent.
                 algorithm = DQN(model_dict={"eval": eval_model},
                                 optimizer_opt=(RMSprop, config.agents.algorithm.optimizer),
                                 loss_func_dict={"eval": smooth_l1_loss},
-                                hyper_params=DQNHyperParams(**config.agents.algorithm.hyper_parameters,
+                                hyper_params=DQNConfig(**config.agents.algorithm.hyper_parameters,
                                                             num_actions=num_actions))
 
                 experience_pool = ColumnBasedStore(**config.agents.experience_pool)
@@ -196,7 +196,7 @@ policies.
     learner = SimpleLearner(trainable_agents=agent_manager, actor=actor,
                             logger=Logger("single_host_cim_learner", auto_timestamp=False))
 
-    learner.train(total_episodes=config.general.total_training_episodes)
+    learner.learn(total_episodes=config.general.total_training_episodes)
 
 
 Main Loop with Actor and Learner (Distributed / Multi-process)
@@ -251,5 +251,5 @@ inside.
     learner = SimpleLearner(trainable_agents=agent_manager,
                             actor=ActorProxy(proxy_params=proxy_params),
                             logger=Logger("distributed_cim_learner", auto_timestamp=False))
-    learner.train(total_episodes=config.general.total_training_episodes)
+    learner.learn(total_episodes=config.general.total_training_episodes)
 

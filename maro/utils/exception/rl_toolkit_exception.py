@@ -39,3 +39,15 @@ class InfiniteTrainingLoopError(MAROException):
     """Raised when the ``SimpleLearner``'s training loop becomes infinite."""
     def __init__(self, msg: str = None):
         super().__init__(4006, msg)
+
+
+class MissingOptimizerError(MAROException):
+    """Raised when the optimizers are missing when calling LearningModel's step() method."""
+    def __init__(self, msg: str = None):
+        super().__init__(4007, msg)
+
+
+class UnrecognizedTaskError(MAROException):
+    """Raised when a MultiTaskLearningModel has task names that are not unrecognized by an algorithm."""
+    def __init__(self, msg: str = None):
+        super().__init__(4008, msg)

@@ -4,6 +4,7 @@
 import os
 from abc import abstractmethod
 
+from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -42,20 +43,18 @@ class SimpleAgentManager(AbsAgentManager):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-    def choose_action(self, decision_event, snapshot_list, epsilon_dict: dict = None):
+    def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
-        agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        model_action = self.agent_dict[agent_id].choose_action(
-            model_state, epsilon_dict[agent_id] if epsilon_dict else None
-        )
+        agent_id, state = self._state_shaper(decision_event, snapshot_list)
+        action = self.agent_dict[agent_id].choose_action(state)
         self._transition_cache = {
-            "state": model_state,
-            "action": model_action,
+            "state": state,
+            "action": action,
             "reward": None,
             "agent_id": agent_id,
             "event": decision_event
         }
-        return self._action_shaper(model_action, decision_event, snapshot_list)
+        return self._action_shaper(action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
         """This method records the environment-generated metrics as part of the latest transition in the trajectory.
@@ -88,19 +87,19 @@ class SimpleAgentManager(AbsAgentManager):
     def load_models(self, agent_model_dict):
         """Load models from memory for each agent."""
         for agent_id, models in agent_model_dict.items():
-            self.agent_dict[agent_id].load_models(models)
+            self.agent_dict[agent_id].load_model(models)
 
     def dump_models(self) -> dict:
         """Get agents' underlying models.
 
         This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
         """
-        return {agent_id: agent.dump_models() for agent_id, agent in self.agent_dict.items()}
+        return {agent_id: agent.dump_model() for agent_id, agent in self.agent_dict.items()}
 
     def load_models_from_files(self, dir_path):
         """Load models from disk for each agent."""
         for agent in self.agent_dict.values():
-            agent.load_models_from_file(dir_path)
+            agent.load_model_from_file(dir_path)
 
     def dump_models_to_files(self, dir_path: str):
         """Dump agents' models to disk.
@@ -109,4 +108,4 @@ class SimpleAgentManager(AbsAgentManager):
         """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self.agent_dict.values():
-            agent.dump_models_to_file(dir_path)
+            agent.dump_model_to_file(dir_path)
