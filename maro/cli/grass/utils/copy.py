@@ -29,8 +29,10 @@ def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, no
 
     mkdir_script = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {target_dir}'"
     _ = SubProcess.run(mkdir_script)
-    copy_script = (f"tar czf - -C {folder_name} {basename} | "
-                   f"ssh {admin_username}@{node_ip_address} 'tar xzf - -C {target_dir}'")
+    copy_script = (
+        f"tar czf - -C {folder_name} {basename} | "
+        f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'tar xzf - -C {target_dir}'"
+    )
     _ = SubProcess.run(copy_script)
 
 
@@ -50,8 +52,10 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
 
     mkdir_script = f"mkdir -p {target_dir}"
     _ = SubProcess.run(mkdir_script)
-    copy_script = (f"ssh {admin_username}@{node_ip_address} 'tar czf - -C {folder_name} {basename}' | "
-                   f"tar xzf - -C {target_dir}")
+    copy_script = (
+        f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+        f"'tar czf - -C {folder_name} {basename}' | tar xzf - -C {target_dir}"
+    )
     _ = SubProcess.run(copy_script)
 
 
