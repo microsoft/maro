@@ -8,6 +8,7 @@
 *.DS_Store
 .idea/
 .vscode/
+.vs/
 build/
 dist/
 *.egg-info/
