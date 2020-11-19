@@ -6,8 +6,10 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
+from .abs_block import AbsBlock
 
-class FullyConnectedBlock(nn.Module):
+
+class FullyConnectedBlock(AbsBlock):
     """Fully connected network with optional batch normalization, activation and dropout components.
 
     Args:

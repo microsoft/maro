@@ -38,9 +38,10 @@ ERROR_CODE = {
     4001: "Unsupported Agent Mode",
     4002: "Missing Shaper",
     4003: "Wrong Agent Manager Mode",
-    4004: "Store Misalignment Error",
+    4004: "Store Misalignment",
     4005: "Invalid Episode",
     4006: "Infinite Training Loop",
     4007: "Missing Optimizer",
-    4008: "Unrecognized Task"
+    4008: "Unrecognized Task",
+    4009: "Unchainable Modules"
 }
