@@ -91,11 +91,11 @@ def get_snapshot_sample_num(snapshot_num: int, snapshot_sample_num: float) -> li
     return down_pooling
 
 
-def get_filtered_formula_and_data(scenario: enumerate, data: pd.DataFrame, option_candidates: list) -> dict:
+def get_filtered_formula_and_data(scenario: GlobalScenarios, data: pd.DataFrame, option_candidates: list) -> dict:
     """ Get calculated formula and whole data.
 
     Args:
-        scenario (enumerate): Type of input scenario detail.
+        scenario (GlobalScenarios): Type of input scenario detail.
         data (dataframe): Original data.
         option_candidates (list): All options for users to choose.
 
@@ -108,7 +108,8 @@ def get_filtered_formula_and_data(scenario: enumerate, data: pd.DataFrame, optio
         option_candidates.append(data_generate["name"])
 
     item_option = st.multiselect(
-        " ", option_candidates, option_candidates)
+        " ", option_candidates, option_candidates
+    )
     item_option = _get_item_option(scenario, item_option, option_candidates)
 
     return {"data": data, "item_option": item_option}
@@ -166,11 +167,11 @@ def generate_by_snapshot_top_summary(
     st.altair_chart(bars + text)
 
 
-def _get_item_option(scenario: enumerate, item_option: list, option_candidates: list) -> list:
+def _get_item_option(scenario: GlobalScenarios, item_option: list, option_candidates: list) -> list:
     """Convert selected CITI_BIKE option into column.
 
     Args:
-        scenario (enumerate): Scenario name.
+        scenario (GlobalScenarios): Scenario name.
         item_option (list): User selected option list.
         option_candidates (list): Pre-defined option list.
 
@@ -231,7 +232,11 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_origin.head(0), res)
             if data_right:
                 data_origin[f"{res[0]}+{res[1]}"] = list(
-                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
+                    map(lambda x, y: x + y,
+                    data_origin[res[0]],
+                    data_origin[res[1]]
+                    )
+                )
             else:
                 return
         data = {"data": data_origin, "name": f"{res[0]}+{res[1]}"}
@@ -244,7 +249,12 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_origin.head(0), res)
             if data_right:
                 data_origin[f"{res[0]}-{res[1]}"] = list(
-                    map(lambda x, y: x - y, data_origin[res[0]], data_origin[res[1]]))
+                    map(
+                        lambda x, y: x - y,
+                        data_origin[res[0]],
+                        data_origin[res[1]]
+                    )
+                )
             else:
                 return
         data = {"data": data_origin, "name": f"{res[0]}-{res[1]}"}
@@ -257,7 +267,12 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_origin.head(0), res)
             if data_right:
                 data_origin[f"{res[0]}*{res[1]}"] = list(
-                    map(lambda x, y: x * y, data_origin[res[0]], data_origin[res[1]]))
+                    map(
+                        lambda x, y: x * y,
+                        data_origin[res[0]],
+                        data_origin[res[1]]
+                    )
+                )
             else:
                 return
         data = {"data": data_origin, "name": f"{res[0]}*{res[1]}"}
@@ -270,7 +285,12 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
             data_right = _judge_append_data(data_origin.head(0), res)
             if data_right:
                 data_origin[f"{res[0]}/{res[1]}"] = list(
-                    map(lambda x, y: x + y, data_origin[res[0]], data_origin[res[1]]))
+                    map(
+                        lambda x, y: x + y,
+                        data_origin[res[0]],
+                        data_origin[res[1]]
+                    )
+                )
             else:
                 return
         data = {"data": data_origin, "name": f"{res[0]}/{res[1]}"}
@@ -284,7 +304,9 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
             if data_right:
                 data_origin[f"sqrt({res[0]})"] = list(
                     map(lambda x: math.sqrt(x),
-                        data_origin[res[0]]))
+                        data_origin[res[0]]
+                    )
+                )
             else:
                 return
         data = {"data": data_origin, "name": f"sqrt({res[0]})"}

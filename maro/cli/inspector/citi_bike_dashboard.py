@@ -8,8 +8,8 @@ import streamlit as st
 
 import maro.cli.inspector.dashboard_helper as helper
 
-from .params import CITIBIKEOption
-from .params import GlobalFilePaths as Gfiles
+from .params import CITIBIKEItemOption
+from .params import GlobalFilePaths
 from .params import GlobalScenarios
 from .visualization_choice import CitiBikeIntraViewChoice, PanelViewChoice
 
@@ -49,20 +49,28 @@ def render_intra_view(source_path: str, prefix: str):
     snapshot_num = len(data_stations["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
 
-    name_conversion = helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
-    option_candidates = CITIBIKEOption.quick_info + CITIBIKEOption.requirement_info + CITIBIKEOption.station_info
+    name_conversion = helper.read_detail_csv(
+        os.path.join(
+            source_path,
+            GlobalFilePaths.name_convert
+        )
+    )
+    option_candidates = CITIBIKEItemOption.quick_info + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
     st.sidebar.markdown("***")
     # filter by station index
     # display the change of snapshot within 1 station
 
     if view_option == CitiBikeIntraViewChoice.by_station.name:
         _generate_inter_view_by_station(
-            data_stations, name_conversion, option_candidates, stations_index, snapshot_num)
+            data_stations, name_conversion, option_candidates, stations_index, snapshot_num
+        )
     # filter by snapshot index
     # display all station information within 1 snapshot
     elif view_option == CitiBikeIntraViewChoice.by_snapshot.name:
         _generate_inter_view_by_snapshot(
-            data_stations, name_conversion, option_candidates, snapshots_index, snapshot_num, stations_num)
+            data_stations, name_conversion, option_candidates,
+            snapshots_index, snapshot_num, stations_num
+        )
 
 
 def render_inter_view(source_path: str):
@@ -72,10 +80,20 @@ def render_inter_view(source_path: str):
         source_path (str): Data folder path.
     """
     helper.render_h1_title("CITI_BIKE Summary Data")
-    data = helper.read_detail_csv(os.path.join(source_path, Gfiles.stations_sum))
+    data = helper.read_detail_csv(
+        os.path.join(
+            source_path,
+            GlobalFilePaths.stations_sum
+        )
+    )
     # convert index to station name
-    name_conversion = helper.read_detail_csv(os.path.join(source_path, Gfiles.name_convert))
-    data["station name"] = list(map(lambda x: name_conversion.loc[int(x[9:])][0], data["name"]))
+    name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
+    data["station name"] = list(
+        map(
+            lambda x: name_conversion.loc[int(x[9:])][0],
+            data["name"]
+        )
+    )
     # generate top summary
     top_number = st.select_slider("Top K", list(range(0, 10)))
     top_attributes = ["bikes", "trip_requirement", "fulfillment", "fulfillment_ratio"]
@@ -118,9 +136,14 @@ def _generate_inter_view_by_snapshot(
     snapshot_filtered = filtered_data["data"][item_option]
     snapshot_filtered = snapshot_filtered.iloc[down_pooling]
     snapshot_filtered["name"] = snapshot_filtered["name"].apply(lambda x: int(x[9:]))
-    snapshot_filtered["Station Name"] = snapshot_filtered["name"].apply(lambda x: name_conversion.loc[int(x)])
-    data_display = \
-        snapshot_filtered.melt(["Station Name", "name"], var_name="Attributes", value_name="Count")
+    snapshot_filtered["Station Name"] = snapshot_filtered["name"].apply(
+        lambda x: name_conversion.loc[int(x)]
+    )
+    data_display = snapshot_filtered.melt(
+        ["Station Name", "name"],
+        var_name="Attributes",
+        value_name="Count"
+    )
     snapshot_line_chart = alt.Chart(data_display).mark_bar().encode(
         x=alt.X("name:N", axis=alt.Axis(title="Name")),
         y="Count:Q",
@@ -163,8 +186,11 @@ def _generate_inter_view_by_station(
     down_pooling = helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
     station_filtered = station_filtered.iloc[down_pooling]
     station_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
-    data_display = \
-        station_filtered.melt("snapshot_index", var_name="Attributes", value_name="Count")
+    data_display = station_filtered.melt(
+        "snapshot_index",
+        var_name="Attributes",
+        value_name="Count"
+    )
     station_line_chart = alt.Chart(data_display).mark_line().encode(
         x=alt.X("snapshot_index", axis=alt.Axis(title="Snapshot Index")),
         y="Count",

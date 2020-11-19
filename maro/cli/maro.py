@@ -846,17 +846,18 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         parents=[global_parser])
 
     build_cmd_parser.add_argument(
-        "--source",
+        "--source_path",
         type=str,
         required=True,
         help="Folder path to load data, should be root path of snapshot folders. e.g. ~/project_root/dump_files/")
 
     build_cmd_parser.add_argument(
         "--force",
-        type=str,
+        type=bool,
         required=False,
-        default="yes",
-        help="Overwrite the generated middle data or not: true/false.")
+        default=True,
+        help="Overwrite the generated middle data or not: True/False.")
+        
     build_cmd_parser.set_defaults(func=start_vis)
 
 

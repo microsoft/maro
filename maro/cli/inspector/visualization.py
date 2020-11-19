@@ -1,20 +1,20 @@
 import argparse
 
-from maro.cli.inspector.cim_dashboard import start_cim_dashboard
-from maro.cli.inspector.citi_bike_dashboard import start_citi_bike_dashboard
-from maro.cli.inspector.params import GlobalScenarios
+from .cim_dashboard import start_cim_dashboard
+from .citi_bike_dashboard import start_citi_bike_dashboard
+from .params import GlobalScenarios
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--source_path", type=str)
     parser.add_argument("--scenario", type=str)
-    parser.add_argument("--epoch_num", type=str)
+    parser.add_argument("--epoch_num", type=int)
     parser.add_argument("--prefix", type=str)
     args = parser.parse_args()
 
     source_path = args.source_path
     scenario = GlobalScenarios(int(args.scenario))
-    epoch_num = int(args.epoch_num)
+    epoch_num = args.epoch_num
     prefix = args.prefix
 
     if scenario == GlobalScenarios.CIM:

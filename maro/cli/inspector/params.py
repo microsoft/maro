@@ -22,7 +22,7 @@ class CIMItemOption:
     vessel_info = ["capacity", "full", "empty", "remaining_space", "name"]
 
 
-class CITIBIKEOption:
+class CITIBIKEItemOption:
     quick_info = ["All", "Requirement Info", "Station Info"]
     requirement_info = ["trip_requirement", "shortage", "fulfillment"]
     station_info = ["bikes", "capacity", "extra_cost", "failed_return"]
