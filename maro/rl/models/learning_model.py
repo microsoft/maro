@@ -9,6 +9,9 @@ import torch.nn as nn
 from maro.utils import clone
 from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
 
+from .abs_block import AbsBlock
+from .utils import check_chainability
+
 OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
 
@@ -20,9 +23,11 @@ class LearningModule(nn.Module):
             of a block must match the input dimension of its successor.
         optimizer_options (OptimizerOptions): A namedtuple of (optimizer_class, optimizer_parameters).
     """
-    def __init__(self, name: str, block_list: list, optimizer_options: OptimizerOptions = None):
+    def __init__(self, name: str, block_list: [AbsBlock], optimizer_options: OptimizerOptions = None):
         super().__init__()
         self._name = name
+        self._input_dim = block_list[0].input_dim
+        self._output_dim = block_list[-1].output_dim
         self._net = nn.Sequential(*block_list)
         self._is_trainable = optimizer_options is not None
         if self._is_trainable:
@@ -45,6 +50,14 @@ class LearningModule(nn.Module):
     @property
     def name(self):
         return self._name
+
+    @property
+    def input_dim(self):
+        return self._input_dim
+
+    @property
+    def output_dim(self):
+        return self._output_dim
 
     @property
     def is_trainable(self):
@@ -80,6 +93,7 @@ class LearningModel(nn.Module):
         task_modules (LearningModule): LearningModule instances, each of which performs a designated task.
         shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to None.
     """
+    @check_chainability
     def __init__(
         self,
         *task_modules: LearningModule,
@@ -92,30 +106,16 @@ class LearningModel(nn.Module):
         self._shared_module = shared_module
 
         # task_heads
-        self._task_modules = list(task_modules)
-        self._net = nn.ModuleDict({
-            task_module.name: nn.Sequential(self._shared_module, task_module) if self._shared_module else task_module
-            for task_module in self._task_modules
-        })
+        self._task_module_dict = nn.ModuleDict({task_module.name: task_module for task_module in task_modules})
 
     def __getstate__(self):
-        shared_module = self._shared_module.copy() if self._shared_module else None
-        task_modules = [task_module.copy() for task_module in self._task_modules]
-        net = nn.ModuleDict({
-            task_module.name: nn.Sequential(shared_module, task_module) if shared_module else task_module
-            for task_module in task_modules
-        })
         dic = self.__dict__.copy()
-        dic["_shared_module"] = shared_module
-        dic["_task_modules"] = task_modules
-        dic["_net"] = net
+        dic["_shared_module"] = self._shared_module.copy() if self._shared_module else None
+        dic["_task_module_dict"] = {name: task_module.copy() for name, task_module in self._task_module_dict.items()}
         return dic
 
     def __setstate__(self, dic: dict):
         self.__dict__ = dic
-
-    def __getitem__(self, task):
-        return self._net[task]
 
     @property
     def task_names(self) -> [str]:
@@ -128,22 +128,24 @@ class LearningModel(nn.Module):
     @property
     def is_trainable(self) -> bool:
         return (
-            any(task_module.is_trainable for task_module in self._task_modules) or
+            any(task_module.is_trainable for task_module in self._task_module_dict.values()) or
             (self._shared_module is not None and self._shared_module.is_trainable)
         )
 
     def _forward(self, inputs, task_name: str = None):
-        if len(self._task_modules) == 1:
-            task_name = self._task_modules[0].name
-            return self._net[task_name](inputs)
+        if self._shared_module:
+            inputs = self._shared_module(inputs)
+
+        if len(self._task_module_dict) == 1:
+            return list(self._task_module_dict.values())[0](inputs)
 
         if task_name is None:
-            return {key: self._net[key](inputs) for key in self._task_names}
+            return {name: task_module(inputs) for name, task_module in self._task_module_dict.items()}
 
         if isinstance(task_name, list):
-            return {k: self._net[k](inputs) for k in task_name}
+            return {name: self._task_module_dict[name](inputs) for name in task_name}
         else:
-            return self._net[task_name](inputs)
+            return self._task_module_dict[task_name](inputs)
 
     def forward(self, inputs, task_name: str = None, is_training: bool = True):
         """Feedforward computations for the given head(s).
@@ -171,7 +173,7 @@ class LearningModel(nn.Module):
 
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
-        for task_module in self._task_modules:
+        for task_module in self._task_module_dict.values():
             task_module.zero_grad()
         if self._shared_module is not None:
             self._shared_module.zero_grad()
@@ -180,7 +182,7 @@ class LearningModel(nn.Module):
         loss.backward()
 
         # Apply gradients
-        for task_module in self._task_modules:
+        for task_module in self._task_module_dict.values():
             task_module.step()
         if self._shared_module is not None:
             self._shared_module.step()

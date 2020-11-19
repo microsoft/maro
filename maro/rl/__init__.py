@@ -22,6 +22,7 @@ from maro.rl.exploration.epsilon_greedy_explorer import EpsilonGreedyExplorer
 from maro.rl.exploration.epsilon_schedule import linear_epsilon_schedule, two_phase_linear_epsilon_schedule
 from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
+from maro.rl.models.abs_block import AbsBlock
 from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import LearningModel, LearningModule, OptimizerOptions
 from maro.rl.shaping.abs_shaper import AbsShaper
