@@ -1,5 +1,5 @@
+altair==4.1.0
 Cython==0.29.14
 numpy==1.19.1
 streamlit==0.69.1
-altair==4.1.0
 tqdm==4.51.0
