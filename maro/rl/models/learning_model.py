@@ -69,14 +69,16 @@ class LearningModule(nn.Module):
     def step(self):
         self._optimizer.step()
 
+    def copy(self):
+        return clone(self)
+
 
 class LearningModel(nn.Module):
     """NN model that consists of multiple task heads and an optional shared stack.
 
     Args:
         task_modules (LearningModule): LearningModule instances, each of which performs a designated task.
-        shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to
-            None.
+        shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to None.
     """
     def __init__(
         self,
@@ -97,11 +99,16 @@ class LearningModel(nn.Module):
         })
 
     def __getstate__(self):
+        shared_module = self._shared_module.copy() if self._shared_module else None
+        task_modules = (task_module.copy() for task_module in self._task_modules)
+        net = nn.ModuleDict({
+            task_module.name: nn.Sequential(shared_module, task_module) if shared_module else task_module
+            for task_module in task_modules
+        })
         dic = self.__dict__.copy()
-        if "_shared_optimizer" in dic:
-            del dic["_shared_optimizer"]
-        if "_head_optimizer_dict" in dic:
-            del dic["_head_optimizer_dict"]
+        dic["_shared_module"] = shared_module
+        dic["_task_modules"] = task_modules
+        dic["_net"] = net
         return dic
 
     def __setstate__(self, dic: dict):
