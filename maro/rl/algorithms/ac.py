@@ -76,7 +76,8 @@ class ActorCritic(AbsAlgorithm):
             state: Input to the actor model.
 
         Returns:
-            A ActionWithLogProbability namedtuple instance containing the action index and the corresponding probability.
+            A ActionWithLogProbability namedtuple instance containing the action index and the corresponding
+            log probability.
         """
         action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
         action = np.random.choice(len(action_distribution), p=action_distribution)
