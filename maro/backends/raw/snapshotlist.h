@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _MARO_BACKENDS_RAW_SNAPSHOTLIST
 #define _MARO_BACKENDS_RAW_SNAPSHOTLIST
 

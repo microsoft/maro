@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _MARO_BACKEND_RAW_ATTRIBUTE
 #define _MARO_BACKEND_RAW_ATTRIBUTE
 
