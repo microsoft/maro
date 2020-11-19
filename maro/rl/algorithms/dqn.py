@@ -5,9 +5,10 @@ from enum import Enum
 
 import numpy as np
 
-from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+
 from maro.rl.models.learning_model import LearningModel
 
+from .abs_algorithm import AbsAlgorithm
 from .utils import expand_dim, preprocess, to_device, validate_task_names
 
 
@@ -68,20 +69,17 @@ class DQN(AbsAlgorithm):
         model (LearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    @to_device
     @validate_task_names(DuelingDQNTask)
+    @to_device
     def __init__(self, model: LearningModel, config: DQNConfig):
         super().__init__(model, config)
-        self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
+        self._training_counter = 0
 
     @expand_dim
-    def choose_action(self, state: np.ndarray, epsilon=None):
-        if epsilon is None or np.random.rand() > epsilon:
-            q_values = self._get_q_values(self._model, state, is_training=False)
-            return q_values.argmax(dim=1).item()
-
-        return np.random.choice(self._config.num_actions)
+    def choose_action(self, state: np.ndarray):
+        q_values = self._get_q_values(self._model, state, is_training=False)
+        return q_values.argmax(dim=1).item()
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:

@@ -7,6 +7,7 @@ from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.ddpg import DDPG, DDPGConfig
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
 from maro.rl.dist_topologies.experience_collection import (
@@ -48,6 +49,8 @@ __all__ = [
     'ActorWorker',
     'AgentManagerMode',
     'ColumnBasedStore',
+    'DDPG',
+    'DDPGConfig',
     'DQN',
     'DQNConfig',
     'DuelingDQNTask',
