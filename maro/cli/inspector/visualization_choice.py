@@ -2,15 +2,15 @@ from enum import Enum
 
 
 class PanelViewChoice(Enum):
-    Intra_Epoch = 1
-    Inter_Epoch = 2
+    Intra_Epoch = "Intra_Epoch View"
+    Inter_Epoch = "Inter_Epoch View"
 
 
 class CIMIntraViewChoice(Enum):
-    by_port = 1
-    by_snapshot = 2
+    by_port = "by_port"
+    by_snapshot = "by_snapshot"
 
 
 class CitiBikeIntraViewChoice(Enum):
-    by_station = 1
-    by_snapshot = 2
+    by_station = "by_station"
+    by_snapshot = "by_snapshot"

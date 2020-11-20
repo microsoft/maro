@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from maro.cli.inspector.params import CIMItemOption, CITIBIKEOption, GlobalScenarios
+from maro.cli.inspector.params import CIMItemOption, CITIBIKEItemOption, GlobalScenarios
 
 # Pre-defined CSS style of inserted HTML elements.
 title_html = """
@@ -15,16 +15,16 @@ title_html = """
         color: black;
         background-size: 600vw 600vw;
         animation: slide 10s linear infinite forwards;
-        margin-left:100px;
-        text-align:left;
-        margin-left:50px;
+        margin-left: 100px;
+        text-align: left;
+        margin-left: 50px;
     }
     .title h3{
         font-size: 20px;
         color: grey;
         background-size: 600vw 600vw;
         animation: slide 10s linear infinite forwards;
-        text-align:center
+        text-align: center
     }
     @keyframes slide {
         0%{
@@ -112,7 +112,9 @@ def get_filtered_formula_and_data(scenario: GlobalScenarios, data: pd.DataFrame,
         option_candidates.append(data_generate["name"])
 
     item_option = st.multiselect(
-        " ", option_candidates, option_candidates
+        label=" ",
+        options=option_candidates,
+        default=option_candidates
     )
     item_option = _get_item_option(scenario, item_option, option_candidates)
 
@@ -139,7 +141,7 @@ def read_detail_csv(path: str) -> pd.DataFrame:
 def generate_by_snapshot_top_summary(
         attr_name: str, data: pd.DataFrame, top_number: int,
         attribute: str, snapshot_index: int = -1):
-    """ Generate top-5 active holders and their summary data.
+    """ Generate top-k active holders and their summary data.
 
     Args:
         attr_name (str): Name of attributes needed to be summarized.
@@ -154,10 +156,16 @@ def generate_by_snapshot_top_summary(
         render_h3_title(f"Top {top_number} {attribute}")
     data = data[[attr_name, attribute]].sort_values(by=attribute, ascending=False).head(top_number)
     data["counter"] = range(len(data))
-    data[attr_name] = list(map(lambda x, y: f"{x+1}-{y}", data["counter"], data[attr_name]))
+    data[attr_name] = list(
+        map(
+            lambda x, y: f"{x+1}-{y}",
+            data["counter"],
+            data[attr_name]
+            )
+        )
     bars = alt.Chart(data).mark_bar().encode(
-        x=attribute + ":Q",
-        y=attr_name + ":O",
+        x=f"{attribute}:Q",
+        y=f"{attr_name}:O",
     ).properties(
         width=700,
         height=240
@@ -167,7 +175,7 @@ def generate_by_snapshot_top_summary(
         baseline="middle",
         dx=3
     ).encode(
-        text=attribute + ":Q"
+        text=f"{attribute}:Q"
     )
     st.altair_chart(bars + text)
 
@@ -193,9 +201,9 @@ def _get_item_option(scenario: GlobalScenarios, item_option: list, option_candid
                 item_option_res = option_candidates
                 break
             elif item == "Requirement Info":
-                item_option_res = item_option_res + CITIBIKEOption.requirement_info
+                item_option_res = item_option_res + CITIBIKEItemOption.requirement_info
             elif item == "Station Info":
-                item_option_res = item_option_res + CITIBIKEOption.station_info
+                item_option_res = item_option_res + CITIBIKEItemOption.station_info
             else:
                 item_option_res.append(item)
         return item_option_res

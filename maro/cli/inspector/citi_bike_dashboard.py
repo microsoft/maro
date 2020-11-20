@@ -8,17 +8,15 @@ import streamlit as st
 
 import maro.cli.inspector.dashboard_helper as helper
 
-from .params import CITIBIKEItemOption
-from .params import GlobalFilePaths
-from .params import GlobalScenarios
+from .params import CITIBIKEItemOption, GlobalFilePaths, GlobalScenarios
 from .visualization_choice import CitiBikeIntraViewChoice, PanelViewChoice
 
 
 def start_citi_bike_dashboard(source_path: str, prefix: str):
-    """Entrance of citi_bike dashboard.
+    """Entrance of Citi_Bike dashboard.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
     """
     option = st.sidebar.selectbox(
@@ -36,7 +34,7 @@ def render_intra_view(source_path: str, prefix: str):
     """Show citi_bike detail plot.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
     """
     helper.render_h1_title("CITI_BIKE Detail Data")
@@ -78,7 +76,7 @@ def render_inter_view(source_path: str):
     """ Show summary plot.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
     """
     helper.render_h1_title("CITI_BIKE Summary Data")
     data = helper.read_detail_csv(

@@ -7,11 +7,11 @@ import pandas as pd
 import tqdm
 import yaml
 
-from .launch_env_dashboard import launch_dashboard
-from .params import GlobalFilePaths
-from .params import GlobalScenarios
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
+
+from .launch_env_dashboard import launch_dashboard
+from .params import GlobalFilePaths, GlobalScenarios
 
 logger = CliLogger(name=__name__)
 
@@ -93,9 +93,9 @@ def _init_csv(file_path: str, header: list):
 
 
 def _summary_append(
-        scenario: GlobalScenarios, dir_epoch: str,
-        file_name: str, header: list,
-        sum_dataframe: pd.DataFrame, i: int, output_path: str):
+        scenario: GlobalScenarios, input_dir: str,
+        file_name: str, header_list: list,
+        sum_dataframe: pd.DataFrame, epoch_index: int, output_path: str):
     """Calculate summary info and generate corresponding csv file.
 
         To accelerate, change each column into numpy.array.
@@ -103,22 +103,22 @@ def _summary_append(
     Args:
         scenario (GlobalScenarios): Current scenario.
             This parameter is useless right now. Cause only scenario-cim needs operations within this function.
-        dir_epoch (str): Current epoch.
+        input_dir (str): Current folder name.
             Loop is outside this function. This function calculate a summary within an epoch each time.
         file_name (str): Name of file needed to be summarized.
             Some scenario has multiple files within one epoch. e.g.cim.
-        header (list): List of columns needed to be summarized.
+        header_list (list): List of columns needed to be summarized.
         sum_dataframe (dataframe): Temporary dataframe to restore results.
-        i (int): Index (to indicate the progress in loop).
+        epoch_index (int): The epoch index of data being processing.
         output_path (str): Path of output CSV file.
 
     """
-    input_path = os.path.join(dir_epoch, file_name)
+    input_path = os.path.join(input_dir, file_name)
     data = pd.read_csv(input_path)
-    data_insert = []
-    for ele in header:
-        data_insert.append(np.sum(np.array(data[ele]), axis=0))
-    sum_dataframe.loc[i] = data_insert
+    data_summary = []
+    for header in header_list:
+        data_summary.append(np.sum(np.array(data[header]), axis=0))
+    sum_dataframe.loc[epoch_index] = data_summary
     sum_dataframe.to_csv(output_path, header=True, index=True)
 
 
@@ -133,7 +133,8 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
         scenario (GlobalScenarios): Current scenario.
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
-        epoch_num (int): Number of data folders.
+        epoch_num (int): Total number of epoches,
+                        i.e. the total number of data folders since there is a folder per epoch.
 
     """
     ports_header = ["capacity", "empty", "full", "on_shipper", "on_consignee", "shortage", "booking", "fulfillment"]
@@ -148,13 +149,13 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
             names=ports_header
         )
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
-        for epoch_index in tqdm.tqdm(epoch_num):
+        for epoch_index in tqdm.tqdm(range(0, epoch_num)):
             epoch_folder = os.path.join(source_path, f"{prefix}{epoch_index}")
-            dir_epoch = os.path.join(source_path, epoch_folder)
+            input_dir = os.path.join(source_path, epoch_folder)
             _summary_append(
-                scenario, dir_epoch, "ports.csv", ports_header,
+                scenario, input_dir, "ports.csv", ports_header,
                 ports_sum_dataframe, epoch_index, os.path.join(source_path, GlobalFilePaths.ports_sum))
-            # _summary_append(dir_epoch, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
+            # _summary_append(input_dir, "vessels.csv", vessels_header, vessels_sum_dataframe, i,vessels_file_path)
     elif scenario == GlobalScenarios.CITI_BIKE:
         _init_csv(os.path.join(source_path, GlobalFilePaths.stations_sum), stations_header)
         data = pd.read_csv(os.path.join(source_path, f"{prefix}0", "stations.csv"))
@@ -170,7 +171,7 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
 
 
 def _get_holder_name_conversion(scenario: GlobalScenarios, source_path: str, conversion_path: str):
-    """ Generate a CSV File which indicates the relationship between index and holder"s name.
+    """ Generate a CSV File which indicates the relationship between resource holder's index and name.
 
     Args:
         scenario (GlobalScenarios): Current scenario. Different scenario has different type of mapping file.

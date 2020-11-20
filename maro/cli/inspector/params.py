@@ -9,8 +9,8 @@ class GlobalFilePaths:
 
 
 class GlobalScenarios(Enum):
-    CIM = 1
-    CITI_BIKE = 2
+    CIM = "container_inventort_management"
+    CITI_BIKE = "citi_bike"
 
 
 class CIMItemOption:

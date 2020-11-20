@@ -1,8 +1,8 @@
 import argparse
 
-from .cim_dashboard import start_cim_dashboard
-from .citi_bike_dashboard import start_citi_bike_dashboard
-from .params import GlobalScenarios
+from maro.cli.inspector.cim_dashboard import start_cim_dashboard
+from maro.cli.inspector.citi_bike_dashboard import start_citi_bike_dashboard
+from maro.cli.inspector.params import GlobalScenarios
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     source_path = args.source_path
-    scenario = GlobalScenarios(int(args.scenario))
+    scenario = GlobalScenarios(args.scenario)
     epoch_num = args.epoch_num
     prefix = args.prefix
 

@@ -8,9 +8,7 @@ import streamlit as st
 
 import maro.cli.inspector.dashboard_helper as helper
 
-from .params import CIMItemOption
-from .params import GlobalFilePaths
-from .params import GlobalScenarios
+from .params import CIMItemOption, GlobalFilePaths, GlobalScenarios
 from .visualization_choice import CIMIntraViewChoice, PanelViewChoice
 
 
@@ -76,7 +74,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     """
     option_epoch = st.sidebar.select_slider(
         label="Choose an Epoch:",
-        value=list(range(0, epoch_num))
+        options=list(range(0, epoch_num))
     )
     target_path = os.path.join(source_path, f"{prefix}{option_epoch}")
     # Get data of selected epoch.
@@ -167,12 +165,12 @@ def _render_intra_view_by_ports(
     """
     port_index = st.sidebar.select_slider(
         label="Choose a Port:",
-        value=ports_index
+        options=ports_index
     )
     sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider(
         label="Snapshot Sampling Ratio:",
-        value=sample_ratio
+        options=sample_ratio
     )
     # Accumulated data.
     helper.render_h1_title("CIM Accumulated Data")
@@ -211,13 +209,13 @@ def _render_intra_view_by_snapshot(
     """
     snapshot_index = st.sidebar.select_slider(
         label="snapshot index",
-        value=snapshots_index
+        options=snapshots_index
     )
     # Get sample ratio.
     sample_ratio = helper.get_holder_sample_ratio(ports_num)
     usr_ratio = st.sidebar.select_slider(
         label="Ports Sample Ratio:",
-        value=sample_ratio
+        options=sample_ratio
     )
     # Accumulated data.
     helper.render_h1_title("Accumulated Data")
@@ -377,7 +375,7 @@ def _generate_intra_panel_vessel(data_vessels: pd.DataFrame, snapshot_index: int
     sample_ratio = helper.get_holder_sample_ratio(vessels_num)
     sample_ratio_res = st.sidebar.select_slider(
         label="Vessels Sample Ratio:",
-        value=sample_ratio
+        options=sample_ratio
     )
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
 
@@ -463,7 +461,7 @@ def _generate_intra_heat_map(matrix_data: str):
 
 
 def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conversion: pd.DataFrame):
-    """Generate CIM top 5 summary.
+    """Generate CIM top k summary.
 
     Args:
         data (dataframe): Data of current snapshot.
@@ -484,7 +482,7 @@ def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conver
     helper.render_h3_title("Select Top k")
     top_number = st.select_slider(
         label="",
-        value=list(range(0, 10))
+        options=list(range(0, 10))
     )
     top_attributes = CIMItemOption.acc_info + ["fulfillment_ratio"]
     for item in top_attributes:
@@ -542,7 +540,7 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> list:
     )
     down_pooling_num = st.sidebar.select_slider(
         label="Epoch Sampling Ratio",
-        value=sample_ratio
+        options=sample_ratio
     )
     down_pooling_range = _generate_down_pooling_sample(down_pooling_num, start_epoch, end_epoch)
     return down_pooling_range
