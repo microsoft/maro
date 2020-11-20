@@ -94,11 +94,7 @@ class LearningModel(nn.Module):
         shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to None.
     """
     @check_chainability
-    def __init__(
-        self,
-        *task_modules: LearningModule,
-        shared_module: LearningModule = None
-    ):
+    def __init__(self, *task_modules: LearningModule, shared_module: LearningModule = None):
         super().__init__()
         self._task_names = [module.name for module in task_modules]
 
