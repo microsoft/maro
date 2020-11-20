@@ -22,8 +22,8 @@ def start_citi_bike_dashboard(source_path: str, prefix: str):
         prefix (str): Prefix of data folders.
     """
     option = st.sidebar.selectbox(
-        "Data Type",
-        PanelViewChoice._member_names_)
+        label="Data Type",
+        options=PanelViewChoice._member_names_)
     if option == PanelViewChoice.Inter_Epoch.name:
         render_inter_view(source_path)
     elif option == PanelViewChoice.Intra_Epoch.name:
@@ -42,8 +42,8 @@ def render_intra_view(source_path: str, prefix: str):
     helper.render_h1_title("CITI_BIKE Detail Data")
     data_stations = pd.read_csv(os.path.join(source_path, prefix, "stations.csv"))
     view_option = st.sidebar.selectbox(
-        "By station/snapshot:",
-        CitiBikeIntraViewChoice._member_names_)
+        label="By station/snapshot:",
+        options=CitiBikeIntraViewChoice._member_names_)
     stations_num = len(data_stations["id"].unique())
     stations_index = np.arange(stations_num).tolist()
     snapshot_num = len(data_stations["frame_index"].unique())

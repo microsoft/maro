@@ -226,7 +226,10 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
         dict: formula name & formula output
     """
     st.sidebar.markdown("***")
-    formula_select = st.sidebar.selectbox("formula:", ["a+b", "a-b", "a/b", "a*b", "sqrt(a)"])
+    formula_select = st.sidebar.selectbox(
+        label="formula:",
+        options=["a+b", "a-b", "a/b", "a*b", "sqrt(a)"]
+    )
     paras = st.sidebar.text_input("parameters separated by ;")
     res = paras.split(";")
 

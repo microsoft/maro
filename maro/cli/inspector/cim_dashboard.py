@@ -19,12 +19,14 @@ def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
-        epoch_num (int) : Number of data folders.
+        epoch_num (int) : Total number of epoches,
+                         i.e. the total number of data folders since there is a folder per epoch.
         prefix (str): Prefix of data folders.
     """
     option = st.sidebar.selectbox(
-        "Data Type",
-        PanelViewChoice._member_names_)
+        label="Data Type",
+        options=PanelViewChoice._member_names_
+    )
     if option == PanelViewChoice.Inter_Epoch.name:
         render_inter_view(source_path, epoch_num)
     elif option == PanelViewChoice.Intra_Epoch.name:
@@ -38,7 +40,8 @@ def render_inter_view(source_path: str, epoch_num: int):
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
-        epoch_num (int): Number of snapshot folders.
+        epoch_num (int): Total number of epoches,
+                         i.e. the total number of data folders since there is a folder per epoch.
     """
     helper.render_h1_title("CIM Inter Epoch Data")
     sample_ratio = helper.get_holder_sample_ratio(epoch_num)
@@ -67,12 +70,14 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
-        epoch_num (int) : Number of snapshots.
+        epoch_num (int) : Total number of epoches,
+                        i.e. the total number of data folders since there is a folder per epoch.
         prefix (str):  Prefix of data folders.
     """
     option_epoch = st.sidebar.select_slider(
-        "Choose an Epoch:",
-        list(range(0, epoch_num)))
+        label="Choose an Epoch:",
+        value=list(range(0, epoch_num))
+    )
     target_path = os.path.join(source_path, f"{prefix}{option_epoch}")
     # Get data of selected epoch.
     data_ports = helper.read_detail_csv(os.path.join(target_path, "ports.csv"))
@@ -97,8 +102,9 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
 
     st.sidebar.markdown("***")
     option_view = st.sidebar.selectbox(
-        "By ports/snapshot:",
-        CIMIntraViewChoice._member_names_)
+        label="By ports/snapshot:",
+        options=CIMIntraViewChoice._member_names_
+    )
 
     if option_view == CIMIntraViewChoice.by_port.name:
         _render_intra_view_by_ports(
@@ -160,10 +166,14 @@ def _render_intra_view_by_ports(
         snapshot_num (int): Number of snapshots on a port.
     """
     port_index = st.sidebar.select_slider(
-        "Choose a Port:",
-        ports_index)
+        label="Choose a Port:",
+        value=ports_index
+    )
     sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
-    snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
+    snapshot_sample_num = st.sidebar.select_slider(
+        label="Snapshot Sampling Ratio:",
+        value=sample_ratio
+    )
     # Accumulated data.
     helper.render_h1_title("CIM Accumulated Data")
     helper.render_h3_title(
@@ -200,11 +210,15 @@ def _render_intra_view_by_snapshot(
         prefix (str): Prefix of data folders.
     """
     snapshot_index = st.sidebar.select_slider(
-        "snapshot index",
-        snapshots_index)
+        label="snapshot index",
+        value=snapshots_index
+    )
     # Get sample ratio.
     sample_ratio = helper.get_holder_sample_ratio(ports_num)
-    usr_ratio = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
+    usr_ratio = st.sidebar.select_slider(
+        label="Ports Sample Ratio:",
+        value=sample_ratio
+    )
     # Accumulated data.
     helper.render_h1_title("Accumulated Data")
     _render_intra_heat_map(source_path, GlobalScenarios.CIM, option_epoch, snapshot_index, prefix)
@@ -361,7 +375,10 @@ def _generate_intra_panel_vessel(data_vessels: pd.DataFrame, snapshot_index: int
     helper.render_h3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
     # Get sampled(and down pooling) index.
     sample_ratio = helper.get_holder_sample_ratio(vessels_num)
-    sample_ratio_res = st.sidebar.select_slider("Vessels Sample Ratio:", sample_ratio)
+    sample_ratio_res = st.sidebar.select_slider(
+        label="Vessels Sample Ratio:",
+        value=sample_ratio
+    )
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
 
     vessels = data_vessels[data_vessels["frame_index"] == snapshot_index].reset_index(drop=True)
@@ -465,7 +482,10 @@ def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conver
         )
     )
     helper.render_h3_title("Select Top k")
-    top_number = st.select_slider("", list(range(0, 10)))
+    top_number = st.select_slider(
+        label="",
+        value=list(range(0, 10))
+    )
     top_attributes = CIMItemOption.acc_info + ["fulfillment_ratio"]
     for item in top_attributes:
         helper.generate_by_snapshot_top_summary(
@@ -498,8 +518,9 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> list:
     """For inter plot, generate sampled data list based on range & sample ratio
 
     Args:
-        epoch_num(int): Number of snapshot folders.
-        sample_ratio(float): Sampling ratio.
+        epoch_num (int): Total number of epoches,
+                         i.e. the total number of data folders since there is a folder per epoch.
+        sample_ratio (float): Sampling ratio.
             e.g. If sample_ratio = 0.3, and sample data range = [0, 10],
             down_pooling_list = [0, 0.3, 0.6, 0.9]
             down_pooling_range = [0, 3, 6, 9]
@@ -507,10 +528,21 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> list:
     Returns:
         list: list of sampled data index
     """
-    start_epoch = st.sidebar.number_input("Start Epoch", 0, epoch_num - 1, 0)
-    end_epoch = st.sidebar.number_input("End Epoch", 0, epoch_num - 1, epoch_num - 1)
+    start_epoch = st.sidebar.number_input(
+        label="Start Epoch",
+        min_value=0,
+        max_value=epoch_num - 1,
+        value=0
+    )
+    end_epoch = st.sidebar.number_input(
+        label="End Epoch",
+        min_value=0,
+        max_value=epoch_num - 1,
+        value=epoch_num - 1
+    )
     down_pooling_num = st.sidebar.select_slider(
-        "Epoch Sampling Ratio",
-        sample_ratio)
+        label="Epoch Sampling Ratio",
+        value=sample_ratio
+    )
     down_pooling_range = _generate_down_pooling_sample(down_pooling_num, start_epoch, end_epoch)
     return down_pooling_range
