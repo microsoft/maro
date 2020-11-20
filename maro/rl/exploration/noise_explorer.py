@@ -7,6 +7,7 @@ from typing import Union
 import numpy as np
 
 from maro.utils.exception.rl_toolkit_exception import MissingExplorationParametersError
+
 from .abs_explorer import AbsExplorer
 
 
