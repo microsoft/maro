@@ -1,12 +1,15 @@
 import gzip
 import os
 import shutil
+import time
+from typing import List
 
+import aria2p
 import pandas as pd
 from yaml import safe_load
 
 from maro.cli.data_pipeline.base import DataPipeline, DataTopology
-from maro.cli.data_pipeline.utils import StaticParameter, download_file
+from maro.cli.data_pipeline.utils import StaticParameter
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -23,12 +26,19 @@ class DataCenterPipeline(DataPipeline):
     _vm_table_file_name = "vmtable.csv.gz"
     _clean_file_name = "vmtable.csv"
 
-    _cpu_readings_file_name = "vm_cpu_readings-file-1-of-195.csv.gz"
-
     def __init__(self, topology: str, source: str, is_temp: bool = False):
         super().__init__(scenario="data_center", topology=topology, source=source, is_temp=is_temp)
 
         self._vm_table_file = os.path.join(self._download_folder, self._vm_table_file_name)
+
+        self.aria2 = aria2p.API(
+            aria2p.Client(
+                host="http://localhost",
+                port=6800,
+                secret=""
+            )
+        )
+        self._download_file_list = []
 
     def download(self, is_force: bool = False):
         # Download text with all urls.
@@ -36,17 +46,54 @@ class DataCenterPipeline(DataPipeline):
         if os.path.exists(self._download_file):
             # Download vm_table and cpu_reading
             logger.info_green("Downloading vmtable and cpu readings.")
-            with open(self._download_file, mode="r", encoding="utf-8") as urls:
-                for remote_url in urls.read().splitlines():
-                    file_name = remote_url.split('/')[-1]
-                    if file_name.startswith("vmtable"):
-                        if (not is_force) and os.path.exists(self._vm_table_file):
-                            logger.info_green("File already exists, skipping download.")
-                        else:
-                            logger.info_green(f"Downloading VM data from {remote_url} to {self._vm_table_file}.")
-                            download_file(source=remote_url, destination=self._vm_table_file)
+            self._aria2p_download(is_force=is_force)
         else:
             logger.warning(f"Not found downloaded source file: {self._download_file}.")
+
+    def _aria2p_download(self, is_force: bool = False) -> List[list]:
+        """Read from the text file which contains urls and use aria2p to download.
+
+        Args:
+            is_force (bool): Is force or not.
+        """
+
+        # Download parts of cpu reading files.
+        num_files = 4
+        # Open the txt file which contains all the required urls.
+        with open(self._download_file, mode="r", encoding="utf-8") as urls:
+            for remote_url in urls.read().splitlines():
+                # Get the file name.
+                file_name = remote_url.split('/')[-1]
+                # Two kinds of required files "vmtable" and "vm_cpu_readings-" start with vm.
+                if file_name.startswith("vm"):
+                    if file_name.startswith("vm_cpu_readings"):
+                        num_files -= 1
+                    if (not is_force) and os.path.exists(self._vm_table_file):
+                        logger.info_green("File already exists, skipping download.")
+                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
+                    else:
+                        logger.info_green(f"Downloading vmtable from {remote_url} to {self._vm_table_file}.")
+        self._check_all_download_completed()
+
+    def _check_all_download_completed(self):
+        """Check all download tasks are completed and remove the ".aria2" files."""
+
+        while 1:
+            downloads = self.aria2.get_downloads()
+            if len(downloads) == 0:
+                logger.info_green("Doesn't exist any pending file.")
+                break
+
+            if all([download.is_complete for download in downloads]):
+                # Remove temp .aria2 files.
+                self.aria2.remove(downloads)
+                logger.info_green("Download finished.")
+                break
+
+            for download in downloads:
+                logger.info_green(f"{download.name}, {download.status}, {download.progress:.2f}%")
+            logger.info_green("-" * 60)
+            time.sleep(5)
 
     def clean(self):
         """Unzip the csv file and process it for building binary file."""
