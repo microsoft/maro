@@ -4,7 +4,6 @@
 import os
 from abc import abstractmethod
 
-from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
