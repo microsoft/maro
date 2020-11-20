@@ -18,7 +18,7 @@ def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):
     """Entrance of cim dashboard.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         epoch_num (int) : Number of data folders.
         prefix (str): Prefix of data folders.
     """
@@ -37,15 +37,15 @@ def render_inter_view(source_path: str, epoch_num: int):
     """Show CIM summary plot.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         epoch_num (int): Number of snapshot folders.
     """
     helper.render_h1_title("CIM Inter Epoch Data")
     sample_ratio = helper.get_holder_sample_ratio(epoch_num)
-    # get epoch sample num
+    # Get epoch sample number.
     down_pooling_range = _get_sampled_epoch_range(epoch_num, sample_ratio)
     option_candidates = CIMItemOption.quick_info + CIMItemOption.port_info + CIMItemOption.booking_info
-    # generate data
+    # Generate data.
     data = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.ports_sum)).iloc[down_pooling_range]
     data["remaining_space"] = list(
         map(
@@ -55,7 +55,7 @@ def render_inter_view(source_path: str, epoch_num: int):
             data["empty"]
             )
         )
-    # get formula & selected data
+    # Get formula and selected data.
     filtered_data = helper.get_filtered_formula_and_data(GlobalScenarios.CIM, data, option_candidates)
     data = filtered_data["data"]
     filtered_option = filtered_data["item_option"]
@@ -66,7 +66,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     """Show CIM detail plot.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         epoch_num (int) : Number of snapshots.
         prefix (str):  Prefix of data folders.
     """
@@ -74,7 +74,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
         "Choose an Epoch:",
         list(range(0, epoch_num)))
     target_path = os.path.join(source_path, f"{prefix}{option_epoch}")
-    # get data of selected epoch
+    # Get data of selected epoch.
     data_ports = helper.read_detail_csv(os.path.join(target_path, "ports.csv"))
     data_ports["remaining_space"] = list(
         map(
@@ -84,15 +84,15 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
             data_ports["empty"]
             )
         )
-    # basic data
+    # Basic data.
     ports_num = len(data_ports["name"].unique())
     ports_index = np.arange(ports_num).tolist()
     snapshot_num = len(data_ports["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
 
-    # item for user to select
+    # Items for user to select.
     option_candidates = CIMItemOption.quick_info + CIMItemOption.booking_info + CIMItemOption.port_info
-    # name conversion
+    # Name conversion.
     name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
 
     st.sidebar.markdown("***")
@@ -114,6 +114,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
 
 def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: list):
     """Generate summary plot.
+
         View info within different epochs.
 
     Args:
@@ -163,14 +164,14 @@ def _render_intra_view_by_ports(
         ports_index)
     sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", sample_ratio)
-    # accumulated data
+    # Accumulated data.
     helper.render_h1_title("CIM Accumulated Data")
     helper.render_h3_title(
         f"Port Accumulated Attributes: {port_index} - {name_conversion.loc[int(port_index)][0]}")
     _generate_intra_panel_by_ports(
         CIMItemOption.basic_info + CIMItemOption.acc_info,
         data_ports, f"ports_{port_index}", snapshot_num, snapshot_sample_num)
-    # detail data
+    # Detailed data.
     helper.render_h1_title("CIM Intra Epoch Data")
     filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CIM, data_ports, option_candidates)
@@ -189,7 +190,7 @@ def _render_intra_view_by_snapshot(
     """ Show intra-view by snapshot.
 
     Args:
-        source_path (str): Path of folder.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         option_epoch (int): Index of selected epoch.
         data_ports (dataframe): Filtered data.
         snapshots_index (list): Index of selected snapshot.
@@ -201,10 +202,10 @@ def _render_intra_view_by_snapshot(
     snapshot_index = st.sidebar.select_slider(
         "snapshot index",
         snapshots_index)
-    # get sample ratio
+    # Get sample ratio.
     sample_ratio = helper.get_holder_sample_ratio(ports_num)
     usr_ratio = st.sidebar.select_slider("Ports Sample Ratio:", sample_ratio)
-    # acc data
+    # Accumulated data.
     helper.render_h1_title("Accumulated Data")
     _render_intra_heat_map(source_path, GlobalScenarios.CIM, option_epoch, snapshot_index, prefix)
 
@@ -213,7 +214,7 @@ def _render_intra_view_by_snapshot(
         CIMItemOption.basic_info + CIMItemOption.acc_info, data_ports, snapshot_index,
         ports_num, name_conversion, usr_ratio)
     _generate_top_k_summary(data_ports, snapshot_index, name_conversion)
-    # detail data
+    # Detailed data.
     helper.render_h1_title("Detail Data")
     _render_intra_panel_vessel(source_path, prefix, option_epoch, snapshot_index)
 
@@ -230,6 +231,7 @@ def _generate_intra_panel_by_ports(
         info_selector: list, data: pd.DataFrame, option_port_name: str,
         snapshot_num: int, snapshot_sample_num: float, item_option: list = None):
     """Generate detail plot.
+
         View info within different holders(ports,stations,etc) in the same epoch.
         Change snapshot sampling num freely.
     Args:
@@ -243,7 +245,6 @@ def _generate_intra_panel_by_ports(
         item_option (list): Translated user-select option
     """
     data_acc = data[info_selector]
-    # delete parameter:name
     info_selector.pop(0)
     down_pooling = helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
     port_filtered = data_acc[data_acc["name"] == option_port_name][info_selector].reset_index(drop=True)
@@ -280,6 +281,7 @@ def _generate_intra_panel_by_snapshot(
         info: list, data: pd.DataFrame, snapshot_index: int,
         ports_num: int, name_conversion: pd.DataFrame, sample_ratio: list, item_option: list = None):
     """Generate detail plot.
+
         View info within different snapshot in the same epoch.
 
     Args:
@@ -294,7 +296,6 @@ def _generate_intra_panel_by_snapshot(
         item_option (list): Translated user-select options.
     """
     data_acc = data[info]
-    # delete parameter:frame_index
     info.pop(1)
     down_pooling = list(range(0, ports_num, math.floor(1 / sample_ratio)))
     snapshot_filtered = data_acc[data_acc["frame_index"] == snapshot_index][info].reset_index(drop=True)
@@ -333,7 +334,7 @@ def _render_intra_panel_vessel(source_path: str, prefix: str, option_epoch: int,
     """show vessel info of selected snapshot
 
     Args:
-        source_path (str): Root path of data folders.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
         option_epoch (int): Selected index of epoch.
         snapshot_index (int): Index of selected snapshot folder.
@@ -358,7 +359,7 @@ def _generate_intra_panel_vessel(data_vessels: pd.DataFrame, snapshot_index: int
         vessels_num (int): Number of vessels.
     """
     helper.render_h3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
-    # Get sampled(and down pooling) index
+    # Get sampled(and down pooling) index.
     sample_ratio = helper.get_holder_sample_ratio(vessels_num)
     sample_ratio_res = st.sidebar.select_slider("Vessels Sample Ratio:", sample_ratio)
     down_pooling = list(range(0, vessels_num, math.floor(1 / sample_ratio_res)))
@@ -388,11 +389,12 @@ def _generate_intra_panel_vessel(data_vessels: pd.DataFrame, snapshot_index: int
     st.altair_chart(vessel_chart_snapshot)
 
 
-def _render_intra_heat_map(source_path: str, scenario: GlobalScenarios, epoch_index: int, snapshot_index: int, prefix: str):
+def _render_intra_heat_map(
+        source_path: str, scenario: GlobalScenarios, epoch_index: int, snapshot_index: int, prefix: str):
     """Get matrix data and provide entrance to hot map of different scenario.
 
     Args:
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         scenario (GlobalScenarios): Name of current scenario: CIM.
         epoch_index (int):  Selected epoch index.
         snapshot_index (int): Selected snapshot index.
@@ -426,7 +428,7 @@ def _generate_intra_heat_map(matrix_data: str):
     x_axis_single = list(range(0, matrix_len))
     x_axis = [x_axis_single] * matrix_len
     y_axis = [[row[col] for row in x_axis] for col in range(len(x_axis[0]))]
-    # Convert this grid to columnar data expected by Altair
+    # Convert this grid to columnar data expected by Altair.
     source = pd.DataFrame({
         "Dest_Port": np.array(x_axis).ravel(),
         "Start_Port": np.array(y_axis).ravel(),

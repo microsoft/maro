@@ -97,7 +97,8 @@ def _summary_append(
         file_name: str, header: list,
         sum_dataframe: pd.DataFrame, i: int, output_path: str):
     """Calculate summary info and generate corresponding csv file.
-    To accelerate, change each column into numpy.array.
+
+        To accelerate, change each column into numpy.array.
 
     Args:
         scenario (GlobalScenarios): Current scenario.
@@ -123,13 +124,14 @@ def _summary_append(
 
 def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, epoch_num: int):
     """Generate summary info of current scenario.
-    Different scenario has different data features.
-    e.g. cim has multiple epochs while citi_bike only has one.
-    Each scenario should be treated respectively.
+
+        Different scenario has different data features.
+            e.g. cim has multiple epochs while citi_bike only has one.
+        Each scenario should be treated respectively.
 
     Args:
         scenario (GlobalScenarios): Current scenario.
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
         epoch_num (int): Number of data folders.
 
@@ -147,10 +149,8 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
         )
         # vessels_sum_dataframe = pd.read_csv(vessels_file_path, names=vessels_header)
         for epoch_index in tqdm.tqdm(epoch_num):
-            dbtype = os.path.join(source_path, f"{prefix}i")
-            dir_epoch = os.path.join(source_path, dbtype)
-            if not os.path.isdir(dir_epoch):
-                continue
+            epoch_folder = os.path.join(source_path, f"{prefix}{epoch_index}")
+            dir_epoch = os.path.join(source_path, epoch_folder)
             _summary_append(
                 scenario, dir_epoch, "ports.csv", ports_header,
                 ports_sum_dataframe, epoch_index, os.path.join(source_path, GlobalFilePaths.ports_sum))
@@ -174,17 +174,17 @@ def _get_holder_name_conversion(scenario: GlobalScenarios, source_path: str, con
 
     Args:
         scenario (GlobalScenarios): Current scenario. Different scenario has different type of mapping file.
-        source_path (str): Data folder path.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         conversion_path (str): Path of origin mapping file.
     """
     conversion_path = os.path.join(source_path, conversion_path)
     if os.path.exists(os.path.join(source_path, GlobalFilePaths.name_convert)):
         os.remove(os.path.join(source_path, GlobalFilePaths.name_convert))
     if scenario == GlobalScenarios.CITI_BIKE:
-        with open(conversion_path, "r", encoding="utf8")as fp:
-            json_data = json.load(fp)
+        with open(conversion_path, "r", encoding="utf8")as mapping_file:
+            mapping_json_data = json.load(mapping_file)
             name_list = []
-            for item in json_data["data"]["stations"]:
+            for item in mapping_json_data["data"]["stations"]:
                 name_list.append(item["name"])
             df = pd.DataFrame({"name": name_list})
             df.to_csv(os.path.join(source_path, GlobalFilePaths.name_convert), index=False)

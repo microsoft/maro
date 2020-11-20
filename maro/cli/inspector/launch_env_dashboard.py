@@ -1,12 +1,14 @@
 import os
 
+from .params import GlobalScenarios
 
-def launch_dashboard(source_path: str, scenario: enumerate, epoch_num: int, prefix: str):
+
+def launch_dashboard(source_path: str, scenario: GlobalScenarios, epoch_num: int, prefix: str):
     """Launch streamlit dashboard.
 
     Args:
-        source_path (str): Data folder path.
-        scenario (enumerate): Name of current scenario.
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
+        scenario (GlobalScenarios): Name of current scenario.
         epoch_num (int): Number of epochs.
         prefix (str): Prefix of data folders.
     """

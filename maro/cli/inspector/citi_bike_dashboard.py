@@ -55,17 +55,18 @@ def render_intra_view(source_path: str, prefix: str):
             GlobalFilePaths.name_convert
         )
     )
-    option_candidates = CITIBIKEItemOption.quick_info + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
+    option_candidates = CITIBIKEItemOption.quick_info
+    + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
     st.sidebar.markdown("***")
-    # filter by station index
-    # display the change of snapshot within 1 station
+    # Filter by station index.
+    # Display the change of snapshot within 1 station.
 
     if view_option == CitiBikeIntraViewChoice.by_station.name:
         _generate_inter_view_by_station(
             data_stations, name_conversion, option_candidates, stations_index, snapshot_num
         )
-    # filter by snapshot index
-    # display all station information within 1 snapshot
+    # Filter by snapshot index.
+    # Display all station information within 1 snapshot.
     elif view_option == CitiBikeIntraViewChoice.by_snapshot.name:
         _generate_inter_view_by_snapshot(
             data_stations, name_conversion, option_candidates,
@@ -86,7 +87,7 @@ def render_inter_view(source_path: str):
             GlobalFilePaths.stations_sum
         )
     )
-    # convert index to station name
+    # Convert index to station name.
     name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
     data["station name"] = list(
         map(
@@ -94,7 +95,7 @@ def render_inter_view(source_path: str):
             data["name"]
         )
     )
-    # generate top summary
+    # Generate top summary.
     top_number = st.select_slider("Top K", list(range(0, 10)))
     top_attributes = ["bikes", "trip_requirement", "fulfillment", "fulfillment_ratio"]
     for item in top_attributes:
@@ -114,22 +115,22 @@ def _generate_inter_view_by_snapshot(
         snapshot_num (int): Number of snapshots.
         stations_num (int): Number of stations.
     """
-    # get selected snapshot index
+    # Get selected snapshot index.
     snapshot_index = st.sidebar.select_slider(
         "snapshot index",
         snapshots_index)
     helper.render_h3_title(f"Snapshot-{snapshot_index}:  Detail Data")
-    # get according data with selected snapshot
+    # Get according data with selected snapshot.
     data_filtered = data_stations[data_stations["frame_index"] == snapshot_index]
-    # get increasing rate
+    # Get increasing rate.
     sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
-    # get sample rate (between 0-1)
+    # Get sample rate (between 0-1).
     station_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio", sample_ratio)
 
-    # get formula input & output
+    # Get formula input and output.
     filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
-    # get sampled data & get station name
+    # Get sampled data and get station name.
     down_pooling = list(range(0, stations_num, math.floor(1 / station_sample_num)))
 
     item_option = filtered_data["item_option"].append("name")
@@ -173,11 +174,11 @@ def _generate_inter_view_by_station(
         "station index",
         stations_index)
     helper.render_h3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
-    # filter data by station index
+    # Filter data by station index.
     data_filtered = data_stations[data_stations["name"] == f"stations_{station_index}"]
     station_sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
     snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", station_sample_ratio)
-    # get formula input & output
+    # Get formula input and output.
     filtered_data = helper.get_filtered_formula_and_data(
         GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
 

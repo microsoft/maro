@@ -40,6 +40,7 @@ title_html = """
 
 def render_h1_title(content: str):
     """Flexible display of content according to predefined styles.
+
     Args:
         content (str): Content to be showed on dashboard.
     """
@@ -49,6 +50,7 @@ def render_h1_title(content: str):
 
 def render_h3_title(content: str):
     """Flexible display of content according to predefined styles.
+
     Args:
         content (str): Content to be showed on dashboard.
     """
@@ -58,7 +60,8 @@ def render_h3_title(content: str):
 
 def get_holder_sample_ratio(snapshot_num: int) -> list:
     """Get sample data of holders.
-    Condition: 1 must be included.
+
+        Condition: 1 must be included.
     Args:
         snapshot_num (int): Number of snapshots.
 
@@ -76,7 +79,8 @@ def get_holder_sample_ratio(snapshot_num: int) -> list:
 
 def get_snapshot_sample_num(snapshot_num: int, snapshot_sample_num: float) -> list:
     """Get sample data of snapshot.
-    Condition: 0 & 1 must be included.
+
+        Condition: 0 and 1 must be included.
     Args:
         snapshot_num (int): Number of snapshots.
         snapshot_sample_num (float): Expected number of sample data.
@@ -118,7 +122,8 @@ def get_filtered_formula_and_data(scenario: GlobalScenarios, data: pd.DataFrame,
 @st.cache(allow_output_mutation=True)
 def read_detail_csv(path: str) -> pd.DataFrame:
     """Read detail csv with cache.
-    One thing to note: data is mutable.
+
+        One thing to note: data is mutable.
 
     Args:
         path (str):  Path of file to be read.
@@ -233,9 +238,9 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
             if data_right:
                 data_origin[f"{res[0]}+{res[1]}"] = list(
                     map(lambda x, y: x + y,
-                    data_origin[res[0]],
-                    data_origin[res[1]]
-                    )
+                        data_origin[res[0]],
+                        data_origin[res[1]]
+                        )
                 )
             else:
                 return
@@ -305,7 +310,7 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
                 data_origin[f"sqrt({res[0]})"] = list(
                     map(lambda x: math.sqrt(x),
                         data_origin[res[0]]
-                    )
+                        )
                 )
             else:
                 return
