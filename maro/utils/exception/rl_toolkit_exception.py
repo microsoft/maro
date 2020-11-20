@@ -54,8 +54,14 @@ class UnrecognizedTaskError(MAROException):
 
 
 class UnchainableModuleError(MAROException):
-    """Raised when the modules passed to a LearningModel have incorrect input/output dimensions that make them
-        unchainable.
+    """Raised when the modules passed to a LearningModel have incorrect input/output dimensions that
+        make them unchainable.
     """
     def __init__(self, msg: str = None):
         super().__init__(4009, msg)
+
+
+class MissingExplorationParametersError(MAROException):
+    """Raised when an explorer is called without loading the exploration parameters first."""
+    def __init__(self, msg: str = None):
+        super().__init__(4010, msg)
