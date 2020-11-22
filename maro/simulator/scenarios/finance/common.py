@@ -32,6 +32,13 @@ class ActionState(Enum):
     CANCELED = "canceled"
 
 
+class FinanceEventType(Enum):
+    """Event type for CIM problem."""
+    # RELEASE_EMPTY = 10
+    ORDER = 11
+    CANCEL_ORDER = 12
+
+
 class TradeResult:
     """Result or a trade order"""
 

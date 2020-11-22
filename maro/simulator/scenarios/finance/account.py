@@ -10,8 +10,9 @@ from .stock import Stock
 @node("account")
 class Account(NodeBase):
     """Account node definition in frame, used to maintain cash changing."""
-    remaining_cash = NodeAttribute("f")
-    net_assets_value = NodeAttribute("f")
+    remaining_cash = NodeAttribute("f")  # Cash
+    net_assets_value = NodeAttribute("f")  # assets_value
+    # TODO: add comment net assets value
 
     def set_init_state(self, init_cash: float):
         """Set initial state, that will be used after frame reset.
@@ -19,15 +20,16 @@ class Account(NodeBase):
         Args:
             init_cash (float): Initial cash in the account.
         """
+        # TODO: add ref of stock list
         self._init_cash = init_cash
         self.remaining_cash = self._init_cash
         self.net_assets_value = self._init_cash
 
-    def take_trade(self, trade_result: TradeResult):
+    def take_trade(self, trade_result: TradeResult):  # TODO: move to BE
         if trade_result:
             self.remaining_cash += two_decimal_price(trade_result.cash_delta)
 
-    def update_assets_value(self, stocks: List[Stock]):
+    def update_assets_value(self, stocks: List[Stock]):  # TODO: Property
         assets_value = 0
         for stock in stocks:
             assets_value += stock.closing_price * stock.account_hold_num
