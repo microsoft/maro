@@ -19,8 +19,8 @@ class PhysicalMachine:
         self.cap_mem: int = cap_mem
         # PM resource.
         self._vm_set: Set(int) = set()
-        self.req_cpu: int = 0
-        self.req_mem: int = 0
+        self.cpu_allocation: int = 0
+        self.mem_allocation: int = 0
         self._util_cpu: float = 0.0
         self._util_series: List[float] = []
 
