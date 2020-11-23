@@ -42,7 +42,7 @@ class AbsAgentManager(ABC):
         agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None,
+        experience_shaper: ExperienceShaper = None
     ):
         self._name = name
         self._mode = mode
