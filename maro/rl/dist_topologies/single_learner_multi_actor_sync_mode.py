@@ -59,7 +59,7 @@ class ActorProxy(object):
             payloads = [(peer, {PayloadKey.MODEL: model_dict,
                                 PayloadKey.EXPLORATION_PARAMS: exploration_params,
                                 PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers["actor"]]
+                        for peer in self._proxy.peers_name["actor"]]
             # TODO: double check when ack enable
             replies = self._proxy.scatter(
                 tag=MessageTag.ROLLOUT,
