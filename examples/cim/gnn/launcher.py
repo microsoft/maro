@@ -21,7 +21,7 @@ if __name__ == "__main__":
     subfolder_name = f"{config.env.param.topology}_{time_str}"
 
     # Log path.
-    config.log.path = os.path.join(real_path, config.log.path, date_str, subfolder_name)
+    config.log.path = os.path.join(config.log.path, date_str, subfolder_name)
     if not os.path.exists(config.log.path):
         os.makedirs(config.log.path)
 
