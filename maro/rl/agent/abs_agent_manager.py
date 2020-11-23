@@ -3,7 +3,9 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Union
 
+from maro.communication import Proxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -27,7 +29,7 @@ class AbsAgentManager(ABC):
         name (str): Name of agent manager.
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
-        agent_dict (dict): A dictionary of agents to be wrapper by the agent manager.
+        agents (Union[dict, Proxy]): A dictionary of agents to be wrapped by the agent manager.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
@@ -39,20 +41,21 @@ class AbsAgentManager(ABC):
         self,
         name: str,
         mode: AgentManagerMode,
-        agent_dict: dict,
+        agents: Union[dict, Proxy],
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
     ):
         self._name = name
         self._mode = mode
-        self.agent_dict = agent_dict
+        self._agents = agents
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
 
     def __getitem__(self, agent_id):
-        return self.agent_dict[agent_id]
+        if isinstance(self._agents, dict):
+            return self._agents[agent_id]
 
     @abstractmethod
     def choose_action(self, *args, **kwargs):
