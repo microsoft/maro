@@ -29,7 +29,7 @@ def actor_init(queue, redis_port):
         **PROXY_PARAMETER
     )
 
-    # continuously receive messages from proxy
+    # Continuously receive messages from proxy.
     for msg in proxy.receive(is_continuous=True):
         print(f"receive message from master. {msg.tag}")
         if msg.tag == "cont":
@@ -60,12 +60,12 @@ class TestRejoin(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print(f"The proxy unit test start!")
-        # Initial Redis
+        # Initialize the Redis.
         redis_port = get_random_port()
         cls.redis_process = subprocess.Popen(["redis-server", "--port", str(redis_port), "--daemonize yes"])
         cls.redis_process.wait()
 
-        # Initial proxies
+        # Initialize the proxies.
         cls.peers_number = 3
         q = multiprocessing.Queue()
         actor_process_list = []
@@ -94,12 +94,12 @@ class TestRejoin(unittest.TestCase):
             cls.redis_process.kill()
 
     def test_rejoin(self):
-        # Check all connected
+        # Check all connected.
         destination_payload_list = []
         for peer in TestRejoin.peers:
             destination_payload_list.append((peer, "continuous"))
 
-        # Connection check
+        # Connection check.
         replied = TestRejoin.master_proxy.scatter(
             tag="cont",
             session_type=SessionType.NOTIFICATION,
@@ -107,7 +107,7 @@ class TestRejoin(unittest.TestCase):
         )
         self.assertEqual(len(replied), TestRejoin.peers_number)
 
-        # Disconnect one peer
+        # Disconnect one peer.
         disconnect_message = SessionMessage(
             tag="stop",
             source=TestRejoin.master_proxy.component_name,
@@ -117,7 +117,7 @@ class TestRejoin(unittest.TestCase):
         )
         TestRejoin.master_proxy.isend(disconnect_message)
 
-        # Now, 1 peer exited, only have 2 peers
+        # Now, 1 peer exited, only have 2 peers.
         time.sleep(2)
         replied = TestRejoin.master_proxy.scatter(
             tag="cont", session_type=SessionType.NOTIFICATION,
@@ -125,9 +125,9 @@ class TestRejoin(unittest.TestCase):
         )
         self.assertEqual(len(replied), TestRejoin.peers_number-1)
 
-        # Wait for rejoin
+        # Wait for rejoin.
         time.sleep(5)
-        # Now, all peers rejoin
+        # Now, all peers rejoin.
         replied = TestRejoin.master_proxy.scatter(
             tag="cont", session_type=SessionType.NOTIFICATION,
             destination_payload_list=destination_payload_list

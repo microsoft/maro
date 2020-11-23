@@ -20,11 +20,11 @@ class TestDriver(unittest.TestCase):
     def setUpClass(cls) -> None:
         print(f"The ZMQ driver unit test start!")
         cls.peer_list = ["receiver_1", "receiver_2", "receiver_3"]
-        # Initial send driver.
+        # Initialize send driver.
         cls.sender = ZmqDriver(component_type="sender")
         sender_address = cls.sender.address
 
-        # Initial receive drivers.
+        # Initialize receive drivers.
         cls.receivers = {}
         receiver_addresses = {}
         for peer in cls.peer_list:
@@ -46,7 +46,7 @@ class TestDriver(unittest.TestCase):
                 source="sender",
                 destination=peer,
                 payload="hello_world"
-                )
+            )
             TestDriver.sender.send(message)
 
             for received_message in TestDriver.receivers[peer].receive(is_continuous=False):
@@ -61,7 +61,7 @@ class TestDriver(unittest.TestCase):
             source="sender",
             destination="*",
             payload="hello_world"
-            )
+        )
         TestDriver.sender.broadcast(topic="receiver", message=message)
 
         for task in as_completed(all_task):

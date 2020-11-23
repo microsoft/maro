@@ -21,12 +21,12 @@ class TestProxy(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print(f"The proxy unit test start!")
-        # Initial Redis
+        # Initialize the Redis
         redis_port = get_random_port()
         cls.redis_process = subprocess.Popen(["redis-server", "--port", str(redis_port), "--daemonize yes"])
         cls.redis_process.wait()
 
-        # Initial proxies
+        # Initialize the proxies
         cls.worker_proxies = []
         proxy_type_list = ["master"] + ["worker"] * 5
         with ThreadPoolExecutor(max_workers=6) as executor:

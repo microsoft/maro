@@ -35,18 +35,18 @@ class TestDecorator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print(f"The dist decorator unit test start!")
-        # Initial Redis.
+        # Initialize the Redis.
         redis_port = get_random_port()
         cls.redis_process = subprocess.Popen(["redis-server", "--port", str(redis_port), "--daemonize yes"])
         cls.redis_process.wait()
 
-        # Initial receiver.
+        # Initialize the receiver.
         conditional_event = "sender:*:1"
         handler_dict = {conditional_event: handler_function}
         decorator_task = threading.Thread(target=lunch_receiver, args=(handler_dict, redis_port,))
         decorator_task.start()
 
-        # Initial sender proxy.
+        # Initialize the sender proxy.
         with ThreadPoolExecutor() as executor:
             sender_task = executor.submit(proxy_generator, "sender", redis_port)
             cls.sender_proxy = sender_task.result()

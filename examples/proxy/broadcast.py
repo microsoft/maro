@@ -20,7 +20,7 @@ def worker(group_name):
     counter = 0
     print(f"{proxy.component_name}'s counter is {counter}.")
 
-    # nonrecurring receive the message from the proxy.
+    # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
         print(f"{proxy.component_name} receive message from {msg.source}.")
 
@@ -54,7 +54,7 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
             tag="INC",
             session_type=SessionType.NOTIFICATION
         )
-        # do some tasks with higher priority here.
+        # Do some tasks with higher priority here.
         replied_msgs = proxy.receive_by_id(session_ids)
     else:
         replied_msgs = proxy.broadcast(

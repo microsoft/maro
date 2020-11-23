@@ -9,8 +9,10 @@ from maro.communication import RegisterTable, SessionMessage
 
 class FakedProxy:
     def __init__(self):
-        self._peers = {"worker_a": ["worker_a.1", "worker_a.2", "worker_a.3", "worker_a.4", "worker_a.5"],
-                       "worker_b": ["worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"]}
+        self._peers = {
+            "worker_a": ["worker_a.1", "worker_a.2", "worker_a.3", "worker_a.4", "worker_a.5"],
+            "worker_b": ["worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"]
+        }
 
     @property
     def peers_dict(self):
@@ -31,7 +33,7 @@ class TestRegisterTable(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         print(f"The register table unit test start!")
-        # Prepare message dict for test
+        # Prepare message dict for test.
         cls.message_dict = {"worker_a": defaultdict(list),
                             "worker_b": defaultdict(list)}
 
@@ -136,7 +138,7 @@ class TestRegisterTable(unittest.TestCase):
             self.assertIsNotNone(self.register_table.get())
 
     def test_multiple_trigger(self):
-        # Accept a message from worker_a with tag_a
+        # Accept a message from worker_a with tag_a.
         unit_event_1 = "worker_a:tag_a:1"
         # Accept a message from worker_a with any tag.
         unit_event_2 = "worker_a:*:1"

@@ -30,7 +30,7 @@ PORT = default_parameters.proxy.redis.port
 MAX_RETRIES = default_parameters.proxy.redis.max_retries
 BASE_RETRY_INTERVAL = default_parameters.proxy.redis.base_retry_interval
 DELAY_FOR_SLOW_JOINER = default_parameters.proxy.delay_for_slow_joiner
-ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable  # only enable at real k8s cluster or grass cluster
+ENABLE_REJOIN = default_parameters.proxy.peer_rejoin.enable  # Only enable at real k8s cluster or grass cluster
 PEERS_CATCH_LIFETIME = default_parameters.proxy.peer_rejoin.peers_catch_lifetime
 ENABLE_MESSAGE_CACHE_FOR_REJOIN = default_parameters.proxy.peer_rejoin.enable_message_cache
 TIMEOUT_FOR_MINIMAL_PEER_NUMBER = default_parameters.proxy.peer_rejoin.timeout_for_minimal_peer_number
@@ -103,7 +103,7 @@ class Proxy:
 
         # TODO:In multiprocess with spawn start method, the driver must be initiated before the Redis.
         # Otherwise it will cause Error 9: Bad File Descriptor in proxy.__del__(). Root cause not found.
-        # Initial driver
+        # Initialize the driver.
         if driver_type == DriverType.ZMQ:
             self._driver = ZmqDriver(
                 component_type=self._component_type, **driver_parameters, logger=self._logger
@@ -112,7 +112,7 @@ class Proxy:
             self._logger.error(f"Unsupported driver type {driver_type}, please use DriverType class.")
             sys.exit(NON_RESTART_EXIT_CODE)
 
-        # Initial Redis
+        # Initialize the Redis.
         self._redis_connection = redis.Redis(host=redis_address[0], port=redis_address[1], socket_keepalive=True)
         try:
             self._redis_connection.ping()
@@ -132,7 +132,7 @@ class Proxy:
         # Temporary store the message.
         self._message_cache = defaultdict(list)
 
-        # Parameters for dynamic peers
+        # Parameters for dynamic peers.
         self._enable_rejoin = enable_rejoin
         self._is_remove_failed_container = is_remove_failed_container
         self._max_rejoin_times = max_rejoin_times
@@ -179,7 +179,7 @@ class Proxy:
         # TODO: Handle slow joiner for PUB/SUB.
         time.sleep(DELAY_FOR_SLOW_JOINER)
 
-        # Build component-container-mapping for dynamic component in k8s/grass cluster
+        # Build component-container-mapping for dynamic component in k8s/grass cluster.
         if "JOB_ID" in os.environ and "CONTAINER_NAME" in os.environ:
             container_name = os.getenv("CONTAINER_NAME")
             job_id = os.getenv("JOB_ID")
@@ -256,7 +256,7 @@ class Proxy:
         self._onboard_peers_start_time = time.time()
 
     def _build_connection(self):
-        """Grabbing all peers' address from Redis, and connect all peers in driver. """
+        """Grabbing all peers' address from Redis, and connect all peers in driver."""
         for peer_type in self._peers_info_dict.keys():
             name_list = list(self._onboard_peer_dict[peer_type].keys())
             try:
@@ -312,7 +312,7 @@ class Proxy:
         Returns:
             List[Message]: List of received messages.
         """
-        # Pre-process session ids
+        # Pre-process session ids.
         pending_session_id_list, received_messages = [], []
         if isinstance(session_ids, list):
             pending_session_id_list = session_ids[:]
@@ -467,14 +467,14 @@ class Proxy:
         """
         return self._broadcast(component_type, tag, session_type, session_id, payload)
 
-    def _send(self, message: Message) -> Union[None, str, list]:
+    def _send(self, message: Message) -> Union[List[str], None]:
         """Send a message to a remote peer.
 
         Args:
             message: Message to be sent.
 
         Returns:
-            Union[str, list, None]: Message's session id;
+            Union[List[str], None]: The list of message's session id;
                 If enable rejoin, it will return None when sending message to the failed peers;
                 If enable rejoin and message cache, it may return list of session id which from
                 the pending messages in message cache.
@@ -504,28 +504,28 @@ class Proxy:
             if self._enable_message_cache:
                 self._push_message_to_message_cache(message)
 
-    def isend(self, message: Message) -> Union[None, List[str]]:
+    def isend(self, message: Message) -> Union[List[str], None]:
         """Send a message to a remote peer.
 
         Args:
             message: Message to be sent.
 
         Returns:
-            Union[list, None]: Message's session id;
+            Union[List[str], None]: The list of message's session id;
                 If enable rejoin, it will return None when sending message to the failed peers.
                 If enable rejoin and message cache, it may return list of session id which from
                 the pending messages.
         """
         return self._send(message)
 
-    def send(self, message: Message) -> Union[None, List[Message]]:
+    def send(self, message: Message) -> Union[List[Message], None]:
         """Send a message to a remote peer.
 
         Args:
             message: Message to be sent.
 
         Returns:
-            Union[Message, list, None]: The received message;
+            Union[List[Message], None]: The list of received message;
                 If enable rejoin, it will return None when sending message to the failed peers.
                 If enable rejoin and message cache, it may return list of messages which from
                 the pending messages.

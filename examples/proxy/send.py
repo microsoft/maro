@@ -20,7 +20,7 @@ def worker(group_name):
                   component_type="worker",
                   expected_peers={"master": 1})
 
-    # nonrecurring receive the message from the proxy.
+    # Nonrecurring receive the message from the proxy.
     for msg in proxy.receive(is_continuous=False):
         print(f"{proxy.component_name} receive message from {msg.source}. the payload is {msg.payload}.")
 
@@ -55,7 +55,7 @@ def master(group_name: str, is_immediate: bool = False):
                                  session_type=SessionType.TASK)
         if is_immediate:
             session_id = proxy.isend(message)
-            # do some tasks with higher priority here.
+            # Do some tasks with higher priority here.
             replied_msgs = proxy.receive_by_id(session_id)
         else:
             replied_msgs = proxy.send(message)
