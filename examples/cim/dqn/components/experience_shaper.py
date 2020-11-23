@@ -9,8 +9,9 @@ from maro.rl import ExperienceShaper
 
 
 class TruncatedExperienceShaper(ExperienceShaper):
-    def __init__(self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float,
-                 shortage_factor: float):
+    def __init__(
+        self, *, time_window: int, time_decay_factor: float, fulfillment_factor: float, shortage_factor: float
+    ):
         super().__init__(reward_func=None)
         self._time_window = time_window
         self._time_decay_factor = time_decay_factor
@@ -40,8 +41,10 @@ class TruncatedExperienceShaper(ExperienceShaper):
         # calculate tc reward
         future_fulfillment = snapshot_list["ports"][ticks::"fulfillment"]
         future_shortage = snapshot_list["ports"][ticks::"shortage"]
-        decay_list = [self._time_decay_factor ** i for i in range(end_tick - start_tick)
-                      for _ in range(future_fulfillment.shape[0] // (end_tick - start_tick))]
+        decay_list = [
+            self._time_decay_factor ** i for i in range(end_tick - start_tick)
+            for _ in range(future_fulfillment.shape[0] // (end_tick - start_tick))
+        ]
 
         tot_fulfillment = np.dot(future_fulfillment, decay_list)
         tot_shortage = np.dot(future_shortage, decay_list)
