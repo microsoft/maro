@@ -87,13 +87,15 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    def load_exploration_params(self, exploration_params):
+    def update(self, exploration_params):
+        # Per-agent exploration parameters
         if isinstance(exploration_params, dict) and exploration_params.keys() <= self.agent_dict.keys():
             for agent_id, params in exploration_params.items():
-                self.agent_dict[agent_id].load_exploration_params(params)
+                self.agent_dict[agent_id].update(params)
+        # Shared exploration parameters for all agents
         else:
             for agent in self.agent_dict.values():
-                agent.load_exploration_params(exploration_params)
+                agent.update(exploration_params)
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

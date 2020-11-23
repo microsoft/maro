@@ -45,10 +45,10 @@ class SimpleAgentManager(AbsAgentManager):
 
     def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
-        agent_id, state = self._state_shaper(decision_event, snapshot_list)
-        action_info = self.agent_dict[agent_id].choose_action(state)
+        agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
+        action_info = self.agent_dict[agent_id].choose_action(model_state)
         self._transition_cache = {
-            "state": state,
+            "state": model_state,
             "reward": None,
             "agent_id": agent_id,
             "event": decision_event
