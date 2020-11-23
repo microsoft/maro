@@ -6,8 +6,6 @@ from typing import Union
 
 import numpy as np
 
-from maro.utils.exception.rl_toolkit_exception import MissingExplorationParametersError
-
 from .abs_explorer import AbsExplorer
 
 
@@ -25,7 +23,7 @@ class NoiseExplorer(AbsExplorer):
         self._max_action = max_action
 
     @abstractmethod
-    def load_exploration_params(self, **exploration_params):
+    def update(self, **exploration_params):
         raise NotImplementedError
 
     @abstractmethod
@@ -39,21 +37,20 @@ class UniformNoiseExplorer(NoiseExplorer):
         self,
         action_dim: int,
         min_action: Union[float, np.ndarray] = None,
-        max_action: Union[float, np.ndarray] = None
+        max_action: Union[float, np.ndarray] = None,
+        noise_lower_bound: Union[float, np.ndarray] = .0,
+        noise_upper_bound: Union[float, np.ndarray] = .0
     ):
         super().__init__(action_dim, min_action, max_action)
-        self._noise_bound = None
+        self._noise_lower_bound = noise_lower_bound
+        self._noise_upper_bound = noise_upper_bound
 
-    def load_exploration_params(self, *, noise_bound: float):
-        self._noise_bound = noise_bound
+    def update(self, *, noise_lower_bound: Union[float, np.ndarray], noise_upper_bound: Union[float, np.ndarray]):
+        self._noise_lower_bound = noise_lower_bound
+        self._noise_upper_bound = noise_upper_bound
 
     def __call__(self, action: np.ndarray):
-        if self._noise_bound is None:
-            raise MissingExplorationParametersError(
-                'Noise bound is not set. Use load_exploration_params with keyword argument "noise_bound" to '
-                'load the exploration parameters first.'
-            )
-        action += np.random.uniform(-self._noise_bound, self._noise_bound, self._action_dim)
+        action += np.random.uniform(self._noise_lower_bound, self._noise_upper_bound, self._action_dim)
         if self._min_action is not None or self._max_action is not None:
             return np.clip(action, self._min_action, self._max_action)
         else:
@@ -66,21 +63,25 @@ class GaussianNoiseExplorer(NoiseExplorer):
         self,
         action_dim: int,
         min_action: Union[float, np.ndarray] = None,
-        max_action: Union[float, np.ndarray] = None
+        max_action: Union[float, np.ndarray] = None,
+        noise_mean: Union[float, np.ndarray] = .0,
+        noise_stddev: Union[float, np.ndarray] = .0,
+        is_relative_stddev: bool = False
     ):
         super().__init__(action_dim, min_action, max_action)
-        self._noise_scale = None
+        if is_relative_stddev and noise_mean != .0:
+            raise ValueError("Standard deviation cannot be relative if noise mean is non-zero.")
+        self._noise_mean = noise_mean
+        self._noise_stddev = noise_stddev
+        self._is_relative_stddev = is_relative_stddev
 
-    def load_exploration_params(self, *, noise_scale: float):
-        self._noise_scale = noise_scale
+    def update(self, *, noise_mean: Union[float, np.ndarray], noise_stddev: Union[float, np.ndarray]):
+        self._noise_mean = noise_mean
+        self._noise_stddev = noise_stddev
 
     def __call__(self, action: np.ndarray):
-        if self._noise_scale is None:
-            raise MissingExplorationParametersError(
-                'Noise scale is not set. Use load_exploration_params with keyword argument "noise_scale" to '
-                'load the exploration parameters first.'
-            )
-        action += np.random.normal(scale=self._noise_scale, size=self._action_dim)
+        noise = np.random.normal(loc=self._noise_mean, scale=self._noise_stddev, size=self._action_dim)
+        action += (noise * action) if self._is_relative_stddev else noise
         if self._min_action is not None or self._max_action is not None:
             return np.clip(action, self._min_action, self._max_action)
         else:
