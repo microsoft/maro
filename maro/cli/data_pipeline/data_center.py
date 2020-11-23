@@ -135,7 +135,6 @@ class DataCenterPipeline(DataPipeline):
         # Preprocess.
         self._preprocess()
 
-
     def _process_vm_table(self, unzip_vm_table_file: str) -> pd.DataFrame:
         """Process vmtable file."""
 
@@ -189,7 +188,7 @@ class DataCenterPipeline(DataPipeline):
         for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
             clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
             cpu_readings = self._process_cpu_readings(
-                unzip_cpu_readings_file=unzip_cpu_readings_file,
+                unzip_cpu_readings_file=clean_cpu_readings_file,
                 vm_ids=vm_table['vmid']
             )
             with open(clean_cpu_readings_file_name, mode="w", encoding="utf-8", newline="") as f:
