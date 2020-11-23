@@ -21,7 +21,7 @@ class VirtualMachine:
         # The VM lifetime which equals to the deletion tick - creation tick.
         self.lifetime: int = lifetime
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
-        self._util_series: List[float] = []
+        self._utilization_series: List[float] = []
         # The physical machine Id that the VM is assigned.
         self.pm_id: int = -1
         self.util_cpu: float = 0.0
@@ -29,13 +29,15 @@ class VirtualMachine:
         self.end_tick: int = -1
 
     def get_util(self, cur_tick: int):
-        return self._util_series[cur_tick - self.start_tick]
+        return self._utilization_series[cur_tick - self.start_tick]
 
-    def add_util_series(self, util_series: List[float]):
+    def add_utilization_series(self, _utilization_series: List[float]):
         """VM CPU utilization list."""
-        self._util_series = util_series
+        self._utilization_series = _utilization_series
 
     @property
-    def get_historical_util_series(self, cur_tick: int) -> List[float]:
+    def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
-        return self._util_series[0:cur_tick - self.start_tick]
+
+        historical_utilization_series = self._utilization_series[0:cur_tick - self.start_tick].copy()
+        return historical_utilization_series

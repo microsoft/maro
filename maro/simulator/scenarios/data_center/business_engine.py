@@ -167,9 +167,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         if remaining_buffer_time >= self._delay_duration:
             if postpone_type == PostponeType.Resource:
-                self._total_latency.latency_due_to_resource += self._delay_duration
+                self._total_latency.due_to_resource += self._delay_duration
             elif postpone_type == PostponeType.Agent:
-                self._total_latency.latency_due_to_agent += self._delay_duration
+                self._total_latency.due_to_agent += self._delay_duration
 
             postpone_payload = self._pending_vm_req_payload[vm_id]
             postpone_payload.remaining_buffer_time -= self._delay_duration
@@ -234,7 +234,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         if len(valid_pm_list) > 0:
             # Generate pending decision.
             decision_payload = DecisionPayload(
-                valid_pm=valid_pm_list,
+                valid_pms=valid_pm_list,
                 vm_id=vm_req.id,
                 vm_req_cpu=vm_req.req_cpu,
                 vm_req_mem=vm_req.req_mem,

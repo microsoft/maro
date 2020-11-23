@@ -70,17 +70,17 @@ class DecisionPayload:
     """Decision event in Data center scenario that contains information for agent to choose action.
 
     Args:
-        valid_pm (List[dict]): A list contains dictionaries with 'pm_id', 'cpu', 'mem'.
+        valid_pms (List[dict]): A list contains dictionaries with 'pm_id', 'cpu', 'mem'.
         vm_id (int): The id of the VM.
         vm_req_cpu (int): The CPU requested by VM.
         vm_req_mem (int): The memory requested by VM.
         remaining_buffer_time (int): The remaining buffer time.
     """
 
-    summary_key = ["valid_pm", "vm_id", "vm_req_cpu", "vm_req_mem", "remaining_buffer_time"]
+    summary_key = ["valid_pms", "vm_id", "vm_req_cpu", "vm_req_mem", "remaining_buffer_time"]
 
-    def __init__(self, valid_pm: List[dict], vm_id: int, vm_req_cpu: int, vm_req_mem: int, remaining_buffer_time: int):
-        self.valid_pm = valid_pm
+    def __init__(self, valid_pms: List[dict], vm_id: int, vm_req_cpu: int, vm_req_mem: int, remaining_buffer_time: int):
+        self.valid_pms = valid_pms
         self.vm_id = vm_id
         self.vm_req_cpu = vm_req_cpu
         self.vm_req_mem = vm_req_mem
@@ -112,5 +112,5 @@ class Latency:
     2. The accumulative latency triggered by the resource exhaustion.
     """
     def __init__(self):
-        self.latency_due_to_agent: int = 0
-        self.latency_due_to_resource: int = 0
+        self.due_to_agent: int = 0
+        self.due_to_resource: int = 0
