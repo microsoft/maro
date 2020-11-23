@@ -13,8 +13,8 @@ from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
-    AgentManagerMode, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor, SimpleEarlyStoppingChecker,
-    SimpleLearner, TwoPhaseLinearExplorer
+    AgentManagerMode, EpsilonGreedyExplorer, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor,
+    SimpleEarlyStoppingChecker, SimpleLearner, two_phase_linear_epsilon_schedule
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -27,11 +27,12 @@ def launch(config):
     # Step 1: Initialize a CIM environment for using a toy dataset.
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
+    action_space = list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions))
 
     # Step 2: Create state, action and experience shapers. We also need to create an explorer here due to the
     # greedy nature of the DQN algorithm.
     state_shaper = CIMStateShaper(**config.state_shaping)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
+    action_shaper = CIMActionShaper(action_space=action_space)
     if config.experience_shaping.type == "truncated":
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
@@ -52,29 +53,28 @@ def launch(config):
 
     # Step 4: Create an actor and a learner to start the training process.
     perf_checker = SimpleEarlyStoppingChecker(
-        last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.perf_threshold,
+        last_k=config.main_loop.early_stopping.last_k,
+        threshold=config.main_loop.early_stopping.perf_threshold,
         measure_func=lambda vals: mean(vals)
     )
 
     perf_stability_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.perf_stability_threshold
+        last_k=config.main_loop.early_stopping.last_k,
+        threshold=config.main_loop.early_stopping.perf_stability_threshold
     )
 
     combined_checker = perf_checker & perf_stability_checker
 
-    actor = SimpleActor(env=env, inference_agents=agent_manager)
+    actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
-        trainable_agents=agent_manager,
+        agent_manager=agent_manager,
         actor=actor,
-        explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(
-        max_episode=config.general.max_episode,
+    learner.learn_with_exploration_schedule(
+        two_phase_linear_epsilon_schedule(**config.main_loop.exploration),
         early_stopping_checker=combined_checker,
-        warmup_ep=config.general.early_stopping.warmup_ep,
+        warmup_ep=config.main_loop.early_stopping.warmup_ep,
         early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )
     learner.test()

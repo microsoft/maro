@@ -2,10 +2,12 @@ from enum import Enum
 
 
 class PayloadKey(Enum):
+    AGENT_ID = "agent_id"
     MODEL = "model"
-    EPSILON = "epsilon"
+    EXPLORATION_PARAMS = "exploration_params"
     PERFORMANCE = "performance"
     DETAILS = "details"
+    STATE = "state"
     SEED = "seed"
     DONE = "done"
     RETURN_DETAILS = "return_details"

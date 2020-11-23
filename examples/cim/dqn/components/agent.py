@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from maro.rl import AbsAgent, ColumnBasedStore
+from maro.rl import AbsAgent, EpsilonGreedyExplorer, ColumnBasedStore
 
 
 class CIMAgent(AbsAgent):
@@ -14,9 +14,17 @@ class CIMAgent(AbsAgent):
         num_batches: number of batches to train the DQN model on per call to ``train``.
         batch_size: mini-batch size.
     """
-    def __init__(self, name, algorithm, experience_pool: ColumnBasedStore, min_experiences_to_train,
-                 num_batches, batch_size):
-        super().__init__(name, algorithm, experience_pool)
+    def __init__(
+        self,
+        name: str,
+        algorithm,
+        explorer: EpsilonGreedyExplorer,
+        experience_pool: ColumnBasedStore,
+        min_experiences_to_train,
+        num_batches,
+        batch_size
+    ):
+        super().__init__(name, algorithm, explorer=explorer, experience_pool=experience_pool)
         self._min_experiences_to_train = min_experiences_to_train
         self._num_batches = num_batches
         self._batch_size = batch_size

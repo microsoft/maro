@@ -6,7 +6,10 @@ import os
 from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
 
-from maro.rl import ActorProxy, AgentManagerMode, SimpleLearner, TwoPhaseLinearExplorer, concat_experiences_by_agent
+from maro.rl import (
+    ActorProxy, AgentManagerMode, EpsilonGreedyExplorer, SimpleLearner, concat_experiences_by_agent,
+    two_phase_linear_epsilon_schedule
+)
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
@@ -21,7 +24,7 @@ def launch(config, distributed_config):
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents),
+        agent_dict=create_dqn_agents(agent_id_list, config.agents)
     )
 
     proxy_params = {
@@ -35,13 +38,13 @@ def launch(config, distributed_config):
         "max_retries": 15
     }
 
+    exploration_schedule = two_phase_linear_epsilon_schedule(**config.main_loop.exploration)
     learner = SimpleLearner(
-        trainable_agents=agent_manager,
+        agent_manager=agent_manager,
         actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
-        explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.train(max_episode=config.general.max_episode)
+    learner.learn_with_exploration_schedule(exploration_schedule)
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
     learner.exit()

@@ -2,8 +2,13 @@ env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
-general:
-  max_episode: 500
+main_loop:
+  exploration:
+    max_ep: 500
+    split_ep: 250
+    start_eps: 0.4
+    mid_eps: 0.32
+    end_eps: 0.0
   early_stopping:
     warmup_ep: 50
     last_k: 10
@@ -36,11 +41,6 @@ experience_shaping:
     fulfillment_factor: 1.0
     shortage_factor: 1.0
     time_decay_factor: 0.97
-exploration:
-  start_eps: 0.4
-  mid_eps: 0.32
-  end_eps: 0.0
-  split_point: 0.5
 agents:
   algorithm:
     num_actions: 21

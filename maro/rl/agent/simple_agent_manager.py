@@ -5,7 +5,7 @@ import os
 from abc import abstractmethod
 from typing import Union
 
-from maro.communication import Proxy
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import InferenceProxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -20,7 +20,7 @@ class SimpleAgentManager(AbsAgentManager):
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: Union[dict, Proxy],
+        agents: Union[dict, InferenceProxy],
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
@@ -44,23 +44,21 @@ class SimpleAgentManager(AbsAgentManager):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-    def choose_action(self, decision_event, snapshot_list, epsilon_dict: dict = None):
+    def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
-        agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        if isinstance(self._agents, dict):
-            model_action = self._agents[agent_id].choose_action(
-                model_state, epsilon_dict[agent_id] if epsilon_dict else None
-            )
+        agent_id, state = self._state_shaper(decision_event, snapshot_list)
+        if isinstance(self._agents, InferenceProxy):
+            action = self._agents.choose_action(state, agent_id)
         else:
-            
+            action = self._agents[agent_id].choose_action(state)
         self._transition_cache = {
-            "state": model_state,
-            "action": model_action,
+            "state": state,
+            "action": action,
             "reward": None,
             "agent_id": agent_id,
             "event": decision_event
         }
-        return self._action_shaper(model_action, decision_event, snapshot_list)
+        return self._action_shaper(action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
         """This method records the environment-generated metrics as part of the latest transition in the trajectory.

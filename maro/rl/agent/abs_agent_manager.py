@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Union
 
-from maro.communication import Proxy
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import InferenceProxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -29,19 +29,21 @@ class AbsAgentManager(ABC):
         name (str): Name of agent manager.
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
-        agents (Union[dict, Proxy]): A dictionary of agents to be wrapped by the agent manager.
+        agents (Union[dict, InferenceProxy]): A dictionary of agents to be wrapped by the agent manager.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
             input.
         action_shaper (ActionShaper, optional): It is responsible for converting an agent's model output to environment
             executable action. Cannot be None under Inference and TrainInference modes.
+        experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
+            the end of an episode.
     """
     def __init__(
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: Union[dict, Proxy],
+        agents: Union[dict, InferenceProxy],
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
@@ -56,6 +58,11 @@ class AbsAgentManager(ABC):
     def __getitem__(self, agent_id):
         if isinstance(self._agents, dict):
             return self._agents[agent_id]
+
+    @property
+    def name(self):
+        """Agent manager's name."""
+        return self._name
 
     @abstractmethod
     def choose_action(self, *args, **kwargs):
@@ -85,10 +92,13 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    @property
-    def name(self):
-        """Agent manager's name."""
-        return self._name
+    def load_exploration_params(self, exploration_params):
+        if isinstance(exploration_params, dict) and exploration_params.keys() <= self._agents.keys():
+            for agent_id, params in exploration_params.items():
+                self._agents[agent_id].load_exploration_params(params)
+        else:
+            for agent in self._agents.values():
+                agent.load_exploration_params(exploration_params)
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:
