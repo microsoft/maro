@@ -133,7 +133,7 @@ class JobTrackingAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get details and mapping
+        # Get details and mapping.
         containers_details = get_containers_details(
             redis=self._redis,
             cluster_name=self._cluster_name
@@ -144,7 +144,7 @@ class JobTrackingAgent(multiprocessing.Process):
         )
         job_id_to_job_name = self._get_job_id_to_job_name(jobs_details=jobs_details)
 
-        # Iterate nodes details
+        # Iterate nodes details.
         for container_name, container_details in containers_details.items():
             curr_job_id = container_details["job_id"]
             if curr_job_id in job_id_to_job_name:
@@ -153,7 +153,7 @@ class JobTrackingAgent(multiprocessing.Process):
             else:
                 logger.warning(f"Job Id {curr_job_id} is not found")
 
-        # Save jobs details
+        # Save jobs details.
         for job_name, job_details in jobs_details.items():
             job_details["check_time"] = self._redis.time()[0]
             set_job_details(
@@ -163,7 +163,7 @@ class JobTrackingAgent(multiprocessing.Process):
                 job_details=job_details
             )
 
-    # Utils
+    # Utils.
 
     @staticmethod
     def _get_job_id_to_job_name(jobs_details: dict) -> dict:
@@ -173,7 +173,7 @@ class JobTrackingAgent(multiprocessing.Process):
             jobs_details: Details of the jobs.
 
         Returns:
-            dict: job_id_to_job_name mapping.
+            dict[int, str]: job_id_to_job_name mapping.
         """
         job_id_to_job_name = {}
         for job_name, job_details in jobs_details.items():
@@ -209,15 +209,15 @@ class ContainerTrackingAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get details and init params
+        # Get details and init params.
         nodes_details = get_nodes_details(redis=self._redis, cluster_name=self._cluster_name)
         containers_details = {}
 
-        # Iterate node_details
+        # Iterate node_details.
         for _, node_details in nodes_details.items():
             containers_details.update(node_details["containers"])
 
-        # Save containers_details
+        # Save containers_details.
         set_containers_details(
             redis=self._redis,
             cluster_name=self._cluster_name,
@@ -259,21 +259,21 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get details
+        # Get details.
         containers_details = get_containers_details(
             redis=self._redis,
             cluster_name=self._cluster_name
         )
 
-        # Iterate container status
+        # Iterate container status.
         for container_name, container_details in containers_details.items():
-            # Get job_runtime_details and flags
+            # Get job_runtime_details and flags.
             job_runtime_details = get_job_runtime_details(
                 redis=self._redis,
                 job_id=container_details["job_id"]
             )
 
-            # Remove container
+            # Remove container.
             is_remove_container = self._is_remove_container(
                 container_details=container_details,
                 job_runtime_details=job_runtime_details
@@ -281,14 +281,14 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             if is_remove_container:
                 self._remove_container(container_name=container_name, container_details=container_details)
 
-            # Restart container
+            # Restart container.
             if self._is_restart_container(
                 container_details=container_details,
                 job_runtime_details=job_runtime_details
             ):
                 self._restart_container(container_name=container_name, container_details=container_details)
 
-            # Stop job
+            # Stop job.
             if self._is_stop_job(container_details=container_details):
                 self._stop_job(job_id=container_details["job_id"], is_remove_container=is_remove_container)
 
@@ -304,9 +304,9 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             bool: True or False.
         """
         return (
-            container_details["state"]["Status"] == "exited" and
-            job_runtime_details is not None and
-            job_runtime_details.get("is_remove_failed_container") == "1"
+            container_details["state"]["Status"] == "exited"
+            and job_runtime_details is not None
+            and job_runtime_details.get("is_remove_failed_container") == "1"
         )
 
     def _is_restart_container(self, container_details: dict, job_runtime_details: dict) -> bool:
@@ -319,16 +319,17 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             bool: True or False.
         """
+        exceed_maximum_restart_times = get_rejoin_component_restart_times(
+            self._redis,
+            job_id=container_details["job_id"],
+            component_id=container_details["component_id"]
+        ) >= int(job_runtime_details.get("rejoin:max_restart_times", sys.maxsize))
         return (
-            container_details["state"]["Status"] == "exited" and
-            container_details["state"]["ExitCode"] not in ERROR_CODES_FOR_NOT_RESTART_CONTAINER and
-            job_runtime_details is not None and
-            job_runtime_details.get("rejoin:enable") == "1" and
-            get_rejoin_component_restart_times(
-                self._redis,
-                job_id=container_details["job_id"],
-                component_id=container_details["component_id"]
-            ) < int(job_runtime_details.get("rejoin:max_restart_times", sys.maxsize))
+            container_details["state"]["Status"] == "exited"
+            and container_details["state"]["ExitCode"] not in ERROR_CODES_FOR_NOT_RESTART_CONTAINER
+            and job_runtime_details is not None
+            and job_runtime_details.get("rejoin:enable") == "1"
+            and not exceed_maximum_restart_times
         )
 
     @staticmethod
@@ -342,8 +343,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             bool: True of False.
         """
         return (
-            container_details["state"]["Status"] == "exited" and
-            container_details["state"]["ExitCode"] == ERROR_CODE_FOR_STOP_JOB
+            container_details["state"]["Status"] == "exited"
+            and container_details["state"]["ExitCode"] == ERROR_CODE_FOR_STOP_JOB
         )
 
     def _restart_container(self, container_name: str, container_details: dict) -> None:
@@ -356,7 +357,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get component_name_to_container_name
+        # Get component_name_to_container_name.
         rejoin_container_name_to_component_name = get_rejoin_container_name_to_component_name(
             redis=self._redis,
             job_id=container_details["job_id"]
@@ -371,10 +372,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             return
         else:
             try:
-                # Get params
+                # Get params.
                 component_name = rejoin_container_name_to_component_name[container_name]
 
-                # Get resources and allocation plan
+                # Get resources and allocation plan.
                 free_resources = ResourceManagementExecutor.get_free_resources(
                     redis=self._redis,
                     cluster_name=self._cluster_name
@@ -397,7 +398,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     free_resources=free_resources
                 )
 
-                # Start a new container
+                # Start a new container.
                 job_details = get_job_details(
                     redis=self._redis,
                     cluster_name=self._cluster_name,
@@ -435,7 +436,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get details and params
+        # Get details and params.
         node_name = container_details["node_name"]
         node_details = get_node_details(
             redis=self._redis,
@@ -443,7 +444,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             node_name=node_name
         )
 
-        # Load and exec command
+        # Load and exec command.
         command = REMOVE_CONTAINER_COMMAND.format(
             admin_username=self._admin_username,
             node_hostname=node_details["hostname"],
@@ -466,31 +467,31 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Delete mapping if fault tolerance is activated
+        # Delete mapping if fault tolerance is activated.
         delete_rejoin_container_name_to_component_name(
             redis=self._redis,
             job_id=job_id
         )
 
-        # Load details and vars
+        # Load details and vars.
         nodes_details = get_nodes_details(
             redis=self._redis,
             cluster_name=self._cluster_name
         )
 
-        # Delete containers
+        # Delete containers.
         for node_name, node_details in nodes_details.items():
-            # Load details
+            # Load details.
             container_details = node_details["containers"]
             node_hostname = node_details["hostname"]
 
-            # Filter containers
+            # Filter containers.
             stoppable_containers = []
             for container_name in container_details:
                 if container_name.startswith(job_id):
                     stoppable_containers.append(container_name)
 
-            # Stop containers
+            # Stop containers.
             if len(stoppable_containers) > 0:
                 if is_remove_container:
                     command = REMOVE_CONTAINER_COMMAND.format(
@@ -525,10 +526,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get mapping
+        # Get mapping.
         component_id_to_component_type = JobExecutor.get_component_id_to_component_type(job_details=job_details)
 
-        # Parse params
+        # Parse params.
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
         node_id = node_details["id"]
@@ -542,7 +543,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        # Parse environment parameters and labels
+        # Parse environment parameters and labels.
         environment_parameters = (
             f"-e CLUSTER_ID={cluster_id} "
             f"-e CLUSTER_NAME={cluster_name} "
@@ -573,19 +574,19 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             f"-l gpu={gpu}"
         )
 
-        # Load command
+        # Load command.
         if job_details["components"][component_type]["resources"]["gpu"] != 0:
             command = START_CONTAINER_WITH_GPU_COMMAND
         else:
             command = START_CONTAINER_COMMAND
         command = command.format(
-            # cluster related
+            # cluster related.
             admin_username=self._admin_username,
             master_hostname=self._master_hostname,
             node_hostname=node_details["hostname"],
             fluentd_port=self._fluentd_port,
 
-            # job related (user)
+            # job related (user).
             cpu=cpu,
             memory=memory,
             gpu=gpu,
@@ -593,7 +594,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             command=job_details["components"][component_type]["command"],
             image_name=job_details["components"][component_type]["image"],
 
-            # job related (system)
+            # job related (system).
             container_name=container_name,
             job_id=job_id,
             mount_source=f"~/.maro/clusters/{cluster_name}/data/",
@@ -601,7 +602,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             labels=labels
         )
 
-        # Exec command
+        # Exec command.
         logger.info(command)
         completed_process = subprocess.run(
             command,
@@ -653,21 +654,21 @@ class PendingJobAgent(multiprocessing.Process):
 
         # Iterate tickets.
         for pending_job_name in self._pending_jobs:
-            # Get details
+            # Get details.
             job_details = get_job_details(
                 redis=self._redis,
                 cluster_name=self._cluster_name,
                 job_name=pending_job_name
             )
 
-            # Get resources info
+            # Get resources info.
             free_resources = ResourceManagementExecutor.get_free_resources(
                 redis=self._redis,
                 cluster_name=self._cluster_name
             )
             required_resources = ResourceManagementExecutor.get_required_resources(job_details=job_details)
 
-            # Do allocation and start job
+            # Do allocation and start job.
             try:
                 allocation_plan = ResourceManagementExecutor.get_allocation_plan(
                     allocation_details=job_details["allocation"],
@@ -709,12 +710,12 @@ class PendingJobAgent(multiprocessing.Process):
             job_details: Details of the job.
 
         Returns:
-            None
+            None.
         """
-        # Get mapping
+        # Get mapping.
         component_id_to_component_type = JobExecutor.get_component_id_to_component_type(job_details=job_details)
 
-        # Parse params
+        # Parse params.
         cluster_name = self._cluster_name
         cluster_id = self._cluster_id
         node_id = node_details["id"]
@@ -728,7 +729,7 @@ class PendingJobAgent(multiprocessing.Process):
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        # Parse environment parameters and labels
+        # Parse environment parameters and labels.
         environment_parameters = (
             f"-e CLUSTER_ID={cluster_id} "
             f"-e CLUSTER_NAME={cluster_name} "
@@ -758,19 +759,19 @@ class PendingJobAgent(multiprocessing.Process):
             f"-l gpu={gpu}"
         )
 
-        # Load command
+        # Load command.
         if job_details["components"][component_type]["resources"]["gpu"] != 0:
             command = START_CONTAINER_WITH_GPU_COMMAND
         else:
             command = START_CONTAINER_COMMAND
         command = command.format(
-            # cluster related
+            # cluster related.
             admin_username=self._admin_username,
             master_hostname=self._master_hostname,
             node_hostname=node_details["hostname"],
             fluentd_port=self._fluentd_port,
 
-            # job related (user)
+            # job related (user).
             cpu=cpu,
             memory=memory,
             gpu=gpu,
@@ -778,7 +779,7 @@ class PendingJobAgent(multiprocessing.Process):
             command=job_details["components"][component_type]["command"],
             image_name=job_details["components"][component_type]["image"],
 
-            # job related (system)
+            # job related (system).
             container_name=container_name,
             job_id=job_id,
             mount_source=f"~/.maro/clusters/{cluster_name}/data/",
@@ -786,7 +787,7 @@ class PendingJobAgent(multiprocessing.Process):
             labels=labels
         )
 
-        # Exec command
+        # Exec command.
         logger.info(command)
         completed_process = subprocess.run(
             command,
@@ -828,27 +829,27 @@ class KilledJobAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get tickets
+        # Get tickets.
         self._killed_job_tickets = get_killed_job_tickets(
             redis=self._redis,
             cluster_name=self._cluster_name
         )
 
-        # Iterate tickets
+        # Iterate tickets.
         for job_name in self._killed_job_tickets:
-            # Get details
+            # Get details.
             job_details = get_job_details(
                 redis=self._redis,
                 cluster_name=self._cluster_name,
                 job_name=job_name
             )
             if job_details is not None:
-                # Kill job
+                # Kill job.
                 self._kill_job(job_details=job_details)
             else:
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 
-            # Remove killed job ticket
+            # Remove killed job ticket.
             remove_killed_job_ticket(
                 redis=self._redis,
                 cluster_name=self._cluster_name,
@@ -864,34 +865,34 @@ class KilledJobAgent(multiprocessing.Process):
         Returns:
             None.
         """
-        # Get params
+        # Get params.
         job_id = job_details["id"]
 
-        # Delete mapping if fault tolerance is activated
+        # Delete mapping if fault tolerance is activated.
         delete_rejoin_container_name_to_component_name(
             redis=self._redis,
             job_id=job_id
         )
 
-        # Load details and vars
+        # Load details and vars.
         nodes_details = get_nodes_details(
             redis=self._redis,
             cluster_name=self._cluster_name
         )
 
-        # Delete containers
+        # Delete containers.
         for node_name, node_details in nodes_details.items():
-            # Load details
+            # Load details.
             container_details = node_details["containers"]
             node_hostname = node_details["hostname"]
 
-            # Filter containers
+            # Filter containers.
             removable_containers = []
             for container_name in container_details:
                 if container_name.startswith(job_id):
                     removable_containers.append(container_name)
 
-            # Stop containers
+            # Stop containers.
             if len(removable_containers) > 0:
                 command = STOP_CONTAINER_COMMAND.format(
                     admin_username=self._admin_username,
@@ -953,15 +954,15 @@ class ResourceManagementExecutor:
             free_resources (list): List of NodeResource.
 
         Returns:
-            dict: container_name to node_name mapping.
+            dict[str, str]: container_name to node_name mapping.
         """
-        # Init params
+        # Init params.
         allocation_plan = {}
         if "metric" not in allocation_details or allocation_details["metric"].lower() not in AVAILABLE_METRICS:
             raise AllocationFailed("Invalid allocation parameter: metric")
         metric = allocation_details["metric"].lower()
 
-        # Init resources PQ
+        # Init resources PQ.
         required_resources_pq = []
         for required_resource in required_resources:
             heapq.heappush(
@@ -975,11 +976,11 @@ class ResourceManagementExecutor:
                 (getattr(free_resource, metric), free_resource)
             )
 
-        # Get allocation
+        # Get allocation.
         while len(required_resources_pq) > 0:
             is_allocated = False
 
-            # Get vars
+            # Get vars.
             required_resource = heapq.heappop(required_resources_pq)[1]
             free_resource = None
 
@@ -992,7 +993,7 @@ class ResourceManagementExecutor:
                 else:
                     not_usable_free_resources.append(free_resource)
 
-            # Do allocation or return error
+            # Do allocation or return error.
             if is_allocated:
                 allocation_plan[required_resource.container_name] = free_resource.node_name
                 free_resource.cpu -= required_resource.cpu
@@ -1008,7 +1009,7 @@ class ResourceManagementExecutor:
                         (getattr(not_usable_free_resource, metric), not_usable_free_resource)
                     )
             else:
-                # add previous resources back, to do printing
+                # add previous resources back, to do printing.
                 for not_usable_free_resource in not_usable_free_resources:
                     heapq.heappush(
                         free_resources_pq,
@@ -1045,15 +1046,15 @@ class ResourceManagementExecutor:
             free_resources (list): List of NodeResource.
 
         Returns:
-            dict: container_name to node_name mapping.
+            dict[str, str]: container_name to node_name mapping.
         """
-        # Init params
+        # Init params.
         allocation_plan = {}
         if "metric" not in allocation_details or allocation_details["metric"].lower() not in AVAILABLE_METRICS:
             raise AllocationFailed("Invalid allocation parameter: metric")
         metric = allocation_details["metric"].lower()
 
-        # Init resources PQ
+        # Init resources PQ.
         required_resources_pq = []
         for required_resource in required_resources:
             heapq.heappush(
@@ -1067,16 +1068,16 @@ class ResourceManagementExecutor:
                 (-getattr(free_resource, metric), free_resource)
             )
 
-        # Get allocation
+        # Get allocation.
         while len(required_resources_pq) > 0:
-            # Get list, not tuple
+            # Get list, not tuple.
             required_resource = heapq.heappop(required_resources_pq)[1]
 
             not_usable_free_resources = []
             is_allocated = False
             free_resource = None
             while len(free_resources_pq) > 0:
-                # Get list, not tuple
+                # Get list, not tuple.
                 free_resource = heapq.heappop(free_resources_pq)[1]
                 if free_resource >= required_resource:
                     is_allocated = True
@@ -1084,7 +1085,7 @@ class ResourceManagementExecutor:
                 else:
                     not_usable_free_resources.append(free_resource)
 
-            # Do allocation or return error
+            # Do allocation or return error.
             if is_allocated:
                 allocation_plan[required_resource.container_name] = free_resource.node_name
                 free_resource.cpu -= required_resource.cpu
@@ -1100,7 +1101,7 @@ class ResourceManagementExecutor:
                         (-getattr(not_usable_free_resource, metric), not_usable_free_resource)
                     )
             else:
-                # add previous resources back, to do printing
+                # add previous resources back, to do printing.
                 for not_usable_free_resource in not_usable_free_resources:
                     heapq.heappush(
                         free_resources_pq,
@@ -1131,13 +1132,13 @@ class ResourceManagementExecutor:
         Returns:
             list: List of NodeResource.
         """
-        # Load details
+        # Load details.
         nodes_details = get_nodes_details(
             redis=redis,
             cluster_name=cluster_name
         )
 
-        # Get free resources
+        # Get free resources.
         free_resources_list = []
         for node_name, node_details in nodes_details.items():
             target_free_cpu = node_details["resources"]["target_free_cpu"]
@@ -1165,11 +1166,11 @@ class ResourceManagementExecutor:
         Returns:
             list: List of ContainerResource.
         """
-        # Load configs
+        # Load configs.
         components_details = job_details["components"]
         job_id = job_details["id"]
 
-        # Get required resources
+        # Get required resources.
         resources_list = []
         for component_type, component_details in components_details.items():
             component_id = component_details["id"]
@@ -1215,12 +1216,12 @@ class JobExecutor:
             job_details: Details of jobs.
 
         Returns:
-            dict: component_id_to_component_type mapping.
+            dict[str, str]: component_id_to_component_type mapping.
         """
-        # Load details
+        # Load details.
         components_details = job_details["components"]
 
-        # Get component_id_to_type
+        # Get component_id_to_type.
         component_id_to_component_type = {}
         for component_type, component_details in components_details.items():
             component_id_to_component_type[component_details["id"]] = component_type
