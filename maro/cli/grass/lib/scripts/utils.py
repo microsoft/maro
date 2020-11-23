@@ -9,7 +9,7 @@ import uuid
 
 import yaml
 
-"""Load from files"""
+"""Load from files."""
 
 
 def load_cluster_details(cluster_name: str) -> dict:
@@ -24,7 +24,7 @@ def load_job_details(cluster_name: str, job_name: str) -> dict:
     return job_details
 
 
-"""Generate ID"""
+"""Generate ID."""
 
 
 def generate_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
@@ -32,7 +32,7 @@ def generate_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
     return f"{prefix}{postfix}"
 
 
-"""Master details"""
+"""Master details."""
 
 
 def get_master_details(redis, cluster_name: str) -> dict:
@@ -50,7 +50,7 @@ def set_master_details(redis, cluster_name: str, master_details: dict) -> None:
     )
 
 
-"""Node details"""
+"""Node details."""
 
 
 def get_node_details(redis, cluster_name: str, node_name: str) -> dict:
@@ -86,7 +86,7 @@ def delete_node_details(redis, cluster_name: str, node_name: str):
     )
 
 
-"""Job details"""
+"""Job details."""
 
 
 def get_job_details(redis, cluster_name: str, job_name: str) -> dict:
@@ -115,7 +115,7 @@ def set_job_details(redis, cluster_name: str, job_name: str, job_details: dict) 
     )
 
 
-"""Containers details"""
+"""Containers details."""
 
 
 def get_containers_details(redis, cluster_name: str) -> dict:
@@ -127,7 +127,7 @@ def get_containers_details(redis, cluster_name: str) -> dict:
     return containers_details
 
 
-"""Hash related"""
+"""Hash related."""
 
 
 def get_checksum(file_path: str, block_size=128):

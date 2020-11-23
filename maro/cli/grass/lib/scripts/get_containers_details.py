@@ -7,7 +7,8 @@ import json
 import sys
 
 from redis import Redis
-from utils import get_containers_details, load_cluster_details
+
+from .utils import get_containers_details, load_cluster_details
 
 if __name__ == "__main__":
     # Load args

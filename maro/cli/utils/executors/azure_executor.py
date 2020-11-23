@@ -38,11 +38,11 @@ class AzureExecutor:
         _ = SubProcess.run(command)
 
     @staticmethod
-    def delete_resource_group(resource_group: str):
+    def delete_resource_group(resource_group: str) -> None:
         """Delete a resource group without prompting.
 
         Args:
-            resource_group: Name of resource group.
+            resource_group (str): Name of resource group.
 
         Returns:
             None.
