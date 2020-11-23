@@ -484,11 +484,11 @@ class Proxy:
             peer_type = self.get_peer_type(message.destination)
             self._rejoin(peer_type)
 
-            # Check message cache
+            # Check message cache.
             if (
-                self._enable_message_cache and
-                message.destination in list(self._onboard_peer_dict[peer_type].keys()) and
-                message.destination in list(self._message_cache_for_exited_peers.keys())
+                self._enable_message_cache
+                and message.destination in list(self._onboard_peer_dict[peer_type].keys())
+                and message.destination in list(self._message_cache_for_exited_peers.keys())
             ):
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:

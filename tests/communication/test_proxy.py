@@ -60,8 +60,10 @@ class TestProxy(unittest.TestCase):
 
     def test_scatter(self):
         scatter_payload = ["worker_1", "worker_2", "worker_3", "worker_4", "worker_5"]
-        destination_payload_list = [(worker_proxy.component_name, scatter_payload[i])
-                                    for i, worker_proxy in enumerate(TestProxy.worker_proxies)]
+        destination_payload_list = [
+            (worker_proxy.component_name, scatter_payload[i])
+            for i, worker_proxy in enumerate(TestProxy.worker_proxies)
+        ]
 
         TestProxy.master_proxy.iscatter(
             tag="unit_test",
