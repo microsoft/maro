@@ -14,8 +14,8 @@ from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
 from maro.simulator.scenarios.finance.account import Account
 from maro.simulator.scenarios.finance.common import (
-    ActionState, CancelOrder, CancelOrderActionScope, CancelOrderDecisionEvent, Order, OrderActionScope,
-    OrderDecisionEvent, OrderDirection, OrderMode, TradeResult, two_decimal_price
+    Action, ActionState, Cancel, CancelActionScope, CancelDecisionEvent, FinanceEventType, Order, OrderActionScope,
+    OrderDecisionEvent, OrderDirection, OrderMode, Trade, two_decimal_price
 )
 from maro.simulator.scenarios.finance.frame_builder import build_frame
 from maro.simulator.scenarios.finance.slippage import FixedSlippage
@@ -27,6 +27,13 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 METRICS_DESC = """
+Finance metrics used to provide statistics information at current point (may be in the middle of a tick).
+It contains following keys:
+
+finished_action_number (int): Accumulative number of finished actions until now.
+protfile (list): Protfile of each stock.
+remaining_cash (float): Remaining cash in the account.
+assets_value (float):Current value of the holding assets.
 """
 SUPPORTED_ORDER_MODES = [
     OrderMode.MARKET_ORDER,
@@ -46,24 +53,23 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             start_tick=start_tick, max_tick=max_tick, snapshot_resolution=snapshot_resolution,
             max_snapshot_num=max_snapshot_num, additional_options=additional_options
         )
-        # 1. load_config
-        # Update self._config_path with current file path.
+
+        self._supported_order_mode = SUPPORTED_ORDER_MODES
+        # The orders that can be canceled.
+        self._pending_orders = OrderedDict()
+        self._day_trade_orders = []
+        # All the actions finished, including orders, cancel orders, etc.
+        self._finished_action = OrderedDict()
+
         self._load_configs()
 
-        # 2. load_data
         self._load_data()
 
-        # 3. init_instance
         self._register_events()
 
         self._init_frame()
 
-        self._supported_order_mode = SUPPORTED_ORDER_MODES
-
-        self._pending_orders = OrderedDict()  # The orders that can be canceled.
-        self._day_trade_orders = []
-        self._finished_action = OrderedDict()  # All the actions finished, including orders, cancel orders, etc.
-
+    # Implement common functions.
     @property
     def frame(self) -> FrameBase:
         """FrameBase: Current frame."""
@@ -79,33 +85,30 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         """dict: Current configuration."""
         return self._config
 
-    @property
-    def supported_order_modes(self) -> list:
-        return self._supported_order_mode
-
     def step(self, tick: int):
         """Push business engine to next step.
 
         Args:
             tick (int): Current tick to process.
         """
+
+        # Append cancel event.
+        decision_event = CancelDecisionEvent(
+            tick=tick, action_scope=self._cancel_action_scope(tick)
+        )
+        event = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_event)
+        self._event_buffer.insert_event(event)
+
         available_stock_indexes = []
 
         for stock_index, picker in enumerate(self._stock_pickers):
             for raw_stock in picker.items(tick):
                 if raw_stock is not None:
-                    # update frame by code
+                    # Update stock by code.
                     self._stocks[stock_index].fill(raw_stock)
                     available_stock_indexes.append(stock_index)
 
-        # append cancel_order event
-        decision_event = CancelOrderDecisionEvent(
-            tick=tick, action_scope=self._cancel_order_action_scope(tick)
-        )
-        event = self._event_buffer.gen_cascade_event(tick, DECISION_EVENT, decision_event)
-        self._event_buffer.insert_event(event)
-
-        # append order event
+        # Append order event.
         for available_stock in available_stock_indexes:
             decision_event = OrderDecisionEvent(
                 tick=tick, stock_index=available_stock,
@@ -114,24 +117,59 @@ class FinanceBusinessEngine(AbsBusinessEngine):
 
             self._event_buffer.insert_event(event)
 
+    # Functions for generating decision events.
+    def _order_action_scope(self, stock_index: int) -> OrderActionScope:
+        """Generate the action scope of the order."""
+        stock: Stock = self._stocks[stock_index]
+        max_sell_volume = 0
+        min_sell_volume = 0
+        max_buy_volume = 0
+        min_buy_volume = 0
+        if stock.account_hold_num > 0:
+            max_sell_volume = stock.account_hold_num
+            odd_shares = stock.account_hold_num % self._trade_unit
+            if odd_shares > 0:
+                min_sell_volume = odd_shares
+            else:
+                min_sell_volume = self._trade_unit
+
+        if self._account.remaining_cash > stock.opening_price * self._trade_unit:
+            min_buy_volume = self._trade_unit
+            max_buy_volume = int(self._account.remaining_cash / stock.opening_price)
+            max_buy_volume = max_buy_volume - max_buy_volume % self._trade_unit
+
+        if not self._allow_split:
+            max_sell_volume = min(
+                max_sell_volume, int(self._max_trade_percent * stock.market_volume)
+            )
+            min_sell_volume = min(min_sell_volume, max_sell_volume)
+            max_buy_volume = min(
+                max_buy_volume, int(self._max_trade_percent * stock.market_volume)
+            )
+            min_buy_volume = min(min_buy_volume, max_buy_volume)
+
+        return OrderActionScope(
+            min_buy_volume, max_buy_volume, min_sell_volume, max_sell_volume, self._supported_order_mode
+        )
+
+    def _cancel_action_scope(self, tick: int) -> CancelActionScope:
+        """Generate the action scope of the cancel action."""
+        available_orders = []
+        if tick in self._pending_orders:
+            available_orders = self._pending_orders[tick]
+        return CancelActionScope(available_orders)
+
+    # Implement common functions.
     def post_step(self, tick: int) -> bool:
-        """TODO: refine ==== After the events of the tick all finished,
+        """After the events of the tick all finished,
         take the snapshot of the frame and reset the nodes for next tick.
 
         Args:
             tick (int): Current tick of the step.
         """
-        if (not self._allow_day_trade) and self.is_market_closed():
-            # If day trading is not allowed, update the new buy-in volume to the account at the end of the day.
-            for order in self._day_trade_orders:
-                for result in order.action_result:
-                    self._stocks[order.stock_index].account_hold_num += result.trade_volume
-            self._day_trade_orders.clear()
-        # Update assets value.
-        assets_value = 0
-        for stock in self._stocks:
-            assets_value += stock.closing_price * stock.account_hold_num
-        self._account.assets_value = two_decimal_price(assets_value)
+        self._handle_day_trading()
+
+        self._update_assets_value()
 
         # We following the snapshot_resolution settings to take snapshot.
         if (tick + 1) % self._snapshot_resolution == 0:
@@ -167,8 +205,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         for stock in self._stocks:
             stock.deep_reset()
 
-        # self._matrices_node.reset()
-
         self._pending_orders.clear()
         self._day_trade_orders.clear()
         self._finished_action.clear()
@@ -190,9 +226,14 @@ class FinanceBusinessEngine(AbsBusinessEngine):
         Returns:
             DocableDict: Metrics information.
         """
-
         return DocableDict(
             METRICS_DESC,
+            finished_action_number=sum([len(self._finished_action[x]) for x in self._finished_action]),
+            protfile=[
+                {"code": x.code, "hoding": x.account_hold_num, "average_cost": x.average_cost} for x in self._stocks
+            ],
+            remaining_cash=self._account.remaining_cash,
+            assets_value=self._account.assets_value
         )
 
     def __del__(self):
@@ -204,6 +245,12 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             # Close binary reader first, so that we can clean it correctly.
             reader.close()
 
+    # Customized propertys.
+    @property
+    def supported_order_modes(self) -> list:
+        return self._supported_order_mode
+
+    # Init functions.
     def _load_configs(self):
         """Load configurations."""
         self._update_config_root_path(__file__)
@@ -211,7 +258,7 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             self._config = safe_load(fp)
 
             # Code of the stocks.
-            self._stocks = self._config["stocks"]
+            self._stock_codes = self._config["stocks"]
             # Path of stock data file.
             self._data_path = self._config["data_path"]
             # Initial cash of the account.
@@ -242,7 +289,6 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             self._deal_price = self._config["trade_constraint"]["deal_price"]
 
     def _load_data(self):
-        # Stock binary reader.
         self._stock_readers: list = []
         self._stock_pickers: list = []
 
@@ -252,147 +298,101 @@ class FinanceBusinessEngine(AbsBusinessEngine):
             stock_data_root = os.path.expanduser(stock_data_root)
 
         stock_data_paths = []
-        for idx in range(len(self._stocks)):
-            stock_data_paths.append(os.path.join(stock_data_root, f"{self._stocks[idx]}.bin"))
+        for idx in range(len(self._stock_codes)):
+            stock_data_paths.append(os.path.join(stock_data_root, f"{self._stock_codes[idx]}.bin"))
 
         if not os.path.exists(stock_data_root):
-            self._build_temp_data()  # TODO： implement
+            # TODO： implement self._build_temp_data()
+            pass
 
-        for idx in range(len(self._stocks)):
+        for idx in range(len(self._stock_codes)):
             self._stock_readers.append(BinaryReader(stock_data_paths[idx]))
             logger.info_green(
-                f"Data start date:{self._stock_readers[-1].start_datetime}, \
-data end date:{self._stock_readers[-1].end_datetime}"
+                f"Data start date:{self._stock_readers[-1].start_datetime},"
+                + f"data end date:{self._stock_readers[-1].end_datetime}"
             )
             self._stock_pickers.append(
                 self._stock_readers[idx].items_tick_picker(self._start_tick, self._max_tick, time_unit="d"))
 
     def _init_frame(self):
-        self._frame = build_frame(len(self._stocks), self.calc_max_snapshot_num())
+        self._frame = build_frame(len(self._stock_codes), self.calc_max_snapshot_num())
         self._snapshots = self._frame.snapshots
         self._account: Account = self._frame.account[0]
         self._account.set_init_state(init_cash=self._init_cash)
         self._stocks = self._frame.stocks
 
         for idx in range(len(self._stocks)):
-            self._stocks[idx].set_init_state(self._stocks[idx])
+            self._stocks[idx].set_init_state(self._stock_codes[idx])
 
+    # Events processing.
     def _register_events(self):
         # Register our own events and their callback handlers.
         self._event_buffer.register_event_handler(DECISION_EVENT, self._on_action_recieved)
+        self._event_buffer.register_event_handler(FinanceEventType.ORDER, self._take_order)
+        self._event_buffer.register_event_handler(FinanceEventType.CANCEL, self._cancel_order)
 
-    def is_market_closed(self):
-        # TODO: Implement
-        return True
-
-    def _on_action_recieved(self, event: Event):  # TODO: Event type: cancel , order
+    def _on_action_recieved(self, event: Event):
         actions = event.payload
-        if actions is None:
-            return
 
         for action in actions:
             if action is None:
                 continue
-            elif isinstance(action, CancelOrder):
-                self._cancel_order(action=action, tick=event.tick)
-            else:  # Action is Order
-                self._take_order(order=action, tick=event.tick)
+            elif isinstance(action, Cancel):  # Action is Cancel.
+                cancel_event = self._event_buffer.gen_atom_event(event.tick, FinanceEventType.CANCEL, action)
+                self._event_buffer.insert_event(cancel_event)
+            elif isinstance(action, Order):  # Action is Order.
+                order_event = self._event_buffer.gen_atom_event(event.tick, FinanceEventType.ORDER, action)
+                self._event_buffer.insert_event(order_event)
 
-            if action.state != ActionState.REQUEST:
-                if event.tick not in self._finished_action:
-                    self._finished_action[event.tick] = []
-                self._finished_action[event.tick].append(action)
-        # append panding orders still not triggered in the available life time
+        # Append panding orders still live but not triggered.
         if event.tick in self._pending_orders:
             for action in self._pending_orders[event.tick]:
-                self._event_buffer.gen_atom_event(event.tick, DECISION_EVENT, action)
+                order_event = self._event_buffer.gen_atom_event(event.tick, FinanceEventType.ORDER, action)
+                self._event_buffer.insert_event(order_event)
             self._pending_orders[event.tick].clear()
 
-    def _take_order(self, order: Order, tick: int) -> TradeResult:
+    # Order processing.
+    def _take_order(self, event: Event):
         """Match the order in the market and then apply the matching result to account.
 
         Args:
             order (Order): The order subbmited from agent.
             tick (int): The tick when the order is processed.
         """
-        # 1. can trade -> bool
-        # 2. return (stock, sell/busy, stock_price, number, tax)
-        # 3. update stock.account_hold_num
-        assert(order.state == ActionState.REQUEST)
-        # not canceled
+
+        tick = event.tick
+        order: Order = event.payload
+        if order.state != ActionState.REQUEST:
+            # Order is canceled.
+            return
+
+        # 1. If the order is triggered.
+        # 2. Match trades for the order.
+        # 3. Apply the matched trade.
         stock = self._stocks[order.stock_index]
         is_trigger = order.is_trigger(stock.opening_price, stock.market_volume)
         if is_trigger:
+            # The order is triggered.
             logger.info_green(f"++++ executing {order}")
-            self._executing_order(order=order, tick=tick)
-
+            self._execute_order(order=order, tick=tick)
         else:
+            # The order is not triggered.
             if order.remaining_life_time > 1:
-                order.remaining_life_time -= 1
-                # move to _on_action_recieved
-                # self._event_buffer.gen_atom_event(tick + 1, DecisionEvent, action)
-                if tick + 1 not in self._pending_orders:
-                    self._pending_orders[tick + 1] = []
-                self._pending_orders[tick + 1].append(order)
+                self._record_pending_order(order=order, tick=tick)
             else:
-                order.state = ActionState.EXPIRED
-                order.finish_tick = tick
+                self._finish_action(action=order, tick=tick, state=ActionState.EXPIRED)
 
-    def _cancel_order(self, action: CancelOrder, tick: int):
-        """Cancel the specified order.
+    def _execute_order(self, order: Order, tick: int):
+        """Match and apply the order.
+
+        Args:
+            order (Order): Order to execute.
+            tick (int): Current tick of the environment.
         """
-        action.order.state = ActionState.CANCEL
-        action.order.finish_tick = tick
-        action.order.remaining_life_time = 0
-        assert((tick in self._pending_orders) and (action.order in self._pending_orders[tick]))
-        self._pending_orders[tick].remove(action.order)
-        action.state = ActionState.FINISH
-        action.finish_tick = tick
-
-    def _order_action_scope(self, stock_index: int):
-        """Generate the action scope of the action
-        """
-        stock: Stock = self._stocks[stock_index]
-        max_sell_volume = 0
-        min_sell_volume = 0
-        max_buy_volume = 0
-        min_buy_volume = 0
-        if stock.account_hold_num > 0:
-            max_sell_volume = stock.account_hold_num
-            odd_shares = stock.account_hold_num % self._trade_unit
-            if odd_shares > 0:
-                min_sell_volume = odd_shares
-            else:
-                min_sell_volume = self._trade_unit
-
-        if self._account.remaining_cash > stock.opening_price * self._trade_unit:
-            min_buy_volume = self._trade_unit
-            max_buy_volume = int(self._account.remaining_cash / stock.opening_price)
-            max_buy_volume = max_buy_volume - max_buy_volume % self._trade_unit
-
-        if not self._allow_split:
-            max_sell_volume = min(
-                max_sell_volume, int(self._max_trade_percent * stock.market_volume)
-            )
-            min_sell_volume = min(min_sell_volume, max_sell_volume)
-            max_buy_volume = min(
-                max_buy_volume, int(self._max_trade_percent * stock.market_volume)
-            )
-            min_buy_volume = min(min_buy_volume, max_buy_volume)
-
-        return OrderActionScope(
-            min_buy_volume, max_buy_volume, min_sell_volume, max_sell_volume, self._supported_order_mode
-        )
-
-    def _cancel_order_action_scope(self, tick: int):
-        available_orders = []
-        if tick in self._pending_orders:
-            available_orders = self._pending_orders[tick]
-        return CancelOrderActionScope(available_orders)
-
-    def _executing_order(self, order: Order, tick: int):
+        is_matching_success = False
+        # Match the order.
         matched_trades = []
-        is_order_success = False
+
         market_price = self._pick_market_price(self._stocks[order.stock_index])
         market_volume = self._stocks[order.stock_index].market_volume
 
@@ -409,118 +409,127 @@ data end date:{self._stock_readers[-1].end_datetime}"
 
         remaining_cash = self._account.remaining_cash
         split_volume = self._split_trade_percent * market_volume
-        odd_shares = self._stocks[order.stock_index].account_hold_num \
-            % self._trade_unit
-        executing_price = market_price
+        odd_shares = self._stocks[order.stock_index].account_hold_num % self._trade_unit
+        matching_price = market_price
 
         if order.order_direction == OrderDirection.SELL:
-            #  Holding clipping
+            # Holding clipping.
             remaining_volume = min(remaining_volume, self._stocks[order.stock_index].account_hold_num)
-            executing = True
-            while executing:
+            matching = True
+
+            while matching:
                 if self._allow_split:
-                    executing_volume = min(remaining_volume, split_volume)
+                    # Split clipping.
+                    matching_volume = min(remaining_volume, split_volume)
                 else:
-                    executing_volume = remaining_volume
+                    matching_volume = remaining_volume
 
                 adjusted = True
-                executing_price_base = executing_price
+                matching_price_base = matching_price
+                # Adjust the volume until match a trade.
                 while adjusted:
                     adjusted = False
-                    executing_price = executing_price_base
+                    matching_price = matching_price_base
 
-                    executing_price = slippage.calculate(
-                        order.order_direction, executing_volume, executing_price, market_volume
+                    matching_price = slippage.calculate(
+                        order.order_direction, matching_volume, matching_price, market_volume
                     )
 
-                    executing_cost = trade_cost.calculate(order.order_direction, executing_price, executing_volume)
+                    matching_cost = trade_cost.calculate(order.order_direction, matching_price, matching_volume)
 
-                    # constraint
-                    adjusted, executing_volume = self._adjust_sell_on_volume_unit(executing_volume, odd_shares)
+                    # Trade unit clipping.
+                    adjusted, matching_volume, odd_shares = self._adjust_sell_on_trade_unit(matching_volume, odd_shares)
                     if adjusted:
-                        odd_shares = 0
                         continue
 
-                    # money
-                    adjusted, executing_volume = self._adjust_sell_on_remaining_cash(
-                        executing_price, executing_volume, executing_cost, remaining_cash
+                    # Remaining money clipping.
+                    adjusted, matching_volume = self._adjust_sell_on_remaining_cash(
+                        matching_price, matching_volume, matching_cost, remaining_cash
                     )
                     if adjusted:
-                        continue
+                        # Failed to match a selling trade.
+                        break
 
                 if not self._allow_split:
-                    executing = False
+                    # If not allow split, match only 1 trade.
+                    matching = False
 
-                if executing_volume > 0:
-                    ret = TradeResult(
-                        trade_direction=order.order_direction, trade_volume=executing_volume,
-                        trade_price=executing_price, trade_cost=executing_cost
+                if matching_volume > 0:
+                    # Matched a trade.
+                    ret = Trade(
+                        trade_direction=order.order_direction, trade_volume=matching_volume,
+                        trade_price=matching_price, trade_cost=matching_cost
                     )
-                    is_order_success = True
-                    remaining_volume -= executing_volume
+                    is_matching_success = True
+                    remaining_volume -= matching_volume
 
                     remaining_cash += ret.trade_volume * ret.trade_price - ret.trade_cost
 
                     if remaining_volume < 0 or remaining_cash < 0:
-                        executing = False
+                        matching = False
                     else:
                         matched_trades.append(ret)
                 else:
-                    executing = False
+                    # Failed to match a trade.
+                    matching = False
 
         elif order.order_direction == OrderDirection.BUY:
-            executing = True
-            while executing:
+            matching = True
+            while matching:
                 if self._allow_split:
-                    executing_volume = min(remaining_volume, split_volume)
+                    # Split clipping.
+                    matching_volume = min(remaining_volume, split_volume)
                 else:
-                    executing_volume = remaining_volume
+                    matching_volume = remaining_volume
 
                 adjusted = True
-                executing_price_base = executing_price
+                matching_price_base = matching_price
                 while adjusted:
                     adjusted = False
-                    executing_price = executing_price_base
-                    executing_price = slippage.calculate(
-                        order.order_direction, executing_volume, executing_price, market_volume
+                    matching_price = matching_price_base
+                    matching_price = slippage.calculate(
+                        order.order_direction, matching_volume, matching_price, market_volume
                     )
 
-                    executing_cost = trade_cost.calculate(order.order_direction, executing_price, executing_volume)
+                    matching_cost = trade_cost.calculate(order.order_direction, matching_price, matching_volume)
 
-                    # constraint
-                    adjusted, executing_volume = self._adjust_buy_on_volume_unit(executing_volume)
+                    # Trade unit clipping.
+                    adjusted, matching_volume = self._adjust_buy_on_trade_unit(matching_volume)
                     if adjusted:
                         odd_shares = 0
                         continue
 
-                    # money
-                    adjusted, executing_volume = self._adjust_buy_on_remaining_cash(
-                        executing_price, executing_volume, executing_cost, remaining_cash
+                    # Remaining money clipping.
+                    adjusted, matching_volume = self._adjust_buy_on_remaining_cash(
+                        matching_price, matching_volume, matching_cost, remaining_cash
                     )
                     if adjusted:
                         continue
 
                 if not self._allow_split:
-                    executing = False
+                    # If not allow split, match only 1 trade.
+                    matching = False
 
-                if executing_volume > 0:
-                    ret = TradeResult(
-                        trade_direction=order.order_direction, trade_volume=executing_volume,
-                        trade_price=executing_price, trade_cost=executing_cost
+                if matching_volume > 0:
+                    # Matched a trade.
+                    ret = Trade(
+                        trade_direction=order.order_direction, trade_volume=matching_volume,
+                        trade_price=matching_price, trade_cost=matching_cost
                     )
-                    is_order_success = True
-                    remaining_volume -= executing_volume
+                    is_matching_success = True
+                    remaining_volume -= matching_volume
                     remaining_cash -= ret.trade_volume * ret.trade_price + ret.trade_cost
 
                     if remaining_volume < 0 or remaining_cash < 0:
-                        executing = False
+                        matching = False
                     else:
                         matched_trades.append(ret)
                 else:
-                    executing = False
+                    # Failed to match a trade.
+                    matching = False
 
         # Apply trade.
-        if is_order_success:
+        if is_matching_success:
             for matched_trade in matched_trades:
                 logger.info_green(f"++++ trading: {matched_trade}")
                 if order.order_direction == OrderDirection.BUY:
@@ -529,7 +538,7 @@ data end date:{self._stock_readers[-1].end_datetime}"
                         * self._stocks[order.stock_index].average_cost
                         + matched_trade.trade_price * matched_trade.trade_volume
                     ) / (self._stocks[order.stock_index].account_hold_num + matched_trade.trade_volume)
-                    # day trading is considered
+                    # If day trading is allowed, apply the new buy-in volume delta to the stock immediately.
                     if self._allow_day_trade:
                         self._stocks[order.stock_index].account_hold_num += matched_trade.trade_volume
                     else:
@@ -541,65 +550,107 @@ data end date:{self._stock_readers[-1].end_datetime}"
                 # Apply trade cash delta in account.
                 self._account.remaining_cash += two_decimal_price(matched_trade.cash_delta)
             order.state = ActionState.FINISH
-            order.finish_tick = tick
+            self._finish_action(action=order, tick=tick, state=ActionState.FINISH, result=matched_trades)
         else:
-            order.state = ActionState.FAILED
-            order.finish_tick = tick
-            order.comment = "Can not execute the order"
+            self._finish_action(
+                action=order, tick=tick, state=ActionState.FAILED, comment="Can not match any trade for the order."
+            )
 
-        order.action_result = matched_trades
-        return is_order_success, matched_trades
-
-    def _adjust_buy_on_volume_unit(self, executing_volume: int):
+    def _adjust_buy_on_trade_unit(self, matching_volume: int):
         adjusted = False
-        adjusted_volume = executing_volume
-        if executing_volume % self._trade_unit != 0:
+        adjusted_volume = matching_volume
+        if matching_volume % self._trade_unit != 0:
             adjusted = True
             odd_volume = adjusted_volume % self._trade_unit
             adjusted_volume -= odd_volume
         return adjusted, adjusted_volume
 
-    def _adjust_sell_on_volume_unit(self, executing_volume: int, odd_shares: int):
+    def _adjust_sell_on_trade_unit(self, matching_volume: int, odd_shares: int):
         adjusted = False
-        adjusted_volume = executing_volume
-        odd_volume = executing_volume % self._trade_unit
+        adjusted_volume = matching_volume
+        odd_volume = matching_volume % self._trade_unit
         if odd_volume != 0:
             if odd_shares != odd_volume:
                 adjusted = True
                 adjusted_volume -= odd_volume
                 adjusted_volume += odd_shares
-        return adjusted, adjusted_volume
+                odd_shares = 0
+        return adjusted, adjusted_volume, odd_shares
 
     def _adjust_buy_on_remaining_cash(
-        self, executing_price: float,
-        executing_volume: int, executing_cost: float, remaining_cash: float
+        self, matching_price: float,
+        matching_volume: int, matching_cost: float, remaining_cash: float
     ):
         adjusted = False
-        adjusted_volume = executing_volume
-        money_needed = executing_price * executing_volume + executing_cost
+        adjusted_volume = matching_volume
+        money_needed = matching_price * matching_volume + matching_cost
         if money_needed > remaining_cash:
             adjusted = True
             adjusted_volume = adjusted_volume - math.ceil(
-                (money_needed - remaining_cash) / (executing_price * self._trade_unit)
+                (money_needed - remaining_cash) / (matching_price * self._trade_unit)
             ) * self._trade_unit
 
         return adjusted, int(adjusted_volume)
 
     def _adjust_sell_on_remaining_cash(
-        self, executing_price: float,
-        executing_volume: int, executing_cost: float, remaining_cash: float
+        self, matching_price: float,
+        matching_volume: int, matching_cost: float, remaining_cash: float
     ):
         adjusted = False
-        adjusted_volume = executing_volume
-        money_needed = executing_cost
-        if money_needed > remaining_cash + executing_price * executing_volume:
-            adjusted = True  # shall failed?
-            adjusted_volume = adjusted_volume - math.ceil(
-                (money_needed - (remaining_cash + executing_price * adjusted_volume)) / (
-                    executing_price * self._trade_unit
-                )
-            ) * self._trade_unit
+        adjusted_volume = matching_volume
+        money_needed = matching_cost
+        if money_needed > remaining_cash + matching_price * matching_volume:
+            # Shall failed.
+            adjusted = True
+            adjusted_volume = 0
+
         return adjusted, int(adjusted_volume)
 
-    def _pick_market_price(self, stock: Stock):
+    # Cancel processing.
+    def _cancel_order(self, event: Event):
+        """Cancel the specified order."""
+        tick = event.tick
+        action: Cancel = event.payload
+        action.order.state = ActionState.CANCEL
+        self._finish_action(action=action.order, tick=tick)
+
+        action.state = ActionState.FINISH
+        self._finish_action(action=action, tick=tick)
+
+    # Extra bussiness logic.
+    def _pick_market_price(self, stock: Stock) -> float:
+        """Pick market price from quote according to config."""
         return getattr(stock, self._deal_price, stock.opening_price)
+
+    def _is_market_closed(self) -> bool:
+        # TODO: Implement
+        return True
+
+    def _finish_action(
+        self, action: Action, tick: int, state: ActionState = ActionState.FINISH,
+        result: any = None, comment: str = None
+    ):
+        action.finish(tick=tick, state=state, result=result, comment=comment)
+        if tick not in self._finished_action:
+            self._finished_action[tick] = []
+        self._finished_action[tick].append(action)
+
+    def _record_pending_order(self, order: Order, tick: int):
+        order.remaining_life_time -= 1
+        if tick + 1 not in self._pending_orders:
+            self._pending_orders[tick + 1] = []
+        self._pending_orders[tick + 1].append(order)
+
+    def _update_assets_value(self):
+        assets_value = 0
+        for stock in self._stocks:
+            assets_value += stock.closing_price * stock.account_hold_num
+        self._account.assets_value = two_decimal_price(assets_value)
+
+    def _handle_day_trading(self):
+        # If day trading is not allowed, apply the new buy-in volume delta to the stock at the end of the day.
+        if (not self._allow_day_trade) and self._is_market_closed():
+            for order in self._day_trade_orders:
+                for result in order.action_result:
+                    self._stocks[order.stock_index].account_hold_num += result.trade_volume
+            self._day_trade_orders.clear()

@@ -21,7 +21,7 @@ class StockTradeCost():
         self._close_commission = close_commission
         self._min_commission = min_commission
 
-    def calculate(self, direction: OrderDirection, actual_price: float, actual_volume: int):
+    def calculate(self, direction: OrderDirection, actual_price: float, actual_volume: int) -> float:
         """Calculate the total cost of a trade.
 
         Args:

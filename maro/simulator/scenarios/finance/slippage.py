@@ -3,6 +3,7 @@ from maro.simulator.scenarios.finance.common import OrderDirection, two_decimal_
 
 class Slippage():
     """Base class for calculating the slippage of an order."""
+
     def __init__(self):
         pass
 
@@ -33,7 +34,7 @@ class FixedSlippage(Slippage):
             market_volume (int): The trade volume of the stock in the market during the tick.
 
         Returns:
-            The actual price with the slippage.
+            float: The actual price with the slippage.
         """
         delta_price = order_price * self._slippage_rate / 2
         if order_direction == OrderDirection.BUY:

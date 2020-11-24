@@ -3,8 +3,7 @@ import time
 
 from maro.simulator import DecisionMode, Env
 from maro.simulator.scenarios.finance.common import (
-    CancelOrder, CancelOrderDecisionEvent, LimitOrder, MarketOrder, OrderDecisionEvent, OrderDirection,
-    get_cn_stock_data_tick
+    Cancel, CancelDecisionEvent, LimitOrder, MarketOrder, OrderDecisionEvent, OrderDirection, get_cn_stock_data_tick
 )
 from maro.utils.logger import CliLogger
 
@@ -23,7 +22,7 @@ def simple_strategy():
     for i in [0, 1]:
         env.reset()
         logger.info_green(f"Environment summary: {env.summary}")
-        _, decision_events, is_done = env.step(None)
+        metrics, decision_events, is_done = env.step(None)
 
         while not is_done:
             ep_start = time.time()
@@ -37,7 +36,7 @@ def simple_strategy():
                     buy_max_volume = action_scope.max_buy_volume
                     sell_max_volume = action_scope.max_sell_volume
                     logger.info_green(
-                        f"|||| Trade decision_event: {decision_event}"
+                        f"|||| Order decision_event: {decision_event}"
                     )
                     # Qurey snapshot for stock information.
                     cur_env_snap = env.snapshot_list['stocks']
@@ -45,7 +44,6 @@ def simple_strategy():
                         cur_env_snap[last_frame_idx:stock_index:"account_hold_num"]
                     average_cost = \
                         cur_env_snap[last_frame_idx:stock_index:"average_cost"]
-                    print(holding, average_cost)
                     # Simple strategy, buy and sell higher than average_cost.
                     if holding > 0:
                         # Different order types reference to
@@ -61,25 +59,27 @@ def simple_strategy():
                             stock_index=stock_index, order_volume=int(buy_max_volume * 0.5),
                             order_direction=OrderDirection.BUY, tick=env.tick
                         )
-                    logger.info_green(f"---- trade order: {action}")
+                    logger.info_green(f"---- Order: {action}")
+                    actions.append(action)
 
-                elif isinstance(decision_event, CancelOrderDecisionEvent):
-                    # Cancel order decision.
+                elif isinstance(decision_event, CancelDecisionEvent):
+                    # Cancel action decision.
                     logger.info_green(
-                        f"|||| Cancel order decision_event: {decision_event}"
+                        f"|||| Cancel decision_event: {decision_event}"
                     )
                     if len(decision_event.action_scope.available_orders) > 0:
                         for i in range(len(decision_event.action_scope.available_orders)):
                             if random.random() > 0.75:
-                                action = CancelOrder(
-                                    order=decision_event.action_scope.available_orders[i],
+                                action = Cancel(
+                                    action=decision_event.action_scope.available_orders[i],
                                     tick=env.tick
                                 )
-                                logger.info_green(f"---- Cancel order:{action}")
+                                logger.info_green(f"---- Cancel:{action}")
                                 actions.append(action)
-                    action = None
-                actions.append(action)
-            _, decision_events, is_done = env.step(actions)
+            if len(actions) == 0:
+                actions.append(None)
+            metrics, decision_events, is_done = env.step(actions)
+            logger.info_green(f"Current metrics:{metrics}.")
 
         ep_time = time.time() - ep_start
 

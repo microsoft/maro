@@ -6,6 +6,12 @@ from maro.data_lib.binary_converter import is_datetime
 from maro.data_lib.binary_reader import unit_seconds
 
 
+class FinanceEventType(Enum):
+    """Type of the event in Finance scenario."""
+    ORDER = "order"
+    CANCEL = "cancel"
+
+
 class OrderMode(Enum):
     """Mode of the order, ref to https://www.investopedia.com/terms/o/order.asp ."""
     MARKET_ORDER = "market_order"
@@ -30,8 +36,8 @@ class ActionState(Enum):
     CANCEL = "cancel"
 
 
-class TradeResult:
-    """Result or a trade."""
+class Trade:
+    """Class for a trade."""
 
     def __init__(
             self, trade_direction: OrderDirection, trade_volume: int, trade_price: float,
@@ -68,11 +74,13 @@ class OrderActionScope:
         self.supported_order_mode = supported_order_mode
 
     def __repr__(self):
-        return f"buy scope: {self.min_buy_volume}~{self.max_buy_volume} \
-sell scope: {self.min_sell_volume}~{self.max_sell_volume} order types: {self.supported_order_mode}"
+        return (
+            f"buy scope: {self.min_buy_volume}~{self.max_buy_volume}"
+            + f"sell scope: {self.min_sell_volume}~{self.max_sell_volume} order types: {self.supported_order_mode}"
+        )
 
 
-class CancelOrderActionScope:
+class CancelActionScope:
     """Action scope of a cancel order action."""
 
     def __init__(self, available_orders):
@@ -113,19 +121,21 @@ class OrderDecisionEvent(DecisionEvent):
         self.stock_index = stock_index
 
     def __repr__(self):
-        return f"<Order decision envet tick: {self.tick}, stock index: {self.stock_index}, \
-action scope: {self.action_scope}>"
+        return (
+            f"<Order decision envet tick: {self.tick}, stock index: {self.stock_index},"
+            + f"action scope: {self.action_scope}>"
+        )
 
 
-class CancelOrderDecisionEvent(DecisionEvent):
-    """Cancel order decision event given to agent, contains the orders index can be canceled.
+class CancelDecisionEvent(DecisionEvent):
+    """Cancel decision event given to agent, contains the actions index can be canceled.
 
     Args:
         tick (int): current tick of decision.
-        action_scope (OrderActionScope): scope of the order.
+        action_scope (CancelActionScope): scope of the order.
     """
 
-    def __init__(self, tick: int, action_scope: CancelOrderActionScope):
+    def __init__(self, tick: int, action_scope: CancelActionScope):
         super().__init__(tick, action_scope)
 
 
@@ -156,11 +166,19 @@ class Action(ABC):
         self.remaining_life_time = life_time
         self.action_result = None
         self.comment = ""
-        # print("Action id:", self.id)
+
+    def finish(self, tick: int, state: ActionState = ActionState.FINISH, result: any = None, comment: str = None):
+        self.finish_tick = tick
+        self.state = state
+        self.action_result = result
+        self.comment = comment
+        self.remaining_life_time = 0
 
     def __repr__(self):
-        return f"< Action ID:{self.id} start: {self.decision_tick} finished: {self.finish_tick} state: {self.state} \
-remaining life time:{self.remaining_life_time} comment: {self.comment}>"
+        return (
+            f"< Action ID:{self.id} start: {self.decision_tick} finished: {self.finish_tick} state: {self.state}"
+            + f"remaining life time:{self.remaining_life_time} comment: {self.comment}>"
+        )
 
 
 class Order(Action):
@@ -192,8 +210,10 @@ class Order(Action):
         pass
 
     def __repr__(self):
-        return f"{super().__repr__()}\n< Order item: {self.stock_index} volume: {self.order_volume} \
-direction: {self.order_direction} >"
+        return (
+            f"{super().__repr__()}\n< Order item: {self.stock_index} volume: {self.order_volume}"
+            + f"direction: {self.order_direction} >"
+        )
 
 
 class MarketOrder(Order):
@@ -329,7 +349,7 @@ class StopLimitOrder(Order):
         return triggered
 
 
-class CancelOrder(Action):
+class Cancel(Action):
     """Cancel order is an action specifies the order to cancel."""
 
     def __init__(self, order: Order, tick: int):

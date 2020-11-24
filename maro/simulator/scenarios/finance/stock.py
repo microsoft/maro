@@ -24,7 +24,7 @@ class Stock(NodeBase):
 
     def set_init_state(self, code: str):
         """Set the initial information of the stock.
-    
+
         Args:
             code (str): The code of the stock.
         """
@@ -35,8 +35,9 @@ class Stock(NodeBase):
         return self._code
 
     def reset(self):
-        """Reset the is_valid property of the stock, so that the last available quote information still can be \
-queried when the stock is not available to trade."""
+        """Reset the is_valid property of the stock.
+        So that the last available quote information still can be queried when the stock is not available to trade.
+        """
         self.is_valid = 0
 
     def deep_reset(self):
