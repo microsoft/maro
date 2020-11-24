@@ -150,8 +150,6 @@ class DumpConverter:
         return headers, count
 
     def save_manifest_file(self, filesource: str):
-        if self._manifest_created:
-            return
         if self._scenario_name == '':
             return
         outputfile = os.path.join(self._foldername, 'manifest.yml')
@@ -160,7 +158,8 @@ class DumpConverter:
             with open(outputfile, 'r', encoding='utf-8') as manifest_file:
                 manifest_content = yaml.load(manifest_file)
                 manifest_file.close()
-            manifest_content['epcoh_num'] = self._serial
+
+            manifest_content['dump_details']['epoch_num'] = self._serial
             with open(outputfile, 'w', encoding="utf-8") as new_manifest_file:
                 yaml.dump(manifest_content, new_manifest_file)
                 new_manifest_file.close()
