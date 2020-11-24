@@ -3,8 +3,6 @@
 
 import random
 
-from maro.utils.exception.rl_toolkit_exception import MissingExplorationParametersError
-
 from .abs_explorer import AbsExplorer
 
 
