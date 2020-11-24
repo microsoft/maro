@@ -156,11 +156,11 @@ class DumpConverter:
         if os.path.exists(outputfile):
             manifest_content = {}
             with open(outputfile, 'r', encoding='utf-8') as manifest_file:
-                manifest_content = yaml.load(manifest_file)
+                manifest_content = yaml.load(manifest_file, Loader=yaml.FullLoader)
                 manifest_file.close()
 
             manifest_content['dump_details']['epoch_num'] = self._serial
-            with open(outputfile, 'w', encoding="utf-8") as new_manifest_file:
+            with open(outputfile, 'w', encoding='utf-8') as new_manifest_file:
                 yaml.dump(manifest_content, new_manifest_file)
                 new_manifest_file.close()
             return
