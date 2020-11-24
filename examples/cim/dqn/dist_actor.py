@@ -16,9 +16,10 @@ from maro.simulator import Env
 from maro.utils import convert_dottable
 
 
-def launch(config):
+def launch(config, distributed_config):
     set_input_dim(config)
     config = convert_dottable(config)
+    distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.state_shaping)
@@ -40,9 +41,10 @@ def launch(config):
         experience_shaper=experience_shaper,
     )
     proxy_params = {
-        "group_name": os.environ["GROUP"],
+        "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
         "expected_peers": {"learner": 1},
-        "redis_address": ("localhost", 6379)
+        "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
+        "max_retries": 15
     }
     actor_worker = ActorWorker(
         local_actor=SimpleActor(env=env, inference_agents=agent_manager),
@@ -52,5 +54,5 @@ def launch(config):
 
 
 if __name__ == "__main__":
-    from components.config import config
-    launch(config)
+    from components.config import config, distributed_config
+    launch(config=config, distributed_config=distributed_config)

@@ -137,8 +137,8 @@ class K8sAzureExecutor:
         AzureExecutor.start_deployment(
             resource_group=resource_group,
             deployment_name='aks_cluster',
-            template_file=template_file_location,
-            parameters_file=parameters_file_location
+            template_file_path=template_file_location,
+            parameters_file_path=parameters_file_location
         )
 
         # Attach ACR

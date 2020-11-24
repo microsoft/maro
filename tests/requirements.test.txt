@@ -16,3 +16,4 @@ azure-storage-common
 torch
 pytest
 coverage
+paramiko==2.7.2

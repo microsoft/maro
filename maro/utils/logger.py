@@ -46,9 +46,9 @@ FORMAT_NAME_TO_FILE_FORMAT = {
     LogFormat.internal: logging.Formatter(
         fmt='%(asctime)s | %(component)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_debug: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(message)s', datefmt='%H:%M:%S'),
+        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(message)s', datefmt='%H:%M:%S'),
+        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.none: None
 }
 

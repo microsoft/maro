@@ -64,8 +64,27 @@ class SocketTypeError(MAROException):
         super().__init__(1010, msg)
 
 
+class PeersDisconnectionError(MAROException):
+    """Peers disconnection error, occurs in the driver. """
+    def __init__(self, msg: str = None):
+        super().__init__(1011, msg)
+
+
+class PendingToSend(MAROException):
+    """Temporary failure to send message, try to rejoin."""
+    def __init__(self, msg: str = None):
+        super().__init__(1012, msg)
+
+
+class PeersRejoinTimeout(MAROException):
+    """Failure to get enough peers during the max waiting time."""
+    def __init__(self, msg: str = None):
+        super().__init__(1013, msg)
+
+
 __all__ = [
     "RedisConnectionError", "PeersMissError", "InformationUncompletedError", "DriverTypeError",
     "PeersConnectionError", "DriverSendError", "DriverReceiveError", "MessageSessionTypeError",
-    "ConditionalEventSyntaxError", "SocketTypeError"
+    "ConditionalEventSyntaxError", "SocketTypeError", "PeersDisconnectionError", "PendingToSend",
+    "PeersRejoinTimeout"
 ]

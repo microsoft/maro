@@ -114,8 +114,11 @@ class SimpleLearner(AbsLearner):
             self._actor.roll_out(done=True)
         sys.exit(code)
 
-    def dump_models(self, model_dump_dir: str):
-        self._trainable_agents.dump_models_to_files(model_dump_dir)
+    def load_models(self, dir_path: str):
+        self._trainable_agents.load_models_from_files(dir_path)
+
+    def dump_models(self, dir_path: str):
+        self._trainable_agents.dump_models_to_files(dir_path)
 
     def _is_shared_agent_instance(self):
         """If true, the set of agents performing inference in actor is the same as self._trainable_agents."""

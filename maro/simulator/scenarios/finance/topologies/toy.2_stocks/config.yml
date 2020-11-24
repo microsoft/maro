@@ -3,7 +3,7 @@
 begin_date: "1991-01-01"
 time_zone: "Asia/Shanghai"
 account:
-  money: 10000 # 1 unit
+  init_cash: 10000
 
 type: stock # Stock, futures.
 data_path: "../../../tests/data/finance"
@@ -18,13 +18,15 @@ order_mode:
   - "stop_limit_order"
 
 trade_constraint:
-  min_buy_unit: 100
-  min_sell_unit: 100
+  trade_unit: 100  # The minimum trade unit of China stock market is 100.
   deal_price: "opening_price"  # Options: opening_price, closing_price, highest_price, lowest_price, adj_closing_price. Use the specified price as deal_price
   slippage: 0.00246  # Slippage config, buy price shall be (1+slippage/2)*deal_price, sell price shall be (1-slippage/2)*deal_price.
+  open_tax: 0  # Open tax, shell charge open_tax*buy_price when buying in.
   close_tax: 0.001  # Close tax, shell charge close_tax*sell_price when selling out.
-  commission: 0.0003  # Commission, shell charge commission*sell_price or commission*buy_price when trading.
-  allow_split: true  # If allow auto split the order when trading amount greater than split_trade_percent of the market trading volume.
+  open_commission: 0.0003  # Commission, shell charge commission*sell_price or commission*buy_price when trading.
+  close_commission: 0.0003  # Commission, shell charge commission*sell_price or commission*buy_price when trading.
+  min_commission: 5  # Minimum commission, if the commission less than this, will charge the min_commission.
+  allow_split: false  # If allow auto split the order when trading volume greater than split_trade_percent of the market trading volume.
   allow_day_trade: false  # If allow the day trade.
   max_trade_percent: 0.2  # Max trading percent for stocks.
   split_trade_percent: 0.000001  # Max trading percent for 1 split trade.

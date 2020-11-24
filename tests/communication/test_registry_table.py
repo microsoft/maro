@@ -7,17 +7,16 @@ from collections import defaultdict
 from maro.communication import RegisterTable, SessionMessage
 
 
-def get_peers(peer_type: str = None):
-    env = ["worker_a.1", "worker_a.2", "worker_a.3", "worker_a.4", "worker_a.5",
-           "worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"]
-    if not peer_type or peer_type == "*":
-        return env
+class FakedProxy:
+    def __init__(self):
+        self._peers = {
+            "worker_a": ["worker_a.1", "worker_a.2", "worker_a.3", "worker_a.4", "worker_a.5"],
+            "worker_b": ["worker_b.1", "worker_b.2", "worker_b.3", "worker_b.4", "worker_b.5"]
+        }
 
-    target_peer = []
-    for peer in env:
-        if peer_type in peer:
-            target_peer.append(peer_type)
-    return target_peer
+    @property
+    def peers_dict(self):
+        return self._peers
 
 
 def handle_function():
@@ -28,12 +27,13 @@ class TestRegisterTable(unittest.TestCase):
 
     def setUp(self) -> None:
         print(f"clear register table before each test.")
-        self.register_table = RegisterTable(get_peers)
+        proxy = FakedProxy()
+        self.register_table = RegisterTable(proxy.peers_dict)
 
     @classmethod
     def setUpClass(cls) -> None:
         print(f"The register table unit test start!")
-        # Prepare message dict for test
+        # Prepare message dict for test.
         cls.message_dict = {"worker_a": defaultdict(list),
                             "worker_b": defaultdict(list)}
 
@@ -138,7 +138,7 @@ class TestRegisterTable(unittest.TestCase):
             self.assertIsNotNone(self.register_table.get())
 
     def test_multiple_trigger(self):
-        # Accept a message from worker_a with tag_a
+        # Accept a message from worker_a with tag_a.
         unit_event_1 = "worker_a:tag_a:1"
         # Accept a message from worker_a with any tag.
         unit_event_2 = "worker_a:*:1"
