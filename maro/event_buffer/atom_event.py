@@ -37,10 +37,3 @@ class AtomEvent:
         self.payload = payload
         self.event_type = event_type
         self.state = EventState.PENDING
-
-    def __repr__(self):
-        return f"{{ tick: {self.tick}, type: {self.event_type}, " \
-                f"state: {self.state}, payload: {self.payload} }}"
-
-    def __str__(self):
-        return self.__repr__()

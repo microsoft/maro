@@ -9,6 +9,12 @@ from .event_state import EventState
 from .maro_events import MaroEvents
 from .typings import Event, EventList, Union
 
+PENDING = EventState.PENDING
+FINISHED = EventState.FINISHED
+RECYCLING = EventState.RECYCLING
+
+DECISION_EVENT = MaroEvents.DECISION_EVENT
+
 
 class ExecuteStack:
     """Stack used to hold events pending to execute, and extract immediate events with a better performance."""
@@ -47,7 +53,7 @@ class ExecuteStack:
             evt: Event = self._cntr[-1]
 
             # for finished event, will extract its sub-events first, then ignore it
-            if evt.state == EventState.FINISHED or evt.state == EventState.RECYCLING:
+            if evt.state == FINISHED or evt.state == RECYCLING:
                 self._cntr.pop()
                 self._extract_sub_events(evt)
 
@@ -55,7 +61,7 @@ class ExecuteStack:
                 continue
 
             # 2. check if there is any decision events
-            if evt.event_type != MaroEvents.DECISION_EVENT:
+            if evt.event_type != DECISION_EVENT:
                 # 2.1 normal event, just pop this one
                 return evt
             else:
@@ -65,7 +71,7 @@ class ExecuteStack:
                 index: int = len(self._cntr) - 1
 
                 # find all following pending decision event
-                while(evt is not None and evt.state == EventState.PENDING and evt.event_type == MaroEvents.DECISION_EVENT):
+                while(evt is not None and evt.state == PENDING and evt.event_type == DECISION_EVENT):
                     decision_events.append(evt)
 
                     index -= 1
