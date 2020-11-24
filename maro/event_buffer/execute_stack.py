@@ -4,11 +4,10 @@
 import contextlib
 from math import floor
 
-from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
 from .event_state import EventState
 from .maro_events import MaroEvents
-from .typings import Event, EventList, List, Union
+from .typings import Event, EventList, Union
 
 
 class ExecuteStack:

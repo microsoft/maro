@@ -40,7 +40,7 @@ class AtomEvent:
 
     def __repr__(self):
         return f"{{ tick: {self.tick}, type: {self.event_type}, " \
-               f"state: {self.state}, payload: {self.payload} }}"
+                f"state: {self.state}, payload: {self.payload} }}"
 
     def __str__(self):
         return self.__repr__()
