@@ -59,7 +59,7 @@ class ActorProxy(object):
             payloads = [(peer, {PayloadKey.MODEL: model_dict,
                                 PayloadKey.EPSILON: epsilon_dict,
                                 PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers["actor"]]
+                        for peer in self._proxy.peers_name["actor"]]
             # TODO: double check when ack enable
             replies = self._proxy.scatter(
                 tag=MessageTag.ROLLOUT,
@@ -68,9 +68,10 @@ class ActorProxy(object):
             )
 
             performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-            experiences_by_source = {msg.source: msg.payload[PayloadKey.EXPERIENCE] for msg in replies}
+            details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
+            details = self._experience_collecting_func(details_by_source) if return_details else None
 
-            return performance, self._experience_collecting_func(experiences_by_source)
+            return performance, details
 
 
 class ActorWorker(object):
@@ -96,7 +97,7 @@ class ActorWorker(object):
         if data.get(PayloadKey.DONE, False):
             sys.exit(0)
 
-        performance, experiences = self._local_actor.roll_out(
+        performance, details = self._local_actor.roll_out(
             model_dict=data[PayloadKey.MODEL],
             epsilon_dict=data[PayloadKey.EPSILON],
             return_details=data[PayloadKey.RETURN_DETAILS]
@@ -107,7 +108,7 @@ class ActorWorker(object):
             tag=MessageTag.UPDATE,
             payload={
                 PayloadKey.PERFORMANCE: performance,
-                PayloadKey.EXPERIENCE: experiences
+                PayloadKey.DETAILS: details
             }
         )
 
