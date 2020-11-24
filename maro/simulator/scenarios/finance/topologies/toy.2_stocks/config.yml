@@ -3,7 +3,7 @@
 begin_date: "1991-01-01"
 time_zone: "Asia/Shanghai"
 account:
-  init_cash: 10000 
+  init_cash: 10000
 
 type: stock # Stock, futures.
 data_path: "../../../tests/data/finance"
