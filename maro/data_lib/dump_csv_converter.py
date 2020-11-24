@@ -119,6 +119,8 @@ class DumpConverter:
                     os.remove(file)
 
     def dump_descsion_events(self, decision_events, start_tick: int, resolution: int):
+        if 0 == len(decision_events):
+            return
         decision_events_file = os.path.join(self._last_snapshot_folder, 'decision_events.csv')
         headers, colums_count = self._calc_event_headers(decision_events[0])
         array = []
