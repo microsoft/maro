@@ -629,5 +629,4 @@ class CimBusinessEngine(AbsBusinessEngine):
                 self._total_operate_num += num
                 port.transfer_cost += num
 
-                self._vessel_plans[vessel_idx,
-                                   port_idx] += self._data_cntr.vessel_period[vessel_idx]
+                self._vessel_plans[vessel_idx, port_idx] += self._data_cntr.vessel_period[vessel_idx]
