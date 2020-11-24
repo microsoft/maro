@@ -1,0 +1,28 @@
+events:
+  REQUIREMENTS:
+    display_name: "vm_required"
+  FINISHED:
+    display_name: "vm_finished"
+
+  "default": "REQUIREMENTS"
+
+entity:
+  vm_id:
+    column: 'vmid'
+    dtype: 'f'
+  timestamp:
+    column: 'vmcreated'
+    dtype: 'i'
+  vm_deleted:
+    column: 'vmdeleted'
+    dtype: 'i'
+  vm_cpu:
+    column: 'vmcorecountbucket'
+    dtype: 'i'
+  vm_mem:
+    column: 'vmmemorybucket'
+    dtype: 'i'
+  lifetime:
+    column: 'lifetime'
+    dtype: 'i'
+

@@ -24,12 +24,18 @@ class DataCenterPipeline(DataPipeline):
     _download_file_name = "AzurePublicDatasetLinksV2.txt"
 
     _vm_table_file_name = "vmtable.csv.gz"
+    _raw_vm_table_file_name = "vmtable_raw.csv"
+
     _clean_file_name = "vmtable.csv"
+    _build_file_name = "vmtable.bin"
+
+    _meta_file_name = "vmtable.yml"
 
     def __init__(self, topology: str, source: str, is_temp: bool = False):
         super().__init__(scenario="data_center", topology=topology, source=source, is_temp=is_temp)
 
         self._vm_table_file = os.path.join(self._download_folder, self._vm_table_file_name)
+        self._raw_vm_table_file = os.path.join(self._clean_folder, self._raw_vm_table_file_name)
         self._cpu_readings_file_name_list = []
         self._clean_cpu_readings_file_name_list = []
 
@@ -46,8 +52,7 @@ class DataCenterPipeline(DataPipeline):
         # Download text with all urls.
         super().download(is_force=is_force)
         if os.path.exists(self._download_file):
-            # Download vm_table and cpu_reading
-            logger.info_green("Downloading vmtable and cpu readings.")
+            # Download vm_table and cpu_readings
             self._aria2p_download(is_force=is_force)
         else:
             logger.warning(f"Not found downloaded source file: {self._download_file}.")
@@ -58,7 +63,7 @@ class DataCenterPipeline(DataPipeline):
         Args:
             is_force (bool): Is force or not.
         """
-
+        logger.info_green("Downloading vmtable and cpu readings.")
         # Download parts of cpu reading files.
         num_files = 1
         # Open the txt file which contains all the required urls.
@@ -70,9 +75,10 @@ class DataCenterPipeline(DataPipeline):
                 if file_name.startswith("vmtable"):
                     if (not is_force) and os.path.exists(self._vm_table_file):
                         logger.info_green("File already exists, skipping download.")
-                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
                     else:
                         logger.info_green(f"Downloading vmtable from {remote_url} to {self._vm_table_file}.")
+                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
+
                 elif file_name.startswith("vm_cpu_readings") and num_files > 0:
                     num_files -= 1
                     cpu_readings_file = os.path.join(self._download_folder, file_name)
@@ -80,9 +86,10 @@ class DataCenterPipeline(DataPipeline):
 
                     if (not is_force) and os.path.exists(cpu_readings_file):
                         logger.info_green("File already exists, skipping download.")
-                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
                     else:
                         logger.info_green(f"Downloading cpu_readings from {remote_url} to {cpu_readings_file}.")
+                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
+
         self._check_all_download_completed()
 
     def _check_all_download_completed(self):
@@ -105,17 +112,17 @@ class DataCenterPipeline(DataPipeline):
             logger.info_green("-" * 60)
             time.sleep(10)
 
-    def _unzip_file(self, original_file_name: str, unzip_file_name: str):
+    def _unzip_file(self, original_file_name: str, raw_file_name: str):
         original_file = os.path.join(self._download_folder, original_file_name)
         if os.path.exists(original_file):
             # Unzip gz file.
-            unzip_file = os.path.join(self._clean_folder, unzip_file_name)
+            raw_file = os.path.join(self._clean_folder, raw_file_name)
             logger.info_green("Unzip start.")
             with gzip.open(original_file, mode="rb") as f_in:
                 logger.info_green(
-                    f"Unzip {unzip_file_name} from {original_file} to {unzip_file}."
+                    f"Unzip {raw_file_name} from {original_file} to {raw_file}."
                 )
-                with open(unzip_file, "wb") as f_out:
+                with open(raw_file, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
             logger.info_green("Unzip finished.")
         else:
@@ -125,17 +132,17 @@ class DataCenterPipeline(DataPipeline):
         """Unzip the csv file and process it for building binary file."""
         super().clean()
         logger.info_green("Cleaning VM data.")
-        # Unzip vmtanle.
-        self._unzip_file(original_file_name=self._vm_table_file_name, unzip_file_name=self._clean_file_name)
+        # Unzip vmtable.
+        self._unzip_file(original_file_name=self._vm_table_file_name, raw_file_name=self._raw_vm_table_file_name)
         # Unzip cpu readings.
         for cpu_readings_file_name in self._cpu_readings_file_name_list:
-            unzip_file_name = cpu_readings_file_name[:-3]
-            self._clean_cpu_readings_file_name_list.append(unzip_file_name)
-            self._unzip_file(original_file_name=cpu_readings_file_name, unzip_file_name=unzip_file_name)
+            raw_file_name = cpu_readings_file_name.split(".")[0] + "_raw.csv"
+            self._clean_cpu_readings_file_name_list.append(cpu_readings_file_name[:-3])
+            self._unzip_file(original_file_name=cpu_readings_file_name, raw_file_name=raw_file_name)
         # Preprocess.
         self._preprocess()
 
-    def _process_vm_table(self, unzip_vm_table_file: str) -> pd.DataFrame:
+    def _process_vm_table(self, raw_vm_table_file: str) -> pd.DataFrame:
         """Process vmtable file."""
 
         headers = [
@@ -144,7 +151,7 @@ class DataCenterPipeline(DataPipeline):
         ]
         required_headers = ['vmid', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']
 
-        vm_table = pd.read_csv(unzip_vm_table_file, header=None, index_col=False, names=headers)
+        vm_table = pd.read_csv(raw_vm_table_file, header=None, index_col=False, names=headers)
         vm_table = vm_table.loc[:, required_headers]
 
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer")
@@ -156,18 +163,19 @@ class DataCenterPipeline(DataPipeline):
         vm_table['vmmemorybucket'] = pd.to_numeric(vm_table['vmmemorybucket'], errors="coerce", downcast="integer")
         vm_table.dropna(inplace=True)
 
+        # Selected the VMs which are deleted before time=12900.
         vm_table = vm_table[vm_table['vmdeleted'] <= 12900]
         vm_table['lifetime'] = vm_table['vmdeleted'] - vm_table['vmcreated']
         vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
 
         return vm_table
 
-    def _process_cpu_readings(self, unzip_cpu_readings_file: str, vm_ids: pd.DataFrame):
+    def _process_cpu_readings(self, raw_cpu_readings_file: str, vm_ids: pd.DataFrame):
         """Process cpu reading file."""
         headers = ['timestamp', 'vmid', 'mincpu', 'maxcpu', 'avgcpu']
         required_headers = ['timestamp', 'vmid', 'maxcpu']
 
-        cpu_readings = pd.read_csv(unzip_cpu_readings_file, header=None, index_col=False, names=headers)
+        cpu_readings = pd.read_csv(raw_cpu_readings_file, header=None, index_col=False, names=headers)
         cpu_readings = cpu_readings.loc[:, required_headers]
         cpu_readings = cpu_readings[cpu_readings['vmid'].isin(vm_ids)]
 
@@ -180,18 +188,21 @@ class DataCenterPipeline(DataPipeline):
     def _preprocess(self):
         logger.info_green("Reading vmtable data.")
         # Process vmtable file.
-        vm_table = self._process_vm_table(unzip_vm_table_file=self._clean_file)
+        vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
         with open(self._clean_file, mode="w", encoding="utf-8", newline="") as f:
             vm_table.to_csv(f, index=False, header=True)
 
+        logger.info_green("Reading cpu data.")
         # Process every cpu readings file based on the vm id from vmtable.
         for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
-            clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
+            raw_file_name = clean_cpu_readings_file_name.split(".")[0] + "_raw.csv"
+            raw_cpu_readings_file = os.path.join(self._clean_folder, raw_file_name)
             cpu_readings = self._process_cpu_readings(
-                unzip_cpu_readings_file=clean_cpu_readings_file,
+                raw_cpu_readings_file=raw_cpu_readings_file,
                 vm_ids=vm_table['vmid']
             )
-            with open(clean_cpu_readings_file_name, mode="w", encoding="utf-8", newline="") as f:
+            cpu_readings_file = os.path.join(self._build_folder, clean_cpu_readings_file_name)
+            with open(cpu_readings_file, mode="w", encoding="utf-8", newline="") as f:
                 cpu_readings.to_csv(f, index=False, header=True)
 
 
