@@ -29,8 +29,14 @@ total_latency (int): Accumulative used buffer time until now.
 
 class DataCenterBusinessEngine(AbsBusinessEngine):
     def __init__(
-        self, event_buffer: EventBuffer, topology: str, start_tick: int,
-        max_tick: int, snapshot_resolution: int, max_snapshots: int, additional_options: dict = {}
+        self,
+        event_buffer: EventBuffer,
+        topology: str,
+        start_tick: int,
+        max_tick: int,
+        snapshot_resolution: int,
+        max_snapshots: int,
+        additional_options: dict = {}
     ):
         super().__init__(
             scenario_name="data_center", event_buffer=event_buffer, topology=topology, start_tick=start_tick,
@@ -43,6 +49,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._success_schedulings: int = 0
         self._failed_schedulings: int = 0
         self._total_latency: Latency = Latency()
+        self._total_oversubscribtions: int = 0
 
         # Load configurations.
         self._load_configs()
@@ -298,7 +305,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             self._pending_vm_req_payload.pop(vm_id)
             self._live_vm[vm_id] = vm
 
-            # TODO: Oversubscription case.
+            # TODO: Current logic can not fulfill the oversubscription case.
             # Generate VM finished event.
             finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
             finished_event = self._event_buffer.gen_atom_event(

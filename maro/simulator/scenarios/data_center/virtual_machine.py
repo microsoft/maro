@@ -38,6 +38,4 @@ class VirtualMachine:
     @property
     def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
-
-        historical_utilization_series = self._utilization_series[0:cur_tick - self.start_tick].copy()
-        return historical_utilization_series
+        return self._utilization_series[0:cur_tick - self.start_tick]
