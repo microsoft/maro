@@ -15,13 +15,11 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
 from .common import Action, ActionScope, DecisionEvent
-from .event_payload import (EmptyReturnPayload, LadenReturnPayload,
-                            VesselDischargePayload, VesselStatePayload)
+from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
 from .events import Events
 from .frame_builder import gen_cim_frame
 
-
-metrics_desc="""
+metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick).
 It contains following keys:
 
@@ -163,10 +161,8 @@ class CimBusinessEngine(AbsBusinessEngine):
                     vessel.last_loc_idx = vessel.next_loc_idx
 
             # We should update the future stop list at each tick.
-            past_stops = self._data_cntr.vessel_past_stops[vessel.idx,
-                                                           vessel.last_loc_idx, loc_idx]
-            future_stops = self._data_cntr.vessel_future_stops[vessel.idx,
-                                                               vessel.last_loc_idx, loc_idx]
+            past_stops = self._data_cntr.vessel_past_stops[vessel.idx, vessel.last_loc_idx, loc_idx]
+            future_stops = self._data_cntr.vessel_future_stops[vessel.idx, vessel.last_loc_idx, loc_idx]
 
             vessel.set_stop_list(past_stops, future_stops)
 
