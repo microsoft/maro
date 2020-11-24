@@ -12,14 +12,16 @@ from shutil import copyfile
 
 import numpy as np
 import pandas as pd
+import yaml
 
 
 class DumpConverter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
 
-    def __init__(self, parent_path='', scenario_name='', serial=0):
+    def __init__(self, parent_path='', scenario_name='', prefix='epoch_', serial=0):
         super().__init__()
         self._parent_path = parent_path
+        self._prefix = prefix
         self._serial = serial
         self._scenario_name = scenario_name
         self._manifest_created = False
@@ -53,7 +55,7 @@ class DumpConverter:
         self._serial = 0
 
     def get_new_snapshot_folder(self):
-        folder = os.path.join(self._foldername, 'snapshot_' + str(self._serial))
+        folder = os.path.join(self._foldername, self._prefix + str(self._serial))
         os.mkdir(folder)
         self._serial = self._serial + 1
         self._last_snapshot_folder = folder
@@ -150,9 +152,20 @@ class DumpConverter:
             return
         if self._scenario_name == '':
             return
-        outputfile = os.path.join(self._foldername, 'snapshot.manifest')
-        content = []
-        content.append('scenario:' + self._scenario_name + '\r\n')
+        outputfile = os.path.join(self._foldername, 'manifest.yml')
+        if os.path.exists(outputfile):
+            manifest_content = {}
+            with open(outputfile, 'r', encoding='utf-8') as manifest_file:
+                manifest_content = yaml.load(manifest_file)
+                manifest_file.close()
+            manifest_content['epcoh_num'] = self._serial
+            with open(outputfile, 'w', encoding="utf-8") as new_manifest_file:
+                yaml.dump(manifest_content, new_manifest_file)
+                new_manifest_file.close()
+            return
+
+        content = {}
+        content["scenario"] = self._scenario_name
         # mapping file.
         if '' != filesource:
             file_name = os.path.basename(filesource)
@@ -168,13 +181,20 @@ class DumpConverter:
                 # copy file to folder.
                 if os.path.exists(filesource):
                     copyfile(filesource, file_name)
-            content.append('mappings' + os.path.basename(filesource) + '\r\n')
+            content["mappings"] = os.path.basename(filesource)
 
+        dump_details = {}
+        meta_file_list = []
         for curDir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
                 if file.endswith('.meta'):
-                    content.append(file.replace('.meta', '.csv') + '\r\n')
-        with open(outputfile, 'a+') as f:
-            f.writelines(content)
+                    meta_file_list.append(file.replace('.meta', '.csv'))
+
+        dump_details['prefix'] = self._prefix
+        dump_details['metafiles'] = meta_file_list
+        dump_details[self._prefix + 'num'] = self._serial
+        content['dump_details'] = dump_details
+        with open(outputfile, 'w', encoding="utf-8") as f:
+            yaml.dump(content, f)
             f.close()
         self._manifest_created = True
