@@ -17,12 +17,13 @@ from maro.cli.data_pipeline.utils import chagne_file_path
 from maro.data_lib import BinaryReader
 from maro.event_buffer import AtomEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import (DocableDict, MatrixAttributeAccessor)
+from maro.simulator.scenarios.helpers import DocableDict
+from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 from .adj_loader import load_adj_from_csv
-from .common import (Action, BikeReturnPayload, BikeTransferPayload, DecisionEvent)
+from .common import BikeReturnPayload, BikeTransferPayload, DecisionEvent
 from .decision_strategy import BikeDecisionStrategy
 from .events import CitiBikeEvents
 from .frame_builder import build_frame
@@ -453,7 +454,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     def _on_action_received(self, evt: AtomEvent):
         """Callback when we get an action from agent."""
-        action: Action = None
+        action = None
 
         if evt is None or evt.payload is None:
             return
