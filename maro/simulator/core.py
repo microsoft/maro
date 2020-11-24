@@ -121,8 +121,7 @@ class Env(AbsEnv):
         """dict: Summary about current simulator, including node details and mappings."""
         return {
             "node_mapping": self._business_engine.get_node_mapping(),
-            "node_detail": self.current_frame.get_node_info(),
-            "event_payload": self._business_engine.get_event_payload_detail(),
+            "node_detail": self.current_frame.get_node_info()
         }
 
     @property
