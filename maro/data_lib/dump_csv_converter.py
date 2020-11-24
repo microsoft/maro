@@ -192,7 +192,7 @@ class DumpConverter:
 
         dump_details['prefix'] = self._prefix
         dump_details['metafiles'] = meta_file_list
-        dump_details['epcoh_num'] = self._serial
+        dump_details[self._prefix + 'num'] = self._serial
         content['dump_details'] = dump_details
         with open(outputfile, 'w', encoding="utf-8") as f:
             yaml.dump(content, f)
