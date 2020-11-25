@@ -60,7 +60,17 @@ def gen_backend_extensions(extensions: list):
     )
 
 def gen_datalib_extension(extensions: list):
-    pass
+    BASE_SRC_PATH = "./maro/data_lib/binary"
+
+    BASE_MODULE_NAME = "maro.data_lib.binary"
+
+    extensions.append(
+        Extension(
+            f"{BASE_MODULE_NAME}.binaryreader",
+            sources=[f"{BASE_SRC_PATH}/binaryreader.cpp"],
+            extra_compile_args=['-std=c++11']
+        )
+    )
 
 
 # extensions to be compiled
