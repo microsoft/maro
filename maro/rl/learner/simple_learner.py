@@ -72,7 +72,7 @@ class SimpleLearner(AbsLearner):
                 )
 
                 self._logger.info(
-                    f"ep {self._exploration_scheduler.current_episode} - "
+                    f"ep {self._exploration_scheduler.current_ep} - "
                     f"performance: {performance}, exploration_params: {exploration_params}"
                 )
 
