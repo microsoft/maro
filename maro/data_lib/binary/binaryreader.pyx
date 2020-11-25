@@ -108,10 +108,11 @@ cdef class MaroBinaryReader:
 
         cdef ItemContainer* item
         cdef ItemContainerAccessor acc
+        cdef list values = []
 
         for item in self._reader:
             if item:
-                values = []
+                values.clear()
 
                 for acc in self._item_fields_accessor:
                     acc.set_item(item)
