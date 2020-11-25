@@ -141,8 +141,7 @@ class Logger(object):
         filename += f'.{self._extension_name}'
 
         # File handler
-        fh = logging.FileHandler(
-            filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode)
+        fh = logging.FileHandler(filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode, encoding="utf-8")
         fh.setLevel(logging.DEBUG)
         if self._file_format is not None:
             fh.setFormatter(self._file_format)
@@ -186,6 +185,7 @@ class Logger(object):
 
 class DummyLogger:
     """A dummy Logger, which is used when disabling logs."""
+
     def __init__(self):
         pass
 
