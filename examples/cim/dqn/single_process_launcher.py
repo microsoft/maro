@@ -13,8 +13,8 @@ from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
-    AgentManagerMode, EpsilonGreedyExplorer, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor,
-    SimpleEarlyStoppingChecker, SimpleLearner, two_phase_linear_epsilon_schedule
+    AgentManagerMode, ExplorationOptions, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker,
+    SimpleActor, SimpleEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearEpsilonScheduler,
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -52,31 +52,34 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
+    def metric_func(performance):
+        return 1 - performance["container_shortage"] / performance["order_requirements"]
+
     perf_checker = SimpleEarlyStoppingChecker(
         last_k=config.main_loop.early_stopping.last_k,
         threshold=config.main_loop.early_stopping.perf_threshold,
-        measure_func=lambda vals: mean(vals)
+        warmup_ep=config.main_loop.early_stopping.warmup_ep,
+        metric_func=metric_func,
+        measure_func=lambda metric_series : mean(metric_series)
     )
 
     perf_stability_checker = MaxDeltaEarlyStoppingChecker(
         last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.perf_stability_threshold
+        threshold=config.main_loop.early_stopping.perf_stability_threshold,
+        warmup_ep=config.main_loop.early_stopping.warmup_ep,
+        metric_func=metric_func
     )
-
-    combined_checker = perf_checker & perf_stability_checker
 
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager=agent_manager,
         actor=actor,
+        max_episode=config.main_loop.max_episode,
+        exploration_options=ExplorationOptions(TwoPhaseLinearEpsilonScheduler, config.main_loop.exploration),
+        early_stopping_checker=perf_checker & perf_stability_checker,
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.learn_with_exploration_schedule(
-        two_phase_linear_epsilon_schedule(**config.main_loop.exploration),
-        early_stopping_checker=combined_checker,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
-    )
+    learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 

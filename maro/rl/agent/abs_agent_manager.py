@@ -87,7 +87,7 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    def update(self, exploration_params):
+    def update_exploration_params(self, exploration_params):
         # Per-agent exploration parameters
         if isinstance(exploration_params, dict) and exploration_params.keys() <= self.agent_dict.keys():
             for agent_id, params in exploration_params.items():

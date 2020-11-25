@@ -13,25 +13,25 @@ class SimpleEarlyStoppingChecker(AbsEarlyStoppingChecker):
     The measure is obtained by applying a user-defined measure function to the last k metric values. The measure
     function must take a list as input and output a single number.
     """
-    def __init__(self, last_k, threshold, measure_func: Callable[[list], Union[int, float]]):
-        super().__init__(last_k, threshold)
+    def __init__(
+        self,
+        last_k: int,
+        threshold: float,
+        warmup_ep: int,
+        metric_func: Callable,
+        measure_func: Callable[[list], Union[int, float]]
+    ):
+        super().__init__(last_k, threshold, warmup_ep, metric_func)
         self._measure_func = measure_func
 
-    def __call__(self, metric_series: list):
-        if not self.is_triggered(metric_series):
-            return False
-        else:
-            return self._measure_func(metric_series[-self._last_k:]) >= self._threshold
+    def check(self):
+        return self._measure_func(self._metric_series) >= self._threshold
 
 
 class RSDEarlyStoppingChecker(AbsEarlyStoppingChecker):
     """Early stopping checker based on the mean and standard deviation of the last k metric values."""
-    def __call__(self, metric_series: list):
-        if not self.is_triggered(metric_series):
-            return False
-        else:
-            metric_series = metric_series[-self._last_k:]
-            return stdev(metric_series) / mean(metric_series) < self._threshold
+    def check(self):
+        return stdev(self._metric_series) / mean(self._metric_series) < self._threshold
 
 
 class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
@@ -40,10 +40,6 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
     The relative change is defined as |m(i+1) - m(i)| / m[i]. The maximum of the last k-1 changes in the metric series
     is compared with the threshold to determine if early stopping should be triggered.
     """
-    def __call__(self, metric_series: list):
-        if not self.is_triggered(metric_series):
-            return False
-        else:
-            metric_series = metric_series[-self._last_k:]
-            max_delta = max(abs(val2 - val1) / val1 for val1, val2 in zip(metric_series, metric_series[1:]))
-            return max_delta < self._threshold
+    def check(self):
+        max_delta = max(abs(val2 - val1) / val1 for val1, val2 in zip(self._metric_series, self._metric_series[1:]))
+        return max_delta < self._threshold

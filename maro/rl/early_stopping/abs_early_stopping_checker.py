@@ -2,6 +2,8 @@
 # Licensed under the MIT license.
 
 from abc import ABC, abstractmethod
+from collections import deque
+from typing import Callable
 
 
 class AbsEarlyStoppingChecker(ABC):
@@ -11,26 +13,42 @@ class AbsEarlyStoppingChecker(ABC):
         last_k (int): Number of the latest metric values to check for early stopping.
         threshold (float): The threshold value against which a user-defined measure is compared to determine
             whether early-stopping should be triggered.
+        warmup_ep (int): Number of episodes before early stopping checker takes effect.
+        metric_func (Callable): Function to extract early stopping metric from a performance record.
     """
-    def __init__(self, last_k, threshold):
+    def __init__(self, last_k: int, threshold: float, warmup_ep: int, metric_func: Callable):
         super().__init__()
         self._last_k = last_k
         self._threshold = threshold
+        self._metric_func = metric_func
+        self._warmup_ep = warmup_ep
+        self._metric_series = deque()
+        self._ep_count = 0
 
-    def is_triggered(self, metric_series):
-        return len(metric_series) >= self._last_k
-
-    @abstractmethod
-    def __call__(self, metric_series) -> bool:
-        """Check whether the early stopping condition (defined in the class) is met.
+    def update(self, performance) -> bool:
+        """Update with the latest performance record and check whether an early stopping condition is met.
 
         Args:
-            metric_series: History of performances (from actors) used to check whether the early stopping
-                condition is satisfied.
+            performance: Performance record from the latest roll-out episode.
 
         Returns:
             A boolean value indicating whether early stopping should be triggered.
         """
+        self._ep_count += 1
+        if isinstance(performance, list):
+            self._metric_series.extend(map(self._metric_func, (perf for _, perf in performance)))
+        else:
+            self._metric_series.append(self._metric_func(performance))
+        if self._ep_count < self._warmup_ep or len(self._metric_series) < self._last_k:
+            return False
+
+        while len(self._metric_series) > self._last_k:
+            self._metric_series.popleft()
+
+        return self.check()
+
+    @abstractmethod
+    def check(self) -> bool:
         return NotImplemented
 
     def __or__(self, other_checker):
@@ -43,8 +61,8 @@ class AbsEarlyStoppingChecker(ABC):
                 self._checker = checker
                 self._other_checker = other
 
-            def __call__(self, metric_series) -> bool:
-                return self._checker(metric_series) or self._other_checker(metric_series)
+            def push(self, performance) -> bool:
+                return self._checker.update(performance) or self._other_checker.update(performance)
 
         return OrChecker(self, other_checker)
 
@@ -59,8 +77,10 @@ class AbsEarlyStoppingChecker(ABC):
                 self._checker = checker
                 self._other_checker = other
 
-            def __call__(self, metric_series) -> bool:
-                return self._checker(metric_series) and self._other_checker(metric_series)
+            def push(self, performance) -> bool:
+                result = self._checker.update(performance)
+                other_result = self._other_checker.update(performance)
+                return result and other_result
 
         return AndChecker(self, other_checker)
 
@@ -74,8 +94,8 @@ class AbsEarlyStoppingChecker(ABC):
                 self._checker = checker
                 self._other_checker = other
 
-            def __call__(self, metric_series) -> bool:
-                return self._checker(metric_series) ^ self._other_checker(metric_series)
+            def __call__(self, performance) -> bool:
+                return self._checker.update(performance) ^ self._other_checker.update(performance)
 
         return XorChecker(self, other_checker)
 
@@ -89,7 +109,7 @@ class AbsEarlyStoppingChecker(ABC):
                 super().__init__()
                 self._checker = checker
 
-            def __call__(self, metric_series) -> bool:
-                return not self._checker(metric_series)
+            def __call__(self, performance) -> bool:
+                return not self._checker.update(performance)
 
         return InverseChecker(self)

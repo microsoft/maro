@@ -16,11 +16,12 @@ from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingCh
 from maro.rl.early_stopping.simple_early_stopping_checker import (
     MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker, SimpleEarlyStoppingChecker
 )
+from maro.rl.exploration.abs_exploration_scheduler import AbsExplorationScheduler, NullExplorationScheduler
 from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.exploration.epsilon_greedy_explorer import EpsilonGreedyExplorer
-from maro.rl.exploration.epsilon_greedy_schedule import linear_epsilon_schedule, two_phase_linear_epsilon_schedule
+from maro.rl.exploration.epsilon_greedy_scheduler import LinearEpsilonScheduler, TwoPhaseLinearEpsilonScheduler
 from maro.rl.learner.abs_learner import AbsLearner
-from maro.rl.learner.simple_learner import SimpleLearner
+from maro.rl.learner.simple_learner import ExplorationOptions, SimpleLearner
 from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import MultiHeadLearningModel, SingleHeadLearningModel
 from maro.rl.shaping.abs_shaper import AbsShaper
@@ -51,10 +52,13 @@ __all__ = [
     'DQNHyperParams',
     'EpsilonGreedyExplorer',
     'ExperienceShaper',
+    'ExplorationOptions',
     'FullyConnectedBlock',
     'KStepExperienceShaper',
+    'LinearEpsilonScheduler',
     'MaxDeltaEarlyStoppingChecker',
     'MultiHeadLearningModel',
+    'NullExplorationScheduler',
     'OverwriteType',
     'RSDEarlyStoppingChecker',
     'SimpleActor',
@@ -63,8 +67,7 @@ __all__ = [
     'SimpleLearner',
     'SingleHeadLearningModel',
     'StateShaper',
+    'TwoPhaseLinearEpsilonScheduler',
     'concat_experiences_by_agent',
-    'linear_epsilon_schedule',
-    'merge_experiences_with_trajectory_boundaries',
-    'two_phase_linear_epsilon_schedule'
+    'merge_experiences_with_trajectory_boundaries'
 ]
