@@ -30,7 +30,7 @@ class LinearEpsilonScheduler(AbsExplorationScheduler):
         eps = self._current_eps
         self._current_ep += 1
         self._current_eps += self._eps_delta
-        return eps
+        return {"epsilon": eps}
 
 
 class TwoPhaseLinearEpsilonScheduler(AbsExplorationScheduler):
@@ -67,4 +67,4 @@ class TwoPhaseLinearEpsilonScheduler(AbsExplorationScheduler):
         eps = self._current_eps
         self._current_ep += 1
         self._current_eps += self._eps_delta_1 if self._current_ep < self._split_ep else self._eps_delta_2
-        return eps
+        return {"epsilon": eps}
