@@ -3,8 +3,6 @@
 
 import random
 
-from maro.utils.exception.rl_toolkit_exception import MissingExplorationParametersError
-
 from .abs_explorer import AbsExplorer
 
 
@@ -14,22 +12,17 @@ class EpsilonGreedyExplorer(AbsExplorer):
     Args:
         num_actions (int): Number of all possible actions.
     """
-    def __init__(self, num_actions: int):
+    def __init__(self, num_actions: int, epsilon: float = .0):
         super().__init__()
         self._num_actions = num_actions
-        self._epsilon = None
+        self._epsilon = epsilon
 
-    def __call__(self, action):
-        assert action < self._num_actions, f"Invalid action: {action}"
-        if self._epsilon is None:
-            raise MissingExplorationParametersError(
-                'Epsilon is not set. Use load_exploration_params with keyword argument "epsilon" to '
-                'load the exploration parameters first.'
-            )
+    def __call__(self, action_index: int):
+        assert (action_index < self._num_actions), f"Invalid action: {action_index}"
         if random.random() > self._epsilon:
-            return action
+            return action_index
         else:
             return random.randrange(self._num_actions)
 
-    def load_exploration_params(self, *, epsilon: float):
+    def update(self, *, epsilon: float):
         self._epsilon = epsilon
