@@ -1,0 +1,24 @@
+
+# https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+utc_offset = -5 # can without this, then it will be 0 (UTC)
+
+
+[[row]] # row definition
+column = "starttime" # column name in csv
+type = "t" # data type to convert
+alias = "timestamp" # alias for output
+
+[[row]]
+column = "start station id" 
+type = "i"
+alias = "start_station"
+
+[[row]]
+column = "end station id" 
+type = "i"
+alias = "end_station"
+
+[[row]]
+column = "tripduration" 
+type = "i"
+alias = "durations"
