@@ -268,6 +268,15 @@ cdef class NumpyBackend(BackendAbc):
                 # we only reset frame here, without snapshot list
                 data_arr[0][attr_info.name] = 0
 
+     cdef void dump(self, str filePath):
+        for node_name, data_arr in self._node_data_dict.items():
+            filename = os.path.join(filePath, node_name + '.npy')
+            descFilename = os.path.join(filePath, node_name + '.meta')
+            with open(filename, 'wb+') as f:
+                np.save(f, data_arr)
+            with open(descFilename, 'wt+') as f:
+                f.write(','.join([ai.name for ai in self._node_attr_dict[node_name]]) + '\n')
+                f.write(','.join([str(ai.slot_number) for ai in self._node_attr_dict[node_name]]))
 
 # TODO:
 # 1. dump as csv
