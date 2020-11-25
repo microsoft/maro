@@ -13,59 +13,61 @@ from maro import __version__
 os.environ["SKIP_DEPLOYMENT"] = "TRUE"
 
 
-# root path to backend
-BASE_SRC_PATH = "./maro/backends"
-# backend module name
-BASE_MODULE_NAME = "maro.backends"
+def gen_backend_extensions(extensions: list):
+    # root path to backend
+    BASE_SRC_PATH = "./maro/backends"
+    # backend module name
+    BASE_MODULE_NAME = "maro.backends"
+
+    # include dirs for frame and its backend
+    include_dirs = []
+
+    # backend base extensions
+    extensions.append(
+        Extension(
+            f"{BASE_MODULE_NAME}.backend",
+            sources=[f"{BASE_SRC_PATH}/backend.cpp"],
+            extra_compile_args=['-std=c++11'])
+    )
+
+    include_dirs.append(numpy.get_include())
+
+    extensions.append(
+        Extension(
+            f"{BASE_MODULE_NAME}.np_backend",
+            sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
+            include_dirs=include_dirs,
+            extra_compile_args=['-std=c++11'])
+    )
+
+    # raw implementation
+    # NOTE: not implemented now
+    extensions.append(
+        Extension(
+            f"{BASE_MODULE_NAME}.raw_backend",
+            sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
+            include_dirs=include_dirs,
+            extra_compile_args=['-std=c++11'])
+    )
+
+    # frame
+    extensions.append(
+        Extension(
+            f"{BASE_MODULE_NAME}.frame",
+            sources=[f"{BASE_SRC_PATH}/frame.cpp"],
+            include_dirs=include_dirs,
+            extra_compile_args=['-std=c++11'])
+    )
+
+def gen_datalib_extension(extensions: list):
+    pass
+
 
 # extensions to be compiled
 extensions = []
-cython_directives = {"embedsignature": True}
-compile_conditions = {}
 
-# CURRENTLY we using environment variables to specified compiling conditions
-# TODO: used command line arguments instead
-
-# include dirs for frame and its backend
-include_dirs = []
-
-# backend base extensions
-extensions.append(
-    Extension(
-        f"{BASE_MODULE_NAME}.backend",
-        sources=[f"{BASE_SRC_PATH}/backend.cpp"],
-        extra_compile_args=['-std=c++11'])
-)
-
-
-include_dirs.append(numpy.get_include())
-
-extensions.append(
-    Extension(
-        f"{BASE_MODULE_NAME}.np_backend",
-        sources=[f"{BASE_SRC_PATH}/np_backend.cpp"],
-        include_dirs=include_dirs,
-        extra_compile_args=['-std=c++11'])
-)
-
-# raw implementation
-# NOTE: not implemented now
-extensions.append(
-    Extension(
-        f"{BASE_MODULE_NAME}.raw_backend",
-        sources=[f"{BASE_SRC_PATH}/raw_backend.cpp"],
-        include_dirs=include_dirs,
-        extra_compile_args=['-std=c++11'])
-)
-
-# frame
-extensions.append(
-    Extension(
-        f"{BASE_MODULE_NAME}.frame",
-        sources=[f"{BASE_SRC_PATH}/frame.cpp"],
-        include_dirs=include_dirs,
-        extra_compile_args=['-std=c++11'])
-)
+gen_backend_extensions(extensions)
+gen_datalib_extension(extensions)
 
 
 readme = io.open("./maro/README.rst", encoding="utf-8").read()
