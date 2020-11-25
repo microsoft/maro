@@ -143,7 +143,6 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
 
     i = 0
     while pipe.recv() == "reset":
-        env.reset()
         r, decision_event, is_done = env.step(None)
 
         j = 0
@@ -179,6 +178,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         exp_shaper.reset()
         logs = np.array(logs, dtype=np.float)
         pipe.send(logs)
+        env.reset()
 
 
 def compute_shortage(snapshot_list, max_tick, static_code_list):
