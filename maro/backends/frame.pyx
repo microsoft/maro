@@ -378,7 +378,9 @@ cdef class FrameBase:
 
         if enable_snapshot:
             self._snapshot_list = SnapshotList(node_name_num_dict, self._backend.snapshots)
-
+            
+    def dump(self, filePath):
+        self._backend.dump(filePath)
 
 # Wrapper to access specified node in snapshots (read-only), to provide quick way for querying.
 # All the slice interface will start from here to construct final parameters.
