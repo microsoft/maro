@@ -6,35 +6,6 @@ namespace maro
 {
     namespace datalib
     {
-        BinaryReaderIterator::BinaryReaderIterator()
-        {
-        }
-
-        BinaryReaderIterator::~BinaryReaderIterator()
-        {
-            _reader = nullptr;
-        }
-
-        void BinaryReaderIterator::set_reader(BinaryReader *reader)
-        {
-            _reader = reader;
-        }
-
-        ItemContainer *BinaryReaderIterator::operator*()
-        {
-            return _reader->next_item();
-        }
-
-        BinaryReaderIterator &BinaryReaderIterator::operator++()
-        {
-            return *this;
-        }
-
-        bool BinaryReaderIterator::operator!=(const BinaryReaderIterator &bri)
-        {
-            return !_reader->_file.eof() || (_reader->cur_item_index >= 0 && _reader->cur_item_index < _reader->max_items_in_buffer);
-        }
-
         BinaryReader::BinaryReader()
         {
         }
@@ -69,6 +40,17 @@ namespace maro
 
             _item.set_offset(cur_item_index * _header.item_size);
 
+            if (_is_filter_enabled && _filter_end != INVALID_FILTER)
+            {
+                // check if reach the end
+                auto cur_end = _item.get<ULONGLONG>(0);
+
+                if (cur_end >= _filter_end)
+                {
+                    return nullptr;
+                }
+            }
+
             cur_item_index++;
 
             return &_item;
@@ -79,22 +61,48 @@ namespace maro
             return &_meta;
         }
 
-        BinaryReaderIterator BinaryReader::begin()
+        void BinaryReader::enable_filter(ULONGLONG start, ULONGLONG end)
         {
-            BinaryReaderIterator iter;
+            _is_filter_enabled = true;
 
-            iter.set_reader(this);
+            _filter_start = start;
+            _filter_end = end;
 
-            return iter;
+            // check if we have this filter before?
+            auto iter = _filter_map.find(start);
+
+            if (iter != _filter_map.end())
+            {
+                // seek to
+                _file.seekg(iter->second);
+            }
+            else
+            {
+                // try to find it
+                ItemContainer *item = next_item();
+
+                while (item != nullptr)
+                {
+                    // first 8 bytes if timestamp for each item
+                    if (item != nullptr && item->get<ULONGLONG>(0) >= start)
+                    {
+                        // move back for furthur operation
+                        _file.seekg(-_header.item_size, ios::cur);
+
+                        // force re-fill buffer
+                        cur_item_index = -1;
+
+                        break;
+                    }
+
+                    item = next_item();
+                }
+            }
         }
 
-        BinaryReaderIterator BinaryReader::end()
+        void BinaryReader::disable_filter()
         {
-            BinaryReaderIterator iter;
-
-            iter.set_reader(this);
-
-            return iter;
+            _is_filter_enabled = false;
         }
 
         void BinaryReader::reset()
@@ -103,6 +111,11 @@ namespace maro
             _file.seekg(_data_offset, ios::beg);
 
             cur_item_index = -1;
+
+            _is_filter_enabled = false;
+
+            _filter_start = INVALID_FILTER;
+            _filter_end = INVALID_FILTER;
 
             max_items_in_buffer = floorl(BUFFER_LENGTH / _header.item_size);
         }

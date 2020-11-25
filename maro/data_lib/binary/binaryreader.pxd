@@ -29,11 +29,6 @@ cdef extern from "cpp/binaryreader.cpp":
 
 
 cdef extern from "cpp/binaryreader.h" namespace "maro::datalib":
-    cdef cppclass BinaryReaderIterator:
-        BinaryReaderIterator &operator++()
-        ItemContainer *operator*()
-        bool operator!=(const BinaryReaderIterator &bri)
-
     cdef cppclass BinaryReader:
         void open(string bin_file)
 
@@ -41,12 +36,10 @@ cdef extern from "cpp/binaryreader.h" namespace "maro::datalib":
 
         const Meta *get_meta()
 
-        BinaryReaderIterator begin()
-
-        BinaryReaderIterator end()
-
         void reset()
 
+        void enable_filter(ULONGLONG start, ULONGLONG end)
+        void disable_filter()
 
 cdef class MaroBinaryReader:
     cdef:

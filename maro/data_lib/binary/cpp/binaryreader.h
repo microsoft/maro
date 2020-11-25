@@ -16,16 +16,14 @@ namespace maro
     namespace datalib
     {
 
+        const ULONGLONG INVALID_FILTER = 0ULL;
+
         class ConvertVersionNotMatch : public exception
         {
         };
 
-        class BinaryReaderIterator;
-
         class BinaryReader
         {
-            friend BinaryReaderIterator;
-
         private:
             BinHeader _header;
             Meta _meta;
@@ -41,8 +39,12 @@ namespace maro
             // offset of data part
             streampos _data_offset{0};
 
+            bool _is_filter_enabled{false};
+            ULONGLONG _filter_start{INVALID_FILTER};
+            ULONGLONG _filter_end{INVALID_FILTER};
+
             // used to save the offset in file that user have filtered
-            unordered_map<streamoff, streamoff> _filter_map;
+            unordered_map<ULONGLONG, streampos> _filter_map;
 
             void read_header();
             void read_meta();
@@ -59,32 +61,11 @@ namespace maro
 
             const Meta *get_meta();
 
-            BinaryReaderIterator begin();
-
-            BinaryReaderIterator end();
+            void enable_filter(ULONGLONG start, ULONGLONG end);
+            void disable_filter();
 
             void reset();
         };
-
-        class BinaryReaderIterator
-        {
-            BinaryReader *_reader;
-
-        public:
-            BinaryReaderIterator();
-            ~BinaryReaderIterator();
-
-            void set_reader(BinaryReader *_reader);
-
-            // move to next
-            BinaryReaderIterator &operator++();
-
-            // get current item
-            ItemContainer *operator*();
-
-            bool operator!=(const BinaryReaderIterator &bri);
-        };
-
     } // namespace datalib
 
 } // namespace maro

@@ -27,6 +27,9 @@ namespace maro
                 auto type = col["type"].as_string();
                 auto alias = col["alias"].as_string();
 
+                auto kv = field_dtype.find(type);
+                auto size = uint32_t(kv->second.second);
+
                 if(alias == "timestamp")
                 {
                     has_timestamp = true;
@@ -36,12 +39,16 @@ namespace maro
                     {
                         throw out_of_range("Incorrect timestamp type.");
                     }
+
+                    // make sure timestamp is the first field write to binary file
+                    meta.fields.emplace(meta.fields.begin(), alias, col_name, size, offset, kv->second.first);
                 }
-
-                auto kv = field_dtype.find(type);
-                auto size = uint32_t(kv->second.second);
-
-                meta.fields.emplace_back(alias, col_name, size, offset, kv->second.first);
+                else
+                {
+                    // push to back
+                    meta.fields.emplace_back(alias, col_name, size, offset, kv->second.first);
+                }
+                
 
                 offset += size;
             }
