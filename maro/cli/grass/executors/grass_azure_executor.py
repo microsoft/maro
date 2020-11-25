@@ -1033,7 +1033,6 @@ class GrassAzureExecutor:
 
         # Load details
         cluster_details = self.cluster_details
-        admin_username = cluster_details["user"]["admin_username"]
         master_public_ip_address = cluster_details["master"]["public_ip_address"]
 
         # Sync mkdir
