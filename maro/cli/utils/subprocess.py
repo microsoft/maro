@@ -19,7 +19,7 @@ class SubProcess:
         logger.debug(command)
         completed_process = subprocess.run(
             command,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
         )
         if completed_process.returncode != 0:
             raise CommandError(command, completed_process.stderr)
@@ -32,7 +32,7 @@ class SubProcess:
         logger.debug(command)
         process = subprocess.Popen(
             command,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
         )
         while True:
             next_line = process.stdout.readline()
