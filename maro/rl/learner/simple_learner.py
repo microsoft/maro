@@ -15,7 +15,6 @@ from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError,
 
 from .abs_learner import AbsLearner
 
-
 ExplorationOptions = namedtuple("ExplorationOptions", ["cls", "params"])
 
 
