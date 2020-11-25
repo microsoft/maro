@@ -275,6 +275,15 @@ class CliLogger:
         self.passive_init()
         self._logger.debug('\033[33m' + message + '\033[0m')
 
+    def debug_green(self, message: str) -> None:
+        """``logger.debug()`` with color green and passive init.
+
+        Args:
+            message (str): logged message.
+        """
+        self.passive_init()
+        self._logger.debug('\033[32m' + message + '\033[0m')
+
     def info(self, message: str) -> None:
         """``logger.info()`` with passive init.
 
