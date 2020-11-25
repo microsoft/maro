@@ -40,3 +40,5 @@ cdef class BackendAbc:
     cdef object[object, ndim=1] get_attr_values(self, str node_name, int node_index, str attr_name, int[:] slot_indices)
 
     cdef dict get_node_info(self)
+    
+    cdef void dump(self, str filePath)
