@@ -22,7 +22,7 @@ def delete_pending_job_ticket(cluster_name: str, job_name: str):
         decode_responses=True
     )
     redis.lrem(
-        f"{cluster_name}:pending_jobs",
+        f"{cluster_name}:pending_job_tickets",
         0,
         job_name
     )
