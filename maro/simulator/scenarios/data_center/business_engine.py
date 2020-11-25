@@ -223,16 +223,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         valid_pm_list = []
         for pm in self._machines:
-            if pm.cpu_allocation == 0:
-                valid_pm_list.append(
-                    ValidPhysicalMachine(
-                        pm_id=pm.id,
-                        remaining_cpu=pm.cpu_cores_capacity,
-                        remaining_mem=pm.memory_capacity
-                    )
-                )
-                break
-            elif pm.cpu_allocation > 0 and (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_vcpu_cores_requirement:
+            if (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_vcpu_cores_requirement:
                 valid_pm_list.append(ValidPhysicalMachine(
                     pm_id=pm.id,
                     remaining_cpu=pm.cpu_cores_capacity - pm.cpu_allocation,
