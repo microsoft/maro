@@ -79,7 +79,14 @@ class DecisionPayload:
 
     summary_key = ["valid_pms", "vm_id", "vm_vcpu_cores_requirement", "vm_memory_requirement", "remaining_buffer_time"]
 
-    def __init__(self, valid_pms: List[dict], vm_id: int, vm_vcpu_cores_requirement: int, vm_memory_requirement: int, remaining_buffer_time: int):
+    def __init__(
+        self,
+        valid_pms: List[dict],
+        vm_id: int,
+        vm_vcpu_cores_requirement: int,
+        vm_memory_requirement: int,
+        remaining_buffer_time: int
+    ):
         self.valid_pms = valid_pms
         self.vm_id = vm_id
         self.vm_vcpu_cores_requirement = vm_vcpu_cores_requirement

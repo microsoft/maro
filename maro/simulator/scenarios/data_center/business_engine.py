@@ -82,7 +82,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.pm.size.yml")) as fp:
             self._pm_size_dict = DottableDict(safe_load(fp))
 
-        self._pm_amount: int =  self._pm_size_dict["N1"]["Amount"]
+        self._pm_amount: int = self._pm_size_dict["N1"]["Amount"]
         self._pm_cpu_cores_capacity: int = self._pm_size_dict["N1"]["CPU"]
         self._pm_memory_capacity: int = self._pm_size_dict["N1"]["Memory"]
 
