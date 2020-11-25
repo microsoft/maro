@@ -40,7 +40,7 @@ namespace maro
 
             _item.set_offset(cur_item_index * _header.item_size);
 
-            if (_is_filter_enabled && _filter_end != INVALID_FILTER)
+            if (_is_filter_enabled && _filter_end != INVALID_FILTER && _filter_end > _filter_start)
             {
                 // check if reach the end
                 auto cur_end = _item.get<ULONGLONG>(0);
@@ -61,7 +61,7 @@ namespace maro
             return &_meta;
         }
 
-        void BinaryReader::enable_filter(ULONGLONG start, ULONGLONG end)
+        void BinaryReader::set_filter(ULONGLONG start, ULONGLONG end)
         {
             _is_filter_enabled = true;
 
@@ -75,19 +75,27 @@ namespace maro
             {
                 // seek to
                 _file.seekg(iter->second);
+
+                cur_item_index = -1;
             }
             else
             {
                 // try to find it
                 ItemContainer *item = next_item();
 
+                auto i = 0;
+
                 while (item != nullptr)
                 {
+                    i++;
+
                     // first 8 bytes if timestamp for each item
-                    if (item != nullptr && item->get<ULONGLONG>(0) >= start)
+                    if (item->get<ULONGLONG>(0) >= start)
                     {
                         // move back for furthur operation
-                        _file.seekg(-_header.item_size, ios::cur);
+                        _file.seekg(ULONGLONG(_data_offset) + _header.item_size * (i - 1));
+
+                        _filter_map[start] = _file.tellg();
 
                         // force re-fill buffer
                         cur_item_index = -1;

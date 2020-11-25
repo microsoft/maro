@@ -11,6 +11,8 @@ from libcpp.string cimport string
 from collections import namedtuple
 from maro.data_lib.binary.common cimport UCHAR, ULONGLONG, LONGLONG, UINT, Meta, Field, BinHeader
 
+cdef ULONGLONG INVALID_FILTER = 0
+
 cdef extern from "cpp/itemcontainer.cpp":
     pass
 
@@ -38,7 +40,7 @@ cdef extern from "cpp/binaryreader.h" namespace "maro::datalib":
 
         void reset()
 
-        void enable_filter(ULONGLONG start, ULONGLONG end)
+        void set_filter(ULONGLONG start, ULONGLONG end)
         void disable_filter()
 
 cdef class MaroBinaryReader:

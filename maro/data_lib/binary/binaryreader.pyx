@@ -89,6 +89,12 @@ cdef class MaroBinaryReader:
     def reset(self):
         self._reader.reset()
 
+    def set_filter(self, start: int, end: int = None):
+        if end == None:
+            end = INVALID_FILTER
+            
+        self._reader.set_filter(start, end)
+
     def items(self):
         """
         cdef ItemContainer* item = self._reader.next_item()

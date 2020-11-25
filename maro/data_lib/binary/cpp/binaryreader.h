@@ -61,7 +61,7 @@ namespace maro
 
             const Meta *get_meta();
 
-            void enable_filter(ULONGLONG start, ULONGLONG end);
+            void set_filter(ULONGLONG start, ULONGLONG end);
             void disable_filter();
 
             void reset();
