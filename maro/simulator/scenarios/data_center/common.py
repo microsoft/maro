@@ -72,18 +72,18 @@ class DecisionPayload:
     Args:
         valid_pms (List[dict]): A list contains dictionaries with 'pm_id', 'cpu', 'mem'.
         vm_id (int): The id of the VM.
-        vm_req_cpu (int): The CPU requested by VM.
-        vm_req_mem (int): The memory requested by VM.
+        vm_vcpu_cores_requirement (int): The CPU requested by VM.
+        vm_memory_requirement (int): The memory requested by VM.
         remaining_buffer_time (int): The remaining buffer time.
     """
 
-    summary_key = ["valid_pms", "vm_id", "vm_req_cpu", "vm_req_mem", "remaining_buffer_time"]
+    summary_key = ["valid_pms", "vm_id", "vm_vcpu_cores_requirement", "vm_memory_requirement", "remaining_buffer_time"]
 
-    def __init__(self, valid_pms: List[dict], vm_id: int, vm_req_cpu: int, vm_req_mem: int, remaining_buffer_time: int):
+    def __init__(self, valid_pms: List[dict], vm_id: int, vm_vcpu_cores_requirement: int, vm_memory_requirement: int, remaining_buffer_time: int):
         self.valid_pms = valid_pms
         self.vm_id = vm_id
-        self.vm_req_cpu = vm_req_cpu
-        self.vm_req_mem = vm_req_mem
+        self.vm_vcpu_cores_requirement = vm_vcpu_cores_requirement
+        self.vm_memory_requirement = vm_memory_requirement
         self.remaining_buffer_time = remaining_buffer_time
 
 
