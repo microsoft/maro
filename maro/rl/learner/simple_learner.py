@@ -77,8 +77,7 @@ class SimpleLearner(AbsLearner):
                 )
 
                 # Early stopping checking
-                latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
-                if self._early_stopping_checker is not None and self._early_stopping_checker.update(latest):
+                if self._early_stopping_checker is not None and self._early_stopping_checker.update(performance):
                     self._logger.info("Early stopping condition hit. Training complete.")
                     break
             except StopIteration:
