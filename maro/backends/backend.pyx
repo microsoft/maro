@@ -49,3 +49,6 @@ cdef class BackendAbc:
 
     cdef dict get_node_info(self):
         return {}
+    
+    cdef void dump(self, str filePath):
+        pass
