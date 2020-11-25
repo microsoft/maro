@@ -42,7 +42,7 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
     """
     def check(self):
         max_delta = max(
-            abs(self._metric_series[i] - self._metric_series[i-1]) / self._metric_series[i-1]
+            abs(self._metric_series[i] - self._metric_series[i - 1]) / self._metric_series[i - 1]
             for i in range(1, self._last_k)
         )
         return max_delta < self._threshold
