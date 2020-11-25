@@ -22,7 +22,7 @@ from .virtual_machine import VirtualMachine
 metrics_desc = """
 
 total_energy_consumption (int): Current total energy consumption.
-success_schedulings (int): Accumulative successful VM scheduling until now.
+success_placement (int): Accumulative successful VM scheduling until now.
 failed_schedulings (int): Accumulative failed VM scheduling until now.
 total_latency (int): Accumulative used buffer time until now.
 """
@@ -60,7 +60,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # PMs list used for quick accessing.
         self._init_pms()
         # All living VMs.
-        self._live_vm: Dict[int, VirtualMachine] = {}
+        self._live_vms: Dict[int, VirtualMachine] = {}
         # All requirement payload of the pending decision VMs.
         # NOTE: Need naming suggestestion.
         self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
@@ -76,13 +76,15 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.yml")) as fp:
             self._config = safe_load(fp)
 
+        self._delay_duration: int = self._config["delay_duration"]
+
+        # Load pm config.
         with open(os.path.join(self._config_path, "config.pm.size.yml")) as fp:
             self._pm_size_dict = DottableDict(safe_load(fp))
 
-        self._delay_duration: int = self._config["delay_duration"]
-        self._pm_amount: int = self._config["pm_amount"]
-        self._pm_cpu_cores_capacity: int = self._config["pm_cap_cpu"]
-        self._pm_memory_capacity: int = self._config["pm_cap_mem"]
+        self._pm_amount: int =  self._pm_size_dict["N1"]["Amount"]
+        self._pm_cpu_cores_capacity: int = self._pm_size_dict["N1"]["CPU"]
+        self._pm_memory_capacity: int = self._pm_size_dict["N1"]["Memory"]
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
@@ -147,7 +149,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
 
-        for vm in self._live_vm.values():
+        for vm in self._live_vms.values():
             vm.cpu_utilization = vm.get_utilization(cur_tick=self._tick)
 
     def _update_pm_workload(self):
@@ -156,7 +158,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         for pm in self._machines:
             total_pm_cpu_cores_used: float = 0.0
             for vm_id in pm.live_vms:
-                vm = self._live_vm[vm_id]
+                vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.vcpu_cores_requirement / 100
             pm_cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
             pm.update_utilization(tick=self._tick, cpu_utilization=pm_cpu_utilization)
@@ -202,7 +204,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Add failed placement.
             self._failed_placement += 1
 
-    def _get_valid_pm(self, vm_req_cpu: int) -> List[ValidPhysicalMachine]:
+    def _get_valid_pm(self, vm_vcpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
         """Check all valid PMs.
 
         There are three situations:
@@ -213,7 +215,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         Situation 2: Return all PMs with enough resources but not empty and plus the first empty PM.
         Situation 3: Return all PMs with enough resources but not empty.
 
-        Args: vm_req_cpu (int): The CPU resource of the VM requirement.
+        Args: vm_vcpu_cores_requirement (int): The vCPU cores requested by the VM.
         """
         # NOTE: Should we implement this logic inside the action scope?
         # TODO: In oversubscribable scenario, we should consider more situations, like
@@ -223,10 +225,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         for pm in self._machines:
             if pm.cpu_allocation == 0:
                 valid_pm_list.append(
-                    ValidPhysicalMachine(pm_id=pm.id, remaining_cpu=pm.cpu_cores_capacity, remaining_mem=pm.memory_capacity)
+                    ValidPhysicalMachine(
+                        pm_id=pm.id,
+                        remaining_cpu=pm.cpu_cores_capacity,
+                        remaining_mem=pm.memory_capacity
+                    )
                 )
                 break
-            elif pm.cpu_allocation > 0 and (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_req_cpu:
+            elif pm.cpu_allocation > 0 and (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_vcpu_cores_requirement:
                 valid_pm_list.append(ValidPhysicalMachine(
                     pm_id=pm.id,
                     remaining_cpu=pm.cpu_cores_capacity - pm.cpu_allocation,
@@ -245,7 +251,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         self._pending_vm_req_payload[vm_req.id] = payload
 
-        valid_pm_list = self._get_valid_pm(vm_req.vcpu_cores_requirement)
+        valid_pm_list = self._get_valid_pm(vm_vcpu_cores_requirement=vm_req.vcpu_cores_requirement)
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
@@ -273,7 +279,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # Get the VM info.
         payload: VmFinishedPayload = finish_event.payload
         vm_id = payload.vm_id
-        vm: VirtualMachine = self._live_vm[vm_id]
+        vm: VirtualMachine = self._live_vms[vm_id]
 
         # Release PM resources.
         pm: PhysicalMachine = self._machines[vm.pm_id]
@@ -287,7 +293,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         pm.remove_vm(vm_id)
 
         # Remove dead VM.
-        self._live_vm.pop(vm_id)
+        self._live_vms.pop(vm_id)
 
         # VM placement succeed.
         self._success_placement += 1
@@ -314,7 +320,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
             # Pop out the VM from pending requirements and add to live VM dict.
             self._pending_vm_req_payload.pop(vm_id)
-            self._live_vm[vm_id] = vm
+            self._live_vms[vm_id] = vm
 
             # TODO: Current logic can not fulfill the oversubscription case.
             # Generate VM finished event.
