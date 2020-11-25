@@ -60,6 +60,7 @@ namespace maro
             ItemContainer *next_item();
 
             const Meta *get_meta();
+            const BinHeader *get_header();
 
             void set_filter(ULONGLONG start, ULONGLONG end);
             void disable_filter();

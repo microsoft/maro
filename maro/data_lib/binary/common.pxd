@@ -25,9 +25,9 @@ cdef extern from "cpp/common.cpp":
 
 cdef extern from "cpp/common.h" namespace "maro::datalib":
     cdef cppclass BinHeader:
-        unsigned char file_type[3]
-        char custom_file_type[5]
-        char identifier
+        unsigned char file_type
+        char custom_file_type[3]
+        char identifier[5]
         char utc_offset
 
         UINT converter_version

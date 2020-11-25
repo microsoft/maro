@@ -28,19 +28,18 @@ namespace maro
         class BinaryWriter
         {
         public:
-            BinaryWriter() = delete;
+            BinaryWriter();
             BinaryWriter(const BinaryWriter &writer) = delete;
-            BinaryWriter(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0);
 
             ~BinaryWriter();
+
+            void open(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0, ULONGLONG start_timestamp = 0ULL);
 
             // load meta file, and generate meta info
             void load_meta(string meta_file);
 
             // load and convert
             void add_csv(string csv_file);
-
-            
 
         private:
             char local_utc_offset = MINCHAR;
@@ -55,7 +54,7 @@ namespace maro
 
             map<int, int> _col2field_map;
 
-            void construct_column_mapping(const CSV::Row& header);
+            void construct_column_mapping(const CSV::Row &header);
             void write_header();
 
             void write_meta();
@@ -63,7 +62,6 @@ namespace maro
             inline ULONGLONG convert_to_timestamp(string &val_str);
 
             inline bool BinaryWriter::collect_item_to_buffer(CSV::Row row, int cur_items_num);
-            
         };
     } // namespace datalib
 

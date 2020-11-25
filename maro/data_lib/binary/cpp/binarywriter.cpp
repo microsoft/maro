@@ -63,18 +63,8 @@ namespace maro
             return stod(val_str);
         }
 
-        BinaryWriter::BinaryWriter(string output_folder, string file_name, string file_type, int32_t file_version)
+        BinaryWriter::BinaryWriter()
         {
-            local_utc_offset = calc_local_utc_offset();
-
-            auto bin_file = output_folder + "/" + file_name + ".bin";
-
-            _file.open(bin_file, ios::out | ios::binary);
-
-            _header.file_type = FILE_TYPE_BIN;
-            _header.converter_version = CONVERTER_VERSION;
-
-            write_header();
         }
 
         BinaryWriter::~BinaryWriter()
@@ -84,6 +74,21 @@ namespace maro
 
             _file.flush();
             _file.close();
+        }
+
+        void BinaryWriter::open(string output_folder, string file_name, string file_type, int32_t file_version, ULONGLONG start_timestamp)
+        {
+            local_utc_offset = calc_local_utc_offset();
+
+            auto bin_file = output_folder + "/" + file_name + ".bin";
+
+            _file.open(bin_file, ios::out | ios::binary);
+
+            _header.file_type = FILE_TYPE_BIN;
+            _header.converter_version = CONVERTER_VERSION;
+            _header.start_timestamp = start_timestamp;
+
+            write_header();
         }
 
         void BinaryWriter::load_meta(string meta_file)

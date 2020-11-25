@@ -61,6 +61,30 @@ field_access_map = {
 cdef class MaroBinaryReader:
     def __init__(self):
         self._item_nt = None
+
+    @property
+    def start_time(self):
+        return self._header.start_timestamp
+
+    @property
+    def end_time(self):
+        return self._header.end_timestamp
+
+    @property
+    def item_count(self):
+        return self._header.total_items
+
+    @property
+    def file_type(self):
+        return self._header.file_type
+
+    @property
+    def file_version(self):
+        return self._header.file_version
+
+    @property
+    def converter_version(self):
+        return self._header.converter_version
         
 
     def open(self, file: str):
@@ -68,9 +92,12 @@ cdef class MaroBinaryReader:
 
         # Construct item namedtuple
         cdef const Meta* meta = self._reader.get_meta()
+
         cdef ItemContainerAccessor acc
 
         cdef int i = 0
+
+        self._header = self._reader.get_header()
 
         field_names = []
         self._item_fields_accessor = []
@@ -92,7 +119,7 @@ cdef class MaroBinaryReader:
     def set_filter(self, start: int, end: int = None):
         if end == None:
             end = INVALID_FILTER
-            
+
         self._reader.set_filter(start, end)
 
     def items(self):

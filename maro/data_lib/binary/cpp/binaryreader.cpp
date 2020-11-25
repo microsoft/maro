@@ -61,6 +61,11 @@ namespace maro
             return &_meta;
         }
 
+        const BinHeader *BinaryReader::get_header()
+        {
+            return &_header;
+        }
+
         void BinaryReader::set_filter(ULONGLONG start, ULONGLONG end)
         {
             _is_filter_enabled = true;
