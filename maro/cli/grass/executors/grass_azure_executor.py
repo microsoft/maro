@@ -16,7 +16,7 @@ from shutil import rmtree
 import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
-from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node, sync_mkdir
+from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node
 from maro.cli.grass.utils.hash import get_checksum
 from maro.cli.utils.details import (
     load_cluster_details, load_job_details, load_schedule_details, save_cluster_details, save_job_details,
@@ -210,6 +210,7 @@ class GrassAzureExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=public_ip_address)
 
         # Run init image script
+        self._sync_mkdir(path=GlobalPaths.MARO_LOCAL_TMP, node_ip_address=public_ip_address)
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_build_node_image_vm.py",
             remote_dir="~/",
@@ -297,30 +298,28 @@ class GrassAzureExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
 
         # Create folders
-        sync_mkdir(
-            path=GlobalPaths.MARO_GRASS_LIB,
-            admin_username=admin_username, node_ip_address=master_public_ip_address
-        )
-        sync_mkdir(
+        self._sync_mkdir(path=GlobalPaths.MARO_GRASS_LIB, node_ip_address=master_public_ip_address)
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
+        self._sync_mkdir(path=GlobalPaths.MARO_LOCAL_TMP, node_ip_address=master_public_ip_address)
 
         # Copy required files
         copy_files_to_node(
@@ -577,6 +576,7 @@ class GrassAzureExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
 
         # Copy required files
+        self._sync_mkdir(path=f"{GlobalPaths.MARO_LOCAL_TMP}", node_ip_address=node_public_ip_address)
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_node.py",
             remote_dir="~/",
@@ -907,9 +907,9 @@ class GrassAzureExecutor:
         job_name = job_details["name"]
 
         # Sync mkdir
-        sync_mkdir(
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
 
         # Save job deployment
@@ -1037,9 +1037,9 @@ class GrassAzureExecutor:
         master_public_ip_address = cluster_details["master"]["public_ip_address"]
 
         # Sync mkdir
-        sync_mkdir(
+        self._sync_mkdir(
             path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            node_ip_address=master_public_ip_address
         )
 
         # Save schedule deployment
@@ -1165,6 +1165,19 @@ class GrassAzureExecutor:
         # Delete resources
         if len(deletable_ids) > 0:
             AzureExecutor.delete_resources(resources=deletable_ids)
+
+    def _sync_mkdir(self, path: str, node_ip_address: str):
+        """Mkdir synchronously at local and remote.
+
+        Args:
+            path (str): path of the file, should be a string with an initial component of ~ or ~user
+            node_ip_address (str): ip address of the remote node
+        """
+        # Create local dir
+        os.makedirs(os.path.expanduser(path), exist_ok=True)
+
+        # Create remote dir
+        self.grass_executor.remote_mkdir(node_ip_address=node_ip_address, path=path)
 
 
 class ArmTemplateParameterBuilder:

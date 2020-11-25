@@ -123,6 +123,13 @@ class GrassExecutor:
         )
         SubProcess.interactive_run(command)
 
+    def remote_mkdir(self, node_ip_address: str, path: str):
+        command = (
+            f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
+            f"'mkdir -p {path}'"
+        )
+        SubProcess.run(command)
+
     def remote_load_images(self, node_name: str, parallels: int, node_ip_address: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
