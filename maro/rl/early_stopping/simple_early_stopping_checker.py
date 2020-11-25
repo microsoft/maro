@@ -41,5 +41,8 @@ class MaxDeltaEarlyStoppingChecker(AbsEarlyStoppingChecker):
     is compared with the threshold to determine if early stopping should be triggered.
     """
     def check(self):
-        max_delta = max(abs(val2 - val1) / val1 for val1, val2 in zip(self._metric_series, self._metric_series[1:]))
+        max_delta = max(
+            abs(self._metric_series[i] - self._metric_series[i-1]) / self._metric_series[i-1]
+            for i in range(1, self._last_k)
+        )
         return max_delta < self._threshold
