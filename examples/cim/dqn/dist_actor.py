@@ -11,7 +11,7 @@ from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
-from maro.rl import ActorWorker, AgentManagerMode, EpsilonGreedyExplorer, KStepExperienceShaper, SimpleActor
+from maro.rl import ActorWorker, AgentManagerMode, KStepExperienceShaper, SimpleActor
 from maro.simulator import Env
 from maro.utils import convert_dottable
 

@@ -3,8 +3,8 @@ env:
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
 main_loop:
+  max_episode: 500
   exploration:
-    max_ep: 500
     split_ep: 250
     start_eps: 0.4
     mid_eps: 0.32
