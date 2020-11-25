@@ -61,7 +61,7 @@ class AbsEarlyStoppingChecker(ABC):
                 self._checker = checker
                 self._other_checker = other
 
-            def push(self, performance) -> bool:
+            def update(self, performance) -> bool:
                 return self._checker.update(performance) or self._other_checker.update(performance)
 
         return OrChecker(self, other_checker)
@@ -77,7 +77,7 @@ class AbsEarlyStoppingChecker(ABC):
                 self._checker = checker
                 self._other_checker = other
 
-            def push(self, performance) -> bool:
+            def update(self, performance) -> bool:
                 result = self._checker.update(performance)
                 other_result = self._other_checker.update(performance)
                 return result and other_result
@@ -94,7 +94,7 @@ class AbsEarlyStoppingChecker(ABC):
                 self._checker = checker
                 self._other_checker = other
 
-            def __call__(self, performance) -> bool:
+            def update(self, performance) -> bool:
                 return self._checker.update(performance) ^ self._other_checker.update(performance)
 
         return XorChecker(self, other_checker)
@@ -109,7 +109,7 @@ class AbsEarlyStoppingChecker(ABC):
                 super().__init__()
                 self._checker = checker
 
-            def __call__(self, performance) -> bool:
+            def update(self, performance) -> bool:
                 return not self._checker.update(performance)
 
         return InverseChecker(self)
