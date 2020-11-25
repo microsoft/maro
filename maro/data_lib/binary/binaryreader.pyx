@@ -86,7 +86,8 @@ cdef class MaroBinaryReader:
 
         self._item_nt = namedtuple("BinaryItem", field_names)
 
-    def next_item(self):
+    def items(self):
+        """
         cdef ItemContainer* item = self._reader.next_item()
         cdef ItemContainerAccessor acc
 
@@ -100,3 +101,19 @@ cdef class MaroBinaryReader:
             return self._item_nt._make(values)
         else:
             return None
+        """
+
+        cdef ItemContainer* item
+        cdef ItemContainerAccessor acc
+
+        for item in self._reader:
+            if item:
+                values = []
+
+                for acc in self._item_fields_accessor:
+                    acc.set_item(item)
+                    values.append(acc.get())
+
+                yield self._item_nt._make(values)
+            else:
+                return None

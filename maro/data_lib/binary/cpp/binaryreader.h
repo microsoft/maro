@@ -50,8 +50,10 @@ namespace maro
             void fill_buffer();
 
         public:
-            BinaryReader(string bin_file);
+            BinaryReader();
             ~BinaryReader();
+
+            void open(string bin_file);
 
             ItemContainer *next_item();
 
@@ -69,8 +71,10 @@ namespace maro
             BinaryReader *_reader;
 
         public:
-            BinaryReaderIterator(BinaryReader *_reader);
+            BinaryReaderIterator();
             ~BinaryReaderIterator();
+
+            void set_reader(BinaryReader *_reader);
 
             // move to next
             BinaryReaderIterator &operator++();
