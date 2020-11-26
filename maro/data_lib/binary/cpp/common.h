@@ -105,12 +105,24 @@ namespace maro
         struct Meta
         {
             char utc_offset{0};
+            string format;
 
             vector<Field> fields;
 
             uint32_t itemsize();
         };
 
+        class InvalidTimestampDataType: public exception{
+
+        };
+
+        class InvalidTimeToParse : public exception
+        {
+        };
+
+        class ConvertVersionNotMatch : public exception
+        {
+        };
     } // namespace datalib
 
 } // namespace maro

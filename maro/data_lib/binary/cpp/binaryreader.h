@@ -15,12 +15,7 @@ namespace maro
 {
     namespace datalib
     {
-
         const ULONGLONG INVALID_FILTER = 0ULL;
-
-        class ConvertVersionNotMatch : public exception
-        {
-        };
 
         class BinaryReader
         {

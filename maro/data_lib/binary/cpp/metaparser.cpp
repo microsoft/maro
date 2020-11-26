@@ -35,10 +35,7 @@ namespace maro
                     has_timestamp = true;
 
                     // check the data type
-                    if(type != "t")
-                    {
-                        throw out_of_range("Incorrect timestamp type.");
-                    }
+
 
                     // make sure timestamp is the first field write to binary file
                     meta.fields.emplace(meta.fields.begin(), alias, col_name, size, offset, kv->second.first);
@@ -64,10 +61,20 @@ namespace maro
             }
             catch(std::out_of_range)
             {
-                std::cerr << "Cannot find UTC offset, use 0." << '\n';
+                std::cerr << "Cannot find UTC offset, use 0." << endl;
+
+                meta.utc_offset = 0;
             }
             
-            
+            // try to get format
+            try
+            {
+                meta.format = toml::find<string>(data, "format");
+            }
+            catch(std::out_of_range)
+            {
+                std::cerr << "Cannot find datetime format, use default." << endl;
+            }
         }
 
     } // namespace datalib

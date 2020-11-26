@@ -24,9 +24,7 @@ namespace maro
 {
     namespace datalib
     {
-        class InvalidTimestampDataType : public exception
-        {
-        };
+        const string DEFAULT_FORMAT = "%Y-%m-%d %H:%M:%S";
 
         class BinaryWriter
         {

@@ -2,6 +2,9 @@
 # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 utc_offset = -5 # can without this, then it will be 0 (UTC)
 
+# used to specified format of datatime in csv file, this is the default one if not provided.
+# for t type only
+# format="%Y-%m-%d %H:%M:%S" 
 
 [[row]] # row definition
 column = "starttime" # column name in csv
@@ -10,15 +13,15 @@ alias = "timestamp" # alias for output
 
 [[row]]
 column = "start station id" 
-type = "i"
+type = "S"
 alias = "start_station"
 
 [[row]]
 column = "end station id" 
-type = "i"
+type = "S"
 alias = "end_station"
 
 [[row]]
 column = "tripduration" 
-type = "i"
+type = "S"
 alias = "durations"

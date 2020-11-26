@@ -21,13 +21,20 @@ namespace maro
             return char((rawtime - t2) / SECONDS_PER_HOUR);
         }
 
-        inline ULONGLONG to_timestamp(string &val_str, unsigned char local_utc_offset = 0, char utc_offset = 0)
+        inline ULONGLONG to_timestamp(string &val_str, const string& format, unsigned char local_utc_offset = 0, char utc_offset = 0)
         {
             // TODO: need to test on US timezone
 
             tm t{};
             istringstream ss(val_str);
-            ss >> get_time(&t, "%Y-%m-%d %H:%M:%S");
+
+            ss >> get_time(&t, format.c_str());
+
+            // failed to parse time
+            if(t.tm_year == 0 && t.tm_mon == 0 && t.tm_mday ==0)
+            {
+                throw InvalidTimeToParse();
+            }
 
             auto t3 = mktime(&t);
 
@@ -285,7 +292,7 @@ namespace maro
 
             auto is_valid_row = false;
 
-            for (const auto cell : row)
+            for (const auto& cell : row)
             {
                 auto iter = _col2field_map.find(column_index);
 
@@ -357,7 +364,9 @@ namespace maro
 
         inline ULONGLONG BinaryWriter::convert_to_timestamp(string &val_str)
         {
-            return to_timestamp(val_str, local_utc_offset, _meta.utc_offset);
+            string format = _meta.format == "" ? DEFAULT_FORMAT : _meta.format;
+
+            return to_timestamp(val_str, format, local_utc_offset, _meta.utc_offset);
         }
 
     } // namespace datalib
