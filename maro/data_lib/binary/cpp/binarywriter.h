@@ -45,20 +45,31 @@ namespace maro
       void set_start_timestamp(ULONGLONG start_timestamp);
 
     private:
+      // utc offset for local timezone
       char local_utc_offset = MINCHAR;
+
+      // if we have set start timestamp before
       bool _is_start_timestamp_set = false;
 
-      // seams FILE is faster than ofstream
+      // seems FILE is faster than ofstream
       ofstream _file;
+
+      // header to write
       BinHeader _header;
 
+      // if output binary file opened
       bool _is_opened{ false };
+
+      // if meta file loaded
       bool _is_meta_loaded{ false };
 
+      // meta to write
       Meta _meta;
 
+      // internal buffer for writing
       char _buffer[BUFFER_LENGTH];
 
+      // used to map column index to field index
       map<int, int> _col2field_map;
 
       void construct_column_mapping(const CSV::Row& header);
