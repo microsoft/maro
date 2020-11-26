@@ -138,6 +138,13 @@ namespace maro
     // Binary file format not correct, cause fail to read
     class BadBinaryFormat : public exception
     {};
+
+    class ConvertWithoutMeta : public exception
+    {};
+
+    class FailToOpenCsvFile : public exception
+    {};
+
   } // namespace datalib
 
 } // namespace maro

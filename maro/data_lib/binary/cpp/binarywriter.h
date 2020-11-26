@@ -16,58 +16,64 @@
 using namespace std;
 
 using CSV = csv2::Reader<csv2::delimiter<','>,
-                         csv2::quote_character<'\"'>,
-                         csv2::first_row_is_header<true>,
-                         csv2::trim_policy::trim_characters<' ', '\"'>>;
+  csv2::quote_character<'\"'>,
+  csv2::first_row_is_header<true>,
+  csv2::trim_policy::trim_characters<' ', '\"'>>;
 
 namespace maro
 {
-    namespace datalib
+  namespace datalib
+  {
+    const string DEFAULT_FORMAT = "%Y-%m-%d %H:%M:%S";
+
+    class BinaryWriter
     {
-        const string DEFAULT_FORMAT = "%Y-%m-%d %H:%M:%S";
+    public:
+      BinaryWriter();
+      BinaryWriter(const BinaryWriter& writer) = delete;
 
-        class BinaryWriter
-        {
-        public:
-            BinaryWriter();
-            BinaryWriter(const BinaryWriter &writer) = delete;
+      ~BinaryWriter();
 
-            ~BinaryWriter();
+      void open(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0);
 
-            void open(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0);
+      // load meta file, and generate meta info
+      void load_meta(string meta_file);
 
-            // load meta file, and generate meta info
-            void load_meta(string meta_file);
+      // load and convert
+      void add_csv(string csv_file);
 
-            // load and convert
-            void add_csv(string csv_file);
+      void set_start_timestamp(ULONGLONG start_timestamp);
 
-            void set_start_timestamp(ULONGLONG start_timestamp);
+    private:
+      char local_utc_offset = MINCHAR;
+      bool _is_start_timestamp_set = false;
 
-        private:
-            char local_utc_offset = MINCHAR;
-            bool _is_start_timestamp_set = false;
+      // seams FILE is faster than ofstream
+      ofstream _file;
+      BinHeader _header;
 
-            // seams FILE is faster than ofstream
-            ofstream _file;
-            BinHeader _header;
+      bool _is_opened{ false };
+      bool _is_meta_loaded{ false };
 
-            Meta _meta;
+      Meta _meta;
 
-            char _buffer[BUFFER_LENGTH];
+      char _buffer[BUFFER_LENGTH];
 
-            map<int, int> _col2field_map;
+      map<int, int> _col2field_map;
 
-            void construct_column_mapping(const CSV::Row &header);
-            void write_header();
+      void construct_column_mapping(const CSV::Row& header);
+      void write_header();
 
-            void write_meta();
+      void write_meta();
 
-            inline ULONGLONG convert_to_timestamp(string &val_str);
+      inline ULONGLONG convert_to_timestamp(string& val_str);
 
-            inline bool BinaryWriter::collect_item_to_buffer(CSV::Row row, int cur_items_num);
-        };
-    } // namespace datalib
+      inline bool BinaryWriter::collect_item_to_buffer(CSV::Row row, int cur_items_num);
+
+      inline void ensure_file_opened();
+      inline void ensure_meta_loaded();
+    };
+  } // namespace datalib
 
 } // namespace maro
 
