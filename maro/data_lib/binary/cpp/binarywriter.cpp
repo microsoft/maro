@@ -38,8 +38,6 @@ namespace maro
 
             auto t3 = mktime(&t);
 
-            struct tm *ptm;
-
             auto t4 = t3 + (local_utc_offset - utc_offset) * SECONDS_PER_HOUR;
 
             return t4;
@@ -108,7 +106,7 @@ namespace maro
             _file.close();
         }
 
-        void BinaryWriter::open(string output_folder, string file_name, string file_type, int32_t file_version, ULONGLONG start_timestamp)
+        void BinaryWriter::open(string output_folder, string file_name, string file_type, int32_t file_version)
         {
             local_utc_offset = calc_local_utc_offset();
 
@@ -118,7 +116,6 @@ namespace maro
 
             _header.file_type = FILE_TYPE_BIN;
             _header.converter_version = CONVERTER_VERSION;
-            _header.start_timestamp = start_timestamp;
 
             write_header();
         }
@@ -184,9 +181,12 @@ namespace maro
             }
         }
 
-        // write header
-
-        // write item
+        void BinaryWriter::set_start_timestamp(ULONGLONG start_timestamp)
+        {
+            // NOTE: this function should be called before flush
+            _header.start_timestamp = start_timestamp;
+            _is_start_timestamp_set = true;
+        }
 
         void BinaryWriter::construct_column_mapping(const CSV::Row &header)
         {
@@ -341,9 +341,11 @@ namespace maro
                         // update header
                         if (field.alias == "timestamp")
                         {
-                            if (_header.start_timestamp == 0ULL)
+                            if (!_is_start_timestamp_set)
                             {
                                 _header.start_timestamp = rv;
+
+                                _is_start_timestamp_set = true;
                             }
 
                             _header.end_timestamp = rv;

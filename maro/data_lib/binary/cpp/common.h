@@ -93,7 +93,7 @@ namespace maro
 
         struct Field
         {
-            unsigned char type{2};
+            unsigned char type;
             uint32_t size{0U};
             uint32_t start_index{0U};
             string column;

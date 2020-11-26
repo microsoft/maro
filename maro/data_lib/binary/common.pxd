@@ -56,3 +56,8 @@ cdef extern from "cpp/common.h" namespace "maro::datalib":
         char utc_offset
         vector[Field] fields
 
+cdef extern from "cpp/metaparser.cpp":
+    pass
+
+cdef extern from "cpp/metaparser.h" namespace "maro::datalib":
+    pass

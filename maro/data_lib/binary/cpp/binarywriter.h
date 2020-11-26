@@ -34,7 +34,7 @@ namespace maro
 
             ~BinaryWriter();
 
-            void open(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0, ULONGLONG start_timestamp = 0ULL);
+            void open(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0);
 
             // load meta file, and generate meta info
             void load_meta(string meta_file);
@@ -42,8 +42,11 @@ namespace maro
             // load and convert
             void add_csv(string csv_file);
 
+            void set_start_timestamp(ULONGLONG start_timestamp);
+
         private:
             char local_utc_offset = MINCHAR;
+            bool _is_start_timestamp_set = false;
 
             // seams FILE is faster than ofstream
             ofstream _file;
