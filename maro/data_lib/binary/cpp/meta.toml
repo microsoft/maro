@@ -4,7 +4,10 @@ utc_offset = -5 # can without this, then it will be 0 (UTC)
 
 # used to specified format of datatime in csv file, this is the default one if not provided.
 # for t type only
-# format="%Y-%m-%d %H:%M:%S" 
+# format="%Y-%m-%d %H:%M:%S"
+
+# support data type:
+# b, B, s, S, i, I, l, L, f, d, t
 
 [[row]] # row definition
 column = "starttime" # column name in csv

@@ -145,6 +145,9 @@ namespace maro
     class FailToOpenCsvFile : public exception
     {};
 
+    class MetaNoTimestamp : public exception
+    {};
+
   } // namespace datalib
 
 } // namespace maro

@@ -16,18 +16,18 @@ using namespace std;
 
 namespace maro
 {
-    namespace datalib
+  namespace datalib
+  {
+    // load meta and parse, return fields info
+    class MetaParser
     {
-        // load meta and parse, return fields info
-        class MetaParser
-        {
 
-        public:
-            MetaParser();
+    public:
+      MetaParser();
 
-            void parse(string meta_file, Meta &meta);
-        };
-    } // namespace datalib
+      void parse(string meta_file, Meta& meta);
+    };
+  } // namespace datalib
 
 } // namespace maro
 

@@ -8,38 +8,38 @@
 
 namespace maro
 {
-    namespace datalib
+  namespace datalib
+  {
+    template <typename T>
+    struct ItemContainer_trait
     {
-        template <typename T>
-        struct ItemContainer_trait
-        {
-            typedef T type;
-        };
+      typedef T type;
+    };
 
-        /*
-        Binary reader will always return same container for all items,
-        user should make sure to copy the return if need
-        */
-        class ItemContainer
-        {
-            char *_buffer;
-            int _offset{0};
+    /*
+    Binary reader will always return same container for all items,
+    user should make sure to copy the return if need
+    */
+    class ItemContainer
+    {
+      char* _buffer{ nullptr };
+      int _offset{ 0 };
 
-        public:
-            ItemContainer();
-            ItemContainer(ItemContainer &&cntr) = delete;
-            ItemContainer(const ItemContainer &writer) = delete;
+    public:
+      ItemContainer();
+      ItemContainer(ItemContainer&& cntr) = delete;
+      ItemContainer(const ItemContainer& writer) = delete;
 
-            ~ItemContainer();
+      ~ItemContainer();
 
-            void set_buffer(char *buffer);
+      void set_buffer(char* buffer);
 
-            void set_offset(UINT offset);
+      void set_offset(UINT offset);
 
-            template <typename T>
-            typename ItemContainer_trait<T>::type get(int offset);
-        };
-    } // namespace datalib
+      template <typename T>
+      typename ItemContainer_trait<T>::type get(int offset);
+    };
+  } // namespace datalib
 
 } // namespace maro
 
