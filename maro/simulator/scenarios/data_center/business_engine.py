@@ -207,14 +207,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
     def _get_valid_pm(self, vm_vcpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
         """Check all valid PMs.
 
-        There are three situations:
-            1. All PMs are empty.
-            2. Some PMs are empty but others are not.
-            3. All PMs are not empty.
-        Situation 1: Return the first empty PM info.
-        Situation 2: Return all PMs with enough resources but not empty and plus the first empty PM.
-        Situation 3: Return all PMs with enough resources but not empty.
-
         Args: vm_vcpu_cores_requirement (int): The vCPU cores requested by the VM.
         """
         # NOTE: Should we implement this logic inside the action scope?
