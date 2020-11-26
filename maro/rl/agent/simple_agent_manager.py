@@ -5,7 +5,7 @@ import os
 from abc import abstractmethod
 from typing import Union
 
-from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import InferenceProxy
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import AgentProxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -20,10 +20,11 @@ class SimpleAgentManager(AbsAgentManager):
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: Union[dict, InferenceProxy],
+        agents: Union[dict, AgentProxy],
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
-        experience_shaper: ExperienceShaper = None
+        experience_shaper: ExperienceShaper = None,
+        shared_memory_enabled: bool = False,
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
@@ -39,6 +40,9 @@ class SimpleAgentManager(AbsAgentManager):
             action_shaper=action_shaper,
             experience_shaper=experience_shaper
         )
+        self._shared_memory_enabled = shared_memory_enabled
+        if isinstance(self._agents, dict) and self._shared_memory_enabled:
+            
 
         # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
@@ -46,16 +50,11 @@ class SimpleAgentManager(AbsAgentManager):
 
     def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
-<<<<<<< HEAD
-        agent_id, state = self._state_shaper(decision_event, snapshot_list)
-        if isinstance(self._agents, InferenceProxy):
-            action = self._agents.choose_action(state, agent_id)
-        else:
-            action = self._agents[agent_id].choose_action(state)
-=======
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        model_action = self.agent_dict[agent_id].choose_action(model_state)
->>>>>>> v0.2_explorer
+        if isinstance(self._agents, AgentProxy):
+            model_action = self._agents.choose_action(model_state, agent_id)
+        else:
+            model_action = self._agents[agent_id].choose_action(model_state)
         self._transition_cache = {
             "state": model_state,
             "action": model_action,

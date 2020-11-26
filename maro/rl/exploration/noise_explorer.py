@@ -66,14 +66,14 @@ class GaussianNoiseExplorer(NoiseExplorer):
         max_action: Union[float, np.ndarray] = None,
         noise_mean: Union[float, np.ndarray] = .0,
         noise_stddev: Union[float, np.ndarray] = .0,
-        is_relative_stddev: bool = False
+        is_relative: bool = False
     ):
         super().__init__(action_dim, min_action, max_action)
-        if is_relative_stddev and noise_mean != .0:
+        if is_relative and noise_mean != .0:
             raise ValueError("Standard deviation cannot be relative if noise mean is non-zero.")
         self._noise_mean = noise_mean
         self._noise_stddev = noise_stddev
-        self._is_relative_stddev = is_relative_stddev
+        self._is_relative = is_relative
 
     def update(self, *, noise_mean: Union[float, np.ndarray], noise_stddev: Union[float, np.ndarray]):
         self._noise_mean = noise_mean
@@ -81,7 +81,7 @@ class GaussianNoiseExplorer(NoiseExplorer):
 
     def __call__(self, action: np.ndarray):
         noise = np.random.normal(loc=self._noise_mean, scale=self._noise_stddev, size=self._action_dim)
-        action += (noise * action) if self._is_relative_stddev else noise
+        action += (noise * action) if self._is_relative else noise
         if self._min_action is not None or self._max_action is not None:
             return np.clip(action, self._min_action, self._max_action)
         else:

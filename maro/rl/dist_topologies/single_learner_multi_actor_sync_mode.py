@@ -5,7 +5,7 @@ import sys
 from enum import Enum
 from typing import Callable
 
-from maro.communication import Proxy, SessionType
+from maro.communication import Proxy, SessionMessage, SessionType
 from maro.communication.registry_table import RegisterTable
 from maro.rl.actor.abs_actor import AbsActor
 from maro.rl.dist_topologies.common import PayloadKey
@@ -14,6 +14,8 @@ from maro.rl.dist_topologies.common import PayloadKey
 class MessageTag(Enum):
     ROLLOUT = "rollout"
     UPDATE = "update"
+    CHOOSE_ACTION = "choose_action"
+    ACTION = "action"
 
 
 class ActorProxy(object):
@@ -55,23 +57,23 @@ class ActorProxy(object):
                 payload={PayloadKey.DONE: True}
             )
             return None, None
-        else:
-            payloads = [(peer, {PayloadKey.MODEL: model_dict,
-                                PayloadKey.EXPLORATION_PARAMS: exploration_params,
-                                PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers_name["actor"]]
-            # TODO: double check when ack enable
-            replies = self._proxy.scatter(
-                tag=MessageTag.ROLLOUT,
-                session_type=SessionType.TASK,
-                destination_payload_list=payloads
-            )
 
-            performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-            details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
-            details = self._experience_collecting_func(details_by_source) if return_details else None
+        payloads = [(peer, {PayloadKey.MODEL: model_dict,
+                            PayloadKey.EXPLORATION_PARAMS: exploration_params,
+                            PayloadKey.RETURN_DETAILS: return_details})
+                    for peer in self._proxy.peers_name["actor"]]
+        # TODO: double check when ack enable
+        replies = self._proxy.scatter(
+            tag=MessageTag.ROLLOUT,
+            session_type=SessionType.TASK,
+            destination_payload_list=payloads
+        )
 
-            return performance, details
+        performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
+        details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
+        details = self._experience_collecting_func(details_by_source) if return_details else None
+
+        return performance, details
 
 
 class ActorWorker(object):
@@ -84,7 +86,7 @@ class ActorWorker(object):
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor", **proxy_params)
-        self._registry_table = RegisterTable(self._proxy.get_peers)
+        self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):
@@ -125,16 +127,24 @@ class ActorWorker(object):
                 handler_fn(cached_messages)
 
 
-class InferenceProxy(object):
+class AgentManagerProxy(object):
     def __init__(self, proxy_params):
-        self._proxy = Proxy(component_type="actor", **proxy_params)
+        self._proxy = Proxy(component_type="agent_manager", **proxy_params)
 
     def choose_action(self, state, agent_id):
-        payload = (self._proxy.peers["learner"], {PayloadKey.STATE: state, PayloadKey.AGENT_ID: agent_id})
-        replies = self._proxy.scatter(
-            tag=MessageTag.ROLLOUT,
-            session_type=SessionType.TASK,
-            destination_payload_list=payload
+        reply = self._proxy.send(
+            SessionMessage(
+                tag=MessageTag.CHOOSE_ACTION,
+                source=self._proxy.component_name,
+                destination=self._proxy.peers_name["action_server"],
+                payload={PayloadKey.STATE: state, PayloadKey.AGENT_ID: agent_id},
+            )
         )
 
-        return
+        return reply[PayloadKey.ACTION]
+
+
+class ActionServer(object):
+
+
+

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Union
 
-from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import InferenceProxy
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import AgentManagerProxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -29,7 +29,7 @@ class AbsAgentManager(ABC):
         name (str): Name of agent manager.
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
-        agents (Union[dict, InferenceProxy]): A dictionary of agents to be wrapped by the agent manager.
+        agents (Union[dict, AgentManagerProxy]): A dictionary of agents to be wrapped by the agent manager.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
@@ -43,7 +43,7 @@ class AbsAgentManager(ABC):
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: Union[dict, InferenceProxy],
+        agents: Union[dict, AgentManagerProxy],
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
@@ -92,15 +92,15 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    def update(self, exploration_params):
+    def update_exploration_params(self, exploration_params):
         # Per-agent exploration parameters
         if isinstance(exploration_params, dict) and exploration_params.keys() <= self._agents.keys():
             for agent_id, params in exploration_params.items():
-                self._agents[agent_id].update(params)
+                self._agents[agent_id].update(**params)
         # Shared exploration parameters for all agents
         else:
             for agent in self._agents.values():
-                agent.update(exploration_params)
+                agent.update(**exploration_params)
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

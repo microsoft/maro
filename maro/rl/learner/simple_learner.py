@@ -2,15 +2,21 @@
 # Licensed under the MIT license.
 
 import sys
-from typing import Callable, Iterator, Union
+from collections import namedtuple
+from multiprocessing.managers import SharedMemoryManager
+from typing import Union
 
 from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
+from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
+from maro.rl.exploration.abs_exploration_scheduler import NullExplorationScheduler
 from maro.utils import DummyLogger, Logger
 from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError, InvalidEpisodeError
 
 from .abs_learner import AbsLearner
+
+ExplorationOptions = namedtuple("ExplorationOptions", ["cls", "params"])
 
 
 class SimpleLearner(AbsLearner):
@@ -20,38 +26,22 @@ class SimpleLearner(AbsLearner):
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
         actor (SimpleActor or ActorProxy): An SimpleActor or ActorProxy instance responsible for performing roll-outs
             (environment sampling).
+        max_episode (int): number of episodes to be run. If -1, the training loop will run forever unless
+            an ``early_stopping_checker`` is provided and the early stopping condition is met.
+        exploration_options (ExplorationOptions): Exploration scheduler class and parameters. Defaults to None.
+        early_stopping_checker (EarlyStoppingOptions): Early stopping checker that checks the performance history to
+            determine whether early stopping condition is satisfied. Defaults to None.
         logger (Logger): Used to log important messages.
     """
     def __init__(
         self,
         agent_manager: SimpleAgentManager,
         actor: Union[SimpleActor, ActorProxy],
+        max_episode: int,
+        exploration_options: ExplorationOptions = None,
+        early_stopping_checker: AbsEarlyStoppingChecker = None,
         logger: Logger = DummyLogger()
     ):
-        super().__init__()
-        self._agent_manager = agent_manager
-        self._actor = actor
-        self._logger = logger
-        self._performance_history = []
-
-    def learn(
-        self,
-        max_episode: int,
-        early_stopping_checker: Callable = None,
-        warmup_ep: int = None,
-        early_stopping_metric_func: Callable = None,
-    ):
-        """Main loop for collecting experiences from the actor and using them to update policies.
-
-        Args:
-            max_episode (int): number of episodes to be run. If -1, the training loop will run forever unless
-                an ``early_stopping_checker`` is provided and the early stopping condition is met.
-            early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
-                terminated based on the latest performances. Defaults to None.
-            warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
-            early_stopping_metric_func (Callable): A function to extract the metric from a performance record
-                for early stopping checking. Defaults to None.
-        """
         if max_episode < -1:
             raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
         if max_episode == -1 and early_stopping_checker is None:
@@ -59,79 +49,41 @@ class SimpleLearner(AbsLearner):
                 "The training loop will run forever since neither maximum episode nor early stopping checker "
                 "is provided. "
             )
-        if early_stopping_checker is not None:
-            assert early_stopping_metric_func is not None, \
-                "early_stopping_metric_func cannot be None if early_stopping_checker is provided."
+        super().__init__()
+        self._agent_manager = agent_manager
+        self._actor = actor
+        self._max_episode = max_episode
+        if exploration_options is None:
+            self._exploration_scheduler = NullExplorationScheduler(max_episode)
+        else:
+            self._exploration_scheduler = exploration_options.cls(max_ep=max_episode, **exploration_options.params)
+        self._early_stopping_checker = early_stopping_checker
+        self._logger = logger
+        self._performance_history = []
 
-        episode, metric_series = 0, []
-        while max_episode == -1 or episode < max_episode:
-            performance, exp_by_agent = self._actor.roll_out(
-                model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models()
-            )
-            self._logger.info(f"ep {episode} - performance: {performance}")
-            latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
-            if early_stopping_checker is not None:
-                metric_series.extend(map(early_stopping_metric_func, latest))
-                if warmup_ep is None or episode >= warmup_ep and early_stopping_checker(metric_series):
-                    self._logger.info("Early stopping condition hit. Training complete.")
-                    break
-            self._agent_manager.train(exp_by_agent)
-            episode += 1
-
-    def learn_with_exploration_schedule(
-        self,
-        exploration_schedule: Union[Iterator, dict],
-        early_stopping_checker: Callable = None,
-        warmup_ep: int = None,
-        early_stopping_metric_func: Callable = None,
-    ):
-        """Main loop for collecting experiences from the actor and using them to update policies.
-
-        Args:
-            exploration_schedule (Union[Iterator, dict]): Explorations schedules for the underlying agents. If it is
-                a dictionary, the exploration schedule will be registered on a per-agent basis based on agent ID's.
-                If it is a single iterator object, the exploration schedule will be registered for all agents.
-            early_stopping_checker (Callable): A Callable object to determine whether the training loop should be
-                terminated based on the latest performances. Defaults to None.
-            warmup_ep (int): Episode from which early stopping check is initiated. Defaults to None.
-            early_stopping_metric_func (Callable): A function to extract the metric from a performance record
-                for early stopping checking. Defaults to None.
-        """
-        if early_stopping_checker is not None:
-            assert early_stopping_metric_func is not None, \
-                "early_stopping_metric_func cannot be None if early_stopping_checker is provided."
-
-        episode, metric_series = 0, []
+    def learn(self):
+        """Main loop for collecting experiences from the actor and using them to update policies."""
         while True:
             try:
-                if isinstance(exploration_schedule, dict):
-                    exploration_params = {
-                        agent_id: next(schedule) for agent_id, schedule in exploration_schedule.items()
-                    }
-                else:
-                    exploration_params = next(exploration_schedule)
-
+                exploration_params = next(self._exploration_scheduler)
                 performance, exp_by_agent = self._actor.roll_out(
                     model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models(),
                     exploration_params=exploration_params
                 )
 
                 self._logger.info(
-                    f"ep {episode} - performance: {performance}, exploration_params: {exploration_params}"
+                    f"ep {self._exploration_scheduler.current_ep} - "
+                    f"performance: {performance}, exploration_params: {exploration_params}"
                 )
 
                 # Early stopping checking
-                latest = [perf for _, perf in performance] if isinstance(performance, list) else [performance]
-                if early_stopping_checker is not None:
-                    metric_series.extend(map(early_stopping_metric_func, latest))
-                    if warmup_ep is None or episode >= warmup_ep and early_stopping_checker(metric_series):
-                        self._logger.info("Early stopping condition hit. Training complete.")
-                        break
+                if self._early_stopping_checker is not None and self._early_stopping_checker.update(performance):
+                    self._logger.info("Early stopping condition hit. Training complete.")
+                    break
             except StopIteration:
-                self._logger.info(f"Maximum number of episodes ({episode}) reached. Training complete.")
+                self._logger.info(f"Maximum number of episodes ({self._max_episode}) reached. Training complete.")
                 break
 
-            episode += 1
             self._agent_manager.train(exp_by_agent)
 
     def test(self):
