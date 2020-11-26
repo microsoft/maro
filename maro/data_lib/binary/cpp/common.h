@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
 
 #ifndef _MARO_DATALIB_COMMON_
 #define _MARO_DATALIB_COMMON_

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _MARO_DATALIB_BINARYREADER_
 #define _MARO_DATALIB_BINARYREADER_
 
