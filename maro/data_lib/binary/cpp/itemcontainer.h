@@ -1,6 +1,8 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _MARO_DATALIB_ITEM_CONTAINER_
 #define _MARO_DATALIB_ITEM_CONTAINER_
-
 
 #include "common.h"
 
@@ -15,8 +17,8 @@ namespace maro
         };
 
         /*
-        Binary reader will already return same container for all items,
-        user should make sure copy the return if need
+        Binary reader will always return same container for all items,
+        user should make sure to copy the return if need
         */
         class ItemContainer
         {
@@ -29,7 +31,7 @@ namespace maro
             ItemContainer(const ItemContainer &writer) = delete;
 
             ~ItemContainer();
-            
+
             void set_buffer(char *buffer);
 
             void set_offset(UINT offset);

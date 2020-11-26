@@ -248,38 +248,50 @@ namespace maro
 
 #define ReadMetaNormalItem(field, type)       \
   length = sizeof(type);                      \
-  _file.read((char*)&field, length);          \
-  read_size += length;                        \
+  memcpy(&field, &buffer[offset], length);    \
+  offset += length;
 
     void BinaryReader::read_meta()
     {
-      UINT read_size = 0;
+      // meta binary buffer
+      unique_ptr<char> buffer_ptr = make_unique<char>(_header.meta_size);
+      char* buffer = buffer_ptr.get();
 
-      while (read_size < _header.meta_size)
+      if (_file.read(buffer, _header.meta_size))
       {
-        size_t length = 0;
-
+        // meta fields
         uint32_t start_index = 0;
         unsigned char type = 0;
         unsigned short alias_length = 0;
         uint32_t size = 0;
         string alias;
 
-        ReadMetaNormalItem(start_index, uint32_t)
+        // offset read from buffer
+        UINT offset = 0;
+        UINT length = 0;
 
-        ReadMetaNormalItem(type, UCHAR)
+        while (offset < _header.meta_size)
+        {
+          ReadMetaNormalItem(start_index, uint32_t)
+          ReadMetaNormalItem(type, UCHAR)
+          ReadMetaNormalItem(size, uint32_t)
+          ReadMetaNormalItem(alias_length, unsigned short)
 
-        ReadMetaNormalItem(size, uint32_t)
+          alias.resize(alias_length);
 
-        ReadMetaNormalItem(alias_length, unsigned short)
+          memset(&alias[0], 0, alias_length);
+          memcpy(&alias[0], &buffer[offset], alias_length);
 
-        alias.resize(alias_length);
+          offset += alias_length;
 
-        _file.read(&alias[0], alias_length);
+          _meta.fields.emplace_back(alias, "", size, start_index, type);
+        }
+      }
+      else
+      {
+        cerr << "Bad binary format to read." << endl;
 
-        read_size += alias_length;
-
-        _meta.fields.emplace_back(alias, "", size, start_index, type);
+        throw BadBinaryFormat();
       }
     }
 
