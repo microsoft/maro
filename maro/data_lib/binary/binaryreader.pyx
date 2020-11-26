@@ -5,8 +5,8 @@
 #distutils: language = c++
 
 from collections import namedtuple
-from maro.data_lib.binary.common cimport UCHAR, ULONGLONG, LONGLONG, UINT, Meta, Field, BinHeader
-from libc.stdint cimport int32_t
+from maro.data_lib.binary.common cimport UCHAR, USHORT, ULONGLONG, LONGLONG, UINT, Meta, Field, BinHeader
+from libc.stdint cimport int32_t, uint32_t
 
 
 cdef class ItemContainerAccessor:
@@ -23,13 +23,29 @@ cdef class ItemContainerAccessor:
     def get(self):
         pass
 
+cdef class CharAccessor(ItemContainerAccessor):
+    def get(self):
+        return self.item.get[char](self.offset)
+
+cdef class UCharAccessor(ItemContainerAccessor):
+    def get(self):
+        return self.item.get[UCHAR](self.offset)
+
 cdef class ShortAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[short](self.offset)
 
+cdef class UShortAccessor(ItemContainerAccessor):
+    def get(self):
+        return self.item.get[USHORT](self.offset)
+
 cdef class IntAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[int32_t](self.offset)
+
+cdef class UIntAccessor(ItemContainerAccessor):
+    def get(self):
+        return self.item.get[uint32_t](self.offset)
 
 cdef class FloatAccessor(ItemContainerAccessor):
     def get(self):
@@ -49,12 +65,17 @@ cdef class ULONGAcessor(ItemContainerAccessor):
 
 
 cdef dict field_access_map = {
-    1: ShortAccessor,
-    2: IntAccessor,
-    3: LongAccessor,
-    4: FloatAccessor,
-    5: DoubleAccessor,
-    6: ULONGAcessor
+    1: CharAccessor,
+    2: UCharAccessor,
+    3: ShortAccessor,
+    4: UShortAccessor,
+    5: IntAccessor,
+    6: UIntAccessor,
+    7: LongAccessor,
+    8: ULONGAcessor,
+    9: FloatAccessor,
+    10: DoubleAccessor,
+    11: ULONGAcessor,
 }
 
 

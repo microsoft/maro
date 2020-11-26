@@ -38,9 +38,24 @@ namespace maro
             return t4;
         }
 
+        inline char to_char(string& val_str)
+        {
+            return char(stoi(val_str));
+        }
+
+        inline unsigned char to_uchar(string& val_str)
+        {
+            return unsigned char(stoi(val_str));
+        }
+
         inline short to_short(string &val_str)
         {
             return short(stoi(val_str));
+        }
+
+        inline unsigned short to_ushort(string& val_str)
+        {
+            return unsigned short(stoi(val_str));
         }
 
         inline int32_t to_int(string &val_str)
@@ -48,9 +63,19 @@ namespace maro
             return int32_t(stoi(val_str));
         }
 
+        inline uint32_t to_uint(string& val_str)
+        {
+            return uint32_t(stoul(val_str));
+        }
+
         inline LONGLONG to_long(string &val_str)
         {
             return stoll(val_str);
+        }
+
+        inline ULONGLONG to_ulong(string& val_str)
+        {
+            return stoull(val_str);
         }
 
         inline float to_float(string &val_str)
@@ -274,39 +299,37 @@ namespace maro
                     auto &field = _meta.fields[iter->second];
                     auto offset = cur_items_num * _header.item_size + field.start_index;
 
+                    // timestamp must be L or t
+                    if(field.alias == "timestamp" && (field.type != DTYPE_ULONG && field.type != DTYPE_TIME))
+                    {
+                        throw InvalidTimestampDataType();
+                    }
+
                     switch (field.type)
                     {
-                    case 1:
+                    case DTYPE_CHAR: { WriteField(to_char, char) break; }
+                    case DTYPE_UCHAR: { WriteField(to_uchar, unsigned char) break; }
+                    case DTYPE_SHORT: { WriteField(to_short, short) break; }
+                    case DTYPE_USHORT: { WriteField(to_ushort, short) break; }
+                    case DTYPE_INT: { WriteField(to_int, int32_t) break; }
+                    case DTYPE_UINT: { WriteField(to_uint, uint32_t) break; }
+                    case DTYPE_LONG: { WriteField(to_long, LONGLONG) break; }
+                    case DTYPE_FLOAT: { WriteField(to_float, float) break; }
+                    case DTYPE_DOUBLE: { WriteField(to_double, double) break; }
+                    case DTYPE_ULONG: 
+                    case DTYPE_TIME: 
                     {
-                        WriteField(to_short, short)
+                        ULONGLONG rv = 0ULL;
 
-                        break;
-                    }
-                    case 2:
-                    {
-                        WriteField(to_int, int32_t)
-                        break;
-                    }
-                    case 3:
-                    {
-                        WriteField(to_long, LONGLONG)
+                        if(field.type == DTYPE_ULONG)
+                        {
+                            rv = to_ulong(v);
+                        }
+                        else{
+                            rv = convert_to_timestamp(v);
+                        }
 
-                        break;
-                    }
-                    case 4:
-                    {  
-                        WriteField(to_float, float)
-
-                        break;
-                    }
-                    case 5:
-                    {  
-                        WriteField(to_double, double)
-                        break;
-                    }
-                    case 6:
-                    {
-                        WriteField(convert_to_timestamp, sizeof(ULONGLONG))
+                        memcpy(&_buffer[offset], &rv, sizeof(ULONGLONG));
 
                         // update header
                         if (field.alias == "timestamp")

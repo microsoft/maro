@@ -14,6 +14,7 @@ from libc.stdint cimport uint32_t
 
 
 ctypedef unsigned char UCHAR
+ctypedef unsigned short USHORT
 ctypedef unsigned long long ULONGLONG
 ctypedef long long LONGLONG
 ctypedef uint32_t UINT

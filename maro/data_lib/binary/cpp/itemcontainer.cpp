@@ -32,12 +32,17 @@ namespace maro
         return r;                                             \
     }
 
-        Getter(int32_t)
-        Getter(float)
-        Getter(double)
+        Getter(char)
+        Getter(unsigned char)
         Getter(short)
+        Getter(unsigned short)
+        Getter(int32_t)
+        Getter(uint32_t)
         Getter(LONGLONG)
         Getter(ULONGLONG)
+        Getter(float)
+        Getter(double)
+
     } // namespace datalib
 
 } // namespace maro

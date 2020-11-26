@@ -6,7 +6,6 @@
 #include <string>
 #include <ostream>
 
-
 using namespace std;
 
 namespace maro
@@ -22,10 +21,22 @@ namespace maro
         const unsigned char FILE_TYPE_BIN = 1;
         const unsigned char FILE_TYPE_INDEX = 2;
         const uint32_t CONVERTER_VERSION = 100;
-        
+
         const int SECONDS_PER_HOUR = 60 * 60;
 
         const int BUFFER_LENGTH = 4096;
+
+        const UCHAR DTYPE_CHAR = 1;
+        const UCHAR DTYPE_UCHAR = 2;
+        const UCHAR DTYPE_SHORT = 3;
+        const UCHAR DTYPE_USHORT = 4;
+        const UCHAR DTYPE_INT = 5;
+        const UCHAR DTYPE_UINT = 6;
+        const UCHAR DTYPE_LONG = 7;
+        const UCHAR DTYPE_ULONG = 8;
+        const UCHAR DTYPE_FLOAT = 9;
+        const UCHAR DTYPE_DOUBLE = 10;
+        const UCHAR DTYPE_TIME = 11;
 
         /*
         4 bytes - identifier "maro"
@@ -63,16 +74,21 @@ namespace maro
             ULONGLONG reserved3{0ULL};
             ULONGLONG reserved4{0ULL};
 
-            friend ostream& operator<<(ostream& os, const BinHeader& header);
+            friend ostream &operator<<(ostream &os, const BinHeader &header);
         };
 
         static unordered_map<string, pair<unsigned char, size_t>> field_dtype = {
-            {"s", {1, sizeof(short)}},
-            {"i", {2, sizeof(int32_t)}},
-            {"l", {3, sizeof(long long)}},
-            {"f", {4, sizeof(float)}},
-            {"d", {5, sizeof(double)}},
-            {"t", {6, sizeof(ULONGLONG)}},
+            {"b", {DTYPE_CHAR, sizeof(char)}},
+            {"B", {DTYPE_UCHAR, sizeof(unsigned char)}},
+            {"s", {DTYPE_SHORT, sizeof(short)}},
+            {"S", {DTYPE_USHORT, sizeof(unsigned short)}},
+            {"i", {DTYPE_INT, sizeof(int32_t)}},
+            {"I", {DTYPE_UINT, sizeof(uint32_t)}},
+            {"l", {DTYPE_LONG, sizeof(LONGLONG)}},
+            {"L", {DTYPE_ULONG, sizeof(ULONGLONG)}},
+            {"f", {DTYPE_FLOAT, sizeof(float)}},
+            {"d", {DTYPE_DOUBLE, sizeof(double)}},
+            {"t", {DTYPE_TIME, sizeof(ULONGLONG)}},
         };
 
         struct Field

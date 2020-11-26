@@ -24,6 +24,9 @@ namespace maro
 {
     namespace datalib
     {
+        class InvalidTimestampDataType : public exception
+        {
+        };
 
         class BinaryWriter
         {
