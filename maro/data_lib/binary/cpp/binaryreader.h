@@ -16,56 +16,75 @@ using namespace std;
 
 namespace maro
 {
-    namespace datalib
+  namespace datalib
+  {
+    const ULONGLONG INVALID_FILTER = 0ULL;
+
+    class BinaryReader
     {
-        const ULONGLONG INVALID_FILTER = 0ULL;
+    private:
+      // binary file header
+      BinHeader _header;
 
-        class BinaryReader
-        {
-        private:
-            BinHeader _header;
-            Meta _meta;
+      // binary meta
+      Meta _meta;
 
-            ifstream _file;
+      // file handler we are reading
+      ifstream _file;
 
-            char _buffer[BUFFER_LENGTH];
-            ItemContainer _item;
+      // if file opened
+      bool _is_opened{ false };
 
-            long max_items_in_buffer{0};
-            int cur_item_index{-1};
+      // buffer to read from binary file
+      char _buffer[BUFFER_LENGTH];
 
-            // offset of data part
-            streampos _data_offset{0};
+      // container to hold current item
+      ItemContainer _item;
 
-            bool _is_filter_enabled{false};
-            ULONGLONG _filter_start{INVALID_FILTER};
-            ULONGLONG _filter_end{INVALID_FILTER};
+      // max items in binary buffer, it is times of item size
+      long max_items_in_buffer{ 0 };
 
-            // used to save the offset in file that user have filtered
-            unordered_map<ULONGLONG, streampos> _filter_map;
+      // current item index in binary buffer, used to calc offset
+      int cur_item_index{ -1 };
 
-            void read_header();
-            void read_meta();
+      // offset of data part, used for reset
+      streampos _data_offset{ 0 };
 
-            void fill_buffer();
+      // if filter enabled
+      bool _is_filter_enabled{ false };
 
-        public:
-            BinaryReader();
-            ~BinaryReader();
+      // start timestamp to filter (included in result)
+      ULONGLONG _filter_start{ INVALID_FILTER };
 
-            void open(string bin_file);
+      // end timestamp to filter (exclude in result)
+      ULONGLONG _filter_end{ INVALID_FILTER };
 
-            ItemContainer *next_item();
+      // used to save the offset in file that user have filtered
+      unordered_map<ULONGLONG, streampos> _filter_map;
 
-            const Meta *get_meta();
-            const BinHeader *get_header();
+      void read_header();
+      void read_meta();
 
-            void set_filter(ULONGLONG start, ULONGLONG end);
-            void disable_filter();
+      inline void fill_buffer();
 
-            void reset();
-        };
-    } // namespace datalib
+      inline void ensure_file_opened();
+    public:
+      BinaryReader();
+      ~BinaryReader();
+
+      void open(string bin_file);
+
+      ItemContainer* next_item();
+
+      const Meta* get_meta();
+      const BinHeader* get_header();
+
+      void set_filter(ULONGLONG start, ULONGLONG end);
+      void disable_filter();
+
+      void reset();
+    };
+  } // namespace datalib
 
 } // namespace maro
 

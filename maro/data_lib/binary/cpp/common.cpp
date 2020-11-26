@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-
 #include "common.h"
 
 namespace maro
@@ -29,7 +28,7 @@ namespace maro
             return size;
         }
 
-        ostream& operator<<(ostream& os, const BinHeader& header)
+        ostream &operator<<(ostream &os, const BinHeader &header)
         {
             os << "Identifier: " << header.identifier << endl;
             os << "File type: " << int(header.file_type) << endl;

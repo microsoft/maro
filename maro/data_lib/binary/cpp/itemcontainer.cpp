@@ -45,7 +45,5 @@ namespace maro
         Getter(ULONGLONG)
         Getter(float)
         Getter(double)
-
     } // namespace datalib
-
 } // namespace maro

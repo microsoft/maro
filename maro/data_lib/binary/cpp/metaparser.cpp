@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-
 #include "metaparser.h"
 
 namespace maro
@@ -34,12 +33,9 @@ namespace maro
                 auto kv = field_dtype.find(type);
                 auto size = uint32_t(kv->second.second);
 
-                if(alias == "timestamp")
+                if (alias == "timestamp")
                 {
                     has_timestamp = true;
-
-                    // check the data type
-
 
                     // make sure timestamp is the first field write to binary file
                     meta.fields.emplace(meta.fields.begin(), alias, col_name, size, offset, kv->second.first);
@@ -49,33 +45,34 @@ namespace maro
                     // push to back
                     meta.fields.emplace_back(alias, col_name, size, offset, kv->second.first);
                 }
-                
 
                 offset += size;
             }
 
-            if(!has_timestamp)
+            // check if we have timestamp field
+            if (!has_timestamp)
             {
                 throw overflow_error("Must contains timestamp definition.");
             }
 
             try
             {
+                // try to get utc offset (timezone) used to convert datetime to UTC timestamp
                 meta.utc_offset = toml::find<char>(data, "utc_offset");
             }
-            catch(std::out_of_range)
+            catch (std::out_of_range)
             {
                 std::cerr << "Cannot find UTC offset, use 0." << endl;
 
                 meta.utc_offset = 0;
             }
-            
+
             // try to get format
             try
             {
                 meta.format = toml::find<string>(data, "format");
             }
-            catch(std::out_of_range)
+            catch (std::out_of_range)
             {
                 std::cerr << "Cannot find datetime format, use default." << endl;
             }
