@@ -72,6 +72,14 @@ def gen_datalib_extension(extensions: list):
         )
     )
 
+    extensions.append(
+        Extension(
+            f"{BASE_MODULE_NAME}.binaryconverter",
+            sources=[f"{BASE_SRC_PATH}/binaryconverter.cpp"],
+            extra_compile_args=['-std=c++11']
+        )
+    )
+
 
 # extensions to be compiled
 extensions = []
