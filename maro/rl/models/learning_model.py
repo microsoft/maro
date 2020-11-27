@@ -86,7 +86,7 @@ class LearningModule(nn.Module):
         return clone(self)
 
 
-class LearningModel(nn.Module):
+class LearningModuleManager(nn.Module):
     """NN model that consists of multiple task heads and an optional shared stack.
 
     Args:

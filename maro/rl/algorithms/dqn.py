@@ -6,7 +6,7 @@ from enum import Enum
 import numpy as np
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import LearningModel
+from maro.rl.models.learning_model import LearningModuleManager
 
 from .utils import expand_dim, preprocess, to_device, validate_task_names
 
@@ -65,12 +65,12 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (LearningModel): Q-value model.
+        model (LearningModuleManager): Q-value model.
         config: Configuration for DQN algorithm.
     """
     @to_device
     @validate_task_names(DuelingDQNTask)
-    def __init__(self, model: LearningModel, config: DQNConfig):
+    def __init__(self, model: LearningModuleManager, config: DQNConfig):
         super().__init__(model, config)
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None

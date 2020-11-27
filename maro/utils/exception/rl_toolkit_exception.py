@@ -42,19 +42,19 @@ class InfiniteTrainingLoopError(MAROException):
 
 
 class MissingOptimizerError(MAROException):
-    """Raised when the optimizers are missing when calling LearningModel's step() method."""
+    """Raised when the optimizers are missing when calling LearningModuleManager's step() method."""
     def __init__(self, msg: str = None):
         super().__init__(4007, msg)
 
 
 class UnrecognizedTaskError(MAROException):
-    """Raised when a LearningModel has task names that are not unrecognized by an algorithm."""
+    """Raised when a LearningModuleManager has task names that are not unrecognized by an algorithm."""
     def __init__(self, msg: str = None):
         super().__init__(4008, msg)
 
 
 class UnchainableModuleError(MAROException):
-    """Raised when the modules passed to a LearningModel have incorrect input/output dimensions that make them
+    """Raised when the modules passed to a LearningModuleManager have incorrect input/output dimensions that make them
         unchainable.
     """
     def __init__(self, msg: str = None):

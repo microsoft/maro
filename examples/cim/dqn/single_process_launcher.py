@@ -13,8 +13,8 @@ from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
-    AgentManagerMode, ExplorationOptions, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker,
-    SimpleActor, SimpleEarlyStoppingChecker, SimpleLearner, TwoPhaseLinearEpsilonScheduler,
+    AgentManagerMode, KStepExperienceShaper, Scheduler, SimpleActor, SimpleLearner,
+    StaticExplorationParameterGenerator, TwoPhaseLinearExplorationParameterGenerator
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -52,31 +52,33 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    def metric_func(performance):
-        return 1 - performance["container_shortage"] / performance["order_requirements"]
+    def early_stopping_callback(perf_history):
+        last_k = config.main_loop.early_stopping.last_k
+        perf_threshold = config.main_loop.early_stopping.perf_threshold
+        perf_stability_threshold = config.main_loop.early_stopping.perf_stability_threshold
+        if len(perf_history) < last_k:
+            return False
 
-    perf_checker = SimpleEarlyStoppingChecker(
-        last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.perf_threshold,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        metric_func=metric_func,
-        measure_func=lambda metric_series : mean(metric_series)
-    )
+        metric_series = list(
+            map(lambda p: 1 - p["container_shortage"] / p["order_requirements"], perf_history[-last_k:])
+        )
+        mean_perf = mean(metric_series)
+        max_delta = max(abs(metric_series[i] - metric_series[i - 1]) / metric_series[i - 1] for i in range(1, last_k))
+        return mean_perf > perf_threshold and max_delta < perf_stability_threshold
 
-    perf_stability_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.perf_stability_threshold,
+    scheduler = Scheduler(
+        config.main_loop.max_episode,
         warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        metric_func=metric_func
+        early_stopping_callback=early_stopping_callback,
+        exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
+        exploration_parameter_generator_config=config.main_loop.exploration,
     )
 
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager=agent_manager,
         actor=actor,
-        max_episode=config.main_loop.max_episode,
-        exploration_options=ExplorationOptions(TwoPhaseLinearEpsilonScheduler, config.main_loop.exploration),
-        early_stopping_checker=perf_checker & perf_stability_checker,
+        scheduler=scheduler,
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
     learner.learn()
