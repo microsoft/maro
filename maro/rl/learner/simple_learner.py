@@ -45,9 +45,9 @@ class SimpleLearner(AbsLearner):
                 model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models(),
                 exploration_params=exploration_params
             )
-
+            self._scheduler.record_performance(performance)
             self._logger.info(
-                f"ep {self._scheduler.current_ep} - performance: {performance}, "
+                f"ep {self._scheduler.current_ep - 1} - performance: {performance}, "
                 f"exploration_params: {exploration_params}"
             )
 

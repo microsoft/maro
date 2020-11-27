@@ -66,3 +66,6 @@ class Scheduler(object):
     @property
     def current_ep(self):
         return self._current_ep
+
+    def record_performance(self, performance):
+        self._performance_history.append(performance)
