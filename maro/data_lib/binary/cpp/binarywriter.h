@@ -48,7 +48,7 @@ namespace maro
 
     private:
       // utc offset for local timezone
-      char local_utc_offset = MINCHAR;
+      char local_utc_offset = CHAR_MIN;
 
       // if we have set start timestamp before
       bool _is_start_timestamp_set = false;
