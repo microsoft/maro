@@ -23,7 +23,7 @@ cdef class MaroBinaryConverter:
 
     def open(self, output_file: str, file_type: str = "NA", file_version:int = 0):
         """Open/create output file to hold binary result.
-        
+
         Args:
             output_file (str): Path to output file.
             file_type (str): Customized file type, length must be 2.
@@ -36,7 +36,7 @@ cdef class MaroBinaryConverter:
 
     def set_start_timestamp(self, start_timestamp:int):
         """Set start timestamp in binary file.
-        
+
         Args:
             start_timestamp (int): Start timestamp need to set, should be an UTC timestamp.
         """

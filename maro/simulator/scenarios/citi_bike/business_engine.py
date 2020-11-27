@@ -225,7 +225,8 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         # We keep this used to calculate real datetime to get weather and holiday info.
         # #self._trip_reader.start_datetime
-        self._trip_start_date: datetime.datetime = utc_timestamp_to_timezone(self._trip_reader.start_timestamp, self._time_zone)
+        self._trip_start_date: datetime.datetime = utc_timestamp_to_timezone(
+            self._trip_reader.start_timestamp, self._time_zone)
 
         # Since binary data hold UTC timestamp, convert it into our target timezone.
         # self._trip_start_date = self._trip_start_date.astimezone(self._time_zone)

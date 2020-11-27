@@ -31,6 +31,7 @@ cdef extern from "cpp/binarywriter.h" namespace "maro::datalib":
 
         void set_start_timestamp(ULONGLONG start_timestamp)
 
+
 cdef class MaroBinaryConverter:
     """Converter that used to convert CSV files with specified META (in toml format).
 

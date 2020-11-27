@@ -227,7 +227,7 @@ namespace maro
         for (int field_index = 0; field_index < _meta.size(); field_index++)
         {
           const auto& field = _meta.fields[field_index];
-          
+
           if (cur_column_name == field.column)
           {
             _col2field_map[column_index] = field_index;
@@ -307,7 +307,7 @@ namespace maro
 #define WriteField(to_type_func, dtype)             \
     auto rv = to_type_func(v);                      \
     memcpy(&_buffer[offset], &rv, sizeof(dtype));   \
-    is_valid_row = true;                            
+    is_valid_row = true;
 
     inline bool BinaryWriter::collect_item_to_buffer(CSV::Row row, int cur_items_num)
     {

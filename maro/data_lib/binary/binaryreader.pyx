@@ -23,41 +23,51 @@ cdef class ItemContainerAccessor:
     def get(self):
         pass
 
+
 cdef class CharAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[char](self.offset)
+
 
 cdef class UCharAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[UCHAR](self.offset)
 
+
 cdef class ShortAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[short](self.offset)
+
 
 cdef class UShortAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[USHORT](self.offset)
 
+
 cdef class IntAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[int32_t](self.offset)
+
 
 cdef class UIntAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[uint32_t](self.offset)
 
+
 cdef class FloatAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[float](self.offset)
+
 
 cdef class DoubleAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[double](self.offset)
 
+
 cdef class LongAccessor(ItemContainerAccessor):
     def get(self):
         return self.item.get[LONGLONG](self.offset)
+
 
 cdef class ULONGAcessor(ItemContainerAccessor):
     def get(self):
@@ -196,7 +206,6 @@ cdef class MaroBinaryReader:
     def converter_version(self):
         """int: Version of the converter that converted the binary file."""
         return self._header.converter_version
-        
 
     def open(self, file: str):
         """Open specified binary file.
@@ -257,7 +266,7 @@ cdef class MaroBinaryReader:
             end_time_offset (int): End of the range, offset to start timestamp in binary file.
             time_unit (str): Time unit to calculate the time offset, it support 's' for second, 'm' for minute, 'h' for hour
                 and 'd' for day.
-    
+
         Returns:
             ItemTickPicker: A picker object for easy accessing.
         """

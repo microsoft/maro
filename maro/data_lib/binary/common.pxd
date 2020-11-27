@@ -45,12 +45,14 @@ cdef extern from "cpp/common.h" namespace "maro::datalib":
         ULONGLONG reserved3
         ULONGLONG reserved4
 
+
     cdef cppclass Field:
         unsigned char type
         uint32_t size
         uint32_t start_index
         string column
         string alias
+
 
     cdef cppclass Meta:
         char utc_offset
@@ -63,8 +65,10 @@ cdef extern from "cpp/common.h" namespace "maro::datalib":
 
         uint32_t get_start_index(int field_index) const
 
+
 cdef extern from "cpp/metaparser.cpp":
     pass
+
 
 cdef extern from "cpp/metaparser.h" namespace "maro::datalib":
     pass

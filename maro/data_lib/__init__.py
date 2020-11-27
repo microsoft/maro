@@ -3,6 +3,6 @@
 
 
 from maro.data_lib.binary.binaryconverter import MaroBinaryConverter
-from maro.data_lib.binary.binaryreader import MaroBinaryReader, ItemTickPicker
+from maro.data_lib.binary.binaryreader import ItemTickPicker, MaroBinaryReader
 
 __all__ = ["MaroBinaryConverter", "MaroBinaryReader", "ItemTickPicker"]

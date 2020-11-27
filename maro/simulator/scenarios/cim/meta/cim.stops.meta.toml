@@ -16,17 +16,17 @@ type = "t" # data type to convert
 [[row]]
 
 alias = "vessel_index"
-column = "vessel_index" 
+column = "vessel_index"
 type = "S"
 
 [[row]]
 
 alias = "port_index"
-column = "port_index" 
+column = "port_index"
 type = "S"
 
 [[row]]
 
 alias = "leave_tick"
-column = "departure_tick" 
+column = "departure_tick"
 type = "I"

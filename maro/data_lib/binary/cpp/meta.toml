@@ -15,16 +15,16 @@ type = "t" # data type to convert
 alias = "timestamp" # alias for output
 
 [[row]]
-column = "start station id" 
+column = "start station id"
 type = "S"
 alias = "start_station"
 
 [[row]]
-column = "end station id" 
+column = "end station id"
 type = "S"
 alias = "end_station"
 
 [[row]]
-column = "tripduration" 
+column = "tripduration"
 type = "S"
 alias = "durations"

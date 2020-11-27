@@ -16,17 +16,17 @@ type = "t" # data type to convert
 [[row]]
 
 alias = "durations"
-column = "duration" 
+column = "duration"
 type = "S"
 
 [[row]]
 
 alias = "src_station"
-column = "start_station_index" 
+column = "start_station_index"
 type = "S"
 
 [[row]]
 
 alias = "dest_station"
-column = "end_station_index" 
+column = "end_station_index"
 type = "S"

@@ -16,11 +16,11 @@ type = "t" # data type to convert
 [[row]]
 
 alias = "weather"
-column = "weather" 
+column = "weather"
 type = "B"
 
 [[row]]
 
 alias = "temp"
-column = "temp" 
+column = "temp"
 type = "f"

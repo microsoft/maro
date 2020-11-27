@@ -14,8 +14,10 @@ from maro.data_lib.binary.common cimport UCHAR, ULONGLONG, LONGLONG, UINT, Meta,
 
 cdef ULONGLONG INVALID_FILTER = 0
 
+
 cdef extern from "cpp/itemcontainer.cpp":
     pass
+
 
 cdef extern from "cpp/itemcontainer.h" namespace "maro::datalib":
 
@@ -41,6 +43,7 @@ cdef extern from "cpp/binaryreader.h" namespace "maro::datalib":
 
         void set_filter(ULONGLONG start, ULONGLONG end) except +
         void disable_filter()
+
 
 cdef class MaroBinaryReader:
     """Reader that used to read binary files that generated with MaroBinaryConverter.
