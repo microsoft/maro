@@ -20,11 +20,11 @@ from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.models.abs_block import AbsBlock
 from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import LearningModuleManager, LearningModule, OptimizerOptions
-from maro.rl.scheduling.scheduler import Scheduler
 from maro.rl.scheduling.exploration_parameter_generator import (
     DynamicExplorationParameterGenerator, LinearExplorationParameterGenerator, StaticExplorationParameterGenerator,
     TwoPhaseLinearExplorationParameterGenerator
 )
+from maro.rl.scheduling.scheduler import Scheduler
 from maro.rl.shaping.abs_shaper import AbsShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
