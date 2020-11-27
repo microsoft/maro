@@ -22,8 +22,8 @@ namespace maro
     */
     class ItemContainer
     {
-      char* _buffer{ nullptr };
-      int _offset{ 0 };
+      char* _buffer = nullptr;
+      int _offset = 0;
 
     public:
       ItemContainer();

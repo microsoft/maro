@@ -62,25 +62,25 @@ namespace maro
     */
     struct BinHeader
     {
-      unsigned char file_type{ 0 };
+      UCHAR file_type = 0;
 
-      char custom_file_type[3]{ "NA" };
-      char identifier[5]{ "MARO" };
-      char utc_offset{ 0 };
+      char custom_file_type[3] = "NA";
+      char identifier[5] = "MARO";
+      char utc_offset = 0;
 
-      UINT converter_version{ 0U };
-      UINT file_version{ 0U };
-      UINT item_size{ 0U };
-      UINT meta_size{ 0ULL };
+      UINT converter_version = 0U;
+      UINT file_version = 0U;
+      UINT item_size = 0U;
+      UINT meta_size = 0ULL;
 
-      ULONGLONG total_items{ 0ULL };
-      ULONGLONG start_timestamp{ 0ULL };
-      ULONGLONG end_timestamp{ 0ULL };
+      ULONGLONG total_items = 0ULL;
+      ULONGLONG start_timestamp = 0ULL;
+      ULONGLONG end_timestamp = 0ULL;
 
-      ULONGLONG reserved1{ 0ULL };
-      ULONGLONG reserved2{ 0ULL };
-      ULONGLONG reserved3{ 0ULL };
-      ULONGLONG reserved4{ 0ULL };
+      ULONGLONG reserved1 = 0ULL;
+      ULONGLONG reserved2 = 0ULL;
+      ULONGLONG reserved3 = 0ULL;
+      ULONGLONG reserved4 = 0ULL;
 
       friend ostream& operator<<(ostream& os, const BinHeader& header);
     };

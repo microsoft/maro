@@ -79,10 +79,10 @@ namespace maro
       BinHeader _header;
 
       // if output binary file opened
-      bool _is_opened{ false };
+      bool _is_opened = false;
 
       // if meta file loaded
-      bool _is_meta_loaded{ false };
+      bool _is_meta_loaded = false;
 
       // meta to write
       Meta _meta;
