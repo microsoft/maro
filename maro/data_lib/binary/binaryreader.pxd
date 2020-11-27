@@ -30,6 +30,7 @@ cdef extern from "cpp/binaryreader.cpp":
 cdef extern from "cpp/binaryreader.h" namespace "maro::datalib":
     cdef cppclass BinaryReader:
         void open(string bin_file) except +
+        void close() except +
 
         ItemContainer *next_item() except +
 

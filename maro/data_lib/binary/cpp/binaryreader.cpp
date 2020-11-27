@@ -35,9 +35,19 @@ namespace maro
       _item.set_buffer(_buffer);
     }
 
+    void BinaryReader::close()
+    {
+      if(_is_opened)
+      {
+        _file.close();
+
+        _is_opened = false;
+      }
+    }
+
     BinaryReader::~BinaryReader()
     {
-      _file.close();
+      close();
     }
 
     ItemContainer* BinaryReader::next_item()
@@ -246,10 +256,9 @@ namespace maro
     void BinaryReader::read_meta()
     {
       // meta binary buffer
-      unique_ptr<char> buffer_ptr = make_unique<char>(_header.meta_size);
-      char* buffer = buffer_ptr.get();
+      vector<char> buffer(_header.meta_size);
 
-      if (_file.read(buffer, _header.meta_size))
+      if (_file.read(&buffer[0], _header.meta_size))
       {
         // meta fields
         uint32_t start_index = 0;

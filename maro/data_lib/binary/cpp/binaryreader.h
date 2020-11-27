@@ -74,6 +74,8 @@ namespace maro
 
       void open(string bin_file);
 
+      void close();
+
       ItemContainer* next_item();
 
       const Meta* get_meta();

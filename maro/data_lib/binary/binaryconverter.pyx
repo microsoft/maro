@@ -17,14 +17,17 @@ cdef class MaroBinaryConverter:
         # TODO: convert yaml to toml if input is yaml
         self._writer.load_meta(meta_file.encode())
 
-    def open(self, output_folder: str, file_name: str, file_type: str = "NA", file_version:int = 0):
+    def open(self, output_file: str, file_type: str = "NA", file_version:int = 0):
         cdef str _ft = file_type
         cdef int32_t _fv = file_version
 
-        self._writer.open(output_folder.encode(), file_name.encode(), _ft.encode(), _fv)
+        self._writer.open(output_file.encode(), _ft.encode(), _fv)
 
     def set_start_timestamp(self, start_timestamp:int):
         self._writer.set_start_timestamp(start_timestamp)
 
     def add_csv(self, csv_file:str):
         self._writer.add_csv(csv_file.encode())
+
+    def close(self):
+        self._writer.close()

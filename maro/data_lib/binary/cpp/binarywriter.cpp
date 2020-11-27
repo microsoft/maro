@@ -99,20 +99,14 @@ namespace maro
 
     BinaryWriter::~BinaryWriter()
     {
-      // update header before close
-      write_header();
-
-      _file.flush();
-      _file.close();
+      close();
     }
 
-    void BinaryWriter::open(string output_folder, string file_name, string file_type, int32_t file_version)
+    void BinaryWriter::open(string output_file, string file_type, int32_t file_version)
     {
       local_utc_offset = calc_local_utc_offset();
 
-      auto bin_file = output_folder + "/" + file_name + ".bin";
-
-      _file.open(bin_file, ios::out | ios::binary);
+      _file.open(output_file, ios::out | ios::binary);
 
       _is_opened = true;
 
@@ -120,6 +114,20 @@ namespace maro
       _header.converter_version = CONVERTER_VERSION;
 
       write_header();
+    }
+
+    void BinaryWriter::close()
+    {
+      if(_is_opened)
+      {
+        // update header before close
+        write_header();
+
+        _file.flush();
+        _file.close();
+
+        _is_opened = false;
+      }
     }
 
     void BinaryWriter::load_meta(string meta_file)

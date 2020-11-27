@@ -168,6 +168,10 @@ cdef class MaroBinaryReader:
         return self._header.total_items
 
     @property
+    def item_size(self):
+        return self._header.item_size
+
+    @property
     def file_type(self):
         return self._header.file_type
 
@@ -206,6 +210,9 @@ cdef class MaroBinaryReader:
             self._item_fields_accessor.append(acc)
 
         self._item_nt = namedtuple("BinaryItem", field_names)
+
+    def close(self):
+        self._reader.close()
 
     def reset(self):
         self._reader.reset()

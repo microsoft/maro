@@ -34,7 +34,9 @@ namespace maro
 
       ~BinaryWriter();
 
-      void open(string output_folder, string file_name, string file_type = "NA", int32_t file_version = 0);
+      void open(string output_file, string file_type = "NA", int32_t file_version = 0);
+
+      void close();
 
       // load meta file, and generate meta info
       void load_meta(string meta_file);

@@ -21,7 +21,9 @@ cdef extern from "cpp/binarywriter.h" namespace "maro::datalib":
     cdef cppclass BinaryWriter:
         BinaryWriter() except +
 
-        void open(string output_folder, string file_name, string file_type, int32_t file_version) except +
+        void open(string output_file, string file_type, int32_t file_version) except +
+
+        void close() except +
 
         void load_meta(string meta_file) except +
 
