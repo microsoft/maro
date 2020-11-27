@@ -14,10 +14,10 @@ from yaml import safe_load
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
 from maro.cli.data_pipeline.utils import chagne_file_path
-from maro.data_lib import BinaryReader
+from maro.data_lib.binary.binaryreader import MaroBinaryReader
 from maro.event_buffer import DECISION_EVENT, Event, EventBuffer
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
+from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor, utc_timestamp_to_timezone
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
@@ -53,7 +53,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         )
 
         # Trip binary reader.
-        self._trip_reader: BinaryReader = None
+        self._trip_reader: MaroBinaryReader = None
 
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
@@ -136,7 +136,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
     def get_event_payload_detail(self) -> dict:
         """dict: Event payload details of current scenario."""
         return {
-            CitiBikeEvents.RequireBike.name: list(self._trip_reader.meta.columns.keys()),
+            # CitiBikeEvents.RequireBike.name: list(self._trip_reader.meta.columns.keys()),
             CitiBikeEvents.ReturnBike.name: BikeReturnPayload.summary_key,
             CitiBikeEvents.RebalanceBike.name: DecisionEvent.summary_key,
             CitiBikeEvents.DeliverBike.name: BikeTransferPayload.summary_key
@@ -220,13 +220,15 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
         self._weather_lut = WeatherTable(self._conf["weather_data"], self._time_zone)
 
-        self._trip_reader = BinaryReader(self._conf["trip_data"])
+        self._trip_reader = MaroBinaryReader()
+        self._trip_reader.open(self._conf["trip_data"])
 
         # We keep this used to calculate real datetime to get weather and holiday info.
-        self._trip_start_date: datetime.datetime = self._trip_reader.start_datetime
+        # #self._trip_reader.start_datetime
+        self._trip_start_date: datetime.datetime = utc_timestamp_to_timezone(self._trip_reader.start_timestamp, self._time_zone)
 
         # Since binary data hold UTC timestamp, convert it into our target timezone.
-        self._trip_start_date = self._trip_start_date.astimezone(self._time_zone)
+        # self._trip_start_date = self._trip_start_date.astimezone(self._time_zone)
 
         # Used to cache last date we updated the station additional features to avoid to much time updating.
         self._last_date: datetime.datetime = None

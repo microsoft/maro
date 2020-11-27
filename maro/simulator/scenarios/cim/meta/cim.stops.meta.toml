@@ -1,0 +1,32 @@
+# utc_offset = -5 # can without this, then it will be 0 (UTC)
+# https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# used to specified format of datatime in csv file, this is the default one if not provided.
+# for t type only
+# format="%Y-%m-%d %H:%M:%S"
+
+# support data type:
+# b, B, s, S, i, I, l, L, f, d, t
+
+[[row]] # row definition
+
+alias = "timestamp" # alias for output
+column = "arrive_tick" # column name in csv
+type = "t" # data type to convert
+
+[[row]]
+
+alias = "vessel_index"
+column = "vessel_index" 
+type = "S"
+
+[[row]]
+
+alias = "port_index"
+column = "port_index" 
+type = "S"
+
+[[row]]
+
+alias = "leave_tick"
+column = "departure_tick" 
+type = "I"

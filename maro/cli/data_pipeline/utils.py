@@ -9,7 +9,7 @@ import uuid
 import numpy as np
 
 from maro.cli.utils.params import GlobalPaths
-from maro.data_lib.binary_converter import BinaryConverter
+from maro.data_lib import MaroBinaryConverter
 from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
@@ -27,7 +27,14 @@ def convert(meta: str, file: list, output: str, start_timestamp: int = None, **k
     if not all([os.path.exists(f) for f in csv_files]):
         raise CommandError("convert", "some source file not exist.\n")
 
-    converter = BinaryConverter(output_file, meta_file, start_timestamp)
+    converter = MaroBinaryConverter()
+
+    # output_file, meta_file, start_timestamp
+    converter.open(output_file)
+    converter.load_meta(meta_file)
+
+    if start_timestamp:
+        converter.set_start_timestamp(start_timestamp)
 
     for csv_file in csv_files:
         converter.add_csv(csv_file)

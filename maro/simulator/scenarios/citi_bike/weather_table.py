@@ -3,7 +3,7 @@
 
 from datetime import date
 
-from maro.data_lib.binary_reader import BinaryReader
+from maro.data_lib import MaroBinaryReader
 from maro.simulator.scenarios.helpers import utc_timestamp_to_timezone
 
 
@@ -28,7 +28,8 @@ class WeatherTable:
         self._setup_in_memory_table(file, timezone)
 
     def _setup_in_memory_table(self, file: str, timezone):
-        reader = BinaryReader(file_path=file)
+        reader = MaroBinaryReader()
+        reader.open(file)
 
         self._weather_lut = {}
 

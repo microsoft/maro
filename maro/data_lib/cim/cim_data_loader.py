@@ -10,7 +10,7 @@ from typing import Dict, List
 import numpy as np
 from yaml import safe_load
 
-from maro.data_lib import BinaryReader
+from maro.data_lib import MaroBinaryReader
 
 from .entities import CimDataCollection, NoisedItem, OrderGenerateMode, PortSetting, RoutePoint, Stop, VesselSetting
 
@@ -215,7 +215,8 @@ class CimDumpDataLoader:
 
         stops_file_path = os.path.join(dumps_folder, "stops.bin")
 
-        reader = BinaryReader(stops_file_path)
+        reader = MaroBinaryReader()
+        reader.open(stops_file_path)
 
         for stop_item in reader.items():
             vessel_stops: List[Stop] = stops[stop_item.vessel_index]

@@ -48,7 +48,7 @@ class CitiBikePipeline(DataPipeline):
     _station_meta_file_name = "station_meta.csv"
     _distance_file_name = "distance_adj.csv"
 
-    _meta_file_name = "trips.yml"
+    _meta_file_name = "trips.toml"
 
     def __init__(self, topology: str, source: str, station_info: str, is_temp: bool = False):
         super().__init__("citi_bike", topology, source, is_temp)
@@ -330,7 +330,7 @@ class WeatherPipeline(DataPipeline):
 
     _build_file_name = "KNYC_daily.bin"
 
-    _meta_file_name = "weather.yml"
+    _meta_file_name = "weather.toml"
 
     class WeatherEnum(Enum):
         SUNNY = 0
@@ -450,7 +450,7 @@ class CitiBikeToyPipeline(DataPipeline):
     _station_meta_file_name = "station_meta.csv"
     _distance_file_name = "distance_adj.csv"
 
-    _meta_file_name = "trips.yml"
+    _meta_file_name = "trips.toml"
 
     def __init__(
             self, start_time: str, end_time: str, stations: list, trips: list, topology: str, is_temp: bool = False):

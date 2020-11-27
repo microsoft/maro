@@ -1,0 +1,32 @@
+utc_offset = -5 # America/New_York
+
+# used to specified format of datatime in csv file, this is the default one if not provided.
+# for t type only
+# format="%Y-%m-%d %H:%M:%S"
+
+# support data type:
+# b, B, s, S, i, I, l, L, f, d, t
+
+[[row]] # row definition
+
+alias = "timestamp" # alias for output
+column = "start_time" # column name in csv
+type = "t" # data type to convert
+
+[[row]]
+
+alias = "durations"
+column = "duration" 
+type = "S"
+
+[[row]]
+
+alias = "src_station"
+column = "start_station_index" 
+type = "S"
+
+[[row]]
+
+alias = "dest_station"
+column = "end_station_index" 
+type = "S"
