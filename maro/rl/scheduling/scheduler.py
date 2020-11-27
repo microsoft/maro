@@ -51,7 +51,7 @@ class Scheduler(object):
     def __iter__(self):
         return self
 
-    def __next__(self, performance):
+    def __next__(self):
         if self._current_ep == self._max_ep:
             raise StopIteration
         if self._current_ep >= self._warmup_ep:
