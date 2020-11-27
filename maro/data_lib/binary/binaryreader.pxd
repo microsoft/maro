@@ -20,10 +20,6 @@ cdef extern from "cpp/itemcontainer.cpp":
 cdef extern from "cpp/itemcontainer.h" namespace "maro::datalib":
 
     cdef cppclass ItemContainer:
-        void set_buffer(char *buffer);
-
-        void set_offset(UINT offset);
-
         T get[T](int offset);
 
 
@@ -33,16 +29,16 @@ cdef extern from "cpp/binaryreader.cpp":
 
 cdef extern from "cpp/binaryreader.h" namespace "maro::datalib":
     cdef cppclass BinaryReader:
-        void open(string bin_file)
+        void open(string bin_file) except +
 
-        ItemContainer *next_item()
+        ItemContainer *next_item() except +
 
-        const Meta *get_meta()
-        const BinHeader *get_header()
+        const Meta *get_meta() except +
+        const BinHeader *get_header() except +
 
         void reset()
 
-        void set_filter(ULONGLONG start, ULONGLONG end)
+        void set_filter(ULONGLONG start, ULONGLONG end) except +
         void disable_filter()
 
 cdef class MaroBinaryReader:

@@ -119,34 +119,58 @@ namespace maro
 
     class InvalidTimestampDataType : public exception
     {
+      public:
+        const char* what() const noexcept override;
     };
 
     class InvalidTimeToParse : public exception
     {
+      public:
+        const char* what() const noexcept override;
     };
 
     class ConvertVersionNotMatch : public exception
     {
+      public:
+        const char* what() const noexcept override;
     };
 
     class FailToOpenBinaryFile : public exception
-    {};
+    {      
+      public:
+        const char* what() const noexcept override;
+    };
 
     class OperationBeforeFileOpen : public exception
-    {};
+    {
+      public:
+        const char* what() const noexcept override;
+    };
 
     // Binary file format not correct, cause fail to read
     class BadBinaryFormat : public exception
-    {};
+    {
+      public:
+        const char* what() const noexcept override;
+    };
 
     class ConvertWithoutMeta : public exception
-    {};
+    {
+      public:
+        const char* what() const noexcept override;
+    };
 
     class FailToOpenCsvFile : public exception
-    {};
+    {
+      public:
+        const char* what() const noexcept override;
+    };
 
     class MetaNoTimestamp : public exception
-    {};
+    {
+      public:
+        const char* what() const noexcept override;
+    };
 
   } // namespace datalib
 

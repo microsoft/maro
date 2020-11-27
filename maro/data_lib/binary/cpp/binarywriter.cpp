@@ -32,7 +32,6 @@ namespace maro
       // failed to parse time
       if (t.tm_year == 0 && t.tm_mon == 0 && t.tm_mday == 0)
       {
-        cerr << "Fail to parse datetime: " << val_str << endl;
         throw InvalidTimeToParse();
       }
 
@@ -191,8 +190,6 @@ namespace maro
       }
       else
       {
-        cerr << "Fail to open csv file: " << csv_file << endl;
-
         throw FailToOpenCsvFile();
       }
     }
@@ -325,8 +322,6 @@ namespace maro
           // timestamp must be L or t
           if (field.alias == "timestamp" && (field.type != DTYPE_ULONG && field.type != DTYPE_TIME))
           {
-            cerr << "Timestamp field must be t or L." << endl;
-
             throw InvalidTimestampDataType();
           }
 
@@ -386,8 +381,6 @@ namespace maro
     {
       if (!_is_opened)
       {
-        cerr << "Operations before open file." << endl;
-
         throw OperationBeforeFileOpen();
       }
     }
@@ -396,8 +389,6 @@ namespace maro
     {
       if (!_is_meta_loaded)
       {
-        cerr << "No meta file loaded." << endl;
-
         throw ConvertWithoutMeta();
       }
     }

@@ -20,8 +20,6 @@ namespace maro
       // check if file opened correct
       if (!_file.is_open())
       {
-        cerr << "Fail to open file: " << bin_file << endl;
-
         throw FailToOpenBinaryFile();
       }
 
@@ -185,8 +183,6 @@ namespace maro
     {
       if (!_is_opened)
       {
-        cerr << "Reading operations must after file opened." << endl;
-
         throw OperationBeforeFileOpen();
       }
     }
@@ -233,15 +229,11 @@ namespace maro
       }
       else
       {
-        cerr << "Bad binary format to read header." << endl;
-
         throw BadBinaryFormat();
       }
 
       if (_header.converter_version != CONVERTER_VERSION)
       {
-        cerr << "Binary converter version not match, please convert with same version." << endl;
-
         throw ConvertVersionNotMatch();
       }
     }
@@ -289,8 +281,6 @@ namespace maro
       }
       else
       {
-        cerr << "Bad binary format to read." << endl;
-
         throw BadBinaryFormat();
       }
     }

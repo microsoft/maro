@@ -52,8 +52,6 @@ namespace maro
       // check if we have timestamp field
       if (!has_timestamp)
       {
-        cerr << "Meta must contains definition for timestamp." << endl;
-
         throw MetaNoTimestamp();
       }
 

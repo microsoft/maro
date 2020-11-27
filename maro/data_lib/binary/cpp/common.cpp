@@ -8,11 +8,11 @@ namespace maro
   namespace datalib
   {
     Field::Field(string alias, string column, uint32_t size, uint32_t start_index, unsigned char dtype)
-      : alias(alias),
-      column(column),
-      size(size),
-      start_index(start_index),
-      type(dtype)
+        : alias(alias),
+          column(column),
+          size(size),
+          start_index(start_index),
+          type(dtype)
     {
     }
 
@@ -28,7 +28,7 @@ namespace maro
       return size;
     }
 
-    ostream& operator<<(ostream& os, const BinHeader& header)
+    ostream &operator<<(ostream &os, const BinHeader &header)
     {
       os << "Identifier: " << header.identifier << endl;
       os << "File type: " << int(header.file_type) << endl;
@@ -43,6 +43,51 @@ namespace maro
       os << "Meta size: " << header.meta_size << endl;
 
       return os;
+    }
+
+    const char* InvalidTimestampDataType::what() const noexcept
+    {
+      return "Timestamp field must be t or L.";
+    }
+
+    const char* InvalidTimeToParse::what() const noexcept
+    {
+      return "Fail to parse datetime";
+    }
+
+    const char* ConvertVersionNotMatch::what() const noexcept
+    {
+      return "Binary converter version not match, please convert with same version.";
+    }
+
+    const char* FailToOpenBinaryFile::what() const noexcept
+    {
+      return "Fail to open binary file, please try again.";
+    }
+
+    const char* OperationBeforeFileOpen::what() const noexcept
+    {
+      return "Reading operations must after file opened.";
+    }
+
+    const char* BadBinaryFormat::what() const noexcept
+    {
+      return "Bad binary format to read header.";
+    }
+
+    const char* ConvertWithoutMeta::what() const noexcept
+    {
+      return "No meta file loaded.";
+    }
+
+    const char* FailToOpenCsvFile::what() const noexcept
+    {
+      return "Fail to open csv file.";
+    }
+
+    const char* MetaNoTimestamp::what() const noexcept
+    {
+      return "Meta must contains definition for timestamp.";
     }
   } // namespace datalib
 
