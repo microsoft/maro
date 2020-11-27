@@ -22,7 +22,7 @@ namespace maro
       return char((rawtime - t2) / SECONDS_PER_HOUR);
     }
 
-    inline ULONGLONG to_timestamp(string& val_str, const string& format, unsigned char local_utc_offset = 0, char utc_offset = 0)
+    inline ULONGLONG to_timestamp(string& val_str, const string& format, char local_utc_offset = 0, char utc_offset = 0)
     {
       tm t{};
       istringstream ss(val_str);
@@ -37,39 +37,39 @@ namespace maro
 
       auto t3 = mktime(&t);
 
-      auto t4 = t3 + (long long(local_utc_offset) - utc_offset) * SECONDS_PER_HOUR;
+      auto t4 = t3 + (local_utc_offset - utc_offset) * SECONDS_PER_HOUR;
 
       return ULONGLONG(t4);
     }
 
     inline char to_char(string& val_str)
     {
-      return char(stoi(val_str));
+      return static_cast<char>(stoi(val_str));
     }
 
-    inline unsigned char to_uchar(string& val_str)
+    inline UCHAR to_uchar(string& val_str)
     {
-      return unsigned char(stoi(val_str));
+      return static_cast<UCHAR>(stoi(val_str));
     }
 
     inline short to_short(string& val_str)
     {
-      return short(stoi(val_str));
+      return static_cast<short>(stoi(val_str));
     }
 
-    inline unsigned short to_ushort(string& val_str)
+    inline USHORT to_ushort(string& val_str)
     {
-      return unsigned short(stoi(val_str));
+      return static_cast<USHORT>(stoi(val_str));
     }
 
     inline int32_t to_int(string& val_str)
     {
-      return int32_t(stoi(val_str));
+      return static_cast<int32_t>(stoi(val_str));
     }
 
     inline uint32_t to_uint(string& val_str)
     {
-      return uint32_t(stoul(val_str));
+      return static_cast<uint32_t>(stoul(val_str));
     }
 
     inline LONGLONG to_long(string& val_str)
@@ -116,7 +116,8 @@ namespace maro
       _header.file_version = file_version;
 
       memset(_header.custom_file_type, 0, 2);
-      memcpy(_header.custom_file_type, &file_type[0], max(2, file_type.size()));
+
+      memcpy(_header.custom_file_type, &file_type[0], max(2, int(file_type.size())));
 
       write_header();
     }
@@ -227,7 +228,7 @@ namespace maro
         string cur_column_name;
         column.read_value(cur_column_name);
 
-        for (auto field_index = 0; field_index < _meta.fields.size(); field_index++)
+        for (int field_index = 0; field_index < _meta.size(); field_index++)
         {
           const auto& field = _meta.fields[field_index];
           

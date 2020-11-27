@@ -8,11 +8,11 @@ namespace maro
   namespace datalib
   {
     Field::Field(string alias, string column, uint32_t size, uint32_t start_index, unsigned char dtype)
-        : alias(alias),
-          column(column),
+        : type(dtype),
           size(size),
           start_index(start_index),
-          type(dtype)
+          column(column),
+          alias(alias)
     {
     }
 
