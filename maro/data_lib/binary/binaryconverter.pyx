@@ -14,20 +14,45 @@ from libc.stdint cimport int32_t
 
 cdef class MaroBinaryConverter:
     def load_meta(self, meta_file: str):
-        # TODO: convert yaml to toml if input is yaml
+        """Load meta from specified file to prepare for further converting.
+
+        Args:
+            meta_file (str): Path to meta file.
+        """
         self._writer.load_meta(meta_file.encode())
 
     def open(self, output_file: str, file_type: str = "NA", file_version:int = 0):
-        cdef str _ft = file_type
-        cdef int32_t _fv = file_version
+        """Open/create output file to hold binary result.
+        
+        Args:
+            output_file (str): Path to output file.
+            file_type (str): Customized file type, length must be 2.
+            file_version (int): Customized file versoin.
+        """
+        if len(file_type) != 2:
+            raise Exception("Length of customized file type must be 2.")
 
-        self._writer.open(output_file.encode(), _ft.encode(), _fv)
+        self._writer.open(output_file.encode(), file_type.encode(), file_version)
 
     def set_start_timestamp(self, start_timestamp:int):
+        """Set start timestamp in binary file.
+        
+        Args:
+            start_timestamp (int): Start timestamp need to set, should be an UTC timestamp.
+        """
         self._writer.set_start_timestamp(start_timestamp)
 
     def add_csv(self, csv_file:str):
+        """Add a CSV file to convert.
+
+        NOTE:
+            This method should be called after open and load_meta.
+
+        Args:
+            csv_file (str): Path to CSV file to convert.
+        """
         self._writer.add_csv(csv_file.encode())
 
     def close(self):
+        """Close current file, this will stop furthure converting."""
         self._writer.close()

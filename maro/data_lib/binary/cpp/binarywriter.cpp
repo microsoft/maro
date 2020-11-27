@@ -111,7 +111,12 @@ namespace maro
       _is_opened = true;
 
       _header.file_type = FILE_TYPE_BIN;
+
       _header.converter_version = CONVERTER_VERSION;
+      _header.file_version = file_version;
+
+      memset(_header.custom_file_type, 0, 2);
+      memcpy(_header.custom_file_type, &file_type[0], max(2, file_type.size()));
 
       write_header();
     }

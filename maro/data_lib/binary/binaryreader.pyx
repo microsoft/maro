@@ -118,7 +118,14 @@ cdef class ItemTickPicker:
         """Get items for specified ticks.
 
         NOTE:
-            This method will compare timestamp of item to pick.
+            This method will compare timestamp of item to pick, so if the timestamp is not equal to current tick
+            the it will be dropped.
+
+        Args:
+            tick (int): Tick of items to filter.
+
+        Returns:
+            Generator: Generator to iterate items of current tick.
         """
         cdef UINT _tick = tick
         cdef UINT seconds_per_unit = unit_seconds(self._time_unit)
@@ -157,34 +164,46 @@ cdef class MaroBinaryReader:
 
     @property
     def start_timestamp(self):
+        """int: Start timestamp."""
         return self._header.start_timestamp
 
     @property
     def end_timestamp(self):
+        """int: End timestamp"""
         return self._header.end_timestamp
 
     @property
     def item_count(self):
+        """int: Total items in binary file."""
         return self._header.total_items
 
     @property
     def item_size(self):
+        """int: Size of each item (in byte)."""
         return self._header.item_size
 
     @property
     def file_type(self):
+        """int: Type of binary file (1 for now)."""
         return self._header.file_type
 
     @property
     def file_version(self):
+        """int: Version of this file (customized, default is 0)."""
         return self._header.file_version
 
     @property
     def converter_version(self):
+        """int: Version of the converter that converted the binary file."""
         return self._header.converter_version
         
 
     def open(self, file: str):
+        """Open specified binary file.
+
+        Args:
+            file (str): Path to the binary file to read.
+        """
         self._reader.open(file.encode())
 
         # Construct item namedtuple
@@ -212,12 +231,25 @@ cdef class MaroBinaryReader:
         self._item_nt = namedtuple("BinaryItem", field_names)
 
     def close(self):
+        """Close the file."""
         self._reader.close()
 
     def reset(self):
+        """Reset internal state, usually used to read from beginning again."""
         self._reader.reset()
 
     def items_tick_picker(self, start_time_offset: int = 0, end_time_offset: int = None, time_unit: str = "s"):
+        """Get a picker that used to get items by tick within specified time range.
+
+        Args:
+            start_time_offset (int): Start of the range, offset to start timestamp in binary file.
+            end_time_offset (int): End of the range, offset to start timestamp in binary file.
+            time_unit (str): Time unit to calculate the time offset, it support 's' for second, 'm' for minute, 'h' for hour
+                and 'd' for day.
+    
+        Returns:
+            ItemTickPicker: A picker object for easy accessing.
+        """
         cdef ULONGLONG start_time = calc_time_offset(self._header.start_timestamp, start_time_offset, time_unit)
 
         cdef ULONGLONG end_time = INVALID_FILTER
@@ -230,31 +262,33 @@ cdef class MaroBinaryReader:
         return ItemTickPicker(self.items(), self._header.start_timestamp, time_unit)
 
     def set_filter(self, start: int, end: int = None):
+        """Enable and set the filter range.
+
+        NOTE:
+            This will affect the result of 'items' method, you can disable it by call 'disable_filter'.
+
+        Args:
+            start (int): Start timestamp of the range (in UTC).
+            end (int): End timestamp of the range (in UTC).
+        """
         if end == None:
             end = INVALID_FILTER
 
         self._reader.set_filter(start, end)
 
     def disable_filter(self):
+        """Disable current filter, this will may the items iterate from beginning."""
         self._reader.disable_filter()
 
     def items(self):
+        """Iterate items from binary file, apply filters if enabled.
+
+        NOTE:
+            This method need to be reset if you need to use it again, or it cannnot reset its internal states.
+
+        Returns:
+            Generator: Generator to iterate items in binary file.
         """
-        cdef ItemContainer* item = self._reader.next_item()
-        cdef ItemContainerAccessor acc
-
-        if item:
-            values = []
-
-            for acc in self._item_fields_accessor:
-                acc.set_item(item)
-                values.append(acc.get())
-
-            return self._item_nt._make(values)
-        else:
-            return None
-        """
-
         cdef ItemContainer* item
         cdef ItemContainerAccessor acc
         cdef list values = []
