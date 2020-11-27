@@ -24,7 +24,7 @@ class TestDumpsLoad(unittest.TestCase):
         stops_meta_path = os.path.join(
             "tests", "data", "cim", "data_generator", "dumps", "cim.stops.meta.toml")
 
-        output_folder = "." #tempfile.mkdtemp()
+        output_folder = tempfile.mkdtemp()
 
         # here we need to use CimDataDumpUtil manually to compare the result
         dc: CimDataCollection = CimDataGenerator().gen_data(config_path, 20)

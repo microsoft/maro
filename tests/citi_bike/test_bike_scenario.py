@@ -4,7 +4,7 @@
 import os
 import unittest
 
-from maro.data_lib import BinaryConverter
+from maro.data_lib import MaroBinaryConverter
 from maro.event_buffer import EventBuffer
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.business_engine import \
@@ -22,21 +22,23 @@ def setup_case(case_name: str, max_tick: int):
     trips_bin = os.path.join(config_path, "trips.bin")
 
     if not os.path.exists(trips_bin):
-        converter = BinaryConverter(trips_bin, os.path.join(
-            "tests/data/citi_bike", "trips.meta.yml"))
+        converter = MaroBinaryConverter()
+        converter.open(trips_bin)
+        converter.load_meta(os.path.join("tests/data/citi_bike", "trips.meta.toml"))
 
         converter.add_csv(os.path.join(config_path, "trips.csv"))
-        converter.flush()
+        converter.close()
 
     # weathers.bin
     weathers_bin = os.path.join("tests/data/citi_bike", "weathers.bin")
 
     if not os.path.exists(weathers_bin):
-        converter = BinaryConverter(weathers_bin, os.path.join(
-            "tests/data/citi_bike", "weather.meta.yml"))
+        converter = MaroBinaryConverter()
+        converter.open(weathers_bin)
+        converter.load_meta(os.path.join("tests/data/citi_bike", "weather.meta.toml"))
 
         converter.add_csv(os.path.join("tests/data/citi_bike", "weather.csv"))
-        converter.flush()
+        converter.close()
 
     eb = EventBuffer()
     be = CitibikeBusinessEngine(event_buffer=eb, topology=config_path, start_tick=0,
