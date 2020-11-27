@@ -152,7 +152,7 @@ the DQN algorithm and an experience pool for each agent.
                 algorithm = DQN(model_dict={"eval": eval_model},
                                 optimizer_opt=(RMSprop, config.agents.algorithm.optimizer),
                                 loss_func_dict={"eval": smooth_l1_loss},
-                                hyper_params=DQNHyperParams(**config.agents.algorithm.hyper_parameters,
+                                hyper_params=DQNConfig(**config.agents.algorithm.hyper_parameters,
                                                             num_actions=num_actions))
 
                 experience_pool = ColumnBasedStore(**config.agents.experience_pool)

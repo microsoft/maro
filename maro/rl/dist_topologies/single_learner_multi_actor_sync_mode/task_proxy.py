@@ -1,24 +1,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
-from enum import Enum
 from typing import Callable
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from maro.communication.registry_table import RegisterTable
-from maro.rl.actor.abs_actor import AbsActor
-from maro.rl.dist_topologies.common import PayloadKey
+
+from .common import MessageTag, PayloadKey
 
 
-class MessageTag(Enum):
-    ROLLOUT = "rollout"
-    UPDATE = "update"
-    CHOOSE_ACTION = "choose_action"
-    ACTION = "action"
-
-
-class ActorProxy(object):
+class RolloutProxy(Proxy):
     """A simple proxy wrapper for sending roll-out requests to remote actors.
 
     Args:
@@ -26,7 +16,7 @@ class ActorProxy(object):
         experience_collecting_func (Callable): A function responsible for collecting experiences from multiple sources.
     """
     def __init__(self, proxy_params, experience_collecting_func: Callable):
-        self._proxy = Proxy(component_type="learner", **proxy_params)
+        super().__init__(component_type="roll_out", **proxy_params)
         self._experience_collecting_func = experience_collecting_func
 
     def roll_out(
@@ -51,7 +41,8 @@ class ActorProxy(object):
             Performance and per-agent experiences from the remote actor.
         """
         if done:
-            self._proxy.ibroadcast(
+            self.ibroadcast(
+                component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
                 payload={PayloadKey.DONE: True}
@@ -61,9 +52,9 @@ class ActorProxy(object):
         payloads = [(peer, {PayloadKey.MODEL: model_dict,
                             PayloadKey.EXPLORATION_PARAMS: exploration_params,
                             PayloadKey.RETURN_DETAILS: return_details})
-                    for peer in self._proxy.peers_name["actor"]]
+                    for peer in self.peers_name["actor"]]
         # TODO: double check when ack enable
-        replies = self._proxy.scatter(
+        replies = self.scatter(
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
             destination_payload_list=payloads
@@ -76,75 +67,18 @@ class ActorProxy(object):
         return performance, details
 
 
-class ActorWorker(object):
-    """A ``AbsActor`` wrapper that accepts roll-out requests and performs roll-out tasks.
-
-    Args:
-        local_actor: An ``AbsActor`` instance.
-        proxy_params: Parameters for instantiating a ``Proxy`` instance.
-    """
-    def __init__(self, local_actor: AbsActor, proxy_params):
-        self._local_actor = local_actor
-        self._proxy = Proxy(component_type="actor", **proxy_params)
-        self._registry_table = RegisterTable(self._proxy.peers_name)
-        self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
-
-    def on_rollout_request(self, message):
-        """Perform local roll-out and send the results back to the request sender.
-
-        Args:
-            message: Message containing roll-out parameters and options.
-        """
-        data = message.payload
-        if data.get(PayloadKey.DONE, False):
-            sys.exit(0)
-
-        performance, details = self._local_actor.roll_out(
-            model_dict=data[PayloadKey.MODEL],
-            exploration_params=data[PayloadKey.EXPLORATION_PARAMS],
-            return_details=data[PayloadKey.RETURN_DETAILS]
-        )
-
-        self._proxy.reply(
-            received_message=message,
-            tag=MessageTag.UPDATE,
-            payload={
-                PayloadKey.PERFORMANCE: performance,
-                PayloadKey.DETAILS: details
-            }
-        )
-
-    def launch(self):
-        """Entry point method.
-
-        This enters the actor into an infinite loop of listening to requests and handling them according to the
-        register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
-        """
-        for msg in self._proxy.receive():
-            self._registry_table.push(msg)
-            triggered_events = self._registry_table.get()
-            for handler_fn, cached_messages in triggered_events:
-                handler_fn(cached_messages)
-
-
-class AgentManagerProxy(object):
+class ActionProxy(Proxy):
     def __init__(self, proxy_params):
-        self._proxy = Proxy(component_type="agent_manager", **proxy_params)
+        super().__init__(component_type="action", **proxy_params)
 
     def choose_action(self, state, agent_id):
-        reply = self._proxy.send(
+        reply = self.send(
             SessionMessage(
                 tag=MessageTag.CHOOSE_ACTION,
-                source=self._proxy.component_name,
-                destination=self._proxy.peers_name["action_server"],
+                source=self.component_name,
+                destination=self.peers_name["action_server"],
                 payload={PayloadKey.STATE: state, PayloadKey.AGENT_ID: agent_id},
             )
         )
 
-        return reply[PayloadKey.ACTION]
-
-
-class ActionServer(object):
-
-
-
+        return reply.payload[PayloadKey.ACTION]

@@ -1,6 +1,13 @@
 from enum import Enum
 
 
+class MessageTag(Enum):
+    ROLLOUT = "rollout"
+    UPDATE = "update"
+    CHOOSE_ACTION = "choose_action"
+    ACTION = "action"
+
+
 class PayloadKey(Enum):
     ACTION = "action"
     AGENT_ID = "agent_id"

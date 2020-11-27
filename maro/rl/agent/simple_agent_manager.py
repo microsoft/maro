@@ -5,7 +5,7 @@ import os
 from abc import abstractmethod
 from typing import Union
 
-from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import AgentProxy
+from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import AgentManagerProxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -20,7 +20,7 @@ class SimpleAgentManager(AbsAgentManager):
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: Union[dict, AgentProxy],
+        agents: Union[dict, AgentManagerProxy],
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None,
@@ -40,18 +40,20 @@ class SimpleAgentManager(AbsAgentManager):
             action_shaper=action_shaper,
             experience_shaper=experience_shaper
         )
-        self._shared_memory_enabled = shared_memory_enabled
-        if isinstance(self._agents, dict) and self._shared_memory_enabled:
-            
-
         # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
+        self._shared_memory_enabled = shared_memory_enabled
+        if isinstance(self._agents, dict) and self._shared_memory_enabled:
+            self._to_shared_memory()
+            import torch.multiprocessing as mp
+
+
     def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        if isinstance(self._agents, AgentProxy):
+        if isinstance(self._agents, AgentManagerProxy):
             model_action = self._agents.choose_action(model_state, agent_id)
         else:
             model_action = self._agents[agent_id].choose_action(model_state)
@@ -117,3 +119,7 @@ class SimpleAgentManager(AbsAgentManager):
         os.makedirs(dir_path, exist_ok=True)
         for agent in self._agents.values():
             agent.dump_models_to_file(dir_path)
+
+    def _to_shared_memory(self):
+        for agent in self._agents.values():
+            agent.algorithm.model.share_memory()
