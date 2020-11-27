@@ -6,33 +6,40 @@ import tempfile
 import unittest
 from typing import Dict, List
 
-from maro.data_lib import BinaryConverter
+from maro.data_lib import MaroBinaryConverter
 from maro.data_lib.cim import dump_from_config, load_from_folder
 from maro.data_lib.cim.cim_data_dump import CimDataDumpUtil
 from maro.data_lib.cim.cim_data_generator import CimDataGenerator
-from maro.data_lib.cim.entities import CimDataCollection, NoisedItem, PortSetting, RoutePoint, Stop, VesselSetting
+from maro.data_lib.cim.entities import (CimDataCollection, NoisedItem,
+                                        PortSetting, RoutePoint, Stop,
+                                        VesselSetting)
 
 MAX_TICK = 20
 
+
 class TestDumpsLoad(unittest.TestCase):
     def test_load_correct(self):
-        config_path = os.path.join("tests", "data", "cim", "data_generator", "dumps", "config.yml")
-        stops_meta_path = os.path.join("tests", "data", "cim", "data_generator" ,"dumps", "cim.stops.meta.yml")
+        config_path = os.path.join(
+            "tests", "data", "cim", "data_generator", "dumps", "config.yml")
+        stops_meta_path = os.path.join(
+            "tests", "data", "cim", "data_generator", "dumps", "cim.stops.meta.toml")
 
-        output_folder = tempfile.mkdtemp()
+        output_folder = "." #tempfile.mkdtemp()
 
         # here we need to use CimDataDumpUtil manually to compare the result
-        dc: CimDataCollection =  CimDataGenerator().gen_data(config_path, 20)
+        dc: CimDataCollection = CimDataGenerator().gen_data(config_path, 20)
 
         dumper = CimDataDumpUtil(dc)
 
         dumper.dump(output_folder)
 
         # convert stops.csv into binary
-        bconverter = BinaryConverter(os.path.join(output_folder, "stops.bin"), stops_meta_path)
+        bconverter = MaroBinaryConverter()
+        bconverter.open(os.path.join(output_folder, "stops.bin"))
+        bconverter.load_meta(stops_meta_path)
 
         bconverter.add_csv(os.path.join(output_folder, "stops.csv"))
-        bconverter.flush()
+        bconverter.close()
 
         # then load it
         dc2 = load_from_folder(output_folder)
@@ -46,7 +53,8 @@ class TestDumpsLoad(unittest.TestCase):
         self._compare_order_proportion(dc, dc2)
 
     def _compare_order_proportion(self, dc1: CimDataCollection, dc2: CimDataCollection):
-        self.assertListEqual(list(dc1.order_proportion), list(dc2.order_proportion))
+        self.assertListEqual(list(dc1.order_proportion),
+                             list(dc2.order_proportion))
 
     def _compare_misc(self, dc1: CimDataCollection, dc2: CimDataCollection):
         self.assertEqual(dc1.max_tick, dc2.max_tick)
@@ -83,17 +91,28 @@ class TestDumpsLoad(unittest.TestCase):
             port1: PortSetting = ports_1[port_index]
             port2: PortSetting = ports_2[port_index]
 
-            self.assertTrue(port1.index == port2.index, f"{port1.index}, {port2.index}")
-            self.assertTrue(port1.name == port2.name, f"{port1.name}, {port2.name}")
-            self.assertTrue(port1.capacity == port2.capacity, f"{port1.capacity}, {port2.capacity}")
-            self.assertTrue(port1.empty == port2.empty, f"{port1.empty}, {port2.empty}")
-            self.assertTrue(port1.empty_return_buffer.base == port2.empty_return_buffer.base)
-            self.assertTrue(port1.empty_return_buffer.noise == port2.empty_return_buffer.noise)
-            self.assertTrue(port1.full_return_buffer.base == port2.full_return_buffer.base)
-            self.assertTrue(port1.full_return_buffer.noise == port2.full_return_buffer.noise)
-            self.assertTrue(port1.source_proportion.base == port2.source_proportion.base)
-            self.assertTrue(port1.source_proportion.noise == port2.source_proportion.noise)
-            self.assertTrue(len(port1.target_proportions) == len(port2.target_proportions))
+            self.assertTrue(port1.index == port2.index,
+                            f"{port1.index}, {port2.index}")
+            self.assertTrue(port1.name == port2.name,
+                            f"{port1.name}, {port2.name}")
+            self.assertTrue(port1.capacity == port2.capacity,
+                            f"{port1.capacity}, {port2.capacity}")
+            self.assertTrue(port1.empty == port2.empty,
+                            f"{port1.empty}, {port2.empty}")
+            self.assertTrue(port1.empty_return_buffer.base ==
+                            port2.empty_return_buffer.base)
+            self.assertTrue(port1.empty_return_buffer.noise ==
+                            port2.empty_return_buffer.noise)
+            self.assertTrue(port1.full_return_buffer.base ==
+                            port2.full_return_buffer.base)
+            self.assertTrue(port1.full_return_buffer.noise ==
+                            port2.full_return_buffer.noise)
+            self.assertTrue(port1.source_proportion.base ==
+                            port2.source_proportion.base)
+            self.assertTrue(port1.source_proportion.noise ==
+                            port2.source_proportion.noise)
+            self.assertTrue(len(port1.target_proportions) ==
+                            len(port2.target_proportions))
 
             for tindex in range(len(port1.target_proportions)):
                 tprop1: NoisedItem = port1.target_proportions[tindex]
@@ -101,7 +120,6 @@ class TestDumpsLoad(unittest.TestCase):
 
                 self.assertTrue(tprop1.base == tprop2.base)
                 self.assertTrue(tprop1.noise == tprop2.noise)
-
 
     def _compare_vessels(self, dc1: CimDataCollection, dc2: CimDataCollection):
         vessels_1: List[VesselSetting] = dc1.vessels_settings
@@ -120,9 +138,9 @@ class TestDumpsLoad(unittest.TestCase):
             self.assertTrue(vessel1.start_port_name == vessel2.start_port_name)
             self.assertTrue(vessel1.sailing_speed == vessel2.sailing_speed)
             self.assertTrue(vessel1.sailing_noise == vessel2.sailing_noise)
-            self.assertTrue(vessel1.parking_duration == vessel2.parking_duration)
+            self.assertTrue(vessel1.parking_duration ==
+                            vessel2.parking_duration)
             self.assertTrue(vessel1.parking_noise == vessel2.parking_noise)
-
 
     def _compare_stops(self, dc1: CimDataCollection, dc2: CimDataCollection):
         stops_1: List[List[Stop]] = dc1.vessels_stops
@@ -141,11 +159,13 @@ class TestDumpsLoad(unittest.TestCase):
                 stop1: Stop = vessel_stops_1[stop_index]
                 stop2: Stop = vessel_stops_2[stop_index]
 
-                self.assertTrue(stop1.index == stop2.index, f"{stop1.index}, {stop2.index}")
-                self.assertTrue(stop1.leave_tick == stop2.leave_tick)
+                self.assertTrue(stop1.index == stop2.index,
+                                f"{stop1.index}, {stop2.index}")
+                self.assertTrue(stop1.leave_tick == stop2.leave_tick, f"{stop1.leave_tick}, {stop2.leave_tick}")
                 self.assertTrue(stop1.arrive_tick == stop2.arrive_tick)
                 self.assertTrue(stop1.port_idx == stop2.port_idx)
                 self.assertTrue(stop1.vessel_idx == stop2.vessel_idx)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     unittest.main()

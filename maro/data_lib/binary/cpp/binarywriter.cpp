@@ -214,27 +214,27 @@ namespace maro
       // clear first
       _col2field_map.clear();
 
-      auto hi = 0;
+      auto column_index = 0;
 
       // try to match the headers with meta, and keep the index
-      for (const auto& h : header)
+      for (const auto& column : header)
       {
-        for (auto fi = 0; fi < _meta.fields.size(); fi++)
+        string cur_column_name;
+        column.read_value(cur_column_name);
+
+        for (auto field_index = 0; field_index < _meta.fields.size(); field_index++)
         {
-          const auto& field = _meta.fields[fi];
-          string hstr;
-
-          h.read_value(hstr);
-
-          if (hstr == field.column)
+          const auto& field = _meta.fields[field_index];
+          
+          if (cur_column_name == field.column)
           {
-            _col2field_map[hi] = fi;
+            _col2field_map[column_index] = field_index;
 
             break;
           }
         }
 
-        hi++;
+        column_index++;
       }
     }
 

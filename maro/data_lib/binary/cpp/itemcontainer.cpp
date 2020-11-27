@@ -36,9 +36,9 @@ namespace maro
     }
 
       Getter(char)
-      Getter(unsigned char)
+      Getter(UCHAR)
       Getter(short)
-      Getter(unsigned short)
+      Getter(USHORT)
       Getter(int32_t)
       Getter(uint32_t)
       Getter(LONGLONG)

@@ -15,6 +15,7 @@ namespace maro
   namespace datalib
   {
     using UCHAR = unsigned char;
+    using USHORT = unsigned short;
     using ULONGLONG = unsigned long long;
     using LONGLONG = long long;
     using UINT = uint32_t;
