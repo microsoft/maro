@@ -40,11 +40,11 @@ class Scheduler(object):
         if exploration_parameter_generator_cls is None:
             self._exploration_parameter_generator = None
         elif issubclass(exploration_parameter_generator_cls, StaticExplorationParameterGenerator):
-            self._exploration_parameter_generator = StaticExplorationParameterGenerator(
+            self._exploration_parameter_generator = exploration_parameter_generator_cls(
                 max_ep, **exploration_parameter_generator_config
             )
         else:
-            self._exploration_parameter_generator = DynamicExplorationParameterGenerator(
+            self._exploration_parameter_generator = exploration_parameter_generator_cls(
                 **exploration_parameter_generator_config
             )
 
