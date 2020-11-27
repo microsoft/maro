@@ -10,8 +10,8 @@ class VirtualMachine:
     Args:
         id (int): The VM id.
         vcpu_cores_requirement (int): The amount of virtual cores requested by VM.
-        memory_requirement (int): The memory requested by VM.
-        lifetime (int): The lifetime of VM, that is, deletion tick - creation tick.
+        memory_requirement (int): The memory requested by VM. The unit is (GBs).
+        lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick + 1.
     """
     def __init__(self, id: int, vcpu_cores_requirement: int, memory_requirement: int, lifetime: int):
         # VM Requirement parameters.

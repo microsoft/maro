@@ -22,8 +22,9 @@ from .virtual_machine import VirtualMachine
 metrics_desc = """
 
 total_energy_consumption (int): Current total energy consumption.
-success_placement (int): Accumulative successful VM scheduling until now.
-failed_schedulings (int): Accumulative failed VM scheduling until now.
+success_allocation (int): Accumulative successful VM allocation until now.
+success_placement (int): Accumulative successful VM placement.
+failed_placement (int): Accumulative failed VM placement until now.
 total_latency (int): Accumulative used buffer time until now.
 """
 
@@ -47,8 +48,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         # Env metrics.
         self._total_energy_consumption: int = 0
+        self._success_allocation: int = 0
         self._success_placement: int = 0
-        self._success_complete: int = 0
         self._failed_placement: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscribtions: int = 0
@@ -70,7 +71,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _load_configs(self):
         """Load configurations."""
-
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
         with open(os.path.join(self._config_path, "config.yml")) as fp:
@@ -88,7 +88,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-
         self._machines: List[PhysicalMachine] = [
             PhysicalMachine(
                 id=i,
@@ -129,9 +128,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         return DocableDict(
             metrics_desc,
             total_energy_consumption=self._total_energy_consumption,
-            success_requirements=self._success_placement,
+            success_allocation=self._success_allocation,
+            success_placement=self._success_placement,
             failed_requirements=self._failed_placement,
-            total_latency=self._total_latency
+            total_latency=self._total_latency,
+            total_oversubscribtions=self._total_oversubscribtions
         )
 
     def _register_events(self):
@@ -148,7 +149,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         The length of VMs utilization series could be difference among all VMs,
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
-
         for vm in self._live_vms.values():
             vm.cpu_utilization = vm.get_utilization(cur_tick=self._tick)
 
@@ -173,7 +173,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-
         power: float = self._config["calibration parameter"]
         # NOTE: Energy comsumption parameters should refer to more research.
         busy_power = self._config["busy_power"]
@@ -182,7 +181,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _postpone_vm_requirement(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
         """Postpone VM requirement."""
-
         if remaining_buffer_time >= self._delay_duration:
             if postpone_type == PostponeType.Resource:
                 self._total_latency.due_to_resource += self._delay_duration
@@ -204,7 +202,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Add failed placement.
             self._failed_placement += 1
 
-    def _get_valid_pm(self, vm_vcpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
+    def _get_valid_pms(self, vm_vcpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
         """Check all valid PMs.
 
         Args: vm_vcpu_cores_requirement (int): The vCPU cores requested by the VM.
@@ -212,7 +210,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # NOTE: Should we implement this logic inside the action scope?
         # TODO: In oversubscribable scenario, we should consider more situations, like
         #       the PM type (oversubscribable and non-oversubscribable).
-
         valid_pm_list = []
         for pm in self._machines:
             if (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_vcpu_cores_requirement:
@@ -231,10 +228,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         vm_req: VirtualMachine = payload.vm_req
         remaining_buffer_time: int = payload.remaining_buffer_time
-
+        # Store the payload inside business engine.
         self._pending_vm_req_payload[vm_req.id] = payload
-
-        valid_pm_list = self._get_valid_pm(vm_vcpu_cores_requirement=vm_req.vcpu_cores_requirement)
+        # Get valid pm list.
+        valid_pm_list = self._get_valid_pms(vm_vcpu_cores_requirement=vm_req.vcpu_cores_requirement)
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
@@ -258,7 +255,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _on_vm_finished(self, finish_event: AtomEvent):
         """Callback when there is a VM ready to be terminated."""
-
         # Get the VM info.
         payload: VmFinishedPayload = finish_event.payload
         vm_id = payload.vm_id
@@ -270,7 +266,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         pm.memory_allocation -= vm.memory_requirement
         # Calculate the PM's utilization.
         pm_cpu_utilization = (
-            (pm.cpu_cores_capacity * pm.cpu_utilization - vm.vcpu_cores_requirement * vm.cpu_utilization) / pm.cpu_cores_capacity
+            (pm.cpu_cores_capacity * pm.cpu_utilization - vm.vcpu_cores_requirement * vm.cpu_utilization)
+            / pm.cpu_cores_capacity
         )
         pm.update_utilization(tick=finish_event.tick, cpu_utilization=pm_cpu_utilization)
         pm.remove_vm(vm_id)
@@ -321,9 +318,12 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             pm.memory_allocation += vm.memory_requirement
             # Calculate the PM's utilization.
             pm_cpu_utilization = (
-                (pm.cpu_cores_capacity * pm.cpu_utilization + vm.vcpu_cores_requirement * vm.cpu_utilization) / pm.cpu_cores_capacity
+                (pm.cpu_cores_capacity * pm.cpu_utilization + vm.vcpu_cores_requirement * vm.cpu_utilization)
+                / pm.cpu_cores_capacity
             )
             pm.update_utilization(tick=cur_tick, cpu_utilization=pm_cpu_utilization)
+
+            self._success_allocation += 1
         elif type(action) == PostponeAction:
             remaining_buffer_time = action.remaining_buffer_time
             # Either postpone the requirement event or failed.

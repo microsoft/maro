@@ -14,7 +14,6 @@ class Action:
         vm_id (int): The VM id.
         remaining_buffer_time (int): The remaining buffer time to assign this VM.
     """
-
     def __init__(self, vm_id: int, remaining_buffer_time: int):
         self.vm_id = vm_id
         self.remaining_buffer_time = remaining_buffer_time
@@ -45,7 +44,6 @@ class VmRequirementPayload:
         vm_info (VirtualMachine): The VM information.
         remaining_buffer_time (int): The remaining buffer time.
     """
-
     summary_key = ["vm_info", "remaining_buffer_time"]
 
     def __init__(self, vm_req: VirtualMachine, remaining_buffer_time: int):
@@ -59,7 +57,6 @@ class VmFinishedPayload:
     Args:
         vm_id (int): The id of the VM.
     """
-
     summary_key = ["vm_id"]
 
     def __init__(self, vm_id: int):
@@ -76,7 +73,6 @@ class DecisionPayload:
         vm_memory_requirement (int): The memory requested by VM.
         remaining_buffer_time (int): The remaining buffer time.
     """
-
     summary_key = ["valid_pms", "vm_id", "vm_vcpu_cores_requirement", "vm_memory_requirement", "remaining_buffer_time"]
 
     def __init__(
@@ -96,7 +92,6 @@ class DecisionPayload:
 
 class ValidPhysicalMachine:
     """The object for the valid PM which will be sent to the agent."""
-
     def __init__(self, pm_id: int, remaining_cpu: int, remaining_mem: int):
         self.pm_id = pm_id
         self.remaining_cpu = remaining_cpu
