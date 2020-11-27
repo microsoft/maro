@@ -86,40 +86,40 @@ cdef extern from "raw/backend.cpp" namespace "maro::backends::raw":
 cdef extern from "raw/backend.h" namespace "maro::backends::raw":
     cdef cppclass Backend:
         IDENTIFIER add_node(string node_name, NODE_INDEX node_num)
-        IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number)
+        IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number) except +
 
-        ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-        ATTR_SHORT get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-        ATTR_INT get_int(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-        ATTR_LONG get_long(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-        ATTR_FLOAT get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-        ATTR_DOUBLE get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index)
-        void set_attr_value[T](IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value)
+        ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
+        ATTR_SHORT get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
+        ATTR_INT get_int(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
+        ATTR_LONG get_long(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
+        ATTR_FLOAT get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
+        ATTR_DOUBLE get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
+        void set_attr_value[T](IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value) except +
 
-        void setup(bool enable_snapshot, USHORT snapshot_number)
+        void setup(bool enable_snapshot, USHORT snapshot_number) except +
 
-        void reset_frame()
-        void reset_snapshots()
+        void reset_frame() except +
+        void reset_snapshots() except +
 
-        void take_snapshot(INT tick)
+        void take_snapshot(INT tick) except +
 
-        SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length)
-        void query(ATTR_FLOAT* result, SnapshotResultShape shape)
+        SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length) except +
+        void query(ATTR_FLOAT* result, SnapshotResultShape shape) except +
 
-        USHORT get_max_snapshot_number()
-        USHORT get_valid_tick_number()
+        USHORT get_max_snapshot_number() except +
+        USHORT get_valid_tick_number() except +
 
-        void get_ticks(INT *result)
+        void get_ticks(INT *result) except +
 
-        void dump_current_frame(string path)
-        void dump_snapshots(string path)
+        void dump_current_frame(string path) except +
+        void dump_snapshots(string path) except +
 
-        void append_node(IDENTIFIER node_id, NODE_INDEX number)
-        void delete_node(IDENTIFIER node_id, NODE_INDEX node_index)
-        void resume_node(IDENTIFIER node_id, NODE_INDEX node_index)
-        void set_attribute_slot(IDENTIFIER attr_id, SLOT_INDEX slots)
-        USHORT get_node_number(IDENTIFIER node_id)
-        USHORT get_slots_number(IDENTIFIER attr_id)
+        void append_node(IDENTIFIER node_id, NODE_INDEX number) except +
+        void delete_node(IDENTIFIER node_id, NODE_INDEX node_index) except +
+        void resume_node(IDENTIFIER node_id, NODE_INDEX node_index) except +
+        void set_attribute_slot(IDENTIFIER attr_id, SLOT_INDEX slots) except +
+        USHORT get_node_number(IDENTIFIER node_id) except +
+        USHORT get_slots_number(IDENTIFIER attr_id) except +
 
 
 cdef class RawBackend(BackendAbc):

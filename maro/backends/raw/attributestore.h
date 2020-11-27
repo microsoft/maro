@@ -23,6 +23,8 @@ namespace maro
       /// </summary>
       class BadAttributeIndexing : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>

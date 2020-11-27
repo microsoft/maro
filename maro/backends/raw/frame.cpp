@@ -303,6 +303,25 @@ namespace maro
         }
       }
 
+      const char* BadNodeIdentifier::what() const noexcept
+      {
+        return "Specified node identifer not exist.";
+      }
+
+      const char* BadAttributeIdentifier::what() const noexcept
+      {
+        return "Specified attribute identifer not exist.";
+      }
+
+      const char* BadNodeIndex::what() const noexcept
+      {
+        return "Specified node index not exist.";
+      }
+
+      const char* BadAttributeSlotIndex::what() const noexcept
+      {
+        return "Specified attribute slot not exist.";
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

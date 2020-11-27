@@ -173,6 +173,11 @@ namespace maro
       {
         return _frame.get_slots_number(attr_id);
       }
+
+      const char* InvalidSetupState::what() const noexcept
+      {
+        return "Operations before seting up.";
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

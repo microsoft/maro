@@ -24,6 +24,8 @@ namespace maro
       /// </summary>
       class InvalidSnapshotTick : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -31,6 +33,8 @@ namespace maro
       /// </summary>
       class InvalidSnapshotSize : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -38,6 +42,8 @@ namespace maro
       /// </summary>
       class SnapshotQueryNotPrepared : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -45,6 +51,8 @@ namespace maro
       /// </summary>
       class SnapshotQueryNoAttributes : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -52,6 +60,8 @@ namespace maro
       /// </summary>
       class SnapshotInvalidFrameState : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -59,11 +69,12 @@ namespace maro
       /// </summary>
       class SnapshotQueryResultPtrNull : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /**
       Steps to take snapshot:
-
       1. if there is an exist tick?
         a. yes: if (exist snapshot area + empty slots) is enough to hold current snapshot?
           I. yes: write from exist area start
@@ -73,17 +84,11 @@ namespace maro
             I). yes: write to oldest area
             II). no: keep these empty slots there, append current snapshot to the end
           II. no: append to the end
-
-
       */
 
       /**
-
       Steps to query:
-
       We expect that the result pointer (float*) is a 4d array (numpy array), and length of items for each dimension should be same.
-
-
       */
 
       struct SnapshotResultShape

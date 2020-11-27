@@ -25,6 +25,8 @@ namespace maro
       /// </summary>
       class IndexOutRange : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       class Bitset
