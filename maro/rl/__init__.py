@@ -12,18 +12,17 @@ from maro.rl.dist_topologies.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 )
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy, ActorWorker
-from maro.rl.early_stopping.abs_early_stopping_checker import AbsEarlyStoppingChecker
-from maro.rl.early_stopping.simple_early_stopping_checker import (
-    MaxDeltaEarlyStoppingChecker, RSDEarlyStoppingChecker, SimpleEarlyStoppingChecker
-)
-from maro.rl.exploration.abs_exploration_scheduler import AbsExplorationScheduler, NullExplorationScheduler
 from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.exploration.epsilon_greedy_explorer import EpsilonGreedyExplorer
-from maro.rl.exploration.epsilon_greedy_scheduler import LinearEpsilonScheduler, TwoPhaseLinearEpsilonScheduler
 from maro.rl.learner.abs_learner import AbsLearner
-from maro.rl.learner.simple_learner import ExplorationOptions, SimpleLearner
+from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import MultiHeadLearningModel, SingleHeadLearningModel
+from maro.rl.scheduling.scheduler import Scheduler
+from maro.rl.scheduling.exploration_parameter_generator import (
+    DynamicExplorationParameterGenerator, LinearExplorationParameterGenerator,
+    StaticExplorationParameterGenerator, TwoPhaseLinearExplorationParameterGenerator
+)
 from maro.rl.shaping.abs_shaper import AbsShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
@@ -38,7 +37,6 @@ __all__ = [
     'AbsAgent',
     'AbsAgentManager',
     'AbsAlgorithm',
-    'AbsEarlyStoppingChecker',
     'AbsExplorer',
     'AbsLearner',
     'AbsShaper',
@@ -50,24 +48,22 @@ __all__ = [
     'ColumnBasedStore',
     'DQN',
     'DQNHyperParams',
+    'DynamicExplorationParameterGenerator',
     'EpsilonGreedyExplorer',
     'ExperienceShaper',
-    'ExplorationOptions',
     'FullyConnectedBlock',
     'KStepExperienceShaper',
-    'LinearEpsilonScheduler',
-    'MaxDeltaEarlyStoppingChecker',
+    'LinearExplorationParameterGenerator',
     'MultiHeadLearningModel',
-    'NullExplorationScheduler',
     'OverwriteType',
-    'RSDEarlyStoppingChecker',
+    'Scheduler',
     'SimpleActor',
     'SimpleAgentManager',
-    'SimpleEarlyStoppingChecker',
     'SimpleLearner',
     'SingleHeadLearningModel',
     'StateShaper',
-    'TwoPhaseLinearEpsilonScheduler',
+    'StaticExplorationParameterGenerator',
+    'TwoPhaseLinearExplorationParameterGenerator',
     'concat_experiences_by_agent',
     'merge_experiences_with_trajectory_boundaries'
 ]
