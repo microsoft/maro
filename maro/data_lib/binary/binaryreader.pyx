@@ -222,7 +222,7 @@ cdef class MaroBinaryReader:
 
         cdef ULONGLONG end_time = INVALID_FILTER
 
-        if end_time_offset:
+        if end_time_offset is not None:
             end_Time = calc_time_offset(self._header.start_timestamp, end_time_offset, time_unit)
 
         self._reader.set_filter(start_time, end_time)

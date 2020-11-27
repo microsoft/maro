@@ -105,12 +105,15 @@ namespace maro
       _filter_start = start;
       _filter_end = end;
 
+      reset();
+
       // check if we have this filter before?
       auto iter = _filter_map.find(start);
 
       if (iter != _filter_map.end())
       {
         // seek to if we have this filter before
+        _file.clear();
         _file.seekg(iter->second);
 
         cur_item_index = -1;
@@ -129,6 +132,7 @@ namespace maro
           // first 8 bytes if timestamp for each item
           if (item->get<ULONGLONG>(0) >= start)
           {
+            _file.clear();
             // move back for furthur operation
             _file.seekg(ULONGLONG(_data_offset) + _header.item_size * (i - 1));
 
@@ -159,11 +163,6 @@ namespace maro
       _file.seekg(_data_offset, ios::beg);
 
       cur_item_index = -1;
-
-      _is_filter_enabled = false;
-
-      _filter_start = INVALID_FILTER;
-      _filter_end = INVALID_FILTER;
 
       max_items_in_buffer = floorl(BUFFER_LENGTH / _header.item_size);
     }
