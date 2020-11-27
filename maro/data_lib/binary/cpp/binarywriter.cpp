@@ -174,12 +174,8 @@ namespace maro
         // current items in buffer
         auto cur_items_num = 0;
 
-        auto colum_index = 0;
-
         for (const auto& row : csv)
         {
-          auto length = 0;
-
           auto is_valid_row = collect_item_to_buffer(row, cur_items_num);
 
           if (is_valid_row)

@@ -2,7 +2,7 @@ utc_offset = -5 # America/New_York
 
 # used to specified format of datatime in csv file, this is the default one if not provided.
 # for t type only
-# format="%Y-%m-%d %H:%M:%S"
+format="%Y-%m-%d"
 
 # support data type:
 # b, B, s, S, i, I, l, L, f, d, t
