@@ -20,8 +20,8 @@ from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import MultiHeadLearningModel, SingleHeadLearningModel
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.rl.scheduling.exploration_parameter_generator import (
-    DynamicExplorationParameterGenerator, LinearExplorationParameterGenerator,
-    StaticExplorationParameterGenerator, TwoPhaseLinearExplorationParameterGenerator
+    DynamicExplorationParameterGenerator, LinearExplorationParameterGenerator, StaticExplorationParameterGenerator,
+    TwoPhaseLinearExplorationParameterGenerator
 )
 from maro.rl.shaping.abs_shaper import AbsShaper
 from maro.rl.shaping.action_shaper import ActionShaper

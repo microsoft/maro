@@ -1,13 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable, Union
+from typing import Callable
 
 from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError, InvalidEpisodeError
 
-from .exploration_parameter_generator import (
-    DynamicExplorationParameterGenerator, StaticExplorationParameterGenerator
-)
+from .exploration_parameter_generator import DynamicExplorationParameterGenerator, StaticExplorationParameterGenerator
 
 
 class Scheduler(object):
