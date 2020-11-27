@@ -3,3 +3,5 @@ prune examples
 
 include maro/simulator/scenarios/cim/topologies/*/*.yml
 include maro/simulator/scenarios/citi_bike/topologies/*/*.yml
+
+include maro/simulator/scenarios/*/topologies/*/*.toml

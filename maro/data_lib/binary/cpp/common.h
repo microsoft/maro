@@ -45,6 +45,8 @@ namespace maro
     const UCHAR HEADER_LENGTH = 84;
 
     /*
+    Header in binary file, contains following items:
+
     4 bytes - identifier "maro"
     1 byte - file type (0: reserved, 1: binary, 2: index)
     4 bytes - converter version
@@ -83,6 +85,7 @@ namespace maro
       friend ostream& operator<<(ostream& os, const BinHeader& header);
     };
 
+    // data type definition we supported
     static unordered_map<string, pair<unsigned char, size_t>> field_dtype = {
         {"b", {DTYPE_CHAR, sizeof(char)}},
         {"B", {DTYPE_UCHAR, sizeof(unsigned char)}},
@@ -97,6 +100,7 @@ namespace maro
         {"t", {DTYPE_TIME, sizeof(ULONGLONG)}},
     };
 
+    // Field definition from meta
     struct Field
     {
       unsigned char type;
@@ -108,9 +112,11 @@ namespace maro
       Field(string alias, string column, uint32_t size, uint32_t start_index, unsigned char dtype);
     };
 
+    // Meta from meta.toml
     struct Meta
     {
       char utc_offset{ 0 };
+
       string format;
 
       vector<Field> fields;
@@ -118,59 +124,67 @@ namespace maro
       uint32_t itemsize();
     };
 
+    // Data type of timestamp not correct.
     class InvalidTimestampDataType : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
+    // Fail to parse the datetime string
     class InvalidTimeToParse : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
+    // Converter vesion not match current.
     class ConvertVersionNotMatch : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
+    // Fail to open binary file, may be not exist
     class FailToOpenBinaryFile : public exception
-    {      
-      public:
-        const char* what() const noexcept override;
+    {
+    public:
+      const char* what() const noexcept override;
     };
 
+    // File not opened, but do operations
     class OperationBeforeFileOpen : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
-    // Binary file format not correct, cause fail to read
+    // Binary format of the binary file not correct.
     class BadBinaryFormat : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
+    // No meta to convert.
     class ConvertWithoutMeta : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
+    // Fail to open the csv file.
     class FailToOpenCsvFile : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
+    // No timestamp definition in meta
     class MetaNoTimestamp : public exception
     {
-      public:
-        const char* what() const noexcept override;
+    public:
+      const char* what() const noexcept override;
     };
 
   } // namespace datalib

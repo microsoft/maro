@@ -18,13 +18,17 @@ namespace maro
 {
   namespace datalib
   {
-    // load meta and parse, return fields info
     class MetaParser
     {
 
     public:
       MetaParser();
 
+      /// <summary>
+      /// Parse toml file to retrieve meta.
+      /// </summary>
+      /// <param name="meta_file">Path to the toml file.</param>
+      /// <param name="meta">Meta object for result.</param>
       void parse(string meta_file, Meta& meta);
     };
   } // namespace datalib
