@@ -91,6 +91,11 @@ namespace maro
       {
         return _type == AttrDataType::AFLOAT && isnan(_data._float);
       }
+
+      const char* InvalidOperation::what() const noexcept
+      {
+        return "Invalid attribute data type.";
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

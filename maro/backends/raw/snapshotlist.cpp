@@ -555,6 +555,36 @@ namespace maro
         }
       }
 
+      const char* InvalidSnapshotTick::what() const noexcept
+      {
+        return "Invalid tick to take snapshot, same tick must be used sequentially.";
+      }
+
+      const char* InvalidSnapshotSize::what() const noexcept
+      {
+        return "Invalid snapshot list max size, it must be larger than 0.";
+      }
+
+      const char* SnapshotQueryNotPrepared::what() const noexcept
+      {
+        return "Query must be after prepare function.";
+      }
+
+      const char* SnapshotQueryNoAttributes::what() const noexcept
+      {
+        return "Attribute list for query should contain at least 1.";
+      }
+
+      const char* SnapshotInvalidFrameState::what() const noexcept
+      {
+        return "Not set frame before operations.";
+      }
+
+      const char* SnapshotQueryResultPtrNull::what() const noexcept
+      {
+        return "Result pointer is NULL.";
+      }
+
 #ifdef _DEBUG
       pair<size_t, size_t> SnapshotList::empty_states()
       {

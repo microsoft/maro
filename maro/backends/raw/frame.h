@@ -27,6 +27,8 @@ namespace maro
       /// </summary>
       class BadNodeIdentifier : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -34,6 +36,8 @@ namespace maro
       /// </summary>
       class BadAttributeIdentifier : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -41,6 +45,8 @@ namespace maro
       /// </summary>
       class BadNodeIndex : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
@@ -48,6 +54,8 @@ namespace maro
       /// </summary>
       class BadAttributeSlotIndex : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       struct FrameNode

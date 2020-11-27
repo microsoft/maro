@@ -17,3 +17,4 @@ torch
 pytest
 coverage
 termgraph
+paramiko==2.7.2

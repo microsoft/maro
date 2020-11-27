@@ -19,6 +19,8 @@ namespace maro
       /// </summary>
       class InvalidOperation : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>

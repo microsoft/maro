@@ -167,6 +167,11 @@ namespace maro
 
         return 0;
       }
+
+      const char* IndexOutRange::what() const noexcept
+      {
+        return "Index of bit flag out of range.";
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

@@ -219,6 +219,11 @@ namespace maro
         return _is_dirty;
       }
 
+      const char* BadAttributeIndexing::what() const noexcept
+      {
+        return "Specified attribute index may not exist.";
+      }
+
 #ifdef _DEBUG
       size_t AttributeStore::capacity()
       {

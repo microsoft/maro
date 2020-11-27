@@ -23,6 +23,8 @@ namespace maro
       /// </summary>
       class InvalidSetupState : public exception
       {
+        public:
+          const char* what() const noexcept override;
       };
 
       /// <summary>
