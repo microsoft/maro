@@ -103,9 +103,9 @@ namespace maro
     // Field definition from meta
     struct Field
     {
-      unsigned char type;
-      uint32_t size{ 0U };
-      uint32_t start_index{ 0U };
+      UCHAR type = 0;
+      uint32_t size = 0U;
+      uint32_t start_index = 0U;
       string column;
       string alias;
 
@@ -115,13 +115,21 @@ namespace maro
     // Meta from meta.toml
     struct Meta
     {
-      char utc_offset{ 0 };
+      char utc_offset = 0;
 
       string format;
 
       vector<Field> fields;
 
       uint32_t itemsize();
+
+      int size() const;
+
+      string get_alias(int field_index) const;
+
+      UCHAR get_type(int field_index) const;
+
+      uint32_t get_start_index(int field_index) const;
     };
 
     // Data type of timestamp not correct.

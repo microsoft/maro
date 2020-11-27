@@ -243,9 +243,9 @@ namespace maro
       }
     }
 
-#define WriteToBuffer(size, src)            \
-    length = size;                          \
-    memcpy(&_buffer[offset], &src, length); \
+#define WriteToBuffer(size, src)                  \
+    length = UINT(size);                          \
+    memcpy(&_buffer[offset], &src, length);       \
     offset += length;
 
     void BinaryWriter::write_header()
@@ -289,8 +289,8 @@ namespace maro
 
       for (auto& field : _meta.fields)
       {
-        size_t offset = 0ULL;
-        size_t length = 0ULL;
+        UINT offset = 0ULL;
+        UINT length = 0ULL;
 
         WriteToBuffer(sizeof(uint32_t), field.start_index)
         WriteToBuffer(sizeof(unsigned char), field.type)

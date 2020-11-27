@@ -28,6 +28,32 @@ namespace maro
       return size;
     }
 
+    int Meta::size() const
+    {
+      return static_cast<int>(fields.size());
+    }
+
+    string Meta::get_alias(int field_index) const
+    {
+      auto &field = fields[field_index];
+
+      return field.alias;
+    }
+
+    UCHAR Meta::get_type(int field_index) const
+    {
+      auto &field = fields[field_index];
+
+      return field.type;
+    }
+
+    uint32_t Meta::get_start_index(int field_index) const
+    {
+      auto &field = fields[field_index];
+
+      return field.start_index;
+    }
+
     ostream &operator<<(ostream &os, const BinHeader &header)
     {
       os << "Identifier: " << header.identifier << endl;
@@ -45,47 +71,47 @@ namespace maro
       return os;
     }
 
-    const char* InvalidTimestampDataType::what() const noexcept
+    const char *InvalidTimestampDataType::what() const noexcept
     {
       return "Timestamp field must be t or L.";
     }
 
-    const char* InvalidTimeToParse::what() const noexcept
+    const char *InvalidTimeToParse::what() const noexcept
     {
       return "Fail to parse datetime";
     }
 
-    const char* ConvertVersionNotMatch::what() const noexcept
+    const char *ConvertVersionNotMatch::what() const noexcept
     {
       return "Binary converter version not match, please convert with same version.";
     }
 
-    const char* FailToOpenBinaryFile::what() const noexcept
+    const char *FailToOpenBinaryFile::what() const noexcept
     {
       return "Fail to open binary file, please try again.";
     }
 
-    const char* OperationBeforeFileOpen::what() const noexcept
+    const char *OperationBeforeFileOpen::what() const noexcept
     {
       return "Reading operations must after file opened.";
     }
 
-    const char* BadBinaryFormat::what() const noexcept
+    const char *BadBinaryFormat::what() const noexcept
     {
       return "Bad binary format to read header.";
     }
 
-    const char* ConvertWithoutMeta::what() const noexcept
+    const char *ConvertWithoutMeta::what() const noexcept
     {
       return "No meta file loaded.";
     }
 
-    const char* FailToOpenCsvFile::what() const noexcept
+    const char *FailToOpenCsvFile::what() const noexcept
     {
       return "Fail to open csv file.";
     }
 
-    const char* MetaNoTimestamp::what() const noexcept
+    const char *MetaNoTimestamp::what() const noexcept
     {
       return "Meta must contains definition for timestamp.";
     }

@@ -30,7 +30,7 @@ namespace maro
 
       _data_offset = _file.tellg();
 
-      max_items_in_buffer = floorl(BUFFER_LENGTH / _header.item_size);
+      max_items_in_buffer = long(floorl(BUFFER_LENGTH / _header.item_size));
 
       _item.set_buffer(_buffer);
     }
@@ -164,7 +164,7 @@ namespace maro
 
       cur_item_index = -1;
 
-      max_items_in_buffer = floorl(BUFFER_LENGTH / _header.item_size);
+      max_items_in_buffer = long(floorl(BUFFER_LENGTH / _header.item_size));
     }
 
     inline void BinaryReader::fill_buffer()
@@ -181,7 +181,7 @@ namespace maro
           _file.read(_buffer, ULONGLONG(max_items_in_buffer) * _header.item_size);
 
           // update max items in buffer according to bytes we readed
-          max_items_in_buffer = min<long>(max_items_in_buffer, floor(_file.gcount() / _header.item_size));
+          max_items_in_buffer = min<long>(max_items_in_buffer, long(floorl(long(_file.gcount()) / _header.item_size)));
 
           cur_item_index = max_items_in_buffer == 0 ? -1 : 0;
         }
@@ -212,8 +212,8 @@ namespace maro
 
       if (_file.read(buffer, HEADER_LENGTH))
       {
-        auto offset = 0;
-        auto length = 0;
+        size_t offset = 0;
+        size_t length = 0;
 
         ReaderHeaderStringItem(identifier)
         ReaderHeaderNormalItem(file_type, UCHAR)
@@ -267,8 +267,8 @@ namespace maro
         string alias;
 
         // offset read from buffer
-        UINT offset = 0;
-        UINT length = 0;
+        size_t offset = 0;
+        size_t length = 0;
 
         while (offset < _header.meta_size)
         {

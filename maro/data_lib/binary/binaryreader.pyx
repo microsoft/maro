@@ -209,6 +209,11 @@ cdef class MaroBinaryReader:
         # Construct item namedtuple
         cdef const Meta* meta = self._reader.get_meta()
 
+        # Used to get value from field
+        cdef string alias
+        cdef UCHAR type
+        cdef uint32_t start_index
+
         cdef ItemContainerAccessor acc
 
         cdef int i = 0
@@ -219,12 +224,18 @@ cdef class MaroBinaryReader:
 
         self._item_fields_accessor = []
 
-        for i in range(meta.fields.size()):
-            field_names.append(meta.fields[i].alias.decode())
+        for i in range(meta.size()):
+            # Get field info
+            alias = meta.get_alias(i)
+            type = meta.get_type(i)
+            start_index = meta.get_start_index(i)
 
-            acc = field_access_map[meta.fields[i].type]()
+            field_names.append(alias.decode())
 
-            acc.set_offset(meta.fields[i].start_index)
+            # Construct access helpers
+            acc = field_access_map[type]()
+
+            acc.set_offset(start_index)
 
             self._item_fields_accessor.append(acc)
 

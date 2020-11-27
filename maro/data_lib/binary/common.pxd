@@ -54,7 +54,14 @@ cdef extern from "cpp/common.h" namespace "maro::datalib":
 
     cdef cppclass Meta:
         char utc_offset
-        vector[Field] fields
+
+        int size() const
+
+        string get_alias(int field_index) const
+
+        UCHAR get_type(int field_index) const
+
+        uint32_t get_start_index(int field_index) const
 
 cdef extern from "cpp/metaparser.cpp":
     pass
