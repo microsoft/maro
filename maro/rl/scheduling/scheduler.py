@@ -39,7 +39,7 @@ class Scheduler(object):
         self._performance_history = []
         if exploration_parameter_generator_cls is None:
             self._exploration_parameter_generator = None
-        elif exploration_parameter_generator_cls == StaticExplorationParameterGenerator:
+        elif issubclass(exploration_parameter_generator_cls, StaticExplorationParameterGenerator):
             self._exploration_parameter_generator = StaticExplorationParameterGenerator(
                 max_ep, **exploration_parameter_generator_config
             )
