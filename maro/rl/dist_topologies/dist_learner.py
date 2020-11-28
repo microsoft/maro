@@ -34,7 +34,7 @@ class DistLearner(AbsLearner):
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler("actor:choose_action:1", self._get_action)
-        self._registry_table.register_event_handler("actor:result:1", self._collect)
+        self._registry_table.register_event_handler("actor:update:1", self._collect)
         self._experience_collecting_func = experience_collecting_func
         self._performances = {}
         self._details = {}
