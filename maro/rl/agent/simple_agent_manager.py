@@ -106,7 +106,7 @@ class SimpleAgentManager(AbsAgentManager):
         """
         os.makedirs(dir_path, exist_ok=True)
         for agent in self._agents.values():
-            agent.dump_models_to_file(dir_path)
+            agent.dump_model_to_file(dir_path)
 
     def _to_shared_memory(self):
         for agent in self._agents.values():
