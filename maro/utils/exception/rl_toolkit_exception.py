@@ -54,8 +54,18 @@ class UnrecognizedTaskError(MAROException):
 
 
 class UnchainableModuleError(MAROException):
-    """Raised when the modules passed to a LearningModuleManager have incorrect input/output dimensions that make them
-        unchainable.
+    """
+    Raised when the modules passed to a LearningModuleManager have incorrect input/output dimensions that make them
+    unchainable.
     """
     def __init__(self, msg: str = None):
         super().__init__(4009, msg)
+
+
+class UnrecognizedExplorationParameterGeneratorClass(MAROException):
+    """
+    Raised when the ``exploration_parameter_generator_cls`` passed to a ``Scheduler`` is not a subclass of
+    ``StaticExplorationParameterGenerator`` or ``DynamicExplorationParameterGenerator``.
+    """
+    def __init__(self, msg: str = None):
+        super().__init__(4010, msg)

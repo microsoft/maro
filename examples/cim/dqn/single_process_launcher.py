@@ -72,15 +72,11 @@ def launch(config):
         early_stopping_callback=early_stopping_callback,
         exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
         exploration_parameter_generator_config=config.main_loop.exploration,
+        logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
 
     actor = SimpleActor(env, agent_manager)
-    learner = SimpleLearner(
-        agent_manager=agent_manager,
-        actor=actor,
-        scheduler=scheduler,
-        logger=Logger("single_host_cim_learner", auto_timestamp=False)
-    )
+    learner = SimpleLearner(agent_manager, actor, scheduler)
     learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
