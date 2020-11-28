@@ -33,8 +33,7 @@ class DistActor(object):
         """
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            model_action = self._choose_action(decision_event, self._env.snapshot_list)
-            action = self._action_shaper(model_action)
+            action = self._choose_action(decision_event, self._env.snapshot_list)
             metrics, decision_event, is_done = self._env.step(action)
             self._transition_cache["metrics"] = metrics
             self._trajectory.put(self._transition_cache)
@@ -85,7 +84,7 @@ class DistActor(object):
             "event": decision_event
         }
 
-        return model_action
+        return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def _post_process(self):
         """Process the latest trajectory into experiences."""
