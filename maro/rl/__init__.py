@@ -19,7 +19,7 @@ from maro.rl.learner.abs_learner import AbsLearner
 from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.models.abs_block import AbsBlock
 from maro.rl.models.fc_block import FullyConnectedBlock
-from maro.rl.models.learning_model import LearningModuleManager, LearningModule, OptimizerOptions
+from maro.rl.models.learning_model import LearningModule, LearningModuleManager, OptimizerOptions
 from maro.rl.scheduling.exploration_parameter_generator import (
     DynamicExplorationParameterGenerator, LinearExplorationParameterGenerator, StaticExplorationParameterGenerator,
     TwoPhaseLinearExplorationParameterGenerator
