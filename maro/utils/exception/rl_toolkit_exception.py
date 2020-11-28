@@ -39,3 +39,12 @@ class InfiniteTrainingLoopError(MAROException):
     """Raised when the ``SimpleLearner``'s training loop becomes infinite."""
     def __init__(self, msg: str = None):
         super().__init__(4006, msg)
+
+
+class UnrecognizedExplorationParameterGeneratorClass(MAROException):
+    """
+    Raised when the ``exploration_parameter_generator_cls`` passed to a ``Scheduler`` is not a subclass of
+    ``StaticExplorationParameterGenerator`` or ``DynamicExplorationParameterGenerator``.
+    """
+    def __init__(self, msg: str = None):
+        super().__init__(4009, msg)

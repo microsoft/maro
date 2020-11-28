@@ -4,7 +4,9 @@
 from typing import Callable
 
 from maro.utils import DummyLogger, Logger
-from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError, InvalidEpisodeError
+from maro.utils.exception.rl_toolkit_exception import (
+    InfiniteTrainingLoopError, InvalidEpisodeError, UnrecognizedExplorationParameterGeneratorClass
+)
 
 from .exploration_parameter_generator import DynamicExplorationParameterGenerator, StaticExplorationParameterGenerator
 
@@ -56,6 +58,11 @@ class Scheduler(object):
         elif issubclass(exploration_parameter_generator_cls, DynamicExplorationParameterGenerator):
             self._exploration_parameter_generator = exploration_parameter_generator_cls(
                 **exploration_parameter_generator_config
+            )
+        else:
+            raise UnrecognizedExplorationParameterGeneratorClass(
+                f"exploration_parameter_generator_cls must be a subclass of StaticExplorationParameterGenerator "
+                f"or DynamicExplorationParameterGenerator"
             )
 
         self._logger = logger
