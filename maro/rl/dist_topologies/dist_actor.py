@@ -31,6 +31,7 @@ class DistActor(object):
                 This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return experiences as well as performance metrics provided by the env.
         """
+        self._env.reset()
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._choose_action(decision_event, self._env.snapshot_list)
