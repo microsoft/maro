@@ -76,6 +76,7 @@ class Scheduler(object):
         if self._current_ep >= self._warmup_ep:
             if self._early_stopping_callback and self._early_stopping_callback(self._performance_history):
                 raise StopIteration
+        self._current_ep += 1
         if isinstance(self._exploration_parameter_generator, StaticExplorationParameterGenerator):
             self._exploration_params = self._exploration_parameter_generator.next()
         elif isinstance(self._exploration_parameter_generator, DynamicExplorationParameterGenerator):
@@ -90,6 +91,5 @@ class Scheduler(object):
     def record_performance(self, performance):
         self._performance_history.append(performance)
         self._logger.info(
-            f"ep {self._current_ep} - performance: {performance}, exploration_params: {self._exploration_params}"
+            f"ep {self._current_ep - 1} - performance: {performance}, exploration_params: {self._exploration_params}"
         )
-        self._current_ep += 1
