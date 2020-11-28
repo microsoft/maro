@@ -61,8 +61,8 @@ class Scheduler(object):
             )
         else:
             raise UnrecognizedExplorationParameterGeneratorClass(
-                f"exploration_parameter_generator_cls must be a subclass of StaticExplorationParameterGenerator "
-                f"or DynamicExplorationParameterGenerator"
+                "exploration_parameter_generator_cls must be a subclass of StaticExplorationParameterGenerator "
+                "or DynamicExplorationParameterGenerator"
             )
 
         self._logger = logger
