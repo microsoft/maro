@@ -7,7 +7,7 @@ from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
 
 from maro.rl import (
-    ActorProxy, AgentManagerMode, Scheduler, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator,
+    AgentManagerMode, DistLearner, Scheduler, TwoPhaseLinearExplorationParameterGenerator,
     concat_experiences_by_agent
 )
 from maro.simulator import Env
@@ -30,10 +30,8 @@ def launch(config, distributed_config):
     proxy_params = {
         "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
         "expected_peers": {
-            "actor": int(
-                os.environ["NUM_ACTORS"] if "NUM_ACTORS" in os.environ
-                else distributed_config.num_actors
-            )},
+            "actor": int(os.environ["NUM_ACTORS"] if "NUM_ACTORS" in os.environ else distributed_config.num_actors)
+        },
         "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
         "max_retries": 15
     }
@@ -46,11 +44,7 @@ def launch(config, distributed_config):
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
 
-    learner = SimpleLearner(
-        agent_manager=agent_manager,
-        actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
-        scheduler=scheduler
-    )
+    learner = DistLearner(agent_manager, scheduler, proxy_params, concat_experiences_by_agent)
     learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
@@ -60,3 +54,4 @@ def launch(config, distributed_config):
 if __name__ == "__main__":
     from components.config import config, distributed_config
     launch(config=config, distributed_config=distributed_config)
+

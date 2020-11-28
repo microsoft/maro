@@ -64,6 +64,18 @@ class AbsAgentManager(ABC):
         """Agent manager's name."""
         return self._name
 
+    @property
+    def state_shaper(self):
+        return self._state_shaper
+
+    @property
+    def action_shaper(self):
+        return self._action_shaper
+
+    @property
+    def experience_shaper(self):
+        return self._experience_shaper
+
     @abstractmethod
     def choose_action(self, *args, **kwargs):
         """Generate an environment executable action given the current decision event and snapshot list.

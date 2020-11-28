@@ -47,5 +47,6 @@ ERROR_CODE = {
     4006: "Infinite Training Loop",
     4007: "Missing Optimizer",
     4008: "Unrecognized Task",
-    4009: "Unchainable Modules"
+    4009: "Unchainable Modules",
+    4010: "Unrecognized Exploration Parameter Generator Class"
 }

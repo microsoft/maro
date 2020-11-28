@@ -3,12 +3,12 @@
 
 from typing import Callable
 
-from maro.communication import Proxy, SessionMessage, SessionType
+from maro.communication import Proxy, SessionType
 
 from .common import MessageTag, PayloadKey
 
 
-class RolloutProxy(Proxy):
+class ActorProxy(object):
     """A simple proxy wrapper for sending roll-out requests to remote actors.
 
     Args:
@@ -16,7 +16,7 @@ class RolloutProxy(Proxy):
         experience_collecting_func (Callable): A function responsible for collecting experiences from multiple sources.
     """
     def __init__(self, proxy_params, experience_collecting_func: Callable):
-        super().__init__(component_type="roll_out", **proxy_params)
+        self._proxy = Proxy(component_type="roll_out", **proxy_params)
         self._experience_collecting_func = experience_collecting_func
 
     def roll_out(
@@ -41,7 +41,7 @@ class RolloutProxy(Proxy):
             Performance and per-agent experiences from the remote actor.
         """
         if done:
-            self.ibroadcast(
+            self._proxy.ibroadcast(
                 component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
@@ -52,9 +52,9 @@ class RolloutProxy(Proxy):
         payloads = [(peer, {PayloadKey.MODEL: model_dict,
                             PayloadKey.EXPLORATION_PARAMS: exploration_params,
                             PayloadKey.RETURN_DETAILS: return_details})
-                    for peer in self.peers_name["actor"]]
+                    for peer in self._proxy.peers_name["actor"]]
         # TODO: double check when ack enable
-        replies = self.scatter(
+        replies = self._proxy.scatter(
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
             destination_payload_list=payloads
@@ -65,20 +65,3 @@ class RolloutProxy(Proxy):
         details = self._experience_collecting_func(details_by_source) if return_details else None
 
         return performance, details
-
-
-class ActionProxy(Proxy):
-    def __init__(self, proxy_params):
-        super().__init__(component_type="action", **proxy_params)
-
-    def choose_action(self, state, agent_id):
-        reply = self.send(
-            SessionMessage(
-                tag=MessageTag.CHOOSE_ACTION,
-                source=self.component_name,
-                destination=self.peers_name["action_server"],
-                payload={PayloadKey.STATE: state, PayloadKey.AGENT_ID: agent_id},
-            )
-        )
-
-        return reply.payload[PayloadKey.ACTION]
