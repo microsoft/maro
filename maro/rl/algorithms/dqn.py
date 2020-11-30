@@ -76,12 +76,8 @@ class DQN(AbsAlgorithm):
         self._target_model = model.copy() if model.is_trainable else None
 
     @expand_dim
-    def choose_action(self, state: np.ndarray, epsilon=None):
-        if epsilon is None or np.random.rand() > epsilon:
-            q_values = self._get_q_values(self._model, state, is_training=False)
-            return q_values.argmax(dim=1).item()
-
-        return np.random.choice(self._config.num_actions)
+    def choose_action(self, state: np.ndarray):
+        return self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:
