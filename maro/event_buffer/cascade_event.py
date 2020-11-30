@@ -2,8 +2,6 @@
 # Licensed under the MIT license.
 
 
-from typing import Union
-
 from .atom_event import AtomEvent
 
 
