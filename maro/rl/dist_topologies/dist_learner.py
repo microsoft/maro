@@ -103,14 +103,12 @@ class DistLearner(AbsLearner):
         state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
         agent_id = messages[0].payload[PayloadKey.AGENT_ID]
         model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
-        self._proxy.iscatter(
-            tag=MessageTag.ACTION,
-            session_type=SessionType.NOTIFICATION,
-            destination_payload_list=[
-                (msg.source, {PayloadKey.ACTION: model_action})
-                for msg, model_action in zip(messages, model_action_batch)
-            ]
-        )
+        for msg, model_action in zip(messages, model_action_batch):
+            self._proxy.reply(
+                received_message=msg,
+                tag=MessageTag.ACTION,
+                payload={PayloadKey.ACTION: model_action}
+            )
 
     def _collect(self, messages: list):
         for msg in messages:
