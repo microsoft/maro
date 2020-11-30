@@ -107,7 +107,8 @@ class DistLearner(AbsLearner):
             tag=MessageTag.ACTION,
             session_type=SessionType.NOTIFICATION,
             destination_payload_list=[
-                (msg.source, model_action for msg, model_action in zip(messages, model_action_batch))
+                (msg.source, {PayloadKey.ACTION: model_action})
+                for msg, model_action in zip(messages, model_action_batch)
             ]
         )
 
