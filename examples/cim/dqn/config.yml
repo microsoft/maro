@@ -62,7 +62,6 @@ agents:
       target_update_frequency: 5
       tau: 0.1
       is_double: true
-      advantage_mode: "mean"
       per_sample_td_error_enabled: true
   experience_pool:
     capacity: -1
