@@ -59,7 +59,7 @@ def expand_dim(func):
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
-        res = func(self, state, **kwargs)
-        return res.item if is_single else res.numpy()
+        result = func(self, state, **kwargs)
+        return result.item() if is_single else result.numpy()
 
     return wrapper
