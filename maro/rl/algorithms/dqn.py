@@ -82,15 +82,12 @@ class DQN(AbsAlgorithm):
     def is_trainable(self):
         return self._is_trainable
 
-    def choose_action(self, state: np.ndarray, epsilon: float = None):
-        if epsilon is None or np.random.rand() > epsilon:
-            state = torch.from_numpy(state).unsqueeze(0)
-            self._eval_model.eval()
-            with torch.no_grad():
-                q_values = self._get_q_values(state)
-            return q_values.argmax(dim=1).item()
-
-        return np.random.choice(self._hyper_params.num_actions)
+    def choose_action(self, state: np.ndarray):
+        state = torch.from_numpy(state).unsqueeze(0)
+        self._eval_model.eval()
+        with torch.no_grad():
+            q_values = self._get_q_values(state)
+        return q_values.argmax(dim=1).item()
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         if not self._is_trainable:
