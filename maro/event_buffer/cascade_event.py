@@ -2,6 +2,8 @@
 # Licensed under the MIT license.
 
 
+from typing import Union
+
 from .atom_event import AtomEvent
 
 
@@ -11,7 +13,7 @@ class CascadeEvent(AtomEvent):
 
     Some times there may be some events that depend on another one,
     then you can append these events into immediate_event_list, then
-    these events will be processed after the main event at same tick.
+    these events will be processed after the parent event at same tick.
     """
 
     def __init__(self, id: int, tick: int, event_type: object, payload: object):
@@ -25,12 +27,13 @@ class CascadeEvent(AtomEvent):
         self._immediate_event_count = 0
 
     def add_immediate_event(self, event, is_head: bool = False) -> bool:
-        """Add a immediate event, that will be processed right after current event.
+        """Add an immediate event, that will be processed right after the current event.
 
-        Immediate event only support add to the head or tail, default will append to the end.
+        Immediate events are only supported to be inserted into the head or tail of the immediate event list.
+        By default, the events will be appended to the end.
 
         NOTE:
-            Tick of immediate event must same as current event, or will fail to insert.
+            The tick of the event to insert must be the same as the current event, or will fail to insert.
 
         Args:
             event (Event): Event object to insert.

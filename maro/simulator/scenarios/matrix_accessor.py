@@ -90,6 +90,6 @@ class MatrixAttributeAccessor:
         """
         self._ensure_attr()
 
-        rows = [r * self._col_num + column_idx for r in range(self._row_num)]
+        row_indices = [r * self._col_num + column_idx for r in range(self._row_num)]
 
-        return self._attr[rows]
+        return self._attr[row_indices]

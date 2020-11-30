@@ -38,7 +38,8 @@ class VesselDischargePayload:
         self.quantity = quantity
 
     def __repr__(self):
-        return f"VesselDischargePayload {{ vessel: {self.vessel_idx}, port: {self.port_idx}, qty: {self.quantity} }}"
+        return f"VesselDischargePayload {{ vessel: {self.vessel_idx}, port: {self.port_idx}, \
+                qty: {self.quantity}, from_port_idx: {self.from_port_idx} }}"
 
 
 class LadenReturnPayload:
