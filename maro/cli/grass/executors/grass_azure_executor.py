@@ -149,8 +149,7 @@ class GrassAzureExecutor:
         # Create ARM parameters and start deployment
         abs_template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_vnet/template.json"
         abs_parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/"
-            "azure/create_vnet/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_vnet/parameters.json"
         )
         ArmTemplateParameterBuilder.create_vnet(
             cluster_details=cluster_details,
@@ -180,8 +179,7 @@ class GrassAzureExecutor:
         # Create ARM parameters and start deployment
         template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_build_node_image_vm/template.json"
         parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/"
-            f"azure/create_build_node_image_vm/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_build_node_image_vm/parameters.json"
         )
         ArmTemplateParameterBuilder.create_build_node_image_vm(
             cluster_details=cluster_details,
@@ -246,8 +244,7 @@ class GrassAzureExecutor:
         # Create ARM parameters and start deployment
         template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_master/template.json"
         parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}"
-            f"/azure/create_master/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_master/parameters.json"
         )
         ArmTemplateParameterBuilder.create_master(
             cluster_details=cluster_details,
@@ -462,7 +459,7 @@ class GrassAzureExecutor:
                 )
         else:
             logger.warning_yellow(
-                f"Unable to scale down."
+                "Unable to scale down."
                 f" Only {len(deletable_nodes)} are deletable, but need to delete {num} to meet the replica"
             )
 
@@ -480,8 +477,7 @@ class GrassAzureExecutor:
         # Create ARM parameters and start deployment
         template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_node/template.json"
         parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}"
-            f"/azure/create_{node_name}/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_{node_name}/parameters.json"
         )
         ArmTemplateParameterBuilder.create_node(
             node_name=node_name,
