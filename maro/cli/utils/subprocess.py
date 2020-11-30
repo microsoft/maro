@@ -15,7 +15,7 @@ class SubProcess:
     @staticmethod
     def run(command: str) -> str:
         if platform.system() == "Windows":
-            command = "powershell.exe " + command
+            command = f"powershell.exe -Command \"{command}\""
         logger.debug(command)
         completed_process = subprocess.run(
             command,
