@@ -37,3 +37,6 @@ class AtomEvent:
         self.payload = payload
         self.event_type = event_type
         self.state = EventState.PENDING
+
+        # Used to link to next event in linked list
+        self._next_event_ = None

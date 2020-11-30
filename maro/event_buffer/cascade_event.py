@@ -17,7 +17,12 @@ class CascadeEvent(AtomEvent):
     def __init__(self, id: int, tick: int, event_type: object, payload: object):
         super().__init__(id, tick, event_type, payload)
 
-        self._immediate_event_list = []
+        # Header of immediate event list
+        self._immediate_event_head = AtomEvent(None, None, None, None)
+
+        # Pointer to last immediate event, used for speed up immediate event extract
+        self._last_immediate_event = self._immediate_event_head
+        self._immediate_event_count = 0
 
     def add_immediate_event(self, event, is_head: bool = False) -> bool:
         """Add a immediate event, that will be processed right after current event.
@@ -39,8 +44,14 @@ class CascadeEvent(AtomEvent):
             return False
 
         if is_head:
-            self._immediate_event_list.insert(0, event)
+            event._next_event_ = self._immediate_event_head._next_event_
+
+            self._immediate_event_head._next_event_ = event
         else:
-            self._immediate_event_list.append(event)
+            self._last_immediate_event._next_event_ = event
+
+            self._last_immediate_event = event
+
+        self._immediate_event_count += 1
 
         return True

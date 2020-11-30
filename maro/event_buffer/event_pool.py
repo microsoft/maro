@@ -3,6 +3,7 @@
 
 from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
+from .event_list import EventLinkedList
 from .event_state import EventState
 from .typings import Event, EventList, List, Union
 
@@ -61,34 +62,26 @@ class EventPool:
 
         return event
 
-    def recycle(self, events: Union[Event, EventList], with_buffer: bool = True):
+    def recycle(self, events: Union[Event, EventList]):
         """Recycle specified event for further using.
 
         Args:
             events (Union[Event, EventList]): Event object(s) to recycle.
             with_buffer (bool): Is recycle object should put into buffer first?
         """
-        if type(events) != list:
+        if type(events) != list and type(events) != EventLinkedList:
             events = [events]
 
         for event in events:
             if event is not None:
-                if with_buffer:
-                    # append to the end of buffer
-                    self._recycle_buffer.append(event)
-                else:
-                    self._append(event)
-
-    def flush(self):
-        """Flush current recycle buffer, make cached events ready to use."""
-        for _ in range(len(self._recycle_buffer)):
-            self._append(self._recycle_buffer.pop())
+                self._append(event)
 
     def _append(self, event: Event):
         """Append event to related pool"""
         if event:
             # deattach the payload before recycle
             event.payload = None
+            event._next_event_ = None
             event.state = EventState.FINISHED
 
             if isinstance(event, CascadeEvent):
