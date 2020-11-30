@@ -56,8 +56,10 @@ def expand_dim(func):
     def wrapper(self, state, **kwargs):
         if isinstance(state, np.ndarray):
             state = torch.from_numpy(state).to(device)
-        if len(state.shape) == 1:
+        is_single = len(state.shape) == 1
+        if is_single:
             state = state.unsqueeze(dim=0)
-        return func(self, state, **kwargs)
+        res = func(self, state, **kwargs)
+        return res.item if is_single else res.numpy()
 
     return wrapper

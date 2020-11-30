@@ -4,6 +4,8 @@
 import sys
 from typing import Callable
 
+import numpy as np
+
 from maro.communication import Proxy, RegisterTable, SessionType
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.dist_topologies.common import MessageTag, PayloadKey
@@ -25,7 +27,8 @@ class DistLearner(AbsLearner):
         agent_manager: SimpleAgentManager,
         scheduler: Scheduler,
         proxy_params: dict,
-        experience_collecting_func: Callable
+        experience_collecting_func: Callable,
+
     ):
         super().__init__()
         self._agent_manager = agent_manager
@@ -33,8 +36,8 @@ class DistLearner(AbsLearner):
         self._proxy = Proxy(component_type="learner", **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._registry_table = RegisterTable(self._proxy.peers_name)
-        self._registry_table.register_event_handler("actor:choose_action:1", self._get_action)
-        self._registry_table.register_event_handler("actor:update:1", self._collect)
+        self._registry_table.register_event_handler(f"actor:choose_action:{self._num_actors}", self._get_action)
+        self._registry_table.register_event_handler(f"actor:update:{self._num_actors}", self._collect)
         self._experience_collecting_func = experience_collecting_func
         self._performances = {}
         self._details = {}
@@ -47,7 +50,7 @@ class DistLearner(AbsLearner):
             # load exploration parameters:
             if exploration_params is not None:
                 self._agent_manager.update_exploration_params(exploration_params)
-            self._remote_rollout()
+            self._rollout()
             self._serve()
             for perf in self._performances.values():
                 self._scheduler.record_performance(perf)
@@ -56,12 +59,12 @@ class DistLearner(AbsLearner):
 
     def test(self):
         """Test policy performance."""
-        self._remote_rollout()
+        self._rollout()
         self._serve()
 
     def exit(self, code: int = 0):
         """Tell the remote actor to exit."""
-        self._remote_rollout(done=True)
+        self._rollout(done=True)
         sys.exit(code)
 
     def load_models(self, dir_path: str):
@@ -70,7 +73,7 @@ class DistLearner(AbsLearner):
     def dump_models(self, dir_path: str):
         self._agent_manager.dump_models_to_files(dir_path)
 
-    def _remote_rollout(self, done: bool = False, return_details: bool = True):
+    def _rollout(self, done: bool = False, return_details: bool = True):
         if done:
             self._proxy.ibroadcast(
                 component_type="actor",
@@ -91,21 +94,24 @@ class DistLearner(AbsLearner):
     def _serve(self):
         for msg in self._proxy.receive():
             self._registry_table.push(msg)
-            triggered_events = self._registry_table.get()
-            for handler_fn, cached_messages in triggered_events:
+            for handler_fn, cached_messages in self._registry_table.get():
                 handler_fn(cached_messages)
             if len(self._performances) == self._num_actors:
                 break
 
-    def _get_action(self, message):
-        state, agent_id = message.payload[PayloadKey.STATE], message.payload[PayloadKey.AGENT_ID]
-        model_action = self._agent_manager[agent_id].choose_action(state)
-        self._proxy.reply(
-            received_message=message,
+    def _get_action(self, messages: list):
+        state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
+        agent_id = messages[0].payload[PayloadKey.AGENT_ID]
+        model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
+        self._proxy.iscatter(
             tag=MessageTag.ACTION,
-            payload={PayloadKey.ACTION: model_action}
+            session_type=SessionType.NOTIFICATION,
+            destination_payload_list=[
+                (msg.source, model_action for msg, model_action in zip(messages, model_action_batch))
+            ]
         )
 
-    def _collect(self, message):
-        self._performances[message.source] = message.payload[PayloadKey.PERFORMANCE]
-        self._details[message.source] = message.payload[PayloadKey.DETAILS]
+    def _collect(self, messages: list):
+        for msg in messages:
+            self._performances[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
+            self._details[msg.source] = msg.payload[PayloadKey.DETAILS]
