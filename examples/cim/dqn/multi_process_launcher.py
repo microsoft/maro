@@ -22,4 +22,4 @@ if __name__ == "__main__":
 
     # Launch the actor processes
     for _ in range(args.num_actors):
-        os.system(f"GROUP={args.group_name} MODE={args.mode} python SEED" + actor_path)
+        os.system(f"GROUP={args.group_name} MODE={args.mode} python " + actor_path)
