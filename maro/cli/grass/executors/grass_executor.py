@@ -97,7 +97,7 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.get_public_key'"
         )
-        return_str = SubProcess.run(command).strip('\n')
+        return_str = SubProcess.run(command).strip("\n")
         logger.debug(return_str)
         return return_str
 
@@ -244,5 +244,4 @@ class GrassExecutor:
                     f"Unable to connect to {node_ip_address}, remains {remain_retries} retries")
                 time.sleep(10)
                 continue
-
         raise CliException(f"Unable to connect to {node_ip_address}")
