@@ -43,6 +43,8 @@ namespace maro
 
     // NOTE: this must be update if header has changes
     const UCHAR HEADER_LENGTH = 84;
+    const UCHAR HEADER_TOTAL_ITEMS_OFFSET = 15;
+    const UCHAR HEADER_META_SIZE_OFFSET = 44;
 
     /*
     Header in binary file, contains following items:
@@ -194,7 +196,6 @@ namespace maro
     public:
       const char* what() const noexcept override;
     };
-
   } // namespace datalib
 
 } // namespace maro
