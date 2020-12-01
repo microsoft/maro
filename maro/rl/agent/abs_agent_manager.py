@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Union
 
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
@@ -28,7 +28,7 @@ class AbsAgentManager(ABC):
         name (str): Name of agent manager.
         mode (AgentManagerMode): An ``AgentManagerNode`` enum member that indicates the role of the agent manager
             in the current process.
-        agents (dict): A dictionary of agents to be wrapped by the agent manager.
+        agent_dict (dict): A dictionary of agents to be wrapped by the agent manager.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
@@ -42,21 +42,21 @@ class AbsAgentManager(ABC):
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: dict,
+        agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
     ):
         self._name = name
         self._mode = mode
-        self._agents = agents
+        self._agent_dict = agent_dict
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
 
     def __getitem__(self, agent_id):
-        if isinstance(self._agents, dict):
-            return self._agents[agent_id]
+        if isinstance(self._agent_dict, dict):
+            return self._agent_dict[agent_id]
 
     @property
     def name(self):
@@ -105,13 +105,39 @@ class AbsAgentManager(ABC):
 
     def update_exploration_params(self, exploration_params):
         # Per-agent exploration parameters
-        if isinstance(exploration_params, dict) and exploration_params.keys() <= self._agents.keys():
+        if isinstance(exploration_params, dict) and exploration_params.keys() <= self._agent_dict.keys():
             for agent_id, params in exploration_params.items():
-                self._agents[agent_id].update(**params)
+                self._agent_dict[agent_id].update(**params)
         # Shared exploration parameters for all agents
         else:
-            for agent in self._agents.values():
+            for agent in self._agent_dict.values():
                 agent.update(**exploration_params)
+
+    def load_models(self, agent_model_dict):
+        """Load models from memory for each agent."""
+        for agent_id, models in agent_model_dict.items():
+            self._agent_dict[agent_id].load_models(models)
+
+    def dump_models(self) -> dict:
+        """Get agents' underlying models.
+
+        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
+        """
+        return {agent_id: agent.dump_models() for agent_id, agent in self._agent_dict.items()}
+
+    def load_models_from_files(self, dir_path):
+        """Load models from disk for each agent."""
+        for agent in self._agent_dict.values():
+            agent.load_models_from_file(dir_path)
+
+    def dump_models_to_files(self, dir_path: str):
+        """Dump agents' models to disk.
+
+        Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
+        """
+        os.makedirs(dir_path, exist_ok=True)
+        for agent in self._agent_dict.values():
+            agent.dump_model_to_file(dir_path)
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:

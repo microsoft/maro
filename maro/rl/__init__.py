@@ -1,19 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.actor.abs_actor import AbsActor
-from maro.rl.actor.simple_actor import SimpleActor
+from maro.rl.distributed.abs_actor import AbsActor
 from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
-from maro.rl.dist_topologies.actor_proxy import ActorProxy
-from maro.rl.dist_topologies.actor_worker import ActorWorker
-from maro.rl.dist_topologies.dist_actor import DistActor
-from maro.rl.dist_topologies.dist_learner import DistLearner
-from maro.rl.dist_topologies.experience_collection import (
+from maro.rl.distributed.abs_actor import AbsActor
+from maro.rl.distributed.abs_dist_learner import AbsDistLearner
+from maro.rl.distributed.actor import SEEDActor, SimpleActor
+from maro.rl.distributed.common import Component
+from maro.rl.distributed.dist_learner import SEEDLearner, SimpleDistLearner
+from maro.rl.distributed.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 )
 from maro.rl.exploration.abs_explorer import AbsExplorer
@@ -42,19 +42,17 @@ __all__ = [
     'AbsAgent',
     'AbsAgentManager',
     'AbsAlgorithm',
+    'AbsDistLearner',
     'AbsExplorer',
     'AbsLearner',
     'AbsShaper',
     'AbsStore',
     'ActionShaper',
-    'ActorProxy',
-    'ActorWorker',
     'AgentManagerMode',
     'ColumnBasedStore',
+    'Component',
     'DQN',
     'DQNConfig',
-    'DistActor',
-    'DistLearner',
     'DuelingDQNTask',
     'DynamicExplorationParameterGenerator',
     'EpsilonGreedyExplorer',
@@ -66,9 +64,12 @@ __all__ = [
     'LinearExplorationParameterGenerator',
     'OptimizerOptions',
     'OverwriteType',
+    'SEEDActor',
+    'SEEDLearner',
     'Scheduler',
     'SimpleActor',
     'SimpleAgentManager',
+    'SimpleDistLearner',
     'SimpleLearner',
     'StateShaper',
     'StaticExplorationParameterGenerator',

@@ -11,7 +11,7 @@ from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
-from maro.rl import ActorWorker, AgentManagerMode, KStepExperienceShaper, SimpleActor
+from maro.rl import AgentManagerMode, Component, KStepExperienceShaper
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -40,17 +40,29 @@ def launch(config, distributed_config):
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
     )
-    proxy_params = {
-        "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
-        "expected_peers": {"learner": 1},
-        "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
-        "max_retries": 15
-    }
-    actor_worker = ActorWorker(
-        local_actor=SimpleActor(env, agent_manager),
-        proxy_params=proxy_params
-    )
-    actor_worker.launch()
+
+    if distributed_config.mode == "simple":
+        from maro.rl import SimpleActor
+        actor = SimpleActor(
+            env, agent_manager,
+            group_name=os.environ.get("GROUP", distributed_config.group),
+            expected_peers={Component.LEARNER.value: 1},
+            redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
+            max_retries=15
+        )
+    elif distributed_config.mode == "seed":
+        from maro.rl import SEEDActor
+        actor = SEEDActor(
+            env, state_shaper, action_shaper, experience_shaper,
+            group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
+            expected_peers={"learner": 1},
+            redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
+            max_retries=15
+        )
+    else:
+        raise ValueError('Only "simple" and "seed" distributed modes are supported')
+
+    actor.launch()
 
 
 if __name__ == "__main__":

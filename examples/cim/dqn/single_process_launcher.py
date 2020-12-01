@@ -13,8 +13,7 @@ from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
-    AgentManagerMode, KStepExperienceShaper, Scheduler, SimpleActor, SimpleLearner,
-    TwoPhaseLinearExplorationParameterGenerator
+    AgentManagerMode, KStepExperienceShaper, Scheduler, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -75,8 +74,7 @@ def launch(config):
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
 
-    actor = SimpleActor(env, agent_manager)
-    learner = SimpleLearner(agent_manager, actor, scheduler)
+    learner = SimpleLearner(env, agent_manager, scheduler)
     learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))

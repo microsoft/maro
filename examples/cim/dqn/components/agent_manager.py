@@ -55,7 +55,7 @@ class DQNAgentManager(SimpleAgentManager):
         # store experiences for each agent
         for agent_id, exp in experiences_by_agent.items():
             exp.update({"loss": [1e8] * len(list(exp.values())[0])})
-            self._agents[agent_id].store_experiences(exp)
+            self._agent_dict[agent_id].store_experiences(exp)
 
-        for agent in self._agents.values():
+        for agent in self._agent_dict.values():
             agent.train()

@@ -1,13 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
-from typing import Union
-
-from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
-from maro.rl.dist_topologies.actor_proxy import ActorProxy
 from maro.rl.scheduling.scheduler import Scheduler
+from maro.simulator import Env
 
 from .abs_learner import AbsLearner
 
@@ -16,46 +12,33 @@ class SimpleLearner(AbsLearner):
     """A simple implementation of ``AbsLearner``.
 
     Args:
+        env (Env): An Env instance.
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
-        actor (SimpleActor or ActorProxy): An SimpleActor or ActorProxy instance responsible for performing roll-outs
-            (environment sampling).
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
     """
     def __init__(
         self,
+        env: Env,
         agent_manager: SimpleAgentManager,
-        actor: Union[SimpleActor, ActorProxy],
         scheduler: Scheduler
     ):
         super().__init__()
+        self._env = env
         self._agent_manager = agent_manager
-        self._actor = actor
         self._scheduler = scheduler
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
-            performance, exp_by_agent = self._actor.roll_out(
-                model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models(),
-                exploration_params=exploration_params
-            )
+            performance, exp_by_agent = self._sample(exploration_params=exploration_params)
             self._scheduler.record_performance(performance)
             self._agent_manager.train(exp_by_agent)
 
     def test(self):
         """Test policy performance."""
-        performance, _ = self._actor.roll_out(
-            model_dict=self._agent_manager.dump_models(),
-            return_details=False
-        )
+        performance, _ = self._sample(return_details=False)
         self._scheduler.record_performance(performance)
-
-    def exit(self, code: int = 0):
-        """Tell the remote actor to exit."""
-        if isinstance(self._actor, ActorProxy):
-            self._actor.roll_out(done=True)
-        sys.exit(code)
 
     def load_models(self, dir_path: str):
         self._agent_manager.load_models_from_files(dir_path)
@@ -63,6 +46,28 @@ class SimpleLearner(AbsLearner):
     def dump_models(self, dir_path: str):
         self._agent_manager.dump_models_to_files(dir_path)
 
-    def _is_shared_agent_instance(self):
-        """If true, the set of agents performing inference in actor is the same as self._agent_manager."""
-        return isinstance(self._actor, SimpleActor) and id(self._actor.agents) == id(self._agent_manager)
+    def _sample(self, exploration_params=None, return_details: bool = True):
+        """Perform one episode of roll-out and return performance and experiences.
+
+        Args:
+            exploration_params: Exploration parameters.
+            return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+
+        Returns:
+            Performance and relevant details from the episode (e.g., experiences).
+        """
+        self._env.reset()
+
+        # load exploration parameters:
+        if exploration_params is not None:
+            self._agent_manager.update_exploration_params(exploration_params)
+
+        metrics, decision_event, is_done = self._env.step(None)
+        while not is_done:
+            action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
+            metrics, decision_event, is_done = self._env.step(action)
+            self._agent_manager.on_env_feedback(metrics)
+
+        details = self._agent_manager.post_process(self._env.snapshot_list) if return_details else None
+
+        return self._env.metrics, details

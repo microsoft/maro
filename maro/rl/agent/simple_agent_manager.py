@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 from abc import abstractmethod
 
 from maro.rl.shaping.action_shaper import ActionShaper
@@ -18,7 +17,7 @@ class SimpleAgentManager(AbsAgentManager):
         self,
         name: str,
         mode: AgentManagerMode,
-        agents: dict,
+        agent_dict: dict,
         state_shaper: StateShaper = None,
         action_shaper: ActionShaper = None,
         experience_shaper: ExperienceShaper = None
@@ -32,7 +31,7 @@ class SimpleAgentManager(AbsAgentManager):
                 raise MissingShaperError(msg=f"experience_shaper cannot be None under mode {self._mode}")
 
         super().__init__(
-            name, mode, agents,
+            name, mode, agent_dict,
             state_shaper=state_shaper,
             action_shaper=action_shaper,
             experience_shaper=experience_shaper
@@ -44,7 +43,7 @@ class SimpleAgentManager(AbsAgentManager):
     def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        model_action = self._agents[agent_id].choose_action(model_state)
+        model_action = self._agent_dict[agent_id].choose_action(model_state)
         self._transition_cache = {
             "state": model_state,
             "action": model_action,
@@ -81,33 +80,3 @@ class SimpleAgentManager(AbsAgentManager):
     def train(self, *args, **kwargs):
         """Train all agents."""
         return NotImplementedError
-
-    def load_models(self, agent_model_dict):
-        """Load models from memory for each agent."""
-        for agent_id, models in agent_model_dict.items():
-            self._agents[agent_id].load_models(models)
-
-    def dump_models(self) -> dict:
-        """Get agents' underlying models.
-
-        This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
-        """
-        return {agent_id: agent.dump_models() for agent_id, agent in self._agents.items()}
-
-    def load_models_from_files(self, dir_path):
-        """Load models from disk for each agent."""
-        for agent in self._agents.values():
-            agent.load_models_from_file(dir_path)
-
-    def dump_models_to_files(self, dir_path: str):
-        """Dump agents' models to disk.
-
-        Each agent will use its own name to create a separate file under ``dir_path`` for dumping.
-        """
-        os.makedirs(dir_path, exist_ok=True)
-        for agent in self._agents.values():
-            agent.dump_model_to_file(dir_path)
-
-    def _to_shared_memory(self):
-        for agent in self._agents.values():
-            agent.algorithm.model.share_memory()

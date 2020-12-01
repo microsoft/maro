@@ -7,8 +7,7 @@ from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
 
 from maro.rl import (
-    ActorProxy, AgentManagerMode, Scheduler, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator,
-    concat_experiences_by_agent
+    AgentManagerMode, Component, Scheduler, TwoPhaseLinearExplorationParameterGenerator, concat_experiences_by_agent
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -27,17 +26,6 @@ def launch(config, distributed_config):
         agent_dict=create_dqn_agents(agent_id_list, config.agents)
     )
 
-    proxy_params = {
-        "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
-        "expected_peers": {
-            "actor": int(
-                os.environ["NUM_ACTORS"] if "NUM_ACTORS" in os.environ
-                else distributed_config.num_actors
-            )},
-        "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
-        "max_retries": 15
-    }
-
     scheduler = Scheduler(
         config.main_loop.max_episode,
         warmup_ep=config.main_loop.early_stopping.warmup_ep,
@@ -46,10 +34,21 @@ def launch(config, distributed_config):
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
 
-    learner = SimpleLearner(
-        agent_manager=agent_manager,
-        actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
-        scheduler=scheduler
+    if distributed_config.mode == "simple":
+        from maro.rl import SimpleDistLearner as learner_cls
+    elif distributed_config.mode == "seed":
+        from maro.rl import SEEDLearner as learner_cls
+    else:
+        raise ValueError('Only "simple" and "seed" distributed modes are supported')
+
+    learner = learner_cls(
+        agent_manager,
+        scheduler,
+        concat_experiences_by_agent,
+        expected_peers={Component.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))},
+        group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
+        redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
+        max_retries=15
     )
     learner.learn()
     learner.test()

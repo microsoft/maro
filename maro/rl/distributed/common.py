@@ -1,11 +1,17 @@
 from enum import Enum
 
 
+class Component(Enum):
+    LEARNER = "learner"
+    ACTOR = "actor"
+
+
 class MessageTag(Enum):
     ROLLOUT = "rollout"
     UPDATE = "update"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
+    EXIT = "exit"
 
 
 class PayloadKey(Enum):
