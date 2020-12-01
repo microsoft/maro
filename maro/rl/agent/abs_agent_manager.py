@@ -116,7 +116,7 @@ class AbsAgentManager(ABC):
     def load_models(self, agent_model_dict):
         """Load models from memory for each agent."""
         for agent_id, models in agent_model_dict.items():
-            self._agent_dict[agent_id].load_models(models)
+            self._agent_dict[agent_id].load_model(models)
 
     def dump_models(self) -> dict:
         """Get agents' underlying models.
