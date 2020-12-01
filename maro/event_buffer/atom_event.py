@@ -12,23 +12,20 @@ class AtomEvent:
         The payload of event can be any object that related with specified logic.
 
     Args:
+        id (int): Id of this event.
         tick (int): Tick that this event will be processed.
         event_type (int): Type of this event, this is a customize field,
             there is one predefined event type is 0 (PREDEFINE_EVENT_ACTION).
         payload (object): Payload of this event.
-        category (EventCategory): Category mark of this event.
 
     Attributes:
         id (int): Id of this event, usually this is used for "joint decision" node
                 that need "sequential action".
         tick (int): Process tick of this event.
         payload (object): Payload of this event, can be any object.
-        category (EventCategory): Category of this event.
-        event_type (object): Type of this event, can be any type, usually int,
+        event_type (object): Type of this event, can be any type,
                 EventBuffer will use this to match handlers.
         state (EventState): Internal life-circle state of event.
-        immediate_event_list (List[Event]): Used to hold events that depend on current event,
-                these events will be processed after this event.
     """
 
     def __init__(self, id: int, tick: int, event_type: object, payload: object):

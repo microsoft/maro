@@ -13,8 +13,8 @@ class EventLinkedList:
 
     Event linked list only support 2 methods to add event:
 
-    1. append: Append event to the end
-    2. insert: Insert event to the head
+    1. append: Append event to the end.
+    2. insert: Insert event to the head.
 
     Pop method used to pop event(s) from list head, according to current event type,
     it may return a list of deicision event, or just an AtomEvent object.
@@ -33,22 +33,22 @@ class EventLinkedList:
         event = event_list.pop()
     """
     def __init__(self):
-        # Head of events
+        # Head of events.
         self._head = AtomEvent(None, None, None, None)
 
-        # Tail of events
+        # Tail of events.
         self._tail = self._head
 
-        # Current events count
+        # Current events count.
         self._count = 0
 
-        # Used to support for loop
+        # Used to support for loop.
         self._iter_cur_event: Event = None
 
     def clear(self):
         """Clear current events."""
 
-        # We just drop the next events reference, GC or EventPool will collect them
+        # We just drop the next events reference, GC or EventPool will collect them.
         self._head._next_event_ = None
         self._tail = self._head
         self._count = 0
@@ -57,26 +57,26 @@ class EventLinkedList:
         """Append an event to the end.
 
         Args:
-            event (Event): New event to append
+            event (Event): New event to append.
         """
-        # Link to the tail, update the tail
+        # Link to the tail, update the tail.
         self._tail._next_event_ = event
         self._tail = event
 
-        # Counting
+        # Counting.
         self._count += 1
 
     def insert(self, event: Event):
         """Insert an event to the head, will be the first one to pop.
 
         Args:
-            event (Event): Event to insert
+            event (Event): Event to insert.
         """
-        # Link to head, update head
+        # Link to head, update head.
         event._next_event_ = self._head._next_event_
         self._head._next_event_ = event
 
-        # Counting
+        # Counting.
         self._count += 1
 
     def pop(self) -> Union[Event, EventList]:
@@ -90,15 +90,15 @@ class EventLinkedList:
         while event is not None:
             # We will remove event from list until its state is FINISHED.
             if event.state == EventState.FINISHED:
-                # Remove it (head)
+                # Remove it (head).
                 self._head._next_event_ = event._next_event_
 
                 event._next_event_ = None
 
-                # Counting
+                # Counting.
                 self._count -= 1
 
-                # Extract sub events, this will change the head
+                # Extract sub events, this will change the head.
                 self._extract_sub_events(event)
 
                 event = self._head._next_event_
@@ -108,13 +108,13 @@ class EventLinkedList:
             if event.state == EventState.EXECUTING:
                 return event
 
-            if event.event_type == MaroEvents.DECISION_EVENT:
+            if event.event_type == MaroEvents.PENDING_DECISION:
                 decision_events = [event]
 
-                # Find following decision events
+                # Find following decision events.
                 next_event: Event = event._next_event_
 
-                while next_event is not None and next_event.event_type == MaroEvents.DECISION_EVENT:
+                while next_event is not None and next_event.event_type == MaroEvents.PENDING_DECISION:
                     decision_events.append(next_event)
 
                     next_event = next_event._next_event_
@@ -159,7 +159,7 @@ class EventLinkedList:
             event (Event): Event to extract.
         """
         if type(event) == CascadeEvent:
-            # Make immediate event list as the head of current list
+            # Make immediate event list as the head of current list.
             if event._immediate_event_head._next_event_ is not None:
                 event._last_immediate_event._next_event_ = self._head._next_event_
                 self._head._next_event_ = event._immediate_event_head._next_event_

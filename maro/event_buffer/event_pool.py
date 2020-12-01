@@ -25,11 +25,6 @@ class EventPool:
 
         self._event_id: int = 0
 
-        if enable:
-            for _ in range(capacity):
-                self._atom_pool.append(AtomEvent(None, None, None, None))
-                self._cascade_pool.append(CascadeEvent(None, None, None, None))
-
     @property
     def enabled(self) -> bool:
         """bool: Is pooling enabled."""
@@ -67,7 +62,6 @@ class EventPool:
 
         Args:
             events (Union[Event, EventList]): Event object(s) to recycle.
-            with_buffer (bool): Is recycle object should put into buffer first?
         """
         if type(events) != list and type(events) != EventLinkedList:
             events = [events]
@@ -79,7 +73,7 @@ class EventPool:
     def _append(self, event: Event):
         """Append event to related pool"""
         if event:
-            # deattach the payload before recycle
+            # Deattach the payload before recycle.
             event.payload = None
             event._next_event_ = None
             event.state = EventState.FINISHED
@@ -92,7 +86,6 @@ class EventPool:
     def _pop(self, cntr: EventList, event_cls_type: type):
         """Pop an event from related pool, generate buffer events if not enough."""
         if len(cntr) == 0:
-            for _ in range(self._capacity):
-                cntr.append(event_cls_type(None, None, None, None))
-
-        return cntr.pop()
+            return event_cls_type(None, None, None, None)
+        else:
+            return cntr.pop()

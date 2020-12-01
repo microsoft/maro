@@ -10,17 +10,17 @@ class CascadeEvent(AtomEvent):
     events will be execute right after its parent.
 
     Some times there may be some events that depend on another one,
-    then you can append these events into immediate_event_list, then
-    these events will be processed after the parent event at same tick.
+    then you can append these events with add_immediate_event method, then
+    these events will be processed after the parent event.
     """
 
     def __init__(self, id: int, tick: int, event_type: object, payload: object):
         super().__init__(id, tick, event_type, payload)
 
-        # Header of immediate event list
+        # Header of immediate event list.
         self._immediate_event_head = AtomEvent(None, None, None, None)
 
-        # Pointer to last immediate event, used for speed up immediate event extract
+        # Pointer to last immediate event, used for speed up immediate event extract.
         self._last_immediate_event = self._immediate_event_head
         self._immediate_event_count = 0
 
@@ -35,12 +35,12 @@ class CascadeEvent(AtomEvent):
 
         Args:
             event (Event): Event object to insert.
-            is_head (bool): If insert into the head (0 index), or append to the end.
+            is_head (bool): Whether to insert at the head or append to the end.
 
         Returns:
             bool: True if success, or False.
         """
-        # Make sure immediate event's tick same as current
+        # Make sure the immediate event's tick is the same as the current one.
         if event.tick != self.tick:
             return False
 
