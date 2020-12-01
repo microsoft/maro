@@ -41,16 +41,7 @@ def launch(config, distributed_config):
         experience_shaper=experience_shaper
     )
 
-    if distributed_config.mode == "simple":
-        from maro.rl import SimpleActor
-        actor = SimpleActor(
-            env, agent_manager,
-            group_name=os.environ.get("GROUP", distributed_config.group),
-            expected_peers={Component.LEARNER.value: 1},
-            redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
-            max_retries=15
-        )
-    elif distributed_config.mode == "seed":
+    if os.environ["SEED"]:
         from maro.rl import SEEDActor
         actor = SEEDActor(
             env, state_shaper, action_shaper, experience_shaper,
@@ -60,7 +51,14 @@ def launch(config, distributed_config):
             max_retries=15
         )
     else:
-        raise ValueError('Only "simple" and "seed" distributed modes are supported')
+        from maro.rl import SimpleActor
+        actor = SimpleActor(
+            env, agent_manager,
+            group_name=os.environ.get("GROUP", distributed_config.group),
+            expected_peers={Component.LEARNER.value: 1},
+            redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
+            max_retries=15
+        )
 
     actor.launch()
 
