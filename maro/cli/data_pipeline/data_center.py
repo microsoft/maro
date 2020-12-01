@@ -2,6 +2,7 @@ import gzip
 import os
 import shutil
 import time
+from  csv import reader, writer
 from typing import List
 
 import aria2p
@@ -74,7 +75,7 @@ class DataCenterPipeline(DataPipeline):
                 # Two kinds of required files "vmtable" and "vm_cpu_readings-" start with vm.
                 if file_name.startswith("vmtable"):
                     if (not is_force) and os.path.exists(self._vm_table_file):
-                        logger.info_green("File already exists, skipping download.")
+                        logger.info_green(f"{self._vm_table_file} already exists, skipping download.")
                     else:
                         logger.info_green(f"Downloading vmtable from {remote_url} to {self._vm_table_file}.")
                         self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
@@ -85,7 +86,7 @@ class DataCenterPipeline(DataPipeline):
                     self._cpu_readings_file_name_list.append(file_name)
 
                     if (not is_force) and os.path.exists(cpu_readings_file):
-                        logger.info_green("File already exists, skipping download.")
+                        logger.info_green(f"{cpu_readings_file} already exists, skipping download.")
                     else:
                         logger.info_green(f"Downloading cpu_readings from {remote_url} to {cpu_readings_file}.")
                         self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
@@ -154,55 +155,80 @@ class DataCenterPipeline(DataPipeline):
         vm_table = pd.read_csv(raw_vm_table_file, header=None, index_col=False, names=headers)
         vm_table = vm_table.loc[:, required_headers]
 
-        vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer")
-        vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer")
-
+        vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
+        vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
+        # Transform vmcorecount '>24' bucket to 30 and vmmemory '>64' to 70.
+        vm_table = vm_table.replace({'vmcorecountbucket':'>24'}, 30)
+        vm_table = vm_table.replace({'vmmemorybucket':'>64'}, 70)
         vm_table['vmcorecountbucket'] = pd.to_numeric(
             vm_table['vmcorecountbucket'], errors="coerce", downcast="integer"
         )
         vm_table['vmmemorybucket'] = pd.to_numeric(vm_table['vmmemorybucket'], errors="coerce", downcast="integer")
         vm_table.dropna(inplace=True)
 
-        # Selected the VMs which are deleted before time=12900.
-        vm_table = vm_table[vm_table['vmdeleted'] <= 12900]
         vm_table['lifetime'] = vm_table['vmdeleted'] - vm_table['vmcreated']
         vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
+        # Generate new id column.
+        vm_table = vm_table.reset_index(drop=True)
+        vm_table['new_id'] = vm_table.index + 1
+        vm_id_map = vm_table.set_index('vmid')['new_id']
+        # Drop the original id column.
+        vm_table = vm_table.drop(['vmid'], axis=1)
+        # Reorder columns.
+        vm_table = vm_table[['new_id', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']]
+        # Rename column name.
+        vm_table.rename(columns={'new_id':'vmid'}, inplace=True)
 
-        return vm_table
+        return vm_id_map, vm_table
 
-    def _process_cpu_readings(self, raw_cpu_readings_file: str, vm_ids: pd.DataFrame):
+    def _process_cpu_readings(self, clean_cpu_readings_file: str):
         """Process cpu reading file."""
         headers = ['timestamp', 'vmid', 'mincpu', 'maxcpu', 'avgcpu']
         required_headers = ['timestamp', 'vmid', 'maxcpu']
 
-        cpu_readings = pd.read_csv(raw_cpu_readings_file, header=None, index_col=False, names=headers)
+        cpu_readings = pd.read_csv(clean_cpu_readings_file, header=None, index_col=False, names=headers)
         cpu_readings = cpu_readings.loc[:, required_headers]
-        cpu_readings = cpu_readings[cpu_readings['vmid'].isin(vm_ids)]
 
-        cpu_readings['timestamp'] = pd.to_numeric(cpu_readings['timestamp'], errors="coerce", downcast="integer")
+        cpu_readings['timestamp'] = pd.to_numeric(cpu_readings['timestamp'], errors="coerce", downcast="integer") // 300
         cpu_readings['maxcpu'] = pd.to_numeric(cpu_readings['maxcpu'], errors="coerce", downcast="float")
         cpu_readings.dropna(inplace=True)
 
         return cpu_readings
 
+    def _convert_cpu_readings_id(self, old_data_path: str, new_data_path: str, vm_id_map: pd.DataFrame):
+        """Convert vmid in each cpu readings file."""
+        with open(old_data_path, 'r') as f_in:
+            csv_reader = reader(f_in)
+            with open(new_data_path, 'w') as f_out:
+                csv_writer = writer(f_out)
+                for row in csv_reader:
+                    row[1] = vm_id_map.loc[row[1]]
+                    csv_writer.writerow(row)
+
     def _preprocess(self):
         logger.info_green("Reading vmtable data.")
         # Process vmtable file.
-        vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
+        vm_id_map, vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
         with open(self._clean_file, mode="w", encoding="utf-8", newline="") as f:
             vm_table.to_csv(f, index=False, header=True)
 
         logger.info_green("Reading cpu data.")
         # Process every cpu readings file based on the vm id from vmtable.
         for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
-            raw_file_name = clean_cpu_readings_file_name.split(".")[0] + "_raw.csv"
-            raw_cpu_readings_file = os.path.join(self._clean_folder, raw_file_name)
-            cpu_readings = self._process_cpu_readings(
-                raw_cpu_readings_file=raw_cpu_readings_file,
-                vm_ids=vm_table['vmid']
+            raw_cpu_readings_file_name = clean_cpu_readings_file_name.split(".")[0] + "_raw.csv"
+            raw_cpu_readings_file = os.path.join(self._clean_folder, raw_cpu_readings_file_name)
+            clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
+            # Convert vmid.
+            logger.info_green(f"Convert vm id from {raw_cpu_readings_file_name} to {clean_cpu_readings_file_name}.")
+            self._convert_cpu_readings_id(
+                old_data_path=raw_cpu_readings_file,
+                new_data_path=clean_cpu_readings_file,
+                vm_id_map=vm_id_map
             )
-            cpu_readings_file = os.path.join(self._build_folder, clean_cpu_readings_file_name)
-            with open(cpu_readings_file, mode="w", encoding="utf-8", newline="") as f:
+            # Process cpu readings file.
+            logger.info_green(f"Process {clean_cpu_readings_file}.")
+            cpu_readings = self._process_cpu_readings(clean_cpu_readings_file=clean_cpu_readings_file)
+            with open(clean_cpu_readings_file, mode="w", encoding="utf-8", newline="") as f:
                 cpu_readings.to_csv(f, index=False, header=True)
 
 
