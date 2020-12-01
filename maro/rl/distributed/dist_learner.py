@@ -38,15 +38,20 @@ class SimpleDistLearner(AbsDistLearner):
         Returns:
             Performance and per-agent experiences from the remote actor.
         """
-        payloads = [(peer, {PayloadKey.MODEL: model_dict,
-                            PayloadKey.EXPLORATION_PARAMS: exploration_params,
-                            PayloadKey.RETURN_DETAILS: return_details})
-                    for peer in self._proxy.peers_name["actor"]]
+        # payloads = [(peer, {PayloadKey.MODEL: model_dict,
+        #                     PayloadKey.EXPLORATION_PARAMS: exploration_params,
+        #                     PayloadKey.RETURN_DETAILS: return_details})
+        #             for peer in self._proxy.peers_name["actor"]]
         # TODO: double check when ack enable
-        replies = self._proxy.scatter(
+        replies = self._proxy.broadcast(
+            component_type=Component.ACTOR.value,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
-            destination_payload_list=payloads
+            payload={
+                PayloadKey.MODEL: model_dict,
+                PayloadKey.EXPLORATION_PARAMS: exploration_params,
+                PayloadKey.RETURN_DETAILS: return_details
+            }
         )
 
         performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
@@ -99,12 +104,11 @@ class SEEDLearner(AbsDistLearner):
         Returns:
             Performance and per-agent experiences from the remote actor.
         """
-        payloads = [(peer, {PayloadKey.RETURN_DETAILS: return_details})
-                    for peer in self._proxy.peers_name["actor"]]
-        self._proxy.iscatter(
+        self._proxy.ibroadcast(
+            component_type=Component.ACTOR.value,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
-            destination_payload_list=payloads
+            payload={PayloadKey.RETURN_DETAILS: return_details}
         )
 
     def _serve(self):
