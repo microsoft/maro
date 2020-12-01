@@ -34,10 +34,13 @@ def launch(config, distributed_config):
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
 
-    if os.environ["SEED"]:
+    distributed_mode = os.environ.get("MODE", distributed_config.mode)
+    if distributed_mode == "seed":
         from maro.rl import SEEDLearner as learner_cls
-    else:
+    elif distributed_mode == "simple":
         from maro.rl import SimpleDistLearner as learner_cls
+    else:
+        raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
     learner = learner_cls(
         agent_manager,

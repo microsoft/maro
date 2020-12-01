@@ -3,4 +3,4 @@ redis:
   port: 6379
 group: test_group
 num_actors: 1
-use_seed_architecture: false
+mode: "simple"

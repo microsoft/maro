@@ -12,14 +12,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("group_name", help="group name")
     parser.add_argument("num_actors", type=int, help="number of actors")
-    parser.add_argument("--seed", "-s", action="store_true")
+    parser.add_argument("mode", default="simple")
     args = parser.parse_args()
     learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_learner.py &"
     actor_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_actor.py &"
 
     # Launch the learner process
-    os.system(f"GROUP={args.group_name} NUM_ACTORS={args.num_actors} SEED={args.seed} python " + learner_path)
+    os.system(f"GROUP={args.group_name} NUM_ACTORS={args.num_actors} MODE={args.mode} python " + learner_path)
 
     # Launch the actor processes
     for _ in range(args.num_actors):
-        os.system(f"GROUP={args.group_name} python " + actor_path)
+        os.system(f"GROUP={args.group_name} MODE={args.mode} python SEED" + actor_path)

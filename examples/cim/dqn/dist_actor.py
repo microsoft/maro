@@ -41,7 +41,8 @@ def launch(config, distributed_config):
         experience_shaper=experience_shaper
     )
 
-    if os.environ["SEED"]:
+    distributed_mode = os.environ.get("MODE", distributed_config.mode)
+    if distributed_mode == "seed":
         from maro.rl import SEEDActor
         actor = SEEDActor(
             env, state_shaper, action_shaper, experience_shaper,
@@ -50,7 +51,7 @@ def launch(config, distributed_config):
             redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
             max_retries=15
         )
-    else:
+    elif distributed_mode == "simple":
         from maro.rl import SimpleActor
         actor = SimpleActor(
             env, agent_manager,
@@ -59,6 +60,8 @@ def launch(config, distributed_config):
             redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
             max_retries=15
         )
+    else:
+        raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
     actor.launch()
 
