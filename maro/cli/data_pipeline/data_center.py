@@ -2,7 +2,7 @@ import gzip
 import os
 import shutil
 import time
-from  csv import reader, writer
+from csv import reader, writer
 from typing import List
 
 import aria2p
@@ -158,8 +158,8 @@ class DataCenterPipeline(DataPipeline):
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
         vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
         # Transform vmcorecount '>24' bucket to 30 and vmmemory '>64' to 70.
-        vm_table = vm_table.replace({'vmcorecountbucket':'>24'}, 30)
-        vm_table = vm_table.replace({'vmmemorybucket':'>64'}, 70)
+        vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 30)
+        vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 70)
         vm_table['vmcorecountbucket'] = pd.to_numeric(
             vm_table['vmcorecountbucket'], errors="coerce", downcast="integer"
         )
@@ -177,7 +177,7 @@ class DataCenterPipeline(DataPipeline):
         # Reorder columns.
         vm_table = vm_table[['new_id', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']]
         # Rename column name.
-        vm_table.rename(columns={'new_id':'vmid'}, inplace=True)
+        vm_table.rename(columns={'new_id': 'vmid'}, inplace=True)
 
         return vm_id_map, vm_table
 
