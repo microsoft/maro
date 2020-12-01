@@ -19,6 +19,8 @@ class AbsDistLearner(ABC):
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
+        experience_collection_func (Callable): Function to collect experiences from multiple remote actors.
+        proxy_params: Parameters required for instantiating an internal proxy for communication.
     """
     def __init__(
         self,

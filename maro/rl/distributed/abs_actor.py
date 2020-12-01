@@ -12,7 +12,12 @@ from .common import Component, MessageTag
 
 
 class AbsActor(ABC):
-    """Abstract actor class."""
+    """Abstract actor class.
+
+    Args:
+        env: An environment instance.
+        proxy_params: Parameters required for instantiating an internal proxy for communication.
+    """
     def __init__(self, env: Env, **proxy_params):
         self._env = env
         self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)

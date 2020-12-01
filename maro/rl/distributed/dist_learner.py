@@ -11,7 +11,7 @@ from .common import Component
 
 
 class SimpleDistLearner(AbsDistLearner):
-    """Distributed"""
+    """Simple distributed learner that broadcasts models to remote actors for roll-out purposes."""
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
@@ -57,12 +57,9 @@ class SimpleDistLearner(AbsDistLearner):
 
 
 class SEEDLearner(AbsDistLearner):
-    """A simple implementation of ``AbsLearner``.
+    """Distributed learner based on SEED RL architecture.
 
-    Args:
-        agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
-        scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
-            parameters if necessary.
+    See https://arxiv.org/pdf/1910.06591.pdf for details.
     """
     def __init__(self, agent_manager, scheduler, experience_collecting_func, **proxy_params):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
@@ -72,21 +69,19 @@ class SEEDLearner(AbsDistLearner):
         )
         self._registry_table.register_event_handler(
             f"{Component.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
-        self._performances = {}
         self._details = {}
+        self._rollout_complete_counter = 0
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
+            self._rollout_complete_counter = 0
             self._details.clear()
-            self._performances.clear()
             # load exploration parameters:
             if exploration_params is not None:
                 self._agent_manager.update_exploration_params(exploration_params)
             self._sample()
             self._serve()
-            for perf in self._performances.values():
-                self._scheduler.record_performance(perf)
             exp_by_agent = self._experience_collecting_func(self._details)
             self._agent_manager.train(exp_by_agent)
 
@@ -117,7 +112,7 @@ class SEEDLearner(AbsDistLearner):
             self._registry_table.push(msg)
             for handler_fn, cached_messages in self._registry_table.get():
                 handler_fn(cached_messages)
-            if len(self._performances) == self._num_actors:
+            if self._rollout_complete_counter == self._num_actors:
                 break
 
     def _get_action(self, messages: list):
@@ -129,5 +124,7 @@ class SEEDLearner(AbsDistLearner):
 
     def _collect(self, messages: list):
         for msg in messages:
-            self._performances[msg.source] = msg.payload[PayloadKey.PERFORMANCE]
+            self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
             self._details[msg.source] = msg.payload[PayloadKey.DETAILS]
+
+        self._rollout_complete_counter = len(messages)
