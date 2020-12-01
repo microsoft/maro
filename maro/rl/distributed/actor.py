@@ -115,7 +115,7 @@ class SEEDActor(AbsActor):
         reply = self._proxy.send(
             SessionMessage(
                 tag=MessageTag.CHOOSE_ACTION,
-                source=self._proxy.Component_name,
+                source=self._proxy.component_name,
                 destination=self._proxy.peers_name["learner"][0],
                 payload={PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id},
             )
