@@ -29,6 +29,9 @@ class VirtualMachine:
         self.end_tick: int = -1
 
     def get_utilization(self, cur_tick: int):
+        if cur_tick - self.start_tick > len(self._utilization_series):
+            return 0.0
+
         return self._utilization_series[cur_tick - self.start_tick]
 
     def add_utilization_series(self, _utilization_series: List[float]):

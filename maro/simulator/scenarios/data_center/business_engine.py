@@ -306,7 +306,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Generate VM finished event.
             finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
             finished_event = self._event_buffer.gen_atom_event(
-                tick=cur_tick + lifetime,
+                tick=cur_tick + lifetime + 1,
                 payload=finished_payload
             )
             self._event_buffer.insert_event(event=finished_event)
