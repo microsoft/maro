@@ -123,7 +123,7 @@ class AbsAgentManager(ABC):
 
         This is usually used in distributed mode where models need to be broadcast to remote roll-out actors.
         """
-        return {agent_id: agent.dump_models() for agent_id, agent in self._agent_dict.items()}
+        return {agent_id: agent.dump_model() for agent_id, agent in self._agent_dict.items()}
 
     def load_models_from_files(self, dir_path):
         """Load models from disk for each agent."""

@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import sys
-
 from maro.communication import Proxy, SessionMessage
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.storage.column_based_store import ColumnBasedStore
@@ -23,7 +21,6 @@ class SimpleActor(AbsActor):
     def __init__(self, env, agent_manager: SimpleAgentManager, **proxy_params):
         super().__init__(env, **proxy_params)
         self._agent_manager = agent_manager
-        self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):
         """Perform local roll-out and send the results back to the request sender.
@@ -31,14 +28,10 @@ class SimpleActor(AbsActor):
         Args:
             message: Message containing roll-out parameters and options.
         """
-        data = message.payload
-        if data.get(PayloadKey.DONE, False):
-            sys.exit(0)
-
-        performance, details = self.roll_out(
-            model_dict=data[PayloadKey.MODEL],
-            exploration_params=data[PayloadKey.EXPLORATION_PARAMS],
-            return_details=data[PayloadKey.RETURN_DETAILS]
+        performance, details = self._roll_out(
+            model_dict=message.payload[PayloadKey.MODEL],
+            exploration_params=message.payload[PayloadKey.EXPLORATION_PARAMS],
+            return_details=message.payload[PayloadKey.RETURN_DETAILS]
         )
 
         self._proxy.reply(
@@ -47,25 +40,18 @@ class SimpleActor(AbsActor):
             payload={PayloadKey.PERFORMANCE: performance, PayloadKey.DETAILS: details}
         )
 
-    def roll_out(
-        self, model_dict: dict = None, exploration_params=None, done: bool = False, return_details: bool = True
-    ):
+    def _roll_out(self, model_dict: dict = None, exploration_params=None, return_details: bool = True):
         """Perform one episode of roll-out and return performance and experiences.
 
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
                 to perform roll-out.
             exploration_params: Exploration parameters.
-            done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
-                This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return experiences as well as performance metrics provided by the env.
 
         Returns:
             Performance and relevant details from the episode (e.g., experiences).
         """
-        if done:
-            return None, None
-
         self._env.reset()
 
         # load models
@@ -91,7 +77,6 @@ class SEEDActor(AbsActor):
     def __init__(self, env, state_shaper, action_shaper, experience_shaper, **proxy_params):
         super().__init__(env, **proxy_params)
         self._env = env
-        self._registry_table.register_event_handler("learner:rollout:1", self._on_rollout_request)
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
@@ -100,7 +85,15 @@ class SEEDActor(AbsActor):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-    def roll_out(self, return_details: bool = True):
+    def on_rollout_request(self, message):
+        performance, details = self._roll_out(return_details=message.payload[PayloadKey.RETURN_DETAILS])
+        self._proxy.reply(
+            received_message=message,
+            tag=MessageTag.UPDATE,
+            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.DETAILS: details}
+        )
+
+    def _roll_out(self, return_details: bool = True):
         """Perform local roll-out and send the results back to the request sender.
 
         Args:
@@ -116,18 +109,6 @@ class SEEDActor(AbsActor):
 
         details = self._post_process() if return_details else None
         return self._env.metrics, details
-
-    def _on_rollout_request(self, message):
-        data = message.payload
-        if data.get(PayloadKey.DONE, False):
-            sys.exit(0)
-
-        performance, details = self.roll_out(return_details=message.payload[PayloadKey.RETURN_DETAILS])
-        self._proxy.reply(
-            received_message=message,
-            tag=MessageTag.UPDATE,
-            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.DETAILS: details}
-        )
 
     def _choose_action(self, decision_event, snapshot_list):
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)

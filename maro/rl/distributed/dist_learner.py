@@ -7,6 +7,7 @@ from maro.communication import SessionType
 from maro.rl.distributed.common import MessageTag, PayloadKey
 
 from .abs_dist_learner import AbsDistLearner
+from .common import Component
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -67,10 +68,10 @@ class SEEDLearner(AbsDistLearner):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
+            f"{Component.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
         )
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
+            f"{Component.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
         self._performances = {}
         self._details = {}
 

@@ -17,10 +17,12 @@ class AbsActor(ABC):
         self._env = env
         self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)
         self._registry_table = RegisterTable(self._proxy.peers_name)
+        self._registry_table.register_event_handler(
+            f"{Component.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
         self._registry_table.register_event_handler(f"*:{MessageTag.EXIT}:1", self.exit)
 
     @abstractmethod
-    def roll_out(self, *args, **kwargs):
+    def on_rollout_request(self, message):
         raise NotImplementedError
 
     def launch(self):
