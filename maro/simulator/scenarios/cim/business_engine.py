@@ -35,15 +35,15 @@ class CimBusinessEngine(AbsBusinessEngine):
 
     def __init__(
         self, event_buffer: EventBuffer, topology: str, start_tick: int, max_tick: int,
-        snapshot_resolution: int, max_snapshots: int, additional_options: dict = None
+        snapshot_resolution: int, max_snapshot_num: int, additional_options: dict = None
     ):
         super().__init__(
             "cim", event_buffer, topology, start_tick, max_tick,
-            snapshot_resolution, max_snapshots, additional_options
+            snapshot_resolution, max_snapshot_num, additional_options
         )
 
         # Update self._config_path with current file path.
-        self.update_config_root_path(__file__)
+        self._update_config_root_path(__file__)
 
         config_path = os.path.join(self._config_path, "config.yml")
 
@@ -348,7 +348,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         vessel_num = self._data_cntr.vessel_number
         stop_num = (self._data_cntr.past_stop_number, self._data_cntr.future_stop_number)
 
-        self._frame = gen_cim_frame(port_num, vessel_num, stop_num, self.calc_max_snapshots())
+        self._frame = gen_cim_frame(port_num, vessel_num, stop_num, self.calc_max_snapshot_num())
 
         self._ports = self._frame.ports
         self._vessels = self._frame.vessels

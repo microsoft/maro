@@ -14,7 +14,7 @@ class DummyEngine(AbsBusinessEngine):
     def __init__(self, **kwargs):
         super().__init__(scenario_name="dummy", **kwargs)
 
-        self._frame = build_frame(self.calc_max_snapshots())
+        self._frame = build_frame(self.calc_max_snapshot_num())
         self._dummy_list = self._frame.dummies
 
     @property

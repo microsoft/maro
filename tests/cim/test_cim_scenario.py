@@ -30,7 +30,7 @@ def mock_cim_init_func(self, event_buffer, topology_path, max_tick):
     self._max_tick = max_tick
     self._topology_path = topology_path
     self._event_buffer = event_buffer
-    self._max_snapshots = None
+    self._max_snapshot_num = None
     self._snapshot_resolution = 1
     
     self._data_cntr = MockDataContainer(topology_path)

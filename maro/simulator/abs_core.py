@@ -28,7 +28,7 @@ class AbsEnv(ABC):
             start_tick (int): Start tick of the scenario, usually used for pre-processed data streaming.
             durations (int): Duration ticks of this environment from start_tick.
             snapshot_resolution (int): How many ticks will take a snapshot.
-            max_snapshots (int): Max in-memory snapshot number, less snapshots lower memory cost.
+            max_snapshot_num (int): Max in-memory snapshot number, less snapshots lower memory cost.
             business_engine_cls : Class of business engine, if specified, then use it to construct be instance,
                 or will search internal by scenario.
             options (dict): Additional parameters passed to business engine.
@@ -36,7 +36,7 @@ class AbsEnv(ABC):
 
     def __init__(
         self, scenario: str, topology: str,
-        start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
+        start_tick: int, durations: int, snapshot_resolution: int, max_snapshot_num: int,
         decision_mode: DecisionMode,
         business_engine_cls: type,
         options: dict
@@ -47,7 +47,7 @@ class AbsEnv(ABC):
         self._start_tick = start_tick
         self._durations = durations
         self._snapshot_resolution = snapshot_resolution
-        self._max_snapshots = max_snapshots
+        self._max_snapshot_num = max_snapshot_num
         self._decision_mode = decision_mode
         self._business_engine_cls = business_engine_cls
         self._additional_options = options
