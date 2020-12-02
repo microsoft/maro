@@ -3,11 +3,14 @@
 
 from maro.communication import Proxy, SessionMessage
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
+from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.shaping.action_shaper import ActionShaper
+from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.simulator import Env
 
 from .abs_actor import AbsActor
-from .common import MessageTag, PayloadKey
+from ..common import MessageTag, PayloadKey
 
 
 class SimpleActor(AbsActor):
@@ -28,29 +31,29 @@ class SimpleActor(AbsActor):
         Args:
             message: Message containing roll-out parameters and options.
         """
-        performance, details = self._roll_out(
+        performance, experiences = self._roll_out(
             model_dict=message.payload[PayloadKey.MODEL],
             exploration_params=message.payload[PayloadKey.EXPLORATION_PARAMS],
-            return_details=message.payload[PayloadKey.RETURN_DETAILS]
+            return_experiences=message.payload[PayloadKey.RETURN_DETAILS]
         )
 
         self._proxy.reply(
             received_message=message,
             tag=MessageTag.UPDATE,
-            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.DETAILS: details}
+            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCES: experiences}
         )
 
-    def _roll_out(self, model_dict: dict = None, exploration_params=None, return_details: bool = True):
+    def _roll_out(self, model_dict: dict = None, exploration_params=None, return_experiences: bool = True):
         """Perform one episode of roll-out and return performance and experiences.
 
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
                 to perform roll-out.
             exploration_params: Exploration parameters.
-            return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
 
         Returns:
-            Performance and relevant details from the episode (e.g., experiences).
+            Performance and relevant experiences from the episode (e.g., experiences).
         """
         self._env.reset()
 
@@ -68,13 +71,20 @@ class SimpleActor(AbsActor):
             metrics, decision_event, is_done = self._env.step(action)
             self._agent_manager.on_env_feedback(metrics)
 
-        details = self._agent_manager.post_process(self._env.snapshot_list) if return_details else None
+        experiences = self._agent_manager.post_process(self._env.snapshot_list) if return_experiences else None
 
-        return self._env.metrics, details
+        return self._env.metrics, experiences
 
 
 class SEEDActor(AbsActor):
-    def __init__(self, env, state_shaper, action_shaper, experience_shaper, **proxy_params):
+    def __init__(
+        self,
+        env,
+        state_shaper: StateShaper,
+        action_shaper: ActionShaper,
+        experience_shaper: ExperienceShaper,
+        **proxy_params
+    ):
         super().__init__(env, **proxy_params)
         self._env = env
         self._state_shaper = state_shaper
@@ -86,18 +96,18 @@ class SEEDActor(AbsActor):
         self._trajectory = ColumnBasedStore()
 
     def on_rollout_request(self, message):
-        performance, details = self._roll_out(return_details=message.payload[PayloadKey.RETURN_DETAILS])
+        performance, experiences = self._roll_out(return_experiences=message.payload[PayloadKey.RETURN_DETAILS])
         self._proxy.reply(
             received_message=message,
             tag=MessageTag.UPDATE,
-            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.DETAILS: details}
+            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCES: experiences}
         )
 
-    def _roll_out(self, return_details: bool = True):
+    def _roll_out(self, return_experiences: bool = True):
         """Perform local roll-out and send the results back to the request sender.
 
         Args:
-            return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
         """
         self._env.reset()
         metrics, decision_event, is_done = self._env.step(None)
@@ -107,8 +117,8 @@ class SEEDActor(AbsActor):
             self._transition_cache["metrics"] = metrics
             self._trajectory.put(self._transition_cache)
 
-        details = self._post_process() if return_details else None
-        return self._env.metrics, details
+        experiences = self._post_process() if return_experiences else None
+        return self._env.metrics, experiences
 
     def _choose_action(self, decision_event, snapshot_list):
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
@@ -140,3 +150,4 @@ class SEEDActor(AbsActor):
         self._action_shaper.reset()
         self._experience_shaper.reset()
         return experiences
+

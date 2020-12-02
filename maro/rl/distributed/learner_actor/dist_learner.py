@@ -7,7 +7,7 @@ from maro.communication import SessionType
 from maro.rl.distributed.common import MessageTag, PayloadKey
 
 from .abs_dist_learner import AbsDistLearner
-from .common import Component
+from ..common import LearnerActorComponent
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -24,66 +24,66 @@ class SimpleDistLearner(AbsDistLearner):
 
     def test(self):
         """Test policy performance."""
-        performance, _ = self._sample(self._agent_manager.dump_models(), return_details=False)
+        performance, _ = self._sample(self._agent_manager.dump_models(), return_experiences=False)
         self._scheduler.record_performance(performance)
 
-    def _sample(self, model_dict: dict, exploration_params=None, return_details: bool = True):
+    def _sample(self, model_dict: dict, exploration_params=None, return_experiences: bool = True):
         """Send roll-out requests to remote actors.
 
         Args:
             model_dict (dict): Models the remote actors .
             exploration_params: Exploration parameters.
-            return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
 
         Returns:
             Performance and per-agent experiences from the remote actor.
         """
         # TODO: double check when ack enable
         replies = self._proxy.broadcast(
-            component_type=Component.ACTOR.value,
+            component_type=LearnerActorComponent.ACTOR.value,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
             payload={
                 PayloadKey.MODEL: model_dict,
                 PayloadKey.EXPLORATION_PARAMS: exploration_params,
-                PayloadKey.RETURN_DETAILS: return_details
+                PayloadKey.RETURN_DETAILS: return_experiences
             }
         )
 
         performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-        details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
-        details = self._experience_collecting_func(details_by_source) if return_details else None
+        experiences_by_source = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in replies}
+        experiences = self._experience_collecting_func(experiences_by_source) if return_experiences else None
 
-        return performance, details
+        return performance, experiences
 
 
 class SEEDLearner(AbsDistLearner):
     """Distributed learner based on SEED RL architecture.
 
-    See https://arxiv.org/pdf/1910.06591.pdf for details.
+    See https://arxiv.org/pdf/1910.06591.pdf for experiences.
     """
     def __init__(self, agent_manager, scheduler, experience_collecting_func, **proxy_params):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._registry_table.register_event_handler(
-            f"{Component.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
+            f"{LearnerActorComponent.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
         )
         self._registry_table.register_event_handler(
-            f"{Component.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
-        self._details = {}
+            f"{LearnerActorComponent.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
+        self._experiences = {}
         self._rollout_complete_counter = 0
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
             self._rollout_complete_counter = 0
-            self._details.clear()
+            self._experiences.clear()
             # load exploration parameters:
             if exploration_params is not None:
                 self._agent_manager.update_exploration_params(exploration_params)
             self._sample()
             self._serve()
-            exp_by_agent = self._experience_collecting_func(self._details)
+            exp_by_agent = self._experience_collecting_func(self._experiences)
             self._agent_manager.train(exp_by_agent)
 
     def test(self):
@@ -91,20 +91,20 @@ class SEEDLearner(AbsDistLearner):
         self._sample()
         self._serve()
 
-    def _sample(self, return_details: bool = True):
+    def _sample(self, return_experiences: bool = True):
         """Send roll-out requests to remote actors.
 
         Args:
-            return_details (bool): If True, return experiences as well as performance metrics provided by the env.
+            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
 
         Returns:
             Performance and per-agent experiences from the remote actor.
         """
         self._proxy.ibroadcast(
-            component_type=Component.ACTOR.value,
+            component_type=LearnerActorComponent.ACTOR.value,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
-            payload={PayloadKey.RETURN_DETAILS: return_details}
+            payload={PayloadKey.RETURN_DETAILS: return_experiences}
         )
 
     def _serve(self):
@@ -125,6 +125,6 @@ class SEEDLearner(AbsDistLearner):
     def _collect(self, messages: list):
         for msg in messages:
             self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
-            self._details[msg.source] = msg.payload[PayloadKey.DETAILS]
+            self._experiences[msg.source] = msg.payload[PayloadKey.EXPERIENCES]
 
         self._rollout_complete_counter = len(messages)

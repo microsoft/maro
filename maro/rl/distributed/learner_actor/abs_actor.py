@@ -8,7 +8,7 @@ from maro.communication import Proxy
 from maro.communication.registry_table import RegisterTable
 from maro.simulator import Env
 
-from .common import Component, MessageTag
+from ..common import LearnerActorComponent, MessageTag
 
 
 class AbsActor(ABC):
@@ -20,11 +20,13 @@ class AbsActor(ABC):
     """
     def __init__(self, env: Env, **proxy_params):
         self._env = env
-        self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)
+        self._proxy = Proxy(component_type=LearnerActorComponent.ACTOR.value, **proxy_params)
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler(
-            f"{Component.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
-        self._registry_table.register_event_handler(f"{Component.LEARNER.value}:{MessageTag.EXIT.value}:1", self.exit)
+            f"{LearnerActorComponent.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
+        self._registry_table.register_event_handler(
+            f"{LearnerActorComponent.LEARNER.value}:{MessageTag.EXIT.value}:1", self.exit
+        )
 
     @abstractmethod
     def on_rollout_request(self, message):
