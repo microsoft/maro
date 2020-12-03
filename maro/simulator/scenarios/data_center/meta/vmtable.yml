@@ -9,7 +9,7 @@ events:
 entity:
   vm_id:
     column: 'vmid'
-    dtype: 'f'
+    dtype: 'i'
   timestamp:
     column: 'vmcreated'
     dtype: 'i'
