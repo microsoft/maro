@@ -45,12 +45,12 @@ class Trainer(object):
     def _update(self, messages):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
         self._agent_manager.train(self._experience_collecting_func(experiences_by_agent))
-        self._proxy.ibroadcast(
-            component_type=ActorTrainerComponent.ACTOR.value,
-            tag=MessageTag.MODEL,
-            session_type=SessionType.NOTIFICATION,
-            payload={PayloadKey.MODEL: self._agent_manager.dump_models()}
-        )
+        for msg in messages:
+            self._proxy.reply(
+                received_message=msg,
+                tag=MessageTag.MODEL,
+                payload={PayloadKey.MODEL: self._agent_manager.dump_models()}
+            )
 
     def dump_models(self, dir_path: str):
         self._agent_manager.dump_models_to_files(dir_path)
