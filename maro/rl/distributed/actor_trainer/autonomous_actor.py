@@ -26,7 +26,6 @@ class SimpleAutoActor(AbsAutoActor):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
             self._env.reset()
-            self._update_models()
             # load exploration parameters:
             if exploration_params is not None:
                 self._agent_manager.update_exploration_params(exploration_params)
@@ -42,9 +41,17 @@ class SimpleAutoActor(AbsAutoActor):
                 experiences = self._agent_manager.post_process(self._env.snapshot_list)
                 self._update(experiences)
 
-    def _update_models(self):
-        received = self._proxy.receive_by_id([self._get_update_session_id()])
-        self._agent_manager.load_models(received[0].payload[PayloadKey.MODEL])
+    def _update(self, experiences):
+        reply = self._proxy.send(
+            SessionMessage(
+                tag=MessageTag.UPDATE,
+                source=self._proxy.component_name,
+                destination=self._proxy.peers_name["trainer"][0],
+                session_id=self._get_update_session_id(),
+                payload={PayloadKey.EXPERIENCES: experiences},
+            )
+        )
+        self._agent_manager.load_models(reply[0].payload[PayloadKey.MODEL])
 
 
 class SEEDAutoActor(AbsAutoActor):
@@ -127,3 +134,14 @@ class SEEDAutoActor(AbsAutoActor):
         self._action_shaper.reset()
         self._experience_shaper.reset()
         return experiences
+
+    def _update(self, experiences):
+        self._proxy.send(
+            SessionMessage(
+                tag=MessageTag.UPDATE,
+                source=self._proxy.component_name,
+                destination=self._proxy.peers_name["trainer"][0],
+                session_id=self._get_update_session_id(),
+                payload={PayloadKey.EXPERIENCES: experiences},
+            )
+        )

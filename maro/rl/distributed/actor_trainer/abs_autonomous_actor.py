@@ -29,20 +29,9 @@ class AbsAutoActor(ABC):
         """Run the main training loop or run one episode for model testing."""
         raise NotImplementedError
 
-    def _update(self, experiences):
-        self._proxy.isend(
-            SessionMessage(
-                tag=MessageTag.UPDATE,
-                source=self._proxy.component_name,
-                destination=self._proxy.peers_name["trainer"][0],
-                session_id=self._get_update_session_id(),
-                payload={PayloadKey.EXPERIENCES: experiences},
-            )
-        )
-
     def _get_update_session_id(self):
         return ".".join([
-            str(self._scheduler.current_ep),
+            f"ep_{self._scheduler.current_ep - 1}",
             ActorTrainerComponent.ACTOR.value,
             ActorTrainerComponent.TRAINER.value
             ])
