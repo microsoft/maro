@@ -38,7 +38,7 @@ def launch(config, distributed_config):
         actor = SEEDActor(
             env, state_shaper, action_shaper, experience_shaper,
             group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
-            expected_peers={"learner": 1},
+            expected_peers={LearnerActorComponent.LEARNER.value: 1},
             redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
             max_retries=15
         )

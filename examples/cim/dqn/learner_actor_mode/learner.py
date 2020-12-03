@@ -47,7 +47,9 @@ def launch(config, distributed_config):
         agent_manager,
         scheduler,
         concat_experiences_by_agent,
-        expected_peers={LearnerActorComponent: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))},
+        expected_peers={
+            LearnerActorComponent.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))
+        },
         group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
         max_retries=15
