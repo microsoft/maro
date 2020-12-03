@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import os
+import time
 
 import numpy as np
 
@@ -73,6 +74,7 @@ def launch(config, distributed_config):
     else:
         raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
+    time.sleep(5)
     actor.run()
 
 

@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import os
+import time
 
 from maro.rl import (
     AgentManagerMode, LearnerActorComponent, Scheduler, TwoPhaseLinearExplorationParameterGenerator,
@@ -54,6 +55,7 @@ def launch(config, distributed_config):
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
         max_retries=15
     )
+    time.sleep(5)
     learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
