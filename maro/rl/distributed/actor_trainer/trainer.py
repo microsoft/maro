@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import abstractmethod
 from typing import Callable
 
 import numpy as np
 
-from maro.communication import Proxy, RegisterTable
+from maro.communication import Proxy, RegisterTable, SessionType
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 
 from ..common import ActorTrainerComponent, MessageTag, PayloadKey
@@ -46,6 +45,12 @@ class Trainer(object):
     def _update(self, messages):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
         self._agent_manager.train(self._experience_collecting_func(experiences_by_agent))
+        self._proxy.ibroadcast(
+            component_type=ActorTrainerComponent.TRAINER.value,
+            tag=MessageTag.MODEL,
+            session_type=SessionType.NOTIFICATION,
+            payload={PayloadKey.MODEL: self._agent_manager.dump_models()}
+        )
 
     def dump_models(self, dir_path: str):
         self._agent_manager.dump_models_to_files(dir_path)
@@ -78,3 +83,7 @@ class SEEDTrainer(Trainer):
         model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
         for msg, model_action in zip(messages, model_action_batch):
             self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action})
+
+    def _update(self, messages):
+        experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
+        self._agent_manager.train(self._experience_collecting_func(experiences_by_agent))

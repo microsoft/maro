@@ -64,6 +64,10 @@ class AbsAgentManager(ABC):
         return self._name
 
     @property
+    def agent_dict(self):
+        return self._agent_dict
+
+    @property
     def state_shaper(self):
         return self._state_shaper
 
