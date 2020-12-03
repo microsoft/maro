@@ -7,7 +7,7 @@ from typing import Callable
 
 from .atom_event import AtomEvent
 from .cascade_event import CascadeEvent
-from .event_list import EventLinkedList
+from .event_linked_list import EventLinkedList
 from .event_pool import EventPool
 from .event_state import EventState
 from .maro_events import MaroEvents
