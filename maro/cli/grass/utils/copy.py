@@ -3,9 +3,12 @@
 
 
 import os
+import platform
 import shutil
+import uuid
 
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
+from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
@@ -24,16 +27,43 @@ def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, no
     """
     source_path = get_reformatted_source_path(local_path)
     basename = os.path.basename(source_path)
-    folder_name = os.path.dirname(source_path)
+    folder_name = os.path.expanduser(os.path.dirname(source_path))
     target_dir = get_reformatted_target_dir(remote_dir)
 
     mkdir_script = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {target_dir}'"
     _ = SubProcess.run(mkdir_script)
-    copy_script = (
-        f"tar czf - -C {folder_name} {basename} | "
-        f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'tar xzf - -C {target_dir}'"
-    )
-    _ = SubProcess.run(copy_script)
+
+    if platform.system() == "Linux":
+        # Copy with pipe
+        copy_script = (
+            f"tar czf - -C {folder_name} {basename} | "
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'tar xzf - -C {target_dir}'"
+        )
+        _ = SubProcess.run(copy_script)
+    else:
+        # Copy with tmp file
+        tmp_file_name = uuid.uuid4()
+        maro_local_tmp_abs_path = os.path.expanduser(GlobalPaths.MARO_LOCAL_TMP)
+
+        tar_script = f"tar czf {maro_local_tmp_abs_path}/{tmp_file_name} -C {folder_name} {basename}"
+        _ = SubProcess.run(tar_script)
+        copy_script = (
+            f"scp {maro_local_tmp_abs_path}/{tmp_file_name} "
+            f"{admin_username}@{node_ip_address}:{GlobalPaths.MARO_LOCAL_TMP}"
+        )
+        _ = SubProcess.run(copy_script)
+        untar_script = (
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"'tar xzf {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} -C {target_dir}'"
+        )
+        _ = SubProcess.run(untar_script)
+        remove_script = f"rm {maro_local_tmp_abs_path}/{tmp_file_name}"
+        _ = SubProcess.run(remove_script)
+        remote_remove_script = (
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"'rm {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name}'"
+        )
+        _ = SubProcess.run(remote_remove_script)
 
 
 def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, node_ip_address: str) -> None:
@@ -50,28 +80,40 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
     folder_name = os.path.dirname(source_path)
     target_dir = get_reformatted_target_dir(local_dir)
 
-    mkdir_script = f"mkdir -p {target_dir}"
-    _ = SubProcess.run(mkdir_script)
-    copy_script = (
-        f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
-        f"'tar czf - -C {folder_name} {basename}' | tar xzf - -C {target_dir}"
-    )
-    _ = SubProcess.run(copy_script)
+    # Create local dir
+    os.makedirs(os.path.expanduser(target_dir), exist_ok=True)
 
+    if platform.system() == "Linux":
+        # Copy with pipe
+        copy_script = (
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"'tar czf - -C {folder_name} {basename}' | tar xzf - -C {target_dir}"
+        )
+        _ = SubProcess.run(copy_script)
+    else:
+        # Copy with tmp file
+        tmp_file_name = uuid.uuid4()
+        maro_local_tmp_abs_path = os.path.expanduser(GlobalPaths.MARO_LOCAL_TMP)
 
-def sync_mkdir(remote_path: str, admin_username: str, node_ip_address: str):
-    """Mkdir synchronously at local and remote.
-
-    Args:
-        remote_path (str): path of the remote file
-        admin_username (str)
-        node_ip_address (str)
-    """
-    command = f"mkdir -p {remote_path}"
-    _ = SubProcess.run(command)
-
-    command = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {remote_path}'"
-    _ = SubProcess.run(command)
+        tar_script = (
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"tar czf {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} -C {folder_name} {basename}"
+        )
+        _ = SubProcess.run(tar_script)
+        copy_script = (
+            f"scp {admin_username}@{node_ip_address}:{GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} "
+            f"{maro_local_tmp_abs_path}"
+        )
+        _ = SubProcess.run(copy_script)
+        untar_script = f"tar xzf {maro_local_tmp_abs_path}/{tmp_file_name} -C {os.path.expanduser(target_dir)}"
+        _ = SubProcess.run(untar_script)
+        remove_script = f"rm {maro_local_tmp_abs_path}/{tmp_file_name}"
+        _ = SubProcess.run(remove_script)
+        remote_remove_script = (
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"'rm {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name}'"
+        )
+        _ = SubProcess.run(remote_remove_script)
 
 
 def copy_and_rename(source_path: str, target_dir: str, new_name: str = None):
