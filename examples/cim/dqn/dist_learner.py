@@ -7,8 +7,8 @@ from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
 
 from maro.rl import (
-    ActorProxy, AgentManagerMode, EpsilonGreedyExplorer, SimpleLearner, concat_experiences_by_agent,
-    two_phase_linear_epsilon_schedule
+    ActorProxy, AgentManagerMode, Scheduler, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator,
+    concat_experiences_by_agent
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -38,13 +38,20 @@ def launch(config, distributed_config):
         "max_retries": 15
     }
 
-    exploration_schedule = two_phase_linear_epsilon_schedule(**config.main_loop.exploration)
+    scheduler = Scheduler(
+        config.main_loop.max_episode,
+        warmup_ep=config.main_loop.early_stopping.warmup_ep,
+        exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
+        exploration_parameter_generator_config=config.main_loop.exploration,
+    )
+
     learner = SimpleLearner(
         agent_manager=agent_manager,
         actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
+        scheduler=scheduler,
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.learn_with_exploration_schedule(exploration_schedule)
+    learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
     learner.exit()

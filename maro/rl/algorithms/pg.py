@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import LearningModel
+from maro.rl.models.learning_model import LearningModuleManager
 
 from .utils import ActionWithLogProbability, expand_dim, preprocess, to_device
 
@@ -28,11 +28,11 @@ class PolicyGradient(AbsAlgorithm):
     The Policy Gradient algorithm base on the policy gradient theorem, a.k.a. REINFORCE.
 
     Args:
-        model (LearningModel): Policy model.
+        model (LearningModuleManager): Policy model.
         config: Configuration for the PG algorithm.
     """
     @to_device
-    def __init__(self, model: LearningModel, config: PolicyGradientConfig):
+    def __init__(self, model: LearningModuleManager, config: PolicyGradientConfig):
         super().__init__(model, config)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model.to(self._device)

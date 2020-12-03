@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from maro.rl import (
-    AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModel, LearningModule, OptimizerOptions,
+    AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModuleManager, LearningModule, OptimizerOptions,
     PolicyGradient, PolicyGradientConfig, PPO, PPOConfig, SimpleAgentManager
 )
 from maro.utils import set_seeds
@@ -57,11 +57,11 @@ def create_po_agents(agent_id_list, config):
             )
 
             algorithm = algorithm_cls(
-                LearningModel(actor_module, critic_module),
+                LearningModuleManager(actor_module, critic_module),
                 algorithm_config(critic_loss_func=nn.functional.smooth_l1_loss, **config[config.algorithm])
             )
         else:
-            algorithm = algorithm_cls(LearningModel(actor_module), algorithm_config(**config[config.algorithm]))
+            algorithm = algorithm_cls(LearningModuleManager(actor_module), algorithm_config(**config[config.algorithm]))
 
         agent_dict[agent_id] = POAgent(name=agent_id, algorithm=algorithm)
 

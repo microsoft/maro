@@ -70,9 +70,9 @@ class AbsAgent(ABC):
         else:
             return self._explorer(action)
 
-    def update(self, exploration_params):
+    def update(self, **exploration_params):
         if self._explorer:
-            self._explorer.update(exploration_params)
+            self._explorer.update(**exploration_params)
 
     @abstractmethod
     def train(self, *args, **kwargs):
