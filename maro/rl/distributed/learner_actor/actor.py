@@ -86,7 +86,6 @@ class SEEDActor(AbsActor):
         **proxy_params
     ):
         super().__init__(env, **proxy_params)
-        self._env = env
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper

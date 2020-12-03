@@ -7,6 +7,7 @@ This script is used to debug distributed algorithm in single host multi-process 
 
 import argparse
 import os
+import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -17,9 +18,11 @@ if __name__ == "__main__":
     learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/learner.py &"
     actor_path = f"{os.path.split(os.path.realpath(__file__))[0]}/actor.py &"
 
-    # Launch the learner process
-    os.system(f"GROUP={args.group_name} NUM_ACTORS={args.num_actors} MODE={args.mode} python " + learner_path)
-
     # Launch the actor processes
     for _ in range(args.num_actors):
         os.system(f"GROUP={args.group_name} MODE={args.mode} python " + actor_path)
+
+    time.sleep(5)
+
+    # Launch the learner process
+    os.system(f"GROUP={args.group_name} NUM_ACTORS={args.num_actors} MODE={args.mode} python " + learner_path)
