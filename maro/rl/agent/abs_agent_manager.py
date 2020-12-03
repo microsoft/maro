@@ -83,7 +83,7 @@ class AbsAgentManager(ABC):
         return NotImplemented
 
     @abstractmethod
-    def train(self, *args, **kwargs):
+    def train(self, experience_by_agent: dict):
         """Train the agents."""
         return NotImplemented
 

@@ -79,7 +79,7 @@ class SimpleAgentManager(AbsAgentManager):
         return experiences
 
     @abstractmethod
-    def train(self, *args, **kwargs):
+    def train(self, experiences_by_agent: dict):
         """Train all agents."""
         return NotImplementedError
 
