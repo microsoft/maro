@@ -21,10 +21,10 @@ class EpsilonGreedyExplorer(AbsExplorer):
         self._epsilon = epsilon
 
     def __call__(self, action_index: Union[int, np.ndarray]):
-        if isinstance(action_index, int):
-            return self._get_exploration_action(action_index)
-        else:
+        if isinstance(action_index, np.ndarray):
             return [self._get_exploration_action(act) for act in action_index]
+        else:
+            return self._get_exploration_action(action_index)
 
     def update(self, *, epsilon: float):
         self._epsilon = epsilon
