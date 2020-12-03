@@ -92,7 +92,7 @@ class SEEDAutoActor(AbsAutoActor):
             if is_training:
                 experiences = self._post_process()
                 self._scheduler.record_performance(self._env.metrics)
-                self._train(experiences)
+                self._update(experiences)
 
     def _update_exploration_params(self, exploration_params):
         # Per-agent exploration parameters
@@ -110,7 +110,7 @@ class SEEDAutoActor(AbsAutoActor):
             SessionMessage(
                 tag=MessageTag.CHOOSE_ACTION,
                 source=self._proxy.component_name,
-                destination=self._proxy.peers_name["learner"][0],
+                destination=self._proxy.peers_name[ActorTrainerComponent.TRAINER.value][0],
                 payload={PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id},
             )
         )

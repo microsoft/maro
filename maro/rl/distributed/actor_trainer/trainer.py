@@ -13,7 +13,7 @@ from ..common import ActorTrainerComponent, MessageTag, PayloadKey
 
 
 class Trainer(object):
-    """Abstract distributed learner class.
+    """Trainer is responsible for training models using experiences from actors.
 
     Args:
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
@@ -52,7 +52,9 @@ class Trainer(object):
 
 
 class SEEDTrainer(Trainer):
-    """Abstract distributed learner class.
+    """Subclass of ``Trainer`` based on the SEED RL architecture.
+
+    See https://arxiv.org/pdf/1910.06591.pdf for experiences.
 
     Args:
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
