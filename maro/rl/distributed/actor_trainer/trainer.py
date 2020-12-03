@@ -46,7 +46,7 @@ class Trainer(object):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
         self._agent_manager.train(self._experience_collecting_func(experiences_by_agent))
         self._proxy.ibroadcast(
-            component_type=ActorTrainerComponent.TRAINER.value,
+            component_type=ActorTrainerComponent.ACTOR.value,
             tag=MessageTag.MODEL,
             session_type=SessionType.NOTIFICATION,
             payload={PayloadKey.MODEL: self._agent_manager.dump_models()}
