@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import List, Union
+
 import numpy as np
 
-from maro.communication import SessionType
+from maro.communication import SessionMessage, SessionType
 from maro.rl.distributed.common import MessageTag, PayloadKey
 
 from .abs_dist_learner import AbsDistLearner
@@ -114,7 +116,9 @@ class SEEDLearner(AbsDistLearner):
             if self._rollout_complete_counter == self._num_actors:
                 break
 
-    def _get_action(self, messages: list):
+    def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
+        if isinstance(messages, SessionMessage):
+            messages = [messages]
         state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
         agent_id = messages[0].payload[PayloadKey.AGENT_ID]
         model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)

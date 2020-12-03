@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Callable
+from typing import Callable, List, Union
 
 import numpy as np
 
-from maro.communication import Proxy, RegisterTable, SessionType
+from maro.communication import Proxy, RegisterTable, SessionMessage, SessionType
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 
 from ..common import ActorTrainerComponent, MessageTag, PayloadKey
@@ -77,7 +77,9 @@ class SEEDTrainer(Trainer):
             f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
         )
 
-    def _get_action(self, messages: list):
+    def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
+        if isinstance(messages, SessionMessage):
+            messages = [messages]
         state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
         agent_id = messages[0].payload[PayloadKey.AGENT_ID]
         model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
