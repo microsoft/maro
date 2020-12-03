@@ -150,4 +150,3 @@ class SEEDActor(AbsActor):
         self._action_shaper.reset()
         self._experience_shaper.reset()
         return experiences
-

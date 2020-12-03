@@ -8,7 +8,7 @@ from maro.communication.registry_table import RegisterTable
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.simulator import Env
 
-from ..common import Component, MessageTag, PayloadKey
+from ..common import ActorTrainerComponent, MessageTag, PayloadKey
 
 
 class AbsAutoActor(ABC):
@@ -21,7 +21,7 @@ class AbsAutoActor(ABC):
     def __init__(self, env: Env, scheduler: Scheduler, **proxy_params):
         self._env = env
         self._scheduler = scheduler
-        self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)
+        self._proxy = Proxy(component_type=ActorTrainerComponent.ACTOR.value, **proxy_params)
         self._registry_table = RegisterTable(self._proxy.peers_name)
 
     @abstractmethod
@@ -29,13 +29,13 @@ class AbsAutoActor(ABC):
         """Run the main training loop or run one episode for model testing."""
         raise NotImplementedError
 
-    def _train(self, experiences):
+    def _update(self, experiences):
         self._proxy.isend(
             SessionMessage(
                 tag=MessageTag.TRAIN,
                 source=self._proxy.component_name,
                 destination=self._proxy.peers_name["trainer"][0],
-                session_id=self._scheduler.current_ep,
+                session_id=str(self._scheduler.current_ep),
                 payload={PayloadKey.EXPERIENCES: experiences},
             )
         )
