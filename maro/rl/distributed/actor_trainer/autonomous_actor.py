@@ -40,16 +40,10 @@ class SimpleAutoActor(AbsAutoActor):
             if is_training:
                 self._scheduler.record_performance(self._env.metrics)
                 experiences = self._agent_manager.post_process(self._env.snapshot_list)
-                self._train(experiences)
+                self._update(experiences)
 
     def _update_models(self):
-        received = self._proxy.receive_by_id(
-            [".".join([
-                self._scheduler.current_ep,
-                ActorTrainerComponent.ACTOR.value,
-                ActorTrainerComponent.TRAINER.value
-            ])]
-        )
+        received = self._proxy.receive_by_id([self._get_update_session_id()])
         self._agent_manager.load_models(received[0].payload[PayloadKey.MODEL])
 
 

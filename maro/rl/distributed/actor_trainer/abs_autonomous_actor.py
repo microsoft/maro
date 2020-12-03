@@ -35,7 +35,14 @@ class AbsAutoActor(ABC):
                 tag=MessageTag.UPDATE,
                 source=self._proxy.component_name,
                 destination=self._proxy.peers_name["trainer"][0],
-                session_id=str(self._scheduler.current_ep),
+                session_id=self._get_update_session_id(),
                 payload={PayloadKey.EXPERIENCES: experiences},
             )
         )
+
+    def _get_update_session_id(self):
+        return ".".join([
+            str(self._scheduler.current_ep),
+            ActorTrainerComponent.ACTOR.value,
+            ActorTrainerComponent.TRAINER.value
+            ])
