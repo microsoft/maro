@@ -32,7 +32,7 @@ class AbsAutoActor(ABC):
     def _update(self, experiences):
         self._proxy.isend(
             SessionMessage(
-                tag=MessageTag.TRAIN,
+                tag=MessageTag.UPDATE,
                 source=self._proxy.component_name,
                 destination=self._proxy.peers_name["trainer"][0],
                 session_id=str(self._scheduler.current_ep),
