@@ -27,7 +27,7 @@ namespace maro
 
     const int SECONDS_PER_HOUR = 60 * 60;
 
-    const int BUFFER_LENGTH = 4096;
+    const UINT BUFFER_LENGTH = 4096;
 
     const UCHAR DTYPE_CHAR = 1;
     const UCHAR DTYPE_UCHAR = 2;
@@ -44,6 +44,9 @@ namespace maro
     // NOTE: this must be update if header has changes
     const UCHAR HEADER_LENGTH = 84;
     const UCHAR HEADER_TOTAL_ITEMS_OFFSET = 15;
+    const UCHAR HEADER_ITEM_SIZE_OFFSET = 23;
+    const UCHAR HEADER_START_TIME_OFFSET = 28;
+    const UCHAR HEADER_END_TIME_OFFSET = 36;
     const UCHAR HEADER_META_SIZE_OFFSET = 44;
 
     /*
