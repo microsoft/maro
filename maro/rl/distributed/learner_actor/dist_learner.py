@@ -83,8 +83,7 @@ class SEEDLearner(AbsDistLearner):
                 self._agent_manager.update_exploration_params(exploration_params)
             self._sample()
             self._serve()
-            exp_by_agent = self._experience_collecting_func(self._experiences)
-            self._agent_manager.train(exp_by_agent)
+            self._agent_manager.train(self._experience_collecting_func(self._experiences))
 
     def test(self):
         """Test policy performance."""
@@ -125,6 +124,6 @@ class SEEDLearner(AbsDistLearner):
     def _collect(self, messages: list):
         for msg in messages:
             self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
-            self._experiences[msg.source] = msg.payload[PayloadKey.EXPERIENCES]
 
+        self._experiences = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
         self._rollout_complete_counter = len(messages)

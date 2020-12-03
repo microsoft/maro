@@ -2,15 +2,18 @@
 # Licensed under the MIT license.
 
 import os
-
-from components.agent_manager import DQNAgentManager, create_dqn_agents
-from components.config import set_input_dim
+import sys
 
 from maro.rl import (
-    AgentManagerMode, Component, Scheduler, TwoPhaseLinearExplorationParameterGenerator, concat_experiences_by_agent
+    AgentManagerMode, LearnerActorComponent, Scheduler, TwoPhaseLinearExplorationParameterGenerator,
+    concat_experiences_by_agent
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
+
+sys.path.insert(0, os.getcwd())
+from ..components.agent_manager import DQNAgentManager, create_dqn_agents
+from ..components.config import set_input_dim
 
 
 def launch(config, distributed_config):
@@ -46,7 +49,7 @@ def launch(config, distributed_config):
         agent_manager,
         scheduler,
         concat_experiences_by_agent,
-        expected_peers={Component.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))},
+        expected_peers={LearnerActorComponent: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))},
         group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
         max_retries=15
@@ -58,5 +61,5 @@ def launch(config, distributed_config):
 
 
 if __name__ == "__main__":
-    from components.config import config, distributed_config
+    from ..components.config import config, distributed_config
     launch(config=config, distributed_config=distributed_config)

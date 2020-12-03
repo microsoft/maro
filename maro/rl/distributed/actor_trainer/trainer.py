@@ -34,22 +34,21 @@ class Trainer(object):
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler(
-            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self.update
+            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._update
         )
 
-    @abstractmethod
-    def update(self, messages):
-        raise NotImplementedError
+    def launch(self):
+        for msg in self._proxy.receive():
+            self._registry_table.push(msg)
+            for handler_fn, cached_messages in self._registry_table.get():
+                handler_fn(cached_messages)
+
+    def _update(self, messages):
+        experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
+        self._agent_manager.train(self._experience_collecting_func(experiences_by_agent))
 
     def dump_models(self, dir_path: str):
         self._agent_manager.dump_models_to_files(dir_path)
-
-    def _collect(self, messages: list):
-        for msg in messages:
-            self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
-            self._experiences[msg.source] = msg.payload[PayloadKey.EXPERIENCES]
-
-        self._rollout_complete_counter = len(messages)
 
 
 class SEEDTrainer(Trainer):
@@ -70,10 +69,6 @@ class SEEDTrainer(Trainer):
         self._registry_table.register_event_handler(
             f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
         )
-
-    @abstractmethod
-    def train(self, experiences):
-        raise NotImplementedError
 
     def _get_action(self, messages: list):
         state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])

@@ -10,6 +10,7 @@ from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
 from maro.rl.distributed.actor_trainer.abs_autonomous_actor import AbsAutoActor
 from maro.rl.distributed.actor_trainer.autonomous_actor import SimpleAutoActor, SEEDAutoActor
+from maro.rl.distributed.actor_trainer.trainer import SEEDTrainer, Trainer
 from maro.rl.distributed.learner_actor.abs_actor import AbsActor
 from maro.rl.distributed.learner_actor.abs_dist_learner import AbsDistLearner
 from maro.rl.distributed.learner_actor.actor import SEEDActor, SimpleActor
@@ -71,6 +72,7 @@ __all__ = [
     'SEEDActor',
     'SEEDAutoActor',
     'SEEDLearner',
+    'SEEDTrainer',
     'Scheduler',
     'SimpleActor',
     'SimpleAgentManager',
@@ -79,6 +81,7 @@ __all__ = [
     'SimpleLearner',
     'StateShaper',
     'StaticExplorationParameterGenerator',
+    'Trainer',
     'TwoPhaseLinearExplorationParameterGenerator',
     'concat_experiences_by_agent',
     'merge_experiences_with_trajectory_boundaries',
