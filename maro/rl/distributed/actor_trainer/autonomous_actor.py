@@ -114,7 +114,7 @@ class SEEDAutoActor(AbsAutoActor):
                 payload={PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id},
             )
         )
-        model_action = reply[0].payload[PayloadKey.ACTION]
+        model_action = self._explorer[agent_id](reply[0].payload[PayloadKey.ACTION])
         self._transition_cache = {
             "state": model_state,
             "action": model_action,
