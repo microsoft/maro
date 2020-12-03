@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import os
-import sys
 from statistics import mean
 
 import numpy as np
@@ -13,12 +12,11 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-sys.path.insert(0, os.getcwd())
-from .components.action_shaper import CIMActionShaper
-from .components.agent_manager import DQNAgentManager, create_dqn_agents
-from .components.config import set_input_dim
-from .components.experience_shaper import TruncatedExperienceShaper
-from .components.state_shaper import CIMStateShaper
+from examples.cim.dqn.components.action_shaper import CIMActionShaper
+from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
+from examples.cim.dqn.components.config import set_input_dim
+from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
+from examples.cim.dqn.components.state_shaper import CIMStateShaper
 
 
 def launch(config):
@@ -83,5 +81,5 @@ def launch(config):
 
 
 if __name__ == "__main__":
-    from .components.config import config
+    from examples.cim.dqn.components.config import config
     launch(config)

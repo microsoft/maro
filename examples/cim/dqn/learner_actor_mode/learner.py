@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import os
-import sys
 
 from maro.rl import (
     AgentManagerMode, LearnerActorComponent, Scheduler, TwoPhaseLinearExplorationParameterGenerator,
@@ -11,9 +10,8 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-sys.path.insert(0, os.getcwd())
-from ..components.agent_manager import DQNAgentManager, create_dqn_agents
-from ..components.config import set_input_dim
+from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
+from examples.cim.dqn.components.config import set_input_dim
 
 
 def launch(config, distributed_config):
@@ -61,5 +59,5 @@ def launch(config, distributed_config):
 
 
 if __name__ == "__main__":
-    from ..components.config import config, distributed_config
+    from examples.cim.dqn.components.config import config, distributed_config
     launch(config=config, distributed_config=distributed_config)
