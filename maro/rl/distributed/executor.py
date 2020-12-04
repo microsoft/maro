@@ -1,18 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
-
 from maro.communication import Proxy, SessionMessage
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
-
-
-class DistributedTrainingMode(Enum):
-    LEARNER_ACTOR = "learner_actor"
-    ACTOR_TRAINER = "actor_trainer"
 
 
 class Executor(object):

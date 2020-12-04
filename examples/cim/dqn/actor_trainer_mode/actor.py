@@ -7,8 +7,8 @@ import time
 import numpy as np
 
 from maro.rl import (
-    ActorTrainerComponent, AgentManagerMode, AutoActor, Executor, KStepExperienceShaper, Scheduler,
-    TwoPhaseLinearExplorationParameterGenerator
+    ActorTrainerComponent, AgentManagerMode, AutoActor, DistributedTrainingMode, Executor, KStepExperienceShaper,
+    Scheduler, TwoPhaseLinearExplorationParameterGenerator
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
@@ -45,7 +45,7 @@ def launch(config, distributed_config):
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
     if distributed_mode == "seed":
-        executor = Executor(state_shaper, action_shaper, experience_shaper)
+        executor = Executor(state_shaper, action_shaper, experience_shaper, DistributedTrainingMode.ACTOR_TRAINER)
     elif distributed_mode == "simple":
         executor = DQNAgentManager(
             name="distributed_cim_actor",
