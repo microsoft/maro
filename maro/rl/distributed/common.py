@@ -14,6 +14,7 @@ class ActorTrainerComponent(Enum):
 class MessageTag(Enum):
     ROLLOUT = "rollout"
     EXPLORATION_PARAMS = "exploration_params"
+    EXPLORATION_PARAMS_ACK = "exploration_params_ack"
     UPDATE = "update"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"

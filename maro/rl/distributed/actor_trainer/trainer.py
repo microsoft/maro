@@ -6,7 +6,7 @@ from typing import Callable, List, Union
 
 import numpy as np
 
-from maro.communication import Proxy, RegisterTable, SessionMessage, SessionType
+from maro.communication import Proxy, RegisterTable, SessionMessage
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 
 from ..common import ActorTrainerComponent, MessageTag, PayloadKey
@@ -35,7 +35,7 @@ class Trainer(object):
         self._exploration_params_by_actor = defaultdict(lambda: None)
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler(
-            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.EXPLORATION_PARAMS.value}:{self._num_actors}",
+            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.EXPLORATION_PARAMS.value}:1",
             self._update_exploration_params
         )
         self._registry_table.register_event_handler(
@@ -48,10 +48,10 @@ class Trainer(object):
             for handler_fn, cached_messages in self._registry_table.get():
                 handler_fn(cached_messages)
 
-    def _update_exploration_params(self, messages):
-        for msg in messages:
-            actor_id, params = msg.payload[PayloadKey.ACTOR_ID], msg.payload[PayloadKey.EXPLORATION_PARAMS]
-            self._exploration_params_by_actor[actor_id] = params
+    def _update_exploration_params(self, message):
+        actor_id, params = message.payload[PayloadKey.ACTOR_ID], message.payload[PayloadKey.EXPLORATION_PARAMS]
+        self._exploration_params_by_actor[actor_id] = params
+        self._proxy.reply(received_message=message, tag=MessageTag.EXPLORATION_PARAMS_ACK)
 
     def _update(self, messages):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
