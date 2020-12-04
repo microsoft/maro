@@ -6,10 +6,9 @@ from typing import List, Union
 import numpy as np
 
 from maro.communication import SessionMessage, SessionType
-from maro.rl.distributed.learner_actor.common import MessageTag, PayloadKey
 
 from .abs_dist_learner import AbsDistLearner
-from .common import Component
+from .common import Component, MessageTag, PayloadKey
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -18,8 +17,7 @@ class SimpleDistLearner(AbsDistLearner):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
             performance, exp_by_agent = self._sample(
-                self._agent_manager.dump_models(),
-                exploration_params=exploration_params
+                self._agent_manager.dump_models(), exploration_params=exploration_params
             )
             self._scheduler.record_performance(performance)
             self._agent_manager.train(exp_by_agent)

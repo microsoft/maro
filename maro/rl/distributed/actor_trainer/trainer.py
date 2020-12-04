@@ -9,7 +9,7 @@ import numpy as np
 from maro.communication import Proxy, RegisterTable, SessionMessage
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 
-from maro.rl.distributed.learner_actor.common import MessageTag, PayloadKey
+from .common import MessageTag, PayloadKey
 
 
 class Trainer(object):

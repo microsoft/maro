@@ -8,10 +8,10 @@ from typing import Union
 from maro.communication import Proxy
 from maro.communication.registry_table import RegisterTable
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
-from maro.rl.distributed.executor import Executor
 from maro.simulator import Env
 
 from .common import Component, MessageTag, PayloadKey
+from ..executor import Executor
 
 
 class Actor(ABC):
