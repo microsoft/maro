@@ -9,7 +9,7 @@ from maro.communication import Proxy, RegisterTable, SessionType
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 
-from ..common import LearnerActorComponent, MessageTag
+from .common import Component, MessageTag
 
 
 class AbsDistLearner(ABC):
@@ -33,7 +33,7 @@ class AbsDistLearner(ABC):
         self._agent_manager = agent_manager
         self._scheduler = scheduler
         self._experience_collecting_func = experience_collecting_func
-        self._proxy = Proxy(component_type=LearnerActorComponent.LEARNER.value, **proxy_params)
+        self._proxy = Proxy(component_type=Component.LEARNER.value, **proxy_params)
         self._registry_table = RegisterTable(self._proxy.peers_name)
 
     @abstractmethod
@@ -47,7 +47,7 @@ class AbsDistLearner(ABC):
     def exit(self):
         """Tell the remote actor to exit."""
         self._proxy.ibroadcast(
-            component_type=LearnerActorComponent.ACTOR.value, tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
+            component_type=Component.ACTOR.value, tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
         )
         sys.exit(0)
 

@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import abstractmethod
+from enum import Enum
 
 from maro.communication import Proxy, SessionMessage
 from maro.rl.shaping.action_shaper import ActionShaper
@@ -9,7 +9,10 @@ from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 
-from .common import MessageTag, PayloadKey
+
+class DistributedTrainingMode(Enum):
+    LEARNER_ACTOR = "learner_actor"
+    ACTOR_TRAINER = "actor_trainer"
 
 
 class Executor(object):
@@ -30,12 +33,22 @@ class Executor(object):
         self,
         state_shaper: StateShaper,
         action_shaper: ActionShaper,
-        experience_shaper: ExperienceShaper
+        experience_shaper: ExperienceShaper,
+        distributed_mode: DistributedTrainingMode
     ):
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
+        self._distributed_mode = distributed_mode
+        if self._distributed_mode == DistributedTrainingMode.LEARNER_ACTOR:
+            from maro.rl.distributed.learner_actor.common import Component, MessageTag, PayloadKey
+            self._action_source = Component.LEARNER.value
+        else:
+            from maro.rl.distributed.actor_trainer.common import Component, MessageTag, PayloadKey
+            self._action_source = Component.TRAINER.value
 
+        self._message_tag_set = MessageTag
+        self._payload_key_set = PayloadKey
         # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
@@ -47,17 +60,19 @@ class Executor(object):
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
-        remote_action_source = self._proxy.peers_name[list(self._proxy.peers_name.keys())[0]][0]
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
+        payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
+        if self._distributed_mode == DistributedTrainingMode.ACTOR_TRAINER:
+            payload[self._payload_key_set.ACTOR_ID] = self._proxy.component_name
         reply = self._proxy.send(
             SessionMessage(
-                tag=MessageTag.CHOOSE_ACTION,
+                tag=self._message_tag_set.CHOOSE_ACTION,
                 source=self._proxy.component_name,
-                destination=remote_action_source,
-                payload={PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id},
+                destination=self._action_source,
+                payload=payload
             )
         )
-        model_action = reply[0].payload[PayloadKey.ACTION]
+        model_action = reply[0].payload[self._payload_key_set.ACTION]
         self._transition_cache = {
             "state": model_state,
             "action": model_action,

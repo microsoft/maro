@@ -6,10 +6,10 @@ from typing import List, Union
 import numpy as np
 
 from maro.communication import SessionMessage, SessionType
-from maro.rl.distributed.common import MessageTag, PayloadKey
+from maro.rl.distributed.learner_actor.common import MessageTag, PayloadKey
 
 from .abs_dist_learner import AbsDistLearner
-from ..common import LearnerActorComponent
+from .common import Component
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -42,13 +42,14 @@ class SimpleDistLearner(AbsDistLearner):
         """
         # TODO: double check when ack enable
         replies = self._proxy.broadcast(
-            component_type=LearnerActorComponent.ACTOR.value,
+            component_type=Component.ACTOR.value,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
             payload={
+                PayloadKey.EPISODE: self._scheduler.current_ep,
                 PayloadKey.MODEL: model_dict,
                 PayloadKey.EXPLORATION_PARAMS: exploration_params,
-                PayloadKey.RETURN_DETAILS: return_experiences
+                PayloadKey.RETURN_EXPERIENCES: return_experiences
             }
         )
 
@@ -68,10 +69,10 @@ class SEEDLearner(AbsDistLearner):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._registry_table.register_event_handler(
-            f"{LearnerActorComponent.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
+            f"{Component.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
         )
         self._registry_table.register_event_handler(
-            f"{LearnerActorComponent.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
+            f"{Component.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
         self._experiences = {}
         self._rollout_complete_counter = 0
 
@@ -102,10 +103,10 @@ class SEEDLearner(AbsDistLearner):
             Performance and per-agent experiences from the remote actor.
         """
         self._proxy.ibroadcast(
-            component_type=LearnerActorComponent.ACTOR.value,
+            component_type=Component.ACTOR.value,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
-            payload={PayloadKey.RETURN_DETAILS: return_experiences}
+            payload={PayloadKey.EPISODE: self._scheduler.current_ep, PayloadKey.RETURN_EXPERIENCES: return_experiences}
         )
 
     def _serve(self):

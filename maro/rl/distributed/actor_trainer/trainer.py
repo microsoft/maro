@@ -9,7 +9,7 @@ import numpy as np
 from maro.communication import Proxy, RegisterTable, SessionMessage
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 
-from ..common import ActorTrainerComponent, MessageTag, PayloadKey
+from maro.rl.distributed.learner_actor.common import MessageTag, PayloadKey
 
 
 class Trainer(object):
@@ -30,16 +30,15 @@ class Trainer(object):
         super().__init__()
         self._agent_manager = agent_manager
         self._experience_collecting_func = experience_collecting_func
-        self._proxy = Proxy(component_type=ActorTrainerComponent.TRAINER.value, **proxy_params)
+        self._proxy = Proxy(component_type="trainer", **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._exploration_params_by_actor = defaultdict(lambda: None)
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler(
-            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.EXPLORATION_PARAMS.value}:1",
-            self._update_exploration_params
+            f"actor:{MessageTag.EXPLORATION_PARAMS.value}:1", self._update_exploration_params
         )
         self._registry_table.register_event_handler(
-            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._update
+            f"actor:{MessageTag.UPDATE.value}:{self._num_actors}", self._update
         )
 
     def launch(self):
@@ -85,7 +84,7 @@ class SEEDTrainer(Trainer):
     ):
         super().__init__(agent_manager, experience_collecting_func, **proxy_params)
         self._registry_table.register_event_handler(
-            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
+            f"actor:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
         )
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):

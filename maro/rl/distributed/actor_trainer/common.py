@@ -1,18 +1,15 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from enum import Enum
 
 
-class LearnerActorComponent(Enum):
-    LEARNER = "learner"
-    ACTOR = "actor"
-
-
-class ActorTrainerComponent(Enum):
+class Component(Enum):
     ACTOR = "actor"
     TRAINER = "trainer"
 
 
 class MessageTag(Enum):
-    ROLLOUT = "rollout"
     EXPLORATION_PARAMS = "exploration_params"
     EXPLORATION_PARAMS_ACK = "exploration_params_ack"
     UPDATE = "update"
@@ -28,9 +25,5 @@ class PayloadKey(Enum):
     AGENT_ID = "agent_id"
     MODEL = "model"
     EXPLORATION_PARAMS = "exploration_params"
-    PERFORMANCE = "performance"
     EXPERIENCES = "experiences"
     STATE = "state"
-    SEED = "seed"
-    DONE = "done"
-    RETURN_DETAILS = "return_experiences"

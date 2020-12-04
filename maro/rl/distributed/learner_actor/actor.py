@@ -11,7 +11,7 @@ from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.rl.distributed.executor import Executor
 from maro.simulator import Env
 
-from ..common import LearnerActorComponent, MessageTag, PayloadKey
+from .common import Component, MessageTag, PayloadKey
 
 
 class Actor(ABC):
@@ -25,15 +25,16 @@ class Actor(ABC):
     def __init__(self, env: Env, executor: Union[AbsAgentManager, Executor], **proxy_params):
         self._env = env
         self._executor = executor
-        self._proxy = Proxy(component_type=LearnerActorComponent.ACTOR.value, **proxy_params)
+        self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)
         if isinstance(self._executor, Executor):
             self._executor.load_proxy(self._proxy)
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler(
-            f"{LearnerActorComponent.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
+            f"{Component.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
         self._registry_table.register_event_handler(
-            f"{LearnerActorComponent.LEARNER.value}:{MessageTag.EXIT.value}:1", self.exit
+            f"{Component.LEARNER.value}:{MessageTag.EXIT.value}:1", self.exit
         )
+        self._current_ep = None
 
     def launch(self):
         """Entry point method.
@@ -56,13 +57,17 @@ class Actor(ABC):
         performance, experiences = self._roll_out(
             model_dict=message.payload.get(PayloadKey.MODEL, None),
             exploration_params=message.payload.get(PayloadKey.EXPLORATION_PARAMS, None),
-            return_experiences=message.payload[PayloadKey.RETURN_DETAILS]
+            return_experiences=message.payload[PayloadKey.RETURN_EXPERIENCES]
         )
 
         self._proxy.reply(
             received_message=message,
             tag=MessageTag.UPDATE,
-            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCES: experiences}
+            payload={
+                PayloadKey.EPISODE: message.payload[PayloadKey.EPISODE],
+                PayloadKey.PERFORMANCE: performance,
+                PayloadKey.EXPERIENCES: experiences
+            }
         )
 
     def _roll_out(self, model_dict: dict = None, exploration_params=None, return_experiences: bool = True):

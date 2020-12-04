@@ -8,10 +8,11 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
 from maro.rl.distributed.actor_trainer.actor import AutoActor
+from maro.rl.distributed.actor_trainer.common import Component as ActorTrainerComponent
 from maro.rl.distributed.actor_trainer.trainer import SEEDTrainer, Trainer
 from maro.rl.distributed.learner_actor.actor import Actor
+from maro.rl.distributed.learner_actor.common import Component as LearnerActorComponent
 from maro.rl.distributed.learner_actor.abs_dist_learner import AbsDistLearner
-from maro.rl.distributed.common import ActorTrainerComponent, LearnerActorComponent
 from maro.rl.distributed.executor import Executor
 from maro.rl.distributed.learner_actor.dist_learner import SEEDLearner, SimpleDistLearner
 from maro.rl.distributed.experience_collection import (
