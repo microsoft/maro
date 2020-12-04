@@ -112,3 +112,5 @@ class SEEDTrainer(Trainer):
     def _update(self, messages):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
         self._agent_manager.train(self._experience_collecting_func(experiences_by_agent))
+        for msg in messages:
+            self._proxy.reply(received_message=msg, tag=MessageTag.TRAINING_FINISHED)
