@@ -47,12 +47,13 @@ class Executor(object):
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
+        remote_action_source = self._proxy.peers_name[list(self._proxy.peers_name.keys())[0]][0]
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         reply = self._proxy.send(
             SessionMessage(
                 tag=MessageTag.CHOOSE_ACTION,
                 source=self._proxy.component_name,
-                destination=self._proxy.peers_name["learner"][0],
+                destination=remote_action_source,
                 payload={PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id},
             )
         )
