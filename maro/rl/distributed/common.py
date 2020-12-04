@@ -22,6 +22,7 @@ class MessageTag(Enum):
 
 
 class PayloadKey(Enum):
+    ACTOR_ID = "actor_id"
     ACTION = "action"
     AGENT_ID = "agent_id"
     MODEL = "model"

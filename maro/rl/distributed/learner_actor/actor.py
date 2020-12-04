@@ -1,29 +1,51 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.communication import Proxy, SessionMessage
-from maro.rl.agent.simple_agent_manager import SimpleAgentManager
-from maro.rl.shaping.state_shaper import StateShaper
-from maro.rl.shaping.action_shaper import ActionShaper
-from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.storage.column_based_store import ColumnBasedStore
+import sys
+from abc import ABC
+from typing import Union
+
+from maro.communication import Proxy
+from maro.communication.registry_table import RegisterTable
+from maro.rl.agent.abs_agent_manager import AbsAgentManager
+from maro.rl.distributed.executor import Executor
 from maro.simulator import Env
 
-from .abs_actor import AbsActor
-from ..common import MessageTag, PayloadKey
+from ..common import LearnerActorComponent, MessageTag, PayloadKey
 
 
-class SimpleActor(AbsActor):
-    """Accept roll-out requests and perform roll-out tasks.
+class Actor(ABC):
+    """Abstract actor class.
 
     Args:
-        env (Env): An Env instance.
-        agent_manager (SimpleAgentManager): An AgentManager instance that manages all agents.
-        proxy (Proxy):
+        env: An environment instance.
+        executor: An ``Executor`` of ``AbsAgentManager`` instance responsible for interacting with the environment.
+        proxy_params: Parameters required for instantiating an internal proxy for communication.
     """
-    def __init__(self, env, agent_manager: SimpleAgentManager, **proxy_params):
-        super().__init__(env, **proxy_params)
-        self._agent_manager = agent_manager
+    def __init__(self, env: Env, executor: Union[AbsAgentManager, Executor], **proxy_params):
+        self._env = env
+        self._executor = executor
+        self._proxy = Proxy(component_type=LearnerActorComponent.ACTOR.value, **proxy_params)
+        if isinstance(self._executor, Executor):
+            self._executor.load_proxy(self._proxy)
+        self._registry_table = RegisterTable(self._proxy.peers_name)
+        self._registry_table.register_event_handler(
+            f"{LearnerActorComponent.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
+        self._registry_table.register_event_handler(
+            f"{LearnerActorComponent.LEARNER.value}:{MessageTag.EXIT.value}:1", self.exit
+        )
+
+    def launch(self):
+        """Entry point method.
+
+        This enters the actor into an infinite loop of listening to requests and handling them according to the
+        register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
+        """
+        for msg in self._proxy.receive():
+            self._registry_table.push(msg)
+            triggered_events = self._registry_table.get()
+            for handler_fn, cached_messages in triggered_events:
+                handler_fn(cached_messages)
 
     def on_rollout_request(self, message):
         """Perform local roll-out and send the results back to the request sender.
@@ -32,8 +54,8 @@ class SimpleActor(AbsActor):
             message: Message containing roll-out parameters and options.
         """
         performance, experiences = self._roll_out(
-            model_dict=message.payload[PayloadKey.MODEL],
-            exploration_params=message.payload[PayloadKey.EXPLORATION_PARAMS],
+            model_dict=message.payload.get(PayloadKey.MODEL, None),
+            exploration_params=message.payload.get(PayloadKey.EXPLORATION_PARAMS, None),
             return_experiences=message.payload[PayloadKey.RETURN_DETAILS]
         )
 
@@ -57,95 +79,24 @@ class SimpleActor(AbsActor):
         """
         self._env.reset()
 
-        # load models
-        if model_dict is not None:
-            self._agent_manager.load_models(model_dict)
+        if isinstance(self._executor, AbsAgentManager):
+            # load models
+            if model_dict is not None:
+                self._executor.load_models(model_dict)
 
-        # load exploration parameters:
-        if exploration_params is not None:
-            self._agent_manager.update_exploration_params(exploration_params)
+            # load exploration parameters:
+            if exploration_params is not None:
+                self._executor.update_exploration_params(exploration_params)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
+            action = self._executor.choose_action(decision_event, self._env.snapshot_list)
             metrics, decision_event, is_done = self._env.step(action)
-            self._agent_manager.on_env_feedback(metrics)
+            self._executor.on_env_feedback(metrics)
 
-        experiences = self._agent_manager.post_process(self._env.snapshot_list) if return_experiences else None
+        experiences = self._executor.post_process(self._env.snapshot_list) if return_experiences else None
 
         return self._env.metrics, experiences
 
-
-class SEEDActor(AbsActor):
-    def __init__(
-        self,
-        env,
-        state_shaper: StateShaper,
-        action_shaper: ActionShaper,
-        experience_shaper: ExperienceShaper,
-        **proxy_params
-    ):
-        super().__init__(env, **proxy_params)
-        self._state_shaper = state_shaper
-        self._action_shaper = action_shaper
-        self._experience_shaper = experience_shaper
-
-        # Data structures to temporarily store transitions and trajectory
-        self._transition_cache = {}
-        self._trajectory = ColumnBasedStore()
-
-    def on_rollout_request(self, message):
-        performance, experiences = self._roll_out(return_experiences=message.payload[PayloadKey.RETURN_DETAILS])
-        self._proxy.reply(
-            received_message=message,
-            tag=MessageTag.UPDATE,
-            payload={PayloadKey.PERFORMANCE: performance, PayloadKey.EXPERIENCES: experiences}
-        )
-
-    def _roll_out(self, return_experiences: bool = True):
-        """Perform local roll-out and send the results back to the request sender.
-
-        Args:
-            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
-        """
-        self._env.reset()
-        metrics, decision_event, is_done = self._env.step(None)
-        while not is_done:
-            action = self._choose_action(decision_event, self._env.snapshot_list)
-            metrics, decision_event, is_done = self._env.step(action)
-            self._transition_cache["metrics"] = metrics
-            self._trajectory.put(self._transition_cache)
-
-        experiences = self._post_process() if return_experiences else None
-        return self._env.metrics, experiences
-
-    def _choose_action(self, decision_event, snapshot_list):
-        agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        reply = self._proxy.send(
-            SessionMessage(
-                tag=MessageTag.CHOOSE_ACTION,
-                source=self._proxy.component_name,
-                destination=self._proxy.peers_name["learner"][0],
-                payload={PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id},
-            )
-        )
-        model_action = reply[0].payload[PayloadKey.ACTION]
-        self._transition_cache = {
-            "state": model_state,
-            "action": model_action,
-            "reward": None,
-            "agent_id": agent_id,
-            "event": decision_event
-        }
-
-        return self._action_shaper(model_action, decision_event, snapshot_list)
-
-    def _post_process(self):
-        """Process the latest trajectory into experiences."""
-        experiences = self._experience_shaper(self._trajectory, self._env.snapshot_list)
-        self._trajectory.clear()
-        self._transition_cache = {}
-        self._state_shaper.reset()
-        self._action_shaper.reset()
-        self._experience_shaper.reset()
-        return experiences
+    def exit(self):
+        sys.exit(0)

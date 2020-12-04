@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import Callable, List, Union
 
 import numpy as np
@@ -31,7 +32,12 @@ class Trainer(object):
         self._experience_collecting_func = experience_collecting_func
         self._proxy = Proxy(component_type=ActorTrainerComponent.TRAINER.value, **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
+        self._exploration_params_by_actor = defaultdict(lambda: None)
         self._registry_table = RegisterTable(self._proxy.peers_name)
+        self._registry_table.register_event_handler(
+            f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.EXPLORATION_PARAMS.value}:{self._num_actors}",
+            self._update_exploration_params
+        )
         self._registry_table.register_event_handler(
             f"{ActorTrainerComponent.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._update
         )
@@ -41,6 +47,11 @@ class Trainer(object):
             self._registry_table.push(msg)
             for handler_fn, cached_messages in self._registry_table.get():
                 handler_fn(cached_messages)
+
+    def _update_exploration_params(self, messages):
+        for msg in messages:
+            actor_id, params = msg.payload[PayloadKey.ACTOR_ID], msg.payload[PayloadKey.EXPLORATION_PARAMS]
+            self._exploration_params_by_actor[actor_id] = params
 
     def _update(self, messages):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
@@ -80,11 +91,24 @@ class SEEDTrainer(Trainer):
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
             messages = [messages]
-        state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
-        agent_id = messages[0].payload[PayloadKey.AGENT_ID]
-        model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
-        for msg, model_action in zip(messages, model_action_batch):
-            self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action})
+        # If there is no exploration parameters, use batch inference.
+        if not self._exploration_params_by_actor:
+            state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
+            agent_id = messages[0].payload[PayloadKey.AGENT_ID]
+            model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
+            for msg, model_action in zip(messages, model_action_batch):
+                self._proxy.reply(
+                    received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action}
+                )
+        else:
+            for msg in messages:
+                actor_id, agent_id = msg.payload[PayloadKey.ACTOR_ID], msg.payload[PayloadKey.AGENT_ID]
+                if self._exploration_params_by_actor[actor_id] is not None:
+                    self._agent_manager.update_exploration_params(self._exploration_params_by_actor[actor_id])
+                model_action = self._agent_manager[agent_id].choose_action(msg.payload[PayloadKey.STATE])
+                self._proxy.reply(
+                    received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action}
+                )
 
     def _update(self, messages):
         experiences_by_agent = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}

@@ -45,7 +45,7 @@ class Scheduler(object):
         self._max_ep = max_ep
         self._warmup_ep = warmup_ep
         self._early_stopping_callback = early_stopping_callback
-        self._current_ep = 0
+        self._current_ep = -1
         self._performance_history = []
         self._exploration_params = None
 
@@ -87,6 +87,10 @@ class Scheduler(object):
     @property
     def current_ep(self):
         return self._current_ep
+
+    @property
+    def exploration_params(self):
+        return self._exploration_params
 
     def record_performance(self, performance):
         self._performance_history.append(performance)

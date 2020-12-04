@@ -1,20 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.distributed.learner_actor.abs_actor import AbsActor
 from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
-from maro.rl.distributed.actor_trainer.abs_autonomous_actor import AbsAutoActor
-from maro.rl.distributed.actor_trainer.autonomous_actor import SimpleAutoActor, SEEDAutoActor
+from maro.rl.distributed.actor_trainer.actor import AutoActor
 from maro.rl.distributed.actor_trainer.trainer import SEEDTrainer, Trainer
-from maro.rl.distributed.learner_actor.abs_actor import AbsActor
+from maro.rl.distributed.learner_actor.actor import Actor
 from maro.rl.distributed.learner_actor.abs_dist_learner import AbsDistLearner
-from maro.rl.distributed.learner_actor.actor import SEEDActor, SimpleActor
 from maro.rl.distributed.common import ActorTrainerComponent, LearnerActorComponent
+from maro.rl.distributed.executor import Executor
 from maro.rl.distributed.learner_actor.dist_learner import SEEDLearner, SimpleDistLearner
 from maro.rl.distributed.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
@@ -41,25 +39,26 @@ from maro.rl.storage.column_based_store import ColumnBasedStore
 from maro.rl.storage.utils import OverwriteType
 
 __all__ = [
-    'AbsActor',
     'AbsAgent',
     'AbsAgentManager',
     'AbsAlgorithm',
-    'AbsAutoActor',
     'AbsDistLearner',
     'AbsExplorer',
     'AbsLearner',
     'AbsShaper',
     'AbsStore',
     'ActionShaper',
+    'Actor',
     'ActorTrainerComponent',
     'AgentManagerMode',
+    'AutoActor',
     'ColumnBasedStore',
     'DQN',
     'DQNConfig',
     'DuelingDQNTask',
     'DynamicExplorationParameterGenerator',
     'EpsilonGreedyExplorer',
+    'Executor',
     'ExperienceShaper',
     'FullyConnectedBlock',
     'KStepExperienceShaper',
@@ -69,14 +68,10 @@ __all__ = [
     'LinearExplorationParameterGenerator',
     'OptimizerOptions',
     'OverwriteType',
-    'SEEDActor',
-    'SEEDAutoActor',
     'SEEDLearner',
     'SEEDTrainer',
     'Scheduler',
-    'SimpleActor',
     'SimpleAgentManager',
-    'SimpleAutoActor',
     'SimpleDistLearner',
     'SimpleLearner',
     'StateShaper',
