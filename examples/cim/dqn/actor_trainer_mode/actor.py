@@ -58,7 +58,6 @@ def launch(config, distributed_config):
     else:
         raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
-    time.sleep(5)
     actor = AutoActor(
         env, executor, scheduler,
         group_name=os.environ.get("GROUP", distributed_config.group),
@@ -66,6 +65,7 @@ def launch(config, distributed_config):
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
         max_retries=15
     )
+    time.sleep(5)
     actor.run()
 
 
