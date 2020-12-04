@@ -52,6 +52,7 @@ class Executor(object):
 
     def load_proxy(self, proxy: Proxy):
         self._proxy = proxy
+        self._action_source = self._proxy.peers_name[self._action_source][0]
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
