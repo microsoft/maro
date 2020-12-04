@@ -71,12 +71,12 @@ class Scheduler(object):
         return self
 
     def __next__(self):
+        self._current_ep += 1
         if self._current_ep == self._max_ep:
             raise StopIteration
         if self._current_ep >= self._warmup_ep:
             if self._early_stopping_callback and self._early_stopping_callback(self._performance_history):
                 raise StopIteration
-        self._current_ep += 1
         if isinstance(self._exploration_parameter_generator, StaticExplorationParameterGenerator):
             self._exploration_params = self._exploration_parameter_generator.next()
         elif isinstance(self._exploration_parameter_generator, DynamicExplorationParameterGenerator):
