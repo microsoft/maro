@@ -7,7 +7,7 @@ import time
 import numpy as np
 
 from maro.rl import (
-    Actor, ActorTrainerComponent, AgentManagerMode, Executor, KStepExperienceShaper, Scheduler,
+    ActorTrainerComponent, AgentManagerMode, AutoActor, Executor, KStepExperienceShaper, Scheduler,
     TwoPhaseLinearExplorationParameterGenerator
 )
 from maro.simulator import Env
@@ -59,8 +59,8 @@ def launch(config, distributed_config):
         raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
     time.sleep(5)
-    actor = Actor(
-        env, executor,
+    actor = AutoActor(
+        env, executor, scheduler,
         group_name=os.environ.get("GROUP", distributed_config.group),
         expected_peers={ActorTrainerComponent.TRAINER.value: 1},
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
