@@ -95,5 +95,5 @@ class Scheduler(object):
     def record_performance(self, performance):
         self._performance_history.append(performance)
         self._logger.info(
-            f"ep {self._current_ep - 1} - performance: {performance}, exploration_params: {self._exploration_params}"
+            f"ep {self._current_ep} - performance: {performance}, exploration_params: {self._exploration_params}"
         )
