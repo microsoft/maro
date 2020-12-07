@@ -6,6 +6,7 @@ from typing import Dict, List
 
 from yaml import safe_load
 
+from maro.data_lib import BinaryReader
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
@@ -65,9 +66,19 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # All requirement payload of the pending decision VMs.
         # NOTE: Need naming suggestestion.
         self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
+        # All vm's cpu utilization at current tick.
+        self._cpu_utilization_dict: Dict[int, float] = {}
+
+        self._vm_reader = BinaryReader(self._config["vm_table"])
+        self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
+
+    @property
+    def configs(self) -> dict:
+        """dict: Current configuration."""
+        return self._config
 
     def _load_configs(self):
         """Load configurations."""
@@ -108,14 +119,19 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._update_vm_workload()
         # Update all PM CPU utilization.
         self._update_pm_workload()
-        # TODO
-        # Generate VM requirement events from data file.
-        # It might be implemented by a for loop to process VMs in each tick.
-        vm_requirement_event = self._event_buffer.gen_cascade_event(
-            tick=tick,
-            event_type=Events.REQUIREMENTS,
-            payload=None
-        )
+
+        for vm in self._vm_item_picker.items(tick):
+            vm_req = VirtualMachine(
+                id=vm.vm_id,
+                vcpu_cores_requirement=vm.vm_vcpu_cores,
+                memory_requirement=vm.vm_memory,
+                lifetime=vm.vm_deleted - vm.timestamp + 1
+            )
+            vm_requirement_event = self._event_buffer.gen_cascade_event(
+                tick=tick,
+                event_type=Events.REQUIREMENTS,
+                payload=vm_req
+            )
         self._event_buffer.insert_event(event=vm_requirement_event)
 
     def get_metrics(self) -> DocableDict:

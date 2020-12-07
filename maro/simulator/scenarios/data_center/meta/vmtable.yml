@@ -16,9 +16,9 @@ entity:
   vm_deleted:
     column: 'vmdeleted'
     dtype: 'i'
-  vm_cpu:
+  vm_vcpu_cores:
     column: 'vmcorecountbucket'
     dtype: 'i'
-  vm_mem:
+  vm_memory:
     column: 'vmmemorybucket'
     dtype: 'i'

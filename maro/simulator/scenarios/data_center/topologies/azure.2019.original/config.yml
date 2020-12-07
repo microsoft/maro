@@ -6,3 +6,5 @@ calibration_parameter: 1.4
 busy_power: 10
 # The busy power usage of a machine.
 idle_power: 1
+
+vm_table: "~/.maro/data/data_center/.build/azure.2019.original/vmtable.bin"

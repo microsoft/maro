@@ -18,7 +18,7 @@ class VirtualMachine:
         self.id: int = id
         self.vcpu_cores_requirement: int = vcpu_cores_requirement
         self.memory_requirement: int = memory_requirement
-        # The VM lifetime which equals to the deletion tick - creation tick.
+        # The VM lifetime which equals to the deletion tick - creation tick + 1.
         self.lifetime: int = lifetime
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
