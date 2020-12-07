@@ -31,7 +31,8 @@ class AbsEnv(ABC):
             max_snapshots (int): Max in-memory snapshot number, less snapshots lower memory cost.
             business_engine_cls(type): Class of business engine, if specified, then use it to construct be instance,
                 or will search internal by scenario.
-            enable_event_pool (bool): If enable event pool feature, default is False.
+            disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
+                re-use finished event object, this reduce event object number.
             options (dict): Additional parameters passed to business engine.
     """
 
@@ -40,7 +41,7 @@ class AbsEnv(ABC):
         start_tick: int, durations: int, snapshot_resolution: int, max_snapshots: int,
         decision_mode: DecisionMode,
         business_engine_cls: type,
-        enable_event_pool: bool,
+        disable_finished_events: bool,
         options: dict
     ):
         self._tick = start_tick
