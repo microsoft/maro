@@ -31,7 +31,8 @@ class Env(AbsEnv):
             None means keeping all snapshots in memory. Defaults to None.
         business_engine_cls (type): Class of business engine. If specified, use it to construct the be instance,
             or search internally by scenario.
-        enable_event_pool (bool): If enable event pool feature, default is False.
+        disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
+            re-use finished event object, this reduce event object number.
         options (dict): Additional parameters passed to business engine.
     """
 
@@ -39,20 +40,20 @@ class Env(AbsEnv):
         self, scenario: str = None, topology: str = None,
         start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
         decision_mode: DecisionMode = DecisionMode.Sequential,
-        business_engine_cls: type = None, enable_event_pool: bool = False,
+        business_engine_cls: type = None, disable_finished_events: bool = False,
         options: dict = {}
     ):
         super().__init__(
             scenario, topology, start_tick, durations,
             snapshot_resolution, max_snapshots, decision_mode, business_engine_cls,
-            enable_event_pool, options
+            disable_finished_events, options
         )
 
         self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
             else business_engine_cls.__name__
         self._business_engine: AbsBusinessEngine = None
 
-        self._event_buffer = EventBuffer(enable_event_pool)
+        self._event_buffer = EventBuffer(disable_finished_events)
 
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()

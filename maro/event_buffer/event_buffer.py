@@ -26,9 +26,15 @@ class EventBuffer:
 
         And insert order will affect the processing order,
         so ensure the order when you need something strange.
+
+    Args:
+        disable_finished_events (bool): Is disable the method to get finished event list,
+            EventBuffer will recycle the finished events for furthure using, not push them
+            into finished events list, so it will cause method "get_finished_events" return
+            empty list.
     """
 
-    def __init__(self, with_pooling: bool = False):
+    def __init__(self, disable_finished_events: bool = False):
         # id for events that generate from this instance
         self._pending_events = defaultdict(EventLinkedList)
         self._handlers = defaultdict(list)
@@ -36,7 +42,9 @@ class EventBuffer:
         # used to hold all the events that been processed
         self._finished_events = []
 
-        self._event_pool = EventPool(with_pooling)
+        self._event_pool = EventPool()
+
+        self._disable_finished_events = disable_finished_events
 
     def get_finished_events(self) -> EventList:
         """Get all the processed events, call this function before reset method.
@@ -188,7 +196,7 @@ class EventBuffer:
 
                 next_events.state = EventState.FINISHED
 
-                if self._event_pool.enabled:
+                if self._disable_finished_events:
                     self._event_pool.recycle(next_events)
                 else:
                     self._finished_events.append(next_events)

@@ -16,19 +16,13 @@ class EventPool:
     When enable pooling, it will recycle events.
     """
 
-    def __init__(self, enable: bool = False, capacity: int = 1000):
+    def __init__(self, capacity: int = 1000):
         self._capacity = capacity
-        self._enabled: bool = enable
         self._atom_pool: List[AtomEvent] = []
         self._cascade_pool: List[CascadeEvent] = []
         self._recycle_buffer: EventList = []
 
         self._event_id: int = 0
-
-    @property
-    def enabled(self) -> bool:
-        """bool: Is pooling enabled."""
-        return self._enabled
 
     def gen(self, tick: int, event_type: object, payload: object, is_cascade: bool = False) -> Event:
         """Generate an event.
