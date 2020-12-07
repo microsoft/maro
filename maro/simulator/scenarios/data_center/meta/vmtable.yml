@@ -22,7 +22,3 @@ entity:
   vm_mem:
     column: 'vmmemorybucket'
     dtype: 'i'
-  lifetime:
-    column: 'lifetime'
-    dtype: 'i'
-

@@ -67,7 +67,7 @@ class DataCenterPipeline(DataPipeline):
         """
         logger.info_green("Downloading vmtable and cpu readings.")
         # Download parts of cpu reading files.
-        num_files = 2
+        num_files = 5
         # Open the txt file which contains all the required urls.
         with open(self._download_file, mode="r", encoding="utf-8") as urls:
             for remote_url in urls.read().splitlines():
