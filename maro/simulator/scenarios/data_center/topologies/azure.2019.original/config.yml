@@ -1,12 +1,5 @@
-# The amount of PMs.
-pm_amount: 1000
-# The capacity of resource each PM.
-pm_cap_cpu: 16
-pm_cap_mem: 112
-
 # The number of ticks to delay when agent decides not to assign VM.
 delay_duration: 1
-
 # The calibration parameter used for the CPU utilization vs energy consumption model.
 calibration_parameter: 1.4
 # The idle power usage of a machine.
