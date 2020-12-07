@@ -1,4 +1,5 @@
 import gzip
+import math
 import os
 import shutil
 import time
@@ -10,7 +11,7 @@ import pandas as pd
 from yaml import safe_load
 
 from maro.cli.data_pipeline.base import DataPipeline, DataTopology
-from maro.cli.data_pipeline.utils import StaticParameter
+from maro.cli.data_pipeline.utils import StaticParameter, convert
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -143,6 +144,19 @@ class DataCenterPipeline(DataPipeline):
         # Preprocess.
         self._preprocess()
 
+    def build(self):
+        super().build()
+        for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
+            clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
+            if os.path.exists(clean_cpu_readings_file):
+                build_file_name = clean_cpu_readings_file_name.split(".")[0] + ".bin"
+                build_file = os.path.join(self._build_folder, build_file_name)
+                logger.info_green(f"Building binary data from {clean_cpu_readings_file} to {build_file}.")
+                cpu_meta_file = os.path.join(self._meta_folder, "cpu_readings.yml")
+                convert(meta=cpu_meta_file, file=[clean_cpu_readings_file], output=build_file)
+            else:
+                logger.warning_yellow(f"Not found cleaned data: {self._clean_file}.")
+
     def _process_vm_table(self, raw_vm_table_file: str) -> pd.DataFrame:
         """Process vmtable file."""
 
@@ -181,55 +195,41 @@ class DataCenterPipeline(DataPipeline):
 
         return vm_id_map, vm_table
 
-    def _process_cpu_readings(self, clean_cpu_readings_file: str):
-        """Process cpu reading file."""
-        headers = ['timestamp', 'vmid', 'mincpu', 'maxcpu', 'avgcpu']
-        required_headers = ['timestamp', 'vmid', 'maxcpu']
-
-        cpu_readings = pd.read_csv(clean_cpu_readings_file, header=None, index_col=False, names=headers)
-        cpu_readings = cpu_readings.loc[:, required_headers]
-
-        cpu_readings['timestamp'] = pd.to_numeric(cpu_readings['timestamp'], errors="coerce", downcast="integer") // 300
-        cpu_readings['maxcpu'] = pd.to_numeric(cpu_readings['maxcpu'], errors="coerce", downcast="float")
-        cpu_readings.dropna(inplace=True)
-
-        return cpu_readings
-
     def _convert_cpu_readings_id(self, old_data_path: str, new_data_path: str, vm_id_map: pd.DataFrame):
         """Convert vmid in each cpu readings file."""
         with open(old_data_path, 'r') as f_in:
             csv_reader = reader(f_in)
             with open(new_data_path, 'w') as f_out:
                 csv_writer = writer(f_out)
+                csv_writer.writerow(['timestamp', 'vmid', 'maxcpu'])
                 for row in csv_reader:
-                    row[1] = vm_id_map.loc[row[1]]
-                    csv_writer.writerow(row)
+                    # [timestamp, vmid, mincpu, maxcpu, avgcpu]
+                    new_row = []
+                    new_row.append(int(row[0]) // 300)
+                    new_row.append(vm_id_map.loc[row[1]])
+                    new_row.append(round(float(row[3]), 2))
+                    csv_writer.writerow(new_row)
 
     def _preprocess(self):
-        logger.info_green("Reading vmtable data.")
+        logger.info_green("Process vmtable data.")
         # Process vmtable file.
         vm_id_map, vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
         with open(self._clean_file, mode="w", encoding="utf-8", newline="") as f:
             vm_table.to_csv(f, index=False, header=True)
 
         logger.info_green("Reading cpu data.")
-        # Process every cpu readings file based on the vm id from vmtable.
+        # Process every cpu readings file.
         for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
             raw_cpu_readings_file_name = clean_cpu_readings_file_name.split(".")[0] + "_raw.csv"
             raw_cpu_readings_file = os.path.join(self._clean_folder, raw_cpu_readings_file_name)
             clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
             # Convert vmid.
-            logger.info_green(f"Convert vm id from {raw_cpu_readings_file_name} to {clean_cpu_readings_file_name}.")
+            logger.info_green(f"Process {clean_cpu_readings_file}.")
             self._convert_cpu_readings_id(
                 old_data_path=raw_cpu_readings_file,
                 new_data_path=clean_cpu_readings_file,
                 vm_id_map=vm_id_map
             )
-            # Process cpu readings file.
-            logger.info_green(f"Process {clean_cpu_readings_file}.")
-            cpu_readings = self._process_cpu_readings(clean_cpu_readings_file=clean_cpu_readings_file)
-            with open(clean_cpu_readings_file, mode="w", encoding="utf-8", newline="") as f:
-                cpu_readings.to_csv(f, index=False, header=True)
 
 
 class DataCenterTopology(DataTopology):
