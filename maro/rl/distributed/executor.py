@@ -74,7 +74,12 @@ class Executor(object):
             ),
             timeout=self._action_wait_timeout
         )
-        model_action = reply[0].payload[self._payload_key_set.ACTION] if reply else None
+        self._action_count += 1
+
+        if not reply:
+            return
+
+        model_action = reply[0].payload[self._payload_key_set.ACTION]
         self._transition_cache = {
             "state": model_state,
             "action": model_action,
@@ -82,8 +87,6 @@ class Executor(object):
             "agent_id": agent_id,
             "event": decision_event
         }
-
-        self._action_count += 1
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
