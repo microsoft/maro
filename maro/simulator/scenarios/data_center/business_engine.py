@@ -16,6 +16,7 @@ from .common import (
     AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine, VmFinishedPayload,
     VmRequirementPayload
 )
+from .cpu_reader import CpuReader
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -72,6 +73,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._vm_reader = BinaryReader(self._config["vm_table"])
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
+        self._cpu_reader = CpuReader()
+        self._cur_tick_cpu_utilization = {}
+
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
 
@@ -120,6 +124,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # Update all PM CPU utilization.
         self._update_pm_workload()
 
+        self._cur_tick_cpu_utilization = self._cpu_reader.items(tick=tick)
+
         for vm in self._vm_item_picker.items(tick):
             vm_req = VirtualMachine(
                 id=vm.vm_id,
@@ -127,6 +133,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 memory_requirement=vm.vm_memory,
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
+            vm_req.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[vm.vm_id])
             vm_requirement_event = self._event_buffer.gen_cascade_event(
                 tick=tick,
                 event_type=Events.REQUIREMENTS,
@@ -165,8 +172,12 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         The length of VMs utilization series could be difference among all VMs,
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
-        for vm in self._live_vms.values():
-            vm.cpu_utilization = vm.get_utilization(cur_tick=self._tick)
+        for live_vm in self._live_vms.values():
+            live_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[live_vm.vm_id])
+            live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
+
+        for pending_vm in self._pending_vm_req_payload.values():
+            pending_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[pending_vm.vm_id])
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""

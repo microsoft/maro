@@ -6,6 +6,7 @@ from .common import (
     Action, AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine,
     VmFinishedPayload, VmRequirementPayload
 )
+from .cpu_reader import CpuReader
 from .events import Events
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -19,6 +20,7 @@ __all__ = [
     "ValidPhysicalMachine"
     "VmFinishedPayload",
     "VmRequirementPayload",
+    "CpuReader",
     "Events",
     "PhysicalMachine",
     "VirtualMachine"
