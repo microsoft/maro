@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from collections import defaultdict
 from typing import List, Union
 
 import numpy as np
@@ -9,6 +10,8 @@ from maro.communication import SessionMessage, SessionType
 
 from .abs_dist_learner import AbsDistLearner
 from .common import Component, MessageTag, PayloadKey
+
+ACTOR = Component.ACTOR.value
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -40,7 +43,7 @@ class SimpleDistLearner(AbsDistLearner):
         """
         # TODO: double check when ack enable
         replies = self._proxy.broadcast(
-            component_type=Component.ACTOR.value,
+            component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
             payload={
@@ -63,14 +66,27 @@ class SEEDLearner(AbsDistLearner):
 
     See https://arxiv.org/pdf/1910.06591.pdf for experiences.
     """
-    def __init__(self, agent_manager, scheduler, experience_collecting_func, **proxy_params):
+    def __init__(
+        self,
+        agent_manager,
+        scheduler,
+        experience_collecting_func,
+        choose_action_trigger: str = None,
+        update_trigger: str = None,
+        **proxy_params
+    ):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
+        if choose_action_trigger is None:
+            choose_action_trigger = self._num_actors
         self._registry_table.register_event_handler(
-            f"{Component.ACTOR.value}:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
+            f"{ACTOR}:{MessageTag.CHOOSE_ACTION.value}:{choose_action_trigger}", self._get_action
         )
+        if update_trigger is None:
+            update_trigger = self._num_actors
         self._registry_table.register_event_handler(
-            f"{Component.ACTOR.value}:{MessageTag.UPDATE.value}:{self._num_actors}", self._collect)
+            f"{ACTOR}:{MessageTag.UPDATE.value}:{update_trigger}", self._collect
+        )
         self._experiences = {}
         self._rollout_complete_counter = 0
 
@@ -101,7 +117,7 @@ class SEEDLearner(AbsDistLearner):
             Performance and per-agent experiences from the remote actor.
         """
         self._proxy.ibroadcast(
-            component_type=Component.ACTOR.value,
+            component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
             session_type=SessionType.TASK,
             payload={PayloadKey.EPISODE: self._scheduler.current_ep, PayloadKey.RETURN_EXPERIENCES: return_experiences}
@@ -118,11 +134,18 @@ class SEEDLearner(AbsDistLearner):
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
             messages = [messages]
-        state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
-        agent_id = messages[0].payload[PayloadKey.AGENT_ID]
-        model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
-        for msg, model_action in zip(messages, model_action_batch):
-            self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action})
+
+        # group messages from different actors by the AGENT_ID field
+        messages_by_agent_id = defaultdict(list)
+        for msg in messages:
+            messages_by_agent_id[msg.payload[PayloadKey.AGENT_ID]].append(msg)
+
+        # batch inference for each agent_id
+        for agent_id, message_batch in messages_by_agent_id.items():
+            state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in message_batch])
+            action_batch = self._agent_manager[agent_id].choose_action(state_batch)
+            for msg, action in zip(message_batch, action_batch):
+                self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
 
     def _collect(self, messages: list):
         for msg in messages:

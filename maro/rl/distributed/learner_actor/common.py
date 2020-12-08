@@ -16,7 +16,7 @@ class MessageTag(Enum):
 
 class PayloadKey(Enum):
     ACTION = "action"
-    AGENT_ID = "agent_id"
+    ACTION_COUNT = "action_count"
     EPISODE = "episode"
     MODEL = "model"
     EXPLORATION_PARAMS = "exploration_params"

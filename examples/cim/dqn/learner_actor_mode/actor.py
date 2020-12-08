@@ -36,7 +36,10 @@ def launch(config, distributed_config):
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
     if distributed_mode == "seed":
-        executor = Executor(state_shaper, action_shaper, experience_shaper, DistributedTrainingMode.LEARNER_ACTOR)
+        executor = Executor(
+            state_shaper, action_shaper, experience_shaper, DistributedTrainingMode.LEARNER_ACTOR,
+            action_wait_timeout=distributed_config.action_wait_timeout
+        )
     elif distributed_mode == "simple":
         executor = DQNAgentManager(
             name="distributed_cim_actor",

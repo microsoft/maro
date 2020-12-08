@@ -25,6 +25,7 @@ class Trainer(object):
         self,
         agent_manager: AbsAgentManager,
         experience_collecting_func: Callable,
+        update_trigger: str = None,
         **proxy_params
     ):
         super().__init__()
@@ -37,8 +38,10 @@ class Trainer(object):
         self._registry_table.register_event_handler(
             f"actor:{MessageTag.EXPLORATION_PARAMS.value}:1", self._update_exploration_params
         )
+        if update_trigger is None:
+            update_trigger = self._num_actors
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.UPDATE.value}:{self._num_actors}", self._update
+            f"actor:{MessageTag.UPDATE.value}:{update_trigger}", self._update
         )
 
     def launch(self):
@@ -80,11 +83,15 @@ class SEEDTrainer(Trainer):
         self,
         agent_manager: AbsAgentManager,
         experience_collecting_func: Callable,
+        update_trigger: str = None,
+        choose_action_trigger: str = None,
         **proxy_params
     ):
-        super().__init__(agent_manager, experience_collecting_func, **proxy_params)
+        super().__init__(agent_manager, experience_collecting_func, update_trigger=update_trigger, **proxy_params)
+        if choose_action_trigger is None:
+            choose_action_trigger = self._num_actors
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.CHOOSE_ACTION.value}:{self._num_actors}", self._get_action
+            f"actor:{MessageTag.CHOOSE_ACTION.value}:{choose_action_trigger}", self._get_action
         )
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
@@ -92,13 +99,17 @@ class SEEDTrainer(Trainer):
             messages = [messages]
         # If there is no exploration parameters, use batch inference.
         if not self._exploration_params_by_actor:
-            state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in messages])
-            agent_id = messages[0].payload[PayloadKey.AGENT_ID]
-            model_action_batch = self._agent_manager[agent_id].choose_action(state_batch)
-            for msg, model_action in zip(messages, model_action_batch):
-                self._proxy.reply(
-                    received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action}
-                )
+            # group messages from different actors by the AGENT_ID field
+            messages_by_agent_id = defaultdict(list)
+            for msg in messages:
+                messages_by_agent_id[msg.payload[PayloadKey.AGENT_ID]].append(msg)
+
+            # batch inference for each agent_id
+            for agent_id, message_batch in messages_by_agent_id.items():
+                state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in message_batch])
+                action_batch = self._agent_manager[agent_id].choose_action(state_batch)
+                for msg, action in zip(message_batch, action_batch):
+                    self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
         else:
             for msg in messages:
                 actor_id, agent_id = msg.payload[PayloadKey.ACTOR_ID], msg.payload[PayloadKey.AGENT_ID]

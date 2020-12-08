@@ -34,7 +34,7 @@ class ZmqDriver(AbsDriver):
         protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
         send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
             Defaults to -1.
-        receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
+        default_receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
             Defaults to -1.
         logger: The logger instance or DummyLogger. Defaults to DummyLogger().
     """
@@ -44,13 +44,13 @@ class ZmqDriver(AbsDriver):
         component_type: str,
         protocol: str = PROTOCOL,
         send_timeout: int = SEND_TIMEOUT,
-        receive_timeout: int = RECEIVE_TIMEOUT,
+        default_receive_timeout: int = RECEIVE_TIMEOUT,
         logger=DummyLogger()
     ):
         self._component_type = component_type
         self._protocol = protocol
         self._send_timeout = send_timeout
-        self._receive_timeout = receive_timeout
+        self._default_receive_timeout = default_receive_timeout
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._zmq_context = zmq.Context()
         self._disconnected_peer_name_list = []
@@ -171,7 +171,7 @@ class ZmqDriver(AbsDriver):
         """
         while True:
             try:
-                sockets = dict(self._poller.poll(self._receive_timeout))
+                sockets = dict(self._poller.poll(self._default_receive_timeout))
             except Exception as e:
                 raise DriverReceiveError(f"Driver cannot receive message as {e}")
 
@@ -188,6 +188,34 @@ class ZmqDriver(AbsDriver):
             if not is_continuous:
                 break
 
+    def receive_with_timeout(self, timeout: int = None):
+        """Receive message from ``zmq.POLLER`` until timeout.
+
+        Args:
+            timeout (int): Timeout in milliseconds. Defaults to None, in which case the function will return only
+                until at least one message has been received.
+
+        Yields:
+            recv_message (Message): Received message or None if no message is received before timeout.
+        """
+        try:
+            sockets = dict(self._poller.poll(timeout=timeout))
+            if all(value == 0 for value in sockets.values()):
+                self._logger.debug(f"No message received before timeout.")
+                return
+        except Exception as e:
+            raise DriverReceiveError(f"Driver cannot receive message as {e}")
+
+        if self._unicast_receiver in sockets:
+            recv_message = self._unicast_receiver.recv_pyobj()
+            self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
+        else:
+            _, recv_message = self._broadcast_receiver.recv_multipart()
+            recv_message = pickle.loads(recv_message)
+            self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
+
+        return recv_message
+
     def send(self, message: Message):
         """Send message.
 
@@ -202,7 +230,7 @@ class ZmqDriver(AbsDriver):
             if message.destination in self._disconnected_peer_name_list:
                 raise PendingToSend(f"Temporary failure to send message to {message.destination}, may rejoin later.")
             else:
-                self._logger.error(f"Failure to send message caused by: {key_error}")
+                self._logger.error(f"fFailure to send message caused by: {key_error}")
                 sys.exit(NON_RESTART_EXIT_CODE)
         except Exception as e:
             raise DriverSendError(f"Failure to send message caused by: {e}")

@@ -29,12 +29,14 @@ class Executor(object):
         state_shaper: StateShaper,
         action_shaper: ActionShaper,
         experience_shaper: ExperienceShaper,
-        distributed_mode: DistributedTrainingMode
+        distributed_mode: DistributedTrainingMode,
+        action_wait_timeout: int = None
     ):
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
         self._distributed_mode = distributed_mode
+        self._action_wait_timeout = action_wait_timeout
         if self._distributed_mode == DistributedTrainingMode.LEARNER_ACTOR:
             from maro.rl.distributed.learner_actor.common import Component, MessageTag, PayloadKey
             self._action_source = Component.LEARNER.value
@@ -48,6 +50,8 @@ class Executor(object):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
+        self._ep_count = 0
+        self._action_count = 0
         self._proxy = None
 
     def load_proxy(self, proxy: Proxy):
@@ -57,7 +61,11 @@ class Executor(object):
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
+        payload = {
+            self._payload_key_set.STATE: model_state,
+            self._payload_key_set.EPISODE: self._ep_count,
+            self._payload_key_set.ACTION_COUNT: self._action_count,
+        }
         if self._distributed_mode == DistributedTrainingMode.ACTOR_TRAINER:
             payload[self._payload_key_set.ACTOR_ID] = self._proxy.component_name
         reply = self._proxy.send(
@@ -65,10 +73,12 @@ class Executor(object):
                 tag=self._message_tag_set.CHOOSE_ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
+                session_id=".".join([self._proxy.component_name, str(self._ep_count), str(self._action_count)]),
                 payload=payload
-            )
+            ),
+            timeout=self._action_wait_timeout
         )
-        model_action = reply[0].payload[self._payload_key_set.ACTION]
+        model_action = reply[0].payload[self._payload_key_set.ACTION] if reply else None
         self._transition_cache = {
             "state": model_state,
             "action": model_action,
@@ -77,6 +87,7 @@ class Executor(object):
             "event": decision_event
         }
 
+        self._action_count += 1
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):
@@ -91,4 +102,6 @@ class Executor(object):
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()
+        self._ep_count += 1
+        self._action_count = 0
         return experiences
