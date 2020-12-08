@@ -15,6 +15,7 @@ from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccesso
 
 from .common import ActionScope, CimEventType, DecisionEvent, VesselDischargePayload, VesselStatePayload
 from .frame_builder import gen_cim_frame
+from .ports_order_export import PortOrderExporter
 
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick).
@@ -57,6 +58,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._full_on_ports: MatrixAttributeAccessor = None
         self._full_on_vessels: MatrixAttributeAccessor = None
         self._vessel_plans: MatrixAttributeAccessor = None
+        self._port_orders_exporter = PortOrderExporter('enable-dump-snapshot' in additional_options)
 
         # Read transfer cost factors.
         transfer_cost_factors = self._config["transfer_cost_factors"]
@@ -115,6 +117,7 @@ class CimBusinessEngine(AbsBusinessEngine):
             order_evt = self._event_buffer.gen_atom_event(tick, CimEventType.ORDER, order)
 
             self._event_buffer.insert_event(order_evt)
+            self._port_orders_exporter.add(order)
 
         # Used to hold cascade event of this tick, we will append this at the end
         # to make sure all the other logic finished.
@@ -273,6 +276,9 @@ class CimBusinessEngine(AbsBusinessEngine):
             list: A list of port index.
         """
         return [i for i in range(self._data_cntr.port_number)]
+
+    def dump(self, folder: str):
+        self._port_orders_exporter.dump(folder)
 
     def _init_nodes(self):
         # Init ports.

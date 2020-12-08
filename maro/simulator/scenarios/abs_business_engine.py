@@ -171,3 +171,11 @@ class AbsBusinessEngine(ABC):
             dict: Dictionary about metrics, content and format determined by business engine.
         """
         return {}
+
+    def dump(self, folder: str):
+        """Dump something from business engine.
+
+        Args:
+            folder (str): Folder to place dumped files.
+        """
+        pass
