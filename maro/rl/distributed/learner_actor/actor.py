@@ -96,8 +96,9 @@ class Actor(ABC):
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
-            metrics, decision_event, is_done = self._env.step(action)
-            self._executor.on_env_feedback(metrics)
+            if action:
+                metrics, decision_event, is_done = self._env.step(action)
+                self._executor.on_env_feedback(metrics)
 
         experiences = self._executor.post_process(self._env.snapshot_list) if return_experiences else None
 
