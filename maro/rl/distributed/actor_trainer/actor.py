@@ -13,6 +13,9 @@ from maro.simulator import Env
 from .common import Component, MessageTag, PayloadKey
 from ..executor import Executor
 
+ACTOR = Component.ACTOR.value
+TRAINER = Component.TRAINER.value
+
 
 class AutoActor(ABC):
     """Abstract actor class.
@@ -25,7 +28,7 @@ class AutoActor(ABC):
         self._env = env
         self._executor = executor
         self._scheduler = scheduler
-        self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)
+        self._proxy = Proxy(component_type=ACTOR, **proxy_params)
         if isinstance(self._executor, Executor):
             self._executor.load_proxy(self._proxy)
         self._registry_table = RegisterTable(self._proxy.peers_name)
@@ -59,8 +62,8 @@ class AutoActor(ABC):
                 SessionMessage(
                     tag=MessageTag.EXPLORATION_PARAMS,
                     source=self._proxy.component_name,
-                    destination=self._proxy.peers_name[Component.TRAINER.value][0],
-                    session_id=self._get_update_session_id(),
+                    destination=self._proxy.peers_name[TRAINER][0],
+                    session_id=".".join([f"ep_{self._scheduler.current_ep}", "update_exploration_params"]),
                     payload={
                         PayloadKey.ACTOR_ID: self._proxy.component_name,
                         PayloadKey.EXPLORATION_PARAMS: exploration_params
@@ -68,16 +71,13 @@ class AutoActor(ABC):
                 )
             )
 
-    def _get_update_session_id(self):
-        return ".".join([f"ep_{self._scheduler.current_ep}", Component.ACTOR.value, Component.TRAINER.value])
-
     def _request_update(self, experiences):
         return self._proxy.send(
             SessionMessage(
                 tag=MessageTag.UPDATE,
                 source=self._proxy.component_name,
-                destination=self._proxy.peers_name[Component.TRAINER.value][0],
-                session_id=self._get_update_session_id(),
+                destination=self._proxy.peers_name[TRAINER][0],
+                session_id=".".join([f"ep_{self._scheduler.current_ep}", "update_policies"]),
                 payload={PayloadKey.EXPERIENCES: experiences},
             )
         )

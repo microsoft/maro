@@ -45,6 +45,7 @@ class SimpleDistLearner(AbsDistLearner):
         replies = self._proxy.broadcast(
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
+            session_id=".".join([f"ep_{self._scheduler.current_ep}", "roll_out"]),
             session_type=SessionType.TASK,
             payload={
                 PayloadKey.EPISODE: self._scheduler.current_ep,
@@ -76,7 +77,7 @@ class SEEDLearner(AbsDistLearner):
         **proxy_params
     ):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
-        self._num_actors = len(self._proxy.peers_name["actor"])
+        self._num_actors = len(self._proxy.peers_name[ACTOR])
         if choose_action_trigger is None:
             choose_action_trigger = self._num_actors
         self._registry_table.register_event_handler(
@@ -119,6 +120,7 @@ class SEEDLearner(AbsDistLearner):
         self._proxy.ibroadcast(
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
+            session_id=".".join([f"ep_{self._scheduler.current_ep}", "roll_out"]),
             session_type=SessionType.TASK,
             payload={PayloadKey.EPISODE: self._scheduler.current_ep, PayloadKey.RETURN_EXPERIENCES: return_experiences}
         )

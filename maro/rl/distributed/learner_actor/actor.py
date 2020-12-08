@@ -13,6 +13,9 @@ from maro.simulator import Env
 from .common import Component, MessageTag, PayloadKey
 from ..executor import Executor
 
+ACTOR = Component.ACTOR.value
+LEARNER = Component.LEARNER.value
+
 
 class Actor(ABC):
     """Abstract actor class.
@@ -25,15 +28,12 @@ class Actor(ABC):
     def __init__(self, env: Env, executor: Union[AbsAgentManager, Executor], **proxy_params):
         self._env = env
         self._executor = executor
-        self._proxy = Proxy(component_type=Component.ACTOR.value, **proxy_params)
+        self._proxy = Proxy(component_type=ACTOR, **proxy_params)
         if isinstance(self._executor, Executor):
             self._executor.load_proxy(self._proxy)
         self._registry_table = RegisterTable(self._proxy.peers_name)
-        self._registry_table.register_event_handler(
-            f"{Component.LEARNER.value}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
-        self._registry_table.register_event_handler(
-            f"{Component.LEARNER.value}:{MessageTag.EXIT.value}:1", self.exit
-        )
+        self._registry_table.register_event_handler(f"{LEARNER}:{MessageTag.ROLLOUT.value}:1", self.on_rollout_request)
+        self._registry_table.register_event_handler(f"{LEARNER}:{MessageTag.EXIT.value}:1", self.exit)
         self._current_ep = None
 
     def launch(self):

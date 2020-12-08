@@ -9,7 +9,9 @@ import numpy as np
 from maro.communication import Proxy, RegisterTable, SessionMessage
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 
-from .common import MessageTag, PayloadKey
+from .common import Component, MessageTag, PayloadKey
+
+TRAINER = Component.TRAINER.value
 
 
 class Trainer(object):
@@ -31,7 +33,7 @@ class Trainer(object):
         super().__init__()
         self._agent_manager = agent_manager
         self._experience_collecting_func = experience_collecting_func
-        self._proxy = Proxy(component_type="trainer", **proxy_params)
+        self._proxy = Proxy(component_type=TRAINER, **proxy_params)
         self._num_actors = len(self._proxy.peers_name["actor"])
         self._exploration_params_by_actor = defaultdict(lambda: None)
         self._registry_table = RegisterTable(self._proxy.peers_name)
