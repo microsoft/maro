@@ -61,11 +61,7 @@ class Executor(object):
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        payload = {
-            self._payload_key_set.STATE: model_state,
-            self._payload_key_set.EPISODE: self._ep_count,
-            self._payload_key_set.ACTION_COUNT: self._action_count,
-        }
+        payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
         if self._distributed_mode == DistributedTrainingMode.ACTOR_TRAINER:
             payload[self._payload_key_set.ACTOR_ID] = self._proxy.component_name
         reply = self._proxy.send(
