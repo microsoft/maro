@@ -337,20 +337,25 @@ class Proxy:
         # Wait for incoming messages.
         if timeout is None:
             for msg in self._driver.receive():
-                msg_key = msg.session_id
-
-                if msg_key in pending_session_id_list:
-                    pending_session_id_list.remove(msg_key)
+                session_id = msg.session_id
+                if session_id in pending_session_id_list:
+                    pending_session_id_list.remove(session_id)
                     received_messages.append(msg)
                 else:
-                    self._message_cache[msg_key].append(msg)
+                    self._message_cache[session_id].append(msg)
 
                 if not pending_session_id_list:
                     break
         else:
-            reply = self._driver.receive_with_timeout(timeout=timeout)
-            if reply is not None:
-                received_messages.append(reply)
+            msg = self._driver.receive_with_timeout(timeout=timeout)
+            if msg is None:
+                return received_messages
+            session_id = msg.session_id
+            if session_id in pending_session_id_list:
+                pending_session_id_list.remove(session_id)
+                received_messages.append(msg)
+            else:
+                self._message_cache[session_id].append(msg)
 
         return received_messages
 
