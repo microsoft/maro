@@ -165,7 +165,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             )
             vm_req.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[vm.vm_id])
             vm_req_payload: VmRequirementPayload = VmRequirementPayload(
-                vm_req= vm_req,
+                vm_req=vm_req,
                 remaining_buffer_time=self._buffer_time_budget
             )
             vm_requirement_event = self._event_buffer.gen_cascade_event(
