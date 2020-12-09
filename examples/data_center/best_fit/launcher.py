@@ -41,22 +41,25 @@ if __name__ == "__main__":
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
-                # why remaining_buffer_time in this payload?
+                # TODO: why remaining_buffer_time in this payload?
                 remaining_buffer_time=decision_event.remaining_buffer_time - 1
             )
         else:
-            # Randomly choose a vailable PM.
-            random_idx = random.randint(0, valid_pm_num - 1)
-            pm_id = decision_event.valid_pms[random_idx].pm_id
+            # Choose the one with the closet remaining CPU.
+            chosen_idx = 0
+            min_cpu = decision_event.valid_pms[0].remaining_cpu
+            for i in range(1, valid_pm_num):
+                if decision_event.valid_pms[i].remaining_cpu < min_cpu:
+                    chosen_idx = i
             action: AssignAction = AssignAction(
                 vm_id=decision_event.vm_id,
-                # why remaining_buffer_time in this payload?
+                # TODO: why remaining_buffer_time in this payload?
                 remaining_buffer_time=decision_event.remaining_buffer_time,
-                pm_id=pm_id
+                pm_id=decision_event.valid_pms[chosen_idx].pm_id
             )
         metrics, decision_event, is_done = env.step(action)
 
     end_time = timeit.default_timer()
-    print("** Random Policy **")
+    print("** Best Fit Policy **")
     print(f"[Timer] {end_time - start_time:.2f} seconds is used for ...")
     print(metrics)
