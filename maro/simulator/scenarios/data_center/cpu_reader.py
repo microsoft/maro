@@ -31,7 +31,6 @@ class CpuReader:
             end_time_offset=self._cpu_reader.header.endtime - self._cpu_reader.header.starttime,
             time_unit="s"
         )
-        print(f"switch to {self._data_path}")
 
     def items(self, tick: int):
         cur_items = {}

@@ -67,7 +67,7 @@ class DecisionPayload:
     """Decision event in Data center scenario that contains information for agent to choose action.
 
     Args:
-        valid_pms (List[dict]): A list contains dictionaries with 'pm_id', 'cpu', 'mem'.
+        valid_pms (List[]): A list contains ValidPhysicalMachine object.
         vm_id (int): The id of the VM.
         vm_vcpu_cores_requirement (int): The CPU requested by VM.
         vm_memory_requirement (int): The memory requested by VM.
@@ -77,7 +77,7 @@ class DecisionPayload:
 
     def __init__(
         self,
-        valid_pms: List[dict],
+        valid_pms: List,
         vm_id: int,
         vm_vcpu_cores_requirement: int,
         vm_memory_requirement: int,
@@ -116,3 +116,9 @@ class Latency:
     def __init__(self):
         self.due_to_agent: int = 0
         self.due_to_resource: int = 0
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource}'

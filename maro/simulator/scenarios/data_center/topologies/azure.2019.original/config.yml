@@ -1,5 +1,5 @@
 # Initial buffer time budget.
-buffer_time_budget: 5
+buffer_time_budget: 0
 # The number of ticks to delay when agent decides not to assign VM.
 delay_duration: 1
 # The calibration parameter used for the CPU utilization vs energy consumption model.

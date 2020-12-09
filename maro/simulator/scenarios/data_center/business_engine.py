@@ -130,7 +130,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
-        self._total_energy_consumption: int = 0
+        self._total_energy_consumption: float = 0.0
         self._success_allocation: int = 0
         self._success_placement: int = 0
         self._failed_placement: int = 0
@@ -175,6 +175,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             )
             self._event_buffer.insert_event(event=vm_requirement_event)
             self._total_vm_requirements += 1
+
+    def post_step(self, tick: int):
+        return tick >= self._max_tick - 1
 
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
@@ -246,13 +249,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             energy_consumption = self._cpu_utilization_to_energy_consumption(pm.cpu_utilization)
             pm.update_energy(tick=self._tick, cur_energy=energy_consumption)
             total_energy += energy_consumption
-        self._total_energy_consumption = total_energy
+        self._total_energy_consumption += total_energy
 
     def _cpu_utilization_to_energy_consumption(self, cpu_util: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
+        cpu_util /= 100
         power: float = self._config["calibration_parameter"]
         # NOTE: Energy comsumption parameters should refer to more research.
         busy_power = self._config["busy_power"]
@@ -389,16 +393,17 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
                 # TODO: Current logic can not fulfill the oversubscription case.
                 # Generate VM finished event.
-                finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
+                finished_payload: VmFinishedPayload = VmFinishedPayload(vm.id)
                 finished_event = self._event_buffer.gen_atom_event(
                     tick=cur_tick + lifetime,
+                    event_type=Events.FINISHED,
                     payload=finished_payload
                 )
                 self._event_buffer.insert_event(event=finished_event)
 
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
-                pm.place_vm(vm.vm_id)
+                pm.place_vm(vm.id)
                 pm.cpu_allocation += vm.vcpu_cores_requirement
                 pm.memory_allocation += vm.memory_requirement
                 # Calculate the PM's utilization.
