@@ -64,12 +64,13 @@ class Executor(object):
         payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
         if self._distributed_mode == DistributedTrainingMode.ACTOR_TRAINER:
             payload[self._payload_key_set.ACTOR_ID] = self._proxy.component_name
+        session_id = ".".join([self._proxy.component_name, str(self._ep_count), str(self._action_count)])
         reply = self._proxy.send(
             SessionMessage(
                 tag=self._message_tag_set.CHOOSE_ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
-                session_id=".".join([self._proxy.component_name, str(self._ep_count), str(self._action_count)]),
+                session_id=session_id,
                 payload=payload
             ),
             timeout=self._action_wait_timeout

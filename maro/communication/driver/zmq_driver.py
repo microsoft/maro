@@ -201,7 +201,7 @@ class ZmqDriver(AbsDriver):
         try:
             sockets = dict(self._poller.poll(timeout=timeout))
             if all(value == 0 for value in sockets.values()):
-                self._logger.debug(f"No message received before timeout.")
+                self._logger.debug("No message received before timeout.")
                 return
         except Exception as e:
             raise DriverReceiveError(f"Driver cannot receive message as {e}")
