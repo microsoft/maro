@@ -1,3 +1,5 @@
+# Initial buffer time budget.
+buffer_time_budget: 5
 # The number of ticks to delay when agent decides not to assign VM.
 delay_duration: 1
 # The calibration parameter used for the CPU utilization vs energy consumption model.
@@ -7,4 +9,4 @@ busy_power: 10
 # The busy power usage of a machine.
 idle_power: 1
 
-vm_table: "~/.maro/data/data_center/.build/azure.2019.original/vmtable.bin"
+vm_table: "/mnt/d/kuanwei/data/test_10k/build/vmtable.bin"

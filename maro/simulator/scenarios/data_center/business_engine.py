@@ -6,6 +6,7 @@ from typing import Dict, List
 
 from yaml import safe_load
 
+from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib import BinaryReader
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
@@ -18,11 +19,13 @@ from .common import (
 )
 from .cpu_reader import CpuReader
 from .events import Events
+from .frame_builder import gen_data_center_frame
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
 
 metrics_desc = """
 
+total_vm_requirements (int): Total VM requirements.
 total_energy_consumption (int): Current total energy consumption.
 success_allocation (int): Accumulative successful VM allocation until now.
 success_placement (int): Accumulative successful VM placement.
@@ -49,6 +52,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         )
 
         # Env metrics.
+        self._total_vm_requirements: int = 0
         self._total_energy_consumption: int = 0
         self._success_allocation: int = 0
         self._success_placement: int = 0
@@ -79,10 +83,22 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
 
+        self._init_frame()
+
     @property
     def configs(self) -> dict:
         """dict: Current configuration."""
         return self._config
+
+    @property
+    def frame(self) -> FrameBase:
+        """FrameBase: Current frame."""
+        return self._frame
+
+    @property
+    def snapshots(self) -> SnapshotList:
+        """SnapshotList: Current snapshot list."""
+        return self._snapshots
 
     def _load_configs(self):
         """Load configurations."""
@@ -92,6 +108,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             self._config = safe_load(fp)
 
         self._delay_duration: int = self._config["delay_duration"]
+        self._buffer_time_budget: int = self._config["buffer_time_budget"]
 
         # Load pm config.
         with open(os.path.join(self._config_path, "config.pm.size.yml")) as fp:
@@ -110,6 +127,19 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 memory_capacity=self._pm_memory_capacity
             ) for i in range(self._pm_amount)
         ]
+
+    def reset(self):
+        """Reset internal states for episode."""
+        self._total_energy_consumption: int = 0
+        self._success_allocation: int = 0
+        self._success_placement: int = 0
+        self._failed_placement: int = 0
+        self._total_latency: Latency = Latency()
+        self._total_oversubscribtions: int = 0
+
+    def _init_frame(self):
+        self._frame = gen_data_center_frame()
+        self._snapshots = self._frame.snapshots
 
     def step(self, tick: int):
         """Push business to next step.
@@ -134,12 +164,17 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
             vm_req.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[vm.vm_id])
+            vm_req_payload: VmRequirementPayload = VmRequirementPayload(
+                vm_req= vm_req,
+                remaining_buffer_time=self._buffer_time_budget
+            )
             vm_requirement_event = self._event_buffer.gen_cascade_event(
                 tick=tick,
                 event_type=Events.REQUIREMENTS,
-                payload=vm_req
+                payload=vm_req_payload
             )
-        self._event_buffer.insert_event(event=vm_requirement_event)
+            self._event_buffer.insert_event(event=vm_requirement_event)
+            self._total_vm_requirements += 1
 
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
@@ -150,6 +185,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
+            total_vm_requirements=self._total_vm_requirements,
             total_energy_consumption=self._total_energy_consumption,
             success_allocation=self._success_allocation,
             success_placement=self._success_placement,
@@ -173,11 +209,28 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
         for live_vm in self._live_vms.values():
-            live_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[live_vm.vm_id])
-            live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
+            # TODO: Some data could be lost.
+            # Currently, we use the last utilization, it might could be further refined to use average or others.
+            if live_vm.id not in self._cur_tick_cpu_utilization:
+                live_vm.add_utilization(cpu_utilization=live_vm.get_historical_utilization_series[:-1])
+            else:
+                live_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[live_vm.id])
+                live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
 
-        for pending_vm in self._pending_vm_req_payload.values():
-            pending_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[pending_vm.vm_id])
+        for pending_vm_payload in self._pending_vm_req_payload.values():
+            pending_vm = pending_vm_payload.vm_req
+            # NOTE:
+            # We set every VM's finish event at deletion time - creation time + 1. Therefore, in the end tick,
+            # the id doesn't exist in the cpu utilization dictionary. We give them a padding 0 instead.
+            if self._tick - pending_vm.start_tick >= pending_vm.lifetime:
+                pending_vm.add_utilization(cpu_utilization=0)
+            else:
+                # TODO: Some data could be lost.
+                # Currently, we use the last utilization, might could refine to use average or others.
+                if pending_vm.id not in self._cur_tick_cpu_utilization:
+                    pending_vm.add_utilization(cpu_utilization=pending_vm.get_historical_utilization_series[:-1])
+                else:
+                    pending_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[pending_vm.id])
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""
@@ -200,7 +253,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = self._config["calibration parameter"]
+        power: float = self._config["calibration_parameter"]
         # NOTE: Energy comsumption parameters should refer to more research.
         busy_power = self._config["busy_power"]
         idle_power = self._config["idle_power"]
@@ -307,55 +360,60 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
     def _on_action_received(self, event: CascadeEvent):
         """Callback wen we get an action from agent."""
+        action = None
+        if event is None or event.payload is None:
+            return
+
         cur_tick: int = event.tick
-        action = event.payload
-        vm_id: int = action.vm_id
 
-        if vm_id not in self._pending_vm_req_payload:
-            raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
+        for action in event.payload:
+            vm_id: int = action.vm_id
 
-        if type(action) == AssignAction:
-            pm_id = action.pm_id
-            vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_req
-            lifetime = vm.lifetime
+            # if vm_id not in self._pending_vm_req_payload:
+            #     raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
 
-            # Update VM information.
-            vm.pm_id = pm_id
-            vm.start_tick = cur_tick
-            vm.end_tick = cur_tick + lifetime
-            vm.cpu_utilization = vm.get_utilization(cur_tick=cur_tick)
+            if type(action) == AssignAction:
+                pm_id = action.pm_id
+                vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_req
+                lifetime = vm.lifetime
 
-            # Pop out the VM from pending requirements and add to live VM dict.
-            self._pending_vm_req_payload.pop(vm_id)
-            self._live_vms[vm_id] = vm
+                # Update VM information.
+                vm.pm_id = pm_id
+                vm.start_tick = cur_tick
+                vm.end_tick = cur_tick + lifetime
+                vm.cpu_utilization = vm.get_utilization(cur_tick=cur_tick)
 
-            # TODO: Current logic can not fulfill the oversubscription case.
-            # Generate VM finished event.
-            finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
-            finished_event = self._event_buffer.gen_atom_event(
-                tick=cur_tick + lifetime + 1,
-                payload=finished_payload
-            )
-            self._event_buffer.insert_event(event=finished_event)
+                # Pop out the VM from pending requirements and add to live VM dict.
+                self._pending_vm_req_payload.pop(vm_id)
+                self._live_vms[vm_id] = vm
 
-            # Update PM resources requested by VM.
-            pm = self._machines[pm_id]
-            pm.place_vm(vm.vm_id)
-            pm.cpu_allocation += vm.vcpu_cores_requirement
-            pm.memory_allocation += vm.memory_requirement
-            # Calculate the PM's utilization.
-            pm_cpu_utilization = (
-                (pm.cpu_cores_capacity * pm.cpu_utilization + vm.vcpu_cores_requirement * vm.cpu_utilization)
-                / pm.cpu_cores_capacity
-            )
-            pm.update_utilization(tick=cur_tick, cpu_utilization=pm_cpu_utilization)
+                # TODO: Current logic can not fulfill the oversubscription case.
+                # Generate VM finished event.
+                finished_payload: VmFinishedPayload = VmFinishedPayload(vm.vm_id)
+                finished_event = self._event_buffer.gen_atom_event(
+                    tick=cur_tick + lifetime,
+                    payload=finished_payload
+                )
+                self._event_buffer.insert_event(event=finished_event)
 
-            self._success_allocation += 1
-        elif type(action) == PostponeAction:
-            remaining_buffer_time = action.remaining_buffer_time
-            # Either postpone the requirement event or failed.
-            self._postpone_vm_requirement(
-                postpone_type=PostponeType.Agent,
-                vm_id=vm_id,
-                remaining_buffer_time=remaining_buffer_time
-            )
+                # Update PM resources requested by VM.
+                pm = self._machines[pm_id]
+                pm.place_vm(vm.vm_id)
+                pm.cpu_allocation += vm.vcpu_cores_requirement
+                pm.memory_allocation += vm.memory_requirement
+                # Calculate the PM's utilization.
+                pm_cpu_utilization = (
+                    (pm.cpu_cores_capacity * pm.cpu_utilization + vm.vcpu_cores_requirement * vm.cpu_utilization)
+                    / pm.cpu_cores_capacity
+                )
+                pm.update_utilization(tick=cur_tick, cpu_utilization=pm_cpu_utilization)
+
+                self._success_allocation += 1
+            elif type(action) == PostponeAction:
+                remaining_buffer_time = action.remaining_buffer_time
+                # Either postpone the requirement event or failed.
+                self._postpone_vm_requirement(
+                    postpone_type=PostponeType.Agent,
+                    vm_id=vm_id,
+                    remaining_buffer_time=remaining_buffer_time
+                )

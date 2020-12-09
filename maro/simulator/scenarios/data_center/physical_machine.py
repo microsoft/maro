@@ -18,7 +18,7 @@ class PhysicalMachine:
         self.cpu_cores_capacity: int = cpu_cores_capacity
         self.memory_capacity: int = memory_capacity
         # PM resource.
-        self._live_vms: Set(int) = set()
+        self._live_vms: Set[int] = set()
         self.cpu_allocation: int = 0
         self.memory_allocation: int = 0
         self._cpu_utilization: float = 0.0
@@ -27,7 +27,7 @@ class PhysicalMachine:
         self._energy_consumption: List[float] = []
 
     @property
-    def live_vms(self) -> Set(int):
+    def live_vms(self) -> Set[int]:
         return self._live_vms
 
     def place_vm(self, vm_id: int):
