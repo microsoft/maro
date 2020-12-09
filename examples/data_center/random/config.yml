@@ -1,0 +1,7 @@
+env:
+  scenario: data_center
+  topology: azure.2019.original
+  start_tick: 0
+  durations: 1200
+  resolution: 1
+  seed: 128
