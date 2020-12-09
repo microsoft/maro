@@ -5,7 +5,6 @@ import timeit
 
 import yaml
 
-from maro.event_buffer import CascadeEvent
 from maro.simulator import Env
 from maro.simulator.scenarios.data_center import AssignAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
@@ -42,7 +41,8 @@ if __name__ == "__main__":
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
-                remaining_buffer_time=decision_event.remaining_buffer_time - 1  # why remaining_buffer_time in this payload?
+                # why remaining_buffer_time in this payload?
+                remaining_buffer_time=decision_event.remaining_buffer_time - 1
             )
         else:
             # Randomly choose a vailable PM.
@@ -50,7 +50,8 @@ if __name__ == "__main__":
             pm_id = decision_event.valid_pms[random_idx].pm_id
             action: AssignAction = AssignAction(
                 vm_id=decision_event.vm_id,
-                remaining_buffer_time=decision_event.remaining_buffer_time,  # why remaining_buffer_time in this payload?
+                # why remaining_buffer_time in this payload?
+                remaining_buffer_time=decision_event.remaining_buffer_time,
                 pm_id=pm_id
             )
         metrics, decision_event, is_done = env.step(action)
