@@ -69,7 +69,7 @@ class Executor(object):
         payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
         reply = self._proxy.send(
             SessionMessage(
-                tag=self._message_tag_set.CHOOSE_ACTION,
+                tag=self._message_tag_set.ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
                 session_id=session_id,
