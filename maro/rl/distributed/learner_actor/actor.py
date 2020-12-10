@@ -72,13 +72,13 @@ class Actor(ABC):
             if action:
                 self._executor.on_env_feedback(metrics)
 
-        is_training = message.payload[PayloadKey.IS_TRAINING]
-        self._proxy.reply(
-            received_message=message,
-            tag=MessageTag.UPDATE,
-            payload={
-                PayloadKey.EPISODE: ep,
-                PayloadKey.PERFORMANCE: self._env.metrics,
-                PayloadKey.EXPERIENCES: self._executor.post_process(self._env.snapshot_list) if is_training else None
-            }
-        )
+        if message.payload[PayloadKey.IS_TRAINING]:
+            self._proxy.reply(
+                received_message=message,
+                tag=MessageTag.UPDATE,
+                payload={
+                    PayloadKey.EPISODE: ep,
+                    PayloadKey.PERFORMANCE: self._env.metrics,
+                    PayloadKey.EXPERIENCES: self._executor.post_process(self._env.snapshot_list)
+                }
+            )

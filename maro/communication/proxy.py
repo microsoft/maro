@@ -367,6 +367,7 @@ class Proxy:
             msg = self._driver.receive_with_timeout(timeout=timeout)
             if msg is None:
                 return messages
+
             signature = (msg.tag, msg.session_id)
             if signature == stop_signal:
                 return -1
