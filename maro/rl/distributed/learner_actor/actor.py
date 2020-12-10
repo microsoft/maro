@@ -51,6 +51,7 @@ class Actor(ABC):
             message: Message containing roll-out parameters and options.
         """
         self._env.reset()
+        ep = int(message.session_id.split("-")[-1])
         if isinstance(self._executor, AbsAgentManager):
             model_dict = message.payload.get(PayloadKey.MODEL, None)
             if model_dict is not None:
@@ -59,7 +60,7 @@ class Actor(ABC):
             if exploration_params is not None:
                 self._executor.update_exploration_params(exploration_params)
         else:
-            self._executor.set_ep(int(message.session_id.split("-")[-1]))
+            self._executor.set_ep(ep)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
@@ -76,7 +77,7 @@ class Actor(ABC):
             received_message=message,
             tag=MessageTag.UPDATE,
             payload={
-                PayloadKey.EPISODE: message.payload[PayloadKey.EPISODE],
+                PayloadKey.EPISODE: ep,
                 PayloadKey.PERFORMANCE: self._env.metrics,
                 PayloadKey.EXPERIENCES: self._executor.post_process(self._env.snapshot_list) if is_training else None
             }

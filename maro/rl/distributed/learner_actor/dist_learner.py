@@ -99,14 +99,14 @@ class SEEDLearner(AbsDistLearner):
 
     def test(self):
         """Test policy performance."""
-        self._sample()
+        self._sample(is_training=False)
         self._serve()
 
-    def _sample(self, return_experiences: bool = True):
+    def _sample(self, is_training: bool = True):
         """Send roll-out requests to remote actors.
 
         Args:
-            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
+            is_training (bool): If True, return experiences as well as performance metrics provided by the env.
 
         Returns:
             Performance and per-agent experiences from the remote actor.
@@ -115,7 +115,8 @@ class SEEDLearner(AbsDistLearner):
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
             session_id=f"ep-{self._scheduler.current_ep}",
-            session_type=SessionType.TASK
+            session_type=SessionType.TASK,
+            payload={PayloadKey.IS_TRAINING: is_training}
         )
 
     def _serve(self):
