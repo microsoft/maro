@@ -164,6 +164,9 @@ class SEEDLearner(AbsDistLearner):
                 self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
 
     def _update(self, messages: list):
+        if isinstance(messages, SessionMessage):
+            messages = [messages]
+            
         for msg in messages:
             self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
             self._pending_actor_set.remove(msg.source)
