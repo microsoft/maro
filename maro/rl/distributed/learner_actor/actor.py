@@ -65,10 +65,10 @@ class Actor(ABC):
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
-            metrics, decision_event, is_done = self._env.step(action)
             # Force reset
             if action == -1:
                 return
+            metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._executor.on_env_feedback(metrics)
 
