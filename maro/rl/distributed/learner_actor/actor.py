@@ -38,11 +38,11 @@ class Actor(ABC):
         register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
         """
         while True:
-            msg = self._proxy.receive(is_continuous=False)
-            if msg.tag == MessageTag.ROLLOUT:
-                self._roll_out(msg)
-            elif msg.tag == MessageTag.EXIT:
-                sys.exit(0)
+            for msg in self._proxy.receive(is_continuous=False):
+                if msg.tag == MessageTag.ROLLOUT:
+                    self._roll_out(msg)
+                elif msg.tag == MessageTag.EXIT:
+                    sys.exit(0)
 
     def _roll_out(self, message):
         """Perform one episode of roll-out and send performance and experiences back to the learner.

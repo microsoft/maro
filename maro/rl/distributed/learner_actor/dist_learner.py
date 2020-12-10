@@ -50,8 +50,7 @@ class SimpleDistLearner(AbsDistLearner):
             payload={
                 PayloadKey.EPISODE: self._scheduler.current_ep,
                 PayloadKey.MODEL: model_dict,
-                PayloadKey.EXPLORATION_PARAMS: exploration_params,
-                PayloadKey.RETURN_EXPERIENCES: return_experiences
+                PayloadKey.EXPLORATION_PARAMS: exploration_params
             }
         )
 
@@ -116,8 +115,7 @@ class SEEDLearner(AbsDistLearner):
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
             session_id=f"ep-{self._scheduler.current_ep}",
-            session_type=SessionType.TASK,
-            payload={PayloadKey.EPISODE: self._scheduler.current_ep, PayloadKey.RETURN_EXPERIENCES: return_experiences}
+            session_type=SessionType.TASK
         )
 
     def _serve(self):
