@@ -81,7 +81,7 @@ class SEEDLearner(AbsDistLearner):
         if choose_action_trigger is None:
             choose_action_trigger = len(self._actors)
         self._registry_table.register_event_handler(
-            f"{ACTOR}:{MessageTag.CHOOSE_ACTION.value}:{choose_action_trigger}", self._get_action
+            f"{ACTOR}:{MessageTag.ACTION.value}:{choose_action_trigger}", self._get_action
         )
         if update_trigger is None:
             update_trigger = len(self._actors)
@@ -123,7 +123,7 @@ class SEEDLearner(AbsDistLearner):
         self._pending_actor_set = set(self._actors)
         self._latest_time_steps_by_actor = defaultdict(lambda: -1)
         for msg in self._proxy.receive():
-            if msg.tag == MessageTag.CHOOSE_ACTION:
+            if msg.tag == MessageTag.ACTION:
                 actor_id, ep, time_step = msg.session_id.split(".")
                 ep, time_step = int(ep.split("-")[-1]), int(time_step.split("-")[-1])
                 if ep == self._scheduler.current_ep and time_step > self._latest_time_steps_by_actor[actor_id]:

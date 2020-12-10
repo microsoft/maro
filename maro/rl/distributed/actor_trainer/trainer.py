@@ -93,7 +93,7 @@ class SEEDTrainer(Trainer):
         if choose_action_trigger is None:
             choose_action_trigger = self._num_actors
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.CHOOSE_ACTION.value}:{choose_action_trigger}", self._get_action
+            f"actor:{MessageTag.ACTION.value}:{choose_action_trigger}", self._get_action
         )
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
