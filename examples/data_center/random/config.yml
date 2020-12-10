@@ -4,4 +4,4 @@ env:
   start_tick: 0
   durations: 8638
   resolution: 1
-  seed: 600
+  seed: 666

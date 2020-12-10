@@ -9,4 +9,4 @@ busy_power: 10
 # The busy power usage of a machine.
 idle_power: 1
 
-vm_table: "/mnt/d/kuanwei/data/test_10k/build/vmtable.bin"
+vm_table: "/mnt/d/kuanwei/data/test_336k/build/vmtable.bin"

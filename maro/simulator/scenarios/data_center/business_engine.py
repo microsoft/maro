@@ -137,6 +137,21 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._total_latency: Latency = Latency()
         self._total_oversubscribtions: int = 0
 
+        self._init_pms()
+        self._live_vms: Dict[int, VirtualMachine] = {}
+        self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
+        self._cpu_utilization_dict: Dict[int, float] = {}
+
+        self._frame.reset()
+
+        self._snapshots.reset()
+
+        self._vm_reader.reset()
+        self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
+
+        self._cpu_reader = CpuReader()
+        self._cur_tick_cpu_utilization = {}
+
     def _init_frame(self):
         self._frame = gen_data_center_frame()
         self._snapshots = self._frame.snapshots

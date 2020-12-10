@@ -51,6 +51,7 @@ if __name__ == "__main__":
             for i in range(1, valid_pm_num):
                 if decision_event.valid_pms[i].remaining_cpu < min_cpu:
                     chosen_idx = i
+                    min_cpu = decision_event.valid_pms[i].remaining_cpu
             action: AssignAction = AssignAction(
                 vm_id=decision_event.vm_id,
                 # TODO: why remaining_buffer_time in this payload?

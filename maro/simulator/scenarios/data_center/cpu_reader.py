@@ -9,7 +9,7 @@ class CpuReader:
     def __init__(self):
         self._initial = 1
         self._data_path = (
-            f"/mnt/d/kuanwei/data/test_10k/build/vm_cpu_readings-file-{self._initial}-of-195.bin"
+            f"/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-{self._initial}-of-195.bin"
         )
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
@@ -23,7 +23,7 @@ class CpuReader:
         """Switch to a new binary reader."""
         self._initial += 1
         self._data_path = (
-            f"/mnt/d/kuanwei/data/test_10k/build/vm_cpu_readings-file-{self._initial}-of-195.bin"
+            f"/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-{self._initial}-of-195.bin"
         )
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(

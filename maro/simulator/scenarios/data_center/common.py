@@ -121,4 +121,4 @@ class Latency:
         return self.__str__()
 
     def __str__(self):
-        return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource}'
+        return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource})'
