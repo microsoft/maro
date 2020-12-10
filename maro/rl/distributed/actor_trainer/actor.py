@@ -58,26 +58,25 @@ class AutoActor(ABC):
             if exploration_params is not None:
                 self._executor.update_exploration_params(exploration_params)
         else:
+            session_id = ".".join([self._proxy.component_name, f"ep-{self._scheduler.current_ep}"])
             self._proxy.send(
                 SessionMessage(
                     tag=MessageTag.EXPLORATION_PARAMS,
                     source=self._proxy.component_name,
                     destination=self._proxy.peers_name[TRAINER][0],
-                    session_id=".".join([f"ep_{self._scheduler.current_ep}", "update_exploration_params"]),
-                    payload={
-                        PayloadKey.ACTOR_ID: self._proxy.component_name,
-                        PayloadKey.EXPLORATION_PARAMS: exploration_params
-                    },
+                    session_id=session_id,
+                    payload={PayloadKey.EXPLORATION_PARAMS: exploration_params}
                 )
             )
 
     def _request_update(self, experiences):
+        session_id = ".".join([self._proxy.component_name, f"ep-{self._scheduler.current_ep}"])
         return self._proxy.send(
             SessionMessage(
                 tag=MessageTag.UPDATE,
                 source=self._proxy.component_name,
                 destination=self._proxy.peers_name[TRAINER][0],
-                session_id=".".join([f"ep_{self._scheduler.current_ep}", "update_policies"]),
+                session_id=session_id,
                 payload={PayloadKey.EXPERIENCES: experiences},
             )
         )

@@ -11,12 +11,12 @@ class MessageTag(Enum):
     UPDATE = "update"
     CHOOSE_ACTION = "choose_action"
     ACTION = "action"
+    FORCE_RESET = "force_reset"
     EXIT = "exit"
 
 
 class PayloadKey(Enum):
     ACTION = "action"
-    ACTION_COUNT = "action_count"
     AGENT_ID = "agent_id"
     EPISODE = "episode"
     MODEL = "model"
@@ -24,4 +24,4 @@ class PayloadKey(Enum):
     PERFORMANCE = "performance"
     EXPERIENCES = "experiences"
     STATE = "state"
-    RETURN_EXPERIENCES = "return_experiences"
+    IS_TRAINING = "is_training"

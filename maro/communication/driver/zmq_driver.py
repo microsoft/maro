@@ -225,7 +225,7 @@ class ZmqDriver(AbsDriver):
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
             self._logger.debug(f"Send a {message.tag} message to {message.destination}.")
-            return message.session_id
+            return message.tag, message.session_id
         except KeyError as key_error:
             if message.destination in self._disconnected_peer_name_list:
                 raise PendingToSend(f"Temporary failure to send message to {message.destination}, may rejoin later.")

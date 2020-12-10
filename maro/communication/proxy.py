@@ -302,68 +302,87 @@ class Proxy:
         """
         return self._driver.receive(is_continuous=is_continuous)
 
-    def receive_by_id(self, session_ids: list, timeout: int = None) -> List[Message]:
-        """Receive target messages from communication driver.
+    def _retrieve_from_cache(self, targets: List[tuple], stop_signal: Tuple[Union[str, Enum], str] = None):
+        if self._message_cache[stop_signal]:
+            return -1
 
-        Args:
-            session_ids (List[str]): List of ``session_id``.
-                E.g. ['0_learner0_actor0', '1_learner1_actor1', ...].
-            timeout (int): Timeout in milliseconds. If None and at least one of ``session_ids`` has not received
-                a response, the method will block until all ``session-ids`` receive responses.
-
-        Returns:
-            List[Message]: List of received messages.
-        """
         # Pre-process session ids.
-        pending_session_id_list, received_messages = [], []
-        if isinstance(session_ids, list):
-            pending_session_id_list = session_ids[:]
+        messages = []
+        if isinstance(targets, list):
+            pending_targets = set(targets)
         else:
             # The input may be None, if enable peer rejoin.
-            self._logger.warn(f"Unrecognized session id {session_ids}.")
+            self._logger.warn(f"Unrecognized target {targets}.")
             return []
 
         # Check message cache for saved messages.
-        for msg_key in session_ids:
-            if msg_key in list(self._message_cache.keys()):
-                for msg in self._message_cache[msg_key]:
-                    pending_session_id_list.remove(msg_key)
-                    received_messages.append(msg)
-                del self._message_cache[msg_key]
+        for target in targets:
+            if target in self._message_cache:
+                for msg in self._message_cache[target]:
+                    pending_targets.remove(target)
+                    messages.append(msg)
+                del self._message_cache[target]
 
-        if not pending_session_id_list:
-            return received_messages
+        return messages, pending_targets
 
+    def receive_by_id(
+        self,
+        targets: List[tuple],
+        timeout: int = None,
+        stop_signal: Tuple[Union[str, Enum], str] = None
+    ) -> Union[List[Message], int]:
+        """Receive target messages from communication driver.
+
+        Args:
+            targets (List[tuple]): List of (tag, session_id) tuples as receive targets. Messages that match these will
+                be received or retrieved from the cache unless a timeout occurs or a stop signal is received.
+                E.g. [("roll-out", '0_learner0_actor0'), ("roll-out", '1_learner1_actor1'), ...].
+            timeout (int): Timeout in milliseconds. If None and at least one of ``session_ids`` has not received
+                a response, the method will block until all ``session-ids`` receive responses.
+            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
+                return -1 immediately.
+        Returns:
+            List[Message]: List of received messages.
+        """
+        result_from_cache = self._retrieve_from_cache(targets, stop_signal=stop_signal)
+        if result_from_cache == -1:
+            return -1
+
+        messages, pending_targets = result_from_cache
         # Wait for incoming messages.
         if timeout is None:
             for msg in self._driver.receive():
-                session_id = msg.session_id
-                if session_id in pending_session_id_list:
-                    pending_session_id_list.remove(session_id)
-                    received_messages.append(msg)
+                signature = (msg.tag, msg.session_id)
+                if signature == stop_signal:
+                    return -1
+                if signature in pending_targets:
+                    pending_targets.remove(signature)
+                    messages.append(msg)
                 else:
-                    self._message_cache[session_id].append(msg)
+                    self._message_cache[signature].append(msg)
 
-                if not pending_session_id_list:
+                if not pending_targets:
                     break
         else:
             msg = self._driver.receive_with_timeout(timeout=timeout)
+            signature = (msg.tag, msg.session_id)
             if msg is None:
-                return received_messages
-            session_id = msg.session_id
-            if session_id in pending_session_id_list:
-                pending_session_id_list.remove(session_id)
-                received_messages.append(msg)
+                return messages
+            if signature == stop_signal:
+                return -1
+            if signature in pending_targets:
+                pending_targets.remove(signature)
+                messages.append(msg)
             else:
-                self._message_cache[session_id].append(msg)
+                self._message_cache[signature].append(msg)
 
-        return received_messages
+        return messages
 
     def _scatter(
         self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
-        session_id_list = []
+        tag_session_id_list = []
 
         for destination, payload in destination_payload_list:
             message = SessionMessage(
@@ -376,9 +395,9 @@ class Proxy:
             )
             send_result = self.isend(message)
             if isinstance(send_result, list):
-                session_id_list += send_result
+                tag_session_id_list += send_result
 
-        return session_id_list
+        return tag_session_id_list
 
     def scatter(
         self,
@@ -386,7 +405,8 @@ class Proxy:
         session_type: SessionType,
         destination_payload_list: list,
         session_id: str = None,
-        timeout: int = None
+        timeout: int = None,
+        stop_signal: str = None
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
@@ -398,12 +418,16 @@ class Proxy:
                 and the second item of the tuple in list is the message payload.
             session_id (str): Message's session id. Defaults to None.
             timeout (int): Timeout in milliseconds for receiving replies.
+            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
+                return -1 immediately.
 
         Returns:
             List[Message]: List of replied message.
         """
         return self.receive_by_id(
-            self._scatter(tag, session_type, destination_payload_list, session_id), timeout=timeout
+            self._scatter(tag, session_type, destination_payload_list, session_id),
+            timeout=timeout,
+            stop_signal=stop_signal
         )
 
     def iscatter(
@@ -427,7 +451,7 @@ class Proxy:
     def _broadcast(
         self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
         session_id: str = None, payload=None
-    ) -> List[str]:
+    ) -> List[tuple]:
         """Broadcast message to all peers, and return list of session id."""
         if component_type not in list(self._onboard_peer_dict.keys()):
             self._logger.error(
@@ -449,11 +473,11 @@ class Proxy:
 
         self._driver.broadcast(component_type, message)
 
-        return [message.session_id] * len(self._onboard_peer_dict[component_type])
+        return [(message.tag, message.session_id) for _ in range(len(self._onboard_peer_dict[component_type]))]
 
     def broadcast(
         self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
-        session_id: str = None, payload=None, timeout: int = None
+        session_id: str = None, payload=None, timeout: int = None, stop_signal: str = None
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
@@ -464,12 +488,16 @@ class Proxy:
             session_id (str): Message's session id. Defaults to None.
             payload (object): The true data. Defaults to None.
             timeout (int): Timeout in milliseconds for receiving replies.
+            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
+                return -1 immediately.
 
         Returns:
             List[Message]: List of replied messages.
         """
         return self.receive_by_id(
-            self._broadcast(component_type, tag, session_type, session_id, payload), timeout=timeout
+            self._broadcast(component_type, tag, session_type, session_id, payload),
+            timeout=timeout,
+            stop_signal=stop_signal
         )
 
     def ibroadcast(
@@ -541,12 +569,14 @@ class Proxy:
         """
         return self._send(message)
 
-    def send(self, message: Message, timeout: int = None) -> Union[List[Message], None]:
+    def send(self, message: Message, timeout: int = None, stop_signal: str = None) -> Union[List[Message], None]:
         """Send a message to a remote peer.
 
         Args:
             message: Message to be sent.
             timeout (int): Timeout in milliseconds for receiving replies.
+            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
+                return -1 immediately.
 
         Returns:
             Union[List[Message], None]: The list of received message;
@@ -554,7 +584,7 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of messages which from
                 the pending messages.
         """
-        return self.receive_by_id(self._send(message), timeout=timeout)
+        return self.receive_by_id(self._send(message), timeout=timeout, stop_signal=stop_signal)
 
     def reply(
         self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False

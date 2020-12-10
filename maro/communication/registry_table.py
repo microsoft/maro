@@ -212,6 +212,11 @@ class ConditionalEvent:
 
         return message_list
 
+    def clear(self):
+        """Clear all messages from cache."""
+        for message_cache in self._unit_event_message_dict.values():
+            message_cache.clear()
+
 
 class RegisterTable:
     """The RegisterTable is responsible for matching ``conditional events`` and user-defined ``message handlers``.
@@ -242,7 +247,7 @@ class RegisterTable:
         Args:
             message (Message): Received message.
         """
-        for event in self._event_handler_dict.keys():
+        for event in self._event_handler_dict:
             event.push_message(message)
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
@@ -265,3 +270,24 @@ class RegisterTable:
                     satisfied_handler_fn.append((handler_fn, message_list))
 
         return satisfied_handler_fn
+
+    def push_process(self, message) -> bool:
+        """Push a newly received message into the corresponding unit event caches and process a set of messages if
+        some conditional event is satisfied.
+
+        Return True if some conditional event is satisfied as a result of the newly received message and appropriate
+        handlers are triggered.
+        """
+        self.push(message)
+        ready_for_processing = self.get()
+        if not ready_for_processing:
+            return False
+
+        for handler_fn, cached_messages in ready_for_processing:
+            handler_fn(cached_messages)
+        return True
+
+    def clear(self):
+        """Clear all messages from conditional event caches."""
+        for event in self._event_handler_dict:
+            event.clear()

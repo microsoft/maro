@@ -53,8 +53,8 @@ class Trainer(object):
                 handler_fn(cached_messages)
 
     def _update_exploration_params(self, message):
-        actor_id, params = message.payload[PayloadKey.ACTOR_ID], message.payload[PayloadKey.EXPLORATION_PARAMS]
-        self._exploration_params_by_actor[actor_id] = params
+        actor_id = message.session_id.split(".")[0]
+        self._exploration_params_by_actor[actor_id] = message.payload[PayloadKey.EXPLORATION_PARAMS]
         self._proxy.reply(received_message=message, tag=MessageTag.EXPLORATION_PARAMS_ACK)
 
     def _update(self, messages):
@@ -114,7 +114,8 @@ class SEEDTrainer(Trainer):
                     self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
         else:
             for msg in messages:
-                actor_id, agent_id = msg.payload[PayloadKey.ACTOR_ID], msg.payload[PayloadKey.AGENT_ID]
+                actor_id = msg.session_id.split(".")[0]
+                agent_id = msg.payload[PayloadKey.AGENT_ID]
                 if self._exploration_params_by_actor[actor_id] is not None:
                     self._agent_manager.update_exploration_params(self._exploration_params_by_actor[actor_id])
                 model_action = self._agent_manager[agent_id].choose_action(msg.payload[PayloadKey.STATE])

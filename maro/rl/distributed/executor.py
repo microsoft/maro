@@ -11,10 +11,11 @@ from .common import DistributedTrainingMode
 
 
 class Executor(object):
-    """An ``Executor`` is responsible for interacting with an environment.
+    """``Executor`` class responsible for interacting with an environment.
 
-    An ``Executor`` consists of a state shaper for observing the environment and an action shaper for executing
-    actions on it. It also has an experience shaper that processes trajectories into experiences for remote training.
+    An ``Executor`` is a mirror of ``AgentManager`` and consists of a state shaper for observing the environment and
+    an action shaper for executing actions on it. It also has an experience shaper that processes trajectories into
+    experiences for remote training.
 
     Args:
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
@@ -50,21 +51,22 @@ class Executor(object):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-        self._ep_count = 0
-        self._action_count = 0
+        self._current_ep = None
+        self._time_step = 0
         self._proxy = None
 
     def load_proxy(self, proxy: Proxy):
         self._proxy = proxy
         self._action_source = self._proxy.peers_name[self._action_source][0]
 
+    def set_ep(self, ep):
+        self._current_ep = ep
+
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
+        session_id = ".".join([self._proxy.component_name, f"ep-{self._current_ep}", f"t-{self._time_step}"])
         payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
-        if self._distributed_mode == DistributedTrainingMode.ACTOR_TRAINER:
-            payload[self._payload_key_set.ACTOR_ID] = self._proxy.component_name
-        session_id = ".".join([self._proxy.component_name, str(self._ep_count), str(self._action_count)])
         reply = self._proxy.send(
             SessionMessage(
                 tag=self._message_tag_set.CHOOSE_ACTION,
@@ -73,10 +75,14 @@ class Executor(object):
                 session_id=session_id,
                 payload=payload
             ),
-            timeout=self._action_wait_timeout
+            timeout=self._action_wait_timeout,
+            stop_signal=(self._message_tag_set.FORCE_RESET, f"ep-{self._current_ep}")
         )
-        self._action_count += 1
-
+        self._time_step += 1
+        # Force reset
+        if reply == -1:
+            return -1
+        # Timeout
         if not reply:
             return
 
@@ -98,10 +104,9 @@ class Executor(object):
         """Process the latest trajectory into experiences."""
         experiences = self._experience_shaper(self._trajectory, snapshot_list)
         self._trajectory.clear()
-        self._transition_cache = {}
+        self._transition_cache.clear()
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()
-        self._ep_count += 1
-        self._action_count = 0
+        self._time_step = 0
         return experiences

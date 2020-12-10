@@ -45,7 +45,7 @@ class SimpleDistLearner(AbsDistLearner):
         replies = self._proxy.broadcast(
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
-            session_id=".".join([f"ep_{self._scheduler.current_ep}", "roll_out"]),
+            session_id=f"ep-{self._scheduler.current_ep}",
             session_type=SessionType.TASK,
             payload={
                 PayloadKey.EPISODE: self._scheduler.current_ep,
@@ -77,31 +77,26 @@ class SEEDLearner(AbsDistLearner):
         **proxy_params
     ):
         super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
-        self._num_actors = len(self._proxy.peers_name[ACTOR])
+        self._actors = self._proxy.peers_name[ACTOR]
+        self._pending_actor_set = None
         if choose_action_trigger is None:
-            choose_action_trigger = self._num_actors
+            choose_action_trigger = len(self._actors)
         self._registry_table.register_event_handler(
             f"{ACTOR}:{MessageTag.CHOOSE_ACTION.value}:{choose_action_trigger}", self._get_action
         )
         if update_trigger is None:
-            update_trigger = self._num_actors
-        self._registry_table.register_event_handler(
-            f"{ACTOR}:{MessageTag.UPDATE.value}:{update_trigger}", self._collect
-        )
-        self._experiences = {}
-        self._rollout_complete_counter = 0
+            update_trigger = len(self._actors)
+        self._registry_table.register_event_handler(f"{ACTOR}:{MessageTag.UPDATE.value}:{update_trigger}", self._update)
+        self._latest_time_steps_by_actor = defaultdict(lambda: -1)
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
-            self._rollout_complete_counter = 0
-            self._experiences.clear()
-            # load exploration parameters:
-            if exploration_params is not None:
+            # load exploration parameters
+            if exploration_params:
                 self._agent_manager.update_exploration_params(exploration_params)
             self._sample()
             self._serve()
-            self._agent_manager.train(self._experience_collecting_func(self._experiences))
 
     def test(self):
         """Test policy performance."""
@@ -120,18 +115,38 @@ class SEEDLearner(AbsDistLearner):
         self._proxy.ibroadcast(
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
-            session_id=".".join([f"ep_{self._scheduler.current_ep}", "roll_out"]),
+            session_id=f"ep-{self._scheduler.current_ep}",
             session_type=SessionType.TASK,
             payload={PayloadKey.EPISODE: self._scheduler.current_ep, PayloadKey.RETURN_EXPERIENCES: return_experiences}
         )
 
     def _serve(self):
+        self._pending_actor_set = set(self._actors)
+        self._latest_time_steps_by_actor = defaultdict(lambda: -1)
         for msg in self._proxy.receive():
-            self._registry_table.push(msg)
-            for handler_fn, cached_messages in self._registry_table.get():
-                handler_fn(cached_messages)
-            if self._rollout_complete_counter == self._num_actors:
-                break
+            if msg.tag == MessageTag.CHOOSE_ACTION:
+                actor_id, ep, time_step = msg.session_id.split(".")
+                ep, time_step = int(ep.split("-")[-1]), int(time_step.split("-")[-1])
+                if ep == self._scheduler.current_ep and time_step > self._latest_time_steps_by_actor[actor_id]:
+                    self._latest_time_steps_by_actor[actor_id] = time_step
+                    self._registry_table.push_process(msg)
+            elif msg.tag == MessageTag.UPDATE:
+                # If enough update messages have been received, call _update() and break out of the loop to start the
+                # next episode.
+                if self._registry_table.push_process(msg):
+                    break
+
+        self._registry_table.clear()
+        for actor_id in self._pending_actor_set:
+            self._proxy.isend(
+                SessionMessage(
+                    tag=MessageTag.FORCE_RESET,
+                    source=self._proxy.component_name,
+                    destination=actor_id,
+                    session_id=f"ep-{self._scheduler.current_ep}",
+                    session_type=SessionType.NOTIFICATION
+                )
+            )
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
@@ -149,9 +164,11 @@ class SEEDLearner(AbsDistLearner):
             for msg, action in zip(message_batch, action_batch):
                 self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
 
-    def _collect(self, messages: list):
+    def _update(self, messages: list):
         for msg in messages:
             self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
+            self._pending_actor_set.remove(msg.source)
 
-        self._experiences = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
-        self._rollout_complete_counter = len(messages)
+        self._agent_manager.train(
+            self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
+        )
