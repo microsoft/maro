@@ -10,7 +10,7 @@ import time
 
 import redis
 
-from utils import get_node_details, set_node_details
+from .utils import get_node_details, set_node_details
 
 INSPECT_CONTAINER_COMMAND = "docker inspect {container}"
 GET_CONTAINERS_COMMAND = "docker container ls -a --format='{{.Names}}'"
@@ -30,13 +30,16 @@ class NodeAgent:
         container_tracking_agent = ContainerTrackingAgent(
             cluster_name=self._cluster_name,
             node_name=self._node_name,
-            master_hostname=self._master_hostname, redis_port=self._redis_port)
+            master_hostname=self._master_hostname,
+            redis_port=self._redis_port
+        )
         container_tracking_agent.start()
 
 
 class ContainerTrackingAgent(multiprocessing.Process):
-    def __init__(self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int,
-                 check_interval: int = 10):
+    def __init__(
+        self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int, check_interval: int = 10
+    ):
         super().__init__()
         self._cluster_name = cluster_name
         self._node_name = node_name
@@ -79,8 +82,9 @@ class ContainerTrackingAgent(multiprocessing.Process):
 
     def _update_container_details(self, node_details: dict) -> None:
         # Get containers
-        completed_process = subprocess.run(GET_CONTAINERS_COMMAND,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+        completed_process = subprocess.run(
+            GET_CONTAINERS_COMMAND, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        )
         return_str = completed_process.stdout.strip('\n')
         containers = [] if return_str == '' else return_str.split('\n')
 
@@ -92,9 +96,10 @@ class ContainerTrackingAgent(multiprocessing.Process):
         occupied_gpu_sum = 0
         for container in containers:
             # Get inspect detail
-            completed_process = subprocess.run(INSPECT_CONTAINER_COMMAND.format(container=container),
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               encoding='utf8')
+            completed_process = subprocess.run(
+                INSPECT_CONTAINER_COMMAND.format(container=container),
+                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+            )
             return_str = completed_process.stdout
             inspect_details = json.loads(return_str)[0]
 
@@ -102,8 +107,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
             container_details[container] = {}
 
             # Extract occupied resource
-            occupied_resource = ContainerTrackingAgent._extract_occupied_resources(
-                inspect_details=inspect_details)
+            occupied_resource = ContainerTrackingAgent._extract_occupied_resources(inspect_details=inspect_details)
             occupied_cpu_sum += occupied_resource[0]
             occupied_memory_sum += occupied_resource[1]
             occupied_gpu_sum += occupied_resource[2]
@@ -120,16 +124,18 @@ class ContainerTrackingAgent(multiprocessing.Process):
 
     def _update_system_resources_details(self, node_details: dict):
         # Get actual cpu
-        completed_process = subprocess.run(UPTIME_COMMAND,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+        completed_process = subprocess.run(
+            UPTIME_COMMAND, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        )
         uptime_str = completed_process.stdout
         split_uptime = uptime_str.split()
         node_details['resources']['actual_free_cpu'] = \
             node_details['resources']['cpu'] - float(split_uptime[-3].replace(',', ''))
 
         # update actual memory
-        completed_process = subprocess.run(FREE_COMMAND,
-                                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+        completed_process = subprocess.run(
+            FREE_COMMAND, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        )
         free_str = completed_process.stdout
         split_free = free_str.split()
         node_details['resources']['actual_free_memory'] = float(split_free[12]) / 1024
@@ -138,9 +144,9 @@ class ContainerTrackingAgent(multiprocessing.Process):
         node_details['resources']['actual_free_gpu'] = node_details['resources']['target_free_gpu']
         # Get nvidia-smi result
         try:
-            completed_process = subprocess.run(NVIDIA_SMI_COMMAND,
-                                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               encoding='utf8')
+            completed_process = subprocess.run(
+                NVIDIA_SMI_COMMAND, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+            )
             nvidia_smi_str = completed_process.stdout
             node_details['resources']['actual_gpu_usage'] = f"{float(nvidia_smi_str)}%"
         except Exception:

@@ -1,15 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
 from abc import ABC, abstractmethod
 from enum import Enum
-import os
 
-from maro.rl.shaping.state_shaper import StateShaper
+from maro.rl.explorer.abs_explorer import AbsExplorer
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
-from maro.rl.explorer.abs_explorer import AbsExplorer
-from maro.utils.exception.rl_toolkit_exception import UnsupportedAgentModeError, MissingShaperError, WrongAgentModeError
+from maro.rl.shaping.state_shaper import StateShaper
+from maro.utils.exception.rl_toolkit_exception import MissingShaperError, UnsupportedAgentModeError, WrongAgentModeError
 
 
 class AgentMode(Enum):
@@ -31,7 +31,7 @@ class AbsAgentManager(ABC):
     Args:
         name (str): Name of agent manager.
         mode (AgentMode): An AgentMode enum member that specifies that role of the agent. Some attributes may
-                          be None under certain modes.
+            be None under certain modes.
         agent_id_list (list): List of agent identifiers.
         experience_shaper (ExperienceShaper, optional): It is responsible for processing data in the replay buffer at
             the end of an episode.
@@ -41,14 +41,10 @@ class AbsAgentManager(ABC):
             executable action. Cannot be None under Inference and TrainInference modes.
         explorer (AbsExplorer): It is responsible for storing and updating exploration rates.
     """
-    def __init__(self,
-                 name: str,
-                 mode: AgentMode,
-                 agent_id_list: [str],
-                 state_shaper: StateShaper = None,
-                 action_shaper: ActionShaper = None,
-                 experience_shaper: ExperienceShaper = None,
-                 explorer: AbsExplorer = None):
+    def __init__(
+        self, name: str, mode: AgentMode, agent_id_list: [str], state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None, experience_shaper: ExperienceShaper = None, explorer: AbsExplorer = None
+    ):
         self._name = name
         if mode not in AgentMode:
             raise UnsupportedAgentModeError(msg='mode must be "train", "inference" or "train_inference"')
@@ -85,8 +81,8 @@ class AbsAgentManager(ABC):
 
         The method consists of 4 steps:
 
-        1. The decision event and snapshot list are converted by the state shaper to a model input.
-           The state shaper also finds the target agent ID.
+        1. The decision event and snapshot list are converted by the state shaper to a model input. \
+            The state shaper also finds the target agent ID.
         2. The target agent takes the model input and uses its underlying models to compute an action.
         3. Key information regarding the transition is recorded in the ``_trajectory`` attribute.
         4. The action computed by the model is converted to an environment executable action by the action shaper.
@@ -101,12 +97,17 @@ class AbsAgentManager(ABC):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         model_action = self._agent_dict[agent_id].choose_action(
-            model_state, self._explorer.epsilon[agent_id] if self._explorer else None)
-        self._trajectory.append({"state": model_state,
-                                 "action": model_action,
-                                 "reward": None,
-                                 "agent_id": agent_id,
-                                 "event": decision_event})
+            model_state, self._explorer.epsilon[agent_id] if self._explorer else None
+        )
+        self._trajectory.append(
+            {
+                "state": model_state,
+                "action": model_action,
+                "reward": None,
+                "agent_id": agent_id,
+                "event": decision_event
+            }
+        )
         return self._action_shaper(model_action, decision_event, snapshot_list)
 
     def on_env_feedback(self, metrics):

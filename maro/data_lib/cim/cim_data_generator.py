@@ -4,9 +4,10 @@
 from math import ceil
 from typing import List
 
+from yaml import safe_load
+
 from maro.simulator.utils import seed
 from maro.utils.exception.data_lib_exeption import CimGeneratorInvalidParkingDuration
-from yaml import safe_load
 
 from .entities import CimDataCollection, OrderGenerateMode, Stop
 from .global_order_proportion import GlobalOrderProportion
@@ -86,8 +87,10 @@ class CimDataGenerator:
             topology_seed,
             CIM_GENERATOR_VERSION)
 
-    def _extend_route(self, future_stop_number: int, max_tick: int, vessels_setting,
-                      ports_setting, port_mapping, routes, route_mapping):
+    def _extend_route(
+        self, future_stop_number: int, max_tick: int,
+        vessels_setting, ports_setting, port_mapping, routes, route_mapping
+    ):
         """Extend route with specified tick range."""
 
         vessels_stops: List[List[Stop]] = []

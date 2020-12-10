@@ -2,11 +2,11 @@
 # Licensed under the MIT license.
 
 import unittest
+
 import yaml
 
-from maro.data_lib.cim.vessel_parser import VesselsParser
 from maro.data_lib.cim.entities import VesselSetting
-
+from maro.data_lib.cim.vessel_parser import VesselsParser
 
 conf_str = """
 vessels:

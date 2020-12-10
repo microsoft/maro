@@ -5,6 +5,7 @@
 import json
 import logging
 import os
+import shutil
 import time
 import unittest
 import uuid
@@ -25,34 +26,38 @@ class TestGrass(unittest.TestCase):
     We use testXX (X is a digit) as prefix to specify the order of the tests.
     Ref: https://docs.python.org/3.7/library/unittest.html#organizing-test-code
     """
+    test_id = None
+
     @classmethod
     def setUpClass(cls) -> None:
         # Get and set params
         GlobalParams.LOG_LEVEL = logging.DEBUG
         cls.test_id = uuid.uuid4().hex[:8]
         os.makedirs(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"), exist_ok=True)
-        cls.file_path = os.path.abspath(__file__)
-        cls.dir_path = os.path.dirname(cls.file_path)
-        cls.deployment_template_path = os.path.normpath(
-            os.path.join(cls.dir_path, "../templates/test_grass_azure_create.yml"))
-        cls.deployment_path = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_grass_azure_create.yml")
-        cls.config_path = os.path.normpath(os.path.join(cls.dir_path, "../config.yml"))
+        cls.test_file_path = os.path.abspath(__file__)
+        cls.test_dir_path = os.path.dirname(cls.test_file_path)
+        cls.maro_pkg_path = os.path.normpath(os.path.join(cls.test_file_path, "../../../../"))
+        cls.create_deployment_template_path = os.path.normpath(
+            os.path.join(cls.test_dir_path, "../templates/test_grass_azure_create.yml"))
+        cls.create_deployment_path = os.path.expanduser(
+            f"{GlobalPaths.MARO_TEST}/{cls.test_id}/test_grass_azure_create.yml")
+        cls.test_config_path = os.path.normpath(os.path.join(cls.test_dir_path, "../config.yml"))
 
         # Load config and save deployment
-        with open(cls.deployment_template_path) as fr:
-            deployment_details = yaml.safe_load(fr)
-        with open(cls.config_path) as fr:
-            config_details = yaml.safe_load(fr)
-            if config_details["cloud/subscription"] and config_details["user/admin_public_key"]:
-                deployment_details["cloud"]["subscription"] = config_details["cloud/subscription"]
-                deployment_details["user"]["admin_public_key"] = config_details["user/admin_public_key"]
+        with open(cls.create_deployment_template_path) as fr:
+            create_deployment_details = yaml.safe_load(fr)
+        with open(cls.test_config_path) as fr:
+            test_config_details = yaml.safe_load(fr)
+            if test_config_details["cloud/subscription"] and test_config_details["user/admin_public_key"]:
+                create_deployment_details["cloud"]["subscription"] = test_config_details["cloud/subscription"]
+                create_deployment_details["user"]["admin_public_key"] = test_config_details["user/admin_public_key"]
             else:
                 raise Exception("Invalid config")
-        with open(cls.deployment_path, "w") as fw:
-            yaml.safe_dump(deployment_details, fw)
+        with open(cls.create_deployment_path, "w") as fw:
+            yaml.safe_dump(create_deployment_details, fw)
 
         # Get params from deployments
-        cls.cluster_name = deployment_details["name"]
+        cls.cluster_name = create_deployment_details["name"]
 
         # Pull "ubuntu" as testing image
         command = "docker pull alpine:latest"
@@ -60,10 +65,25 @@ class TestGrass(unittest.TestCase):
         command = "docker pull ubuntu:latest"
         SubProcess.run(command)
 
+    @classmethod
+    def tearDownClass(cls) -> None:
+        # Delete tmp test folder
+        shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"))
+
     # Utils
 
     def _get_node_details(self) -> dict:
         command = f"maro grass node list {self.cluster_name}"
+        return_str = SubProcess.run(command)
+        return json.loads(return_str)
+
+    def _get_master_details(self) -> dict:
+        command = f"maro grass status {self.cluster_name} master"
+        return_str = SubProcess.run(command)
+        return json.loads(return_str)
+
+    def _list_jobs_details(self) -> dict:
+        command = f"maro grass job list {self.cluster_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
@@ -75,7 +95,7 @@ class TestGrass(unittest.TestCase):
 
     def test10_create(self) -> None:
         # Run cli command
-        command = f"maro grass create --debug {self.deployment_path}"
+        command = f"maro grass create --debug {self.create_deployment_path}"
         SubProcess.interactive_run(command)
 
     def test11_node1(self) -> None:
@@ -218,46 +238,111 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(running_count, 2)
 
     def test17_data(self) -> None:
+        # Create tmp files
+        test_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}")
+        os.makedirs(f"{test_dir}/push/test_data", exist_ok=True)
+        os.makedirs(f"{test_dir}/pull", exist_ok=True)
+        command = f"dd if=/dev/zero of={test_dir}/push/test_data/a.file bs=1 count=0 seek=1M"
+        SubProcess.run(command)
+
         # Push file to an existed folder
-        command = f"maro grass data push {self.cluster_name} --debug '{self.dir_path}/test_data/README.md' '/'"
+        command = (f"maro grass data push {self.cluster_name} --debug "
+                   f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/a.file' '/'")
         SubProcess.interactive_run(command)
 
         # Push file to a new folder
-        command = f"maro grass data push {self.cluster_name} --debug '{self.dir_path}/test_data/README.md' '/F1'"
+        command = (f"maro grass data push {self.cluster_name} --debug "
+                   f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/a.file' '/F1'")
         SubProcess.interactive_run(command)
 
         # Push folder to an existed folder
-        command = f"maro grass data push {self.cluster_name} --debug '{self.dir_path}/test_data/' '/'"
+        command = (f"maro grass data push {self.cluster_name} --debug "
+                   f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/' '/'")
         SubProcess.interactive_run(command)
 
         # Push folder to a new folder
-        command = f"maro grass data push {self.cluster_name} --debug '{self.dir_path}/test_data/' '/F2'"
+        command = (f"maro grass data push {self.cluster_name} --debug "
+                   f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/' '/F2'")
         SubProcess.interactive_run(command)
 
         # Pull file to an existed folder
-        command = f"maro grass data pull {self.cluster_name} --debug " \
-                  f"'/README.md' '{GlobalPaths.MARO_TEST}/{self.test_id}'"
+        command = (f"maro grass data pull {self.cluster_name} --debug "
+                   f"'/a.file' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull'")
         SubProcess.interactive_run(command)
 
         # Pull file to a new folder
-        command = f"maro grass data pull {self.cluster_name} --debug " \
-                  f"'/F1/README.md' '{GlobalPaths.MARO_TEST}/{self.test_id}/F1'"
+        command = (f"maro grass data pull {self.cluster_name} --debug "
+                   f"'/F1/a.file' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F1'")
         SubProcess.interactive_run(command)
 
         # Pull folder to an existed folder
-        command = f"maro grass data pull {self.cluster_name} --debug " \
-                  f"'/test_data' '{GlobalPaths.MARO_TEST}/{self.test_id}'"
+        command = (f"maro grass data pull {self.cluster_name} --debug "
+                   f"'/test_data' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull'")
         SubProcess.interactive_run(command)
 
         # Pull folder to a new folder
-        command = f"maro grass data pull {self.cluster_name} --debug " \
-                  f"'/F2/test_data/' '{GlobalPaths.MARO_TEST}/{self.test_id}/F2/'"
+        command = (f"maro grass data pull {self.cluster_name} --debug "
+                   f"'/F2/test_data/' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F2/'")
         SubProcess.interactive_run(command)
 
-        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/README.md")))
-        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/F1/README.md")))
-        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/test_data")))
-        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/F2/test_data")))
+        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/a.file")))
+        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F1/a.file")))
+        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/test_data")))
+        self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F2/test_data")))
+
+    def test20_train_dqn(self) -> None:
+        # Copy dqn examples to test folder
+        dqn_source_dir = os.path.normpath(os.path.join(self.test_dir_path, "../../../examples/cim/dqn"))
+        dqn_target_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn")
+        os.makedirs(os.path.dirname(dqn_target_dir), exist_ok=True)
+        command = f"cp -r {dqn_source_dir} {dqn_target_dir}"
+        SubProcess.run(command)
+
+        # Get cluster details and rebuild config
+        master_details = self._get_master_details()
+        with open(f"{dqn_target_dir}/config.yml", 'r') as fr:
+            config = yaml.safe_load(fr)
+        with open(f"{dqn_target_dir}/config.yml", 'w') as fw:
+            config["general"]["total_training_episodes"] = 30
+            config["distributed"]["group_name"] = self.test_id
+            config["distributed"]["redis"]["host_name"] = master_details["private_ip_address"]
+            config["distributed"]["redis"]["port"] = master_details["redis"]["port"]
+            yaml.safe_dump(config, fw)
+
+        # Push dqn folder to cluster
+        command = (f"maro grass data push {self.cluster_name} --debug "
+                   f"'{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn' '/train'")
+        SubProcess.run(command)
+
+        # Build docker image and load docker image
+        command = (f"docker build -f {self.maro_pkg_path}/docker_files/cpu.runtime.df -t maro_runtime_cpu:test "
+                   f"{self.maro_pkg_path}")
+        SubProcess.run(command)
+        command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
+        SubProcess.interactive_run(command)
+
+        # Start job
+        start_job_dqn_template_path = os.path.normpath(
+            os.path.join(self.test_dir_path, "../templates/test_grass_azure_start_job_dqn.yml"))
+        command = f"maro grass job start {self.cluster_name} {start_job_dqn_template_path}"
+        SubProcess.run(command)
+        self._gracefully_wait(30)
+
+        # Check job status
+        remain_idx = 0
+        is_finished = True
+        while remain_idx <= 100:
+            is_finished = True
+            jobs_details = self._list_jobs_details()
+            self.assertTrue(len(jobs_details["job_for_test"]["containers"]), 2)
+            for _, container_details in jobs_details["job_for_test"]["containers"].items():
+                if container_details["state"]["Status"] == "running":
+                    is_finished = False
+            if is_finished:
+                break
+            time.sleep(10)
+            remain_idx += 1
+        self.assertTrue(is_finished)
 
     def test30_delete(self) -> None:
         command = f"maro grass delete --debug {self.cluster_name}"

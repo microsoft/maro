@@ -1,6 +1,4 @@
-from typing import List
-
-from maro.backends.frame import node, NodeAttribute, NodeBase, FrameNode, FrameBase
+from maro.backends.frame import FrameBase, FrameNode, NodeAttribute, NodeBase, node
 
 TOTAL_PRODUCT_CATEGORIES = 10
 TOTAL_STORES = 8
@@ -44,7 +42,8 @@ class RetailFrame(FrameBase):
     stores = FrameNode(Store, TOTAL_STORES)
 
     def __init__(self):
-        # If your actual frame number was more than the total snapshot number, the old snapshots would be rolling replaced.
+        # If your actual frame number was more than the total snapshot number,
+        # the old snapshots would be rolling replaced.
         super().__init__(enable_snapshot=True, total_snapshot=TOTAL_SNAPSHOT)
 
 
@@ -71,7 +70,8 @@ print(f"All stores information at first tick (numpy array): {all_stores_info}")
 first_store_shortage = snapshot_list["store"][0:0:"shortages"]
 print(f"First store shortages at first tick (numpy array): {first_store_shortage}")
 
-# Query inventory information of all warehouses at first tick, len(snapshot_list["warehouse"]) equals to TOTAL_WAREHOUSES.
+# Query inventory information of all warehouses at first tick,
+# len(snapshot_list["warehouse"]) equals to TOTAL_WAREHOUSES.
 all_warehouses_info = snapshot_list["warehouse"][0::"inventories"].reshape(TOTAL_WAREHOUSES, -1)
 print(f"All warehouses information at first tick (numpy array): {all_warehouses_info}")
 

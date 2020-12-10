@@ -1,14 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-import sys
-import re
-
 import importlib
-import unittest
+import os
+import re
 import subprocess
-
+import sys
+import unittest
 from inspect import getmembers, isclass
 
 test_file_re = re.compile(r'^test_.*.py$')
@@ -30,13 +28,13 @@ if __name__ == "__main__":
                 cur_script_path = os.path.join(path, fn)
 
                 spliter = "\\" if sys.platform == "win32" else "/"
-                
+
                 module_name = ".".join(os.path.relpath(cur_script_path)[0:-3].split(spliter))
 
                 test_case_list.append(module_name)
-    
+
     print("loading test cases from following module")
-    
+
     for i, n in enumerate(test_case_list):
         print(f"{i}: {n}")
 

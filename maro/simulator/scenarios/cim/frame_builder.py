@@ -2,9 +2,10 @@
 # Licensed under the MIT license.
 
 from maro.backends.frame import FrameBase, FrameNode
+
+from .matrix import gen_matrix
 from .port import Port
 from .vessel import gen_vessel_definition
-from .matrix import gen_matrix
 
 
 def gen_cim_frame(port_num: int, vessel_num: int, stop_nums: tuple, snapshots_num: int):
