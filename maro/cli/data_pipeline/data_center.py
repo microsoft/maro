@@ -143,19 +143,6 @@ class DataCenterPipeline(DataPipeline):
         # Preprocess.
         self._preprocess()
 
-    def build(self):
-        super().build()
-        for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
-            clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
-            if os.path.exists(clean_cpu_readings_file):
-                build_file_name = clean_cpu_readings_file_name.split(".")[0] + ".bin"
-                build_file = os.path.join(self._build_folder, build_file_name)
-                logger.info_green(f"Building binary data from {clean_cpu_readings_file} to {build_file}.")
-                cpu_meta_file = os.path.join(self._meta_folder, "cpu_readings.yml")
-                convert(meta=cpu_meta_file, file=[clean_cpu_readings_file], output=build_file)
-            else:
-                logger.warning_yellow(f"Not found cleaned data: {self._clean_file}.")
-
     def _process_vm_table(self, raw_vm_table_file: str) -> pd.DataFrame:
         """Process vmtable file."""
 
@@ -229,6 +216,19 @@ class DataCenterPipeline(DataPipeline):
                 new_data_path=clean_cpu_readings_file,
                 vm_id_map=vm_id_map
             )
+
+    def build(self):
+        super().build()
+        for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
+            clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
+            if os.path.exists(clean_cpu_readings_file):
+                build_file_name = clean_cpu_readings_file_name.split(".")[0] + ".bin"
+                build_file = os.path.join(self._build_folder, build_file_name)
+                logger.info_green(f"Building binary data from {clean_cpu_readings_file} to {build_file}.")
+                cpu_meta_file = os.path.join(self._meta_folder, "cpu_readings.yml")
+                convert(meta=cpu_meta_file, file=[clean_cpu_readings_file], output=build_file)
+            else:
+                logger.warning_yellow(f"Not found cleaned data: {self._clean_file}.")
 
 
 class DataCenterTopology(DataTopology):
