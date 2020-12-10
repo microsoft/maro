@@ -59,7 +59,7 @@ class Actor(ABC):
             if exploration_params is not None:
                 self._executor.update_exploration_params(exploration_params)
         else:
-            self._executor.set_ep(int(message.session_id.split("_")[-1]))
+            self._executor.set_ep(int(message.session_id.split("-")[-1]))
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
