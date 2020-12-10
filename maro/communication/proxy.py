@@ -365,9 +365,9 @@ class Proxy:
                     break
         else:
             msg = self._driver.receive_with_timeout(timeout=timeout)
-            signature = (msg.tag, msg.session_id)
             if msg is None:
                 return messages
+            signature = (msg.tag, msg.session_id)
             if signature == stop_signal:
                 return -1
             if signature in pending_targets:
