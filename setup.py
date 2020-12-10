@@ -4,7 +4,10 @@
 import io
 import os
 
-from setuptools import Extension, find_packages, setup
+# NOTE: DO NOT change the import order, as there is conflict between cython and setuptools,
+# it will cause following error:
+# error: each element of 'ext_modules' option must be an Extension instance or 2-tuple
+from setuptools import setup, find_packages, Extension
 
 from maro import __version__
 
