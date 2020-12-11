@@ -5,7 +5,7 @@
 from functools import wraps
 
 from maro.cli.utils.details import load_cluster_details
-from maro.utils.exception.cli_exception import CliException, ParsingError
+from maro.utils.exception.cli_exception import InvalidDeploymentTemplateError, BadRequestError
 
 
 def check_details_validity(mode: str):
@@ -19,7 +19,7 @@ def check_details_validity(mode: str):
             try:
                 cluster_details = load_cluster_details(cluster_name=cluster_name)
             except FileNotFoundError:
-                raise CliException(f"Cluster {cluster_name} is not found")
+                raise BadRequestError(f"Cluster '{cluster_name}' is not found.")
 
             # Check details validity
             try:
@@ -27,16 +27,19 @@ def check_details_validity(mode: str):
                     if cluster_details['cloud']['infra'] == 'azure':
                         pass
                     else:
-                        raise ParsingError(f"Details are broken: Invalid infra: {cluster_details['cloud']['infra']}")
+                        raise InvalidDeploymentTemplateError(
+                            f"Details are broken: Invalid infra: {cluster_details['cloud']['infra']}")
                 elif mode == 'k8s' and cluster_details['mode'] == 'k8s':
                     if cluster_details['cloud']['infra'] == 'azure':
                         pass
                     else:
-                        raise ParsingError(f"Details are broken: Invalid infra: {cluster_details['cloud']['infra']}")
+                        raise InvalidDeploymentTemplateError(
+                            f"Details are broken: Invalid infra: {cluster_details['cloud']['infra']}"
+                        )
                 else:
-                    raise ParsingError(f"Details are broken: Invalid mode: {cluster_details['mode']}")
+                    raise InvalidDeploymentTemplateError(f"Details are broken: Invalid mode: {cluster_details['mode']}")
             except KeyError as e:
-                raise ParsingError(f"Details are broken: Missing key: '{e.args[0]}'")
+                raise InvalidDeploymentTemplateError(f"Details are broken: Missing key: '{e.args[0]}'")
 
             func(*args, **kwargs)
 

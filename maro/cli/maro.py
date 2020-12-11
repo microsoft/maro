@@ -11,7 +11,7 @@ import maro.cli.utils.examples as CliExamples
 from maro import __version__
 from maro.cli.utils.params import GlobalParams
 from maro.cli.utils.parser import ArgumentParser
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import CliError, CommandNotFoundError
 from maro.utils.logger import CliLogger
 
 MARO_BANNER = """
@@ -90,26 +90,30 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
-    # Get args and parse global arguments
-    args = parser.parse_args()
-    if args.debug:
-        GlobalParams.LOG_LEVEL = logging.DEBUG
-    else:
-        GlobalParams.LOG_LEVEL = logging.INFO
-    if args.version:
-        logger.info(f'{__version__}')
-        return
-
-    actual_args = _get_actual_args(namespace=args)
-
-    # WARNING: We cannot assign any argument like 'func' in the CLI
+    args = None
     try:
-        args.func(**actual_args)
-    except CliException as e:
+        # Get args and parse global arguments
+        args = parser.parse_args()
         if args.debug:
-            logger.error_red(f"{e.get_message()}\n{traceback.format_exc()}")
+            GlobalParams.LOG_LEVEL = logging.DEBUG
         else:
-            logger.error_red(e.get_message())
+            GlobalParams.LOG_LEVEL = logging.INFO
+        if args.version:
+            logger.info(f'{__version__}')
+            return
+
+        actual_args = _get_actual_args(namespace=args)
+
+        # WARNING: We cannot assign any argument like 'func' in the CLI
+        args.func(**actual_args)
+    except CommandNotFoundError as e:
+        logger.error_red(f"{e.__class__.__name__}: {e.get_message()}")
+        logger.info(f"{e.usage}")
+    except CliError as e:
+        if args is None or args.debug:
+            logger.error_red(f"{e.__class__.__name__}: {e.get_message()}\n{traceback.format_exc()}")
+        else:
+            logger.error_red(f"{e.__class__.__name__}: {e.get_message()}")
 
 
 def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:

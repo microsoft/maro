@@ -19,7 +19,7 @@ from maro.cli.utils.naming import generate_cluster_id, generate_component_id, ge
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import FileOperationError, BadRequestError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -41,7 +41,7 @@ class K8sAzureExecutor:
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
-            raise CliException(f"cluster {cluster_name} is exist")
+            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
         save_cluster_details(
             cluster_name=cluster_name,
@@ -280,7 +280,7 @@ class K8sAzureExecutor:
         # Get node_size_to_spec, and check if node_size is valid
         node_size_to_spec = self._get_node_size_to_spec()
         if node_size not in node_size_to_spec:
-            raise CliException(f"Invalid node_size: {node_size}")
+            raise BadRequestError(f"Invalid node_size '{node_size}'.")
 
         # Scale node
         if node_size not in node_size_to_info:
@@ -439,7 +439,7 @@ class K8sAzureExecutor:
         abs_source_path = get_reformatted_source_path(abs_local_path)
         target_dir = get_reformatted_target_dir(remote_dir)
         if not target_dir.startswith("/"):
-            raise CliException("Invalid remote path")
+            raise FileOperationError(f"Invalid remote path: {target_dir}\nShould be started with '/'.")
         copy_command = (
             "azcopy copy "
             f"'{abs_source_path}' "
@@ -462,7 +462,7 @@ class K8sAzureExecutor:
         abs_target_dir = get_reformatted_target_dir(abs_local_dir)
         os.makedirs(abs_target_dir, exist_ok=True)
         if not source_path.startswith("/"):
-            raise CliException("Invalid remote path")
+            raise FileOperationError(f"Invalid remote path: {source_path}\nShould be started with '/'.")
         copy_command = (
             "azcopy copy "
             f"'https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}' "

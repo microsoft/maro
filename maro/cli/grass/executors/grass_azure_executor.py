@@ -29,7 +29,7 @@ from maro.cli.utils.naming import (
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import CliException, CommandError
+from maro.utils.exception.cli_exception import CommandError, BadRequestError, CommandExecutionError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -52,7 +52,7 @@ class GrassAzureExecutor:
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
-            raise CliException(f"Cluster {cluster_name} is exist")
+            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
         save_cluster_details(
             cluster_name=cluster_name,
@@ -392,7 +392,7 @@ class GrassAzureExecutor:
         # Get node_size_to_spec
         node_size_to_spec = self._get_node_size_to_spec()
         if node_size not in node_size_to_spec:
-            raise CliException(f"Invalid node_size {node_size}")
+            raise BadRequestError(f"Invalid node_size '{node_size}'.")
 
         # Scale nodes
         if node_size_to_count[node_size] > replicas:
@@ -631,7 +631,9 @@ class GrassAzureExecutor:
 
         # Check replicas
         if len(startable_nodes) < replicas:
-            raise CliException(f"No enough {node_size} nodes can be started")
+            raise BadRequestError(
+                f"No enough '{node_size}' nodes can be started (only {len(startable_nodes)} is startable)."
+            )
 
         # Parallel start
         params = [[startable_node] for startable_node in startable_nodes[:replicas]]
@@ -699,7 +701,9 @@ class GrassAzureExecutor:
 
         # Check replicas
         if len(stoppable_nodes) < replicas:
-            raise CliException(f"No more {node_size} nodes can be stopped")
+            raise BadRequestError(
+                f"No more '{node_size}' nodes can be stopped, only {len(stoppable_nodes)} are stoppable."
+            )
 
         # Parallel stop
         params = [[stoppable_node] for stoppable_node in stoppable_nodes[:replicas]]
@@ -835,7 +839,7 @@ class GrassAzureExecutor:
             )
             self._batch_load_images()
         else:
-            raise CliException("Invalid arguments")
+            raise BadRequestError("Invalid arguments.")
 
     @staticmethod
     def _save_image(image_name: str, export_path: str):
@@ -968,8 +972,8 @@ class GrassAzureExecutor:
                 remote_path=f"~/.maro/logs/{job_id}",
                 admin_username=admin_username, node_ip_address=master_public_ip_address
             )
-        except CommandError:
-            logger.error_red("No logs have been created at this time")
+        except CommandExecutionError:
+            logger.error_red("No logs have been created at this time.")
 
     @staticmethod
     def _standardize_start_job_deployment(start_job_deployment: dict):
@@ -1121,7 +1125,7 @@ class GrassAzureExecutor:
         elif resource_name == "containers":
             return_status = self.grass_executor.remote_get_containers_details()
         else:
-            raise CliException(f"Resource {resource_name} is unsupported")
+            raise BadRequestError(f"Resource '{resource_name}' is unsupported.")
 
         # Print status
         logger.info(

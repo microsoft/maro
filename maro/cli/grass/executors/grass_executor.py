@@ -8,7 +8,7 @@ import time
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import CliError, ClusterInternalError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -238,10 +238,9 @@ class GrassExecutor:
             try:
                 self.test_connection(node_ip_address)
                 return True
-            except CliException:
+            except CliError:
                 remain_retries -= 1
-                logger.debug(
-                    f"Unable to connect to {node_ip_address}, remains {remain_retries} retries")
+                logger.debug(f"Unable to connect to {node_ip_address}, remains {remain_retries} retries")
                 time.sleep(10)
                 continue
-        raise CliException(f"Unable to connect to {node_ip_address}")
+        raise ClusterInternalError(f"Unable to connect to {node_ip_address}")

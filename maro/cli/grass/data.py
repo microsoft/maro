@@ -7,7 +7,7 @@ from maro.cli.utils.checkers import check_details_validity
 from maro.cli.utils.details import load_cluster_details
 from maro.cli.utils.lock import lock
 from maro.cli.utils.params import GlobalPaths
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import FileOperationError
 
 
 @check_details_validity(mode='grass')
@@ -19,7 +19,7 @@ def push_data(cluster_name: str, local_path: str, remote_path: str, **kwargs):
     master_public_ip_address = cluster_details['master']['public_ip_address']
 
     if not remote_path.startswith("/"):
-        raise CliException("Invalid remote path")
+        raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
     copy_files_to_node(
         local_path=local_path,
         remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}/data{remote_path}",
@@ -36,7 +36,7 @@ def pull_data(cluster_name: str, local_path: str, remote_path: str, **kwargs):
     master_public_ip_address = cluster_details['master']['public_ip_address']
 
     if not remote_path.startswith("/"):
-        raise CliException("Invalid remote path")
+        raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
     copy_files_from_node(
         local_dir=local_path,
         remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}/data{remote_path}",
