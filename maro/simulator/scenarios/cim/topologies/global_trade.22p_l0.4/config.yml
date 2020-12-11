@@ -1159,7 +1159,6 @@ routes:
     port_name: yokohama_jpn
   - distance: 60
     port_name: shanghai_chn
-seed: 4096
 stop_number:
 - 4
 - 3
