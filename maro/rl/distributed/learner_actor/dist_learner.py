@@ -169,7 +169,13 @@ class SEEDLearner(AbsDistLearner):
             messages = [messages]
 
         for msg in messages:
-            self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
+            performance = msg.payload[PayloadKey.PERFORMANCE]
+            self._scheduler.record_performance(performance)
+            self._logger.info(
+                f"ep {self._scheduler.current_ep} - performance: {performance}, "
+                f"exploration_params: {self._scheduler.exploration_params}, "
+                f"actor_id: {msg.source}"
+            )
             self._pending_actor_set.remove(msg.source)
 
         if messages[0].payload[PayloadKey.EXPERIENCES]:
