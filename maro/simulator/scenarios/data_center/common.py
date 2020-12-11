@@ -12,16 +12,21 @@ class Action:
 
     Args:
         vm_id (int): The VM id.
-        remaining_buffer_time (int): The remaining buffer time to assign this VM.
     """
-    def __init__(self, vm_id: int, remaining_buffer_time: int):
+    def __init__(self, vm_id: int):
         self.vm_id = vm_id
-        self.remaining_buffer_time = remaining_buffer_time
 
 
 class PostponeAction(Action):
-    def __init__(self, vm_id: int, remaining_buffer_time: int):
-        super().__init__(vm_id, remaining_buffer_time)
+    """Postpone action object.
+
+    Args:
+        vm_id (int): The VM id.
+        postpone_frequency (int): The number of times be postponed.
+    """
+    def __init__(self, vm_id: int, postpone_frequency: int):
+        super().__init__(vm_id)
+        self.postpone_frequency = postpone_frequency
 
 
 class AssignAction(Action):
@@ -29,11 +34,10 @@ class AssignAction(Action):
 
     Args:
         vm_id (int): The VM id.
-        remaining_buffer_time (int): The remaining buffer time to assign this VM.
         pm_id (int): The physical machine id assigned to the VM.
     """
-    def __init__(self, vm_id: int, remaining_buffer_time: int, pm_id: int):
-        super().__init__(vm_id, remaining_buffer_time)
+    def __init__(self, vm_id: int, pm_id: int):
+        super().__init__(vm_id)
         self.pm_id = pm_id
 
 

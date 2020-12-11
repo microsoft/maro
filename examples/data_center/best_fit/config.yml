@@ -1,6 +1,6 @@
 env:
   scenario: data_center
-  topology: azure.2019.original
+  topology: azure.2019.10k
   start_tick: 0
   durations: 8638
   resolution: 1

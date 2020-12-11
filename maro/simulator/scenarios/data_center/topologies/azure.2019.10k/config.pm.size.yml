@@ -1,8 +1,8 @@
 PM_NODES:
   P1:
-    Amount: 880
-    CPU: 16
-    Memory: 112
+    Amount: 100
+    CPU: 32
+    Memory: 128
     GPU: 4
     Power_Curve:
       # The calibration parameter used for the CPU utilization vs energy consumption model.

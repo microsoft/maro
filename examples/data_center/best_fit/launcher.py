@@ -41,8 +41,7 @@ if __name__ == "__main__":
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
-                # TODO: why remaining_buffer_time in this payload?
-                remaining_buffer_time=decision_event.remaining_buffer_time - 1
+                postpone_frequency=1
             )
         else:
             # Choose the one with the closet remaining CPU.
@@ -54,8 +53,6 @@ if __name__ == "__main__":
                     min_cpu = decision_event.valid_pms[i].remaining_cpu
             action: AssignAction = AssignAction(
                 vm_id=decision_event.vm_id,
-                # TODO: why remaining_buffer_time in this payload?
-                remaining_buffer_time=decision_event.remaining_buffer_time,
                 pm_id=decision_event.valid_pms[chosen_idx].pm_id
             )
         metrics, decision_event, is_done = env.step(action)
