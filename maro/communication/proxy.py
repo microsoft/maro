@@ -302,10 +302,7 @@ class Proxy:
         """
         return self._driver.receive(is_continuous=is_continuous)
 
-    def _retrieve_from_cache(self, targets: List[tuple], stop_condition: Callable[[Message], bool] = None):
-        if self._message_cache[stop_condition]:
-            return -1
-
+    def _retrieve_from_cache(self, targets: List[tuple]):
         # Pre-process session ids.
         messages = []
         if isinstance(targets, list):
@@ -330,7 +327,7 @@ class Proxy:
         targets: List[tuple],
         timeout: int = None,
         stop_condition: Callable[[Message], bool] = None
-    ) -> Union[List[Message], int]:
+    ) -> Union[Message, List[Message]]:
         """Receive target messages from communication driver.
 
         Args:
@@ -342,18 +339,17 @@ class Proxy:
             stop_condition: A function that determines if an incoming message should trigger immediate return. If
                 triggered, -1 will be returned immediately.
         Returns:
-            List[Message]: List of received messages.
+            Union[Message, List[Message]]: List of received messages.
         """
-        result_from_cache = self._retrieve_from_cache(targets, stop_condition=stop_condition)
-        if result_from_cache == -1:
-            return -1
+        messages, pending_targets = self._retrieve_from_cache(targets)
+        if not pending_targets:
+            return messages
 
-        messages, pending_targets = result_from_cache
         # Wait for incoming messages.
         if timeout is None:
             for msg in self._driver.receive():
                 if stop_condition(msg):
-                    return -1
+                    return msg
                 signature = (msg.tag, msg.session_id)
                 if signature in pending_targets:
                     pending_targets.remove(signature)
@@ -368,7 +364,7 @@ class Proxy:
             if msg is None:
                 return messages
             if stop_condition(msg):
-                return -1
+                return msg
             signature = (msg.tag, msg.session_id)
             if signature in pending_targets:
                 pending_targets.remove(signature)

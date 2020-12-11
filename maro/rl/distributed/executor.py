@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.communication import Proxy, SessionMessage
+from maro.communication import Message, Proxy, SessionMessage
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 
-from .common import DistributedTrainingMode
+from .common import ExecutorInterruptCode, DistributedTrainingMode
 
 
 class Executor(object):
@@ -77,12 +77,13 @@ class Executor(object):
             ),
             timeout=self._action_wait_timeout,
             stop_condition=lambda msg:
-            msg.tag == self._message_tags.RESET and int(msg.session_id.split("-")[-1]) == self._current_ep
+            msg.tag == self._message_tags.EXIT or
+            (msg.tag == self._message_tags.RESET and int(msg.session_id.split("-")[-1]) == self._current_ep)
         )
-        # Force reset
-        if reply == -1:
+        # Reset or exit
+        if isinstance(reply, Message):
             self._time_step = 0
-            return -1
+            return ExecutorInterruptCode.RESET if reply.tag == self._message_tags.RESET else ExecutorInterruptCode.EXIT
 
         self._time_step += 1
         # Timeout

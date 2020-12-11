@@ -10,6 +10,7 @@ from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.simulator import Env
 
 from .common import Component, MessageTag, PayloadKey
+from ..common import ExecutorInterruptCode
 from ..executor import Executor
 
 ACTOR = Component.ACTOR.value
@@ -65,9 +66,12 @@ class Actor(ABC):
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
-            # Force reset
-            if action == -1:
+            # Reset or exit
+            if action == ExecutorInterruptCode.EXIT:
+                sys.exit(0)
+            elif action == ExecutorInterruptCode.RESET:
                 return
+
             metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._executor.on_env_feedback(metrics)
