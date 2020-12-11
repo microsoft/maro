@@ -10,7 +10,7 @@ import time
 import uuid
 from collections import defaultdict, deque, namedtuple
 from enum import Enum
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 # third party lib
 import redis
@@ -302,8 +302,8 @@ class Proxy:
         """
         return self._driver.receive(is_continuous=is_continuous)
 
-    def _retrieve_from_cache(self, targets: List[tuple], stop_signal: Tuple[Union[str, Enum], str] = None):
-        if self._message_cache[stop_signal]:
+    def _retrieve_from_cache(self, targets: List[tuple], stop_condition: Callable[[Message], bool] = None):
+        if self._message_cache[stop_condition]:
             return -1
 
         # Pre-process session ids.
@@ -329,7 +329,7 @@ class Proxy:
         self,
         targets: List[tuple],
         timeout: int = None,
-        stop_signal: Tuple[Union[str, Enum], str] = None
+        stop_condition: Callable[[Message], bool] = None
     ) -> Union[List[Message], int]:
         """Receive target messages from communication driver.
 
@@ -339,12 +339,12 @@ class Proxy:
                 E.g. [("roll-out", '0_learner0_actor0'), ("roll-out", '1_learner1_actor1'), ...].
             timeout (int): Timeout in milliseconds. If None and at least one of ``session_ids`` has not received
                 a response, the method will block until all ``session-ids`` receive responses.
-            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
-                return -1 immediately.
+            stop_condition: A function that determines if an incoming message should trigger immediate return. If
+                triggered, -1 will be returned immediately.
         Returns:
             List[Message]: List of received messages.
         """
-        result_from_cache = self._retrieve_from_cache(targets, stop_signal=stop_signal)
+        result_from_cache = self._retrieve_from_cache(targets, stop_condition=stop_condition)
         if result_from_cache == -1:
             return -1
 
@@ -352,9 +352,9 @@ class Proxy:
         # Wait for incoming messages.
         if timeout is None:
             for msg in self._driver.receive():
-                signature = (msg.tag, msg.session_id)
-                if signature == stop_signal:
+                if stop_condition(msg):
                     return -1
+                signature = (msg.tag, msg.session_id)
                 if signature in pending_targets:
                     pending_targets.remove(signature)
                     messages.append(msg)
@@ -367,10 +367,9 @@ class Proxy:
             msg = self._driver.receive_with_timeout(timeout=timeout)
             if msg is None:
                 return messages
-
-            signature = (msg.tag, msg.session_id)
-            if signature == stop_signal:
+            if stop_condition(msg):
                 return -1
+            signature = (msg.tag, msg.session_id)
             if signature in pending_targets:
                 pending_targets.remove(signature)
                 messages.append(msg)
@@ -381,7 +380,7 @@ class Proxy:
 
     def _scatter(
         self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
-    ) -> List[str]:
+    ) -> List[tuple]:
         """Scatters a list of data to peers, and return list of session id."""
         tag_session_id_list = []
 
@@ -407,7 +406,7 @@ class Proxy:
         destination_payload_list: list,
         session_id: str = None,
         timeout: int = None,
-        stop_signal: str = None
+        stop_condition: Callable[[Message], bool] = None
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
@@ -419,8 +418,8 @@ class Proxy:
                 and the second item of the tuple in list is the message payload.
             session_id (str): Message's session id. Defaults to None.
             timeout (int): Timeout in milliseconds for receiving replies.
-            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
-                return -1 immediately.
+            stop_condition: A function that determines if an incoming message should trigger immediate return. If
+                triggered, -1 will be returned immediately.
 
         Returns:
             List[Message]: List of replied message.
@@ -428,12 +427,12 @@ class Proxy:
         return self.receive_by_id(
             self._scatter(tag, session_type, destination_payload_list, session_id),
             timeout=timeout,
-            stop_signal=stop_signal
+            stop_condition=stop_condition
         )
 
     def iscatter(
         self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
-    ) -> List[str]:
+    ) -> List[tuple]:
         """Scatters a list of data to peers, and return list of message id.
 
         Args:
@@ -445,7 +444,7 @@ class Proxy:
             session_id (str): Message's session id. Defaults to None.
 
         Returns:
-            List[str]: List of message's session id.
+            List[tuple]: List of (tag, session_id) tuples for the sent messages.
         """
         return self._scatter(tag, session_type, destination_payload_list, session_id)
 
@@ -477,8 +476,14 @@ class Proxy:
         return [(message.tag, message.session_id) for _ in range(len(self._onboard_peer_dict[component_type]))]
 
     def broadcast(
-        self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
-        session_id: str = None, payload=None, timeout: int = None, stop_signal: str = None
+        self,
+        component_type: str,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        session_id: str = None,
+        payload=None,
+        timeout: int = None,
+        stop_condition: Callable[[Message], bool] = None
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
@@ -489,8 +494,8 @@ class Proxy:
             session_id (str): Message's session id. Defaults to None.
             payload (object): The true data. Defaults to None.
             timeout (int): Timeout in milliseconds for receiving replies.
-            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
-                return -1 immediately.
+            stop_condition: A function that determines if an incoming message should trigger immediate return. If
+                triggered, -1 will be returned immediately.
 
         Returns:
             List[Message]: List of replied messages.
@@ -498,13 +503,13 @@ class Proxy:
         return self.receive_by_id(
             self._broadcast(component_type, tag, session_type, session_id, payload),
             timeout=timeout,
-            stop_signal=stop_signal
+            stop_condition=stop_condition
         )
 
     def ibroadcast(
         self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
         session_id: str = None, payload=None
-    ) -> List[str]:
+    ) -> List[tuple]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
         Args:
@@ -515,11 +520,12 @@ class Proxy:
             payload (object): The true data. Defaults to None.
 
         Returns:
-            List[str]: List of message's session id which related to the replied message.
+            List[tuple]: List of n copies of (tag, session id) tuples for the broadcast message, where n is equal to
+                the number of broadcast targets.
         """
         return self._broadcast(component_type, tag, session_type, session_id, payload)
 
-    def _send(self, message: Message) -> Union[List[str], None]:
+    def _send(self, message: Message) -> Union[List[tuple], None]:
         """Send a message to a remote peer.
 
         Args:
@@ -531,7 +537,7 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of session id which from
                 the pending messages in message cache.
         """
-        session_id = []
+        tag_session_id_list = []
         if self._enable_rejoin:
             peer_type = self.get_peer_type(message.destination)
             self._rejoin(peer_type)
@@ -545,12 +551,12 @@ class Proxy:
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
                     self._driver.send(pending_message)
-                    session_id.append(pending_message.session_id)
+                    tag_session_id_list.append((pending_message.tag, pending_message.session_id))
                 del self._message_cache_for_exited_peers[message.destination]
 
         try:
-            session_id.append(self._driver.send(message))
-            return session_id
+            tag_session_id_list.append(self._driver.send(message))
+            return tag_session_id_list
         except PendingToSend as e:
             self._logger.warn(f"{e} Peer {message.destination} exited, but still have enough peers.")
             if self._enable_message_cache:
@@ -570,14 +576,19 @@ class Proxy:
         """
         return self._send(message)
 
-    def send(self, message: Message, timeout: int = None, stop_signal: str = None) -> Union[List[Message], None]:
+    def send(
+        self,
+        message: Message,
+        timeout: int = None,
+        stop_condition: Callable[[Message], bool] = None
+    ) -> Union[List[Message], None]:
         """Send a message to a remote peer.
 
         Args:
             message: Message to be sent.
             timeout (int): Timeout in milliseconds for receiving replies.
-            stop_signal: A (tag, session_id) pair. If an incoming message's tag and session id matches the stop signal,
-                return -1 immediately.
+            stop_condition: A function that determines if an incoming message should trigger immediate return. If
+                triggered, -1 will be returned immediately.
 
         Returns:
             Union[List[Message], None]: The list of received message;
@@ -585,7 +596,7 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of messages which from
                 the pending messages.
         """
-        return self.receive_by_id(self._send(message), timeout=timeout, stop_signal=stop_signal)
+        return self.receive_by_id(self._send(message), timeout=timeout, stop_condition=stop_condition)
 
     def reply(
         self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False

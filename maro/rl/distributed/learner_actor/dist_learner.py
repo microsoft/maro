@@ -136,16 +136,6 @@ class SEEDLearner(AbsDistLearner):
                     break
 
         self._registry_table.clear()
-        for actor_id in self._pending_actor_set:
-            self._proxy.isend(
-                SessionMessage(
-                    tag=MessageTag.FORCE_RESET,
-                    source=self._proxy.component_name,
-                    destination=actor_id,
-                    session_id=f"ep-{self._scheduler.current_ep}",
-                    session_type=SessionType.NOTIFICATION
-                )
-            )
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
@@ -166,7 +156,7 @@ class SEEDLearner(AbsDistLearner):
     def _update(self, messages: list):
         if isinstance(messages, SessionMessage):
             messages = [messages]
-            
+
         for msg in messages:
             self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
             self._pending_actor_set.remove(msg.source)

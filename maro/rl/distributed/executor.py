@@ -45,8 +45,8 @@ class Executor(object):
             from maro.rl.distributed.actor_trainer.common import Component, MessageTag, PayloadKey
             self._action_source = Component.TRAINER.value
 
-        self._message_tag_set = MessageTag
-        self._payload_key_set = PayloadKey
+        self._message_tags = MessageTag
+        self._payload_keys = PayloadKey
         # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
@@ -66,17 +66,18 @@ class Executor(object):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         session_id = ".".join([self._proxy.component_name, f"ep-{self._current_ep}", f"t-{self._time_step}"])
-        payload = {self._payload_key_set.STATE: model_state, self._payload_key_set.AGENT_ID: agent_id}
+        payload = {self._payload_keys.STATE: model_state, self._payload_keys.AGENT_ID: agent_id}
         reply = self._proxy.send(
             SessionMessage(
-                tag=self._message_tag_set.ACTION,
+                tag=self._message_tags.ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
                 session_id=session_id,
                 payload=payload
             ),
             timeout=self._action_wait_timeout,
-            stop_signal=(self._message_tag_set.FORCE_RESET, f"ep-{self._current_ep}")
+            stop_condition=lambda msg:
+                msg.tag == self._message_tags.ROLLOUT and int(msg.session_id.split("-")[-1]) > self._current_ep
         )
         self._time_step += 1
         # Force reset
@@ -86,7 +87,7 @@ class Executor(object):
         if not reply:
             return
 
-        model_action = reply[0].payload[self._payload_key_set.ACTION]
+        model_action = reply[0].payload[self._payload_keys.ACTION]
         self._transition_cache = {
             "state": model_state,
             "action": model_action,
