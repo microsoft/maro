@@ -90,6 +90,14 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
+    # maro process
+    parser_process = subparsers.add_parser(
+        "process",
+        help="Run application by mulit-process to simulate distributed mode."
+    )
+    parser_process.set_defaults(func=_help_func(parser=parser_process))
+    load_parser_process(prev_parser=parser_process, global_parser=global_parser)
+
     # Get args and parse global arguments
     args = parser.parse_args()
     if args.debug:
@@ -110,6 +118,110 @@ def main():
             logger.error_red(f"{e.get_message()}\n{traceback.format_exc()}")
         else:
             logger.error_red(e.get_message())
+
+
+def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:
+    subparsers = prev_parser.add_subparsers()
+
+    # maro process job
+    parser_job = subparsers.add_parser(
+        "job",
+        help='Manage jobs',
+        parents=[global_parser]
+    )
+    parser_job.set_defaults(func=_help_func(parser=parser_job))
+    parser_job_subparsers = parser_job.add_subparsers()
+
+    # maro process job start
+    from maro.cli.process.job import start_job
+    parser_job_start = parser_job_subparsers.add_parser(
+        'start',
+        help='Start a training job',
+        examples=CliExamples.MARO_PROCESS_JOB_START,
+        parents=[global_parser]
+    )
+    parser_job_start.add_argument(
+        'deployment_path', help='Path of the job deployment')
+    parser_job_start.set_defaults(func=start_job)
+
+    # maro process job stop
+    from maro.cli.process.job import stop_job
+    parser_job_stop = parser_job_subparsers.add_parser(
+        'stop',
+        help='Stop a training job',
+        examples=CliExamples.MARO_PROCESS_JOB_STOP,
+        parents=[global_parser]
+    )
+    parser_job_stop.add_argument(
+        'job_name', help='Name of the job')
+    parser_job_stop.set_defaults(func=stop_job)
+
+    # maro process job delete
+    from maro.cli.process.job import delete_job
+    parser_job_delete = parser_job_subparsers.add_parser(
+        'delete',
+        help='delete a stopped job',
+        examples=CliExamples.MARO_PROCESS_JOB_DELETE,
+        parents=[global_parser]
+    )
+    parser_job_delete.add_argument(
+        'job_name', help='Name of the job or the schedule')
+    parser_job_delete.set_defaults(func=delete_job)
+
+    # maro process job list
+    from maro.cli.process.job import list_jobs
+    parser_job_list = parser_job_subparsers.add_parser(
+        'list',
+        help='List all jobs',
+        examples=CliExamples.MARO_PROCESS_JOB_LIST,
+        parents=[global_parser]
+    )
+    parser_job_list.set_defaults(func=list_jobs)
+
+    # maro process job logs
+    from maro.cli.process.job import get_job_logs
+    parser_job_logs = parser_job_subparsers.add_parser(
+        'logs',
+        help='Get logs of the job',
+        examples=CliExamples.MARO_PROCESS_JOB_LOGS,
+        parents=[global_parser]
+    )
+    parser_job_logs.add_argument(
+        'job_name', help='Name of the job')
+    parser_job_logs.set_defaults(func=get_job_logs)
+
+    # maro process schedule
+    parser_schedule = subparsers.add_parser(
+        'schedule',
+        help='Manage schedules',
+        parents=[global_parser]
+    )
+    parser_schedule.set_defaults(func=_help_func(parser=parser_schedule))
+    parser_schedule_subparsers = parser_schedule.add_subparsers()
+
+    # maro grass schedule start
+    from maro.cli.process.schedule import start_schedule
+    parser_schedule_start = parser_schedule_subparsers.add_parser(
+        'start',
+        help='Start a schedule',
+        examples=CliExamples.MARO_PROCESS_SCHEDULE_START,
+        parents=[global_parser]
+    )
+    parser_schedule_start.add_argument(
+        'deployment_path', help='Path of the schedule deployment')
+    parser_schedule_start.set_defaults(func=start_schedule)
+
+    # maro grass schedule stop
+    from maro.cli.process.schedule import stop_schedule
+    parser_schedule_stop = parser_schedule_subparsers.add_parser(
+        'stop',
+        help='Stop a schedule',
+        examples=CliExamples.MARO_PROCESS_SCHEDULE_STOP,
+        parents=[global_parser]
+    )
+    parser_schedule_stop.add_argument(
+        'schedule_name', help='Name of the schedule')
+    parser_schedule_stop.set_defaults(func=stop_schedule)
 
 
 def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:

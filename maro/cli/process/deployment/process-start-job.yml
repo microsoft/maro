@@ -1,0 +1,11 @@
+mode: process
+name: MyJobName # str: name of the training job
+parallel: 1   # allow parallel with other jobs
+
+components: # component config
+  actor:
+    num: 5 # int: number of this component
+    command: "python /mnt/data/run_actor.py" # str: command to be executed 
+  learner:
+    num: 1
+    command: "python /mnt/data/run_learner.py"
