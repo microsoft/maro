@@ -9,14 +9,14 @@ class VirtualMachine:
 
     Args:
         id (int): The VM id.
-        vcpu_cores_requirement (int): The amount of virtual cores requested by VM.
+        cpu_cores_requirement (int): The amount of virtual cores requested by VM.
         memory_requirement (int): The memory requested by VM. The unit is (GBs).
         lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick + 1.
     """
-    def __init__(self, id: int, vcpu_cores_requirement: int, memory_requirement: int, lifetime: int):
+    def __init__(self, id: int, cpu_cores_requirement: int, memory_requirement: int, lifetime: int):
         # VM Requirement parameters.
         self.id: int = id
-        self.vcpu_cores_requirement: int = vcpu_cores_requirement
+        self.cpu_cores_requirement: int = cpu_cores_requirement
         self.memory_requirement: int = memory_requirement
         # The VM lifetime which equals to the deletion tick - creation tick + 1.
         self.lifetime: int = lifetime
@@ -40,7 +40,6 @@ class VirtualMachine:
         self._utilization_series.append(cpu_utilization)
         self._utilization_index = len(self._utilization_series) - 1
 
-    @property
     def get_historical_utilization_series(self) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
         return self._utilization_series[:self._utilization_index]

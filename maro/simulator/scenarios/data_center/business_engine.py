@@ -174,7 +174,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         for vm in self._vm_item_picker.items(tick):
             vm_req = VirtualMachine(
                 id=vm.vm_id,
-                vcpu_cores_requirement=vm.vm_vcpu_cores,
+                cpu_cores_requirement=vm.vm_cpu_cores,
                 memory_requirement=vm.vm_memory,
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
@@ -257,7 +257,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             total_pm_cpu_cores_used: float = 0.0
             for vm_id in pm.live_vms:
                 vm = self._live_vms[vm_id]
-                total_pm_cpu_cores_used += vm.cpu_utilization * vm.vcpu_cores_requirement / 100
+                total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement / 100
             pm_cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
             pm.update_utilization(tick=self._tick, cpu_utilization=pm_cpu_utilization)
             # Update each PM's energy.
@@ -301,17 +301,17 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Add failed placement.
             self._failed_placement += 1
 
-    def _get_valid_pms(self, vm_vcpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
+    def _get_valid_pms(self, vm_cpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
         """Check all valid PMs.
 
-        Args: vm_vcpu_cores_requirement (int): The vCPU cores requested by the VM.
+        Args: vm_cpu_cores_requirement (int): The vCPU cores requested by the VM.
         """
         # NOTE: Should we implement this logic inside the action scope?
         # TODO: In oversubscribable scenario, we should consider more situations, like
         #       the PM type (oversubscribable and non-oversubscribable).
         valid_pm_list = []
         for pm in self._machines:
-            if (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_vcpu_cores_requirement:
+            if (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_cpu_cores_requirement:
                 valid_pm_list.append(ValidPhysicalMachine(
                     pm_id=pm.id,
                     remaining_cpu=pm.cpu_cores_capacity - pm.cpu_allocation,
@@ -330,14 +330,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # Store the payload inside business engine.
         self._pending_vm_req_payload[vm_req.id] = payload
         # Get valid pm list.
-        valid_pm_list = self._get_valid_pms(vm_vcpu_cores_requirement=vm_req.vcpu_cores_requirement)
+        valid_pm_list = self._get_valid_pms(vm_cpu_cores_requirement=vm_req.cpu_cores_requirement)
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
             decision_payload = DecisionPayload(
                 valid_pms=valid_pm_list,
                 vm_id=vm_req.id,
-                vm_vcpu_cores_requirement=vm_req.vcpu_cores_requirement,
+                vm_cpu_cores_requirement=vm_req.cpu_cores_requirement,
                 vm_memory_requirement=vm_req.memory_requirement,
                 remaining_buffer_time=remaining_buffer_time
             )
@@ -361,11 +361,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         # Release PM resources.
         pm: PhysicalMachine = self._machines[vm.pm_id]
-        pm.cpu_allocation -= vm.vcpu_cores_requirement
+        pm.cpu_allocation -= vm.cpu_cores_requirement
         pm.memory_allocation -= vm.memory_requirement
         # Calculate the PM's utilization.
         pm_cpu_utilization = (
-            (pm.cpu_cores_capacity * pm.cpu_utilization - vm.vcpu_cores_requirement * vm.cpu_utilization)
+            (pm.cpu_cores_capacity * pm.cpu_utilization - vm.cpu_cores_requirement * vm.cpu_utilization)
             / pm.cpu_cores_capacity
         )
         pm.update_utilization(tick=finish_event.tick, cpu_utilization=pm_cpu_utilization)
@@ -419,11 +419,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
                 pm.place_vm(vm.id)
-                pm.cpu_allocation += vm.vcpu_cores_requirement
+                pm.cpu_allocation += vm.cpu_cores_requirement
                 pm.memory_allocation += vm.memory_requirement
                 # Calculate the PM's utilization.
                 pm_cpu_utilization = (
-                    (pm.cpu_cores_capacity * pm.cpu_utilization + vm.vcpu_cores_requirement * vm.cpu_utilization)
+                    (pm.cpu_cores_capacity * pm.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
                     / pm.cpu_cores_capacity
                 )
                 pm.update_utilization(tick=cur_tick, cpu_utilization=pm_cpu_utilization)
