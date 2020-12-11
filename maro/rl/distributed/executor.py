@@ -79,10 +79,12 @@ class Executor(object):
             stop_condition=lambda msg:
             msg.tag == self._message_tags.RESET and int(msg.session_id.split("-")[-1]) == self._current_ep
         )
-        self._time_step += 1
         # Force reset
         if reply == -1:
+            self._time_step = 0
             return -1
+
+        self._time_step += 1
         # Timeout
         if not reply:
             return
