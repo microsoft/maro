@@ -77,7 +77,7 @@ class Executor(object):
             ),
             timeout=self._action_wait_timeout,
             stop_condition=lambda msg:
-                msg.tag == self._message_tags.ROLLOUT and int(msg.session_id.split("-")[-1]) > self._current_ep
+            msg.tag == self._message_tags.RESET and int(msg.session_id.split("-")[-1]) == self._current_ep
         )
         self._time_step += 1
         # Force reset

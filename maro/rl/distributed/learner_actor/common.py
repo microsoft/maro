@@ -10,6 +10,7 @@ class MessageTag(Enum):
     ROLLOUT = "rollout"
     UPDATE = "update"
     ACTION = "action"
+    RESET = "reset"
     EXIT = "exit"
 
 
