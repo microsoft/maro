@@ -47,7 +47,7 @@ def launch(config, distributed_config):
         "max_retries": 15
     }
     actor_worker = ActorWorker(
-        local_actor=SimpleActor(env, agent_manager),
+        local_actor=SimpleActor(env=env, agent_manager=agent_manager),
         proxy_params=proxy_params
     )
     actor_worker.launch()
