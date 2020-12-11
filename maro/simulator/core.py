@@ -101,7 +101,7 @@ class Env(AbsEnv):
 
         self._event_buffer.reset()
 
-        if 'enable-dump-snapshot' in self._additional_options:
+        if "enable-dump-snapshot" in self._additional_options:
             if self._business_engine._frame is not None:
                 dump_folder = self._converter.get_new_snapshot_folder()
 
