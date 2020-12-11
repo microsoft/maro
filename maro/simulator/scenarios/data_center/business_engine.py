@@ -26,7 +26,7 @@ from .virtual_machine import VirtualMachine
 metrics_desc = """
 
 total_vm_requirements (int): Total VM requirements.
-total_energy_consumption (int): Current total energy consumption.
+total_energy_consumption (float): Accumulative total energy consumption.
 success_allocation (int): Accumulative successful VM allocation until now.
 success_placement (int): Accumulative successful VM placement.
 failed_placement (int): Accumulative failed VM placement until now.
@@ -53,7 +53,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         # Env metrics.
         self._total_vm_requirements: int = 0
-        self._total_energy_consumption: int = 0
+        self._total_energy_consumption: float = 0
         self._success_allocation: int = 0
         self._success_placement: int = 0
         self._failed_placement: int = 0
@@ -77,7 +77,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._vm_reader = BinaryReader(self._config["vm_table"])
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
-        self._cpu_reader = CpuReader()
+        self._cpu_reader = CpuReader(self._config["cpu_readings"])
         self._cur_tick_cpu_utilization = {}
 
         self._tick: int = 0
@@ -114,9 +114,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         with open(os.path.join(self._config_path, "config.pm.size.yml")) as fp:
             self._pm_size_dict = DottableDict(safe_load(fp))
 
-        self._pm_amount: int = self._pm_size_dict["N1"]["Amount"]
-        self._pm_cpu_cores_capacity: int = self._pm_size_dict["N1"]["CPU"]
-        self._pm_memory_capacity: int = self._pm_size_dict["N1"]["Memory"]
+        self._pm_amount: int = self._pm_size_dict["PM_NODES"]["P1"]["Amount"]
+        self._pm_cpu_cores_capacity: int = self._pm_size_dict["PM_NODES"]["P1"]["CPU"]
+        self._pm_memory_capacity: int = self._pm_size_dict["PM_NODES"]["P1"]["Memory"]
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
@@ -272,10 +272,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
         cpu_util /= 100
-        power: float = self._config["calibration_parameter"]
+        power: float = self._pm_size_dict["PM_NODES"]["P1"]["Power_Curve"]["calibration_parameter"]
         # NOTE: Energy comsumption parameters should refer to more research.
-        busy_power = self._config["busy_power"]
-        idle_power = self._config["idle_power"]
+        busy_power = self._pm_size_dict["PM_NODES"]["P1"]["Power_Curve"]["busy_power"]
+        idle_power = self._pm_size_dict["PM_NODES"]["P1"]["Power_Curve"]["idle_power"]
         return idle_power + (busy_power - idle_power) * (2 * cpu_util - pow(cpu_util, power))
 
     def _postpone_vm_requirement(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
@@ -388,8 +388,8 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         for action in event.payload:
             vm_id: int = action.vm_id
 
-            # if vm_id not in self._pending_vm_req_payload:
-            #     raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
+            if vm_id not in self._pending_vm_req_payload:
+                raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
 
             if type(action) == AssignAction:
                 pm_id = action.pm_id
@@ -430,10 +430,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
                 self._success_allocation += 1
             elif type(action) == PostponeAction:
-                remaining_buffer_time = action.remaining_buffer_time
+                postpone_frequency = action.postpone_frequency
+                remaining_buffer_time = self._pending_vm_req_payload[vm_id].remaining_buffer_time
                 # Either postpone the requirement event or failed.
                 self._postpone_vm_requirement(
                     postpone_type=PostponeType.Agent,
                     vm_id=vm_id,
-                    remaining_buffer_time=remaining_buffer_time
+                    remaining_buffer_time=remaining_buffer_time - postpone_frequency * self._config["delay_duration"]
                 )

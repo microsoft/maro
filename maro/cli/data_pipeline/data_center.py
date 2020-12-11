@@ -32,8 +32,11 @@ class DataCenterPipeline(DataPipeline):
 
     _meta_file_name = "vmtable.yml"
 
-    def __init__(self, topology: str, source: str, is_temp: bool = False):
+    def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp: bool = False):
         super().__init__(scenario="data_center", topology=topology, source=source, is_temp=is_temp)
+
+        self._sample = sample
+        self._seed = seed
 
         self._vm_table_file = os.path.join(self._download_folder, self._vm_table_file_name)
         self._raw_vm_table_file = os.path.join(self._clean_folder, self._raw_vm_table_file_name)
@@ -116,16 +119,17 @@ class DataCenterPipeline(DataPipeline):
     def _unzip_file(self, original_file_name: str, raw_file_name: str):
         original_file = os.path.join(self._download_folder, original_file_name)
         if os.path.exists(original_file):
-            # Unzip gz file.
             raw_file = os.path.join(self._clean_folder, raw_file_name)
-            logger.info_green("Unzip start.")
-            with gzip.open(original_file, mode="rb") as f_in:
-                logger.info_green(
-                    f"Unzip {raw_file_name} from {original_file} to {raw_file}."
-                )
-                with open(raw_file, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            logger.info_green("Unzip finished.")
+            if os.path.exists(raw_file):
+                logger.info_green(f"{raw_file} already exists, skipping unzip.")
+            else:
+                # Unzip gz file.
+                with gzip.open(original_file, mode="rb") as f_in:
+                    logger.info_green(
+                        f"Unzip {original_file} to {raw_file}."
+                    )
+                    with open(raw_file, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
         else:
             logger.warning(f"Not found downloaded source file: {original_file}.")
 
@@ -178,6 +182,11 @@ class DataCenterPipeline(DataPipeline):
         vm_table = vm_table[['new_id', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']]
         # Rename column name.
         vm_table.rename(columns={'new_id': 'vmid'}, inplace=True)
+        # Sampling the VM table.
+        if self._sample < 2695548:
+            vm_table = vm_table.sample(n=self._sample, random_state=self._seed)
+            vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
+            vm_id_map = vm_id_map[vm_id_map.isin(vm_table['vmid'])]
 
         return vm_id_map, vm_table
 
@@ -190,11 +199,9 @@ class DataCenterPipeline(DataPipeline):
                 csv_writer.writerow(['timestamp', 'vmid', 'maxcpu'])
                 for row in csv_reader:
                     # [timestamp, vmid, mincpu, maxcpu, avgcpu]
-                    new_row = []
-                    new_row.append(int(row[0]) // 300)
-                    new_row.append(vm_id_map.loc[row[1]])
-                    new_row.append(round(float(row[3]), 2))
-                    csv_writer.writerow(new_row)
+                    if row[1] in vm_id_map:
+                        new_row = [int(row[0]) // 300, vm_id_map.loc[row[1]], round(float(row[3]), 2)]
+                        csv_writer.writerow(new_row)
 
     def _preprocess(self):
         logger.info_green("Process vmtable data.")
@@ -232,9 +239,15 @@ class DataCenterPipeline(DataPipeline):
 
 
 class DataCenterTopology(DataTopology):
-    def __init__(self, topology: str, source: str, is_temp=False):
+    def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp=False):
         super().__init__()
-        self._data_pipeline["vm_data"] = DataCenterPipeline(topology=topology, source=source, is_temp=is_temp)
+        self._data_pipeline["vm_data"] = DataCenterPipeline(
+            topology=topology,
+            source=source,
+            sample=sample,
+            seed=seed,
+            is_temp=is_temp
+        )
 
 
 class DataCenterProcess:
@@ -254,5 +267,7 @@ class DataCenterProcess:
                 self.topologies[topology] = DataCenterTopology(
                     topology=topology,
                     source=self._conf["vm_data"][topology]["remote_url"],
+                    sample=self._conf["vm_data"][topology]["sample"],
+                    seed=self._conf["vm_data"][topology]["seed"],
                     is_temp=is_temp
                 )

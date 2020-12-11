@@ -4,3 +4,5 @@ buffer_time_budget: 0
 delay_duration: 1
 
 vm_table: "/mnt/d/kuanwei/data/test_336k/build/vmtable.bin"
+
+cpu_readings: "/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-1-of-195.bin"

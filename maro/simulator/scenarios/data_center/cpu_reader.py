@@ -6,11 +6,8 @@ from maro.data_lib.binary_reader import BinaryReader
 
 class CpuReader:
 
-    def __init__(self):
-        self._initial = 1
-        self._data_path = (
-            f"/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-{self._initial}-of-195.bin"
-        )
+    def __init__(self, data_path: str):
+        self._data_path = data_path
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=self._cpu_reader.header.starttime,
@@ -19,12 +16,17 @@ class CpuReader:
         )
         self.count = 0
 
+    def _modify_file_name(self, data_path) -> str:
+        """Switch to next file name."""
+        file_name = data_path.split("-")
+        file_name[2] = str(int(file_name[2]) + 1)
+        new_data_path = "-".join(file_name)
+
+        return new_data_path
+
     def _switch(self):
         """Switch to a new binary reader."""
-        self._initial += 1
-        self._data_path = (
-            f"/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-{self._initial}-of-195.bin"
-        )
+        self._data_path = self._modify_file_name(self._data_path)
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=0,
