@@ -29,7 +29,7 @@ from maro.cli.utils.naming import (
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import CommandError, BadRequestError, CommandExecutionError
+from maro.utils.exception.cli_exception import BadRequestError, CommandExecutionError, FileOperationError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -70,7 +70,7 @@ class GrassAzureExecutor:
             "root['master']['samba']": {"password": "".join(secrets.choice(alphabet) for _ in range(20))},
             "root['master']['samba']['password']": "".join(secrets.choice(alphabet) for _ in range(20))
         }
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass-azure-create.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -882,6 +882,36 @@ class GrassAzureExecutor:
         )
         return local_checksum == remote_checksum
 
+    # maro grass data
+
+    def push_data(self, local_path: str, remote_path: str):
+        # Load details
+        cluster_details = self.cluster_details
+        admin_username = cluster_details['user']['admin_username']
+        master_public_ip_address = cluster_details['master']['public_ip_address']
+
+        if not remote_path.startswith("/"):
+            raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
+        copy_files_to_node(
+            local_path=local_path,
+            remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+
+    def pull_data(self, local_path: str, remote_path: str):
+        # Load details
+        cluster_details = self.cluster_details
+        admin_username = cluster_details['user']['admin_username']
+        master_public_ip_address = cluster_details['master']['public_ip_address']
+
+        if not remote_path.startswith("/"):
+            raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
+        copy_files_from_node(
+            local_dir=local_path,
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
+            admin_username=admin_username, node_ip_address=master_public_ip_address
+        )
+
     # maro grass job
 
     def start_job(self, deployment_path: str):
@@ -977,11 +1007,11 @@ class GrassAzureExecutor:
 
     @staticmethod
     def _standardize_start_job_deployment(start_job_deployment: dict):
-        # Validate grass-azure-start-job
+        # Validate grass_azure_start_job
         optional_key_to_value = {
             "root['tags']": {}
         }
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass-azure-start-job.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -1074,8 +1104,8 @@ class GrassAzureExecutor:
 
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
-        # Validate grass-azure-start-job
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass-azure-start-schedule.yml") as fr:
+        # Validate grass_azure_start_job
+        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,

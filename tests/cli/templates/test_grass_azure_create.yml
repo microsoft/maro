@@ -1,8 +1,7 @@
 name: ""
-mode: grass
+mode: grass/azure
 
 cloud:
-  infra: azure
   location: japaneast
   resource_group: ""
   subscription: ""

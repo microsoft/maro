@@ -25,7 +25,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class K8sAzureExecutor:
+class K8sAksExecutor:
 
     def __init__(self, cluster_name: str):
         self.cluster_name = cluster_name
@@ -36,7 +36,7 @@ class K8sAzureExecutor:
     @staticmethod
     def build_cluster_details(create_deployment: dict):
         # Validate and fill optional value to deployment
-        K8sAzureExecutor._validate_create_deployment(create_deployment=create_deployment)
+        K8sAksExecutor._validate_create_deployment(create_deployment=create_deployment)
 
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
@@ -54,7 +54,7 @@ class K8sAzureExecutor:
             "root['master']['redis']": {"port": 6379},
             "root['master']['redis']['port']": 6379
         }
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s-azure-create.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -343,7 +343,7 @@ class K8sAzureExecutor:
         AzureExecutor.add_nodepool(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks",
-            nodepool_name=K8sAzureExecutor._generate_nodepool_name(key=node_size),
+            nodepool_name=K8sAksExecutor._generate_nodepool_name(key=node_size),
             node_count=replicas,
             node_size=node_size
         )
@@ -522,7 +522,7 @@ class K8sAzureExecutor:
 
     def _start_job(self, job_details: dict):
         # Validate and fill optional value to deployment
-        K8sAzureExecutor._standardize_start_job_deployment(start_job_deployment=job_details)
+        K8sAksExecutor._standardize_start_job_deployment(start_job_deployment=job_details)
         job_name = job_details["name"]
 
         # Mkdir and save job details
@@ -563,8 +563,8 @@ class K8sAzureExecutor:
 
     @staticmethod
     def _standardize_start_job_deployment(start_job_deployment: dict):
-        # Validate k8s-azure-start-job
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s-azure-start-job.yml") as fr:
+        # Validate k8s_aks_start_job
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -774,7 +774,7 @@ class K8sAzureExecutor:
             start_schedule_deployment = yaml.safe_load(fr)
 
         # Standardize start_schedule_deployment
-        K8sAzureExecutor._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
+        K8sAksExecutor._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
         schedule_name = start_schedule_deployment["name"]
 
         # Save schedule deployment
@@ -787,7 +787,7 @@ class K8sAzureExecutor:
 
         # Start jobs
         for job_name in start_schedule_deployment["job_names"]:
-            job_details = K8sAzureExecutor._build_job_details(
+            job_details = K8sAksExecutor._build_job_details(
                 schedule_details=start_schedule_deployment,
                 job_name=job_name
             )
@@ -813,8 +813,8 @@ class K8sAzureExecutor:
 
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
-        # Validate k8s-azure-start-job
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s-azure-start-schedule.yml") as fr:
+        # Validate k8s_aks_start_schedule
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
