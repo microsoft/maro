@@ -7,7 +7,7 @@ from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 
-from .common import ExecutorInterruptCode, DistributedTrainingMode
+from .common import ExecutorInterrupt, DistributedTrainingMode
 
 
 class Executor(object):
@@ -59,13 +59,13 @@ class Executor(object):
         self._proxy = proxy
         self._action_source = self._proxy.peers_name[self._action_source][0]
 
-    def set_ep(self, ep):
+    def set_ep(self, ep: str):
         self._current_ep = ep
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        session_id = ".".join([self._proxy.component_name, f"ep-{self._current_ep}", f"t-{self._time_step}"])
+        session_id = ".".join([self._proxy.component_name, self._current_ep, f"t-{self._time_step}"])
         payload = {self._payload_keys.STATE: model_state, self._payload_keys.AGENT_ID: agent_id}
         reply = self._proxy.send(
             SessionMessage(
@@ -78,12 +78,12 @@ class Executor(object):
             timeout=self._action_wait_timeout,
             stop_condition=lambda msg:
             msg.tag == self._message_tags.EXIT or
-            (msg.tag == self._message_tags.RESET and int(msg.session_id.split("-")[-1]) == self._current_ep)
+            msg.tag == self._message_tags.RESET and msg.session_id == self._current_ep
         )
         # Reset or exit
         if isinstance(reply, Message):
             self._time_step = 0
-            return ExecutorInterruptCode.RESET if reply.tag == self._message_tags.RESET else ExecutorInterruptCode.EXIT
+            return ExecutorInterrupt.RESET if reply.tag == self._message_tags.RESET else ExecutorInterrupt.EXIT
 
         self._time_step += 1
         # Timeout

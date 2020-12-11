@@ -48,7 +48,6 @@ class SimpleDistLearner(AbsDistLearner):
             session_id=f"ep-{self._scheduler.current_ep}",
             session_type=SessionType.TASK,
             payload={
-                PayloadKey.EPISODE: self._scheduler.current_ep,
                 PayloadKey.MODEL: model_dict,
                 PayloadKey.EXPLORATION_PARAMS: exploration_params
             }
@@ -95,12 +94,12 @@ class SEEDLearner(AbsDistLearner):
             if exploration_params:
                 self._agent_manager.update_exploration_params(exploration_params)
             self._sample()
-            self._serve()
+
+        self._proxy.clear_cache()
 
     def test(self):
         """Test policy performance."""
         self._sample(is_training=False)
-        self._serve()
 
     def _sample(self, is_training: bool = True):
         """Send roll-out requests to remote actors.
@@ -111,41 +110,43 @@ class SEEDLearner(AbsDistLearner):
         Returns:
             Performance and per-agent experiences from the remote actor.
         """
+        current_ep = f"ep-{self._scheduler.current_ep}" if is_training else "test"
         self._proxy.ibroadcast(
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
-            session_id=f"ep-{self._scheduler.current_ep}",
+            session_id=current_ep,
             session_type=SessionType.TASK,
             payload={PayloadKey.IS_TRAINING: is_training}
         )
 
-    def _serve(self):
         self._pending_actor_set = set(self._actors)
         self._latest_time_steps_by_actor = defaultdict(lambda: -1)
+
         for msg in self._proxy.receive():
             if msg.tag == MessageTag.ACTION:
                 actor_id, ep, time_step = msg.session_id.split(".")
-                ep, time_step = int(ep.split("-")[-1]), int(time_step.split("-")[-1])
-                if ep == self._scheduler.current_ep and time_step > self._latest_time_steps_by_actor[actor_id]:
+                time_step = int(time_step.split("-")[-1])
+                if ep == current_ep and time_step > self._latest_time_steps_by_actor[actor_id]:
                     self._latest_time_steps_by_actor[actor_id] = time_step
                     self._registry_table.push_process(msg)
-            elif msg.tag == MessageTag.UPDATE:
+            elif msg.tag == MessageTag.FINISH:
                 # If enough update messages have been received, call _update() and break out of the loop to start the
                 # next episode.
-                if self._registry_table.push_process(msg):
+                if msg.session_id == current_ep and self._registry_table.push_process(msg):
                     break
 
         self._registry_table.clear()
-        for actor_id in self._pending_actor_set:
-            self._proxy.isend(
-                SessionMessage(
-                    tag=MessageTag.RESET,
-                    source=self._proxy.component_name,
-                    destination=actor_id,
-                    session_id=f"ep-{self._scheduler.current_ep}",
-                    session_type=SessionType.NOTIFICATION
+        if is_training:
+            for actor_id in self._pending_actor_set:
+                self._proxy.isend(
+                    SessionMessage(
+                        tag=MessageTag.RESET,
+                        source=self._proxy.component_name,
+                        destination=actor_id,
+                        session_id=current_ep,
+                        session_type=SessionType.NOTIFICATION
+                    )
                 )
-            )
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
@@ -171,6 +172,7 @@ class SEEDLearner(AbsDistLearner):
             self._scheduler.record_performance(msg.payload[PayloadKey.PERFORMANCE])
             self._pending_actor_set.remove(msg.source)
 
-        self._agent_manager.train(
-            self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
-        )
+        if messages[0].payload[PayloadKey.EXPERIENCES]:
+            self._agent_manager.train(
+                self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
+            )

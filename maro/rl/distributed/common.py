@@ -9,6 +9,6 @@ class DistributedTrainingMode(Enum):
     ACTOR_TRAINER = "actor_trainer"
 
 
-class ExecutorInterruptCode(Enum):
+class ExecutorInterrupt(Enum):
     RESET = 0
     EXIT = 1

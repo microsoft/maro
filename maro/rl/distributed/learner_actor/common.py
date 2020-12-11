@@ -8,8 +8,8 @@ class Component(Enum):
 
 class MessageTag(Enum):
     ROLLOUT = "rollout"
-    UPDATE = "update"
     ACTION = "action"
+    FINISH = "finish"
     RESET = "reset"
     EXIT = "exit"
 

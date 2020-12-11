@@ -10,7 +10,7 @@ from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.simulator import Env
 
 from .common import Component, MessageTag, PayloadKey
-from ..common import ExecutorInterruptCode
+from ..common import ExecutorInterrupt
 from ..executor import Executor
 
 ACTOR = Component.ACTOR.value
@@ -52,7 +52,6 @@ class Actor(ABC):
             message: Message containing roll-out parameters and options.
         """
         self._env.reset()
-        ep = int(message.session_id.split("-")[-1])
         if isinstance(self._executor, AbsAgentManager):
             model_dict = message.payload.get(PayloadKey.MODEL, None)
             if model_dict is not None:
@@ -61,28 +60,27 @@ class Actor(ABC):
             if exploration_params is not None:
                 self._executor.update_exploration_params(exploration_params)
         else:
-            self._executor.set_ep(ep)
+            self._executor.set_ep(message.session_id)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
             # Reset or exit
-            if action == ExecutorInterruptCode.EXIT:
+            if action == ExecutorInterrupt.EXIT:
                 sys.exit(0)
-            elif action == ExecutorInterruptCode.RESET:
+            elif action == ExecutorInterrupt.RESET:
                 return
 
             metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._executor.on_env_feedback(metrics)
 
-        if message.payload[PayloadKey.IS_TRAINING]:
-            self._proxy.reply(
-                received_message=message,
-                tag=MessageTag.UPDATE,
-                payload={
-                    PayloadKey.EPISODE: ep,
-                    PayloadKey.PERFORMANCE: self._env.metrics,
-                    PayloadKey.EXPERIENCES: self._executor.post_process(self._env.snapshot_list)
-                }
-            )
+        self._proxy.reply(
+            received_message=message,
+            tag=MessageTag.FINISH,
+            payload={
+                PayloadKey.PERFORMANCE: self._env.metrics,
+                PayloadKey.EXPERIENCES:
+                    None if message.session_id == "test" else self._executor.post_process(self._env.snapshot_list)
+            }
+        )

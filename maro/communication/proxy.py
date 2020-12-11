@@ -647,6 +647,10 @@ class Proxy:
         )
         return self.isend(forward_message)
 
+    def clear_cache(self):
+        for cache in self._message_cache.values():
+            cache.clear()
+
     def _check_peers_update(self):
         """Compare the peers' information on local with the peers' information on Redis.
 
