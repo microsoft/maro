@@ -7,6 +7,7 @@ from typing import List, Union
 import numpy as np
 
 from maro.communication import SessionMessage, SessionType
+from maro.utils import DummyLogger, Logger
 
 from .abs_dist_learner import AbsDistLearner
 from .common import Component, MessageTag, PayloadKey
@@ -72,9 +73,10 @@ class SEEDLearner(AbsDistLearner):
         experience_collecting_func,
         choose_action_trigger: str = None,
         update_trigger: str = None,
+        logger: Logger = DummyLogger(),
         **proxy_params
     ):
-        super().__init__(agent_manager, scheduler, experience_collecting_func, **proxy_params)
+        super().__init__(agent_manager, scheduler, experience_collecting_func, logger=logger, **proxy_params)
         self._actors = self._proxy.peers_name[ACTOR]
         self._pending_actor_set = None
         if choose_action_trigger is None:
