@@ -84,7 +84,7 @@ class SEEDLearner(AbsDistLearner):
         )
         if update_trigger is None:
             update_trigger = len(self._actors)
-        self._registry_table.register_event_handler(f"{ACTOR}:{MessageTag.UPDATE.value}:{update_trigger}", self._update)
+        self._registry_table.register_event_handler(f"{ACTOR}:{MessageTag.FINISH.value}:{update_trigger}", self._update)
         self._latest_time_steps_by_actor = defaultdict(lambda: -1)
 
     def learn(self):
