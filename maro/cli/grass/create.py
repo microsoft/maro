@@ -5,6 +5,7 @@
 import yaml
 
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.utils.exception.cli_exception import ParsingError
 
 
@@ -20,6 +21,10 @@ def create(deployment_path: str, **kwargs):
                 executor.create()
             else:
                 raise ParsingError(f"Deployment is broken: Invalid infra: {create_deployment['cloud']['infra']}")
+        elif create_deployment["mode"] == "grass/on-premises":
+                GrassOnPremisesExecutor.build_cluster_details(create_deployment=create_deployment)
+                executor = GrassOnPremisesExecutor(cluster_name=create_deployment["name"])
+                executor.create()
         else:
             raise ParsingError(f"Deployment is broken: Invalid mode: {create_deployment['mode']}")
     except KeyError as e:

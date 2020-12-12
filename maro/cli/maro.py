@@ -208,6 +208,30 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
         'cluster_name', help='Name of the cluster')
     parser_node_list.set_defaults(func=list_node)
 
+    # maro grass node join
+    from maro.cli.grass.node import node_join
+    parser_node_join = parser_node_subparsers.add_parser(
+        "join",
+        help="join a on-premises node to cluster",
+        examples=CliExamples.MARO_GRASS_NODE_LIST,
+        parents=[global_parser]
+    )
+    parser_node_join.add_argument(
+        "cluster_name", help="name of the cluster")
+    parser_node_join.set_defaults(func=node_join)
+
+    # maro grass node leave
+    from maro.cli.grass.node import node_leave
+    parser_node_leave = parser_node_subparsers.add_parser(
+        "leave",
+        help="make node leave to cluster",
+        examples=CliExamples.MARO_GRASS_NODE_LIST,
+        parents=[global_parser]
+    )
+    parser_node_leave.add_argument(
+        "cluster_name", help="name of the cluster")
+    parser_node_leave.set_defaults(func=node_leave)
+
     # maro grass image
     parser_image = subparsers.add_parser(
         'image',
