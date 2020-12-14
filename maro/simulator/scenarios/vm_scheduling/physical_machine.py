@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import List, Set
+from typing import Set
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
 

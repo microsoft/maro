@@ -16,7 +16,7 @@ class CpuReader:
         )
         self.count = 0
 
-    def _modify_file_name(self, data_path) -> str:
+    def _switch_to_next_file_name(self, data_path) -> str:
         """Switch to next file name."""
         file_name = data_path.split("-")
         file_name[2] = str(int(file_name[2]) + 1)
@@ -26,7 +26,7 @@ class CpuReader:
 
     def _switch(self):
         """Switch to a new binary reader."""
-        self._data_path = self._modify_file_name(self._data_path)
+        self._data_path = self._switch_to_next_file_name(self._data_path)
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=0,

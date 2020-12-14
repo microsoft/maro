@@ -237,10 +237,10 @@ class VmSchedulingPipeline(DataPipeline):
                 logger.warning_yellow(f"Not found cleaned data: {self._clean_file}.")
 
 
-class DataCenterTopology(DataTopology):
+class VmSchedulingTopology(DataTopology):
     def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp=False):
         super().__init__()
-        self._data_pipeline["vm_data"] = DataCenterPipeline(
+        self._data_pipeline["vm_data"] = VmSchedulingPipeline(
             topology=topology,
             source=source,
             sample=sample,
@@ -249,7 +249,7 @@ class DataCenterTopology(DataTopology):
         )
 
 
-class DataCenterProcess:
+class VmSchedulingProcess:
     """Contains all predefined data topologies of vm_scheduling scenario."""
 
     meta_file_name = "source_urls.yml"
@@ -263,7 +263,7 @@ class DataCenterProcess:
         with open(self._meta_path) as fp:
             self._conf = safe_load(fp)
             for topology in self._conf["vm_data"].keys():
-                self.topologies[topology] = DataCenterTopology(
+                self.topologies[topology] = VmSchedulingTopology(
                     topology=topology,
                     source=self._conf["vm_data"][topology]["remote_url"],
                     sample=self._conf["vm_data"][topology]["sample"],

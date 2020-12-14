@@ -5,6 +5,7 @@ from maro.backends.frame import FrameBase, FrameNode
 
 from .physical_machine import PhysicalMachine
 
+
 def build_frame(pm_amount: int, snapshots_num: int):
     """Function to build vm_scheduling Frame.
 
