@@ -54,6 +54,9 @@ if __name__ == "__main__":
         metrics, decision_event, is_done = env.step(action)
 
     end_time = timeit.default_timer()
-    print(f"[Random] Topology: {config.env.topology}. Total ticks: {config.env.durations}. Start tick: {config.env.start_tick}")
+    print(
+        f"[Random] Topology: {config.env.topology}. Total ticks: {config.env.durations}.",
+        f" Start tick: {config.env.start_tick}"
+    )
     print(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
     print(metrics)
