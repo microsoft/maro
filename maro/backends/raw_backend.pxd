@@ -9,8 +9,8 @@ cimport cython
 from cpython cimport bool
 from libcpp.string cimport string
 
-from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, IDENTIFIER, NODE_INDEX, SLOT_INDEX,
-    ATTR_BYTE, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE)
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, NODE_INDEX, SLOT_INDEX,
+    ATTR_CHAR, ATTR_SHORT, ATTR_INT, ATTR_LONG, ATTR_FLOAT, ATTR_DOUBLE, QUERY_FLOAT, ATTR_TYPE, NODE_TYPE)
 
 
 
@@ -20,13 +20,17 @@ cdef extern from "raw/common.h" namespace "maro::backends::raw":
 
 
 cdef extern from "raw/common.h" namespace "maro::backends::raw::AttrDataType":
-    cdef AttrDataType ABYTE
+    cdef AttrDataType ACHAR
+    cdef AttrDataType AUCHAR
     cdef AttrDataType ASHORT
+    cdef AttrDataType AUSHORT
     cdef AttrDataType AINT
+    cdef AttrDataType AUINT
     cdef AttrDataType ALONG
+    cdef AttrDataType AULONG
     cdef AttrDataType AFLOAT
     cdef AttrDataType ADOUBLE
-
+    cdef AttrDataType APOINTER
 
 cdef extern from "raw/attribute.cpp":
     pass
@@ -46,85 +50,66 @@ cdef extern from "raw/bitset.cpp" namespace "maro::backends::raw":
     pass
 
 
-cdef extern from "raw/attributestore.h" namespace "maro::backends::raw":
-    cdef cppclass AttributeStore:
+cdef extern from "raw/node.h" namespace "maro::backends::raw":
+    cdef cppclass Node:
         pass
 
 
-cdef extern from "raw/attributestore.cpp" namespace "maro::backends::raw":
+cdef extern from "raw/node.cpp" namespace "maro::backends::raw":
+    pass
+
+
+cdef extern from "raw/frame.h" namespace "maro::backends::raw":
+    cdef cppclass Frame:
+        Frame()
+        Frame(const Frame& frame)
+        Frame& operator=(const Frame& frame)
+        NODE_TYPE add_node(string node_name, NODE_INDEX node_number)
+        ATTR_TYPE add_attr(NODE_TYPE node_type, string attr_name, AttrDataType data_type, SLOT_INDEX slot_number, bool is_const, bool is_list)
+        Node& get_node(NODE_TYPE node_type)
+        void append_node(NODE_TYPE node_type, NODE_INDEX node_number)
+        T get_value[T](NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
+        void set_value[T](NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value)
+        void append_to_list[T](NODE_INDEX node_index, ATTR_TYPE attr_type, T value)
+        void clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
+        void resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size)
+        void setup()
+        void reset()
+        bool is_node_exist(NODE_TYPE node_type) const
+
+cdef extern from "raw/frame.cpp" namespace "maro::backends::raw":
     pass
 
 
 cdef extern from "raw/snapshotlist.h" namespace "maro::backends::raw":
     cdef cppclass SnapshotList:
-        pass
+        void set_max_size(USHORT max_size)
+        void setup(Frame* frame)
+        void take_snapshot(int ticks)
+        UINT size() const
+        UINT max_size() const
+        void reset()
+        void dump(string path)
+        void get_ticks(int* result) const
+        void get_ticks(int* result) const
+        SnapshotQueryResultShape prepare(NODE_TYPE node_type, int ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, ATTR_TYPE attributes[], UINT attr_length)
+        void query(QUERY_FLOAT* result)
+        void cancel_query()
 
-    cdef struct SnapshotResultShape:
-        INT tick_number
-        NODE_INDEX max_node_number
+    cdef struct SnapshotQueryResultShape:
         USHORT attr_number
+        int tick_number
         SLOT_INDEX max_slot_number
+        NODE_INDEX max_node_number
 
 
 cdef extern from "raw/snapshotlist.cpp" namespace "maro::backends::raw":
     pass
 
 
-cdef extern from "raw/frame.h" namespace "maro::backends::raw":
-    cdef cppclass Frame:
-        pass
-
-
-cdef extern from "raw/frame.cpp" namespace "maro::backends::raw":
-    pass
-
-
-cdef extern from "raw/backend.cpp" namespace "maro::backends::raw":
-    pass
-
-
-cdef extern from "raw/backend.h" namespace "maro::backends::raw":
-    cdef cppclass Backend:
-        IDENTIFIER add_node(string node_name, NODE_INDEX node_num)
-        IDENTIFIER add_attr(IDENTIFIER node_id, string attr_name, AttrDataType attr_type, SLOT_INDEX slot_number) except +
-
-        ATTR_BYTE get_byte(IDENTIFIER att_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
-        ATTR_SHORT get_short(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
-        ATTR_INT get_int(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
-        ATTR_LONG get_long(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
-        ATTR_FLOAT get_float(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
-        ATTR_DOUBLE get_double(IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index) except +
-        void set_attr_value[T](IDENTIFIER attr_id, NODE_INDEX node_index, SLOT_INDEX slot_index, T value) except +
-
-        void setup(bool enable_snapshot, USHORT snapshot_number) except +
-
-        void reset_frame() except +
-        void reset_snapshots() except +
-
-        void take_snapshot(INT tick) except +
-
-        SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length) except +
-        void query(ATTR_FLOAT* result, SnapshotResultShape shape) except +
-
-        USHORT get_max_snapshot_number() except +
-        USHORT get_valid_tick_number() except +
-
-        void get_ticks(INT *result) except +
-
-        void dump_current_frame(string path) except +
-        void dump_snapshots(string path) except +
-
-        void append_node(IDENTIFIER node_id, NODE_INDEX number) except +
-        void delete_node(IDENTIFIER node_id, NODE_INDEX node_index) except +
-        void resume_node(IDENTIFIER node_id, NODE_INDEX node_index) except +
-        void set_attribute_slot(IDENTIFIER attr_id, SLOT_INDEX slots) except +
-        USHORT get_node_number(IDENTIFIER node_id) except +
-        USHORT get_slots_number(IDENTIFIER attr_id) except +
-
-
 cdef class RawBackend(BackendAbc):
     cdef:
-        Backend _backend
+        Frame _frame
 
         # node name -> IDENTFIER
         dict _node2id_dict

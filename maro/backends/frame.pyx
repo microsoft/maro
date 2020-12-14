@@ -17,7 +17,7 @@ from maro.utils.exception.backends_exception import (
     BackendsArrayAttributeAccessException
 )
 
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
 
 cimport numpy as np
 import numpy as np
@@ -33,8 +33,8 @@ backend_dict = {
 
 _default_backend_name = "np"
 
-NP_SLOT_INDEX = np.uint16
-NP_NODE_INDEX = np.uint16
+NP_SLOT_INDEX = np.uint32
+NP_NODE_INDEX = np.uint32
 
 
 def node(name: str):
@@ -67,7 +67,7 @@ cdef class _NodeAttributeAccessor:
         NODE_INDEX _node_index
 
         # Target attribute id
-        public IDENTIFIER _attr_id
+        public ATTR_TYPE _attr_type
 
         # Slot number of target attribute
         public SLOT_INDEX _slot_number
@@ -82,8 +82,8 @@ cdef class _NodeAttributeAccessor:
         # slot -> int[:]
         dict _slot_list_cache
 
-    def __cinit__(self, NodeAttribute attr, IDENTIFIER attr_id, BackendAbc backend, NODE_INDEX node_index):
-        self._attr_id = attr_id
+    def __cinit__(self, NodeAttribute attr, ATTR_TYPE attr_type, BackendAbc backend, NODE_INDEX node_index):
+        self._attr_type = attr_type
         self._node_index = node_index
         self._slot_number = attr._slot_number
         self._backend = backend
@@ -106,7 +106,7 @@ cdef class _NodeAttributeAccessor:
 
         # node.attribute[0]
         if slot_type == int:
-            return self._backend.get_attr_value(self._node_index, self._attr_id, slot)
+            return self._backend.get_attr_value(self._node_index, self._attr_type, slot)
 
         # Try to support following:
         # node.attribute[1:3]
@@ -130,7 +130,7 @@ cdef class _NodeAttributeAccessor:
 
             self._slot_list_cache[slot_key] = slot_list
 
-        return self._backend.get_attr_values(self._node_index, self._attr_id, slot_list)
+        return self._backend.get_attr_values(self._node_index, self._attr_type, slot_list)
 
     def __setitem__(self, slot: Union[int, slice, list, tuple], value: Union[object, list, tuple, np.ndarray]):
         cdef SLOT_INDEX[:] slot_list
@@ -148,7 +148,7 @@ cdef class _NodeAttributeAccessor:
 
         # node.attribute[0] = 1
         if slot_type == int:
-            self._backend.set_attr_value(self._node_index, self._attr_id, slot, value)
+            self._backend.set_attr_value(self._node_index, self._attr_type, slot, value)
         elif slot_type == list or slot_type == tuple or slot_type == slice:
             # Try to support following:
             # node.attribute[0: 2] = 1/[1,2]/ (0, 2, 3)
@@ -183,7 +183,7 @@ cdef class _NodeAttributeAccessor:
             else:
                 values = [value] * slot_length
 
-            self._backend.set_attr_values(self._node_index, self._attr_id, slot_list, values)
+            self._backend.set_attr_values(self._node_index, self._attr_type, slot_list, values)
         else:
             raise BackendsSetItemInvalidException()
 
@@ -205,13 +205,13 @@ cdef class NodeBase:
     def is_deleted(self):
         return self._is_deleted
 
-    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, dict attr_name_id_dict) except *:
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, NODE_TYPE node_type, dict attr_name_type_dict) except *:
         """Setup frame node, and bind attributes."""
         self._index = index
-        self._id = id
+        self._type = node_type
         self._backend = backend
         self._is_deleted = False
-        self._attributes = attr_name_id_dict
+        self._attributes = attr_name_type_dict
 
         self._bind_attributes()
 
@@ -219,7 +219,7 @@ cdef class NodeBase:
         """Bind attributes declared in class."""
         cdef dict __dict__ = object.__getattribute__(self, "__dict__")
 
-        cdef IDENTIFIER attr_id
+        cdef ATTR_TYPE attr_type
         cdef str cb_name
         cdef _NodeAttributeAccessor attr_acc
 
@@ -227,8 +227,8 @@ cdef class NodeBase:
             # Append an attribute access wrapper to current instance.
             if isinstance(attr, NodeAttribute):
                 # Register attribute.
-                attr_id = self._attributes[name]
-                attr_acc = _NodeAttributeAccessor(attr, attr_id, self._backend, self._index)
+                attr_type = self._attributes[name]
+                attr_acc = _NodeAttributeAccessor(attr, attr_type, self._backend, self._index)
 
                 # NOTE: Here we have to use __dict__ to avoid infinite loop, as we override __getattribute__
                 # NOTE: we use attribute name here to support get attribute value by name from python side.
@@ -249,7 +249,7 @@ cdef class NodeBase:
             attr = __dict__[attr_name]
 
             if isinstance(attr, _NodeAttributeAccessor):
-                attr._slot_number = self._backend.snapshots.get_slots_number(attr._attr_id)
+                attr._slot_number = self._backend.snapshots.get_slots_number(attr._attr_type)
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
@@ -363,7 +363,7 @@ cdef class FrameBase:
                         # Update node internal states
                         node._update()
 
-    cpdef void take_snapshot(self, UINT tick) except *:
+    cpdef void take_snapshot(self, INT tick) except *:
         """Take snapshot for specified point (tick) for current frame.
 
         This method will copy current frame value into snapshot list for later using.
@@ -395,7 +395,7 @@ cdef class FrameBase:
             self._backend.snapshots.enable_history(path)
 
     cpdef void append_node(self, str node_name, NODE_INDEX number) except +:
-        cdef IDENTIFIER node_id
+        cdef NODE_TYPE node_type
         cdef NodeBase node
         cdef NodeBase first_node
         cdef list node_list
@@ -407,61 +407,31 @@ cdef class FrameBase:
                 raise Exception("Node not exist.")
 
             first_node = node_list[0]
-            node_id = first_node._id
+            node_type = first_node._type
 
             # Same node type shared one node id
-            self._backend.append_node(node_id, number)
+            self._backend.append_node(node_type, number)
 
             # Append instance to list
             for i in range(number):
                 node = self._node_cls_dict[node_name]()
 
-                node.setup(self._backend, len(node_list), node_id, first_node._attributes)
+                node.setup(self._backend, len(node_list), node_type, first_node._attributes)
                 node._update()
 
                 node_list.append(node)
 
     cpdef void delete_node(self, NodeBase node) except +:
         if self._backend.is_support_dynamic_features():
-            self._backend.delete_node(node._id, node._index)
+            self._backend.delete_node(node._type, node._index)
 
             node._is_deleted = True
 
     cpdef void resume_node(self, NodeBase node) except +:
         if self._backend.is_support_dynamic_features() and node._is_deleted:
-            self._backend.resume_node(node._id, node._index)
+            self._backend.resume_node(node._type, node._index)
 
             node._is_deleted = False
-
-    cpdef void set_attribute_slot(self, str node_name, str attr_name, SLOT_INDEX slots) except +:
-        cdef NodeBase first_node
-        cdef list node_list
-        cdef IDENTIFIER attr_id
-        cdef NodeBase node
-
-        if self._backend.is_support_dynamic_features():
-            if slots == 0:
-                raise Exception("Zero slots not support.")
-
-            node_list = self.__dict__.get(self._node_name2attrname_dict[node_name], None)
-
-            if node_list is None:
-                raise Exception("Node not exist.")
-
-            # Find first instance of that node
-            first_node = node_list[0]
-
-            # Retrieve attributes
-            if attr_name not in first_node._attributes:
-                raise Exception("Attribute not exist.")
-
-            attr_id = first_node._attributes[attr_name]
-
-            self._backend.set_attribute_slot(attr_id, slots)
-
-            # Update nodes
-            for node in node_list:
-                node._update()
 
     def dump(self, folder: str):
         """Dump data of current frame into specified folder.
@@ -472,22 +442,22 @@ cdef class FrameBase:
         if os.path.exists(folder):
             self._backend.dump(folder)
 
-    cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshots, dict options) except *:
+    cdef void _setup_backend(self, bool enable_snapshot, USHORT total_snapshots, dict options) except *:
         """Setup Frame for further using."""
         cdef str frame_attr_name
         cdef str node_attr_name
         cdef str node_name
-        cdef IDENTIFIER node_id
-        cdef IDENTIFIER attr_id
+        cdef NODE_TYPE node_type
+        cdef ATTR_TYPE attr_type
         cdef type node_cls
 
         cdef list node_instance_list
 
-        # attr name -> id
-        cdef dict attr_name_id_dict = {}
-        # node -> attr -> id
-        cdef dict node_attr_id_dict = {}
-        cdef dict node_id_dict = {}
+        # attr name -> type
+        cdef dict attr_name_type_dict = {}
+        # node -> attr -> type
+        cdef dict node_attr_type_dict = {}
+        cdef dict node_type_dict = {}
         cdef NODE_INDEX node_number
         cdef NodeBase node
 
@@ -508,27 +478,27 @@ cdef class FrameBase:
                 node_instance_list = [None] * node_number
 
                 # Register node
-                node_id = self._backend.add_node(node_name, node_number)
+                node_type = self._backend.add_node(node_name, node_number)
 
-                node_id_dict[node_name] = node_id
+                node_type_dict[node_name] = node_type
 
-                attr_name_id_dict = {}
+                attr_name_type_dict = {}
 
                 # Register attributes
                 for node_attr_name, node_attr in node_cls.__dict__.items():
                     if isinstance(node_attr, NodeAttribute):
-                        attr_id = self._backend.add_attr(node_id, node_attr_name, node_attr._dtype, node_attr._slot_number)
+                        attr_type = self._backend.add_attr(node_type, node_attr_name, node_attr._dtype, node_attr._slot_number)
 
-                        attr_name_id_dict[node_attr_name] = attr_id
+                        attr_name_type_dict[node_attr_name] = attr_type
 
-                node_attr_id_dict[node_name] = attr_name_id_dict
+                node_attr_type_dict[node_name] = attr_name_type_dict
 
                 # create instance
                 for i in range(node_number):
                     node = node_cls()
 
                     # pass the backend reference and index
-                    node.setup(self._backend, i, node_id, attr_name_id_dict)
+                    node.setup(self._backend, i, node_type, attr_name_type_dict)
 
                     node_instance_list[i] = node
 
@@ -540,7 +510,7 @@ cdef class FrameBase:
         self._backend.setup(enable_snapshot, total_snapshots, options)
 
         if enable_snapshot:
-            self._snapshot_list = SnapshotList(node_id_dict, node_attr_id_dict, self._backend.snapshots)
+            self._snapshot_list = SnapshotList(node_type_dict, node_attr_type_dict, self._backend.snapshots)
 
 
 # Wrapper to access specified node in snapshots (read-only), to provide quick way for querying.
@@ -548,7 +518,7 @@ cdef class FrameBase:
 cdef class SnapshotNode:
     cdef:
         # Target node id
-        IDENTIFIER _node_id
+        NODE_TYPE _node_type
 
         # Attributes: name -> id
         dict _attributes
@@ -556,14 +526,14 @@ cdef class SnapshotNode:
         # reference to snapshots for querying
         SnapshotListAbc _snapshots
 
-    def __cinit__(self, IDENTIFIER node_id, dict attributes, SnapshotListAbc snapshots):
-        self._node_id = node_id
+    def __cinit__(self, NODE_TYPE node_type, dict attributes, SnapshotListAbc snapshots):
+        self._node_type = node_type
         self._snapshots = snapshots
         self._attributes = attributes
 
     def __len__(self):
         """Number of current node."""
-        return self._snapshots.get_node_number(self._node_id)
+        return self._snapshots.get_node_number(self._node_type)
 
     def __getitem__(self, key: slice):
         """Used to support states slice querying."""
@@ -602,27 +572,27 @@ cdef class SnapshotNode:
             attr_list = [key.step]
 
         cdef str attr_name
-        cdef list attr_id_list = []
+        cdef list attr_type_list = []
 
         for attr_name in attr_list:
             if attr_name not in self._attributes:
                 raise Exception("Invalid attribute")
-            attr_id_list.append(self._attributes[attr_name])
+            attr_type_list.append(self._attributes[attr_name])
 
-        return self._snapshots.query(self._node_id, ticks, node_list, attr_id_list)
+        return self._snapshots.query(self._node_type, ticks, node_list, attr_type_list)
 
 
 cdef class SnapshotList:
-    def __cinit__(self, dict node_id_dict, dict node_attr_id_dict, SnapshotListAbc snapshots):
+    def __cinit__(self, dict node_type_dict, dict node_attr_type_dict, SnapshotListAbc snapshots):
         cdef str node_name
-        cdef IDENTIFIER node_id
+        cdef NODE_TYPE node_type
 
         self._snapshots = snapshots
 
         self._nodes_dict = {}
 
-        for node_name, node_id in node_id_dict.items():
-            self._nodes_dict[node_name] = SnapshotNode(node_id, node_attr_id_dict[node_name], snapshots)
+        for node_name, node_type in node_type_dict.items():
+            self._nodes_dict[node_name] = SnapshotNode(node_type, node_attr_type_dict[node_name], snapshots)
 
     def get_frame_index_list(self)->list:
         """Get list of available frame index in snapshot list.

@@ -6,7 +6,7 @@
 
 from cpython cimport bool
 
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, USHORT, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
 
 
 cdef class SnapshotList:
@@ -143,7 +143,7 @@ cdef class FrameBase:
 
     cpdef void reset(self) except *
 
-    cpdef void take_snapshot(self, UINT tick) except *
+    cpdef void take_snapshot(self, INT tick) except *
 
     cpdef void enable_history(self, str path) except *
 
@@ -153,9 +153,7 @@ cdef class FrameBase:
 
     cpdef void resume_node(self, NodeBase node) except +
 
-    cpdef void set_attribute_slot(self, str node_name, str attr_name, SLOT_INDEX slots) except +
-
-    cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshot, dict options) except *
+    cdef void _setup_backend(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *
 
 
 cdef class FrameNode:
@@ -272,7 +270,7 @@ cdef class NodeBase:
         NODE_INDEX _index
 
         # Node id, used to access backend
-        IDENTIFIER _id
+        NODE_TYPE _type
 
         BackendAbc _backend
 
@@ -286,7 +284,7 @@ cdef class NodeBase:
 
     # Set up the node for using with frame, and index
     # this is called by Frame after the instance is initialized
-    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, dict attr_name_id_dict) except *
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, NODE_TYPE type, dict attr_name_id_dict) except *
 
     # Internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *
