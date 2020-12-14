@@ -9,93 +9,123 @@ namespace maro
   {
     namespace raw
     {
+      const char* InvalidOperation::what() const noexcept
+      {
+        return "Invalid attribute data type.";
+      }
 
-#define CONSTRUCTOR(m_type, m_field, m_internal_type) \
-  Attribute::Attribute(m_type val) noexcept           \
-  {                                                   \
-    _type = m_internal_type;                          \
-    _data.m_field = val;                              \
-  }
+      Attribute::Attribute() noexcept
+      {
+        memset(_data, 0, ATTRIBUTE_DATA_LENGTH);
+      }
 
-#define DATA_ASSIGN(m_type, m_field, m_internal_type) \
-  void Attribute::operator=(m_type val)               \
-  {                                                   \
-    _type = m_internal_type;                          \
-    _data.m_field = val;                              \
-  }
+// Macro for all type of constructors.
+#define CONSTRUCTOR(data_type, type_name)         \
+  Attribute::Attribute(data_type value) noexcept  \
+ {                                                \
+  memcpy(_data, &value, sizeof(data_type));       \
+  _type = type_name;                              \
+ }
 
-      // Before assign any value, all field will be 0, so we do care about data type here, even data type not match
-#define DATA_GETTER(m_name, m_field, m_type, m_internal_type) \
-  m_type Attribute::get_##m_name()                            \
-  {                                                           \
-    return _data.m_field;                                     \
-  }
+      CONSTRUCTOR(ATTR_CHAR, AttrDataType::ACHAR)
+      CONSTRUCTOR(ATTR_UCHAR, AttrDataType::AUCHAR)
+      CONSTRUCTOR(ATTR_SHORT, AttrDataType::ASHORT)
+      CONSTRUCTOR(ATTR_USHORT, AttrDataType::AUSHORT)
+      CONSTRUCTOR(ATTR_INT, AttrDataType::AINT)
+      CONSTRUCTOR(ATTR_UINT, AttrDataType::AUINT)
+      CONSTRUCTOR(ATTR_LONG, AttrDataType::ALONG)
+      CONSTRUCTOR(ATTR_ULONG, AttrDataType::AULONG)
+      CONSTRUCTOR(ATTR_FLOAT, AttrDataType::AFLOAT)
+      CONSTRUCTOR(ATTR_DOUBLE, AttrDataType::ADOUBLE)
 
-      CONSTRUCTOR(ATTR_BYTE, _byte, AttrDataType::ABYTE)
-      CONSTRUCTOR(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
-      CONSTRUCTOR(ATTR_FLOAT, _float, AttrDataType::AFLOAT)
-      CONSTRUCTOR(ATTR_INT, _int, AttrDataType::AINT)
-      CONSTRUCTOR(ATTR_LONG, _long, AttrDataType::ALONG)
-      CONSTRUCTOR(ATTR_SHORT, _short, AttrDataType::ASHORT)
+      AttrDataType Attribute::get_type() const noexcept
+      {
+        return _type;
+      }
 
-      DATA_ASSIGN(ATTR_BYTE, _byte, AttrDataType::ABYTE)
-      DATA_ASSIGN(ATTR_SHORT, _short, AttrDataType::ASHORT)
-      DATA_ASSIGN(ATTR_INT, _int, AttrDataType::AINT)
-      DATA_ASSIGN(ATTR_LONG, _long, AttrDataType::ALONG)
-      DATA_ASSIGN(ATTR_FLOAT, _float, AttrDataType::AFLOAT)
-      DATA_ASSIGN(ATTR_DOUBLE, _double, AttrDataType::ADOUBLE)
-
-      DATA_GETTER(byte, _byte, ATTR_BYTE, AttrDataType::ABYTE)
-      DATA_GETTER(short, _short, ATTR_SHORT, AttrDataType::ASHORT)
-      DATA_GETTER(int, _int, ATTR_INT, AttrDataType::AINT)
-      DATA_GETTER(long, _long, ATTR_LONG, AttrDataType::ALONG)
-      DATA_GETTER(float, _float, ATTR_FLOAT, AttrDataType::AFLOAT)
-      DATA_GETTER(double, _double, ATTR_DOUBLE, AttrDataType::ADOUBLE)
-
-      Attribute::operator ATTR_FLOAT()
+      Attribute::operator QUERY_FLOAT() const
       {
         switch (_type)
         {
-        case AttrDataType::ABYTE:
-          return ATTR_FLOAT(_data._byte);
-          break;
-        case AttrDataType::ASHORT:
-          return ATTR_FLOAT(_data._short);
-          break;
-        case AttrDataType::AINT:
-          return ATTR_FLOAT(_data._int);
-          break;
-        case AttrDataType::ALONG:
-          return ATTR_FLOAT(_data._long);
-          break;
-        case AttrDataType::AFLOAT:
-          return _data._float;
-          break;
-        case AttrDataType::ADOUBLE:
-          return ATTR_FLOAT(_data._double);
-          break;
+        case AttrDataType::AUCHAR: { return QUERY_FLOAT(get_value<ATTR_UCHAR>()); }
+        case AttrDataType::AUSHORT: { return QUERY_FLOAT(get_value<ATTR_USHORT>()); }
+        case AttrDataType::AUINT: { return QUERY_FLOAT(get_value<ATTR_UINT>()); }
+        case AttrDataType::AULONG: { return QUERY_FLOAT(get_value<ATTR_ULONG>()); }
+        case AttrDataType::ACHAR: { return QUERY_FLOAT(get_value<ATTR_CHAR>()); }
+        case AttrDataType::ASHORT: { return QUERY_FLOAT(get_value<ATTR_SHORT>()); }
+        case AttrDataType::AINT: { return QUERY_FLOAT(get_value<ATTR_INT>()); }
+        case AttrDataType::ALONG: { return QUERY_FLOAT(get_value<ATTR_LONG>()); }
+        case AttrDataType::AFLOAT: { return QUERY_FLOAT(get_value<ATTR_FLOAT>()); }
+        case AttrDataType::ADOUBLE: { return QUERY_FLOAT(get_value<ATTR_DOUBLE>()); }
         default:
           break;
         }
 
         throw InvalidOperation();
       }
-      void Attribute::operator=(const Attribute &attr)
-      {
-        _type = attr._type;
 
-        memcpy(_data._data, attr._data._data, sizeof(char) * 8);
+      bool Attribute::is_nan() const noexcept
+      {
+        return _type == AttrDataType::AFLOAT && isnan(get_value<ATTR_FLOAT>());
       }
 
-      bool Attribute::is_nan()
+      template<typename T>
+      typename Attribute_Trait<T>::type Attribute::get_value() const noexcept
       {
-        return _type == AttrDataType::AFLOAT && isnan(_data._float);
+        T value = T();
+
+        // NOTE: we do not check type here, if the type not match, will get invalid value.
+        memcpy(&value, _data, sizeof(T));
+
+        return value;
       }
 
-      const char* InvalidOperation::what() const noexcept
+// Macro for attribute getter template.
+#define GETTER(type) \
+ template type Attribute::get_value<type>() const noexcept;
+
+      GETTER(ATTR_CHAR)
+      GETTER(ATTR_UCHAR)
+      GETTER(ATTR_SHORT)
+      GETTER(ATTR_USHORT)
+      GETTER(ATTR_INT)
+      GETTER(ATTR_UINT)
+      GETTER(ATTR_LONG)
+      GETTER(ATTR_ULONG)
+      GETTER(ATTR_FLOAT)
+      GETTER(ATTR_DOUBLE)
+
+      Attribute& Attribute::operator=(const Attribute& attr) noexcept
       {
-        return "Invalid attribute data type.";
+        if (this != &attr)
+        {
+          _type = attr._type;
+
+          memcpy(_data, attr._data, ATTRIBUTE_DATA_LENGTH);
+        }
+
+        return *this;
       }
+
+// Macro for setters.
+#define SETTER(data_type, value_type)                         \
+   Attribute& Attribute::operator=(data_type value) noexcept  \
+   {                                                          \
+    memcpy(_data, &value, sizeof(data_type));                 \
+    _type = value_type;                                       \
+    return *this;                                             \
+   }
+
+      SETTER(ATTR_CHAR, AttrDataType::ACHAR)
+      SETTER(ATTR_UCHAR, AttrDataType::AUCHAR)
+      SETTER(ATTR_SHORT, AttrDataType::ASHORT)
+      SETTER(ATTR_USHORT, AttrDataType::AUSHORT)
+      SETTER(ATTR_INT, AttrDataType::AINT)
+      SETTER(ATTR_UINT, AttrDataType::AUINT)
+      SETTER(ATTR_LONG, AttrDataType::ALONG)
+      SETTER(ATTR_ULONG, AttrDataType::AULONG)
+      SETTER(ATTR_FLOAT, AttrDataType::AFLOAT)
+      SETTER(ATTR_DOUBLE, AttrDataType::ADOUBLE)
     } // namespace raw
   }   // namespace backends
 } // namespace maro

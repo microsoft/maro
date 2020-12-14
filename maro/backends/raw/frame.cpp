@@ -9,319 +9,282 @@ namespace maro
   {
     namespace raw
     {
-
-      Attribute &maro::backends::raw::Frame::operator()(NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      inline NODE_TYPE extract_node_type(ATTR_TYPE attr_type)
       {
-        ensure_attr_id(attr_id);
-
-        auto &attr = _attributes[attr_id];
-        auto &node = _nodes[attr.node_id];
-
-        ensure_node_index(node, node_index);
-        ensure_slot_index(attr, slot_index);
-
-        return _attr_store(attr.node_id, node_index, attr_id, slot_index);
+        return NODE_TYPE(attr_type >> 2);
       }
 
-      IDENTIFIER maro::backends::raw::Frame::new_node(string name, USHORT number)
+      inline void Frame::copy_from(const Frame& frame)
       {
+        _nodes.resize(frame._nodes.size());
+
+        _nodes = frame._nodes;
+
+        _is_setup = frame._is_setup;
+      }
+
+      inline void Frame::ensure_setup()
+      {
+        if (!_is_setup)
+        {
+          throw FrameNotSetupError();
+        }
+      }
+
+      inline void Frame::ensure_node_type(NODE_TYPE node_type)
+      {
+        if (node_type >= _nodes.size())
+        {
+          throw FrameBadNodeType();
+        }
+      }
+
+      Frame::Frame()
+      {
+      }
+
+      Frame::Frame(const Frame& frame)
+      {
+        copy_from(frame);
+      }
+
+      Frame& Frame::operator=(const Frame& frame)
+      {
+        if (this != &frame)
+        {
+          copy_from(frame);
+        }
+
+        return *this;
+      }
+
+      NODE_TYPE Frame::add_node(string node_name, NODE_INDEX node_number)
+      {
+        if (_is_setup)
+        {
+          throw FrameAlreadySetupError();
+        }
+
+        if (node_number == 0)
+        {
+          throw FrameInvalidNodeNumer();
+        }
+
         _nodes.emplace_back();
 
-        auto &node = _nodes.back();
-        node.name = name;
-        node.number = number;
-        node.origin_number = number;
-        node.id = IDENTIFIER(_nodes.size() - 1);
+        auto& node = _nodes[_nodes.size() - 1];
 
-        _node_2_attrs[node.id] = vector<IDENTIFIER>();
+        node.set_name(node_name);
 
-        return node.id;
+        // we use index as its type for easy indexing
+        node.set_type(_nodes.size() - 1);
+
+        node.set_defined_number(node_number);
+
+        return node.get_type();
       }
 
-      IDENTIFIER maro::backends::raw::Frame::new_attr(IDENTIFIER node_id, string name, AttrDataType type, SLOT_INDEX slots)
+      ATTR_TYPE Frame::add_attr(NODE_TYPE node_type, string attr_name, AttrDataType data_type,
+        SLOT_INDEX slot_number, bool is_const, bool is_list)
       {
-        ensure_node_id(node_id);
+        if (_is_setup)
+        {
+          throw FrameAlreadySetupError();
+        }
 
-        auto &node = _nodes[node_id];
+        ensure_node_type(node_type);
 
-        _attributes.emplace_back();
+        auto& node = _nodes[node_type];
 
-        auto& attr = _attributes.back();
-        attr.type = type;
-        attr.id = IDENTIFIER(_attributes.size() - 1);
-        attr.name = name;
-        attr.slots = slots;
-        attr.origin_slots = slots;
-        attr.max_slots = slots;
-        attr.node_id = node.id;
+        return node.add_attr(attr_name, data_type, slot_number, is_const, is_list);
+      }
 
-        auto &node_attrs_list = _node_2_attrs[node.id];
+      Node& Frame::get_node(NODE_TYPE node_type)
+      {
+        ensure_setup();
+        ensure_node_type(node_type);
 
-        node_attrs_list.push_back(attr.id);
+        return _nodes[node_type];
+      }
 
-        return attr.id;
+      void Frame::append_node(NODE_TYPE node_type, NODE_INDEX node_number)
+      {
+        ensure_setup();
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+
+        node.append_nodes(node_number);
+      }
+
+      void Frame::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
+      {
+        ensure_setup();
+
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+
+        node.clear_list(node_index, attr_type);
+      }
+
+      void Frame::resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size)
+      {
+        ensure_setup();
+
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+
+        node.resize_list(node_index, attr_type, new_size);
       }
 
       void Frame::setup()
       {
-        for (auto iter : _node_2_attrs)
+        if (_is_setup)
         {
-          auto node_id = iter.first;
-
-          auto &node = _nodes[node_id];
-
-          for (auto attr_id : iter.second)
-          {
-            auto &attr = _attributes[attr_id];
-
-            _attr_store.add_nodes(node_id, 0, node.number, attr_id, attr.slots);
-          }
-        }
-      }
-
-      void maro::backends::raw::Frame::append_nodes(IDENTIFIER node_id, NODE_INDEX number)
-      {
-        // to add additional node, the id must exist
-        ensure_node_id(node_id);
-
-        auto &node = _nodes[node_id];
-
-        auto attrs_iter = _node_2_attrs.find(node_id);
-
-        // update node number
-        node.number += number;
-
-        // add attributes for new nodes
-        for (auto attr_id : attrs_iter->second)
-        {
-          auto attr = _attributes[attr_id];
-
-          // NOTE:
-          // attribute store expect that the number is the total number, it will ignore exist node indices
-          _attr_store.add_nodes(node_id, 0, node.number, attr_id, attr.slots);
-        }
-      }
-
-      void maro::backends::raw::Frame::remove_node(IDENTIFIER node_id, NODE_INDEX index)
-      {
-        ensure_node_id(node_id);
-
-        auto &node = _nodes[node_id];
-
-        ensure_node_index(node, index);
-
-        // remove attributes of this node
-        for (auto attr_id : _node_2_attrs.find(node_id)->second)
-        {
-          auto &attr = _attributes[attr_id];
-
-          _attr_store.remove_node(node_id, index, attr_id, attr.slots);
-        }
-      }
-
-      void Frame::resume_node(IDENTIFIER node_id, NODE_INDEX index)
-      {
-        ensure_node_id(node_id);
-
-        auto &node = _nodes[node_id];
-
-        ensure_node_index(node, index);
-
-        for (auto attr_id : _node_2_attrs.find(node_id)->second)
-        {
-          auto &attr = _attributes[attr_id];
-
-          _attr_store.add_nodes(node_id, index, index + 1, attr_id, attr.slots);
-        }
-      }
-
-      void maro::backends::raw::Frame::set_attr_slot(IDENTIFIER attr_id, SLOT_INDEX slots)
-      {
-        // NOTE:
-        // set attributes slots will extend or narrow down from the end!
-        ensure_attr_id(attr_id);
-
-        auto &attr = _attributes[attr_id];
-        auto &node = _nodes[attr.node_id];
-
-        if (slots > attr.slots)
-        {
-          // extend
-          _attr_store.add_nodes(node.id, 0, node.number, attr_id, slots);
-        }
-        else if (slots < attr.slots)
-        {
-          // narrow down
-          _attr_store.remove_attr_slots(node.id, node.number, attr_id, attr.slots - slots + 1, attr.slots);
+          return;
         }
 
-        attr.slots = slots;
-        attr.max_slots = max(slots, attr.max_slots);
-      }
+        for (auto& node : _nodes)
+        {
+          node.setup();
+        }
 
-      USHORT Frame::get_node_number(IDENTIFIER node_id)
-      {
-        ensure_node_id(node_id);
-
-        return _nodes[node_id].number;
-      }
-
-      USHORT Frame::get_slots_number(IDENTIFIER attr_id)
-      {
-        ensure_attr_id(attr_id);
-
-        return _attributes[attr_id].slots;
+        _is_setup = true;
       }
 
       void Frame::reset()
       {
-        _attr_store.reset();
+        ensure_setup();
 
-        // reset node and attr info
-        for (auto &node : _nodes)
+        for (auto& node : _nodes)
         {
-          node.number = node.origin_number;
-        }
-
-        for (auto &attr : _attributes)
-        {
-          attr.slots = attr.origin_slots;
-          attr.max_slots = attr.origin_slots;
-        }
-
-        // setup again
-        setup();
-      }
-
-      void Frame::write_attribute(ofstream &file, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
-      {
-        try
-        {
-          auto &a = operator()(node_index, attr_id, 0);
-
-          file << ATTR_FLOAT(a);
-        }
-        catch (const BadAttributeIndexing &e)
-        {
-          file << "nan";
+          node.reset();
         }
       }
 
-      void Frame::dump(string path)
+      bool Frame::is_node_exist(NODE_TYPE node_type) const noexcept
       {
-        // for dump, we will save for each node, named as "node_<node_name>.csv"
-        // content of the csv will follow padans' output that list will be wrapped into a "[]",
-        for (auto node : _nodes)
-        {
-          auto output_path = path + "/" + "node_" + node.name + ".csv";
-
-          ofstream file(output_path);
-
-          // write headers
-          file << "node_index";
-
-          for (IDENTIFIER attr_id : _node_2_attrs.find(node.id)->second)
-          {
-            auto attr = _attributes[attr_id];
-
-            file << "," << attr.name;
-          }
-
-          // end of headers
-          file << "\n";
-
-          // write for each node
-          for (NODE_INDEX node_index = 0; node_index < node.number; node_index++)
-          {
-            // node index
-            file << node_index;
-
-            for (IDENTIFIER attr_id : _node_2_attrs.find(node.id)->second)
-            {
-              auto attr = _attributes[attr_id];
-
-              if (attr.slots == 1)
-              {
-                file << ",";
-
-                write_attribute(file, node_index, attr_id, 0);
-              }
-              else
-              {
-                // start of list
-                file << ",\"[";
-
-                for (SLOT_INDEX slot_index = 0; slot_index < attr.slots; slot_index++)
-                {
-                  write_attribute(file, node_index, attr_id, slot_index);
-
-                  file << ",";
-                }
-
-                // end of list
-                file << "]\"";
-              }
-            }
-
-            // end of row
-            file << "\n";
-          }
-
-          file.close();
-        }
-      } // namespace raw
-
-      inline void Frame::ensure_node_id(IDENTIFIER node_id)
-      {
-        if (node_id >= _nodes.size())
-        {
-          throw BadNodeIdentifier();
-        }
+        return node_type < _nodes.size();
       }
 
-      inline void Frame::ensure_attr_id(IDENTIFIER attr_id)
+      template<typename T>
+      typename Attribute_Trait<T>::type Frame::get_value(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
       {
-        if (attr_id >= _attributes.size())
-        {
-          throw BadAttributeIdentifier();
-        }
+        ensure_setup();
+
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+
+        auto& target_attr = node.get_attr(node_index, attr_type, slot_index);
+
+        return target_attr.get_value<T>();
       }
 
-      inline void Frame::ensure_node_index(FrameNode &node, NODE_INDEX node_index)
+#define ATTRIBUTE_GETTER(type) \
+  template type Frame::get_value<type>(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
+
+      ATTRIBUTE_GETTER(ATTR_CHAR)
+      ATTRIBUTE_GETTER(ATTR_UCHAR)
+      ATTRIBUTE_GETTER(ATTR_SHORT)
+      ATTRIBUTE_GETTER(ATTR_USHORT)
+      ATTRIBUTE_GETTER(ATTR_INT)
+      ATTRIBUTE_GETTER(ATTR_UINT)
+      ATTRIBUTE_GETTER(ATTR_LONG)
+      ATTRIBUTE_GETTER(ATTR_ULONG)
+      ATTRIBUTE_GETTER(ATTR_FLOAT)
+      ATTRIBUTE_GETTER(ATTR_DOUBLE)
+
+      template<typename T>
+      void Frame::set_value(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value)
       {
-        if (node_index >= node.number)
-        {
-          throw BadNodeIndex();
-        }
+        ensure_setup();
+
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+
+        auto& target_attr = node.get_attr(node_index, attr_type, slot_index);
+
+        target_attr = T(value);
       }
 
-      inline void Frame::ensure_slot_index(FrameAttribute &attr, SLOT_INDEX slot_index)
+#define ATTRIBUTE_SETTER(type) \
+  template void Frame::set_value(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, type value);
+
+      ATTRIBUTE_SETTER(ATTR_CHAR)
+      ATTRIBUTE_SETTER(ATTR_UCHAR)
+      ATTRIBUTE_SETTER(ATTR_SHORT)
+      ATTRIBUTE_SETTER(ATTR_USHORT)
+      ATTRIBUTE_SETTER(ATTR_INT)
+      ATTRIBUTE_SETTER(ATTR_UINT)
+      ATTRIBUTE_SETTER(ATTR_LONG)
+      ATTRIBUTE_SETTER(ATTR_ULONG)
+      ATTRIBUTE_SETTER(ATTR_FLOAT)
+      ATTRIBUTE_SETTER(ATTR_DOUBLE)
+
+      template<typename T>
+      void Frame::append_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, T value)
       {
-        if (slot_index >= attr.slots)
-        {
-          throw BadAttributeSlotIndex();
-        }
+        ensure_setup();
+
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+
+        node.append_to_list<T>(node_index, attr_type, value);
       }
 
-      const char* BadNodeIdentifier::what() const noexcept
+#define ATTRIBUTE_APPENDER(type) \
+  template void Frame::append_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, type value);
+
+      ATTRIBUTE_APPENDER(ATTR_CHAR)
+      ATTRIBUTE_APPENDER(ATTR_UCHAR)
+      ATTRIBUTE_APPENDER(ATTR_SHORT)
+      ATTRIBUTE_APPENDER(ATTR_USHORT)
+      ATTRIBUTE_APPENDER(ATTR_INT)
+      ATTRIBUTE_APPENDER(ATTR_UINT)
+      ATTRIBUTE_APPENDER(ATTR_LONG)
+      ATTRIBUTE_APPENDER(ATTR_ULONG)
+      ATTRIBUTE_APPENDER(ATTR_FLOAT)
+      ATTRIBUTE_APPENDER(ATTR_DOUBLE)
+
+      const char* FrameNotSetupError::what() const noexcept
       {
-        return "Specified node identifer not exist.";
+        return "Frame has not been setup.";
       }
 
-      const char* BadAttributeIdentifier::what() const noexcept
+      const char* FrameAlreadySetupError::what() const noexcept
       {
-        return "Specified attribute identifer not exist.";
+        return "Cannot add new node or attribute type after setting up.";
       }
 
-      const char* BadNodeIndex::what() const noexcept
+      const char* FrameBadNodeType::what() const noexcept
       {
-        return "Specified node index not exist.";
+        return "Not exist node type.";
       }
 
-      const char* BadAttributeSlotIndex::what() const noexcept
+      const char* FrameBadAttributeType::what() const noexcept
       {
-        return "Specified attribute slot not exist.";
+        return "Not exist attribute type.";
       }
-    } // namespace raw
-  }   // namespace backends
-} // namespace maro
+
+      const char* FrameInvalidNodeNumer::what() const noexcept
+      {
+        return "Node number must be greater than 0.";
+      }
+    }
+  }
+}

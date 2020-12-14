@@ -9,417 +9,277 @@ namespace maro
   {
     namespace raw
     {
-      void SnapshotList::SnapshotQueryParameters::reset()
+      inline void SnapshotList::ensure_cur_frame()
       {
-        node_id = 0;
-
-        ticks = nullptr;
-        tick_length = 0;
-
-        node_indices = nullptr;
-        node_length = 0;
-
-        attributes = nullptr;
-        attr_length = 0;
+        if (_cur_frame == nullptr)
+        {
+          throw SnapshotInvalidFrameState();
+        }
       }
 
-      void SnapshotList::set_frame(Frame *frame)
+      inline void SnapshotList::ensure_max_size()
       {
-        _frame = frame;
+        if (_max_size == 0)
+        {
+          throw InvalidSnapshotSize();
+        }
       }
 
       void SnapshotList::set_max_size(USHORT max_size)
       {
-        if (max_size == 0)
-        {
-          throw InvalidSnapshotSize();
-        }
-
-        if (_max_size == 0)
-        {
-          _max_size = max_size;
-        }
-      }
-
-      void SnapshotList::take_snapshot(INT tick, AttributeStore *frame_attr_store)
-      {
-        if (frame_attr_store == nullptr)
-        {
-          // try to use frame
-          if (_frame == nullptr)
-          {
-            throw SnapshotInvalidFrameState();
-          }
-
-          frame_attr_store = &(_frame->_attr_store);
-        }
+        _max_size = max_size;
 
         ensure_max_size();
-        prepare_memory();
-
-        // To make it easy to implement, we do not support over-write exist tick at any time,
-        // tick can onlly be over-wrote if last one is same tick
-
-        auto snapshot_size = frame_attr_store->size();
-
-        // shall we skip the step to erase oldest tick? it will be true we deleted an existing tick
-        bool skip_oldest_erase = false;
-
-        {
-          // 1. check tick exist
-          auto tick_pair = _tick2index_map.find(tick);
-
-          // tick exist
-          if (tick_pair != _tick2index_map.end())
-          {
-            // then check if last tick is same
-            if (_last_tick != tick)
-            {
-              throw InvalidSnapshotTick();
-            }
-
-            // for exist tick, it has 2 situation
-            // 1. at the end:
-            //    we can just set _end_index to start of this tick
-            // 2. just before empty slots
-            //    we just move first empty slot index to start of this tick, and its length to empty slots length
-
-            auto exist_tick_index = tick_pair->second;
-            auto exist_tick_length = _tick2size_map.find(tick)->second;
-
-            // remove info about this tick
-            _tick2index_map.erase(tick);
-            _tick2size_map.erase(tick);
-            _tick_attr_map.erase(tick);
-
-            // is this tick at the end?
-            if (exist_tick_index + exist_tick_length == _end_index)
-            {
-              _end_index = exist_tick_index;
-            }
-            else
-            {
-              _first_empty_slot_index = exist_tick_index;
-              _empty_slots_length += exist_tick_length;
-            }
-
-            _cur_snapshot_num--;
-
-            skip_oldest_erase = true;
-          }
-        }
-
-        _cur_snapshot_num++;
-
-        if (_cur_snapshot_num > _max_size)
-        {
-          // Do overlap
-          // skip means we have delete a tick before (existing tick), so we do not need to delete oldest one here
-          if (!skip_oldest_erase)
-          {
-            // find oldest tick to delete
-            auto oldest_item = _tick2index_map.begin();
-            auto oldest_tick = oldest_item->first;
-            auto oldest_index = oldest_item->second;
-            auto oldest_size = _tick2size_map.find(oldest_tick)->second;
-
-            /// remove from mappings
-            _tick2index_map.erase(oldest_tick);
-            _tick2size_map.erase(oldest_tick);
-            _tick_attr_map.erase(oldest_tick);
-
-            // update empty slots area flags
-
-            // if not empty slots in the middle, then use current as first
-            if (_empty_slots_length == 0)
-            {
-              _first_empty_slot_index = oldest_index;
-              _empty_slots_length = oldest_size;
-            }
-            else
-            {
-              // or it must be right after current empty slots
-              _empty_slots_length += oldest_size;
-            }
-          }
-          // if remaining empty slots enough?
-          if (_empty_slots_length >= snapshot_size)
-          {
-            write_to_empty_slots(frame_attr_store, tick);
-          }
-          else
-          {
-            // append to the end
-            append_to_end(frame_attr_store, tick);
-          }
-        }
-        else
-        {
-          // append
-          append_to_end(frame_attr_store, tick);
-        }
-
-        _last_tick = tick;
       }
 
-      Attribute &SnapshotList::operator()(INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
+      void SnapshotList::setup(Frame* frame)
       {
-        auto tick_index_pair = _tick2index_map.find(tick);
+        _cur_frame = frame;
 
-        if (tick_index_pair == _tick2index_map.end())
-        {
-          // return NAN if not exist
-          return _defaultAttr;
-        }
-
-        auto tick_start_index = tick_index_pair->second;
-        auto &mapping = _mappings[_tick_attr_map.find(tick)->second];
-
-        auto key = attr_index_key(node_id, node_index, attr_id, slot_index);
-
-        auto offset_pair = mapping.find(key);
-
-        if (offset_pair == mapping.end())
-        {
-          return _defaultAttr;
-        }
-
-        auto offset = offset_pair->second;
-
-        return _attr_store[tick_start_index + offset];
+        ensure_cur_frame();
       }
 
-      USHORT SnapshotList::size()
+      void SnapshotList::take_snapshot(int tick)
       {
-        return _cur_snapshot_num > _max_size ? _max_size : _cur_snapshot_num;
+        ensure_max_size();
+        ensure_cur_frame();
+
+        // try to remove exist tick
+        _snapshots.erase(tick);
+
+        if (_snapshots.size() > 0 && _snapshots.size() > _max_size)
+        {
+          _snapshots.erase(_snapshots.begin());
+        }
+
+        // copy current frame
+        _snapshots[tick] = *_cur_frame;
       }
 
-      USHORT SnapshotList::max_size()
+      UINT SnapshotList::size() const noexcept
+      {
+        return _snapshots.size();
+      }
+
+      UINT SnapshotList::max_size() const noexcept
       {
         return _max_size;
       }
 
       void SnapshotList::reset()
       {
-        _tick2index_map.clear();
-        _tick2size_map.clear();
-        _tick_attr_map.clear();
-        _mappings.clear();
-
-        memset(&_attr_store[0], 0, sizeof(Attribute) * _attr_store.size());
-
-        _first_empty_slot_index = 0;
-        _empty_slots_length = 0;
-        _end_index = 0;
-        _cur_snapshot_num = 0;
-        _last_tick = -1;
-        _is_prepared = false;
-        _query_parameters.reset();
+        _snapshots.clear();
       }
 
-      void SnapshotList::dump(string path)
-      {
-        for (auto node : _frame->_nodes)
-        {
-          auto full_path = path + "/" + "snapshots_" + node.name + ".csv";
-
-          ofstream file(full_path);
-
-          // write headers
-          file << "tick,node_index";
-
-          for (auto attr_id : _frame->_node_2_attrs.find(node.id)->second)
-          {
-            auto &attr_info = _frame->_attributes[attr_id];
-
-            file << "," << attr_info.name;
-          }
-
-          file << "\n";
-
-          // write contents
-          for (auto tick_iter : _tick2index_map)
-          {
-            auto tick = tick_iter.first;
-
-            for (NODE_INDEX node_index = 0; node_index < node.number; node_index++)
-            {
-              file << tick << "," << node_index;
-
-              for (auto attr_id : _frame->_node_2_attrs.find(node.id)->second)
-              {
-                auto &attr_info = _frame->_attributes[attr_id];
-
-                if (attr_info.max_slots == 1)
-                {
-                  file << ",";
-
-                  // write one value
-                  write_attribute(file, tick, node.id, node_index, attr_id, 0);
-                }
-                else
-                {
-                  file << ",\"[";
-
-                  // write a list
-                  for (SLOT_INDEX slot_index = 0; slot_index < attr_info.max_slots; slot_index++)
-                  {
-                    write_attribute(file, tick, node.id, node_index, attr_id, slot_index);
-
-                    file << ",";
-                  }
-
-                  file << "]\"";
-                }
-              }
-
-              file << "\n";
-            }
-          }
-
-          file.close();
-        }
-      }
-
-      void SnapshotList::get_ticks(INT *result)
-      {
-        auto i = 0;
-
-        for (auto iter : _tick2index_map)
-        {
-          result[i] = iter.first;
-          i++;
-        }
-      }
-
-      SnapshotResultShape SnapshotList::prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length, NODE_INDEX node_indices[],
-                                                UINT node_length, IDENTIFIER attributes[], UINT attr_length)
-      {
-        // we do not support empty attribute
-        if (attributes == nullptr)
-        {
-          throw SnapshotQueryNoAttributes();
-        }
-
-        ensure_max_size();
-
-        if (_frame == nullptr)
-        {
-          throw SnapshotInvalidFrameState();
-        }
-
-        _frame->ensure_node_id(node_id);
-
-        auto &node = _frame->_nodes[node_id];
-
-        auto srs = SnapshotResultShape();
-
-        // get max length of slot for all attribute
-        for (UINT attr_index = 0; attr_index < attr_length; attr_index++)
-        {
-          auto &attr = _frame->_attributes[attributes[attr_index]];
-
-          srs.max_slot_number = max(attr.max_slots, srs.max_slot_number);
-        }
-
-        // correct node number
-        if (node_indices == nullptr)
-        {
-          node_length = node.number;
-        }
-
-        if (ticks == nullptr)
-        {
-          tick_length = _tick2index_map.size();
-        }
-
-        // Choose what we need
-        // TODO: validate attributes
-        _query_parameters.attributes = attributes;
-        _query_parameters.attr_length = attr_length;
-        _query_parameters.node_id = node_id;
-        _query_parameters.node_indices = node_indices;
-        _query_parameters.node_length = node_length;
-        _query_parameters.ticks = ticks;
-        _query_parameters.tick_length = tick_length;
-
-        _is_prepared = true;
-
-        // fill others
-        srs.max_node_number = node_length;
-        srs.tick_number = tick_length;
-        srs.attr_number = attr_length;
-
-        return srs;
-      }
-
-      void SnapshotList::query(ATTR_FLOAT *result, SnapshotResultShape shape)
+      void SnapshotList::get_ticks(int* result) const
       {
         if (result == nullptr)
         {
           throw SnapshotQueryResultPtrNull();
         }
 
-        // ensure prepare
+        auto i = 0;
+        for (auto& iter : _snapshots)
+        {
+          result[i] = iter.first;
+
+          i++;
+        }
+      }
+
+      SnapshotQueryResultShape SnapshotList::prepare(NODE_TYPE node_type, int ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, ATTR_TYPE attributes[], UINT attr_length)
+      {
+        SnapshotQueryResultShape shape;
+
+        if (attributes == nullptr)
+        {
+          throw SnapshotQueryNoAttributes();
+        }
+
+        // Node in current frame, used to get attribute definition.
+        auto& cur_node = _cur_frame->get_node(node_type);
+        auto first_attr_type = attributes[0];
+        auto& attr_definition = cur_node.get_attr_definition(first_attr_type);
+
+        // We use first attribute determine the type of current querying.
+        _query_parameters.is_list = attr_definition.is_list;
+
+        shape.max_node_number = cur_node.get_max_number();
+        shape.tick_number = ticks == nullptr ? _snapshots.size() : tick_length;
+
+        if (!_query_parameters.is_list)
+        {
+          // If it is not a list attriubte, then accept all attribute except list .
+          for (auto attr_index = 0; attr_index < attr_length; attr_index++)
+          {
+            auto attr_type = attributes[attr_index];
+            auto& attr_def = cur_node.get_attr_definition(attr_type);
+
+            if (attr_def.is_list)
+            {
+              // warning and ignore it
+              cerr << "Ignore list attribute: " << attr_def.name << " for fixed size attribute querying." << endl;
+              continue;
+            }
+
+            shape.attr_number++;
+            shape.max_slot_number = max(attr_def.slot_number, shape.max_slot_number);
+          }
+        }
+        else
+        {
+          // If it is a list attribute, then just use first one as querying attribute,
+          // we only support query 1 list attribute (1st one) for 1 node at 1 tick each time to reduce too much padding.
+
+          // Make sure we have at least one tick.
+          if (_snapshots.size() == 0)
+          {
+            throw SnapshotQueryNoSnapshots();
+          }
+
+          // There must be 1 node index for list attribute querying.
+          if (node_indices == nullptr)
+          {
+            throw SnapshotListQueryNoNodeIndex();
+          }
+
+          // 1 tick, 1 node and 1 attribute for list attribute querying.
+          shape.attr_number = 1;
+          shape.tick_number = 1;
+          shape.max_node_number = 1;
+
+          // Use first tick in parameter, or latest tick in snapshot.
+          int tick = ticks == nullptr ? _snapshots.rbegin()->first : ticks[0];
+          auto target_node_index = node_indices[0];
+
+          // Check if tick exist.
+          auto& target_tick_pair = _snapshots.find(tick);
+
+          if (target_tick_pair == _snapshots.end())
+          {
+            throw SnapshotQueryNoSnapshots();
+          }
+
+          auto& snapshot = target_tick_pair->second;
+          auto& history_node = snapshot.get_node(node_type);
+
+          // Check if the node index exist.
+          if (!history_node.is_node_alive(target_node_index))
+          {
+            throw SnapshotListQueryNoNodeIndex();
+          }
+
+          shape.max_slot_number = history_node.get_slot_number(target_node_index, first_attr_type);
+        }
+
+        _query_parameters.ticks = ticks;
+        _query_parameters.node_indices = node_indices;
+        _query_parameters.attributes = attributes;
+
+        _query_parameters.node_type = node_type;
+
+        _query_parameters.max_slot_number = shape.max_slot_number;
+        _query_parameters.attr_length = shape.attr_number;
+        _query_parameters.tick_length = shape.tick_number;
+        _query_parameters.node_length = shape.max_node_number;
+
+        _is_prepared = true;
+
+        return shape;
+      }
+
+      void SnapshotList::query(QUERY_FLOAT* result)
+      {
         if (!_is_prepared)
         {
           throw SnapshotQueryNotPrepared();
         }
 
-        // ensure shape not zero
-        if (shape.attr_number == 0 || shape.max_node_number == 0 || shape.max_slot_number == 0 || shape.tick_number == 0)
+        _is_prepared = false;
+
+        if (!_query_parameters.is_list)
         {
-          return;
+          // normal querying
+          query_for_normal(result);
+        }
+        else
+        {
+          query_for_list(result);
         }
 
-        ensure_max_size();
+        _query_parameters.reset();
+      }
 
-        if (_frame == nullptr)
+      void SnapshotList::query_for_list(QUERY_FLOAT* result)
+      {
+        auto* ticks = _query_parameters.ticks;
+
+        auto max_slot_number = _query_parameters.max_slot_number;
+        auto tick = ticks == nullptr ? _snapshots.rbegin()->first : ticks[0];
+        auto node_index = _query_parameters.node_indices[0];
+        auto attr_type = _query_parameters.attributes[0];
+
+        // Go through all slots.
+        for (UINT i = 0; i < max_slot_number; i++)
         {
-          throw SnapshotInvalidFrameState();
+          auto& attr = get_attr(tick, node_index, attr_type, i);
+
+          // Ignore nan for now, use default value from outside.
+          if (!attr.is_nan())
+          {
+            result[i] = QUERY_FLOAT(attr);
+          }
         }
+      }
 
-        auto node_id = _query_parameters.node_id;
+      void SnapshotList::query_for_normal(QUERY_FLOAT* result)
+      {
+        auto node_type = _query_parameters.node_type;
 
-        auto &node = _frame->_nodes[node_id];
+        // Node in current frame, used to get attribute defition and const value.
+        auto& node = _cur_frame->get_node(node_type);
 
-        auto *ticks = _query_parameters.ticks;
-        auto *node_indices = _query_parameters.node_indices;
-        auto *attrs = _query_parameters.attributes;
+        auto* ticks = _query_parameters.ticks;
+        auto* node_indices = _query_parameters.node_indices;
+        auto* attrs = _query_parameters.attributes;
         auto tick_length = _query_parameters.tick_length;
         auto node_length = _query_parameters.node_length;
         auto attr_length = _query_parameters.attr_length;
+        auto max_slot_number = _query_parameters.max_slot_number;
 
-        vector<INT> _ticks;
+        vector<int> _ticks;
 
-        // Prepare ticks if no one passed
+        // Prepare ticks if no one provided.
         if (_query_parameters.ticks == nullptr)
         {
-          tick_length = _tick2index_map.size();
+          tick_length = _snapshots.size();
 
-          for (auto iter = _tick2index_map.begin(); iter != _tick2index_map.end(); iter++)
+          for (auto& iter : _snapshots)
           {
-            _ticks.push_back(iter->first);
+            _ticks.push_back(iter.first);
           }
         }
 
         vector<NODE_INDEX> _node_indices;
 
+        // Prepare node indices if no one provided.
         if (node_indices == nullptr)
         {
-          node_length = node.number;
+          node_length = node.get_max_number();
 
-          for (auto i = 0; i < node.number; i++)
+          for (auto i = 0; i < node_length; i++)
           {
             _node_indices.push_back(i);
           }
         }
 
-        const INT *__ticks = ticks == nullptr ? &_ticks[0] : ticks;
-        const NODE_INDEX *__node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
+        const int* __ticks = ticks == nullptr ? &_ticks[0] : ticks;
+        const NODE_INDEX* __node_indices = node_indices == nullptr ? &_node_indices[0] : node_indices;
 
+        // Index in result list.
         auto result_index = 0;
 
+        // Go through by tick -> node -> attribute -> slot.
         for (UINT i = 0; i < tick_length; i++)
         {
           auto tick = __ticks[i];
@@ -430,11 +290,11 @@ namespace maro
 
             for (UINT k = 0; k < attr_length; k++)
             {
-              auto attr_id = attrs[k];
+              auto attr_type = attrs[k];
 
-              for (SLOT_INDEX slot_index = 0; slot_index < shape.max_slot_number; slot_index++)
+              for (SLOT_INDEX slot_index = 0; slot_index < max_slot_number; slot_index++)
               {
-                auto &attr = operator()(tick, node_id, node_index, attr_id, slot_index);
+                auto& attr = get_attr(tick, node_index, attr_type, slot_index);
 
                 if (!attr.is_nan())
                 {
@@ -446,114 +306,96 @@ namespace maro
             }
           }
         }
+      }
 
+      void SnapshotList::cancel_query() noexcept
+      {
         _is_prepared = false;
-
-        // reset current query parameters
         _query_parameters.reset();
       }
 
-      void SnapshotList::copy_from_attr_store(AttributeStore *frame_attr_store, INT tick, size_t start_index)
+      Attribute& SnapshotList::get_attr(int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) noexcept
       {
-        auto last_tick_map = _tick_attr_map.rbegin();
-        auto is_copy_mapping = false;
+        auto& target_tick_pair = _snapshots.find(tick);
 
-        // if attribute store is dirty means there is something changed, we should keep current mapping
-        if (last_tick_map == _tick_attr_map.rend() || frame_attr_store->is_dirty())
+        // Check if tick valid.
+        if (target_tick_pair == _snapshots.end())
         {
-          is_copy_mapping = true;
+          return _nan_attr;
+        }
+
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        auto& snapshot = target_tick_pair->second;
+
+        // Check if node type valid.
+        if (!snapshot.is_node_exist(node_type))
+        {
+          return _nan_attr;
+        }
+
+        auto& history_node = snapshot.get_node(node_type);
+
+        // Check if node index valid.
+        if (!history_node.is_node_alive(node_index))
+        {
+          return _nan_attr;
+        }
+
+        auto& cur_node = _cur_frame->get_node(node_type);
+        const auto& attr_def = cur_node.get_attr_definition(attr_type);
+
+        // Check slot index for non-list attribute
+        if (!attr_def.is_list && slot_index >= attr_def.slot_number)
+        {
+            return _nan_attr;
+        }
+
+        if (attr_def.is_const)
+        {
+          return cur_node.get_attr(node_index, attr_type, slot_index);
         }
         else
         {
-          auto &last_mapping = _mappings[last_tick_map->second];
-
-          if (last_mapping.size() != frame_attr_store->size())
+          if (attr_def.is_list)
           {
-            is_copy_mapping = true;
+            auto& target_attr = history_node._dynamic_block[node_index * history_node._dynamic_size_per_node + attr_def.offset];
+
+            if (slot_index >= target_attr.slot_number)
+            {
+              return _nan_attr;
+            }
+
+            const auto& list_index = target_attr.get_value<ATTR_UINT>();
+
+            auto& target_list = history_node._list_store[list_index];
+
+            if (slot_index >= target_list.size())
+            {
+              return _nan_attr;
+            }
+
+            return target_list[slot_index];
           }
-        }
 
-        if (is_copy_mapping)
-        {
-          _mappings.emplace_back();
-
-          // copy
-          auto &mapping = _mappings[_mappings.size() - 1];
-
-          frame_attr_store->copy_to(&_attr_store[start_index], &mapping);
-
-          _tick_attr_map[tick] = _mappings.size() - 1;
-        }
-        else
-        {
-          frame_attr_store->copy_to(&_attr_store[start_index], nullptr);
-
-          _tick_attr_map[tick] = last_tick_map->second;
+          return history_node._dynamic_block[node_index * history_node._dynamic_size_per_node + attr_def.offset + slot_index];
         }
       }
 
-      void SnapshotList::append_to_end(AttributeStore *frame_attr_store, INT tick)
+      void SnapshotList::SnapshotQueryParameters::reset()
       {
-        auto snapshot_size = frame_attr_store->size();
+        ticks = nullptr;
+        attributes = nullptr;
+        node_indices = nullptr;
 
-        // prepare attribute store to make sure we can hold all
-        if (_end_index + snapshot_size > _attr_store.size())
-        {
-          _attr_store.resize((_end_index + snapshot_size) * 2);
-        }
+        tick_length = 0;
+        node_length = 0;
+        attr_length = 0;
+        max_slot_number = 0;
 
-        // copy
-        copy_from_attr_store(frame_attr_store, tick, _end_index);
-
-        _tick2size_map[tick] = snapshot_size;
-        _tick2index_map[tick] = _end_index;
-
-        _end_index += snapshot_size;
+        is_list = false;
       }
 
-      void SnapshotList::write_to_empty_slots(AttributeStore *frame_attr_store, INT tick)
-      {
-        auto snapshot_size = frame_attr_store->size();
-
-        // write to here
-        copy_from_attr_store(frame_attr_store, tick, _first_empty_slot_index);
-
-        _tick2index_map[tick] = _first_empty_slot_index;
-        _tick2size_map[tick] = snapshot_size;
-
-        _first_empty_slot_index += snapshot_size;
-        _empty_slots_length -= snapshot_size;
-      }
-
-      inline void SnapshotList::ensure_max_size()
-      {
-        if (_max_size == 0)
-        {
-          throw InvalidSnapshotSize();
-        }
-      }
-
-      inline void SnapshotList::write_attribute(ofstream &file, INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index)
-      {
-        auto &attr = operator()(tick, node_id, node_index, attr_id, slot_index);
-
-        if (attr.is_nan())
-        {
-          file << "nan";
-        }
-        else
-        {
-          file << ATTR_FLOAT(attr);
-        }
-      }
-
-      inline void SnapshotList::prepare_memory()
-      {
-        if (_frame != nullptr && _attr_store.size() == 0)
-        {
-          _attr_store.resize(_frame->_attr_store.size() * _max_size);
-        }
-      }
 
       const char* InvalidSnapshotTick::what() const noexcept
       {
@@ -585,17 +427,20 @@ namespace maro
         return "Result pointer is NULL.";
       }
 
-#ifdef _DEBUG
-      pair<size_t, size_t> SnapshotList::empty_states()
+      const char* SnapshotQueryInvalidTick::what() const noexcept
       {
-        return make_pair(_first_empty_slot_index, _empty_slots_length);
+        return "Only support one tick to query for list attribute, and the tick must exist.";
       }
 
-      size_t SnapshotList::end_index()
+      const char* SnapshotQueryNoSnapshots::what() const noexcept
       {
-        return _end_index;
+        return "List attribute querying need at lease one snapshot, it does not support invalid tick padding.";
       }
-#endif
-    } // namespace raw
-  }   // namespace backends
-} // namespace maro
+
+      const char* SnapshotListQueryNoNodeIndex::what() const noexcept
+      {
+        return "List attribute querying need one alive node index.";
+      }
+    }
+  }
+}
