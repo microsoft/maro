@@ -5,7 +5,7 @@ from maro.event_buffer import EventBuffer, EventState
 from maro.simulator.scenarios import AbsBusinessEngine
 
 
-backends_to_test = ["np", "raw"]
+backends_to_test = ["static", "dynamic"]
 
 def next_step(eb: EventBuffer, be: AbsBusinessEngine, tick: int):
     if tick > 0:

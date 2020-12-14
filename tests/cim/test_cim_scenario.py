@@ -70,8 +70,7 @@ class TestCimScenarios(unittest.TestCase):
                              "after initialization")
 
             # check snapshot
-            self.assertEqual(MAX_TICK, len(
-                be.snapshots), f"snapshots should be {MAX_TICK} after initialization")
+            self.assertEqual(0, len(be.snapshots), f"snapshots should be 0 after initialization")
 
     def test_vessel_moving_correct(self):
         for backend_name in backends_to_test:

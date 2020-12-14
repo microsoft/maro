@@ -261,7 +261,7 @@ class TestFrame(unittest.TestCase):
         # with specify node indices, will not padding to max node number
         states = static_snapshot[0:[0, 1, 2, 3, 4]:"a3"]
 
-        self.assertTupleEqual(states.shape, (1, 7, 1, 1))
+        self.assertTupleEqual(states.shape, (1, 5, 1, 1))
 
         self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states.flatten()[0:5]))
 
