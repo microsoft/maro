@@ -134,7 +134,7 @@ namespace maro
 
         auto& node = _nodes[node_type];
         
-        node.remove_node(node_index);
+        node.resume_node(node_index);
       }
 
       void Frame::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)

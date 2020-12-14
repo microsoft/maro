@@ -385,6 +385,11 @@ namespace maro
             return target_list[slot_index];
           }
 
+          if (node_index >= history_node._max_node_number)
+          {
+            return _nan_attr;
+          }
+
           return history_node._dynamic_block[node_index * history_node._dynamic_size_per_node + attr_def.offset + slot_index];
         }
       }

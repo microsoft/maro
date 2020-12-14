@@ -19,6 +19,13 @@ namespace maro
         memset(_data, 0, ATTRIBUTE_DATA_LENGTH);
       }
 
+      Attribute::Attribute(const Attribute& attr)
+      {
+        memcpy(_data, attr._data, ATTRIBUTE_DATA_LENGTH);
+
+        _type = attr._type;
+      }
+
 // Macro for all type of constructors.
 #define CONSTRUCTOR(data_type, type_name)         \
   Attribute::Attribute(data_type value) noexcept  \
@@ -60,6 +67,8 @@ namespace maro
         default:
           break;
         }
+
+        cout << int(_type) << endl;
 
         throw InvalidOperation();
       }

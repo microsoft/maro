@@ -3,8 +3,11 @@
 
 #ifndef _MARO_BACKEND_RAW_ATTRIBUTE
 #define _MARO_BACKEND_RAW_ATTRIBUTE
+
+#include <iostream>
 #include <math.h>
 #include <string>
+
 #include "common.h"
 
 using namespace std;
@@ -44,7 +47,7 @@ namespace maro
         char _data[ATTRIBUTE_DATA_LENGTH];
 
         // Type of current attribute, defalut is char
-        AttrDataType _type{ AttrDataType::ACHAR };
+        AttrDataType _type = AttrDataType::ACHAR;
 
       public:
         // Slot number of list attribute, it will alway be 0 for fixed size attribute.
@@ -52,6 +55,7 @@ namespace maro
 
         // constructors
         Attribute() noexcept;
+        Attribute(const Attribute& attr);
         Attribute(ATTR_CHAR value) noexcept;
         Attribute(ATTR_UCHAR value) noexcept;
         Attribute(ATTR_SHORT value) noexcept;

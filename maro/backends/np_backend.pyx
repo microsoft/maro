@@ -467,4 +467,4 @@ cdef class NPSnapshotList(SnapshotListAbc):
         # NOTE: we do not reset the history file here, so the file will keep increasing
 
     def __len__(self):
-        return self._max_size - 1
+        return len(self._index2tick_dict)

@@ -80,7 +80,6 @@ cdef class AttributeFloatAccessor(AttributeAccessor):
         self._backend._frame.set_value[ATTR_FLOAT](node_index, self._attr_type, slot_index, value)
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
-        
         return self._backend._frame.get_value[ATTR_FLOAT](node_index, self._attr_type, slot_index)
 
 
@@ -223,7 +222,7 @@ cdef class RawSnapshotList(SnapshotListAbc):
 
         # Check and construct node indices list
         if node_index_list is not None and len(node_index_list) > 0:
-            node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="H")
+            node_indices = view.array(shape=(len(node_index_list),), itemsize=sizeof(NODE_INDEX), format="I")
 
         cdef USHORT ticks_length = len(ticks)
 
