@@ -277,12 +277,12 @@ class TestK8s(unittest.TestCase):
         )
         command = f"maro k8s job start {self.cluster_name} {start_job_dqn_template_path}"
         SubProcess.run(command)
-        self._gracefully_wait(30)
+        self._gracefully_wait(60)
 
         # Check job status
         remain_idx = 0
         is_finished = False
-        while remain_idx <= 50:
+        while remain_idx <= 100:
             jobs_details = self._list_jobs_details()
             job_details = jobs_details[self.test_name]
             if "succeeded" in job_details["status"] and job_details["status"]["succeeded"] == 1:
