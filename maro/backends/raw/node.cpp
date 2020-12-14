@@ -3,7 +3,6 @@
 
 #include "node.h"
 
-
 namespace maro
 {
   namespace backends
@@ -13,6 +12,11 @@ namespace maro
       inline USHORT extract_attr_index(ATTR_TYPE attr_type)
       {
         return USHORT(attr_type & 0x0000ffff);
+      }
+
+      inline size_t compose_attr_offset_in_node(NODE_INDEX node_index, size_t node_size, size_t attr_offset, SLOT_INDEX slot)
+      {
+        return node_index * node_size + attr_offset + slot;
       }
 
       AttributeDef::AttributeDef(string name, AttrDataType data_type, SLOT_INDEX slot_number, size_t offset, bool is_list, bool is_const) :
@@ -39,6 +43,7 @@ namespace maro
         // Ignore name.
         _name = "";
 
+        // Copy dynamic block.
         if (node._dynamic_block.size() > 0)
         {        
           // Copy according to max_node number, as memory block may larger than it (after reset).
@@ -49,9 +54,9 @@ namespace maro
           memcpy(&_dynamic_block[0], &node._dynamic_block[0], valid_dynamic_size * sizeof(Attribute));
         }
 
+        // Copy list attributes store.
         if (node._list_store.size() > 0)
         {
-          // Copy list attributes store.
           _list_store.resize(node._list_store.size());
 
           for (auto i = 0; i < _list_store.size(); i++)
@@ -72,6 +77,7 @@ namespace maro
         // Copy masks.
         _node_instance_masks = node._node_instance_masks;
 
+        // Copy others for deep-copy.
         if (is_deep_copy)
         {
           _name = node.get_name();
@@ -115,7 +121,7 @@ namespace maro
       Node::Node(const Node& node)
       {
         // This function invoked when the node list is increasing its size,
-        // then it need to copy nodes to new memory block
+        // then it need to copy nodes to new memory block.
         copy_from(node, true);
       }
 
@@ -178,7 +184,7 @@ namespace maro
         ensure_attr_index(attr_index);
 
         return _attribute_definitions[attr_index];
-      }
+      } 
 
       bool Node::is_node_alive(NODE_INDEX node_index) const noexcept
       {
@@ -197,7 +203,8 @@ namespace maro
         // If it is a list attribute, we will return actual list size.
         if (attr_def.is_list)
         {
-          auto& target_attr = _dynamic_block[node_index * _dynamic_size_per_node + attr_def.offset];
+          auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
+          auto& target_attr = _dynamic_block[attr_offset];
 
           return target_attr.slot_number;
         }
@@ -303,8 +310,8 @@ namespace maro
             for (NODE_INDEX i = 0; i < node_number; i++)
             {
               auto node_index = _max_node_number - node_number + i;
-
-              auto& target_attr = _dynamic_block[_dynamic_size_per_node * node_index + attr_def.offset];
+              auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
+              auto& target_attr = _dynamic_block[attr_offset];
 
               target_attr = UINT(_list_store.size());
 
@@ -391,7 +398,8 @@ namespace maro
         if (attr_def.is_list)
         {
           // For list attribute, we need to get its index in list store.
-          auto& target_attr = _dynamic_block[node_index * _dynamic_size_per_node + attr_def.offset];
+          auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
+          auto& target_attr = _dynamic_block[attr_offset];
 
           // Slot number of list attribute save in itr attribute.
           if (slot_index >= target_attr.slot_number)
@@ -399,7 +407,7 @@ namespace maro
             throw InvalidSlotIndexError();
           }
 
-          const auto& list_index = target_attr.get_value<ATTR_UINT>();
+          const auto list_index = target_attr.get_value<ATTR_UINT>();
 
           // Then get the actual list reference for furthure operation.
           auto& target_list = _list_store[list_index];
@@ -413,14 +421,24 @@ namespace maro
           throw InvalidSlotIndexError();
         }
 
+        // Get attribute for const and dynamic attribute.
+        vector<Attribute>* target_block = nullptr;
+        size_t node_size = 0;
+
         if (attr_def.is_const)
         {
-          return _const_block[node_index * _const_size_per_node + attr_def.offset + slot_index];
+          target_block = &_const_block;
+          node_size = _const_size_per_node;
         }
         else
         {
-          return _dynamic_block[node_index * _dynamic_size_per_node + attr_def.offset + slot_index];
+          target_block = &_dynamic_block;
+          node_size = _dynamic_size_per_node;
         }
+
+        auto attr_offset = compose_attr_offset_in_node(node_index, node_size, attr_def.offset, slot_index);
+
+        return (*target_block)[attr_offset];
       }
 
       void Node::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
@@ -435,7 +453,8 @@ namespace maro
           throw OperationsOnNonListAttributeError();
         }
 
-        auto& target_attr = _dynamic_block[node_index * _dynamic_size_per_node + attr_def.offset];
+        auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
+        auto& target_attr = _dynamic_block[attr_offset];
 
         const auto& list_index = target_attr.get_value<ATTR_UINT>();
 
@@ -458,7 +477,8 @@ namespace maro
           throw OperationsOnNonListAttributeError();
         }
 
-        auto& target_attr = _dynamic_block[node_index * _dynamic_size_per_node + attr_def.offset];
+        auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
+        auto& target_attr = _dynamic_block[attr_offset];
 
         const auto& list_index = target_attr.get_value<ATTR_UINT>();
 
@@ -482,7 +502,8 @@ namespace maro
           throw OperationsOnNonListAttributeError();
         }
 
-        auto& target_attr = _dynamic_block[node_index * _dynamic_size_per_node + attr_def.offset];
+        auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
+        auto& target_attr = _dynamic_block[attr_offset];
 
         const auto& list_index = target_attr.get_value<ATTR_UINT>();
 
@@ -506,6 +527,7 @@ namespace maro
       APPEND_TO_LIST(ATTR_ULONG)
       APPEND_TO_LIST(ATTR_FLOAT)
       APPEND_TO_LIST(ATTR_DOUBLE)
+
 
       const char* OperationsBeforeSetupError::what() const noexcept
       {

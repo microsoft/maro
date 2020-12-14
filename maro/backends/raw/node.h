@@ -27,6 +27,16 @@ namespace maro
       inline USHORT extract_attr_index(ATTR_TYPE attr_type);
 
       /// <summary>
+      /// Compose the attribute offset in memory block.
+      /// </summary>
+      /// <param name="node_index">Index of node instance.</param>
+      /// <param name="node_size">Per node size in related memory block.</param>
+      /// <param name="attr_offset">Attribute offset in node instance.</param>
+      /// <param name="slot">Slot index of attribute.</param>
+      /// <returns>Attribute offset in memory block.</returns>
+      inline size_t compose_attr_offset_in_node(NODE_INDEX node_index, size_t node_size, size_t attr_offset, SLOT_INDEX slot = 0);
+
+      /// <summary>
       /// Definition of attribute.
       /// </summary>
       struct AttributeDef
@@ -53,7 +63,7 @@ namespace maro
       };
 
       /// <summary>
-      /// Node type in memory, there is not node instance in physical, just a concept
+      /// Node type in memory, there is not node instance in physical, just a concept.
       /// </summary>
       class Node
       {
@@ -101,8 +111,13 @@ namespace maro
         // Copy content from source node, for taking snapshot.
         void copy_from(const Node& node, bool is_deep_copy = false);
 
+        // Make sure setup called.
         inline void ensure_setup() const;
+
+        // Make sure attribute index correct.
         inline void ensure_attr_index(USHORT attr_index) const;
+
+        // Make sure node index correct.
         inline void ensure_node_index(NODE_INDEX node_index) const;
       public:
         Node();
@@ -195,7 +210,6 @@ namespace maro
 
         /// <summary>
         /// Remove a node instance.
-        /// 
         /// NOTE: this will not delete the attributes from memory, just mark them as deleted.
         /// </summary>
         /// <param name="node_index">Index of node instance to remove.</param>
@@ -220,7 +234,6 @@ namespace maro
 
         /// <summary>
         /// Get specified attribute from an node instance.
-        /// 
         /// NOTE: this function only used for current frame, not for snapshot, as nodes in snapshot list do not contains
         /// attribute definition.
         /// </summary>
@@ -256,51 +269,43 @@ namespace maro
         void resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size);
       };
 
-      class OperationsBeforeSetupError : public exception
+      struct OperationsBeforeSetupError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class InvalidAttributeDescError : public exception
+      struct InvalidAttributeDescError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class InvalidNodeIndexError : public exception
+      struct InvalidNodeIndexError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class InvalidSlotIndexError : public exception
+      struct InvalidSlotIndexError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class InvalidNodeNumberError : public exception
+      struct InvalidNodeNumberError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class InvalidAttributeTypeError : public exception
+      struct InvalidAttributeTypeError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class OperationsAfterSetupError : public exception
+      struct OperationsAfterSetupError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class OperationsOnNonListAttributeError : public exception
+      struct OperationsOnNonListAttributeError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
     }
