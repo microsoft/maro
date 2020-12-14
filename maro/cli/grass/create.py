@@ -5,7 +5,7 @@
 import yaml
 
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.utils.exception.cli_exception import InvalidDeploymentTemplateError, FileOperationError, BadRequestError
+from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
 
 
 def create(deployment_path: str, **kwargs):
@@ -21,4 +21,4 @@ def create(deployment_path: str, **kwargs):
     except KeyError as e:
         raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
     except FileNotFoundError:
-        raise FileOperationError(f"Invalid template file path.")
+        raise FileOperationError("Invalid template file path.")

@@ -20,13 +20,14 @@ def check_details_validity(func):
 
             # Check details validity
             if cluster_details["mode"] not in {
-                "grass/azure", "k8s/aks"
+                "grass/azure",
+                "k8s/aks"
             }:
                 raise ClusterInternalError(f"Cluster details are broken: Invalid mode '{cluster_details['mode']}'.")
         except FileNotFoundError:
             raise BadRequestError(f"Cluster '{cluster_name}' is not found.")
         except KeyError as e:
-            raise ClusterInternalError(f"Cluster details are broken: Missing key 'mode'.")
+            raise ClusterInternalError("Cluster details are broken: Missing key 'mode'.")
 
         func(*args, **kwargs)
 
