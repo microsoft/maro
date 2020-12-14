@@ -3,28 +3,51 @@
 
 from typing import List, Set
 
+from maro.backends.frame import NodeAttribute, NodeBase, node
 
-class PhysicalMachine:
-    """Physical machine object.
 
-    Args:
-        id (int): PM id, from 0 to N. N means the amount of PM, which can be set in config.
-        cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
-        memory_capacity (int): The capacity of memory of the PM, which can be set in config.
-    """
-    def __init__(self, id: int, cpu_cores_capacity: int, memory_capacity: int):
-        # Required parameters.
-        self.id: int = id
-        self.cpu_cores_capacity: int = cpu_cores_capacity
-        self.memory_capacity: int = memory_capacity
+@node("pm")
+class PhysicalMachine(NodeBase):
+    """Physical machine node definition in frame."""
+    # Initial parameters.
+    id = NodeAttribute("i")
+    cpu_cores_capacity = NodeAttribute("i2")
+    memory_capacity = NodeAttribute("i2")
+    # Statistical features.
+    cpu_allocation = NodeAttribute("i2")
+    memory_allocation = NodeAttribute("i2")
+
+    cpu_utilization = NodeAttribute("f")
+    energy_consumption = NodeAttribute("f")
+
+    def __init__(self):
+        """Internal use for reset."""
+        self._id = 0
+        self._init_cpu_cores_capacity = 0
+        self._init_memory_capacity = 0
         # PM resource.
         self._live_vms: Set[int] = set()
-        self.cpu_allocation: int = 0
-        self.memory_allocation: int = 0
-        self._cpu_utilization: float = 0.0
-        self._cpu_utilization_series: List[float] = []
-        # Energy consumption converted by cpu utilization.
-        self._energy_consumption: List[float] = []
+
+    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int):
+        """Set initialize state, that will be used after frame reset.
+
+        Args:
+            id (int): PM id, from 0 to N. N means the amount of PM, which can be set in config.
+            cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
+            memory_capacity (int): The capacity of memory of the PM, which can be set in config.
+        """
+        self._id = id
+        self._init_cpu_cores_capacity = cpu_cores_capacity
+        self._init_memory_capacity = memory_capacity
+
+        self.reset()
+
+    def reset(self):
+        """Reset to default value."""
+        # When we reset frame, all the value will be set to 0, so we need these lines.
+        self.id = self._id
+        self.cpu_cores_capacity = self._init_cpu_cores_capacity
+        self.memory_capacity = self._init_memory_capacity
 
     @property
     def live_vms(self) -> Set[int]:
@@ -36,30 +59,3 @@ class PhysicalMachine:
     def remove_vm(self, vm_id: int):
         self._live_vms.remove(vm_id)
 
-    @property
-    def cpu_utilization(self) -> float:
-        # PM CPU utilization (%).
-        return self._cpu_utilization
-
-    def update_utilization(self, tick: int, cpu_utilization: float):
-        if tick > len(self._cpu_utilization_series):
-            raise Exception(f"The tick: '{tick}' is invalid.")
-
-        # Update CPU utilization.
-        self._cpu_utilization = cpu_utilization
-
-        # Update the utilization series.
-        if tick == len(self._cpu_utilization_series):
-            self._cpu_utilization_series.append(cpu_utilization)
-        elif tick < len(self._cpu_utilization_series):
-            self._cpu_utilization_series[tick] = cpu_utilization
-
-    def update_energy(self, tick: int, cur_energy: float):
-        if tick > len(self._energy_consumption):
-            raise Exception(f"The tick: '{tick}' is invalid.")
-
-        # Update the energy series.
-        if tick == len(self._energy_consumption):
-            self._energy_consumption.append(cur_energy)
-        elif tick < len(self._energy_consumption):
-            self._energy_consumption[tick] = cur_energy

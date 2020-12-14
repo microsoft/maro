@@ -15,11 +15,11 @@ from maro.utils.utils import DottableDict
 
 from .common import (
     AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine, VmFinishedPayload,
-    VmRequirementPayload
+    VmRequestPayload
 )
 from .cpu_reader import CpuReader
 from .events import Events
-from .frame_builder import gen_data_center_frame
+from .frame_builder import build_frame
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
 
@@ -52,10 +52,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         )
 
         # Env metrics.
-        self._total_vm_requirements: int = 0
+        self._total_vm_requests: int = 0
         self._total_energy_consumption: float = 0
-        self._success_allocation: int = 0
-        self._success_placement: int = 0
+        self._successful_allocation: int = 0
+        self._successful_placement: int = 0
         self._failed_placement: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscribtions: int = 0
@@ -64,26 +64,27 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._load_configs()
         self._register_events()
 
+        self._init_frame()
+
         # PMs list used for quick accessing.
         self._init_pms()
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
         # All requirement payload of the pending decision VMs.
         # NOTE: Need naming suggestestion.
-        self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
+        self._pending_vm_req_payload: Dict[int, VmRequestPayload] = {}
         # All vm's cpu utilization at current tick.
         self._cpu_utilization_dict: Dict[int, float] = {}
 
-        self._vm_reader = BinaryReader(self._config["vm_table"])
+        self._vm_reader = BinaryReader(self._config.VM_TABLE)
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
-        self._cpu_reader = CpuReader(self._config["cpu_readings"])
-        self._cur_tick_cpu_utilization = {}
+        self._cpu_reader = CpuReader(self._config.CPU_READINGS)
 
         self._tick: int = 0
         self._pending_action_vm_id: int = -1
 
-        self._init_frame()
+
 
     @property
     def configs(self) -> dict:
@@ -105,42 +106,41 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
         with open(os.path.join(self._config_path, "config.yml")) as fp:
-            self._config = safe_load(fp)
+            self._config = DottableDict(safe_load(fp))
 
-        self._delay_duration: int = self._config["delay_duration"]
-        self._buffer_time_budget: int = self._config["buffer_time_budget"]
-
-        # Load pm config.
-        with open(os.path.join(self._config_path, "config.pm.size.yml")) as fp:
-            self._pm_size_dict = DottableDict(safe_load(fp))
-
-        self._pm_amount: int = self._pm_size_dict["PM_NODES"]["P1"]["Amount"]
-        self._pm_cpu_cores_capacity: int = self._pm_size_dict["PM_NODES"]["P1"]["CPU"]
-        self._pm_memory_capacity: int = self._pm_size_dict["PM_NODES"]["P1"]["Memory"]
+        self._delay_duration: int = self._config.DELAY_DURATION
+        self._buffer_time_budget: int = self._config.BUFFER_TIME_BUDGET
+        self._pm_amount: int = self._config.PM["P1"]["AMOUNT"]
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-        self._machines: List[PhysicalMachine] = [
-            PhysicalMachine(
-                id=i,
+        self._pm_cpu_cores_capacity: int = self._config.PM["P1"]["CPU"]
+        self._pm_memory_capacity: int = self._config.PM["P1"]["MEMORY"]
+
+        # TODO: Improve the scalability. Like the use of multiple PM sets.
+        self._machines = self._frame.pms
+        for pm_id in range(self._pm_amount):
+            pm = self._machines[pm_id]
+            pm.set_init_state(
+                id=pm_id,
                 cpu_cores_capacity=self._pm_cpu_cores_capacity,
                 memory_capacity=self._pm_memory_capacity
-            ) for i in range(self._pm_amount)
-        ]
+            )
 
     def reset(self):
         """Reset internal states for episode."""
         self._total_energy_consumption: float = 0.0
-        self._success_allocation: int = 0
-        self._success_placement: int = 0
+        self._successful_allocation: int = 0
+        self._successful_placement: int = 0
         self._failed_placement: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscribtions: int = 0
 
-        self._init_pms()
+        for pm in self._machines:
+            pm.reset()
+
         self._live_vms: Dict[int, VirtualMachine] = {}
-        self._pending_vm_req_payload: Dict[int, VmRequirementPayload] = {}
-        self._cpu_utilization_dict: Dict[int, float] = {}
+        self._pending_vm_req_payload: Dict[int, VmRequestPayload] = {}
 
         self._frame.reset()
 
@@ -149,11 +149,11 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._vm_reader.reset()
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
-        self._cpu_reader = CpuReader()
-        self._cur_tick_cpu_utilization = {}
+        self._cpu_reader = CpuReader(self._config["cpu_readings"])
+        self._cpu_utilization_dict: Dict[int, float] = {}
 
     def _init_frame(self):
-        self._frame = gen_data_center_frame()
+        self._frame = build_frame(self._pm_amount, self.calc_max_snapshots())
         self._snapshots = self._frame.snapshots
 
     def step(self, tick: int):
@@ -169,18 +169,18 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         # Update all PM CPU utilization.
         self._update_pm_workload()
 
-        self._cur_tick_cpu_utilization = self._cpu_reader.items(tick=tick)
+        self._cpu_utilization_dict = self._cpu_reader.items(tick=tick)
 
         for vm in self._vm_item_picker.items(tick):
-            vm_req = VirtualMachine(
+            vm_info = VirtualMachine(
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
                 memory_requirement=vm.vm_memory,
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
-            vm_req.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[vm.vm_id])
-            vm_req_payload: VmRequirementPayload = VmRequirementPayload(
-                vm_req=vm_req,
+            vm_info.add_utilization(cpu_utilization=self._cpu_utilization_dict[vm.vm_id])
+            vm_req_payload: VmRequestPayload = VmRequestPayload(
+                vm_info=vm_info,
                 remaining_buffer_time=self._buffer_time_budget
             )
             vm_requirement_event = self._event_buffer.gen_cascade_event(
@@ -189,7 +189,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                 payload=vm_req_payload
             )
             self._event_buffer.insert_event(event=vm_requirement_event)
-            self._total_vm_requirements += 1
+            self._total_vm_requests += 1
 
     def post_step(self, tick: int):
         return tick >= self._max_tick - 1
@@ -203,10 +203,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
-            total_vm_requirements=self._total_vm_requirements,
+            total_vm_requirements=self._total_vm_requests,
             total_energy_consumption=self._total_energy_consumption,
-            success_allocation=self._success_allocation,
-            success_placement=self._success_placement,
+            success_allocation=self._successful_allocation,
+            success_placement=self._successful_placement,
             failed_requirements=self._failed_placement,
             total_latency=self._total_latency,
             total_oversubscribtions=self._total_oversubscribtions
@@ -229,14 +229,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         for live_vm in self._live_vms.values():
             # TODO: Some data could be lost.
             # Currently, we use the last utilization, it might could be further refined to use average or others.
-            if live_vm.id not in self._cur_tick_cpu_utilization:
-                live_vm.add_utilization(cpu_utilization=live_vm.get_historical_utilization_series[:-1])
+            if live_vm.id not in self._cpu_utilization_dict:
+                live_vm.add_utilization(cpu_utilization=live_vm.get_historical_utilization_series()[:-1])
             else:
-                live_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[live_vm.id])
+                live_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[live_vm.id])
                 live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
 
         for pending_vm_payload in self._pending_vm_req_payload.values():
-            pending_vm = pending_vm_payload.vm_req
+            pending_vm = pending_vm_payload.vm_info
             # NOTE:
             # We set every VM's finish event at deletion time - creation time + 1. Therefore, in the end tick,
             # the id doesn't exist in the cpu utilization dictionary. We give them a padding 0 instead.
@@ -245,10 +245,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             else:
                 # TODO: Some data could be lost.
                 # Currently, we use the last utilization, might could refine to use average or others.
-                if pending_vm.id not in self._cur_tick_cpu_utilization:
+                if pending_vm.id not in self._cpu_utilization_dict:
                     pending_vm.add_utilization(cpu_utilization=pending_vm.get_historical_utilization_series[:-1])
                 else:
-                    pending_vm.add_utilization(cpu_utilization=self._cur_tick_cpu_utilization[pending_vm.id])
+                    pending_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[pending_vm.id])
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""
@@ -258,12 +258,10 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             for vm_id in pm.live_vms:
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement / 100
-            pm_cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
-            pm.update_utilization(tick=self._tick, cpu_utilization=pm_cpu_utilization)
+            pm.cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
             # Update each PM's energy.
-            energy_consumption = self._cpu_utilization_to_energy_consumption(pm.cpu_utilization)
-            pm.update_energy(tick=self._tick, cur_energy=energy_consumption)
-            total_energy += energy_consumption
+            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(pm.cpu_utilization)
+            total_energy += pm.energy_consumption
         self._total_energy_consumption += total_energy
 
     def _cpu_utilization_to_energy_consumption(self, cpu_util: float) -> float:
@@ -272,10 +270,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
         cpu_util /= 100
-        power: float = self._pm_size_dict["PM_NODES"]["P1"]["Power_Curve"]["calibration_parameter"]
-        # NOTE: Energy comsumption parameters should refer to more research.
-        busy_power = self._pm_size_dict["PM_NODES"]["P1"]["Power_Curve"]["busy_power"]
-        idle_power = self._pm_size_dict["PM_NODES"]["P1"]["Power_Curve"]["idle_power"]
+        power: float = self._config.PM["P1"]["POWER_CURVE"]["CALIBRATION_PARAMETER"]
+        busy_power = self._config.PM["P1"]["POWER_CURVE"]["BUSY_POWER"]
+        idle_power = self._config.PM["P1"]["POWER_CURVE"]["IDLE_POWER"]
         return idle_power + (busy_power - idle_power) * (2 * cpu_util - pow(cpu_util, power))
 
     def _postpone_vm_requirement(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
@@ -323,22 +320,22 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
     def _on_vm_required(self, vm_requirement_event: CascadeEvent):
         """Callback when there is a VM requirement generated."""
         # Get VM data from payload.
-        payload: VmRequirementPayload = vm_requirement_event.payload
+        payload: VmRequestPayload = vm_requirement_event.payload
 
-        vm_req: VirtualMachine = payload.vm_req
+        vm_info: VirtualMachine = payload.vm_info
         remaining_buffer_time: int = payload.remaining_buffer_time
         # Store the payload inside business engine.
-        self._pending_vm_req_payload[vm_req.id] = payload
+        self._pending_vm_req_payload[vm_info.id] = payload
         # Get valid pm list.
-        valid_pm_list = self._get_valid_pms(vm_cpu_cores_requirement=vm_req.cpu_cores_requirement)
+        valid_pm_list = self._get_valid_pms(vm_cpu_cores_requirement=vm_info.cpu_cores_requirement)
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.
             decision_payload = DecisionPayload(
                 valid_pms=valid_pm_list,
-                vm_id=vm_req.id,
-                vm_cpu_cores_requirement=vm_req.cpu_cores_requirement,
-                vm_memory_requirement=vm_req.memory_requirement,
+                vm_id=vm_info.id,
+                vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
+                vm_memory_requirement=vm_info.memory_requirement,
                 remaining_buffer_time=remaining_buffer_time
             )
             pending_decision_event = self._event_buffer.gen_decision_event(
@@ -348,7 +345,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             # Either postpone the requirement event or failed.
             self._postpone_vm_requirement(
                 postpone_type=PostponeType.Resource,
-                vm_id=vm_req.id,
+                vm_id=vm_info.id,
                 remaining_buffer_time=remaining_buffer_time
             )
 
@@ -368,14 +365,14 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
             (pm.cpu_cores_capacity * pm.cpu_utilization - vm.cpu_cores_requirement * vm.cpu_utilization)
             / pm.cpu_cores_capacity
         )
-        pm.update_utilization(tick=finish_event.tick, cpu_utilization=pm_cpu_utilization)
+        pm.cpu_utilization = pm_cpu_utilization
         pm.remove_vm(vm_id)
 
         # Remove dead VM.
         self._live_vms.pop(vm_id)
 
         # VM placement succeed.
-        self._success_placement += 1
+        self._successful_placement += 1
 
     def _on_action_received(self, event: CascadeEvent):
         """Callback wen we get an action from agent."""
@@ -393,7 +390,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
 
             if type(action) == AssignAction:
                 pm_id = action.pm_id
-                vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_req
+                vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_info
                 lifetime = vm.lifetime
 
                 # Update VM information.
@@ -426,9 +423,9 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
                     (pm.cpu_cores_capacity * pm.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
                     / pm.cpu_cores_capacity
                 )
-                pm.update_utilization(tick=cur_tick, cpu_utilization=pm_cpu_utilization)
+                pm.cpu_utilization = pm_cpu_utilization
 
-                self._success_allocation += 1
+                self._successful_allocation += 1
             elif type(action) == PostponeAction:
                 postpone_frequency = action.postpone_frequency
                 remaining_buffer_time = self._pending_vm_req_payload[vm_id].remaining_buffer_time
