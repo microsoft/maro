@@ -79,7 +79,10 @@ cdef class FrameBase:
             yournodes = FrameNode(YourNode, 12)
 
             def __init__(self, enable_snapshot:bool=True, snapshot_number: int = 10):
-                super().__init__(self, enable_snapshot, total_snapshots=snapshot_number)
+                super().__init__(self, enable_snapshot, total_snapshots=snapshot_number, backend_name="static or dynamic")
+
+    Currently we support 2 kinds of backend implementation for frame: static and dynamic. Dynamic backend support list attribute
+    which works list a normal python list, but only can hold decleared data type.
 
     The snapshot list is used to hold snapshot of current frame at specified point (tick or frame index), it can be
     configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach
