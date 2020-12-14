@@ -9,30 +9,18 @@ namespace maro
   {
     namespace raw
     {
-      const char* InvalidOperation::what() const noexcept
-      {
-        return "Invalid attribute data type.";
-      }
-
       Attribute::Attribute() noexcept
       {
         memset(_data, 0, ATTRIBUTE_DATA_LENGTH);
       }
 
-      Attribute::Attribute(const Attribute& attr)
-      {
-        memcpy(_data, attr._data, ATTRIBUTE_DATA_LENGTH);
-
-        _type = attr._type;
-      }
-
 // Macro for all type of constructors.
 #define CONSTRUCTOR(data_type, type_name)         \
   Attribute::Attribute(data_type value) noexcept  \
- {                                                \
-  memcpy(_data, &value, sizeof(data_type));       \
-  _type = type_name;                              \
- }
+  {                                               \
+    memcpy(_data, &value, sizeof(data_type));     \
+    _type = type_name;                            \
+  }
 
       CONSTRUCTOR(ATTR_CHAR, AttrDataType::ACHAR)
       CONSTRUCTOR(ATTR_UCHAR, AttrDataType::AUCHAR)
@@ -68,9 +56,7 @@ namespace maro
           break;
         }
 
-        cout << int(_type) << endl;
-
-        throw InvalidOperation();
+        throw AttributeInvalidDataTypeError();
       }
 
       bool Attribute::is_nan() const noexcept
@@ -90,8 +76,7 @@ namespace maro
       }
 
 // Macro for attribute getter template.
-#define GETTER(type) \
- template type Attribute::get_value<type>() const noexcept;
+#define GETTER(type) template type Attribute::get_value<type>() const noexcept;
 
       GETTER(ATTR_CHAR)
       GETTER(ATTR_UCHAR)
@@ -118,8 +103,8 @@ namespace maro
 
 // Macro for setters.
 #define SETTER(data_type, value_type)                         \
-   Attribute& Attribute::operator=(data_type value) noexcept  \
-   {                                                          \
+  Attribute& Attribute::operator=(data_type value) noexcept   \
+  {                                                           \
     memcpy(_data, &value, sizeof(data_type));                 \
     _type = value_type;                                       \
     return *this;                                             \
@@ -135,6 +120,12 @@ namespace maro
       SETTER(ATTR_ULONG, AttrDataType::AULONG)
       SETTER(ATTR_FLOAT, AttrDataType::AFLOAT)
       SETTER(ATTR_DOUBLE, AttrDataType::ADOUBLE)
+
+
+      const char* AttributeInvalidDataTypeError::what() const noexcept
+      {
+        return "Invalid attribute data type.";
+      }
     } // namespace raw
   }   // namespace backends
 } // namespace maro

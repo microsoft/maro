@@ -1,12 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#ifndef _MARO_BACKEND_RAW_ATTRIBUTE
-#define _MARO_BACKEND_RAW_ATTRIBUTE
+#ifndef _MARO_BACKEND_RAW_ATTRIBUTE_
+#define _MARO_BACKEND_RAW_ATTRIBUTE_
 
-#include <iostream>
-#include <math.h>
 #include <string>
+#include <math.h>
 
 #include "common.h"
 
@@ -18,16 +17,8 @@ namespace maro
   {
     namespace raw
     {
+      // Length of the attribute data.
       const int ATTRIBUTE_DATA_LENGTH = 8;
-      
-      /// <summary>
-      /// Invalid casting
-      /// </summary>
-      class InvalidOperation : public exception
-      {
-      public:
-        const char* what() const noexcept override;
-      };
 
       /// <summary>
       /// Trait struct to support getter template.
@@ -39,7 +30,7 @@ namespace maro
       };
 
       /// <summary>
-      /// Attribute for a node, used to hold all supported data type
+      /// Attribute for a node, used to hold all supported data type.
       /// </summary>
       class Attribute
       {
@@ -53,9 +44,8 @@ namespace maro
         // Slot number of list attribute, it will alway be 0 for fixed size attribute.
         SLOT_INDEX slot_number = 0;
 
-        // constructors
+        // Constructors
         Attribute() noexcept;
-        Attribute(const Attribute& attr);
         Attribute(ATTR_CHAR value) noexcept;
         Attribute(ATTR_UCHAR value) noexcept;
         Attribute(ATTR_SHORT value) noexcept;
@@ -73,7 +63,7 @@ namespace maro
         AttrDataType get_type() const noexcept;
 
         /// <summary>
-        /// Get
+        /// Get value of current attribute.
         /// </summary>
         template<typename T>
         typename Attribute_Trait<T>::type get_value() const noexcept;
@@ -83,10 +73,10 @@ namespace maro
         /// </summary>
         operator QUERY_FLOAT() const;
 
-        // Assignment, copy from another attribute.
+        // Assignment, copy from another attribute (deep copy).
         Attribute& operator=(const Attribute& attr) noexcept;
 
-        // Setters
+        // Setters.
         // NOTE: setters will change its type.
         Attribute& operator=(ATTR_CHAR value) noexcept;
         Attribute& operator=(ATTR_UCHAR value) noexcept;
@@ -104,6 +94,15 @@ namespace maro
         /// </summary>
         /// <returns>True if value is nan, or false.</returns>
         bool is_nan() const noexcept;
+      };
+
+
+      /// <summary>
+      /// Invalid casting
+      /// </summary>
+      struct AttributeInvalidDataTypeError : public exception
+      {
+        const char* what() const noexcept override;
       };
     } // namespace raw
   }   // namespace backends
