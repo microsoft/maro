@@ -34,7 +34,7 @@ total_latency (int): Accumulative used buffer time until now.
 """
 
 
-class DataCenterBusinessEngine(AbsBusinessEngine):
+class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def __init__(
         self,
         event_buffer: EventBuffer,
@@ -46,7 +46,7 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         additional_options: dict = {}
     ):
         super().__init__(
-            scenario_name="data_center", event_buffer=event_buffer, topology=topology, start_tick=start_tick,
+            scenario_name="vm_scheduling", event_buffer=event_buffer, topology=topology, start_tick=start_tick,
             max_tick=max_tick, snapshot_resolution=snapshot_resolution, max_snapshots=max_snapshots,
             additional_options=additional_options
         )

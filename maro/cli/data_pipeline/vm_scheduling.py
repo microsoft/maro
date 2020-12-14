@@ -16,10 +16,10 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class DataCenterPipeline(DataPipeline):
-    """Generate data_center data and other necessary files for the specified topology.
+class VmSchedulingPipeline(DataPipeline):
+    """Generate vm_scheduling Pipeline data and other necessary files for the specified topology.
 
-    The files will be generated in ~/.maro/data/data_center.
+    The files will be generated in ~/.maro/data/vm_scheduling.
     """
 
     _download_file_name = "AzurePublicDatasetLinksV2.txt"
@@ -33,7 +33,7 @@ class DataCenterPipeline(DataPipeline):
     _meta_file_name = "vmtable.yml"
 
     def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp: bool = False):
-        super().__init__(scenario="data_center", topology=topology, source=source, is_temp=is_temp)
+        super().__init__(scenario="vm_scheduling", topology=topology, source=source, is_temp=is_temp)
 
         self._sample = sample
         self._seed = seed
@@ -250,10 +250,10 @@ class DataCenterTopology(DataTopology):
 
 
 class DataCenterProcess:
-    """Contains all predefined data topologies of data_center scenario."""
+    """Contains all predefined data topologies of vm_scheduling scenario."""
 
     meta_file_name = "source_urls.yml"
-    meta_root = os.path.join(StaticParameter.data_root, "data_center/meta")
+    meta_root = os.path.join(StaticParameter.data_root, "vm_scheduling/meta")
 
     def __init__(self, is_temp: bool = False):
         self.topologies = {}

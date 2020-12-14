@@ -8,7 +8,7 @@ from .virtual_machine import VirtualMachine
 
 
 class Action:
-    """Data center scenario action object, which was used to pass action from agent to business engine.
+    """VM Scheduling scenario action object, which was used to pass action from agent to business engine.
 
     Args:
         vm_id (int): The VM id.
@@ -68,7 +68,7 @@ class VmFinishedPayload:
 
 
 class DecisionPayload:
-    """Decision event in Data center scenario that contains information for agent to choose action.
+    """Decision event in VM Scheduling scenario that contains information for agent to choose action.
 
     Args:
         valid_pms (List[]): A list contains ValidPhysicalMachine object.

@@ -6,7 +6,7 @@ import timeit
 import yaml
 
 from maro.simulator import Env
-from maro.simulator.scenarios.data_center import AssignAction, DecisionPayload, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AssignAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
 
 CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
