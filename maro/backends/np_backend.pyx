@@ -356,11 +356,6 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
         return node.number
 
-    cdef SLOT_INDEX get_slots_number(self, ATTR_TYPE attr_type) except +:
-        cdef AttrInfo attr = self._backend._attrs_list[attr_type]
-
-        return attr.slot_number
-
     cdef list get_frame_index_list(self) except +:
         return list(self._tick2index_dict.keys())
 

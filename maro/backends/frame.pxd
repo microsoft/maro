@@ -289,9 +289,6 @@ cdef class NodeBase:
     # Internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *
 
-    # Internal update, used to support dynamic node
-    cdef void _update(self) except *
-
 
 cdef class NodeAttribute:
     """Helper class used to declare an attribute in node that inherit from NodeBase.

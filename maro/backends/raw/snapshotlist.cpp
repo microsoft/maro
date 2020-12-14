@@ -66,6 +66,13 @@ namespace maro
         return _max_size;
       }
 
+      NODE_INDEX SnapshotList::get_max_node_number(NODE_TYPE node_type) const
+      {
+        auto& cur_node = _cur_frame->get_node(node_type);
+
+        return cur_node.get_max_number();
+      }
+
       void SnapshotList::reset()
       {
         _snapshots.clear();
@@ -396,6 +403,10 @@ namespace maro
         is_list = false;
       }
 
+      void SnapshotList::dump(string path)
+      {
+
+      }
 
       const char* InvalidSnapshotTick::what() const noexcept
       {

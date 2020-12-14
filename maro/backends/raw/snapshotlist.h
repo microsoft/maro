@@ -151,6 +151,8 @@ namespace maro
 
         void get_ticks(int* result) const;
 
+        NODE_INDEX get_max_node_number(NODE_TYPE node_type) const;
+
         SnapshotQueryResultShape prepare(NODE_TYPE node_type, int ticks[], UINT tick_length,
           NODE_INDEX node_indices[], UINT node_length, ATTR_TYPE attributes[], UINT attr_length);
 

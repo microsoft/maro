@@ -27,11 +27,11 @@ from maro.backends.np_backend cimport NumpyBackend
 from maro.backends.raw_backend cimport RawBackend
 
 backend_dict = {
-    "raw" : RawBackend,
-    "np" : NumpyBackend
+    "dynamic" : RawBackend,
+    "static" : NumpyBackend
 }
 
-_default_backend_name = "np"
+_default_backend_name = "static"
 
 NP_SLOT_INDEX = np.uint32
 NP_NODE_INDEX = np.uint32
@@ -61,6 +61,8 @@ cdef class NodeAttribute:
 
 # Wrapper to provide easy way to access attribute value of specified node
 # with this wrapper, user can get/set attribute value more easily.
+# TODO: support list attribute, this kind of attribute only support slice interface to get/set if 
+# index avaliable, or use append/resize/clear
 cdef class _NodeAttributeAccessor:
     cdef:
         # Target node index
@@ -241,16 +243,6 @@ cdef class NodeBase:
                 if cb_func is not None:
                     attr_acc.on_value_changed(cb_func)
 
-    cdef void _update(self) except *:
-        cdef dict __dict__ = self.__dict__
-        cdef str attr_name
-
-        for attr_name, attr in __dict__.items():
-            attr = __dict__[attr_name]
-
-            if isinstance(attr, _NodeAttributeAccessor):
-                attr._slot_number = self._backend.snapshots.get_slots_number(attr._attr_type)
-
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
         if self._is_deleted:
@@ -309,7 +301,7 @@ cdef class FrameBase:
         # use numpy if backend name is invalid
         backend = backend_dict.get(backend_name, NumpyBackend)
 
-        self._backend_name = "numpy" if backend == NumpyBackend else "raw"
+        self._backend_name = "static" if backend == NumpyBackend else "dynamic"
 
         self._backend = backend()
 
@@ -360,8 +352,6 @@ cdef class FrameBase:
                     else:
                         node._is_deleted = False
 
-                        # Update node internal states
-                        node._update()
 
     cpdef void take_snapshot(self, INT tick) except *:
         """Take snapshot for specified point (tick) for current frame.
@@ -417,7 +407,6 @@ cdef class FrameBase:
                 node = self._node_cls_dict[node_name]()
 
                 node.setup(self._backend, len(node_list), node_type, first_node._attributes)
-                node._update()
 
                 node_list.append(node)
 

@@ -117,6 +117,26 @@ namespace maro
         node.append_nodes(node_number);
       }
 
+      void Frame::remove_node(NODE_TYPE node_type, NODE_INDEX node_index)
+      {
+        ensure_setup();
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+        
+        node.remove_node(node_index);
+      }
+
+      void Frame::resume_node(NODE_TYPE node_type, NODE_INDEX node_index)
+      {
+        ensure_setup();
+        ensure_node_type(node_type);
+
+        auto& node = _nodes[node_type];
+        
+        node.remove_node(node_index);
+      }
+
       void Frame::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
       {
         ensure_setup();
@@ -260,6 +280,12 @@ namespace maro
       ATTRIBUTE_APPENDER(ATTR_ULONG)
       ATTRIBUTE_APPENDER(ATTR_FLOAT)
       ATTRIBUTE_APPENDER(ATTR_DOUBLE)
+
+
+      void Frame::dump(string folder) const
+      {
+
+      }
 
       const char* FrameNotSetupError::what() const noexcept
       {

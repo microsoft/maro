@@ -4,6 +4,7 @@
 #ifndef  _MARO_BACKENDS_RAW_FRAME_
 #define _MARO_BACKENDS_RAW_FRAME_
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -102,6 +103,14 @@ namespace maro
         /// <param name="node_number">Number to append.</param>
         void append_node(NODE_TYPE node_type, NODE_INDEX node_number);
 
+        void remove_node(NODE_TYPE node_type, NODE_INDEX node_index);
+
+        /// <summary>
+        /// Resume a node instance.
+        /// </summary>
+        /// <param name="node_index">Index of node instance to resume.</param>
+        void resume_node(NODE_TYPE node_type, NODE_INDEX node_index);
+
         /// <summary>
         /// Get value from specified attribute.
         /// </summary>
@@ -158,6 +167,8 @@ namespace maro
         /// Reset current frame, it will recover the node instance number to pre-defined one.
         /// </summary>
         void reset();
+
+        void dump(string folder) const;
 
         /// <summary>
         /// Check if specified node type exist or not.

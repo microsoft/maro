@@ -54,9 +54,6 @@ cdef class SnapshotListAbc:
     # Get number of specified node
     cdef NODE_INDEX get_node_number(self, NODE_TYPE node_type) except +
 
-    # Get number of slots for specified attribute
-    cdef SLOT_INDEX get_slots_number(self, ATTR_TYPE attr_type) except +
-
     # Enable history, history will dump backend into files each time take_snapshot called
     cdef void enable_history(self, str history_folder) except +
 
