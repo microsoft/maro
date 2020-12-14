@@ -13,7 +13,7 @@ namespace maro
       {
         if (_cur_frame == nullptr)
         {
-          throw SnapshotInvalidFrameState();
+          throw SnapshotInvalidFrameStateError();
         }
       }
 
@@ -21,7 +21,7 @@ namespace maro
       {
         if (_max_size == 0)
         {
-          throw InvalidSnapshotSize();
+          throw SnapshotSizeError();
         }
       }
 
@@ -44,15 +44,16 @@ namespace maro
         ensure_max_size();
         ensure_cur_frame();
 
-        // try to remove exist tick
+        // Try to remove exist tick.
         _snapshots.erase(tick);
 
+        // Remove oldest one if we reach the max size limitation.
         if (_snapshots.size() > 0 && _snapshots.size() >= _max_size)
         {
           _snapshots.erase(_snapshots.begin());
         }
 
-        // copy current frame
+        // Copy current frame.
         _snapshots[tick] = *_cur_frame;
       }
 
@@ -82,7 +83,7 @@ namespace maro
       {
         if (result == nullptr)
         {
-          throw SnapshotQueryResultPtrNull();
+          throw SnapshotQueryResultPtrNullError();
         }
 
         auto i = 0;
@@ -100,7 +101,7 @@ namespace maro
 
         if (attributes == nullptr)
         {
-          throw SnapshotQueryNoAttributes();
+          throw SnapshotQueryNoAttributesError();
         }
 
         // Node in current frame, used to get attribute definition.
@@ -141,13 +142,13 @@ namespace maro
           // Make sure we have at least one tick.
           if (_snapshots.size() == 0)
           {
-            throw SnapshotQueryNoSnapshots();
+            throw SnapshotQueryNoSnapshotsError();
           }
 
           // There must be 1 node index for list attribute querying.
           if (node_indices == nullptr)
           {
-            throw SnapshotListQueryNoNodeIndex();
+            throw SnapshotListQueryNoNodeIndexError();
           }
 
           // 1 tick, 1 node and 1 attribute for list attribute querying.
@@ -164,7 +165,7 @@ namespace maro
 
           if (target_tick_pair == _snapshots.end())
           {
-            throw SnapshotQueryNoSnapshots();
+            throw SnapshotQueryNoSnapshotsError();
           }
 
           auto& snapshot = target_tick_pair->second;
@@ -173,7 +174,7 @@ namespace maro
           // Check if the node index exist.
           if (!history_node.is_node_alive(target_node_index))
           {
-            throw SnapshotListQueryNoNodeIndex();
+            throw SnapshotListQueryNoNodeIndexError();
           }
 
           shape.max_slot_number = history_node.get_slot_number(target_node_index, first_attr_type);
@@ -199,14 +200,13 @@ namespace maro
       {
         if (!_is_prepared)
         {
-          throw SnapshotQueryNotPrepared();
+          throw SnapshotQueryNotPreparedError();
         }
 
         _is_prepared = false;
 
         if (!_query_parameters.is_list)
         {
-          // normal querying
           query_for_normal(result);
         }
         else
@@ -220,7 +220,6 @@ namespace maro
       void SnapshotList::query_for_list(QUERY_FLOAT* result)
       {
         auto* ticks = _query_parameters.ticks;
-
         auto max_slot_number = _query_parameters.max_slot_number;
         auto tick = ticks == nullptr ? _snapshots.rbegin()->first : ticks[0];
         auto node_index = _query_parameters.node_indices[0];
@@ -360,23 +359,21 @@ namespace maro
 
         if (attr_def.is_const)
         {
+          // If it is a const attribute, retrieve from const block.
           return cur_node.get_attr(node_index, attr_type, slot_index);
         }
         else
         {
           if (attr_def.is_list)
           {
-            auto& target_attr = history_node._dynamic_block[node_index * history_node._dynamic_size_per_node + attr_def.offset];
+            auto attr_offset = compose_attr_offset_in_node(node_index, history_node._dynamic_size_per_node, attr_def.offset);
+            auto& target_attr = history_node._dynamic_block[attr_offset];
 
-            if (slot_index >= target_attr.slot_number)
-            {
-              return _nan_attr;
-            }
-
-            const auto& list_index = target_attr.get_value<ATTR_UINT>();
+            const auto list_index = target_attr.get_value<ATTR_UINT>();
 
             auto& target_list = history_node._list_store[list_index];
 
+            // Check slot for list attribute.
             if (slot_index >= target_list.size())
             {
               return _nan_attr;
@@ -385,12 +382,15 @@ namespace maro
             return target_list[slot_index];
           }
 
+          // Make sure the node index correct.
           if (node_index >= history_node._max_node_number)
           {
             return _nan_attr;
           }
 
-          return history_node._dynamic_block[node_index * history_node._dynamic_size_per_node + attr_def.offset + slot_index];
+          auto attr_offset = compose_attr_offset_in_node(node_index, history_node._dynamic_size_per_node, attr_def.offset, slot_index);
+
+          return history_node._dynamic_block[attr_offset];
         }
       }
 
@@ -413,47 +413,47 @@ namespace maro
 
       }
 
-      const char* InvalidSnapshotTick::what() const noexcept
+      const char* SnapshotTickError::what() const noexcept
       {
         return "Invalid tick to take snapshot, same tick must be used sequentially.";
       }
 
-      const char* InvalidSnapshotSize::what() const noexcept
+      const char* SnapshotSizeError::what() const noexcept
       {
         return "Invalid snapshot list max size, it must be larger than 0.";
       }
 
-      const char* SnapshotQueryNotPrepared::what() const noexcept
+      const char* SnapshotQueryNotPreparedError::what() const noexcept
       {
         return "Query must be after prepare function.";
       }
 
-      const char* SnapshotQueryNoAttributes::what() const noexcept
+      const char* SnapshotQueryNoAttributesError::what() const noexcept
       {
         return "Attribute list for query should contain at least 1.";
       }
 
-      const char* SnapshotInvalidFrameState::what() const noexcept
+      const char* SnapshotInvalidFrameStateError::what() const noexcept
       {
         return "Not set frame before operations.";
       }
 
-      const char* SnapshotQueryResultPtrNull::what() const noexcept
+      const char* SnapshotQueryResultPtrNullError::what() const noexcept
       {
         return "Result pointer is NULL.";
       }
 
-      const char* SnapshotQueryInvalidTick::what() const noexcept
+      const char* SnapshotQueryInvalidTickError::what() const noexcept
       {
         return "Only support one tick to query for list attribute, and the tick must exist.";
       }
 
-      const char* SnapshotQueryNoSnapshots::what() const noexcept
+      const char* SnapshotQueryNoSnapshotsError::what() const noexcept
       {
         return "List attribute querying need at lease one snapshot, it does not support invalid tick padding.";
       }
 
-      const char* SnapshotListQueryNoNodeIndex::what() const noexcept
+      const char* SnapshotListQueryNoNodeIndexError::what() const noexcept
       {
         return "List attribute querying need one alive node index.";
       }

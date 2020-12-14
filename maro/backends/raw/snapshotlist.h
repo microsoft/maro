@@ -116,7 +116,10 @@ namespace maro
         // if invalid.
         Attribute& get_attr(int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) noexcept;
 
+        // Make sure currect frame not null.
         inline void ensure_cur_frame();
+
+        // Make sure max size greater than 0.
         inline void ensure_max_size();
       public:
         /// <summary>
@@ -143,94 +146,125 @@ namespace maro
         /// <returns>Number of current snapshots.</returns>
         UINT size() const noexcept;
 
+        /// <summary>
+        /// Get max size of current snapshot list.
+        /// </summary>
+        /// <returns>Max number of snapshot list.</returns>
         UINT max_size() const noexcept;
 
+        /// <summary>
+        /// Reset snapshot list states.
+        /// </summary>
         void reset();
 
+        /// <summary>
+        /// Dump current snapshots into folder, node will be split into different files.
+        /// </summary>
         void dump(string path);
 
+        /// <summary>
+        /// Get avaiable ticks from snapshot list.
+        /// </summary>
+        /// <param name="result">List pointer to hold ticks.</param>
         void get_ticks(int* result) const;
 
+        /// <summary>
+        /// Get current max node number for specified node type.
+        /// </summary>
+        /// <param name="node_type">Target node type.</param>
+        /// <returns>Max node number.</returns>
         NODE_INDEX get_max_node_number(NODE_TYPE node_type) const;
 
+        /// <summary>
+        /// Prepare for querying.
+        /// </summary>
+        /// <param name="node_type">Target node type.</param>
+        /// <param name="ticks">Ticks to query, leave it as null to retrieve all avaible ticks from snapshots.
+        /// NOTE: if it is null, then use latest tick for list attribute querying.</param>
+        /// <param name="tick_length">Number of ticks to query.</param>
+        /// <param name="node_indices">Indices of node instance to query, leave it as null to retrieve all node instance from snapshots.
+        /// NOTE: it cannot be null if qury for list attribute</param>
+        /// <param name="node_length">Number of node instance to query.</param>
+        /// <param name="attributes">Attribute type list to query, cannot be null.
+        /// NOTE: if first attribute if a list attribute, then there will be a list querying, means only support 1 tick, 1 node, 1 attribute querying.
+        /// </param>
+        /// <param name="attr_length">Target node type.</param>
+        /// <returns>Result shape for input query parameters.</returns>
         SnapshotQueryResultShape prepare(NODE_TYPE node_type, int ticks[], UINT tick_length,
           NODE_INDEX node_indices[], UINT node_length, ATTR_TYPE attributes[], UINT attr_length);
 
+        /// <summary>
+        /// Qeury with parameters from prepare function.
+        /// </summary>
+        /// <param name="result">Pointer to list to hold result value. NOTE: query function will leave the default value for padding.</param>
         void query(QUERY_FLOAT* result);
 
+        /// <summary>
+        /// Cancel current querying, this will clear the parameters from last prepare calling.
+        /// </summary>
         void cancel_query() noexcept;
-
       };
 
       /// <summary>
      /// Tick not supported, like negative tick
      /// </summary>
-      class InvalidSnapshotTick : public exception
+      struct SnapshotTickError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Snapshot list max size is 0
       /// </summary>
-      class InvalidSnapshotSize : public exception
+      struct SnapshotSizeError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Query without call prepare function
       /// </summary>
-      class SnapshotQueryNotPrepared : public exception
+      struct SnapshotQueryNotPreparedError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Attribute not exist when querying
       /// </summary>
-      class SnapshotQueryNoAttributes : public exception
+      struct SnapshotQueryNoAttributesError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Frame not set before operations
       /// </summary>
-      class SnapshotInvalidFrameState : public exception
+      struct SnapshotInvalidFrameStateError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Array pointer is nullptr
       /// </summary>
-      class SnapshotQueryResultPtrNull : public exception
+      struct SnapshotQueryResultPtrNullError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class SnapshotQueryInvalidTick : public exception
+      struct SnapshotQueryInvalidTickError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class SnapshotQueryNoSnapshots : public exception
+      struct SnapshotQueryNoSnapshotsError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class SnapshotListQueryNoNodeIndex : public exception
+      struct SnapshotListQueryNoNodeIndexError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
     }
