@@ -276,7 +276,7 @@ cdef class NodeBase:
 
         bool _is_deleted
 
-        # Attriubtes: name -> id.
+        # Attriubtes: name -> type.
         dict _attributes
 
         # Enable dynamic attributes

@@ -399,7 +399,6 @@ cdef class FrameBase:
             first_node = node_list[0]
             node_type = first_node._type
 
-            # Same node type shared one node id
             self._backend.append_node(node_type, number)
 
             # Append instance to list
