@@ -6,7 +6,7 @@ import datetime
 import json
 
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import DeploymentError, CommandExecutionError
+from maro.utils.exception.cli_exception import CommandExecutionError, DeploymentError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
