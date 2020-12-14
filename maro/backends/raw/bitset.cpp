@@ -9,7 +9,6 @@ namespace maro
   {
     namespace raw
     {
-
       inline size_t ceil_to_times(UINT number)
       {
         auto bits = sizeof(ULONG) * BITS_PER_BYTE;
@@ -78,6 +77,7 @@ namespace maro
         }
 
         ULONG i = floorl(index / BITS_PER_MASK);
+
         auto offset = index % BITS_PER_MASK;
 
         auto mask = _masks[i];
@@ -99,7 +99,7 @@ namespace maro
 
         if (value)
         {
-          // set to 1
+          // Set to 1.
           _masks[i] |= 0x1ULL << offset;
         }
         else
@@ -108,7 +108,8 @@ namespace maro
         }
       }
 
-      const char* IndexOutRange::what() const noexcept
+
+      const char* BitsetIndexOutRangeError::what() const noexcept
       {
         return "Index of bit flag out of range.";
       }
