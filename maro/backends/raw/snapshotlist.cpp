@@ -47,7 +47,7 @@ namespace maro
         // try to remove exist tick
         _snapshots.erase(tick);
 
-        if (_snapshots.size() > 0 && _snapshots.size() > _max_size)
+        if (_snapshots.size() > 0 && _snapshots.size() >= _max_size)
         {
           _snapshots.erase(_snapshots.begin());
         }
@@ -111,7 +111,7 @@ namespace maro
         // We use first attribute determine the type of current querying.
         _query_parameters.is_list = attr_definition.is_list;
 
-        shape.max_node_number = cur_node.get_max_number();
+        shape.max_node_number = node_indices == nullptr ? cur_node.get_max_number() : node_length;
         shape.tick_number = ticks == nullptr ? _snapshots.size() : tick_length;
 
         if (!_query_parameters.is_list)
