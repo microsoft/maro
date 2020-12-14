@@ -19,7 +19,7 @@ from maro.cli.utils.naming import generate_cluster_id, generate_component_id, ge
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import FileOperationError, BadRequestError
+from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)

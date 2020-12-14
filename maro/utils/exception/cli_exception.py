@@ -4,8 +4,8 @@
 
 from .base_exception import MAROException
 
-
 # First Layer.
+
 
 class CliError(MAROException):
     """ Base class for all MARO CLI errors."""
@@ -23,6 +23,7 @@ class CliError(MAROException):
 
 
 # Second Layer.
+
 
 class UserFault(CliError):
     """ Users should be responsible for the errors.

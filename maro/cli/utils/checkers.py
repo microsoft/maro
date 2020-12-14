@@ -26,7 +26,7 @@ def check_details_validity(func):
                 raise ClusterInternalError(f"Cluster details are broken: Invalid mode '{cluster_details['mode']}'.")
         except FileNotFoundError:
             raise BadRequestError(f"Cluster '{cluster_name}' is not found.")
-        except KeyError as e:
+        except KeyError:
             raise ClusterInternalError("Cluster details are broken: Missing key 'mode'.")
 
         func(*args, **kwargs)
