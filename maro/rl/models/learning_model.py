@@ -74,7 +74,7 @@ class LearningModule(nn.Module):
         """
         return self._net(inputs)
 
-    def zero_grad(self):
+    def zero_gradients(self):
         if not self._is_trainable:
             raise MissingOptimizerError("No optimizer registered to the model")
         self._optimizer.zero_grad()
@@ -165,9 +165,9 @@ class LearningModuleManager(nn.Module):
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         for task_module in self._task_module_dict.values():
-            task_module.zero_grad()
+            task_module.zero_gradients()
         if self._shared_module is not None:
-            self._shared_module.zero_grad()
+            self._shared_module.zero_gradients()
 
         # Obtain gradients through back-propagation
         loss.backward()
