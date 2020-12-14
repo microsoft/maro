@@ -1,8 +1,22 @@
 # Initial buffer time budget.
-buffer_time_budget: 0
+BUFFER_TIME_BUDGET: 0
 # The number of ticks to delay when agent decides not to assign VM.
-delay_duration: 1
+DELAY_DURATION: 1
 
-vm_table: "/mnt/d/kuanwei/data/test_336k/build/vmtable.bin"
+VM_TABLE: "/mnt/d/kuanwei/data/test_336k/build/vmtable.bin"
 
-cpu_readings: "/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-1-of-195.bin"
+CPU_READINGS: "/mnt/d/kuanwei/data/test_336k/build/vm_cpu_readings-file-1-of-195.bin"
+
+PM:
+  P1:
+    AMOUNT: 880
+    CPU: 16
+    MEMORY: 112
+    GPU: 4
+    POWER_CURVE:
+      # The calibration parameter used for the CPU utilization vs energy consumption model.
+      CALIBRATION_PARAMETER: 1.4
+      # The idle power usage of a machine.
+      BUSY_POWER: 10
+      # The busy power usage of a machine.
+      IDLE_POWER: 1
