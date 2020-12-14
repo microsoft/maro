@@ -15,7 +15,7 @@ from maro.utils.exception.cli_exception import CliError, CommandNotFoundError
 from maro.utils.logger import CliLogger
 
 MARO_BANNER = """
- __  __    _    ____   ___
+___  __    _    ____   ___
 |  \/  |  / \  |  _ \ / _ \\
 | |\/| | / _ \ | |_) | | | |
 | |  | |/ ___ \|  _ <| |_| |
