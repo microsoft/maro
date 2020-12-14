@@ -91,7 +91,7 @@ namespace maro
       {
         if (index >= _bit_size)
         {
-          throw IndexOutRange();
+          throw BitsetIndexOutRangeError();
         }
 
         ULONG i = floorl(index / BITS_PER_MASK);
