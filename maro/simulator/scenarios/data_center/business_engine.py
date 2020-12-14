@@ -82,9 +82,6 @@ class DataCenterBusinessEngine(AbsBusinessEngine):
         self._cpu_reader = CpuReader(self._config.CPU_READINGS)
 
         self._tick: int = 0
-        self._pending_action_vm_id: int = -1
-
-
 
     @property
     def configs(self) -> dict:

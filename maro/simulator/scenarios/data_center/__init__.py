@@ -4,7 +4,7 @@
 from .business_engine import DataCenterBusinessEngine
 from .common import (
     Action, AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine,
-    VmFinishedPayload, VmRequirementPayload
+    VmFinishedPayload, VmRequestPayload
 )
 from .cpu_reader import CpuReader
 from .events import Events
@@ -19,7 +19,7 @@ __all__ = [
     "PostponeType",
     "ValidPhysicalMachine"
     "VmFinishedPayload",
-    "VmRequirementPayload",
+    "VmRequestPayload",
     "CpuReader",
     "Events",
     "PhysicalMachine",

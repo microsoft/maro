@@ -12,7 +12,8 @@ PM:
     AMOUNT: 880
     CPU: 16
     MEMORY: 112
-    GPU: 4
+    # GPU: 4
+    # NOTE: Energy comsumption parameters should refer to more research.
     POWER_CURVE:
       # The calibration parameter used for the CPU utilization vs energy consumption model.
       CALIBRATION_PARAMETER: 1.4

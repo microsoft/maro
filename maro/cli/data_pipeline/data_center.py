@@ -81,7 +81,7 @@ class DataCenterPipeline(DataPipeline):
                         logger.info_green(f"{self._vm_table_file} already exists, skipping download.")
                     else:
                         logger.info_green(f"Downloading vmtable from {remote_url} to {self._vm_table_file}.")
-                        self.aria2.add_uris(uris=[remote_url], options={'dir': f"{self._download_folder}"})
+                        self.aria2.add_uris(uris=[remote_url], options={'dir': self._download_folder})
 
                 elif file_name.startswith("vm_cpu_readings") and num_files > 0:
                     num_files -= 1
@@ -170,7 +170,6 @@ class DataCenterPipeline(DataPipeline):
         vm_table['vmmemorybucket'] = pd.to_numeric(vm_table['vmmemorybucket'], errors="coerce", downcast="integer")
         vm_table.dropna(inplace=True)
 
-        vm_table['lifetime'] = vm_table['vmdeleted'] - vm_table['vmcreated']
         vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
         # Generate new id column.
         vm_table = vm_table.reset_index(drop=True)

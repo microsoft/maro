@@ -58,4 +58,3 @@ class PhysicalMachine(NodeBase):
 
     def remove_vm(self, vm_id: int):
         self._live_vms.remove(vm_id)
-

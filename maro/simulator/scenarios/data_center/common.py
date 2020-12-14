@@ -41,7 +41,7 @@ class AssignAction(Action):
         self.pm_id = pm_id
 
 
-class VmRequirementPayload:
+class VmRequestPayload:
     """Payload for the VM requirement.
 
     Args:
@@ -50,8 +50,8 @@ class VmRequirementPayload:
     """
     summary_key = ["vm_info", "remaining_buffer_time"]
 
-    def __init__(self, vm_req: VirtualMachine, remaining_buffer_time: int):
-        self.vm_req = vm_req
+    def __init__(self, vm_info: VirtualMachine, remaining_buffer_time: int):
+        self.vm_info = vm_info
         self.remaining_buffer_time = remaining_buffer_time
 
 
