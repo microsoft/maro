@@ -11,13 +11,14 @@ namespace maro
     {
       inline NODE_TYPE extract_node_type(ATTR_TYPE attr_type)
       {
+        // Our ATTR_TYPE is composed with 2 parts:
+        // 2 bytes: NODE_TYPE
+        // 2 bytes: Attribute index in current node type
         return NODE_TYPE(attr_type >> 16);
       }
 
       inline void Frame::copy_from(const Frame& frame)
       {
-        _nodes.resize(frame._nodes.size());
-
         _nodes = frame._nodes;
 
         _is_setup = frame._is_setup;
@@ -35,7 +36,7 @@ namespace maro
       {
         if (node_type >= _nodes.size())
         {
-          throw FrameBadNodeType();
+          throw FrameBadNodeTypeError();
         }
       }
 
@@ -67,21 +68,21 @@ namespace maro
 
         if (node_number == 0)
         {
-          throw FrameInvalidNodeNumer();
+          throw FrameInvalidNodeNumerError();
         }
 
         _nodes.emplace_back();
 
-        auto& node = _nodes[_nodes.size() - 1];
+        // We use index as node type for easily querying.
+        NODE_TYPE node_type = _nodes.size() - 1;
+
+        auto& node = _nodes[node_type];
 
         node.set_name(node_name);
-
-        // we use index as its type for easy indexing
-        node.set_type(_nodes.size() - 1);
-
+        node.set_type(node_type);
         node.set_defined_number(node_number);
 
-        return node.get_type();
+        return node_type;
       }
 
       ATTR_TYPE Frame::add_attr(NODE_TYPE node_type, string attr_name, AttrDataType data_type,
@@ -109,56 +110,39 @@ namespace maro
 
       void Frame::append_node(NODE_TYPE node_type, NODE_INDEX node_number)
       {
-        ensure_setup();
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
 
         node.append_nodes(node_number);
       }
 
       void Frame::remove_node(NODE_TYPE node_type, NODE_INDEX node_index)
       {
-        ensure_setup();
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
         
         node.remove_node(node_index);
       }
 
       void Frame::resume_node(NODE_TYPE node_type, NODE_INDEX node_index)
       {
-        ensure_setup();
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
         
         node.resume_node(node_index);
       }
 
       void Frame::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
       {
-        ensure_setup();
-
         NODE_TYPE node_type = extract_node_type(attr_type);
 
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
 
         node.clear_list(node_index, attr_type);
       }
 
       void Frame::resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size)
       {
-        ensure_setup();
-
         NODE_TYPE node_type = extract_node_type(attr_type);
 
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
 
         node.resize_list(node_index, attr_type, new_size);
       }
@@ -196,13 +180,9 @@ namespace maro
       template<typename T>
       typename Attribute_Trait<T>::type Frame::get_value(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
       {
-        ensure_setup();
-
         NODE_TYPE node_type = extract_node_type(attr_type);
 
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
 
         auto& target_attr = node.get_attr(node_index, attr_type, slot_index);
 
@@ -226,13 +206,9 @@ namespace maro
       template<typename T>
       void Frame::set_value(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value)
       {
-        ensure_setup();
-
         NODE_TYPE node_type = extract_node_type(attr_type);
 
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
 
         auto& target_attr = node.get_attr(node_index, attr_type, slot_index);
 
@@ -256,13 +232,9 @@ namespace maro
       template<typename T>
       void Frame::append_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, T value)
       {
-        ensure_setup();
-
         NODE_TYPE node_type = extract_node_type(attr_type);
 
-        ensure_node_type(node_type);
-
-        auto& node = _nodes[node_type];
+        auto& node = get_node(node_type);
 
         node.append_to_list<T>(node_index, attr_type, value);
       }
@@ -281,7 +253,6 @@ namespace maro
       ATTRIBUTE_APPENDER(ATTR_FLOAT)
       ATTRIBUTE_APPENDER(ATTR_DOUBLE)
 
-
       void Frame::dump(string folder) const
       {
 
@@ -297,17 +268,17 @@ namespace maro
         return "Cannot add new node or attribute type after setting up.";
       }
 
-      const char* FrameBadNodeType::what() const noexcept
+      const char* FrameBadNodeTypeError::what() const noexcept
       {
         return "Not exist node type.";
       }
 
-      const char* FrameBadAttributeType::what() const noexcept
+      const char* FrameBadAttributeTypeError::what() const noexcept
       {
         return "Not exist attribute type.";
       }
 
-      const char* FrameInvalidNodeNumer::what() const noexcept
+      const char* FrameInvalidNodeNumerError::what() const noexcept
       {
         return "Node number must be greater than 0.";
       }

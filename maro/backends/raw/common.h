@@ -6,7 +6,6 @@
 
 #include <cstdint>
 
-
 using namespace std;
 
 namespace maro
@@ -31,7 +30,6 @@ namespace maro
       using SLOT_INDEX = uint32_t;
       using QUERY_FLOAT = float;
 
-
       using ATTR_CHAR = char;
       using ATTR_UCHAR = unsigned char;
       using ATTR_SHORT = short;
@@ -43,6 +41,10 @@ namespace maro
       using ATTR_FLOAT = float;
       using ATTR_DOUBLE = double;
 
+
+      /// <summary>
+      /// Attribute data type.
+      /// </summary>
       enum class AttrDataType : char
       {
         ACHAR,

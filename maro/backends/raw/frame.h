@@ -32,36 +32,33 @@ namespace maro
       class Frame
       {
       private:
-        // All node types, index is the NODE_TYPE
+        // All node types, index is the NODE_TYPE.
         vector<Node> _nodes;
 
-        // Is current frame instance already being setup.
-        // Copies will be set it to true.
+        // Is current frame instance already being set up.
         bool _is_setup = false;
 
         // Copy from another frame, used for taking snapshot.
         inline void copy_from(const Frame& frame);
 
-        /// <summary>
-        /// Make sure frame already setup.
-        /// </summary>
+        // Make sure frame already setup.
         inline void ensure_setup();
 
-        /// <summary>
-        /// Make sure
-        /// </summary>
+        // Make sure node type correct.
         inline void ensure_node_type(NODE_TYPE node_type);
+
       public:
         Frame();
 
         /// <summary>
-        /// Copy contents from another frame.
+        /// Copy contents from another frame, deep copy.
         /// </summary>
         /// <param name="frame">Source frame to copy.</param>
         Frame(const Frame& frame);
 
         /// <summary>
-        /// Copy contents from another frame.
+        /// Copy contents from another frame, for taking snapshot,
+        /// copy without name, const block and attribute definitions.
         /// </summary>
         /// <param name="frame">Source frame to copy.</param>
         /// <returns>Current frame instance.</returns>
@@ -85,8 +82,9 @@ namespace maro
         /// <param name="is_const">Is this is a const attribute?</param>
         /// <param name="is_list">Is this a list attribute that without fixed slot number.</param>
         /// <returns>Type of this attribute.</returns>
-        ATTR_TYPE add_attr(NODE_TYPE node_type, string attr_name, AttrDataType data_type = AttrDataType::AINT, SLOT_INDEX slot_number = 1, bool is_const = false, bool is_list = false);
-
+        ATTR_TYPE add_attr(NODE_TYPE node_type, string attr_name,
+          AttrDataType data_type = AttrDataType::AINT, SLOT_INDEX slot_number = 1,
+          bool is_const = false, bool is_list = false);
 
         /// <summary>
         /// Get specified node.
@@ -102,11 +100,17 @@ namespace maro
         /// <param name="node_number">Number to append.</param>
         void append_node(NODE_TYPE node_type, NODE_INDEX node_number);
 
+        /// <summary>
+        /// Remove specified node instace from node type.
+        /// </summary>
+        /// <param name="node_type">Type of node.</param>
+        /// <param name="node_index">Index of node instance to remove.</param>
         void remove_node(NODE_TYPE node_type, NODE_INDEX node_index);
 
         /// <summary>
         /// Resume a node instance.
         /// </summary>
+        /// <param name="node_type">Type of node.</param>
         /// <param name="node_index">Index of node instance to resume.</param>
         void resume_node(NODE_TYPE node_type, NODE_INDEX node_index);
 
@@ -167,60 +171,63 @@ namespace maro
         /// </summary>
         void reset();
 
+        /// <summary>
+        /// Dump current frame content into specified folder, nodes will be dump into
+        /// different files.
+        /// </summary>
+        /// <param name="folder">Folder to dump file.</param>
         void dump(string folder) const;
 
         /// <summary>
         /// Check if specified node type exist or not.
         /// </summary>
-        /// <param name="node_type">TYpe of node</param>
+        /// <param name="node_type">Type of node</param>
         /// <returns>True if exist, or false.</returns>
         bool is_node_exist(NODE_TYPE node_type) const noexcept;
       };
 
+
       /// <summary>
       /// Operations before frame being setup.
       /// </summary>
-      class FrameNotSetupError : public exception
+      struct FrameNotSetupError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
+
 
       /// <summary>
       /// Try to add new node/attribute type after seting up.
       /// </summary>
-      class FrameAlreadySetupError : public exception
+      struct FrameAlreadySetupError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
+
 
       /// <summary>
-      /// Invalid node id
+      /// Invalid node type.
       /// </summary>
-      class FrameBadNodeType : public exception
+      struct FrameBadNodeTypeError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
+
 
       /// <summary>
-      /// Invalid attribute id
+      /// Invalid attribute type.
       /// </summary>
-      class FrameBadAttributeType : public exception
+      struct FrameBadAttributeTypeError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
 
-      class FrameInvalidNodeNumer : public exception
+      struct FrameInvalidNodeNumerError : public exception
       {
-      public:
         const char* what() const noexcept override;
       };
     }
   }
 }
-
 
 #endif // ! _MARO_BACKENDS_RAW_FRAME_
