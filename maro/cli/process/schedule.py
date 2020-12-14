@@ -5,11 +5,11 @@
 from maro.cli.process.executor import ProcessExecutor
 
 
-def start_schedule(deployment_path: str):
-    executor = ProcessExecutor(deployment_path=deployment_path)
-    executor.start_schedule()
+def start_schedule(deployment_path: str, **kwargs):
+    executor = ProcessExecutor()
+    executor.start_schedule(deployment_path=deployment_path)
 
 
-def stop_schedule(schedule_name: str):
-    executor = ProcessExecutor(name=schedule_name)
-    executor.stop_schedule()
+def stop_schedule(schedule_name: str, **kwargs):
+    executor = ProcessExecutor()
+    executor.stop_schedule(schedule_name=schedule_name)
