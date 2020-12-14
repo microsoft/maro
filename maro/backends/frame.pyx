@@ -378,7 +378,7 @@ cdef class FrameBase:
 
         if enable_snapshot:
             self._snapshot_list = SnapshotList(node_name_num_dict, self._backend.snapshots)
-            
+
     def dump(self, filePath):
         self._backend.dump(filePath)
 

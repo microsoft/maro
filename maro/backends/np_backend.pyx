@@ -29,7 +29,7 @@ IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
         PyTypeObject PyArray_Type
 
         np.ndarray PyArray_SimpleNewFromData(int nd, np.npy_intp * dims, int typenum, void* data)
-        
+
         np.ndarray PyArray_NewFromDescr(PyTypeObject* subtype, np.dtype descr, int nd, np.npy_intp* dims, np.npy_intp* strides, void* data, int flags, object obj)
 
 
@@ -37,7 +37,7 @@ IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
 cdef int MMAP_BUFFER_SIZE = 100
 
 
-# TODO: 
+# TODO:
 # 1. add dtype in header, to make it easy to read
 # 2. add tick for each snapshot
 cdef class NPBufferedMmap:
@@ -121,7 +121,7 @@ cdef class NumpyBackend(BackendAbc):
                 "number": node_number,
                 "attributes": {attr.name:
                     {
-                        "type": attr.dtype, 
+                        "type": attr.dtype,
                         "slots": attr.slot_number
                     } for attr in attrs}
             }
@@ -170,7 +170,7 @@ cdef class NumpyBackend(BackendAbc):
         if attr.slot_number == 1:
             attr_array[0][node_index, slot_index[0]] = value[0]
         else:
-            attr_array[0][node_index, slot_index] = value 
+            attr_array[0][node_index, slot_index] = value
 
     cdef object[object, ndim=1] get_attr_values(self, str node_name, int node_index, str attr_name, int[:] slot_indices):
         cdef np.ndarray attr_array = self._node_data_dict[node_name][attr_name]
@@ -213,11 +213,11 @@ cdef class NumpyBackend(BackendAbc):
                 shape = (snapshot_number + 1, node_number)
             else:
                 shape = (1, node_number)
-            
+
             IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
                 # for ONE_BLOCK mode, we only calculate total size we need to allocate memory
                 # shape, data type, beginning of this node
-                # NOTE: we have to keep data type here, or it will be collected by GC at sometime, 
+                # NOTE: we have to keep data type here, or it will be collected by GC at sometime,
                 # then will cause numpy array cannot get the reference
                 # , we will increase he reference later
                 node_info[node_name] = (shape, dtype, self._data_size)
@@ -249,7 +249,7 @@ cdef class NumpyBackend(BackendAbc):
 
                 self._node_data_dict[node_name] = PyArray_NewFromDescr(&PyArray_Type, dtype, 2, np_dims, NULL, &self._data[offset], np.NPY_ARRAY_C_CONTIGUOUS | np.NPY_ARRAY_WRITEABLE, None)
 
-                # NOTE: we have to increate the reference count of related dtype, 
+                # NOTE: we have to increate the reference count of related dtype,
                 # or it will cause seg fault
                 Py_INCREF(dtype)
 
@@ -261,7 +261,7 @@ cdef class NumpyBackend(BackendAbc):
         cdef str node_name
         cdef AttrInfo attr_info
         cdef np.ndarray data_arr
-        
+
         for node_name, data_arr in self._node_data_dict.items():
             # we have to reset by each attribute
             for attr_info in self._node_attr_dict[node_name]:
@@ -323,7 +323,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
             if old_tick in self._tick2index_dict:
                 del self._tick2index_dict[old_tick]
-        
+
         # recording will copy data at 1st row into _cur_index row
         for node_name, data_arr in self._backend._node_data_dict.items():
             data_arr[target_index] = data_arr[0]
@@ -363,7 +363,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
                     else:
                         # padding for tick which not exist
                         attr = self._backend._node_attr_lut[(node_name, attr_name)]
-                        retq.append(np.zeros(attr.slot_number, dtype='f'))              
+                        retq.append(np.zeros(attr.slot_number, dtype='f'))
 
         return np.concatenate(retq)
 
@@ -372,7 +372,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
         if self._is_history_enabled:
             return
 
-        self._is_history_enabled = True 
+        self._is_history_enabled = True
 
         cdef str node_name
         cdef str dump_path
@@ -382,7 +382,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
             dump_path = os.path.join(history_folder, f"{node_name}.bin")
 
             self._history_dict[node_name] = NPBufferedMmap(dump_path, data_arr.dtype, self._backend._node_num_dict[node_name])
-        
+
     cdef void reset(self) except *:
         """Reset snapshot list"""
         self._cur_index = 0
@@ -393,7 +393,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
         cdef str node_name
         cdef AttrInfo attr_info
         cdef np.ndarray data_arr
-        
+
         for node_name, data_arr in self._backend._node_data_dict.items():
             # we have to reset by each attribute
             for attr_info in self._backend._node_attr_dict[node_name]:
