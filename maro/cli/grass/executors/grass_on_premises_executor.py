@@ -204,8 +204,105 @@ class GrassOnPremisesExecutor:
 
         logger.info_green(f"The cluster {cluster_name} has been deleted.")
 
-    @staticmethod
-    def node_join_cluster():
+    def node_join_cluster(self, node_join_info: dict):
+        node_name = node_join_info["name"]
+        self._create_node_data(node_join_info)
+        self._init_node(node_name)
+
+    def _create_node_data(self, node_join_info: dict):
+
+        # Load details
+        cluster_details = self.cluster_details
+        cluster_id = cluster_details["id"]
+        node_name = node_join_info["name"]
+        master_details = cluster_details["master"]
+        master_public_ip_address = master_details["public_ip_address"]
+        node_ip_address = node_join_info["public_ip_address"]
+
+        # Get resources
+        cpu = node_join_info["resources"]["cpu"]
+        memory = node_join_info["resources"]["memory"]
+        gpu = node_join_info["gpu"]
+
+        # Save details
+        node_details = {
+            'public_ip_address': node_ip_address,
+            'private_ip_address': node_ip_address,
+            'node_size': "",
+            'resource_name': f"{cluster_id}-{node_name}-vm",
+            'hostname': f"{cluster_id}-{node_name}-vm",
+            'resources': {
+                'cpu': cpu,
+                'memory': memory,
+                'gpu': gpu
+            },
+            'containers': {}
+        }
+        self.grass_executor.remote_set_node_details(
+            node_name=node_name,
+            node_details=node_details,
+        )
+
+    def _init_node(self, node_name: str):
+        logger.info(f"Initiating node {node_name}.")
+
+        # Load details
+        cluster_details = self.cluster_details
+        admin_username = cluster_details["user"]["admin_username"]
+        node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
+        node_public_ip_address = node_details["public_ip_address"]
+
+        # Make sure the node is able to connect
+        self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
+
+        # Copy required files
+        copy_files_to_node(
+            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_node.py",
+            remote_dir="~/",
+            admin_username=admin_username, node_ip_address=node_public_ip_address)
+        copy_files_to_node(
+            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
+            remote_dir="~/",
+            admin_username=admin_username, node_ip_address=node_public_ip_address)
+
+        # Remote init node
+        self.grass_executor.remote_init_node(
+            node_name=node_name,
+            node_ip_address=node_public_ip_address
+        )
+
+        # Get public key
+        public_key = self.grass_executor.remote_get_public_key(node_ip_address=node_public_ip_address)
+
+        # Save details
+        node_details["public_key"] = public_key
+        self.grass_executor.remote_set_node_details(
+            node_name=node_name,
+            node_details=node_details
+        )
+
+        # Update node status
+        self.grass_executor.remote_update_node_status(
+            node_name=node_name,
+            action='create'
+        )
+
+        # Load images
+        self.grass_executor.remote_load_images(
+            node_name=node_name,
+            parallels=GlobalParams.PARALLELS,
+            node_ip_address=node_public_ip_address
+        )
+
+        # Load node agent service
+        self.grass_executor.remote_load_node_agent_service(
+            node_name=node_name,
+            node_ip_address=node_public_ip_address
+        )
+
+        logger.info_green(f"Node {node_name} is initialized")
+
+    def node_leave_cluster(self, node_name: str):
         pass
 
     @staticmethod

@@ -1,0 +1,21 @@
+public_ip_address: ""
+private_ip_address: ""
+node_size: ""
+resource_name: ""
+hostname: ""
+system": ""
+resources:
+  cpu: ""
+  memory: ""
+  gpu: ""
+  target_free_cpu: ""
+  target_free_memory: ""
+  target_free_gpu: ""
+  actual_free_cpu: ""
+  actual_free_memory: ""
+  actual_free_gpu: ""
+containers: {}
+public_key: ""
+image_files: {}
+state: ""
+check_time: ""

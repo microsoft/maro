@@ -183,3 +183,8 @@ class GrassExecutor:
                 continue
 
         raise CliException(f"Unable to connect to {node_ip_address}")
+
+    def remote_interactive_connect(self, node_ip_address: str):
+        command = f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} " \
+                  f""
+        SubProcess.interactive_run(command)
