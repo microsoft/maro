@@ -4,7 +4,6 @@
 #ifndef  _MARO_BACKENDS_RAW_FRAME_
 #define _MARO_BACKENDS_RAW_FRAME_
 
-#include <iostream>
 #include <string>
 #include <vector>
 

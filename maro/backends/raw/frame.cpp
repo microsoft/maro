@@ -11,7 +11,7 @@ namespace maro
     {
       inline NODE_TYPE extract_node_type(ATTR_TYPE attr_type)
       {
-        return NODE_TYPE(attr_type >> 2);
+        return NODE_TYPE(attr_type >> 16);
       }
 
       inline void Frame::copy_from(const Frame& frame)

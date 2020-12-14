@@ -99,7 +99,7 @@ namespace maro
         bool _is_setup = false;
 
         // Copy content from source node, for taking snapshot.
-        void copy_from(const Node& node);
+        void copy_from(const Node& node, bool is_deep_copy = false);
 
         inline void ensure_setup() const;
         inline void ensure_attr_index(USHORT attr_index) const;
