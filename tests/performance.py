@@ -102,7 +102,7 @@ if __name__ == "__main__":
     i = 0
     j = 0
 
-    for backend_name in ["np", "raw"]:
+    for backend_name in ["static", "dynamic"]:
         frame = build_frame(backend_name)
 
         j = 0
@@ -116,5 +116,5 @@ if __name__ == "__main__":
 
         i += 1
 
-    tg.print_categories(['np', 'raw'], chart_colors)
+    tg.print_categories(['static', 'dynamic'], chart_colors)
     tg.chart(chart_colors, chart_data, chart_args, chart_labels)
