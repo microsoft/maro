@@ -2,16 +2,17 @@
 # Licensed under the MIT license.
 
 
-import os
 import unittest
+import os
 
 from maro.event_buffer import EventBuffer, EventState
-from maro.simulator.scenarios.cim.business_engine import (CimBusinessEngine,
-                                                          CimEventType)
+from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine
 from tests.cim.mock_data_container import MockDataContainer
 from tests.utils import backends_to_test, next_step
 
 from .mock_data_container import MockDataContainer
+
+from tests.utils import next_step
 
 MAX_TICK = 20
 
@@ -74,8 +75,6 @@ class TestCimScenarios(unittest.TestCase):
 
     def test_vessel_moving_correct(self):
         for backend_name in backends_to_test:
-            print("backend name: ", backend_name)
-
             os.environ["DEFAULT_BACKEND_NAME"] = backend_name
             eb, be = setup_case("case_01")
             tick = 0
