@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import Union
+
 from maro.communication import Message, Proxy, SessionMessage
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
@@ -59,13 +61,17 @@ class Executor(object):
         self._proxy = proxy
         self._action_source = self._proxy.peers_name[self._action_source][0]
 
-    def set_ep(self, ep: int):
+    def set_ep(self, ep: Union[int, str]):
         self._current_ep = ep
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        session_id = ".".join([self._proxy.component_name, f"ep-{self._current_ep}", f"t-{self._time_step}"])
+        session_id = ".".join(
+            [self._proxy.component_name,
+             "test" if self._current_ep == "test" else f"ep-{self._current_ep}",
+             f"t-{self._time_step}"]
+        )
         payload = {self._payload_keys.STATE: model_state, self._payload_keys.AGENT_ID: agent_id}
         reply = self._proxy.send(
             SessionMessage(
@@ -78,7 +84,8 @@ class Executor(object):
             timeout=self._action_wait_timeout,
             stop_condition=lambda msg:
             msg.tag == self._message_tags.EXIT or
-            msg.tag == self._message_tags.ROLLOUT and int(msg.session_id.split("-")[-1]) > self._current_ep
+            msg.tag == self._message_tags.ROLLOUT and
+            (msg.session_id == "test" or int(msg.session_id.split("-")[-1]) > self._current_ep)
         )
         # Reset or exit
         if isinstance(reply, Message):
