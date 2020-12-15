@@ -3,7 +3,6 @@
 
 from typing import Callable
 
-from maro.utils import DummyLogger, Logger
 from maro.utils.exception.rl_toolkit_exception import (
     InfiniteTrainingLoopError, InvalidEpisodeError, UnrecognizedExplorationParameterGeneratorClass
 )
@@ -23,7 +22,6 @@ class Scheduler(object):
             DynamicExplorationParameterGenerator. Defaults to None, which means no exploration outside the algorithm.
         exploration_parameter_generator_config (dict): Configuration for the exploration parameter generator.
             Defaults to None.
-        logger (Logger): Used to log important messages.
     """
 
     def __init__(
@@ -32,8 +30,7 @@ class Scheduler(object):
         warmup_ep: int = 0,
         early_stopping_callback: Callable = None,
         exploration_parameter_generator_cls=None,
-        exploration_parameter_generator_config: dict = None,
-        logger: Logger = DummyLogger()
+        exploration_parameter_generator_config: dict = None
     ):
         if max_ep < -1:
             raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
@@ -65,8 +62,6 @@ class Scheduler(object):
                 "or DynamicExplorationParameterGenerator"
             )
 
-        self._logger = logger
-
     def __iter__(self):
         return self
 
@@ -87,9 +82,10 @@ class Scheduler(object):
     def current_ep(self):
         return self._current_ep
 
+    @property
+    def exploration_params(self):
+        return self._exploration_params
+
     def record_performance(self, performance):
         self._performance_history.append(performance)
-        self._logger.info(
-            f"ep {self._current_ep} - performance: {performance}, exploration_params: {self._exploration_params}"
-        )
         self._current_ep += 1
