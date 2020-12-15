@@ -102,8 +102,9 @@ class AbsDistLearner(ABC):
             )
             self._pending_actor_set.remove(msg.source)
 
-        # If the learner is training,
+        # If the learner is in training mode, perform model updates.
         if messages[0].payload[PayloadKey.EXPERIENCES]:
+            self._logger.info(f"{self._proxy.component_name} performing model updates...")
             self._agent_manager.train(
                 self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
             )
