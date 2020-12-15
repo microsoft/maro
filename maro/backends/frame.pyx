@@ -84,18 +84,12 @@ cdef class _NodeAttributeAccessor:
         # Enable dynamic attributes.
         dict __dict__
 
-        # Slot list cache, used to avoid to much runtime list generation.
-        # slot -> int[:]
-        dict _slot_list_cache
-
     def __cinit__(self, NodeAttribute attr, ATTR_TYPE attr_type, BackendAbc backend, NODE_INDEX node_index):
         self._attr_type = attr_type
         self._node_index = node_index
         self._slot_number = attr._slot_number
         self._is_list = attr._is_list
         self._backend = backend
-
-        self._slot_list_cache = {}
 
         # Special for list attribute, we need to slot number to support __len__
         # We will count the slot number here, though we can get it from function call
@@ -171,21 +165,17 @@ cdef class _NodeAttributeAccessor:
         # node.attribute[(0, 1)]
         cdef tuple slot_key = tuple(slot) if slot_type != slice else (slot.start, slot.stop, slot.step)
 
-        slot_list = self._slot_list_cache.get(slot_key, None)
+        slot_list = None
 
-        # If we do not have any cache, then create a new one.
-        if slot_list is None:
-            if slot_type == slice:
-                start = 0 if slot.start is None else slot.start
-                stop = self._slot_number if slot.stop is None else slot.stop
+        if slot_type == slice:
+            start = 0 if slot.start is None else slot.start
+            stop = self._slot_number if slot.stop is None else slot.stop
 
-                slot_list = np.arange(start, stop, dtype=NP_SLOT_INDEX)
-            elif slot_type == list or slot_type == tuple:
-                slot_list = np.array(slot, dtype=NP_SLOT_INDEX)
-            else:
-                raise BackendsGetItemInvalidException()
-
-            self._slot_list_cache[slot_key] = slot_list
+            slot_list = np.arange(start, stop, dtype=NP_SLOT_INDEX)
+        elif slot_type == list or slot_type == tuple:
+            slot_list = np.array(slot, dtype=NP_SLOT_INDEX)
+        else:
+            raise BackendsGetItemInvalidException()
 
         return self._backend.get_attr_values(self._node_index, self._attr_type, slot_list)
 
@@ -211,19 +201,15 @@ cdef class _NodeAttributeAccessor:
             # node.attribute[0: 2] = 1/[1,2]/ (0, 2, 3)
             slot_key = tuple(slot) if slot_type != slice else (slot.start, slot.stop, slot.step)
 
-            slot_list = self._slot_list_cache.get(slot_key, None)
+            slot_list = None
 
-            # If cache not exist, then create a new one.
-            if slot_list is None:
-                if slot_type == slice:
-                    start = 0 if slot.start is None else slot.start
-                    stop = self._slot_number if slot.stop is None else slot.stop
+            if slot_type == slice:
+                start = 0 if slot.start is None else slot.start
+                stop = self._slot_number if slot.stop is None else slot.stop
 
-                    slot_list = np.arange(start, stop, dtype=NP_SLOT_INDEX)
-                elif slot_type == list or slot_type == tuple:
-                    slot_list = np.array(slot, dtype=NP_SLOT_INDEX)
-
-                self._slot_list_cache[slot_key] = slot_list
+                slot_list = np.arange(start, stop, dtype=NP_SLOT_INDEX)
+            elif slot_type == list or slot_type == tuple:
+                slot_list = np.array(slot, dtype=NP_SLOT_INDEX)
 
             slot_length = len(slot_list)
 
