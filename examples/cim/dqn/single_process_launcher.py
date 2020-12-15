@@ -19,7 +19,7 @@ from maro.utils import Logger, convert_dottable
 
 def launch(config):
     # First determine the input dimension and add it to the config.
-    set_input_dim(config.env)
+    set_input_dim(config["env"])
     config = convert_dottable(config)
     # Step 1: Initialize a CIM environment for using a toy dataset.
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)

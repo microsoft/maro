@@ -15,7 +15,7 @@ from maro.utils import Logger, convert_dottable
 
 
 def launch(config, distributed_config):
-    set_input_dim(config.env)
+    set_input_dim(config["env"])
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
