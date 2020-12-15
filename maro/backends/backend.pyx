@@ -41,7 +41,7 @@ cdef class BackendAbc:
     cdef NODE_TYPE add_node(self, str name, NODE_INDEX number) except +:
         pass
 
-    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
         pass
 
     cdef void set_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index, object value) except +:

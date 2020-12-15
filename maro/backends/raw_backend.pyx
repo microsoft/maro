@@ -106,7 +106,7 @@ cdef class RawBackend(BackendAbc):
 
         return type
 
-    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
         cdef AttrDataType dt = AINT
 
         # TODO: refactor later
@@ -121,7 +121,7 @@ cdef class RawBackend(BackendAbc):
         elif dtype == "d":
             dt = ADOUBLE
 
-        cdef ATTR_TYPE attr_type = self._frame.add_attr(node_type, attr_name.encode(), dt, slot_num, False, False)
+        cdef ATTR_TYPE attr_type = self._frame.add_attr(node_type, attr_name.encode(), dt, slot_num, is_const, is_list)
 
         cdef AttributeAccessor acc = attribute_accessors[dtype]()
 

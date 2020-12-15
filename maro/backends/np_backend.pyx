@@ -129,7 +129,7 @@ cdef class NumpyBackend(BackendAbc):
 
         return new_node.type
 
-    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
         """Add a new attribute for specified node with data type and slot number"""
         if node_type >= len(self._nodes_list):
             raise Exception("Invalid node type.")

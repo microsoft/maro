@@ -300,11 +300,24 @@ cdef class NodeAttribute:
 
     Args:
         dtype(str): Type of this attribute, it support following data types.
-        slots(int): If this number greater than 1, then it will be treat as an array, this will be the array size.
+        slots(int): If this number greater than 1, then it will be treat as an array, this will be the array size,
+            this value cannot be changed after definition, max value is 2^32.
+        is_const(bool): Is this is a const attribute, True means this attribute will not be copied into snapshot list,
+            share between current frame and snapshots. Default is False.
+        is_list(bool): Is this is a list attribute, True means this attribute works like a list (max size is 2^32),
+            without a fixed size like normal attribute. NOTE: a list attribute cannot be const, it will cause exception,
+            and its default slot number will be 0, but can be resized.
+            Default is False.
     """
     cdef:
-        # data type of attribute, same as numpy string dtype
+        # Data type of attribute, same as numpy string dtype.
         public str _dtype
 
-        # array size of tis attribute
+        # Array size of tis attribute.
         public SLOT_INDEX _slot_number
+        
+        # Is this is a const attribute?
+        public bool _is_const
+
+        # Is this is a list attribute?
+        public bool _is_list

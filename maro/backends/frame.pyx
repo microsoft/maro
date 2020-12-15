@@ -54,9 +54,11 @@ def node(name: str):
 
 
 cdef class NodeAttribute:
-    def __cinit__(self, str dtype, SLOT_INDEX slot_num = 1):
+    def __cinit__(self, str dtype, SLOT_INDEX slot_num = 1, is_const = False, is_list = False):
         self._dtype = dtype
         self._slot_number = slot_num
+        self._is_const = is_const
+        self._is_list = is_list
 
 
 # Wrapper to provide easy way to access attribute value of specified node
@@ -475,7 +477,7 @@ cdef class FrameBase:
                 # Register attributes
                 for node_attr_name, node_attr in node_cls.__dict__.items():
                     if isinstance(node_attr, NodeAttribute):
-                        attr_type = self._backend.add_attr(node_type, node_attr_name, node_attr._dtype, node_attr._slot_number)
+                        attr_type = self._backend.add_attr(node_type, node_attr_name, node_attr._dtype, node_attr._slot_number, node_attr._is_const, node_attr._is_list)
 
                         attr_name_type_dict[node_attr_name] = attr_type
 
