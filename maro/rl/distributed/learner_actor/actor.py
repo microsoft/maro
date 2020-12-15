@@ -48,7 +48,7 @@ class Actor(ABC):
             message = message[0]
             if message.session_id == "test":
                 ret = self._roll_out(message)
-                if ret.tag == MessageTag.EXIT:
+                if ret and ret.tag == MessageTag.EXIT:
                     sys.exit(0)
             else:
                 ep = int(message.session_id.split("-")[-1])
