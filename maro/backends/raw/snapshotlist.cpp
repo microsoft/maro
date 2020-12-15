@@ -322,6 +322,30 @@ namespace maro
 
       Attribute& SnapshotList::get_attr(int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) noexcept
       {
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        // check if node exist
+        if(!_cur_frame->is_node_exist(node_type))
+        {
+          return _nan_attr;
+        }
+        
+        auto& cur_node = _cur_frame->get_node(node_type);
+        const auto& attr_def = cur_node.get_attr_definition(attr_type);
+
+        // Check slot index for non-list attribute.
+        if (!attr_def.is_list && slot_index >= attr_def.slot_number)
+        {
+            return _nan_attr;
+        }
+
+        // If it is a const attribute, retrieve from const block,
+        // we do not care if tick exist for const attribute.
+        if (attr_def.is_const)
+        {
+          return cur_node.get_attr(node_index, attr_type, slot_index);
+        }
+
         auto& target_tick_pair = _snapshots.find(tick);
 
         // Check if tick valid.
@@ -330,68 +354,36 @@ namespace maro
           return _nan_attr;
         }
 
-        NODE_TYPE node_type = extract_node_type(attr_type);
-
         auto& snapshot = target_tick_pair->second;
-
-        // Check if node type valid.
-        if (!snapshot.is_node_exist(node_type))
-        {
-          return _nan_attr;
-        }
-
         auto& history_node = snapshot.get_node(node_type);
 
         // Check if node index valid.
-        if (!history_node.is_node_alive(node_index))
+        if (node_index >= history_node._max_node_number || !history_node.is_node_alive(node_index))
         {
           return _nan_attr;
         }
 
-        auto& cur_node = _cur_frame->get_node(node_type);
-        const auto& attr_def = cur_node.get_attr_definition(attr_type);
-
-        // Check slot index for non-list attribute
-        if (!attr_def.is_list && slot_index >= attr_def.slot_number)
+        if (attr_def.is_list)
         {
-            return _nan_attr;
-        }
+          auto attr_offset = compose_attr_offset_in_node(node_index, history_node._dynamic_size_per_node, attr_def.offset);
+          auto& target_attr = history_node._dynamic_block[attr_offset];
 
-        if (attr_def.is_const)
-        {
-          // If it is a const attribute, retrieve from const block.
-          return cur_node.get_attr(node_index, attr_type, slot_index);
-        }
-        else
-        {
-          if (attr_def.is_list)
-          {
-            auto attr_offset = compose_attr_offset_in_node(node_index, history_node._dynamic_size_per_node, attr_def.offset);
-            auto& target_attr = history_node._dynamic_block[attr_offset];
+          const auto list_index = target_attr.get_value<ATTR_UINT>();
 
-            const auto list_index = target_attr.get_value<ATTR_UINT>();
+          auto& target_list = history_node._list_store[list_index];
 
-            auto& target_list = history_node._list_store[list_index];
-
-            // Check slot for list attribute.
-            if (slot_index >= target_list.size())
-            {
-              return _nan_attr;
-            }
-
-            return target_list[slot_index];
-          }
-
-          // Make sure the node index correct.
-          if (node_index >= history_node._max_node_number)
+          // Check slot for list attribute.
+          if (slot_index >= target_list.size())
           {
             return _nan_attr;
           }
 
-          auto attr_offset = compose_attr_offset_in_node(node_index, history_node._dynamic_size_per_node, attr_def.offset, slot_index);
-
-          return history_node._dynamic_block[attr_offset];
+          return target_list[slot_index];
         }
+
+        auto attr_offset = compose_attr_offset_in_node(node_index, history_node._dynamic_size_per_node, attr_def.offset, slot_index);
+
+        return history_node._dynamic_block[attr_offset];
       }
 
       void SnapshotList::SnapshotQueryParameters::reset()
