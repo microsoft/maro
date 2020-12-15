@@ -8,6 +8,7 @@ from typing import Union
 from maro.communication import Message, Proxy
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.simulator import Env
+from maro.utils import DummyLogger, Logger
 
 from .common import Component, MessageTag, PayloadKey
 from ..executor import Executor
@@ -24,12 +25,19 @@ class Actor(ABC):
         executor: An ``Executor`` of ``AbsAgentManager`` instance responsible for interacting with the environment.
         proxy_params: Parameters required for instantiating an internal proxy for communication.
     """
-    def __init__(self, env: Env, executor: Union[AbsAgentManager, Executor], **proxy_params):
+    def __init__(
+        self,
+        env: Env,
+        executor: Union[AbsAgentManager, Executor],
+        logger: Logger = DummyLogger(),
+        **proxy_params
+    ):
         self._env = env
         self._executor = executor
         self._proxy = Proxy(component_type=ACTOR, **proxy_params)
         if isinstance(self._executor, Executor):
             self._executor.load_proxy(self._proxy)
+        self._logger = logger
         self._expected_ep = 0
 
     def run(self):
@@ -53,13 +61,17 @@ class Actor(ABC):
             else:
                 ep = int(message.session_id.split("-")[-1])
                 if ep < self._expected_ep:
+                    self._logger.info(
+                        f"{self._proxy.component_name} expects roll-out requests for episode >= {self._expected_ep}. "
+                        f"Current request ({message.session_id}) ignored."
+                    )
                     continue
                 self._expected_ep = ep
                 ret = self._roll_out(message)
                 if not ret:
                     self._expected_ep += 1
                 elif ret.tag == MessageTag.EXIT:
-                    sys.exit(0)
+                    self.exit()
 
     def _roll_out(self, message):
         """Perform one episode of roll-out and send performance and experiences back to the learner.
@@ -78,11 +90,15 @@ class Actor(ABC):
         else:
             self._executor.set_ep("test" if message.session_id == "test" else int(message.session_id.split("-")[-1]))
 
+        self._logger.info(f"{self._proxy.component_name} performing roll-out for {message.session_id}")
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
             # Reset or exit
             if isinstance(action, Message):
+                self._logger.info(
+                    f"{self._proxy.component_name} received a message with tag {message.tag} and "
+                    f"session {message.session_id}. Roll-out aborted.")
                 return action
 
             metrics, decision_event, is_done = self._env.step(action)
@@ -98,3 +114,8 @@ class Actor(ABC):
                     None if message.session_id == "test" else self._executor.post_process(self._env.snapshot_list)
             }
         )
+        self._logger.info(f"{self._proxy.component_name} finished roll-out for {message.session_id}")
+
+    def exit(self):
+        self._logger.info(f"{self._proxy.component_name} exiting...")
+        sys.exit(0)

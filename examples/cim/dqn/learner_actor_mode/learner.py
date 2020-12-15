@@ -47,6 +47,7 @@ def launch(config, distributed_config):
         agent_manager,
         scheduler,
         concat_experiences_by_agent,
+        logger=Logger("cim_learner", auto_timestamp=False),
         expected_peers={
             LearnerActorComponent.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))
         },
