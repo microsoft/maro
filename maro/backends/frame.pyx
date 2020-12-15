@@ -67,19 +67,22 @@ cdef class NodeAttribute:
 # index avaliable, or use append/resize/clear
 cdef class _NodeAttributeAccessor:
     cdef:
-        # Target node index
+        # Target node index.
         NODE_INDEX _node_index
 
-        # Target attribute id
+        # Target attribute type.
         public ATTR_TYPE _attr_type
 
-        # Slot number of target attribute
+        # Slot number of target attribute.
         public SLOT_INDEX _slot_number
 
         public bool _is_list
 
-        # Target backend
+        # Target backend.
         BackendAbc _backend
+
+        # Index used to support for-loop
+        SLOT_INDEX _cur_iter_slot_index
 
         # Enable dynamic attributes.
         dict __dict__
@@ -90,6 +93,9 @@ cdef class _NodeAttributeAccessor:
         self._slot_number = attr._slot_number
         self._is_list = attr._is_list
         self._backend = backend
+
+        # Built-in index too support for-loop
+        self._cur_iter_slot_index = 0
 
         # Special for list attribute, we need to slot number to support __len__
         # We will count the slot number here, though we can get it from function call
@@ -167,6 +173,21 @@ cdef class _NodeAttributeAccessor:
         self._backend.remove_from_list(self._node_index, self._attr_type, slot_index)
 
         self._slot_number -= 1
+
+    def __iter__(self):
+        self._cur_iter_slot_index = 0
+
+        return self
+
+    def __next__(self):
+        if self._cur_iter_slot_index >= self._slot_number:
+            raise StopIteration
+
+        value = self._backend.get_attr_value(self._node_index, self._attr_type, self._cur_iter_slot_index)
+
+        self._cur_iter_slot_index += 1
+
+        return value
 
     def __getitem__(self, slot: Union[int, slice, list, tuple]):
         """We use this function to support slice interface to access attribute, like:
