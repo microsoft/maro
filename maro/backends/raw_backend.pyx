@@ -47,6 +47,9 @@ cdef class AttributeAccessor:
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         pass
 
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        pass
+
     def __dealloc__(self):
         self._backend = None
 
@@ -58,6 +61,9 @@ cdef class AttributeShortAccessor(AttributeAccessor):
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_SHORT](node_index, self._attr_type, slot_index)
 
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        self._backend._frame.append_to_list[ATTR_SHORT](node_index, self._attr_type, value)
+
 
 cdef class AttributeIntAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
@@ -65,6 +71,9 @@ cdef class AttributeIntAccessor(AttributeAccessor):
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_INT](node_index, self._attr_type, slot_index)
+
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        self._backend._frame.append_to_list[ATTR_INT](node_index, self._attr_type, value)
 
 
 cdef class AttributeLongAccessor(AttributeAccessor):
@@ -74,6 +83,9 @@ cdef class AttributeLongAccessor(AttributeAccessor):
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_LONG](node_index, self._attr_type, slot_index)
 
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        self._backend._frame.append_to_list[ATTR_LONG](node_index, self._attr_type, value)
+
 
 cdef class AttributeFloatAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
@@ -82,6 +94,9 @@ cdef class AttributeFloatAccessor(AttributeAccessor):
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_FLOAT](node_index, self._attr_type, slot_index)
 
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        self._backend._frame.append_to_list[ATTR_FLOAT](node_index, self._attr_type, value)
+
 
 cdef class AttributeDoubleAccessor(AttributeAccessor):
     cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
@@ -89,6 +104,9 @@ cdef class AttributeDoubleAccessor(AttributeAccessor):
 
     cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
         return self._backend._frame.get_value[ATTR_DOUBLE](node_index, self._attr_type, slot_index)
+
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        self._backend._frame.append_to_list[ATTR_DOUBLE](node_index, self._attr_type, value)
 
 
 cdef class RawBackend(BackendAbc):
@@ -170,6 +188,17 @@ cdef class RawBackend(BackendAbc):
 
     cdef void resume_node(self, NODE_TYPE node_type, NODE_INDEX node_index) except +:
         self._frame.resume_node(node_type, node_index)
+
+    cdef void append_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        cdef AttributeAccessor acc = self._attr_type_dict[attr_type]
+
+        acc.append_value(index, value)
+
+    cdef void resize_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX new_size) except +:
+        self._frame.resize_list(index, attr_type, new_size)
+
+    cdef void clear_list(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
+        self._frame.clear_list(index, attr_type)
 
     cdef void reset(self) except +:
         self._frame.reset()

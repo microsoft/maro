@@ -74,6 +74,17 @@ cdef class BackendAbc:
     cdef void resume_node(self, NODE_TYPE node_type, NODE_INDEX node_index) except +:
         pass
 
+    cdef void append_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    # Resize specified list attribute.
+    cdef void resize_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX new_size) except +:
+        pass
+
+    # Clear specified list attribute.
+    cdef void clear_list(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
+        pass
+
     cdef void dump(self, str folder) except +:
         pass
 

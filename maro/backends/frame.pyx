@@ -76,6 +76,8 @@ cdef class _NodeAttributeAccessor:
         # Slot number of target attribute
         public SLOT_INDEX _slot_number
 
+        public bool _is_list
+
         # Target backend
         BackendAbc _backend
 
@@ -90,9 +92,60 @@ cdef class _NodeAttributeAccessor:
         self._attr_type = attr_type
         self._node_index = node_index
         self._slot_number = attr._slot_number
+        self._is_list = attr._is_list
         self._backend = backend
 
         self._slot_list_cache = {}
+
+        # Special for list attribute, we need to slot number to support __len__
+        # We will count the slot number here, though we can get it from function call
+        if self._is_list:
+            self._slot_number = 0
+
+    def append(self, value):
+        """Append a value to current attribute.
+
+        NOTE:
+            Current attribute must be a list.
+
+        Args:
+            value(object): Value to append, the data type must fit the decleared one.
+        """
+        if not self._is_list:
+            raise Exception("Append method only support for list attribute.")
+        
+        self._backend.append_to_list(self._node_index, self._attr_type, value)
+
+        self._slot_number += 1
+
+    def resize(self, new_size: int):
+        """Resize current list attribute with specified new size.
+
+        NOTE:
+            Current attribute must be a list.
+
+        Args:
+            new_size(int): New size to resize, max number is 2^32.
+        """
+        if not self._is_list:
+            raise Exception("Resize method only support for list attribute.")
+
+        self._backend.resize_list(self._node_index, self._attr_type, new_size)
+
+        self._slot_number = new_size
+
+    def clear(self):
+        """Clear all items in current list attribute.
+
+        NOTE:
+            Current attribute must be a list.
+        """
+        if not self._is_list:
+            raise Exception("Clear method only fupport for list attribute.")
+
+        self._backend.clear_list(self._node_index, self._attr_type)
+
+        self._slot_number = 0
 
     def __getitem__(self, slot: Union[int, slice, list, tuple]):
         """We use this function to support slice interface to access attribute, like:
@@ -191,9 +244,12 @@ cdef class _NodeAttributeAccessor:
         else:
             raise BackendsSetItemInvalidException()
 
-        # Check and invoke value changed callback.
-        if "_cb" in self.__dict__:
+        # Check and invoke value changed callback, except list attribute.
+        if not self._is_list and "_cb" in self.__dict__:
             self._cb(value)
+
+    def __len__(self):
+        return self._slot_number
 
     def on_value_changed(self, cb):
         """Set the value changed callback."""
@@ -239,11 +295,13 @@ cdef class NodeBase:
                 __dict__[name] = attr_acc
 
                 # Bind a value changed callback if available, named as _on_<attr name>_changed.
-                cb_name = f"_on_{name}_changed"
-                cb_func = getattr(self, cb_name, None)
+                # Except list attribute.
+                if not attr_acc._is_list:
+                    cb_name = f"_on_{name}_changed"
+                    cb_func = getattr(self, cb_name, None)
 
-                if cb_func is not None:
-                    attr_acc.on_value_changed(cb_func)
+                    if cb_func is not None:
+                        attr_acc.on_value_changed(cb_func)
 
     def __setattr__(self, name, value):
         """Used to avoid attribute overriding, and an easy way to set for 1 slot attribute."""
@@ -257,10 +315,10 @@ cdef class NodeBase:
             attr_acc = __dict__[attr_name]
 
             if isinstance(attr_acc, _NodeAttributeAccessor):
-                if attr_acc._slot_number > 1:
+                if not attr_acc._is_list and attr_acc._slot_number > 1:
                     raise BackendsArrayAttributeAccessException()
                 else:
-                    # short-hand for attributes with 1 slot
+                    # Short-hand for attributes with 1 slot.
                     attr_acc[0] = value
             else:
                 __dict__[attr_name] = value
@@ -279,7 +337,8 @@ cdef class NodeBase:
                 if self._is_deleted:
                     raise Exception("Node already been deleted.")
 
-                if attr_acc._slot_number == 1:
+                # For list attribute, we do not support ignore index.
+                if not attr_acc._is_list and attr_acc._slot_number == 1:
                     return attr_acc[0]
 
             return attr_acc
