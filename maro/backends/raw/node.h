@@ -119,6 +119,12 @@ namespace maro
 
         // Make sure node index correct.
         inline void ensure_node_index(NODE_INDEX node_index) const;
+
+        // Get list attribute reference.
+        inline Attribute& get_list_attribute(NODE_INDEX node_index, ATTR_TYPE attr_type);
+
+        // Get actual list of a list attribute
+        inline vector<Attribute>& get_attribute_list(Attribute& attribute);
       public:
         Node();
 
@@ -267,6 +273,22 @@ namespace maro
         /// <param name="attr_type">Type of attribute.</param>
         /// <param name="new_size">New size to resize.</param>
         void resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size);
+
+        /// <summary>
+        /// Remove an index from list attribute.
+        /// </summary>
+        /// <param name="node_index">Index of node instance to resize.</param>
+        /// <param name="attr_type">Type of attribute.</param>
+        /// <param name="slot_index">Slot index to remove.</param>
+        void remove_from_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
+
+        /// <summary>
+        /// Insert a value to specified slot.
+        /// </summary>
+        /// <param name="node_index">Index of node instance to resize.</param>
+        /// <param name="attr_type">Type of attribute.</param>
+        template<typename T>
+        void insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value);
       };
 
       struct OperationsBeforeSetupError : public exception

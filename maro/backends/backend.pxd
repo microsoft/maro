@@ -120,5 +120,11 @@ cdef class BackendAbc:
     # Clear specified list attribute.
     cdef void clear_list(self, NODE_INDEX index, ATTR_TYPE attr_type) except +
 
+    # Remove a slot from list attribute.
+    cdef void remove_from_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) except +
+
+    # Insert a slot to list attribute.
+    cdef void insert_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, object value) except +
+
     # Dump Snapshot into target folder (without filename).
     cdef void dump(self, str folder) except +

@@ -85,6 +85,12 @@ cdef class BackendAbc:
     cdef void clear_list(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
         pass
 
+    cdef void remove_from_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) except +:
+        pass
+
+    cdef void insert_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, object value) except +:
+        pass
+
     cdef void dump(self, str folder) except +:
         pass
 

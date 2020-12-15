@@ -162,6 +162,24 @@ namespace maro
         void resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size);
 
         /// <summary>
+        /// Remove specified slot from list attribute.
+        /// </summary>
+        /// <param name="node_index">Index of node instance to resize.</param>
+        /// <param name="attr_type">Type of attribute.</param>
+        /// <param name="slot_index">Slot to remove.</param>
+        void remove_from_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
+
+        /// <summary>
+        /// Insert a value to specified slot for list attribute.
+        /// </summary>
+        /// <param name="node_index">Index of node instance to resize.</param>
+        /// <param name="attr_type">Type of attribute.</param>
+        /// <param name="slot_index">Slot to insert.</param>
+        /// <param name="value">Value to insert. </param>
+        template<typename T>
+        void insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value);
+
+        /// <summary>
         /// Initial current frame.
         /// </summary>
         void setup();

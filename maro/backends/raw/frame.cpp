@@ -253,6 +253,39 @@ namespace maro
       ATTRIBUTE_APPENDER(ATTR_FLOAT)
       ATTRIBUTE_APPENDER(ATTR_DOUBLE)
 
+      void Frame::remove_from_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
+      {
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        auto& node = get_node(node_type);
+
+        node.remove_from_list(node_index, attr_type, slot_index);
+      }
+
+      template<typename T>
+      void Frame::insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value)
+      {
+        NODE_TYPE node_type = extract_node_type(attr_type);
+
+        auto& node = get_node(node_type);
+
+        node.insert_to_list(node_index, attr_type, slot_index, value);
+      }
+
+#define ATTRIBUTE_INSERTER(type) \
+  template void Frame::insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, type value);
+
+      ATTRIBUTE_INSERTER(ATTR_CHAR)
+      ATTRIBUTE_INSERTER(ATTR_UCHAR)
+      ATTRIBUTE_INSERTER(ATTR_SHORT)
+      ATTRIBUTE_INSERTER(ATTR_USHORT)
+      ATTRIBUTE_INSERTER(ATTR_INT)
+      ATTRIBUTE_INSERTER(ATTR_UINT)
+      ATTRIBUTE_INSERTER(ATTR_LONG)
+      ATTRIBUTE_INSERTER(ATTR_ULONG)
+      ATTRIBUTE_INSERTER(ATTR_FLOAT)
+      ATTRIBUTE_INSERTER(ATTR_DOUBLE)
+
       void Frame::dump(string folder) const
       {
 

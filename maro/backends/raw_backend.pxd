@@ -79,6 +79,8 @@ cdef extern from "raw/frame.h" namespace "maro::backends::raw":
         void append_to_list[T](NODE_INDEX node_index, ATTR_TYPE attr_type, T value)
         void clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
         void resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size)
+        void remove_from_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
+        void insert_to_list[T](NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value)
 
         void setup()
         void reset()

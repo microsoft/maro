@@ -141,6 +141,33 @@ cdef class _NodeAttributeAccessor:
 
         self._slot_number = 0
 
+    def insert(self, slot_index: int, value: object):
+        """Insert a value to specified slot.
+
+        Args:
+            slot_index(int): Slot index to insert.
+            value(object): Value to insert.
+        """
+        if not self._is_list:
+            raise Exception("Clear method only fupport for list attribute.")
+
+        self._backend.insert_to_list(self._node_index, self._attr_type, slot_index, value)
+
+        self._slot_number += 1
+
+    def remove(self, slot_index: int):
+        """Remove specified slot.
+
+        Args:
+            slot_index(int): Slot index to remove.
+        """
+        if not self._is_list:
+            raise Exception("Clear method only fupport for list attribute.")
+
+        self._backend.remove_from_list(self._node_index, self._attr_type, slot_index)
+
+        self._slot_number -= 1
+
     def __getitem__(self, slot: Union[int, slice, list, tuple]):
         """We use this function to support slice interface to access attribute, like:
 

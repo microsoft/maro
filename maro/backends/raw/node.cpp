@@ -441,7 +441,7 @@ namespace maro
         return (*target_block)[attr_offset];
       }
 
-      void Node::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
+      inline Attribute& Node::get_list_attribute(NODE_INDEX node_index, ATTR_TYPE attr_type)
       {
         ensure_setup();
         ensure_node_index(node_index);
@@ -456,9 +456,22 @@ namespace maro
         auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
         auto& target_attr = _dynamic_block[attr_offset];
 
-        const auto& list_index = target_attr.get_value<ATTR_UINT>();
+        return target_attr;
+      }
+
+      inline vector<Attribute>& Node::get_attribute_list(Attribute& attribute)
+      {
+        const auto& list_index = attribute.get_value<ATTR_UINT>();
 
         auto& target_list = _list_store[list_index];
+
+        return target_list;
+      }
+
+      void Node::clear_list(NODE_INDEX node_index, ATTR_TYPE attr_type)
+      {
+        auto& target_attr = get_list_attribute(node_index, attr_type);
+        auto& target_list = get_attribute_list(target_attr);
 
         target_list.clear();
 
@@ -467,22 +480,8 @@ namespace maro
 
       void Node::resize_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX new_size)
       {
-        ensure_setup();
-        ensure_node_index(node_index);
-
-        auto& attr_def = get_attr_definition(attr_type);
-
-        if (!attr_def.is_list)
-        {
-          throw OperationsOnNonListAttributeError();
-        }
-
-        auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
-        auto& target_attr = _dynamic_block[attr_offset];
-
-        const auto& list_index = target_attr.get_value<ATTR_UINT>();
-
-        auto& target_list = _list_store[list_index];
+        auto& target_attr = get_list_attribute(node_index, attr_type);
+        auto& target_list = get_attribute_list(target_attr);
 
         target_list.resize(new_size);
 
@@ -492,22 +491,8 @@ namespace maro
       template<typename T>
       void Node::append_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, T value)
       {
-        ensure_setup();
-        ensure_node_index(node_index);
-
-        auto& attr_def = get_attr_definition(attr_type);
-
-        if (!attr_def.is_list)
-        {
-          throw OperationsOnNonListAttributeError();
-        }
-
-        auto attr_offset = compose_attr_offset_in_node(node_index, _dynamic_size_per_node, attr_def.offset);
-        auto& target_attr = _dynamic_block[attr_offset];
-
-        const auto& list_index = target_attr.get_value<ATTR_UINT>();
-
-        auto& target_list = _list_store[list_index];
+        auto& target_attr = get_list_attribute(node_index, attr_type);
+        auto& target_list = get_attribute_list(target_attr);
 
         target_list.push_back(value);
 
@@ -528,6 +513,47 @@ namespace maro
       APPEND_TO_LIST(ATTR_FLOAT)
       APPEND_TO_LIST(ATTR_DOUBLE)
 
+      void Node::remove_from_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
+      {
+        auto& target_attr = get_list_attribute(node_index, attr_type);
+        auto& target_list = get_attribute_list(target_attr);
+
+        if(slot_index >= target_list.size())
+        {
+          throw InvalidSlotIndexError();
+        }
+
+        target_list.erase(target_list.begin() + slot_index);
+      }
+
+      template<typename T>
+      void Node::insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, T value)
+      {
+        auto& target_attr = get_list_attribute(node_index, attr_type);
+        auto& target_list = get_attribute_list(target_attr);
+
+        // NOTE: the insert index can same as size, then it is the last one.
+        if(slot_index > target_list.size())
+        {
+          throw InvalidSlotIndexError();
+        }
+
+        target_list.insert(target_list.begin() + slot_index, Attribute(value));
+      }
+
+#define INSERT_TO_LIST(type) \
+  template void Node::insert_to_list(NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, type value);
+
+      INSERT_TO_LIST(ATTR_CHAR)
+      INSERT_TO_LIST(ATTR_UCHAR)
+      INSERT_TO_LIST(ATTR_SHORT)
+      INSERT_TO_LIST(ATTR_USHORT)
+      INSERT_TO_LIST(ATTR_INT)
+      INSERT_TO_LIST(ATTR_UINT)
+      INSERT_TO_LIST(ATTR_LONG)
+      INSERT_TO_LIST(ATTR_ULONG)
+      INSERT_TO_LIST(ATTR_FLOAT)
+      INSERT_TO_LIST(ATTR_DOUBLE)
 
       const char* OperationsBeforeSetupError::what() const noexcept
       {
