@@ -25,11 +25,11 @@ from .virtual_machine import VirtualMachine
 
 metrics_desc = """
 
-total_vm_requirements (int): Total VM requirements.
+total_vm_requests (int): Total VM requests.
 total_energy_consumption (float): Accumulative total energy consumption.
 success_allocation (int): Accumulative successful VM allocation until now.
 success_placement (int): Accumulative successful VM placement.
-failed_placement (int): Accumulative failed VM placement until now.
+failed_requests (int): Accumulative failed VM placement until now.
 total_latency (int): Accumulative used buffer time until now.
 """
 
@@ -70,7 +70,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_pms()
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
-        # All requirement payload of the pending decision VMs.
+        # All request payload of the pending decision VMs.
         # NOTE: Need naming suggestestion.
         self._pending_vm_req_payload: Dict[int, VmRequestPayload] = {}
         # All vm's cpu utilization at current tick.
@@ -180,17 +180,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm_info=vm_info,
                 remaining_buffer_time=self._buffer_time_budget
             )
-            vm_requirement_event = self._event_buffer.gen_cascade_event(
+            vm_request_event = self._event_buffer.gen_cascade_event(
                 tick=tick,
-                event_type=Events.REQUIREMENTS,
+                event_type=Events.REQUEST,
                 payload=vm_req_payload
             )
-            self._event_buffer.insert_event(event=vm_requirement_event)
+            self._event_buffer.insert_event(event=vm_request_event)
             self._total_vm_requests += 1
 
     def post_step(self, tick: int):
         # Update energy to the environment metrices.
-        total_energy = 0.0
+        total_energy: float = 0.0
         for pm in self._machines:
             total_energy += pm.energy_consumption
         self._total_energy_consumption += total_energy
@@ -206,19 +206,19 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return DocableDict(
             metrics_desc,
-            total_vm_requirements=self._total_vm_requests,
+            total_vm_requests=self._total_vm_requests,
             total_energy_consumption=self._total_energy_consumption,
             success_allocation=self._successful_allocation,
             success_placement=self._successful_placement,
-            failed_requirements=self._failed_placement,
+            failed_requests=self._failed_placement,
             total_latency=self._total_latency,
             total_oversubscribtions=self._total_oversubscribtions
         )
 
     def _register_events(self):
         # Register our own events and their callback handlers.
-        self._event_buffer.register_event_handler(event_type=Events.REQUIREMENTS, handler=self._on_vm_required)
-        self._event_buffer.register_event_handler(event_type=Events.FINISHED, handler=self._on_vm_finished)
+        self._event_buffer.register_event_handler(event_type=Events.REQUEST, handler=self._on_vm_required)
+        self._event_buffer.register_event_handler(event_type=Events.FINISH, handler=self._on_vm_finished)
 
         # Generate decision event.
         self._event_buffer.register_event_handler(event_type=MaroEvents.TAKE_ACTION, handler=self._on_action_received)
@@ -252,7 +252,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""
-        total_energy: float = 0.0
         for pm in self._machines:
             total_pm_cpu_cores_used: float = 0.0
             for vm_id in pm.live_vms:
@@ -271,8 +270,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         idle_power = self._config.PM["P1"]["POWER_CURVE"]["IDLE_POWER"]
         return idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
 
-    def _postpone_vm_requirement(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
-        """Postpone VM requirement."""
+    def _postpone_vm_request(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
+        """Postpone VM request."""
         if remaining_buffer_time >= self._delay_duration:
             if postpone_type == PostponeType.Resource:
                 self._total_latency.due_to_resource += self._delay_duration
@@ -289,7 +288,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             self._event_buffer.insert_event(event=postpone_event)
         else:
             # Fail
-            # Pop out VM requirement payload.
+            # Pop out VM request payload.
             self._pending_vm_req_payload.pop(vm_id)
             # Add failed placement.
             self._failed_placement += 1
@@ -313,10 +312,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return valid_pm_list
 
-    def _on_vm_required(self, vm_requirement_event: CascadeEvent):
-        """Callback when there is a VM requirement generated."""
+    def _on_vm_required(self, vm_request_event: CascadeEvent):
+        """Callback when there is a VM request generated."""
         # Get VM data from payload.
-        payload: VmRequestPayload = vm_requirement_event.payload
+        payload: VmRequestPayload = vm_request_event.payload
 
         vm_info: VirtualMachine = payload.vm_info
         remaining_buffer_time: int = payload.remaining_buffer_time
@@ -335,11 +334,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 remaining_buffer_time=remaining_buffer_time
             )
             pending_decision_event = self._event_buffer.gen_decision_event(
-                tick=vm_requirement_event.tick, payload=decision_payload)
-            vm_requirement_event.add_immediate_event(event=pending_decision_event)
+                tick=vm_request_event.tick, payload=decision_payload)
+            vm_request_event.add_immediate_event(event=pending_decision_event)
         else:
             # Either postpone the requirement event or failed.
-            self._postpone_vm_requirement(
+            self._postpone_vm_request(
                 postpone_type=PostponeType.Resource,
                 vm_id=vm_info.id,
                 remaining_buffer_time=remaining_buffer_time
@@ -395,7 +394,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm.end_tick = cur_tick + lifetime
                 vm.cpu_utilization = vm.get_utilization(cur_tick=cur_tick)
 
-                # Pop out the VM from pending requirements and add to live VM dict.
+                # Pop out the VM from pending requests and add to live VM dict.
                 self._pending_vm_req_payload.pop(vm_id)
                 self._live_vms[vm_id] = vm
 
@@ -404,7 +403,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 finished_payload: VmFinishedPayload = VmFinishedPayload(vm.id)
                 finished_event = self._event_buffer.gen_atom_event(
                     tick=cur_tick + lifetime,
-                    event_type=Events.FINISHED,
+                    event_type=Events.FINISH,
                     payload=finished_payload
                 )
                 self._event_buffer.insert_event(event=finished_event)
@@ -426,7 +425,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 postpone_frequency = action.postpone_frequency
                 remaining_buffer_time = self._pending_vm_req_payload[vm_id].remaining_buffer_time
                 # Either postpone the requirement event or failed.
-                self._postpone_vm_requirement(
+                self._postpone_vm_request(
                     postpone_type=PostponeType.Agent,
                     vm_id=vm_id,
                     remaining_buffer_time=remaining_buffer_time - postpone_frequency * self._config["delay_duration"]

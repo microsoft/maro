@@ -1,9 +1,5 @@
 AzurePublicDataset:
 vm_data:
-  azure.2017.original:
-    remote_url: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/AzurePublicDatasetV1Links.txt"
-    sample: 2695548
-    seed: 9
   azure.2019.original:
     remote_url: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/AzurePublicDatasetLinksV2.txt"
     sample: 2695548
