@@ -236,8 +236,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             if self._tick - live_vm.start_tick >= live_vm.lifetime:
                 live_vm.add_utilization(cpu_utilization=0.0)
             else:
-                # TODO: Some data could be lost.
-                # Currently, we use the last utilization, it could be further refined to use average or others.
+                # NOTE: Some data could be lost. We use -1.0 to represent the missing data.
                 if live_vm.id not in self._cpu_utilization_dict:
                     live_vm.add_utilization(cpu_utilization=-1.0)
                 else:

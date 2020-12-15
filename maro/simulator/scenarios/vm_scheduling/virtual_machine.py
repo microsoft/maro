@@ -7,6 +7,11 @@ from typing import List
 class VirtualMachine:
     """VM object.
 
+    The VM lifetime equals to the deletion tick - creation tick + 1.
+    For example:
+        A VM's cpu utilization is  {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
+        Its lifetime will be deletion tick - creation tick + 1 = 2 - 0 + 1 = 3.
+
     Args:
         id (int): The VM id.
         cpu_cores_requirement (int): The amount of virtual cores requested by VM.
@@ -18,7 +23,6 @@ class VirtualMachine:
         self.id: int = id
         self.cpu_cores_requirement: int = cpu_cores_requirement
         self.memory_requirement: int = memory_requirement
-        # The VM lifetime which equals to the deletion tick - creation tick + 1.
         self.lifetime: int = lifetime
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
@@ -37,7 +41,7 @@ class VirtualMachine:
     def add_utilization(self, cpu_utilization: float):
         """VM CPU utilization list."""
         # If cpu_utilization is smaller than 0, it means the missing data in the cpu readings file.
-        # We use the last utilization.
+        # TODO: We use the last utilization, it could be further refined to use average or others.
         if cpu_utilization < 0.0:
             self._utilization_series.append(self._utilization_series[-1])
         else:
