@@ -43,11 +43,13 @@ class AbsDistLearner(ABC):
         self._experience_collecting_func = experience_collecting_func
         self._proxy = Proxy(component_type=Component.LEARNER.value, **proxy_params)
         self._registry_table = RegisterTable(self._proxy.peers_name)
+        self._actors = self._proxy.peers_name[ACTOR]
         if update_trigger is None:
             update_trigger = len(self._actors)
-        self._registry_table.register_event_handler(f"{ACTOR}:{MessageTag.FINISHED.value}:{update_trigger}", self._update)
+        self._registry_table.register_event_handler(
+            f"{ACTOR}:{MessageTag.FINISHED.value}:{update_trigger}", self._update
+        )
         self._logger = logger
-        self._actors = self._proxy.peers_name[ACTOR]
         self._pending_actor_set = None
 
     @abstractmethod
