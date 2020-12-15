@@ -304,15 +304,15 @@ class Proxy:
         return self._driver.receive(is_continuous=is_continuous)
 
     def _retrieve_from_cache(self, targets: Union[List[tuple], tuple]):
-        if isinstance(targets, list):
-            pending_targets = set(targets)
-        elif isinstance(targets, tuple):
-            pending_targets = {targets}
-        else:
+        if not isinstance(targets, list) or not isinstance(targets, tuple):
             # The input may be None, if enable peer rejoin.
             self._logger.warn(f"Unrecognized target {targets}.")
             return []
 
+        if isinstance(targets, tuple):
+            targets = [targets]
+
+        pending_targets = set(targets)
         messages = []
         for tag, session_id in targets:
             if session_id == "*":

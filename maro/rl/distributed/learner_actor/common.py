@@ -9,7 +9,7 @@ class Component(Enum):
 class MessageTag(Enum):
     ROLLOUT = "rollout"
     ACTION = "action"
-    FINISH = "finish"
+    FINISHED = "finished"
     EXIT = "exit"
 
 
