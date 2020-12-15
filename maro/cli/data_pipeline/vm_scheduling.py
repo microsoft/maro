@@ -237,7 +237,7 @@ class VmSchedulingPipeline(DataPipeline):
         # Process every cpu readings file.
         for clean_cpu_readings_file_name in self._clean_cpu_readings_file_name_list:
             raw_cpu_readings_file_name = clean_cpu_readings_file_name.split(".")[0] + "_raw.csv"
-            raw_cpu_readings_file = os.path.join(self._clean_folder, raw_cpu_readings_file_name)
+            raw_cpu_readings_file = os.path.join(self._raw_folder, raw_cpu_readings_file_name)
             clean_cpu_readings_file = os.path.join(self._clean_folder, clean_cpu_readings_file_name)
             # Convert vmid.
             logger.info_green(f"Process {clean_cpu_readings_file}.")
