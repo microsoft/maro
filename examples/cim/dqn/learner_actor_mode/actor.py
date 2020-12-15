@@ -59,7 +59,7 @@ def launch(config, distributed_config):
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
         max_retries=15
     )
-    actor.launch()
+    actor.run()
 
 
 if __name__ == "__main__":
