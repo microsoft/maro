@@ -32,15 +32,9 @@ def launch(config, distributed_config):
         exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
         exploration_parameter_generator_config=config.main_loop.exploration
     )
-    state_shaper = CIMStateShaper(**config.state_shaping)
+    state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    if config.experience_shaping.type == "truncated":
-        experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
-    else:
-        experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
-            **config.experience_shaping.k_step
-        )
+    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
     if distributed_mode == "seed":

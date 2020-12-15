@@ -30,7 +30,7 @@ def launch(config):
     # greedy nature of the DQN algorithm.
     state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=action_space)
-    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
+    experience_shaper = TruncatedExperienceShaper(**config.env.env.experience_shaping)
 
     # Step 3: Create agents and an agent manager.
     agent_manager = DQNAgentManager(
