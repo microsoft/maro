@@ -10,7 +10,8 @@ import pandas as pd
 from yaml import safe_load
 
 from maro.cli.data_pipeline.base import DataPipeline, DataTopology
-from maro.cli.data_pipeline.utils import StaticParameter, convert
+from maro.cli.data_pipeline.utils import StaticParameter, convert, download_file
+from maro.utils.exception.cli_exception import CommandError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -38,8 +39,14 @@ class VmSchedulingPipeline(DataPipeline):
         self._sample = sample
         self._seed = seed
 
+        self._download_folder = os.path.join(self._data_root, self._scenario, ".source", ".download")
+        self._raw_folder = os.path.join(self._data_root, self._scenario, ".source", ".raw")
+
+        self._download_file = os.path.join(self._download_folder, self._download_file_name)
+
         self._vm_table_file = os.path.join(self._download_folder, self._vm_table_file_name)
-        self._raw_vm_table_file = os.path.join(self._clean_folder, self._raw_vm_table_file_name)
+        self._raw_vm_table_file = os.path.join(self._raw_folder, self._raw_vm_table_file_name)
+
         self._cpu_readings_file_name_list = []
         self._clean_cpu_readings_file_name_list = []
 
@@ -53,8 +60,22 @@ class VmSchedulingPipeline(DataPipeline):
         self._download_file_list = []
 
     def download(self, is_force: bool = False):
+        self._new_folder_list.append(self._download_folder)
+        os.makedirs(self._download_folder, exist_ok=True)
+
+        self._new_file_list.append(self._download_file)
+
+        if (not is_force) and os.path.exists(self._download_file):
+            logger.info_green("File already exists, skipping download.")
+        else:
+            logger.info_green(f"Downloading data from {self._source} to {self._download_file}.")
+            try:
+                download_file(source=self._source, destination=self._download_file)
+            except Exception as e:
+                logger.warning_yellow(f"Failed to download from {self._source} to {self._download_file}.")
+                raise CommandError("generate", f"Download error: {e}.")
+
         # Download text with all urls.
-        super().download(is_force=is_force)
         if os.path.exists(self._download_file):
             # Download vm_table and cpu_readings
             self._aria2p_download(is_force=is_force)
@@ -69,7 +90,7 @@ class VmSchedulingPipeline(DataPipeline):
         """
         logger.info_green("Downloading vmtable and cpu readings.")
         # Download parts of cpu reading files.
-        num_files = 5
+        num_files = 10
         # Open the txt file which contains all the required urls.
         with open(self._download_file, mode="r", encoding="utf-8") as urls:
             for remote_url in urls.read().splitlines():
@@ -119,7 +140,7 @@ class VmSchedulingPipeline(DataPipeline):
     def _unzip_file(self, original_file_name: str, raw_file_name: str):
         original_file = os.path.join(self._download_folder, original_file_name)
         if os.path.exists(original_file):
-            raw_file = os.path.join(self._clean_folder, raw_file_name)
+            raw_file = os.path.join(self._raw_folder, raw_file_name)
             if os.path.exists(raw_file):
                 logger.info_green(f"{raw_file} already exists, skipping unzip.")
             else:
@@ -136,6 +157,9 @@ class VmSchedulingPipeline(DataPipeline):
     def clean(self):
         """Unzip the csv file and process it for building binary file."""
         super().clean()
+        self._new_folder_list.append(self._raw_folder)
+        os.makedirs(self._raw_folder, exist_ok=True)
+
         logger.info_green("Cleaning VM data.")
         # Unzip vmtable.
         self._unzip_file(original_file_name=self._vm_table_file_name, raw_file_name=self._raw_vm_table_file_name)
