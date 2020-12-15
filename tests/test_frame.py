@@ -32,7 +32,7 @@ class DynamicNode(NodeBase):
     b2 = NodeAttribute("d")
 
 
-def build_frame(enable_snapshot: bool = False, total_snapshot: int = 10, backend_name="np"):
+def build_frame(enable_snapshot: bool = False, total_snapshot: int = 10, backend_name="static"):
 
     class MyFrame(FrameBase):
         static_nodes = FrameNode(StaticNode, STATIC_NODE_NUM)
@@ -263,7 +263,8 @@ class TestFrame(unittest.TestCase):
 
         self.assertTupleEqual(states.shape, (1, 5, 1, 1))
 
-        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0], list(states.flatten()[0:5]))
+        self.assertListEqual([0.0, 0.0, 0.0, 0.0, 9.0],
+                             list(states.flatten()[0:5]))
 
         frame.snapshots.reset()
         frame.reset()
@@ -358,6 +359,152 @@ class TestFrame(unittest.TestCase):
         # and no nodes marked as deleted
         for node in frame.static_nodes:
             self.assertTrue(node.is_deleted == False)
+
+    def test_invalid_attribute_description(self):
+        # we do not support const list attribute
+
+        @node("test")
+        class TestNode(NodeBase):
+            a1 = NodeAttribute("i", 2, is_const=True, is_list=True)
+
+        class TestFrame(FrameBase):
+            test_nodes = FrameNode(TestNode, 1)
+
+            def __init__(self):
+                super().__init__(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
+
+        with self.assertRaises(RuntimeError) as ctx:
+            frame = TestFrame()
+
+    def test_query_const_attribute_without_taking_snapshot(self):
+        @node("test")
+        class TestNode(NodeBase):
+            a1 = NodeAttribute("i", 2, is_const=True)
+
+        class TestFrame(FrameBase):
+            test_nodes = FrameNode(TestNode, 2)
+
+            def __init__(self):
+                super().__init__(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
+
+        frame = TestFrame()
+
+        t1 = frame.test_nodes[0]
+
+        t1.a1[0] = 10
+
+        t1_ss = frame.snapshots["test"]
+
+        # default snapshot length is 0
+        self.assertEqual(0, len(frame.snapshots))
+
+        # we DO have to provide a tick to it for padding, as there is no snapshots there
+        states = t1_ss[0::"a1"]
+
+        states = states.flatten()
+
+        self.assertListEqual([10.0, 0.0, 0.0, 0.0], list(states))
+
+    def test_list_attribute(self):
+        @node("test")
+        class TestNode(NodeBase):
+            a1 = NodeAttribute("i", 1, is_list=True)
+            a2 = NodeAttribute("i", 2, is_const=True)
+            a3 = NodeAttribute("i")
+
+        class TestFrame(FrameBase):
+            test_nodes = FrameNode(TestNode, 2)
+
+            def __init__(self):
+                super().__init__(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
+
+        frame = TestFrame()
+
+        frame.take_snapshot(0)
+
+        n1 = frame.test_nodes[0]
+
+        n1.a2[:] = (2221, 2222)
+        n1.a3 = 333
+
+        # slot number of list attribute is 0 by default
+        # so get/set value by index will cause error
+
+        # append value to it
+        n1.a1.append(10)
+        n1.a1.append(11)
+        n1.a1.append(12)
+
+        expected_value = [10, 11, 12]
+
+        # check if value set append correct
+        self.assertListEqual(expected_value, n1.a1[:])
+
+        # Check if length correct
+        self.assertEqual(3, len(n1.a1))
+
+        # For loop to go through all items in list
+        for i, a_value in enumerate(n1.a1):
+            self.assertEqual(expected_value[i], a_value)
+
+        frame.take_snapshot(1)
+
+        # resize it to 2
+        n1.a1.resize(2)
+
+        # this will cause last value to be removed
+        self.assertEqual(2, len(n1.a1))
+
+        self.assertListEqual([10, 11], n1.a1[:])
+
+        # exterd its size, then default value should be 0
+        n1.a1.resize(5)
+
+        self.assertEqual(5, len(n1.a1))
+        self.assertListEqual([10, 11, 0, 0, 0], n1.a1[:])
+
+        # clear will cause length be 0
+        n1.a1.clear()
+
+        self.assertEqual(0, len(n1.a1))
+
+        # insert a new value to 0, as it is empty now
+        n1.a1.insert(0, 10)
+
+        self.assertEqual(1, len(n1.a1))
+
+        self.assertEqual(10, n1.a1[0])
+
+        # [11, 10] after insert
+        n1.a1.insert(0, 11)
+
+        # remove 2nd one
+        n1.a1.remove(1)
+
+        self.assertEqual(1, len(n1.a1))
+
+        self.assertEqual(11, n1.a1[0])
+
+        # test if snapshot correct
+        # NOTE: list attribute querying need to provide 1 attribute and 1 node index
+        states = frame.snapshots["test"][0:0:"a1"]
+
+        # first tick a1 has no value, so states will be None
+        self.assertIsNone(states)
+
+        states = frame.snapshots['test'][1:0:"a1"]
+        states = states.flatten()
+
+        # a1 has 3 value at tick 1
+        self.assertEqual(3, len(states))
+
+        self.assertListEqual([10, 11, 12], list(states))
+
+        # tick can be empty, then means get state for latest snapshot
+        states = frame.snapshots["test"][:0:"a1"].flatten()
+
+        self.assertEqual(3, len(states))
+        self.assertListEqual([10, 11, 12], list(states))
 
 """
     def test_frame_dump(self):
