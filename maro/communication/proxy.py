@@ -304,11 +304,6 @@ class Proxy:
         return self._driver.receive(is_continuous=is_continuous)
 
     def _retrieve_from_cache(self, targets: Union[List[tuple], tuple]):
-        if not isinstance(targets, list) or not isinstance(targets, tuple):
-            # The input may be None, if enable peer rejoin.
-            self._logger.warn(f"Unrecognized target {targets}.")
-            return []
-
         if isinstance(targets, tuple):
             targets = [targets]
 
@@ -349,6 +344,11 @@ class Proxy:
         Returns:
             Union[Message, List[Message]]: List of received messages.
         """
+        if not isinstance(targets, list) and not isinstance(targets, tuple):
+            # The input may be None, if enable peer rejoin.
+            self._logger.warn(f"Unrecognized target {targets}.")
+            return []
+
         # Retrieve messages that match the targets.
         messages, pending_targets = self._retrieve_from_cache(targets)
         if not pending_targets:
