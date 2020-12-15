@@ -5,12 +5,11 @@ import sys
 from abc import ABC
 from typing import Union
 
-from maro.communication import Proxy
+from maro.communication import Message, Proxy
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.simulator import Env
 
 from .common import Component, MessageTag, PayloadKey
-from ..common import ExecutorInterrupt
 from ..executor import Executor
 
 ACTOR = Component.ACTOR.value
@@ -31,19 +30,31 @@ class Actor(ABC):
         self._proxy = Proxy(component_type=ACTOR, **proxy_params)
         if isinstance(self._executor, Executor):
             self._executor.load_proxy(self._proxy)
+        self._expected_ep = 0
 
-    def launch(self):
+    def run(self):
         """Entry point method.
 
         This enters the actor into an infinite loop of listening to requests and handling them according to the
         register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
         """
         while True:
-            for msg in self._proxy.receive(is_continuous=False):
-                if msg.tag == MessageTag.ROLLOUT:
-                    self._roll_out(msg)
-                elif msg.tag == MessageTag.EXIT:
-                    sys.exit(0)
+            message = self._proxy.receive_by_id(
+                (MessageTag.ROLLOUT, "*"), stop_condition=lambda msg: msg.tag == MessageTag.EXIT
+            )
+            if isinstance(message, Message):
+                sys.exit(0)
+
+            message = message[0]
+            ep = int(message.session_id.split("-")[-1])
+            if ep < self._expected_ep:
+                continue
+            self._expected_ep = ep
+            ret = self._roll_out(message)
+            if not ret:
+                self._expected_ep += 1
+            elif ret.tag == MessageTag.EXIT:
+                sys.exit(0)
 
     def _roll_out(self, message):
         """Perform one episode of roll-out and send performance and experiences back to the learner.
@@ -60,16 +71,14 @@ class Actor(ABC):
             if exploration_params is not None:
                 self._executor.update_exploration_params(exploration_params)
         else:
-            self._executor.set_ep(message.session_id)
+            self._executor.set_ep(int(message.session_id.split("-")[-1]))
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
             # Reset or exit
-            if action == ExecutorInterrupt.EXIT:
-                sys.exit(0)
-            elif action == ExecutorInterrupt.RESET:
-                return
+            if isinstance(action, Message):
+                return action
 
             metrics, decision_event, is_done = self._env.step(action)
             if action:
@@ -77,7 +86,7 @@ class Actor(ABC):
 
         self._proxy.reply(
             received_message=message,
-            tag=MessageTag.FINISH,
+            tag=MessageTag.FINISHED,
             payload={
                 PayloadKey.PERFORMANCE: self._env.metrics,
                 PayloadKey.EXPERIENCES:

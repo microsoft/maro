@@ -10,6 +10,7 @@ import time
 import uuid
 from collections import defaultdict, deque, namedtuple
 from enum import Enum
+from itertools import chain
 from typing import Callable, Dict, List, Tuple, Union
 
 # third party lib
@@ -130,7 +131,7 @@ class Proxy:
         self._onboard_peer_dict = defaultdict(dict)
 
         # Temporary store the message.
-        self._message_cache = defaultdict(list)
+        self._message_cache = defaultdict(lambda: defaultdict(list))
 
         # Parameters for dynamic peers.
         self._enable_rejoin = enable_rejoin
@@ -302,29 +303,36 @@ class Proxy:
         """
         return self._driver.receive(is_continuous=is_continuous)
 
-    def _retrieve_from_cache(self, targets: List[tuple]):
-        # Pre-process session ids.
-        messages = []
+    def _retrieve_from_cache(self, targets: Union[List[tuple], tuple]):
         if isinstance(targets, list):
             pending_targets = set(targets)
+        elif isinstance(targets, tuple):
+            pending_targets = {targets}
         else:
             # The input may be None, if enable peer rejoin.
             self._logger.warn(f"Unrecognized target {targets}.")
             return []
 
-        # Check message cache for saved messages.
-        for target in targets:
-            if target in self._message_cache:
-                for msg in self._message_cache[target]:
-                    pending_targets.remove(target)
-                    messages.append(msg)
-                del self._message_cache[target]
+        messages = []
+        for tag, session_id in targets:
+            if session_id == "*":
+                if tag in self._message_cache:
+                    cached_messages = list(chain(*self._message_cache.pop(tag).values()))
+                    if cached_messages:
+                        pending_targets.remove((tag, session_id))
+                        messages.extend(cached_messages)
+            else:
+                if tag in self._message_cache and session_id in self._message_cache[tag]:
+                    cached_messages = self._message_cache[tag].pop(session_id)
+                    if cached_messages:
+                        pending_targets.remove((tag, session_id))
+                        messages.extend(cached_messages)
 
         return messages, pending_targets
 
     def receive_by_id(
         self,
-        targets: List[tuple],
+        targets: Union[List[tuple], tuple],
         timeout: int = None,
         stop_condition: Callable[[Message], bool] = None
     ) -> Union[Message, List[Message]]:
@@ -341,36 +349,34 @@ class Proxy:
         Returns:
             Union[Message, List[Message]]: List of received messages.
         """
+        # Retrieve messages that match the targets.
         messages, pending_targets = self._retrieve_from_cache(targets)
         if not pending_targets:
             return messages
 
+        def use_or_cache(message, pending, message_list, cache):
+            if (message.tag, message.session_id) in pending or (message.tag, "*") in pending:
+                pending.discard((message.tag, message.session_id))
+                pending.discard((message.tag, "*"))
+                message_list.append(message)
+            else:
+                cache[message.tag][message.session_id].append(msg)
+
         # Wait for incoming messages.
         if timeout is None:
             for msg in self._driver.receive():
+                use_or_cache(msg, pending_targets, messages, self._message_cache)
                 if stop_condition(msg):
                     return msg
-                signature = (msg.tag, msg.session_id)
-                if signature in pending_targets:
-                    pending_targets.remove(signature)
-                    messages.append(msg)
-                else:
-                    self._message_cache[signature].append(msg)
-
                 if not pending_targets:
                     break
         else:
             msg = self._driver.receive_with_timeout(timeout=timeout)
             if msg is None:
                 return messages
+            use_or_cache(msg, pending_targets, messages, self._message_cache)
             if stop_condition(msg):
                 return msg
-            signature = (msg.tag, msg.session_id)
-            if signature in pending_targets:
-                pending_targets.remove(signature)
-                messages.append(msg)
-            else:
-                self._message_cache[signature].append(msg)
 
         return messages
 

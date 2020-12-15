@@ -20,45 +20,33 @@ class SimpleDistLearner(AbsDistLearner):
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
-            performance, exp_by_agent = self._sample(
-                self._agent_manager.dump_models(), exploration_params=exploration_params
-            )
-            self._scheduler.record_performance(performance)
-            self._agent_manager.train(exp_by_agent)
+            # load exploration parameters
+            if exploration_params:
+                self._agent_manager.update_exploration_params(exploration_params)
+            current_ep = f"ep-{self._scheduler.current_ep}"
+            self._request_rollout(current_ep)
+            self._wait_for_actor_results(current_ep)
+
+        self._proxy.clear_cache()
 
     def test(self):
-        """Test policy performance."""
-        performance, _ = self._sample(self._agent_manager.dump_models(), return_experiences=False)
-        self._scheduler.record_performance(performance)
+        """Test policy performance on remote actors."""
+        self._request_rollout("test")
+        self._wait_for_actor_results("test")
+        self._proxy.clear_cache()
 
-    def _sample(self, model_dict: dict, exploration_params=None, return_experiences: bool = True):
+    def _wait_for_actor_results(self, episode: str):
         """Send roll-out requests to remote actors.
 
         Args:
-            model_dict (dict): Models the remote actors .
-            exploration_params: Exploration parameters.
-            return_experiences (bool): If True, return experiences as well as performance metrics provided by the env.
+            episode (str): A string indicating the current training episode or the test phase if equal to "test".
 
-        Returns:
-            Performance and per-agent experiences from the remote actor.
         """
-        # TODO: double check when ack enable
-        replies = self._proxy.broadcast(
-            component_type=ACTOR,
-            tag=MessageTag.ROLLOUT,
-            session_id=f"ep-{self._scheduler.current_ep}",
-            session_type=SessionType.TASK,
-            payload={
-                PayloadKey.MODEL: model_dict,
-                PayloadKey.EXPLORATION_PARAMS: exploration_params
-            }
-        )
-
-        performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-        experiences_by_source = {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in replies}
-        experiences = self._experience_collecting_func(experiences_by_source) if return_experiences else None
-
-        return performance, experiences
+        for msg in self._proxy.receive():
+            if msg.tag == MessageTag.FINISHED and msg.session_id == episode and self._registry_table.push_process(msg):
+                # If enough update messages have been received, call _update() and break out of the loop to start the
+                # next episode.
+                break
 
 
 class SEEDLearner(AbsDistLearner):
@@ -76,17 +64,15 @@ class SEEDLearner(AbsDistLearner):
         logger: Logger = DummyLogger(),
         **proxy_params
     ):
-        super().__init__(agent_manager, scheduler, experience_collecting_func, logger=logger, **proxy_params)
-        self._actors = self._proxy.peers_name[ACTOR]
-        self._pending_actor_set = None
+        super().__init__(
+            agent_manager, scheduler, experience_collecting_func,
+            update_trigger=update_trigger, logger=logger, **proxy_params
+        )
         if choose_action_trigger is None:
             choose_action_trigger = len(self._actors)
         self._registry_table.register_event_handler(
             f"{ACTOR}:{MessageTag.ACTION.value}:{choose_action_trigger}", self._get_action
         )
-        if update_trigger is None:
-            update_trigger = len(self._actors)
-        self._registry_table.register_event_handler(f"{ACTOR}:{MessageTag.FINISH.value}:{update_trigger}", self._update)
         self._latest_time_steps_by_actor = defaultdict(lambda: -1)
 
     def learn(self):
@@ -95,60 +81,38 @@ class SEEDLearner(AbsDistLearner):
             # load exploration parameters
             if exploration_params:
                 self._agent_manager.update_exploration_params(exploration_params)
-            self._sample()
+            current_ep = f"ep-{self._scheduler.current_ep}"
+            self._request_rollout(current_ep)
+            self._serve_and_update(current_ep)
 
         self._proxy.clear_cache()
 
     def test(self):
-        """Test policy performance."""
-        self._sample(is_training=False)
+        """Test policy performance on remote actors."""
+        self._request_rollout("test")
+        self._serve_and_update("test")
+        self._proxy.clear_cache()
 
-    def _sample(self, is_training: bool = True):
-        """Send roll-out requests to remote actors.
+    def _serve_and_update(self, episode: str):
+        """Serve actions to actors and wait for their roll-out results.
 
         Args:
-            is_training (bool): If True, return experiences as well as performance metrics provided by the env.
+            episode (str): A string indicating the current training episode or the test phase if equal to "test".
 
-        Returns:
-            Performance and per-agent experiences from the remote actor.
         """
-        current_ep = f"ep-{self._scheduler.current_ep}" if is_training else "test"
-        self._proxy.ibroadcast(
-            component_type=ACTOR,
-            tag=MessageTag.ROLLOUT,
-            session_id=current_ep,
-            session_type=SessionType.TASK,
-            payload={PayloadKey.IS_TRAINING: is_training}
-        )
-
-        self._pending_actor_set = set(self._actors)
         self._latest_time_steps_by_actor = defaultdict(lambda: -1)
 
         for msg in self._proxy.receive():
             if msg.tag == MessageTag.ACTION:
                 actor_id, ep, time_step = msg.session_id.split(".")
                 time_step = int(time_step.split("-")[-1])
-                if ep == current_ep and time_step > self._latest_time_steps_by_actor[actor_id]:
+                if ep == episode and time_step > self._latest_time_steps_by_actor[actor_id]:
                     self._latest_time_steps_by_actor[actor_id] = time_step
                     self._registry_table.push_process(msg)
-            elif msg.tag == MessageTag.FINISH:
+            elif msg.tag == MessageTag.FINISHED and msg.session_id == episode and self._registry_table.push_process(msg):
                 # If enough update messages have been received, call _update() and break out of the loop to start the
                 # next episode.
-                if msg.session_id == current_ep and self._registry_table.push_process(msg):
-                    break
-
-        self._registry_table.clear()
-        if is_training:
-            for actor_id in self._pending_actor_set:
-                self._proxy.isend(
-                    SessionMessage(
-                        tag=MessageTag.RESET,
-                        source=self._proxy.component_name,
-                        destination=actor_id,
-                        session_id=current_ep,
-                        session_type=SessionType.NOTIFICATION
-                    )
-                )
+                break
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
@@ -165,22 +129,3 @@ class SEEDLearner(AbsDistLearner):
             action_batch = self._agent_manager[agent_id].choose_action(state_batch)
             for msg, action in zip(message_batch, action_batch):
                 self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
-
-    def _update(self, messages: list):
-        if isinstance(messages, SessionMessage):
-            messages = [messages]
-
-        for msg in messages:
-            performance = msg.payload[PayloadKey.PERFORMANCE]
-            self._scheduler.record_performance(performance)
-            self._logger.info(
-                f"ep {self._scheduler.current_ep} - performance: {performance}, "
-                f"exploration_params: {self._scheduler.exploration_params}, "
-                f"actor_id: {msg.source}"
-            )
-            self._pending_actor_set.remove(msg.source)
-
-        if messages[0].payload[PayloadKey.EXPERIENCES]:
-            self._agent_manager.train(
-                self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
-            )

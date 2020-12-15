@@ -32,8 +32,7 @@ def launch(config, distributed_config):
         config.main_loop.max_episode,
         warmup_ep=config.main_loop.early_stopping.warmup_ep,
         exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
-        exploration_parameter_generator_config=config.main_loop.exploration,
-        logger=Logger("distributed_cim_learner", auto_timestamp=False)
+        exploration_parameter_generator_config=config.main_loop.exploration
     )
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
