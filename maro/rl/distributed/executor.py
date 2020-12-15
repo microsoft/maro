@@ -7,7 +7,7 @@ from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 
-from .common import ExecutorInterrupt, DistributedTrainingMode
+from .common import DistributedTrainingMode
 
 
 class Executor(object):
