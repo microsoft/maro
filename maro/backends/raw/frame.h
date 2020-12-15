@@ -33,6 +33,8 @@ namespace maro
       /// </summary>
       class Frame
       {
+        friend class SnapshotList;
+
       private:
         // All node types, index is the NODE_TYPE.
         vector<Node> _nodes;

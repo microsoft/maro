@@ -534,15 +534,11 @@ class TestFrame(unittest.TestCase):
             self.assertEqual(0, a2)
             self.assertEqual(0, a3)
 
-        # remove one node, output should padding with nan
-        frame.delete_node(frame.static_nodes[0])
+        frame.take_snapshot(0)
 
-        frame.dump(".")
+        frame.take_snapshot(1)
 
-        static_df = pd.read_csv("node_static.csv", converters={"a1": list_parser})
-        print(static_df)
-
-
+        frame.snapshots.dump(".")
 
 if __name__ == "__main__":
     unittest.main()

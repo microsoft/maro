@@ -400,9 +400,88 @@ namespace maro
         is_list = false;
       }
 
+      inline void SnapshotList::write_attribute(ofstream &file, int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index)
+      {
+        auto &attr = get_attr(tick, node_index, attr_type, slot_index);
+
+        if (attr.is_nan())
+        {
+          file << "nan";
+        }
+        else
+        {
+          file << ATTR_FLOAT(attr);
+        }
+      }
+
       void SnapshotList::dump(string path)
       {
+        for (auto& node : _cur_frame->_nodes)
+        {
+          auto full_path = path + "/" + "snapshots_" + node._name + ".csv";
 
+          ofstream file(full_path);
+
+          // Headers.
+          file << "tick,node_index";
+
+          for(auto& attr_def : node._attribute_definitions)
+          {
+            file << "," << attr_def.name;
+          }
+
+          // End of Headers.
+          file << "\n";
+
+          // Rows.
+          for(auto& snapshot_iter : _snapshots)
+          {
+            auto tick = snapshot_iter.first;
+            auto& snapshot = snapshot_iter.second;
+            auto& history_node = snapshot.get_node(node._type);
+
+            for (NODE_INDEX node_index = 0; node_index < node._max_node_number; node_index++)
+            {
+              // ignore deleted node
+              if(!history_node.is_node_alive(node_index))
+              {
+                continue;
+              }
+
+              file << tick << "," << node_index;
+
+              for(auto& attr_def : node._attribute_definitions)
+              {
+                if(!attr_def.is_list && attr_def.slot_number == 1)
+                {
+                  file << ",";
+
+                  write_attribute(file, tick, node_index, attr_def.attr_type, 0);
+                }
+                else
+                {
+                  file << ",\"[";
+                  
+                  auto slot_number = history_node.get_slot_number(node_index, attr_def.attr_type);
+
+                  for(SLOT_INDEX slot_index = 0; slot_index < slot_number; slot_index++)
+                  {
+                    write_attribute(file, tick, node._type, attr_def.attr_type, slot_index);
+
+                    file << ",";
+                  }
+
+                  file << "]\"";
+                }
+                
+              }
+
+              file << "\n";
+            }
+          }
+
+          file.close();
+        }
       }
 
       const char* SnapshotTickError::what() const noexcept

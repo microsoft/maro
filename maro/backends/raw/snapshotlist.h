@@ -121,6 +121,8 @@ namespace maro
 
         // Make sure max size greater than 0.
         inline void ensure_max_size();
+
+        inline void SnapshotList::write_attribute(ofstream &file, int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
       public:
         /// <summary>
         /// Set max size of snapshot in memory.
