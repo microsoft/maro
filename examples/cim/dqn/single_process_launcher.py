@@ -6,11 +6,6 @@ from statistics import mean
 
 import numpy as np
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import DQNAgentManager, create_dqn_agents
-from components.config import set_input_dim
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
 
 from maro.rl import (
     AgentManagerMode, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor, SimpleEarlyStoppingChecker,
@@ -18,6 +13,12 @@ from maro.rl import (
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
+
+from components.action_shaper import CIMActionShaper
+from components.agent_manager import DQNAgentManager, create_dqn_agents
+from components.config import set_input_dim
+from components.experience_shaper import TruncatedExperienceShaper
+from components.state_shaper import CIMStateShaper
 
 
 def launch(config):
