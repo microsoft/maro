@@ -22,7 +22,6 @@ class VirtualMachine:
         self.lifetime: int = lifetime
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
-        self._utilization_index = 0
         # The physical machine Id that the VM is assigned.
         self.pm_id: int = -1
         self.cpu_utilization: float = 0.0
@@ -37,9 +36,13 @@ class VirtualMachine:
 
     def add_utilization(self, cpu_utilization: float):
         """VM CPU utilization list."""
-        self._utilization_series.append(cpu_utilization)
-        self._utilization_index = len(self._utilization_series) - 1
+        # If cpu_utilization is smaller than 0, it means the missing data in the cpu readings file.
+        # We use the last utilization.
+        if cpu_utilization < 0.0:
+            self._utilization_series.append(self._utilization_series[-1])
+        else:
+            self._utilization_series.append(cpu_utilization)
 
-    def get_historical_utilization_series(self) -> List[float]:
+    def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
-        return self._utilization_series[:self._utilization_index]
+        return self._utilization_series[cur_tick - self.start_tick]

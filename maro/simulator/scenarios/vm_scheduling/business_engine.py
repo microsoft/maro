@@ -189,6 +189,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             self._total_vm_requests += 1
 
     def post_step(self, tick: int):
+        # Update energy to the environment metrices.
+        total_energy = 0.0
+        for pm in self._machines:
+            total_energy += pm.energy_consumption
+        self._total_energy_consumption += total_energy
+
         return tick >= self._max_tick - 1
 
     def get_metrics(self) -> DocableDict:
@@ -224,28 +230,26 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
         for live_vm in self._live_vms.values():
-            # TODO: Some data could be lost.
-            # Currently, we use the last utilization, it might could be further refined to use average or others.
-            if live_vm.id not in self._cpu_utilization_dict:
-                live_vm.add_utilization(cpu_utilization=live_vm.get_historical_utilization_series()[:-1])
-            else:
-                live_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[live_vm.id])
-                live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
-
-        for pending_vm_payload in self._pending_vm_req_payload.values():
-            pending_vm = pending_vm_payload.vm_info
             # NOTE:
             # We set every VM's finish event at deletion time - creation time + 1. Therefore, in the end tick,
             # the id doesn't exist in the cpu utilization dictionary. We give them a padding 0 instead.
-            if self._tick - pending_vm.start_tick >= pending_vm.lifetime:
-                pending_vm.add_utilization(cpu_utilization=0)
+            if self._tick - live_vm.start_tick >= live_vm.lifetime:
+                live_vm.add_utilization(cpu_utilization=0.0)
             else:
                 # TODO: Some data could be lost.
-                # Currently, we use the last utilization, might could refine to use average or others.
-                if pending_vm.id not in self._cpu_utilization_dict:
-                    pending_vm.add_utilization(cpu_utilization=pending_vm.get_historical_utilization_series[:-1])
+                # Currently, we use the last utilization, it could be further refined to use average or others.
+                if live_vm.id not in self._cpu_utilization_dict:
+                    live_vm.add_utilization(cpu_utilization=-1.0)
                 else:
-                    pending_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[pending_vm.id])
+                    live_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[live_vm.id])
+                    live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
+
+        for pending_vm_payload in self._pending_vm_req_payload.values():
+            pending_vm = pending_vm_payload.vm_info
+            if pending_vm.id not in self._cpu_utilization_dict:
+                pending_vm.add_utilization(cpu_utilization=-1.0)
+            else:
+                pending_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[pending_vm.id])
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""
@@ -256,21 +260,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement / 100
             pm.cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
-            # Update each PM's energy.
-            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(pm.cpu_utilization)
-            total_energy += pm.energy_consumption
-        self._total_energy_consumption += total_energy
 
-    def _cpu_utilization_to_energy_consumption(self, cpu_util: float) -> float:
+    def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        cpu_util /= 100
+        cpu_utilization /= 100
         power: float = self._config.PM["P1"]["POWER_CURVE"]["CALIBRATION_PARAMETER"]
         busy_power = self._config.PM["P1"]["POWER_CURVE"]["BUSY_POWER"]
         idle_power = self._config.PM["P1"]["POWER_CURVE"]["IDLE_POWER"]
-        return idle_power + (busy_power - idle_power) * (2 * cpu_util - pow(cpu_util, power))
+        return idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
 
     def _postpone_vm_requirement(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
         """Postpone VM requirement."""
@@ -421,7 +421,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     / pm.cpu_cores_capacity
                 )
                 pm.cpu_utilization = pm_cpu_utilization
-
+                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
                 self._successful_allocation += 1
             elif type(action) == PostponeAction:
                 postpone_frequency = action.postpone_frequency
