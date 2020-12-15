@@ -1,33 +1,31 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Union
 
 import numpy as np
 
 
-class StaticExplorationParameterGenerator(object):
+class StaticExplorationParameterGenerator(ABC):
     """Exploration parameter generator based on a pre-defined schedule.
 
     Args:
         max_ep (int): Maximum number of episodes to run.
     """
-    def __init__(self, max_ep: int, **config):
+    def __init__(self, max_ep: int):
         super().__init__()
         self._max_ep = max_ep
-        self._config = config
 
     @abstractmethod
     def next(self):
         raise NotImplementedError
 
 
-class DynamicExplorationParameterGenerator(object):
+class DynamicExplorationParameterGenerator(ABC):
     """Dynamic exploration parameter generator based on the performances history."""
-    def __init__(self, **config):
+    def __init__(self):
         super().__init__()
-        self._config = config
 
     @abstractmethod
     def next(self, performance_history: list):

@@ -6,9 +6,7 @@ from statistics import mean
 
 import numpy as np
 
-from maro.rl import (
-    AgentManagerMode, KStepExperienceShaper, Scheduler, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator
-)
+from maro.rl import AgentManagerMode, Scheduler, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
@@ -30,15 +28,9 @@ def launch(config):
 
     # Step 2: Create state, action and experience shapers. We also need to create an explorer here due to the
     # greedy nature of the DQN algorithm.
-    state_shaper = CIMStateShaper(**config.state_shaping)
+    state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=action_space)
-    if config.experience_shaping.type == "truncated":
-        experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
-    else:
-        experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
-            **config.experience_shaping.k_step
-        )
+    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
     # Step 3: Create agents and an agent manager.
     agent_manager = DQNAgentManager(
@@ -70,11 +62,12 @@ def launch(config):
         warmup_ep=config.main_loop.early_stopping.warmup_ep,
         early_stopping_callback=early_stopping_callback,
         exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
-        exploration_parameter_generator_config=config.main_loop.exploration,
-        logger=Logger("single_host_cim_learner", auto_timestamp=False)
+        exploration_parameter_generator_config=config.main_loop.exploration
     )
 
-    learner = SimpleLearner(env, agent_manager, scheduler)
+    learner = SimpleLearner(
+        env, agent_manager, scheduler, logger=Logger("single_host_cim_learner", auto_timestamp=False)
+    )
     learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))

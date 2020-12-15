@@ -4,6 +4,7 @@
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.simulator import Env
+from maro.utils import DummyLogger, Logger
 
 from .abs_learner import AbsLearner
 
@@ -16,23 +17,30 @@ class SimpleLearner(AbsLearner):
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
+        logger (Logger): Used to log important messages.
     """
     def __init__(
         self,
         env: Env,
         agent_manager: SimpleAgentManager,
-        scheduler: Scheduler
+        scheduler: Scheduler,
+        logger: Logger = DummyLogger()
     ):
         super().__init__()
         self._env = env
         self._agent_manager = agent_manager
         self._scheduler = scheduler
+        self._logger = logger
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
             performance, exp_by_agent = self._sample(exploration_params=exploration_params)
             self._scheduler.record_performance(performance)
+            self._logger.info(
+                f"ep {self._scheduler.current_ep} - performance: {performance}, "
+                f"exploration_params: {self._scheduler.exploration_params}"
+            )
             self._agent_manager.train(exp_by_agent)
 
     def test(self):
