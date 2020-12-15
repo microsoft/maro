@@ -46,15 +46,20 @@ class Actor(ABC):
                 sys.exit(0)
 
             message = message[0]
-            ep = int(message.session_id.split("-")[-1])
-            if ep < self._expected_ep:
-                continue
-            self._expected_ep = ep
-            ret = self._roll_out(message)
-            if not ret:
-                self._expected_ep += 1
-            elif ret.tag == MessageTag.EXIT:
-                sys.exit(0)
+            if message.session_id == "test":
+                ret = self._roll_out(message)
+                if ret.tag == MessageTag.EXIT:
+                    sys.exit(0)
+            else:
+                ep = int(message.session_id.split("-")[-1])
+                if ep < self._expected_ep:
+                    continue
+                self._expected_ep = ep
+                ret = self._roll_out(message)
+                if not ret:
+                    self._expected_ep += 1
+                elif ret.tag == MessageTag.EXIT:
+                    sys.exit(0)
 
     def _roll_out(self, message):
         """Perform one episode of roll-out and send performance and experiences back to the learner.
