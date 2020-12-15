@@ -286,9 +286,82 @@ namespace maro
       ATTRIBUTE_INSERTER(ATTR_FLOAT)
       ATTRIBUTE_INSERTER(ATTR_DOUBLE)
 
-      void Frame::dump(string folder) const
+      void Frame::write_attribute(ofstream &file, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index)
       {
 
+      }
+
+      void Frame::dump(string folder)
+      {
+        // for dump, we will save for each node, named as "node_<node_name>.csv"
+        // content of the csv will follow padans' output that list will be wrapped into a "[]",
+        for (auto& node : _nodes)
+        {
+          auto output_path = folder + "/" + "node_" + node._name + ".csv";
+
+          ofstream file(output_path);
+
+          // Write header - first column.
+          file << "node_index";
+
+          // Futhure columns (attribute name).
+          for(auto& attr_def : node._attribute_definitions)
+          {
+            file << "," << attr_def.name;
+          }
+
+          // End of header.
+          file << "\n";
+
+          // Write for each node instance.
+          for (NODE_INDEX node_index = 0; node_index < node._max_node_number; node_index++)
+          {
+            // Ignore deleted node instance.
+            if(!node.is_node_alive(node_index))
+            {
+              continue;
+            }
+
+            // Row - node index.
+            file << node_index;
+
+            for (auto& attr_def : node._attribute_definitions)
+            {
+              if (!attr_def.is_list && attr_def.slot_number == 1)
+              {
+                file << ",";
+
+                auto& attr = node.get_attr(node_index, attr_def.attr_type, 0);
+
+                file << QUERY_FLOAT(attr);
+              }
+              else
+              {
+                // List start.
+                file << ",\"[";
+
+                auto slot_number = node.get_slot_number(node_index, attr_def.attr_type);
+
+                for (SLOT_INDEX slot_index = 0; slot_index < slot_number; slot_index++)
+                {
+                  auto& attr = node.get_attr(node_index, attr_def.attr_type, 0);
+
+                  file << QUERY_FLOAT(attr);
+
+                  file << ",";
+                }
+
+                // List end.
+                file << "]\"";
+              }
+            }
+
+            // end of row
+            file << "\n";
+          }
+
+          file.close();
+        }
       }
 
       const char* FrameNotSetupError::what() const noexcept

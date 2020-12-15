@@ -53,13 +53,16 @@ namespace maro
         // Number of slot, for fixed size only, list attribute'slot number samed in attribute class.
         SLOT_INDEX slot_number = 1;
 
+        // Type of this attribute.
+        ATTR_TYPE attr_type = 0;
+
         // Offset in each node instance, used to retrieve attribute from node instance.
         size_t offset = 0;
 
         // Name of attribute.
         string name;
 
-        AttributeDef(string name, AttrDataType data_type, SLOT_INDEX slot_number, size_t offset, bool is_list, bool is_const);
+        AttributeDef(string name, AttrDataType data_type, SLOT_INDEX slot_number, size_t offset, bool is_list, bool is_const, ATTR_TYPE attr_type);
       };
 
       /// <summary>
@@ -68,6 +71,7 @@ namespace maro
       class Node
       {
         friend class SnapshotList;
+        friend class Frame;
 
       private:
         // Memory block to hold dyanmic attributes, these attributes will be copied into snapshot list.

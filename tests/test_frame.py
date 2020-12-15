@@ -506,9 +506,9 @@ class TestFrame(unittest.TestCase):
         self.assertEqual(3, len(states))
         self.assertListEqual([10, 11, 12], list(states))
 
-"""
+
     def test_frame_dump(self):
-        frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="raw")
+        frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
 
         frame.dump(".")
 
@@ -540,14 +540,9 @@ class TestFrame(unittest.TestCase):
         frame.dump(".")
 
         static_df = pd.read_csv("node_static.csv", converters={"a1": list_parser})
-        
-        #
-        self.assertTrue(isnan(static_df.loc[0]["a1"][0]))
-        self.assertTrue(isnan(static_df.loc[0]["a1"][1]))
+        print(static_df)
 
-        self.assertTrue(isnan(static_df.loc[0]["a2"]))
-        self.assertTrue(isnan(static_df.loc[0]["a3"]))
-"""
+
 
 if __name__ == "__main__":
     unittest.main()

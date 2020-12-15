@@ -4,6 +4,8 @@
 #ifndef  _MARO_BACKENDS_RAW_FRAME_
 #define _MARO_BACKENDS_RAW_FRAME_
 
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -47,6 +49,8 @@ namespace maro
         // Make sure node type correct.
         inline void ensure_node_type(NODE_TYPE node_type);
 
+        // Helper function for dump one attribute slot
+        void write_attribute(ofstream &file, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
       public:
         Frame();
 
@@ -194,7 +198,7 @@ namespace maro
         /// different files.
         /// </summary>
         /// <param name="folder">Folder to dump file.</param>
-        void dump(string folder) const;
+        void dump(string folder);
 
         /// <summary>
         /// Check if specified node type exist or not.

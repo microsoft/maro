@@ -14,18 +14,21 @@ namespace maro
         return USHORT(attr_type & 0x0000ffff);
       }
 
-      inline size_t compose_attr_offset_in_node(NODE_INDEX node_index, size_t node_size, size_t attr_offset, SLOT_INDEX slot)
+      inline size_t compose_attr_offset_in_node(NODE_INDEX node_index, size_t node_size,
+        size_t attr_offset, SLOT_INDEX slot)
       {
         return node_index * node_size + attr_offset + slot;
       }
 
-      AttributeDef::AttributeDef(string name, AttrDataType data_type, SLOT_INDEX slot_number, size_t offset, bool is_list, bool is_const) :
+      AttributeDef::AttributeDef(string name, AttrDataType data_type, SLOT_INDEX slot_number,
+        size_t offset, bool is_list, bool is_const, ATTR_TYPE attr_type) :
         name(name),
         slot_number(slot_number),
         offset(offset),
         is_list(is_list),
         is_const(is_const),
-        data_type(data_type)
+        data_type(data_type),
+        attr_type(attr_type)
       {
       }
 
@@ -348,7 +351,8 @@ namespace maro
         }
       }
 
-      ATTR_TYPE Node::add_attr(string attr_name, AttrDataType data_type, SLOT_INDEX slot_number, bool is_const, bool is_list)
+      ATTR_TYPE Node::add_attr(string attr_name, AttrDataType data_type,
+        SLOT_INDEX slot_number, bool is_const, bool is_list)
       {
         if (_is_setup)
         {
@@ -383,7 +387,7 @@ namespace maro
           _dynamic_size_per_node += slot_number;
         }
 
-        _attribute_definitions.emplace_back(attr_name, data_type, slot_number, offset, is_list, is_const);
+        _attribute_definitions.emplace_back(attr_name, data_type, slot_number, offset, is_list, is_const, attr_type);
 
         return attr_type;
       }
