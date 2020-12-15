@@ -519,6 +519,54 @@ Random Repositioning
      - 216,480 :math:`\pm`  13,768
      - 743,825 :math:`\pm`   41,461
 
+EncGAT
+~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Topology
+     - Total Requirement
+     - Resource Shortage
+     - Repositioning Number
+   * - global_trade.22p_l0.0
+     - 896,000
+     - 14,027 :math:`\pm` 2,100
+     - 360,823 :math:`\pm` 25,594
+   * - global_trade.22p_l0.1
+     - 896,000
+     - 4,543 :math:`\pm` 1,084
+     - 454,062 :math:`\pm`  29,864
+   * - global_trade.22p_l0.2
+     - 896,000
+     - 5,028 :math:`\pm`  1,465
+     - 580,875 :math:`\pm`  27,989
+   * - global_trade.22p_l0.3
+     - 895,460
+     - 23,752 :math:`\pm` 2,709
+     - 322,299 :math:`\pm`  38,805
+   * - global_trade.22p_l0.4
+     - 900,068
+     - 38,996 :math:`\pm` 3,298
+     - 497,803 :math:`\pm` 43,682
+   * - global_trade.22p_l0.5
+     - 900,068
+     - 27,654 :math:`\pm` 2,288
+     - 441,838 :math:`\pm` 27,667
+   * - global_trade.22p_l0.6
+     - 900,068
+     - 20,046 :math:`\pm`  1,867
+     - 461,710 :math:`\pm`  31,867
+   * - global_trade.22p_l0.7
+     - 900,068
+     - 26,466 :math:`\pm` 3,613
+     - 475,093 :math:`\pm`  34,796
+   * - global_trade.22p_l0.8
+     - 897,716
+     - 63,841 :math:`\pm`  4,546
+     - 473,425 :math:`\pm`  37,180
+
+
 Quick Start
 -----------
 
