@@ -8,13 +8,11 @@ This script is used to debug distributed algorithm in single host multi-process 
 import argparse
 import os
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("group_name", help="group name")
     parser.add_argument("num_actors", type=int, help="number of actors")
     args = parser.parse_args()
-
     learner_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_learner.py &"
     actor_path = f"{os.path.split(os.path.realpath(__file__))[0]}/dist_actor.py &"
 

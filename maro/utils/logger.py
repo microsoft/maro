@@ -13,7 +13,6 @@ from enum import Enum
 # private lib
 from maro.cli.utils.params import GlobalParams as CliGlobalParams
 
-
 cwd = os.getcwd()
 
 # For API generation, we should hide our build path for security issue.
@@ -47,15 +46,15 @@ FORMAT_NAME_TO_FILE_FORMAT = {
     LogFormat.internal: logging.Formatter(
         fmt='%(asctime)s | %(component)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_debug: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(message)s', datefmt='%H:%M:%S'),
+        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(message)s', datefmt='%H:%M:%S'),
+        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.none: None
 }
 
 FORMAT_NAME_TO_STDOUT_FORMAT = {
-    LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(tag)s | %(message)s', datefmt='%H:%M:%S'),
+    # We need to output clean messages in the INFO mode.
+    LogFormat.cli_info: logging.Formatter(fmt='%(message)s'),
 }
 
 # Progress of training, we give it a highest level.
@@ -112,8 +111,10 @@ class Logger(object):
             ``DEBUG``.
     """
 
-    def __init__(self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
-                 extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"):
+    def __init__(
+        self, tag: str, format_: LogFormat = LogFormat.full, dump_folder: str = cwd, dump_mode: str = 'w',
+        extension_name: str = 'log', auto_timestamp: bool = True, stdout_level="INFO"
+    ):
         self._file_format = FORMAT_NAME_TO_FILE_FORMAT[format_]
         self._stdout_format = FORMAT_NAME_TO_STDOUT_FORMAT[format_] \
             if format_ in FORMAT_NAME_TO_STDOUT_FORMAT else \
@@ -140,8 +141,7 @@ class Logger(object):
         filename += f'.{self._extension_name}'
 
         # File handler
-        fh = logging.FileHandler(
-            filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode)
+        fh = logging.FileHandler(filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode, encoding="utf-8")
         fh.setLevel(logging.DEBUG)
         if self._file_format is not None:
             fh.setFormatter(self._file_format)
@@ -185,6 +185,7 @@ class Logger(object):
 
 class DummyLogger:
     """A dummy Logger, which is used when disabling logs."""
+
     def __init__(self):
         pass
 
@@ -207,9 +208,11 @@ class DummyLogger:
 class InternalLogger(Logger):
     """An internal logger uses for recording the internal system's log."""
 
-    def __init__(self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
-                 dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
-                 auto_timestamp: bool = False):
+    def __init__(
+        self, component_name: str, tag: str = "maro_internal", format_: LogFormat = LogFormat.internal,
+        dump_folder: str = None, dump_mode: str = 'a', extension_name: str = 'log',
+        auto_timestamp: bool = False
+    ):
         current_time = f"{datetime.now().strftime('%Y%m%d%H%M')}"
         self._dump_folder = dump_folder if dump_folder else \
             os.path.join(os.path.expanduser("~"), ".maro/log", current_time, str(os.getpid()))
@@ -271,6 +274,15 @@ class CliLogger:
         """
         self.passive_init()
         self._logger.debug('\033[33m' + message + '\033[0m')
+
+    def debug_green(self, message: str) -> None:
+        """``logger.debug()`` with color green and passive init.
+
+        Args:
+            message (str): logged message.
+        """
+        self.passive_init()
+        self._logger.debug('\033[32m' + message + '\033[0m')
 
     def info(self, message: str) -> None:
         """``logger.info()`` with passive init.

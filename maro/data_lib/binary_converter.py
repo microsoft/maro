@@ -7,8 +7,8 @@ from csv import DictReader
 
 from dateutil.parser import parse as parse_dt
 from dateutil.tz import UTC, gettz
-from maro.data_lib.common import (SINGLE_BIN_FILE_TYPE, VERSION,
-                                  dtype_convert_map, header_struct)
+
+from maro.data_lib.common import SINGLE_BIN_FILE_TYPE, VERSION, dtype_convert_map, header_struct
 from maro.data_lib.item_meta import BinaryMeta
 
 

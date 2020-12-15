@@ -2,19 +2,22 @@
 # Licensed under the MIT license.
 
 import os
+from statistics import mean
 
 import numpy as np
 
-from maro.simulator import Env
-from maro.rl import AgentManagerMode, MaxDeltaEarlyStoppingChecker, KStepExperienceShaper, SimpleLearner, SimpleActor, \
-    TwoPhaseLinearExplorer
-from maro.utils import Logger, convert_dottable
-
 from components.action_shaper import CIMActionShaper
-from components.agent_manager import create_dqn_agents, DQNAgentManager
+from components.agent_manager import DQNAgentManager, create_dqn_agents
 from components.config import set_input_dim
 from components.experience_shaper import TruncatedExperienceShaper
 from components.state_shaper import CIMStateShaper
+
+from maro.rl import (
+    AgentManagerMode, KStepExperienceShaper, MaxDeltaEarlyStoppingChecker, SimpleActor, SimpleEarlyStoppingChecker,
+    SimpleLearner, TwoPhaseLinearExplorer
+)
+from maro.simulator import Env
+from maro.utils import Logger, convert_dottable
 
 
 def launch(config):
@@ -33,7 +36,7 @@ def launch(config):
         experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
     else:
         experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1-mt["container_shortage"]/mt["order_requirements"],
+            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
             **config.experience_shaping.k_step
         )
 
@@ -48,10 +51,19 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
+    perf_checker = SimpleEarlyStoppingChecker(
         last_k=config.general.early_stopping.last_k,
-        threshold=config.general.early_stopping.threshold
+        threshold=config.general.early_stopping.perf_threshold,
+        measure_func=lambda vals: mean(vals)
     )
+
+    perf_stability_checker = MaxDeltaEarlyStoppingChecker(
+        last_k=config.general.early_stopping.last_k,
+        threshold=config.general.early_stopping.perf_stability_threshold
+    )
+
+    combined_checker = perf_checker & perf_stability_checker
+
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(
         trainable_agents=agent_manager,
@@ -61,13 +73,12 @@ def launch(config):
     )
     learner.train(
         max_episode=config.general.max_episode,
-        early_stopping_checker=early_stopping_checker,
+        early_stopping_checker=combined_checker,
         warmup_ep=config.general.early_stopping.warmup_ep,
         early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
     )
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
-    learner.exit()
 
 
 if __name__ == "__main__":

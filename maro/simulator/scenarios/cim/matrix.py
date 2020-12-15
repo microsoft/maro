@@ -1,9 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
-
-from maro.backends.frame import node, NodeBase, NodeAttribute
+from maro.backends.frame import NodeAttribute, NodeBase, node
+from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
 
 def gen_matrix(port_num: int, vessel_num: int):

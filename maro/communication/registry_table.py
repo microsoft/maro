@@ -2,14 +2,16 @@
 # Licensed under the MIT license.
 
 # native lib
-from enum import Enum
 import itertools
-import numpy as np
+from enum import Enum
 from typing import List, Tuple, Union
 
+import numpy as np
+
 # private lib
-from maro.communication import Message
 from maro.utils.exception.communication_exception import ConditionalEventSyntaxError, PeersMissError
+
+from .message import Message
 
 
 class Operation(Enum):
@@ -51,12 +53,13 @@ class ConditionalEvent:
     Args:
         event (str|Tuple): The description of the requisite messages' combination.
             E.g. "actor:rollout:1" or ("learner:rollout:1", "learner:update:1", "AND").
-        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
+        peers_name (dict|property): The property function which returns the newest peer's name dict from proxy,
+            or the Dict with the key (peer type) and the value (peer name list).
     """
 
-    def __init__(self, event: Union[str, Tuple], get_peers: callable):
+    def __init__(self, event: Union[str, Tuple], peers_name: Union[property, dict]):
         self._event = event
-        self._get_peers = get_peers
+        self._peers_name = peers_name
         self._suffix_tree = SuffixTree()
         self._unit_event_message_dict = {}
 
@@ -78,8 +81,9 @@ class ConditionalEvent:
             elif event[-1] in operation_or_list:
                 suffix_tree.value = Operation.OR
             else:
-                raise ConditionalEventSyntaxError("The last of the conditional event tuple must be "
-                                                  "one of ['AND', 'OR', '&&', '||]")
+                raise ConditionalEventSyntaxError(
+                    "The last of the conditional event tuple must be one of ['AND', 'OR', '&&', '||]"
+                )
 
             for slot in event[:-1]:
                 node = SuffixTree()
@@ -101,8 +105,9 @@ class ConditionalEvent:
         """
         slots = unit_event.split(":")
         if len(slots) != 3:
-            raise ConditionalEventSyntaxError(f"The conditional event: {unit_event}, "
-                                              f"must have three parts, and divided by ':'.")
+            raise ConditionalEventSyntaxError(
+                f"The conditional event: {unit_event}, must have three parts, and divided by ':'."
+            )
 
         # The third part of unit conditional event must be an integer or percentage(*%).
         if slots[-1][-1] == "%":
@@ -111,13 +116,15 @@ class ConditionalEvent:
         try:
             int(slots[-1])
         except Exception as e:
-            raise ConditionalEventSyntaxError(f"The third part of conditional event must be an integer or "
-                                              f"percentage with % in the end. {str(e)}")
+            raise ConditionalEventSyntaxError(
+                f"The third part of conditional event must be an integer or percentage with % in the end. {str(e)}"
+            )
 
     def _get_request_message_number(self, unit_event: str) -> int:
         """To get the number of request messages by the given unit event."""
         component_type, _, number = unit_event.split(":")
-        peers_number = len(self._get_peers(component_type))
+        peers_number = len(self._peers_name[component_type]) if component_type != "*" else \
+            len(list(itertools.chain.from_iterable(self._peers_name.values())))
 
         if peers_number == 0:
             raise PeersMissError(f"There is no target component in peer list! Required peer type {component_type}.")
@@ -210,12 +217,13 @@ class RegisterTable:
     """The RegisterTable is responsible for matching ``conditional events`` and user-defined ``message handlers``.
 
     Args:
-        get_peers (callable): The callable function which returns the newest peer's name list from proxy.
+        peers_name (dict|property): The property function which returns the newest peer's name dict from proxy,
+            or the Dict with the key (peer type) and the value (peers name list).
     """
 
-    def __init__(self, get_peers: callable):
+    def __init__(self, peers_name: Union[property, dict]):
         self._event_handler_dict = {}
-        self._get_peers = get_peers
+        self._peers_name = peers_name
 
     def register_event_handler(self, event: Union[str, tuple], handler_fn: callable):
         """Register conditional event in the RegisterTable, and create a dict which match ``message handler`` and
@@ -225,7 +233,7 @@ class RegisterTable:
             event (str|Tuple): The description of the requisite messages' combination,
             handler_fn (callable): The user-define function which usually uses to handle incoming messages.
         """
-        event = ConditionalEvent(event, self._get_peers)
+        event = ConditionalEvent(event, self._peers_name)
         self._event_handler_dict[event] = handler_fn
 
     def push(self, message: Message):
