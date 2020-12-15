@@ -330,6 +330,11 @@ namespace maro
       {
         const char* what() const noexcept override;
       };
+
+      struct MaxSlotNumberError : public exception
+      {
+        const char* what() const noexcept override;
+      };
     }
   }
 }

@@ -524,6 +524,8 @@ namespace maro
         }
 
         target_list.erase(target_list.begin() + slot_index);
+
+        target_attr.slot_number--;
       }
 
       template<typename T>
@@ -538,7 +540,15 @@ namespace maro
           throw InvalidSlotIndexError();
         }
 
+        // Check if reach the max slot number
+        if(target_list.size() >= MAX_SLOT_NUMBER)
+        {
+          throw MaxSlotNumberError();
+        }
+
         target_list.insert(target_list.begin() + slot_index, Attribute(value));
+
+        target_attr.slot_number++;
       }
 
 #define INSERT_TO_LIST(type) \
@@ -559,33 +569,45 @@ namespace maro
       {
         return "Node has not been setup.";
       }
+
       const char* InvalidAttributeDescError::what() const noexcept
       {
         return "Const attribute cannot be a list.";
       }
+
       const char* InvalidNodeIndexError::what() const noexcept
       {
         return "Node index not exist.";
       }
+
       const char* InvalidSlotIndexError::what() const noexcept
       {
         return "Slot index not exist.";
       }
+
       const char* InvalidNodeNumberError::what() const noexcept
       {
         return "Node number must be greater than 0.";
       }
+
       const char* InvalidAttributeTypeError::what() const noexcept
       {
         return "Attriute type note exist.";
       }
+
       const char* OperationsAfterSetupError::what() const noexcept
       {
         return "Cannot add attribute after setup.";
       }
+
       const char* OperationsOnNonListAttributeError::what() const noexcept
       {
         return "Append, clear and resize function only support for list attribute.";
+      }
+
+      const char* MaxSlotNumberError::what() const noexcept
+      {
+        return "Reach the max number of slot.";
       }
 }
   }

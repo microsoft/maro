@@ -25,6 +25,7 @@ namespace maro
 
       const size_t MAX_NODE_TYPE = USHRT_MAX;
       const size_t MAX_ATTR_TYPE = USHRT_MAX;
+      const size_t MAX_SLOT_NUMBER = UINT32_MAX;
 
       using NODE_INDEX = uint32_t;
       using SLOT_INDEX = uint32_t;
