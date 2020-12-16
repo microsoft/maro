@@ -199,7 +199,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             total_energy += pm.energy_consumption
         self._total_energy_consumption += total_energy
 
-        return tick >= self._max_tick - 1
+        if (tick + 1) % self._snapshot_resolution == 0:
+            # NOTE: We should use frame_index method to get correct index in snapshot list.
+            self._frame.take_snapshot(self.frame_index(tick))
+
+        # Stop current episode if we reach max tick.
+        return tick + 1 == self._max_tick
 
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
