@@ -102,8 +102,8 @@ class Actor(ABC):
             # Reset or exit
             if isinstance(action, Message):
                 self._logger.info(
-                    f"{self._proxy.component_name} received a message with tag {message.tag} and "
-                    f"session {message.session_id}. Roll-out aborted.")
+                    f"{self._proxy.component_name} received a message with tag {action.tag} and "
+                    f"session {action.session_id}. Roll-out aborted.")
                 return action
 
             metrics, decision_event, is_done = self._env.step(action)
