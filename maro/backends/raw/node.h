@@ -42,22 +42,22 @@ namespace maro
       struct AttributeDef
       {
         // Is this a list attribute.
-        bool is_list = false;
+        bool is_list;
 
         // Is this a const attribute.
-        bool is_const = false;
+        bool is_const;
 
         // Data type of this attribute.
-        AttrDataType data_type = AttrDataType::ACHAR;
+        AttrDataType data_type;
 
         // Number of slot, for fixed size only, list attribute'slot number samed in attribute class.
-        SLOT_INDEX slot_number = 1;
+        SLOT_INDEX slot_number;
 
         // Type of this attribute.
-        ATTR_TYPE attr_type = 0;
+        ATTR_TYPE attr_type;
 
         // Offset in each node instance, used to retrieve attribute from node instance.
-        size_t offset = 0;
+        size_t offset;
 
         // Name of attribute.
         string name;
