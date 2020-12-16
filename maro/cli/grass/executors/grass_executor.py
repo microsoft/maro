@@ -188,3 +188,22 @@ class GrassExecutor:
         command = f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} " \
                   f""
         SubProcess.interactive_run(command)
+
+    # Create a new user account on target OS.
+    def remote_add_user_to_node(self, admin_user: str, node_ip_address: str):
+        # The admin_user is an already exist account which has privileges to create new account on target OS.
+        command = f"ssh " \
+                  f"{admin_user}@{node_ip_address} " \
+                  f"'sudo python3 ~/create_user.py " \
+                  f"{self.admin_username} " \
+                  f"\"{self.cluster_details['user']['admin_public_key']}\"'"
+        _ = SubProcess.run(command)
+
+    # Delete maro cluster user account on target OS.
+    def remote_delete_user_from_node(self, admin_user: str, node_ip_address: str):
+        # The admin_user is an already exist account which has privileges to create new account on target OS.
+        command = f"ssh " \
+                  f"{admin_user}@{node_ip_address} " \
+                  f"'sudo python3 ~/delete_user.py " \
+                  f"{self.admin_username}'"
+        _ = SubProcess.run(command)
