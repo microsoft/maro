@@ -315,7 +315,7 @@ cdef class NodeAttribute:
 
         # Array size of tis attribute.
         public SLOT_INDEX _slot_number
-        
+
         # Is this is a const attribute?
         public bool _is_const
 

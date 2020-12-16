@@ -63,8 +63,6 @@ cdef class NodeAttribute:
 
 # Wrapper to provide easy way to access attribute value of specified node
 # with this wrapper, user can get/set attribute value more easily.
-# TODO: support list attribute, this kind of attribute only support slice interface to get/set if 
-# index avaliable, or use append/resize/clear
 cdef class _NodeAttributeAccessor:
     cdef:
         # Target node index.
@@ -113,7 +111,7 @@ cdef class _NodeAttributeAccessor:
         """
         if not self._is_list:
             raise Exception("Append method only support for list attribute.")
-        
+
         self._backend.append_to_list(self._node_index, self._attr_type, value)
 
         self._slot_number += 1

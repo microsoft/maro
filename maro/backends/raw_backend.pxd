@@ -107,7 +107,7 @@ cdef extern from "raw/snapshotlist.h" namespace "maro::backends::raw":
         void dump(string path)
 
         void get_ticks(int* result) const
-        
+
         SnapshotQueryResultShape prepare(NODE_TYPE node_type, int ticks[], UINT tick_length, NODE_INDEX node_indices[], UINT node_length, ATTR_TYPE attributes[], UINT attr_length)
         void query(QUERY_FLOAT* result)
         void cancel_query()
