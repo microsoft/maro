@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import warnings
+
 from collections import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
@@ -248,7 +250,13 @@ class Env(AbsEnv):
                 for evt in pending_events:
                     payload = evt.payload
 
-                    payload.source_event_id = evt.id
+                    # Inject source event id on demand.
+                    if self._decision_mode == DecisionMode.Joint:
+                        try:
+                            payload.source_event_id = evt.id
+                        except Exception:
+                            warnings.warn("If need to support joint decision mode with sequential action, \
+                                please make sure the decision event object can be injected with dynamic attributes.")
 
                     decision_events.append(payload)
 
@@ -266,14 +274,12 @@ class Env(AbsEnv):
                     actions = [actions]
 
                 # Generate a new atom event first.
-                action_event = self._event_buffer.gen_action_event(
-                    self._tick, actions)
+                action_event = self._event_buffer.gen_action_event(self._tick, actions)
 
                 # NOTE: decision event always be a CascadeEvent
                 # We just append the action into sub event of first pending cascade event.
                 pending_events[0].state = EventState.EXECUTING
-                pending_events[0].add_immediate_event(
-                    action_event, is_head=True)
+                pending_events[0].add_immediate_event(action_event, is_head=True)
 
                 if self._decision_mode == DecisionMode.Joint:
                     # For joint event, we will disable following cascade event.
@@ -287,8 +293,9 @@ class Env(AbsEnv):
 
                     if is_support_seq_action:
                         for i in range(1, pending_event_length):
-                            if pending_events[i].id == actions[0].src_event_id:
+                            if pending_events[i].id == actions[0].source_event_id:
                                 pending_events[i].state = EventState.FINISHED
+                                break
                     else:
                         for i in range(1, pending_event_length):
                             pending_events[i].state = EventState.FINISHED
