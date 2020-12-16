@@ -92,4 +92,3 @@ class BackendsInvalidAttributeException(MAROException):
     """
     def __init__(self):
         super().__init__(2110, ERROR_CODE[2110])
-
