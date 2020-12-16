@@ -46,7 +46,7 @@ if __name__ == "__main__":
         else:
             # Randomly choose a vailable PM.
             random_idx = random.randint(0, valid_pm_num - 1)
-            pm_id = decision_event.valid_pms[random_idx].pm_id
+            pm_id = decision_event.valid_pms[random_idx]
             action: PlaceAction = PlaceAction(
                 vm_id=decision_event.vm_id,
                 pm_id=pm_id

@@ -35,6 +35,8 @@ if __name__ == "__main__":
     is_done: bool = False
     action: PlaceAction = None
     metrics, decision_event, is_done = env.step(None)
+    snapshot_value = ["cpu_cores_capacity", "cpu_cores_allocated"]
+
     while not is_done:
         valid_pm_num: int = len(decision_event.valid_pms)
         if valid_pm_num <= 0:
@@ -46,14 +48,16 @@ if __name__ == "__main__":
         else:
             # Choose the one with the closet remaining CPU.
             chosen_idx = 0
-            min_cpu = decision_event.valid_pms[0].remaining_cpu
+            capacity, allocated_cpu = env.snapshot_list["pm"][env.tick:decision_event.valid_pms[0]:snapshot_value]
+            min_cpu = capacity - allocated_cpu
             for i in range(1, valid_pm_num):
-                if decision_event.valid_pms[i].remaining_cpu < min_cpu:
+                capacity, allocated_cpu = env.snapshot_list["pm"][env.tick:decision_event.valid_pms[i]:snapshot_value]
+                if capacity - allocated_cpu < min_cpu:
                     chosen_idx = i
-                    min_cpu = decision_event.valid_pms[i].remaining_cpu
+                    min_cpu = capacity - allocated_cpu
             action: PlaceAction = PlaceAction(
                 vm_id=decision_event.vm_id,
-                pm_id=decision_event.valid_pms[chosen_idx].pm_id
+                pm_id=decision_event.valid_pms[chosen_idx]
             )
         metrics, decision_event, is_done = env.step(action)
 
