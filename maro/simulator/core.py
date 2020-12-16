@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 import warnings
-
 from collections import Iterable
 from importlib import import_module
 from inspect import getmembers, isclass
@@ -10,7 +9,8 @@ from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import EventBuffer, EventState
-from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
+from maro.utils.exception.simulator_exception import \
+  BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
@@ -293,7 +293,7 @@ class Env(AbsEnv):
 
                     if is_support_seq_action:
                         for i in range(1, pending_event_length):
-                            if pending_events[i].id == actions[0].source_event_id:
+                            if pending_events[i].id == action_related_event_id:
                                 pending_events[i].state = EventState.FINISHED
                                 break
                     else:
