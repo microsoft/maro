@@ -3,8 +3,7 @@
 
 from .business_engine import VmSchedulingBusinessEngine
 from .common import (
-    Action, AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine,
-    VmFinishedPayload, VmRequestPayload
+    Action, PlaceAction, DecisionPayload, Latency, PostponeAction, PostponeType, VmFinishedPayload, VmRequestPayload
 )
 from .cpu_reader import CpuReader
 from .events import Events
@@ -13,11 +12,10 @@ from .virtual_machine import VirtualMachine
 
 __all__ = [
     "VmSchedulingBusinessEngine",
-    "Action", "AssignAction", "PostponeAction",
+    "Action", "PlaceAction", "PostponeAction",
     "DecisionPayload",
     "Latency",
     "PostponeType",
-    "ValidPhysicalMachine"
     "VmFinishedPayload",
     "VmRequestPayload",
     "CpuReader",

@@ -14,8 +14,8 @@ class PhysicalMachine(NodeBase):
     cpu_cores_capacity = NodeAttribute("i2")
     memory_capacity = NodeAttribute("i2")
     # Statistical features.
-    cpu_allocation = NodeAttribute("i2")
-    memory_allocation = NodeAttribute("i2")
+    cpu_cores_allocated = NodeAttribute("i2")
+    memory_allocated = NodeAttribute("i2")
 
     cpu_utilization = NodeAttribute("f")
     energy_consumption = NodeAttribute("f")

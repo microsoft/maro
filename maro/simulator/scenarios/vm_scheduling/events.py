@@ -6,7 +6,7 @@ from enum import Enum
 
 class Events(Enum):
     """VM-PM pairs related events."""
-    # VM requirement events.
+    # VM request events.
     REQUEST = "vm_required"
-    # VM finished events.
+    # VM finish events.
     FINISH = "vm_finished"

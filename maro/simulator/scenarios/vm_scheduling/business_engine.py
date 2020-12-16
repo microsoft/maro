@@ -14,8 +14,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.utils import DottableDict
 
 from .common import (
-    AssignAction, DecisionPayload, Latency, PostponeAction, PostponeType, ValidPhysicalMachine, VmFinishedPayload,
-    VmRequestPayload
+    DecisionPayload, Latency, PlaceAction, PostponeAction, PostponeType, VmFinishedPayload, VmRequestPayload
 )
 from .cpu_reader import CpuReader
 from .events import Events
@@ -27,10 +26,11 @@ metrics_desc = """
 
 total_vm_requests (int): Total VM requests.
 total_energy_consumption (float): Accumulative total energy consumption.
-success_allocation (int): Accumulative successful VM allocation until now.
-success_placement (int): Accumulative successful VM placement.
-failed_requests (int): Accumulative failed VM placement until now.
+successful_placement (int): Accumulative successful VM placement until now.
+successful_completion (int): Accumulative successful tasks completion.
+failed_placement (int): Accumulative failed VM placement until now.
 total_latency (int): Accumulative used buffer time until now.
+total_subscriptions (int): Accumulative over-subscriptions.
 """
 
 
@@ -54,11 +54,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Env metrics.
         self._total_vm_requests: int = 0
         self._total_energy_consumption: float = 0
-        self._successful_allocation: int = 0
         self._successful_placement: int = 0
+        self._successful_completion: int = 0
         self._failed_placement: int = 0
         self._total_latency: Latency = Latency()
-        self._total_oversubscribtions: int = 0
+        self._total_oversubscriptions: int = 0
 
         # Load configurations.
         self._load_configs()
@@ -72,7 +72,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._live_vms: Dict[int, VirtualMachine] = {}
         # All request payload of the pending decision VMs.
         # NOTE: Need naming suggestestion.
-        self._pending_vm_req_payload: Dict[int, VmRequestPayload] = {}
+        self._pending_vm_request_payload: Dict[int, VmRequestPayload] = {}
         # All vm's cpu utilization at current tick.
         self._cpu_utilization_dict: Dict[int, float] = {}
 
@@ -127,17 +127,17 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset internal states for episode."""
         self._total_energy_consumption: float = 0.0
-        self._successful_allocation: int = 0
         self._successful_placement: int = 0
+        self._successful_completion: int = 0
         self._failed_placement: int = 0
         self._total_latency: Latency = Latency()
-        self._total_oversubscribtions: int = 0
+        self._total_oversubscriptions: int = 0
 
         for pm in self._machines:
             pm.reset()
 
         self._live_vms: Dict[int, VirtualMachine] = {}
-        self._pending_vm_req_payload: Dict[int, VmRequestPayload] = {}
+        self._pending_vm_request_payload: Dict[int, VmRequestPayload] = {}
 
         self._frame.reset()
 
@@ -175,6 +175,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 memory_requirement=vm.vm_memory,
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
+
+            if vm.vm_id not in self._cpu_utilization_dict:
+                raise Exception(f"The VM id: '{vm.vm_id}' does not exist at this tick.")
+
             vm_info.add_utilization(cpu_utilization=self._cpu_utilization_dict[vm.vm_id])
             vm_req_payload: VmRequestPayload = VmRequestPayload(
                 vm_info=vm_info,
@@ -208,11 +212,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             metrics_desc,
             total_vm_requests=self._total_vm_requests,
             total_energy_consumption=self._total_energy_consumption,
-            success_allocation=self._successful_allocation,
-            success_placement=self._successful_placement,
-            failed_requests=self._failed_placement,
+            successful_placement=self._successful_placement,
+            successful_completion=self._successful_completion,
+            failed_placement=self._failed_placement,
             total_latency=self._total_latency,
-            total_oversubscribtions=self._total_oversubscribtions
+            total_oversubscriptions=self._total_oversubscriptions
         )
 
     def _register_events(self):
@@ -243,7 +247,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     live_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[live_vm.id])
                     live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
 
-        for pending_vm_payload in self._pending_vm_req_payload.values():
+        for pending_vm_payload in self._pending_vm_request_payload.values():
             pending_vm = pending_vm_payload.vm_info
             if pending_vm.id not in self._cpu_utilization_dict:
                 pending_vm.add_utilization(cpu_utilization=-1.0)
@@ -258,6 +262,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement / 100
             pm.cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
+            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
 
     def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
@@ -278,7 +283,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             elif postpone_type == PostponeType.Agent:
                 self._total_latency.due_to_agent += self._delay_duration
 
-            postpone_payload = self._pending_vm_req_payload[vm_id]
+            postpone_payload = self._pending_vm_request_payload[vm_id]
             postpone_payload.remaining_buffer_time -= self._delay_duration
             postpone_event = self._event_buffer.gen_cascade_event(
                 tick=self._tick + self._delay_duration,
@@ -289,26 +294,22 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         else:
             # Fail
             # Pop out VM request payload.
-            self._pending_vm_req_payload.pop(vm_id)
+            self._pending_vm_request_payload.pop(vm_id)
             # Add failed placement.
             self._failed_placement += 1
 
-    def _get_valid_pms(self, vm_cpu_cores_requirement: int) -> List[ValidPhysicalMachine]:
+    def _get_valid_pms(self, vm_cpu_cores_requirement: int) -> List[int]:
         """Check all valid PMs.
 
-        Args: vm_cpu_cores_requirement (int): The vCPU cores requested by the VM.
+        Args: vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
         """
         # NOTE: Should we implement this logic inside the action scope?
         # TODO: In oversubscribable scenario, we should consider more situations, like
         #       the PM type (oversubscribable and non-oversubscribable).
         valid_pm_list = []
         for pm in self._machines:
-            if (pm.cpu_cores_capacity - pm.cpu_allocation) >= vm_cpu_cores_requirement:
-                valid_pm_list.append(ValidPhysicalMachine(
-                    pm_id=pm.id,
-                    remaining_cpu=pm.cpu_cores_capacity - pm.cpu_allocation,
-                    remaining_mem=pm.memory_capacity - pm.memory_allocation
-                ))
+            if (pm.cpu_cores_capacity - pm.cpu_cores_allocated) >= vm_cpu_cores_requirement:
+                valid_pm_list.append(pm.id)
 
         return valid_pm_list
 
@@ -320,7 +321,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         vm_info: VirtualMachine = payload.vm_info
         remaining_buffer_time: int = payload.remaining_buffer_time
         # Store the payload inside business engine.
-        self._pending_vm_req_payload[vm_info.id] = payload
+        self._pending_vm_request_payload[vm_info.id] = payload
         # Get valid pm list.
         valid_pm_list = self._get_valid_pms(vm_cpu_cores_requirement=vm_info.cpu_cores_requirement)
 
@@ -353,8 +354,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         # Release PM resources.
         pm: PhysicalMachine = self._machines[vm.pm_id]
-        pm.cpu_allocation -= vm.cpu_cores_requirement
-        pm.memory_allocation -= vm.memory_requirement
+        pm.cpu_cores_allocated -= vm.cpu_cores_requirement
+        pm.memory_allocated -= vm.memory_requirement
         # Calculate the PM's utilization.
         pm_cpu_utilization = (
             (pm.cpu_cores_capacity * pm.cpu_utilization - vm.cpu_cores_requirement * vm.cpu_utilization)
@@ -367,7 +368,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._live_vms.pop(vm_id)
 
         # VM placement succeed.
-        self._successful_placement += 1
+        self._successful_completion += 1
 
     def _on_action_received(self, event: CascadeEvent):
         """Callback wen we get an action from agent."""
@@ -380,12 +381,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         for action in event.payload:
             vm_id: int = action.vm_id
 
-            if vm_id not in self._pending_vm_req_payload:
+            if vm_id not in self._pending_vm_request_payload:
                 raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
 
-            if type(action) == AssignAction:
+            if type(action) == PlaceAction:
                 pm_id = action.pm_id
-                vm: VirtualMachine = self._pending_vm_req_payload[vm_id].vm_info
+                vm: VirtualMachine = self._pending_vm_request_payload[vm_id].vm_info
                 lifetime = vm.lifetime
 
                 # Update VM information.
@@ -395,7 +396,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm.cpu_utilization = vm.get_utilization(cur_tick=cur_tick)
 
                 # Pop out the VM from pending requests and add to live VM dict.
-                self._pending_vm_req_payload.pop(vm_id)
+                self._pending_vm_request_payload.pop(vm_id)
                 self._live_vms[vm_id] = vm
 
                 # TODO: Current logic can not fulfill the oversubscription case.
@@ -411,8 +412,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
                 pm.place_vm(vm.id)
-                pm.cpu_allocation += vm.cpu_cores_requirement
-                pm.memory_allocation += vm.memory_requirement
+                pm.cpu_cores_allocated += vm.cpu_cores_requirement
+                pm.memory_allocated += vm.memory_requirement
                 # Calculate the PM's utilization.
                 pm_cpu_utilization = (
                     (pm.cpu_cores_capacity * pm.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
@@ -420,10 +421,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 )
                 pm.cpu_utilization = pm_cpu_utilization
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
-                self._successful_allocation += 1
+                self._successful_placement += 1
             elif type(action) == PostponeAction:
                 postpone_frequency = action.postpone_frequency
-                remaining_buffer_time = self._pending_vm_req_payload[vm_id].remaining_buffer_time
+                remaining_buffer_time = self._pending_vm_request_payload[vm_id].remaining_buffer_time
                 # Either postpone the requirement event or failed.
                 self._postpone_vm_request(
                     postpone_type=PostponeType.Agent,

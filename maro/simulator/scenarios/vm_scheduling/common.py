@@ -29,8 +29,8 @@ class PostponeAction(Action):
         self.postpone_frequency = postpone_frequency
 
 
-class AssignAction(Action):
-    """Assign action object.
+class PlaceAction(Action):
+    """Placement action object.
 
     Args:
         vm_id (int): The VM id.
@@ -71,7 +71,7 @@ class DecisionPayload:
     """Decision event in VM Scheduling scenario that contains information for agent to choose action.
 
     Args:
-        valid_pms (List[]): A list contains ValidPhysicalMachine object.
+        valid_pms (List[int]): A list contains pm id of all valid pms.
         vm_id (int): The id of the VM.
         vm_cpu_cores_requirement (int): The CPU requested by VM.
         vm_memory_requirement (int): The memory requested by VM.
@@ -81,7 +81,7 @@ class DecisionPayload:
 
     def __init__(
         self,
-        valid_pms: List,
+        valid_pms: List[int],
         vm_id: int,
         vm_cpu_cores_requirement: int,
         vm_memory_requirement: int,
@@ -92,14 +92,6 @@ class DecisionPayload:
         self.vm_cpu_cores_requirement = vm_cpu_cores_requirement
         self.vm_memory_requirement = vm_memory_requirement
         self.remaining_buffer_time = remaining_buffer_time
-
-
-class ValidPhysicalMachine:
-    """The object for the valid PM which will be sent to the agent."""
-    def __init__(self, pm_id: int, remaining_cpu: int, remaining_mem: int):
-        self.pm_id = pm_id
-        self.remaining_cpu = remaining_cpu
-        self.remaining_mem = remaining_mem
 
 
 class PostponeType(Enum):
