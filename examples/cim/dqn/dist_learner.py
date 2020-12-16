@@ -3,12 +3,11 @@
 
 import os
 
-from components.agent_manager import DQNAgentManager, create_dqn_agents
-from components.config import set_input_dim
-
 from maro.rl import ActorProxy, AgentManagerMode, SimpleLearner, TwoPhaseLinearExplorer, concat_experiences_by_agent
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
+
+from components import DQNAgentManager, create_dqn_agents, set_input_dim
 
 
 def launch(config, distributed_config):
@@ -34,7 +33,6 @@ def launch(config, distributed_config):
         "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
         "max_retries": 15
     }
-
     learner = SimpleLearner(
         trainable_agents=agent_manager,
         actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
