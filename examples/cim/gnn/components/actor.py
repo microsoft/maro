@@ -24,7 +24,7 @@ def organize_exp_list(experience_collections: dict, idx_mapping: dict):
     """The function assemble the experience from multiple processes into a dictionary.
 
     Args:
-         experience_collections (dict): It stores the experience in all agents. The structure is the same as what is
+        experience_collections (dict): It stores the experience in all agents. The structure is the same as what is
             defined in the SharedStructure in the ParallelActor except additional key for experience length. For
             example:
 
@@ -46,7 +46,7 @@ def organize_exp_list(experience_collections: dict, idx_mapping: dict):
             example, if agent x starts at b_x in batch index and the experience is l_x length long, the range [b_x,
             l_x) in the batch is the experience of agent x.
 
-         idx_mapping (dict): The key is the name of each agent and the value is the starting index, e.g., b_x, of the
+        idx_mapping (dict): The key is the name of each agent and the value is the starting index, e.g., b_x, of the
             storage space where the experience of the agent is stored.
     """
     result = {}
