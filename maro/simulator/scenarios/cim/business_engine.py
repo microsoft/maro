@@ -11,12 +11,11 @@ from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.cim import CimDataContainerWrapper, Order, Stop
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios import AbsBusinessEngine
-from maro.simulator.scenarios.helpers import DocableDict, MatrixAttributeAccessor
+from maro.simulator.scenarios.helpers import DocableDict
+from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
-from .common import (
-    Action, ActionScope, DecisionEvent, EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload,
-    VesselStatePayload
-)
+from .common import Action, ActionScope, DecisionEvent
+from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
 from .events import Events
 from .frame_builder import gen_cim_frame
 
@@ -49,7 +48,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         config_path = os.path.join(self._config_path, "config.yml")
 
         # Load data from wrapper.
-        self._data_cntr: CimDataContainerWrapper = CimDataContainerWrapper(config_path, max_tick, self._topology)
+        self._data_cntr: CimDataContainerWrapper = CimDataContainerWrapper(
+            config_path, max_tick, self._topology)
 
         # Create a copy of config object to expose to others, and not affect generator.
         with open(config_path) as fp:
@@ -108,7 +108,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         # 2. Transfer orders into events (ORDER).
         # 3. Check and add vessel arrival event (atom and cascade).
 
-        total_empty_number = sum([node.empty for node in self._ports + self._vessels])
+        total_empty_number = sum(
+            [node.empty for node in self._ports + self._vessels])
 
         for order in self._data_cntr.get_orders(tick, total_empty_number):
             # Use cascade event to support insert sub events.
@@ -171,8 +172,8 @@ class CimBusinessEngine(AbsBusinessEngine):
                 self._vessel_plans[vessel_idx, port_idx] = stop.arrive_tick
 
         # Insert the cascade events at the end.
-        for evt in decision_evt_list:
-            self._event_buffer.insert_event(evt)
+        for event in decision_evt_list:
+            self._event_buffer.insert_event(event)
 
     def post_step(self, tick: int):
         """Post-process after each step.
@@ -291,7 +292,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         # Init ports.
         for port_settings in self._data_cntr.ports:
             port = self._ports[port_settings.index]
-            port.set_init_state(port_settings.name, port_settings.capacity, port_settings.empty)
+            port.set_init_state(port_settings.name,
+                                port_settings.capacity, port_settings.empty)
 
         # Init vessels.
         for vessel_setting in self._data_cntr.vessels:
@@ -346,9 +348,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         """Initialize the frame based on data generator."""
         port_num = self._data_cntr.port_number
         vessel_num = self._data_cntr.vessel_number
-        stop_num = (self._data_cntr.past_stop_number, self._data_cntr.future_stop_number)
+        stop_num = (self._data_cntr.past_stop_number,
+                    self._data_cntr.future_stop_number)
 
-        self._frame = gen_cim_frame(port_num, vessel_num, stop_num, self.calc_max_snapshots())
+        self._frame = gen_cim_frame(
+            port_num, vessel_num, stop_num, self.calc_max_snapshots())
 
         self._ports = self._frame.ports
         self._vessels = self._frame.vessels
@@ -382,7 +386,7 @@ class CimBusinessEngine(AbsBusinessEngine):
 
         self._full_on_ports[src_port_idx, dest_port_idx] = value
 
-    def _on_order_generated(self, evt: CascadeEvent):
+    def _on_order_generated(self, event: CascadeEvent):
         """When there is an order generated, we should do:
         1. Generate a LADEN_RETURN event by configured buffer time: \
         The event will be inserted to the immediate_event_list ASAP if the configured buffer time is 0, \
@@ -390,9 +394,9 @@ class CimBusinessEngine(AbsBusinessEngine):
         2. Update port state: on_shipper +, empty -.
 
         Args:
-            evt (CascadeEvent): Order event object.
+            event (CascadeEvent): Order event object.
         """
-        order: Order = evt.payload
+        order: Order = event.payload
         src_port = self._ports[order.src_port_idx]
 
         execute_qty = order.quantity
@@ -420,33 +424,35 @@ class CimBusinessEngine(AbsBusinessEngine):
         )
 
         laden_return_evt = self._event_buffer.gen_atom_event(
-            tick=evt.tick + buffer_ticks, event_type=Events.RETURN_FULL, payload=payload
+            tick=event.tick + buffer_ticks, event_type=Events.RETURN_FULL, payload=payload
         )
 
         # If buffer_tick is 0, we should execute it as this tick.
         if buffer_ticks == 0:
-            evt.add_immediate_event(laden_return_evt)
+            event.add_immediate_event(laden_return_evt)
         else:
             self._event_buffer.insert_event(laden_return_evt)
 
-    def _on_full_return(self, evt: AtomEvent):
+    def _on_full_return(self, event: AtomEvent):
         """Handler for processing the event that full containers are returned from shipper.
 
         Once the full containers are returned, the containers are ready to be loaded. The workflow is:
         1. First move the container from on_shipper to full (update state: on_shipper -> full).
         2. Then append the container to the port pending list.
         """
-        payload: LadenReturnPayload = evt.payload
+        payload: LadenReturnPayload = event.payload
 
         src_port = self._ports[payload.src_port_idx]
         src_port.on_shipper -= payload.quantity
         src_port.full += payload.quantity
 
-        pending_full_number = self._get_pending_full(payload.src_port_idx, payload.dest_port_idx)
+        pending_full_number = self._get_pending_full(
+            payload.src_port_idx, payload.dest_port_idx)
 
-        self._set_pending_full(payload.src_port_idx, payload.dest_port_idx, pending_full_number + payload.quantity)
+        self._set_pending_full(
+            payload.src_port_idx, payload.dest_port_idx, pending_full_number + payload.quantity)
 
-    def _on_full_load(self, evt: AtomEvent):
+    def _on_full_load(self, event: AtomEvent):
         """Handler for processing event that a vessel need to load full containers from current port.
 
         When there is a vessel arrive at a port:
@@ -458,10 +464,10 @@ class CimBusinessEngine(AbsBusinessEngine):
         5. Early discharge.
 
         Args:
-            evt (AtomEvent): Arrival event object.
+            event (AtomEvent): Arrival event object.
         """
 
-        arrival_obj: VesselStatePayload = evt.payload
+        arrival_obj: VesselStatePayload = event.payload
         vessel_idx: int = arrival_obj.vessel_idx
         port_idx: int = arrival_obj.port_idx
         vessel = self._vessels[vessel_idx]
@@ -480,7 +486,8 @@ class CimBusinessEngine(AbsBusinessEngine):
         total_load_qty = 0
 
         for next_port_idx, arrive_tick in self._get_reachable_ports(vessel_idx):
-            full_number_to_next_port = self._get_pending_full(port_idx, next_port_idx)
+            full_number_to_next_port = self._get_pending_full(
+                port_idx, next_port_idx)
 
             if acceptable_number > 0 and full_number_to_next_port > 0:
                 # We can load some full.
@@ -488,7 +495,8 @@ class CimBusinessEngine(AbsBusinessEngine):
                 total_load_qty += loaded_qty
 
                 # Update port state.
-                self._set_pending_full(port_idx, next_port_idx, full_number_to_next_port - loaded_qty)
+                self._set_pending_full(
+                    port_idx, next_port_idx, full_number_to_next_port - loaded_qty)
 
                 port.full -= loaded_qty
                 vessel.full += loaded_qty
@@ -510,29 +518,30 @@ class CimBusinessEngine(AbsBusinessEngine):
         vessel.early_discharge = 0
 
         if total_container * container_volume > vessel.capacity:
-            early_discharge_number = total_container - ceil(vessel.capacity / container_volume)
+            early_discharge_number = \
+                total_container - ceil(vessel.capacity / container_volume)
             vessel.empty -= early_discharge_number
             port.empty += early_discharge_number
             vessel.early_discharge = early_discharge_number
 
-    def _on_departure(self, evt: AtomEvent):
+    def _on_departure(self, event: AtomEvent):
         """Handler for processing event when there is a vessel leaving from port.
 
         When the vessel departing from port:
         1. Update location to next stop.
 
         Args:
-            evt (AtomEvent): Departure event object.
+            event (AtomEvent): Departure event object.
         """
 
-        departure_payload: VesselStatePayload = evt.payload
+        departure_payload: VesselStatePayload = event.payload
         vessel_idx = departure_payload.vessel_idx
         vessel = self._vessels[vessel_idx]
 
         # As we have unfold all the route stop, we can just location ++.
         vessel.next_loc_idx += 1
 
-    def _on_discharge(self, evt: CascadeEvent):
+    def _on_discharge(self, event: CascadeEvent):
         """Handler for processing event the there are some full need to be discharged.
 
 
@@ -542,9 +551,9 @@ class CimBusinessEngine(AbsBusinessEngine):
             b. Or insert into event buffer.
 
         Args:
-            evt (AtomEvent): Discharge event object.
+            event (AtomEvent): Discharge event object.
         """
-        discharge_payload: VesselDischargePayload = evt.payload
+        discharge_payload: VesselDischargePayload = event.payload
         vessel_idx = discharge_payload.vessel_idx
         port_idx = discharge_payload.port_idx
         vessel = self._vessels[vessel_idx]
@@ -559,33 +568,33 @@ class CimBusinessEngine(AbsBusinessEngine):
         buffer_ticks = self._data_cntr.empty_return_buffers[port.idx]
         payload = EmptyReturnPayload(port_idx=port.idx, quantity=discharge_qty)
         mt_return_evt = self._event_buffer.gen_atom_event(
-            tick=evt.tick + buffer_ticks, event_type=Events.RETURN_EMPTY, payload=payload
+            tick=event.tick + buffer_ticks, event_type=Events.RETURN_EMPTY, payload=payload
         )
 
         if buffer_ticks == 0:
-            evt.add_immediate_event(mt_return_evt)
+            event.add_immediate_event(mt_return_evt)
         else:
             self._event_buffer.insert_event(mt_return_evt)
 
-    def _on_empty_return(self, evt: AtomEvent):
+    def _on_empty_return(self, event: AtomEvent):
         """Handler for processing event when there are some empty container return to port.
 
         Args:
-            evt (AtomEvent): Empty-return event object.
+            event (AtomEvent): Empty-return event object.
         """
-        payload: EmptyReturnPayload = evt.payload
+        payload: EmptyReturnPayload = event.payload
         port = self._ports[payload.port_idx]
 
         port.on_consignee -= payload.quantity
         port.empty += payload.quantity
 
-    def _on_action_received(self, evt: CascadeEvent):
+    def _on_action_received(self, event: CascadeEvent):
         """Handler for processing actions from agent.
 
         Args:
-            evt (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
+            event (CascadeEvent): Action event object with expected payload: {vessel_id: empty_number_to_move}}.
         """
-        actions = evt.payload
+        actions = event.payload
 
         if actions:
             if type(actions) is not list:
@@ -600,12 +609,14 @@ class CimBusinessEngine(AbsBusinessEngine):
                 port_empty = port.empty
                 vessel_empty = vessel.empty
 
-                assert -min(port.empty, vessel.remaining_space) <= move_num <= vessel_empty
+                assert (
+                    -min(port.empty, vessel.remaining_space) <= move_num <= vessel_empty
+                )
 
                 port.empty = port_empty + move_num
                 vessel.empty = vessel_empty - move_num
 
-                evt.event_type = Events.DISCHARGE_EMPTY if move_num > 0 else Events.LOAD_EMPTY
+                event.event_type = Events.DISCHARGE_EMPTY if move_num > 0 else Events.LOAD_EMPTY
 
                 # Update cost.
                 num = abs(move_num)
