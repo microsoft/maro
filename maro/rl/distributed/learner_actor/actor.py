@@ -98,7 +98,7 @@ class Actor(ABC):
                 self._logger.debug(
                     f"{self._proxy.component_name} failed to receive an action before timeout, "
                     f"proceeding with NULL action."
-                c)
+                )
             # Reset or exit
             if isinstance(action, Message):
                 self._logger.info(
