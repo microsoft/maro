@@ -10,11 +10,9 @@ from maro.rl import AgentManagerMode, Scheduler, SimpleLearner, TwoPhaseLinearEx
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-from examples.cim.dqn.components.action_shaper import CIMActionShaper
-from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
-from examples.cim.dqn.components.config import set_input_dim
-from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
-from examples.cim.dqn.components.state_shaper import CIMStateShaper
+from components import (
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents, set_input_dim
+)
 
 
 def launch(config):
