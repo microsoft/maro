@@ -206,6 +206,14 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Stop current episode if we reach max tick.
         return tick + 1 == self._max_tick
 
+    def get_event_payload_detail(self) -> dict:
+        """dict: Event payload details of current scenario."""
+        return {
+            Events.REQUEST.name: VmRequestPayload.summary_key,
+            Events.FINISH.name: VmFinishedPayload.summary_key,
+            MaroEvents.PENDING_DECISION.name: DecisionPayload.summary_key
+        }
+
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
 
