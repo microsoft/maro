@@ -165,3 +165,7 @@ class EventLinkedList:
                 self._head._next_event_ = event._immediate_event_head._next_event_
 
                 self._count += event._immediate_event_count
+
+                # Clear the reference for finished event.
+                event._immediate_event_head._next_event_ = None
+                event._last_immediate_event = None
