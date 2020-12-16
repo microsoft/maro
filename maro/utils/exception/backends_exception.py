@@ -41,6 +41,7 @@ class BackendsArrayAttributeAccessException(MAROException):
 class BackendsAppendToNonListAttributeException(MAROException):
     """Exception when append value to a non list attribute.
     """
+
     def __init__(self):
         super().__init__(2103, ERROR_CODE[2103])
 
@@ -48,6 +49,7 @@ class BackendsAppendToNonListAttributeException(MAROException):
 class BackendsResizeNonListAttributeException(MAROException):
     """Exception when try to resize a non list attribute.
     """
+
     def __init__(self):
         super().__init__(2104, ERROR_CODE[2104])
 
@@ -55,6 +57,7 @@ class BackendsResizeNonListAttributeException(MAROException):
 class BackendsClearNonListAttributeException(MAROException):
     """Exception when try to clear a non list attribute.
     """
+
     def __init__(self):
         super().__init__(2105, ERROR_CODE[2105])
 
@@ -62,6 +65,7 @@ class BackendsClearNonListAttributeException(MAROException):
 class BackendsInsertNonListAttributeException(MAROException):
     """Exception when try to insert a value to non list attribute.
     """
+
     def __init__(self):
         super().__init__(2106, ERROR_CODE[2106])
 
@@ -69,6 +73,7 @@ class BackendsInsertNonListAttributeException(MAROException):
 class BackendsRemoveFromNonListAttributeException(MAROException):
     """Exception when try to from a value to non list attribute.
     """
+
     def __init__(self):
         super().__init__(2107, ERROR_CODE[2107])
 
@@ -76,6 +81,7 @@ class BackendsRemoveFromNonListAttributeException(MAROException):
 class BackendsAccessDeletedNodeException(MAROException):
     """Exception when try to access a deleted node.
     """
+
     def __init__(self):
         super().__init__(2108, ERROR_CODE[2108])
 
@@ -83,6 +89,7 @@ class BackendsAccessDeletedNodeException(MAROException):
 class BackendsInvalidNodeException(MAROException):
     """Exception when try to access a not exist node type.
     """
+
     def __init__(self):
         super().__init__(2109, ERROR_CODE[2109])
 
@@ -90,5 +97,6 @@ class BackendsInvalidNodeException(MAROException):
 class BackendsInvalidAttributeException(MAROException):
     """Exception when try to access a not exist attribute type.
     """
+
     def __init__(self):
         super().__init__(2110, ERROR_CODE[2110])
