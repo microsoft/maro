@@ -62,7 +62,9 @@ class AbsDistLearner(ABC):
 
     def exit(self):
         """Tell the remote actor to exit."""
-        self._proxy.ibroadcast(component_type=ACTOR, tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION)
+        self._proxy.ibroadcast(
+            component_type=ACTOR, tag=MessageTag.EXIT, session_id=None, session_type=SessionType.NOTIFICATION
+        )
         sys.exit(0)
 
     def load_models(self, dir_path: str):
