@@ -5,7 +5,8 @@ import os
 
 import numpy as np
 
-from maro.rl import ActorWorker, AgentManagerMode, KStepExperienceShaper, SimpleActor
+
+from maro.rl import ActorWorker, AgentManagerMode, SimpleActor
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -20,15 +21,9 @@ def launch(config, distributed_config):
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    state_shaper = CIMStateShaper(**config.state_shaping)
+    state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    if config.experience_shaping.type == "truncated":
-        experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
-    else:
-        experience_shaper = KStepExperienceShaper(
-            reward_func=lambda mt: 1 - mt["container_shortage"] / mt["order_requirements"],
-            **config.experience_shaping.k_step
-        )
+    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
     agent_manager = DQNAgentManager(
         name="distributed_cim_actor",
@@ -45,7 +40,7 @@ def launch(config, distributed_config):
         "max_retries": 15
     }
     actor_worker = ActorWorker(
-        local_actor=SimpleActor(env, agent_manager),
+        local_actor=SimpleActor(env=env, agent_manager=agent_manager),
         proxy_params=proxy_params
     )
     actor_worker.launch()
