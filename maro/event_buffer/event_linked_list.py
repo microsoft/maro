@@ -160,8 +160,12 @@ class EventLinkedList:
         """
         if type(event) == CascadeEvent:
             # Make immediate event list as the head of current list.
-            if event._immediate_event_head._next_event_ is not None:
+            if event._last_immediate_event is not None:
                 event._last_immediate_event._next_event_ = self._head._next_event_
                 self._head._next_event_ = event._immediate_event_head._next_event_
 
                 self._count += event._immediate_event_count
+
+                # Clear the reference for finished event.
+                event._immediate_event_head._next_event_ = None
+                event._last_immediate_event = None
