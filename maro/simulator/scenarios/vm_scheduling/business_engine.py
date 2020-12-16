@@ -25,9 +25,9 @@ from .virtual_machine import VirtualMachine
 metrics_desc = """
 
 total_vm_requests (int): Total VM requests.
-total_energy_consumption (float): Accumulative total energy consumption.
+total_energy_consumption (float): Accumulative total PM energy consumption.
 successful_placement (int): Accumulative successful VM placement until now.
-successful_completion (int): Accumulative successful tasks completion.
+successful_completion (int): Accumulative successful completion of tasks.
 failed_placement (int): Accumulative failed VM placement until now.
 total_latency (int): Accumulative used buffer time until now.
 total_subscriptions (int): Accumulative over-subscriptions.
@@ -260,8 +260,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             total_pm_cpu_cores_used: float = 0.0
             for vm_id in pm.live_vms:
                 vm = self._live_vms[vm_id]
-                total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement / 100
-            pm.cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity * 100
+                total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
+            pm.cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
 
     def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
