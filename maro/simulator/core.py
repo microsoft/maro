@@ -29,8 +29,10 @@ class Env(AbsEnv):
         max_snapshots(int): Max in-memory snapshot number.
             When the number of dumped snapshots reached the limitation, oldest one will be overwrote by new one.
             None means keeping all snapshots in memory. Defaults to None.
-        business_engine_cls: Class of business engine. If specified, use it to construct the be instance,
+        business_engine_cls (type): Class of business engine. If specified, use it to construct the be instance,
             or search internally by scenario.
+        disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
+            re-use finished event object, this reduce event object number.
         options (dict): Additional parameters passed to business engine.
     """
 
@@ -38,19 +40,20 @@ class Env(AbsEnv):
         self, scenario: str = None, topology: str = None,
         start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
         decision_mode: DecisionMode = DecisionMode.Sequential,
-        business_engine_cls: type = None,
+        business_engine_cls: type = None, disable_finished_events: bool = False,
         options: dict = {}
     ):
         super().__init__(
             scenario, topology, start_tick, durations,
-            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls, options
+            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls,
+            disable_finished_events, options
         )
 
         self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
             else business_engine_cls.__name__
         self._business_engine: AbsBusinessEngine = None
 
-        self._event_buffer = EventBuffer()
+        self._event_buffer = EventBuffer(disable_finished_events)
 
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
@@ -274,7 +277,8 @@ class Env(AbsEnv):
                     # For joint event, we will disable following cascade event.
 
                     # We expect that first action contains a src_event_id to support joint event with sequential action.
-                    action_related_event_id = None if len(actions) == 1 else getattr(actions[0], "src_event_id", None)
+                    action_related_event_id = None if len(
+                        actions) == 1 else getattr(actions[0], "src_event_id", None)
 
                     # If the first action has a decision event attached, it means sequential action is supported.
                     is_support_seq_action = action_related_event_id is not None

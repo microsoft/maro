@@ -50,6 +50,7 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(
+                component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
                 payload={PayloadKey.DONE: True}
@@ -59,7 +60,7 @@ class ActorProxy(object):
             payloads = [(peer, {PayloadKey.MODEL: model_dict,
                                 PayloadKey.EPSILON: epsilon_dict,
                                 PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers["actor"]]
+                        for peer in self._proxy.peers_name["actor"]]
             # TODO: double check when ack enable
             replies = self._proxy.scatter(
                 tag=MessageTag.ROLLOUT,
@@ -68,9 +69,10 @@ class ActorProxy(object):
             )
 
             performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-            experiences_by_source = {msg.source: msg.payload[PayloadKey.EXPERIENCE] for msg in replies}
+            details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
+            details = self._experience_collecting_func(details_by_source) if return_details else None
 
-            return performance, self._experience_collecting_func(experiences_by_source)
+            return performance, details
 
 
 class ActorWorker(object):
@@ -83,7 +85,7 @@ class ActorWorker(object):
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor", **proxy_params)
-        self._registry_table = RegisterTable(self._proxy.get_peers)
+        self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):
@@ -96,7 +98,7 @@ class ActorWorker(object):
         if data.get(PayloadKey.DONE, False):
             sys.exit(0)
 
-        performance, experiences = self._local_actor.roll_out(
+        performance, details = self._local_actor.roll_out(
             model_dict=data[PayloadKey.MODEL],
             epsilon_dict=data[PayloadKey.EPSILON],
             return_details=data[PayloadKey.RETURN_DETAILS]
@@ -107,7 +109,7 @@ class ActorWorker(object):
             tag=MessageTag.UPDATE,
             payload={
                 PayloadKey.PERFORMANCE: performance,
-                PayloadKey.EXPERIENCE: experiences
+                PayloadKey.DETAILS: details
             }
         )
 

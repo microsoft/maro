@@ -7,7 +7,10 @@ general:
   early_stopping:
     warmup_ep: 50
     last_k: 10
-    threshold: 0.05
+    perf_threshold: 0.9   # minimum performance (fulfillment ratio) required to trigger early stopping
+    perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
+                                   # over the last k eisodes (where perf is short for performance). This value must
+                                   # be below this threshold to trigger early stopping
 state_shaping:
   look_back: 7
   max_ports_downstream: 2
@@ -48,6 +51,7 @@ agents:
         - 64
       softmax_enabled: false
       batch_norm_enabled: true
+      skip_connection_enabled: false
       dropout_p: 0.0
     optimizer:
       lr: 0.05
@@ -55,6 +59,7 @@ agents:
       reward_decay: .0
       target_update_frequency: 5
       tau: 0.1
+      is_double: true
   experience_pool:
     capacity: -1
   training_loop_parameters:
