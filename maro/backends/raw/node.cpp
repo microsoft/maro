@@ -62,7 +62,7 @@ namespace maro
         {
           _list_store.resize(node._list_store.size());
 
-          for (auto i = 0; i < _list_store.size(); i++)
+          for (size_t i = 0; i < _list_store.size(); i++)
           {
             auto& source_list = node._list_store[i];
 
@@ -327,7 +327,7 @@ namespace maro
         _node_instance_masks.resize(_max_node_number);
 
         // Set new node instance as alive.
-        for (auto i = 0; i < node_number; i++)
+        for (NODE_INDEX i = 0; i < node_number; i++)
         {
           _node_instance_masks.set(_max_node_number - node_number + i, true);
         }

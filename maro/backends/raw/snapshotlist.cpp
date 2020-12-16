@@ -118,7 +118,7 @@ namespace maro
         if (!_query_parameters.is_list)
         {
           // If it is not a list attriubte, then accept all attribute except list .
-          for (auto attr_index = 0; attr_index < attr_length; attr_index++)
+          for (UINT attr_index = 0; attr_index < attr_length; attr_index++)
           {
             auto attr_type = attributes[attr_index];
             auto& attr_def = cur_node.get_attr_definition(attr_type);
@@ -161,7 +161,7 @@ namespace maro
           auto target_node_index = node_indices[0];
 
           // Check if tick exist.
-          auto& target_tick_pair = _snapshots.find(tick);
+          auto target_tick_pair = _snapshots.find(tick);
 
           if (target_tick_pair == _snapshots.end())
           {
@@ -273,7 +273,7 @@ namespace maro
         {
           node_length = node.get_max_number();
 
-          for (auto i = 0; i < node_length; i++)
+          for (UINT i = 0; i < node_length; i++)
           {
             _node_indices.push_back(i);
           }
@@ -346,7 +346,7 @@ namespace maro
           return cur_node.get_attr(node_index, attr_type, slot_index);
         }
 
-        auto& target_tick_pair = _snapshots.find(tick);
+        auto target_tick_pair = _snapshots.find(tick);
 
         // Check if tick valid.
         if (target_tick_pair == _snapshots.end())
