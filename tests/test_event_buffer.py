@@ -5,6 +5,7 @@
 import unittest
 from maro.event_buffer import EventBuffer, AtomEvent, CascadeEvent, EventState
 
+
 class TestEventBuffer(unittest.TestCase):
     def setUp(self):
         self.eb = EventBuffer()
