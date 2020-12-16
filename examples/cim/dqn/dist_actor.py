@@ -9,11 +9,9 @@ from maro.rl import ActorWorker, AgentManagerMode, KStepExperienceShaper, Simple
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import DQNAgentManager, create_dqn_agents
-from components.config import set_input_dim
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
+from components import (
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents, set_input_dim
+)
 
 
 def launch(config, distributed_config):
