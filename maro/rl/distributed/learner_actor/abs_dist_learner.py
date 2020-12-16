@@ -62,9 +62,7 @@ class AbsDistLearner(ABC):
 
     def exit(self):
         """Tell the remote actor to exit."""
-        self._proxy.ibroadcast(
-            component_type=Component.ACTOR.value, tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
-        )
+        self._proxy.ibroadcast(component_type=ACTOR, tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION)
         sys.exit(0)
 
     def load_models(self, dir_path: str):
@@ -99,16 +97,16 @@ class AbsDistLearner(ABC):
             self._scheduler.record_performance(performance)
             current_ep = f"ep-{self._scheduler.current_ep}" if is_training else "test"
             self._logger.info(
-                f"{current_ep} - performance: {performance}, exploration_params: {self._scheduler.exploration_params}, "
-                f"actor_id: {msg.source}"
+                f"{msg.source}.{current_ep} - performance: {performance}, "
+                f"exploration_params: {self._scheduler.exploration_params if is_training else None}"
             )
             self._pending_actor_set.remove(msg.source)
 
         # If the learner is in training mode, perform model updates.
         if is_training:
-            self._logger.info(f"{self._proxy.component_name} performing model updates...")
             self._agent_manager.train(
                 self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
             )
+            self._logger.info(f"{self._proxy.component_name} finished training")
 
         self._registry_table.clear()

@@ -57,7 +57,7 @@ class Actor(ABC):
             if message.session_id == "test":
                 ret = self._roll_out(message)
                 if ret and ret.tag == MessageTag.EXIT:
-                    sys.exit(0)
+                    self.exit()
             else:
                 ep = int(message.session_id.split("-")[-1])
                 if ep < self._expected_ep:
@@ -94,11 +94,6 @@ class Actor(ABC):
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
-            if action is None:
-                self._logger.debug(
-                    f"{self._proxy.component_name} failed to receive an action before timeout, "
-                    f"proceeding with NULL action."
-                )
             # Reset or exit
             if isinstance(action, Message):
                 self._logger.info(
@@ -109,6 +104,11 @@ class Actor(ABC):
             metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._executor.on_env_feedback(metrics)
+            else:
+                self._logger.debug(
+                    f"{self._proxy.component_name} failed to receive an action before timeout, "
+                    f"proceeds with NULL action."
+                )
 
         self._proxy.reply(
             received_message=message,
