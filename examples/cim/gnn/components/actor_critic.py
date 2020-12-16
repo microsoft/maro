@@ -5,8 +5,9 @@ from torch import nn
 from torch.distributions import Categorical
 from torch.nn.utils import clip_grad
 
-from examples.cim.gnn.utils import gnn_union
 from maro.rl import AbsAlgorithm
+
+from .utils import gnn_union
 
 
 class ActorCritic(AbsAlgorithm):
