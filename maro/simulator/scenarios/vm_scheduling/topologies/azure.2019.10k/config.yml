@@ -4,10 +4,10 @@ BUFFER_TIME_BUDGET: 0
 DELAY_DURATION: 1
 
 # Path of the vm table data.
-VM_TABLE: "/mnt/d/kuanwei/data/test_10k/build/vmtable.bin"
+VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin"
 
 # Path of the cpu readings file.
-CPU_READINGS: "/mnt/d/kuanwei/data/test_10k/build/vm_cpu_readings-file-1-of-195.bin"
+CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vm_cpu_readings-file-1-of-195.bin"
 
 PM:
   P1:
