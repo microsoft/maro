@@ -2,9 +2,10 @@ from collections import defaultdict
 
 import numpy as np
 
-from examples.cim.gnn.numpy_store import Shuffler
 from maro.rl import AbsAgent
 from maro.utils import DummyLogger
+
+from .numpy_store import Shuffler
 
 
 class TrainableAgent(AbsAgent):
