@@ -94,6 +94,11 @@ class Actor(ABC):
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
+            if action is None:
+                self._logger.debug(
+                    f"{self._proxy.component_name} failed to receive an action before timeout, "
+                    f"proceeding with NULL action."
+                c)
             # Reset or exit
             if isinstance(action, Message):
                 self._logger.info(

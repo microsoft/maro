@@ -87,23 +87,25 @@ class AbsDistLearner(ABC):
             session_id=episode,
             session_type=SessionType.TASK
         )
+        self._logger.info(f"{self._proxy.component_name} sent roll-out requests to {self._actors} for {episode}")
 
     def _update(self, messages: list):
         if isinstance(messages, SessionMessage):
             messages = [messages]
 
+        is_training = messages[0].payload[PayloadKey.EXPERIENCES] is not None
         for msg in messages:
             performance = msg.payload[PayloadKey.PERFORMANCE]
             self._scheduler.record_performance(performance)
+            current_ep = f"ep-{self._scheduler.current_ep}" if is_training else "test"
             self._logger.info(
-                f"ep {self._scheduler.current_ep} - performance: {performance}, "
-                f"exploration_params: {self._scheduler.exploration_params}, "
+                f"{current_ep} - performance: {performance}, exploration_params: {self._scheduler.exploration_params}, "
                 f"actor_id: {msg.source}"
             )
             self._pending_actor_set.remove(msg.source)
 
         # If the learner is in training mode, perform model updates.
-        if messages[0].payload[PayloadKey.EXPERIENCES]:
+        if is_training:
             self._logger.info(f"{self._proxy.component_name} performing model updates...")
             self._agent_manager.train(
                 self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})

@@ -54,6 +54,7 @@ class Executor(object):
         self._trajectory = ColumnBasedStore()
 
         self._current_ep = None
+        self._current_session_prefix = None
         self._time_step = 0
         self._proxy = None
 
@@ -63,22 +64,20 @@ class Executor(object):
 
     def set_ep(self, ep: Union[int, str]):
         self._current_ep = ep
+        self._current_session_prefix = ".".join(
+            [self._proxy.component_name, f"ep-{self._current_ep}" if self._current_ep != "test" else "test"]
+        )
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        session_id = ".".join(
-            [self._proxy.component_name,
-             "test" if self._current_ep == "test" else f"ep-{self._current_ep}",
-             f"t-{self._time_step}"]
-        )
         payload = {self._payload_keys.STATE: model_state, self._payload_keys.AGENT_ID: agent_id}
         reply = self._proxy.send(
             SessionMessage(
                 tag=self._message_tags.ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
-                session_id=session_id,
+                session_id=".".join([self._current_session_prefix, f"t-{self._time_step}"]),
                 payload=payload
             ),
             timeout=self._action_wait_timeout,
