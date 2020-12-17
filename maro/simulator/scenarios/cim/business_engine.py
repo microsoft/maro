@@ -58,7 +58,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._full_on_ports: MatrixAttributeAccessor = None
         self._full_on_vessels: MatrixAttributeAccessor = None
         self._vessel_plans: MatrixAttributeAccessor = None
-        self._port_orders_exporter = PortOrderExporter('enable-dump-snapshot' in additional_options)
+        self._port_orders_exporter = PortOrderExporter("enable-dump-snapshot" in additional_options)
 
         # Read transfer cost factors.
         transfer_cost_factors = self._config["transfer_cost_factors"]
