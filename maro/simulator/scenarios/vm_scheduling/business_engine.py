@@ -79,7 +79,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._vm_reader = BinaryReader(self._config.VM_TABLE)
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
-        self._cpu_reader = CpuReader(self._config.CPU_READINGS)
+        self._cpu_reader = CpuReader(data_path=self._config.CPU_READINGS, start_tick=self._start_tick)
 
         self._tick: int = 0
 
@@ -204,7 +204,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             self._frame.take_snapshot(self.frame_index(tick))
 
         # Stop current episode if we reach max tick.
-        return tick + 1 == self._max_tick
+        return tick + 1 >= self._max_tick
 
     def get_event_payload_detail(self) -> dict:
         """dict: Event payload details of current scenario."""
