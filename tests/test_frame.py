@@ -8,6 +8,7 @@ import numpy as np
 
 from math import isnan
 
+from maro.backends.backend import AttributeType
 from maro.backends.frame import (FrameBase, FrameNode, NodeAttribute, NodeBase,
                                  node)
 from maro.utils.exception.backends_exception import (
@@ -22,14 +23,14 @@ DYNAMIC_NODE_NUM = 10
 @node("static")
 class StaticNode(NodeBase):
     a1 = NodeAttribute("i", 2)
-    a2 = NodeAttribute("i2")
-    a3 = NodeAttribute("i8")
+    a2 = NodeAttribute(AttributeType.Short)
+    a3 = NodeAttribute(AttributeType.Long)
 
 
 @node("dynamic")
 class DynamicNode(NodeBase):
-    b1 = NodeAttribute("f")
-    b2 = NodeAttribute("d")
+    b1 = NodeAttribute(AttributeType.Float)
+    b2 = NodeAttribute(AttributeType.Double)
 
 
 def build_frame(enable_snapshot: bool = False, total_snapshot: int = 10, backend_name="static"):
