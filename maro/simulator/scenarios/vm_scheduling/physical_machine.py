@@ -6,7 +6,7 @@ from typing import Set
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
-@node("pm")
+@node("pms")
 class PhysicalMachine(NodeBase):
     """Physical machine node definition in frame."""
     # Initial parameters.

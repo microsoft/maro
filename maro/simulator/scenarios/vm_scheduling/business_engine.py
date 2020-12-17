@@ -146,7 +146,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._vm_reader.reset()
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
-        self._cpu_reader = CpuReader(self._config["cpu_readings"])
+        self._cpu_reader.reset()
         self._cpu_utilization_dict: Dict[int, float] = {}
 
     def _init_frame(self):

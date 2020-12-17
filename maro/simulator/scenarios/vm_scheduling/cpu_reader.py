@@ -27,7 +27,7 @@ class CpuReader:
 
     def _switch(self):
         """Switch to a new binary reader."""
-        self._data_path  = self._switch_to_next_file_name(self._data_path)
+        self._data_path = self._switch_to_next_file_name(self._data_path)
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
             start_time_offset=0,
@@ -57,3 +57,6 @@ class CpuReader:
                 cur_items, _ = self._pick_up_items(cur_items, tick)
 
         return cur_items
+
+    def reset(self):
+        self._cpu_reader.reset()
