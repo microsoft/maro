@@ -57,7 +57,6 @@ def close_by_pid(pid: Union[int, list], recursize: bool = False):
     else:
         assert(not recursize)
         for p in pid:
-            # os.killpg(os.getpgid(p), signal.SIGTERM)
             os.kill(p, signal.SIGKILL)
 
 

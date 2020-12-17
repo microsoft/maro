@@ -4,7 +4,6 @@
 import json
 import multiprocessing as mp
 import os
-import signal
 import subprocess
 import time
 from collections import defaultdict
@@ -17,7 +16,7 @@ from maro.cli.utils.params import LocalPaths, ProcessRedisName
 
 
 class PendingJobAgent(mp.Process):
-    def __init__(self, redis_connection, check_interval: int = 120):
+    def __init__(self, redis_connection, check_interval: int = 60):
         super().__init__()
         self.redis_connection = redis_connection
         self.check_interval = check_interval
@@ -53,7 +52,7 @@ class PendingJobAgent(mp.Process):
                     os.makedirs(job_local_path)
 
                 with open(f"{job_local_path}/{component_type}_{num}.log", "w") as log_file:
-                    proc = subprocess.Popen(command, shell=True, stdout=log_file)   # , preexec_fn=os.setsid)
+                    proc = subprocess.Popen(command, shell=True, stdout=log_file)
                     command_pid = get_child_pid(proc.pid)
                     pid_dict["shell_pids"].append(proc.pid)
                     pid_dict["command_pids"].append(command_pid)
@@ -62,7 +61,7 @@ class PendingJobAgent(mp.Process):
 
 
 class JobTrackingAgent(mp.Process):
-    def __init__(self, redis_connection, check_interval: int = 120):
+    def __init__(self, redis_connection, check_interval: int = 60):
         super().__init__()
         self.redis_connection = redis_connection
         self.check_interval = check_interval
@@ -112,7 +111,7 @@ class JobTrackingAgent(mp.Process):
 
 
 class KilledJobAgent(mp.Process):
-    def __init__(self, redis_connection, check_interval: int = 120):
+    def __init__(self, redis_connection, check_interval: int = 60):
         super().__init__()
         self.redis_connection = redis_connection
         self.check_interval = check_interval
@@ -128,19 +127,15 @@ class KilledJobAgent(mp.Process):
 
         for job_name in killed_job_names:
             if self.redis_connection.hexists(ProcessRedisName.RUNNING_JOB, job_name):
-                pid_list = json.loads(self.redis_connection.hget(ProcessRedisName.RUNNING_JOB, job_name))
-                self._stop_job(job_name, pid_list)
+                pid_dict = json.loads(self.redis_connection.hget(ProcessRedisName.RUNNING_JOB, job_name))
+                for pids in pid_dict.values():
+                    close_by_pid(pids)
+
+                self.redis_connection.hdel(ProcessRedisName.RUNNING_JOB, job_name)
             else:
                 self.redis_connection.lrem(ProcessRedisName.PENDING_JOB_TICKETS, 0, job_name)
 
             self.redis_connection.lrem(ProcessRedisName.KILLED_JOB_TICKETS, 0, job_name)
-
-    def _stop_job(self, job_name, pid_list):
-        # kill all process by pid_list
-        for pid in pid_list:
-            os.killpg(os.getpgid(pid), signal.SIGTERM)
-
-        self.redis_connection.hdel(ProcessRedisName.RUNNING_JOB, job_name)
 
 
 class MasterAgent:
@@ -152,7 +147,10 @@ class MasterAgent:
             port=redis_info["redis_info"]["port"]
         )
         self.redis_connection.hset(ProcessRedisName.SETTING, "agent_pid", os.getpid())
-        self.check_interval = check_interval
+        self.check_interval = int(self.redis_connection.hget(
+            ProcessRedisName.SETTING,
+            "check_interval"
+        ))
 
     def start(self) -> None:
         """Start agents."""
