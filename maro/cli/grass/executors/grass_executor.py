@@ -240,7 +240,7 @@ class GrassExecutor:
                 return True
             except CliError:
                 remain_retries -= 1
-                logger.debug(f"Unable to connect to {node_ip_address}, remains {remain_retries} retries")
+                logger.debug(f"Unable to connect to {node_ip_address}, remains {remain_retries} retries.")
                 time.sleep(10)
                 continue
-        raise ClusterInternalError(f"Unable to connect to {node_ip_address}")
+        raise ClusterInternalError(f"Unable to connect to {node_ip_address}.")
