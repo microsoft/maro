@@ -101,24 +101,20 @@ class GrassAzureExecutor:
         logger.info_green(f"Cluster {self.cluster_name} is created")
 
     def _set_cluster_id(self):
-        # Load details
-        cluster_details = self.cluster_details
-
         # Set cluster id
-        cluster_details["id"] = generate_cluster_id()
+        self.cluster_details["id"] = generate_cluster_id()
 
         # Save details
         save_cluster_details(
             cluster_name=self.cluster_name,
-            cluster_details=cluster_details
+            cluster_details=self.cluster_details
         )
 
     def _create_resource_group(self):
         # Load and reload details
-        cluster_details = self.cluster_details
-        subscription = cluster_details["cloud"]["subscription"]
-        resource_group = cluster_details["cloud"]["resource_group"]
-        location = cluster_details["cloud"]["location"]
+        subscription = self.cluster_details["cloud"]["subscription"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
+        location = self.cluster_details["cloud"]["location"]
 
         # Check if Azure CLI is installed
         version_details = AzureExecutor.get_version()
@@ -143,8 +139,7 @@ class GrassAzureExecutor:
         logger.info("Creating vnet")
 
         # Load details
-        cluster_details = self.cluster_details
-        resource_group = cluster_details["cloud"]["resource_group"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Create ARM parameters and start deployment
         abs_template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_vnet/template.json"
@@ -152,7 +147,7 @@ class GrassAzureExecutor:
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_vnet/parameters.json"
         )
         ArmTemplateParameterBuilder.create_vnet(
-            cluster_details=cluster_details,
+            cluster_details=self.cluster_details,
             export_path=abs_parameters_file_path
         )
         AzureExecutor.start_deployment(
@@ -169,10 +164,9 @@ class GrassAzureExecutor:
 
         # Load details
         resource_name = "build-node-image"
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
-        admin_username = cluster_details["user"]["admin_username"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
+        admin_username = self.cluster_details["user"]["admin_username"]
         image_name = f"{cluster_id}-node-image"
         vm_name = f"{cluster_id}-{resource_name}-vm"
 
@@ -182,7 +176,7 @@ class GrassAzureExecutor:
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_build_node_image_vm/parameters.json"
         )
         ArmTemplateParameterBuilder.create_build_node_image_vm(
-            cluster_details=cluster_details,
+            cluster_details=self.cluster_details,
             node_size="Standard_D4_v3",
             export_path=parameters_file_path
         )
@@ -234,12 +228,11 @@ class GrassAzureExecutor:
         logger.info("Creating Master VM")
 
         # Load details
-        cluster_details = self.cluster_details
-        master_details = cluster_details["master"]
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
-        admin_username = cluster_details["user"]["admin_username"]
-        node_size = cluster_details["master"]["node_size"]
+        master_details = self.cluster_details["master"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
+        admin_username = self.cluster_details["user"]["admin_username"]
+        node_size = self.cluster_details["master"]["node_size"]
 
         # Create ARM parameters and start deployment
         template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_master/template.json"
@@ -247,7 +240,7 @@ class GrassAzureExecutor:
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_master/parameters.json"
         )
         ArmTemplateParameterBuilder.create_master(
-            cluster_details=cluster_details,
+            cluster_details=self.cluster_details,
             node_size=node_size,
             export_path=parameters_file_path
         )
@@ -275,7 +268,7 @@ class GrassAzureExecutor:
         # Save details
         save_cluster_details(
             cluster_name=self.cluster_name,
-            cluster_details=cluster_details,
+            cluster_details=self.cluster_details,
             sync=False
         )
 
@@ -285,10 +278,9 @@ class GrassAzureExecutor:
         logger.info("Initializing Master VM")
 
         # Load details
-        cluster_details = self.cluster_details
-        master_details = cluster_details["master"]
-        admin_username = cluster_details["user"]["admin_username"]
-        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        master_details = self.cluster_details["master"]
+        admin_username = self.cluster_details["user"]["admin_username"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
 
         # Make sure master is able to connect
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
@@ -343,9 +335,9 @@ class GrassAzureExecutor:
         master_details["image_files"] = {}
         save_cluster_details(
             cluster_name=self.cluster_name,
-            cluster_details=cluster_details
+            cluster_details=self.cluster_details
         )
-        self.grass_executor.remote_set_master_details(master_details=cluster_details["master"])
+        self.grass_executor.remote_set_master_details(master_details=master_details)
 
         logger.info_green("Master VM is initialized")
 
@@ -353,12 +345,10 @@ class GrassAzureExecutor:
 
     def delete(self):
         # Load details
-        cluster_name = self.cluster_name
-        cluster_details = load_cluster_details(cluster_name=cluster_name)
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
-        logger.info(f"Deleting cluster {cluster_name}")
+        logger.info(f"Deleting cluster {self.cluster_name}")
 
         # Get resource list
         resource_list = AzureExecutor.list_resources(resource_group=resource_group)
@@ -374,9 +364,9 @@ class GrassAzureExecutor:
             AzureExecutor.delete_resources(resources=deletable_ids)
 
         # Delete cluster folder
-        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
+        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
 
-        logger.info_green(f"Cluster {cluster_name} is deleted")
+        logger.info_green(f"Cluster {self.cluster_name} is deleted")
 
     # maro grass node
 
@@ -467,10 +457,9 @@ class GrassAzureExecutor:
         logger.info(message=f"Creating VM {node_name}")
 
         # Load details
-        cluster_details = self.cluster_details
-        location = cluster_details["cloud"]["location"]
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        location = self.cluster_details["cloud"]["location"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
         image_name = f"{cluster_id}-node-image"
         image_resource_id = AzureExecutor.get_image_resource_id(resource_group=resource_group, image_name=image_name)
 
@@ -481,7 +470,7 @@ class GrassAzureExecutor:
         )
         ArmTemplateParameterBuilder.create_node(
             node_name=node_name,
-            cluster_details=cluster_details,
+            cluster_details=self.cluster_details,
             node_size=node_size,
             image_resource_id=image_resource_id,
             export_path=parameters_file_path
@@ -536,8 +525,7 @@ class GrassAzureExecutor:
         logger.info(f"Deleting node {node_name}")
 
         # Load details
-        cluster_details = self.cluster_details
-        resource_group = cluster_details["cloud"]["resource_group"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Delete resources
         self._delete_resources(resource_name=node_name)
@@ -563,8 +551,7 @@ class GrassAzureExecutor:
         logger.info(f"Initiating node {node_name}")
 
         # Load details
-        cluster_details = self.cluster_details
-        admin_username = cluster_details["user"]["admin_username"]
+        admin_username = self.cluster_details["user"]["admin_username"]
         node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
 
@@ -647,9 +634,8 @@ class GrassAzureExecutor:
         logger.info(f"Starting node {node_name}")
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
         node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
 
@@ -717,9 +703,8 @@ class GrassAzureExecutor:
         logger.info(f"Stopping node {node_name}")
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Stop node
         AzureExecutor.stop_vm(
@@ -737,8 +722,7 @@ class GrassAzureExecutor:
 
     def _get_node_size_to_spec(self) -> dict:
         # Load details
-        cluster_details = self.cluster_details
-        location = cluster_details["cloud"]["location"]
+        location = self.cluster_details["cloud"]["location"]
 
         # List available sizes for VMs
         specs = AzureExecutor.list_vm_sizes(location=location)
@@ -782,9 +766,8 @@ class GrassAzureExecutor:
         remote_image_name: str
     ):
         # Load details
-        cluster_details = self.cluster_details
-        admin_username = cluster_details["user"]["admin_username"]
-        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        admin_username = self.cluster_details["user"]["admin_username"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
 
         # Get images dir
         images_dir = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images"
@@ -886,9 +869,8 @@ class GrassAzureExecutor:
 
     def push_data(self, local_path: str, remote_path: str):
         # Load details
-        cluster_details = self.cluster_details
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
+        admin_username = self.cluster_details['user']['admin_username']
+        master_public_ip_address = self.cluster_details['master']['public_ip_address']
 
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
@@ -900,9 +882,8 @@ class GrassAzureExecutor:
 
     def pull_data(self, local_path: str, remote_path: str):
         # Load details
-        cluster_details = self.cluster_details
-        admin_username = cluster_details['user']['admin_username']
-        master_public_ip_address = cluster_details['master']['public_ip_address']
+        admin_username = self.cluster_details['user']['admin_username']
+        master_public_ip_address = self.cluster_details['master']['public_ip_address']
 
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
@@ -931,9 +912,8 @@ class GrassAzureExecutor:
         logger.info(f"Start sending job ticket {job_details['name']}")
 
         # Load details
-        cluster_details = self.cluster_details
-        admin_username = cluster_details["user"]["admin_username"]
-        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        admin_username = self.cluster_details["user"]["admin_username"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
         job_name = job_details["name"]
 
         # Sync mkdir
@@ -986,13 +966,12 @@ class GrassAzureExecutor:
 
     def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
-        cluster_details = self.cluster_details
         job_details = load_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name
         )
-        admin_username = cluster_details["user"]["admin_username"]
-        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        admin_username = self.cluster_details["user"]["admin_username"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
         job_id = job_details["id"]
 
         # Copy logs from master
@@ -1060,8 +1039,7 @@ class GrassAzureExecutor:
         schedule_name = start_schedule_deployment["name"]
 
         # Load details
-        cluster_details = self.cluster_details
-        master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
 
         # Sync mkdir
         self._sync_mkdir(
