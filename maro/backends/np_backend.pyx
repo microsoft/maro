@@ -16,6 +16,21 @@ from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
     INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
 
+# Attribute data type mapping.
+attribute_type_mapping = {
+    AttributeType.Byte: "b",
+    AttributeType.UByte: "B",
+    AttributeType.Short: "h",
+    AttributeType.UShort: "H",
+    AttributeType.Int: "i",
+    AttributeType.UInt: "I",
+    AttributeType.Long: "q",
+    AttributeType.ULong: "Q",
+    AttributeType.Float: "f",
+    AttributeType.Double: "d"
+}
+
+
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
     # with this flag, we will allocate a big enough memory for all node types, then use this block construct numpy array
     from libc.string cimport memset
@@ -135,16 +150,7 @@ cdef class NumpyBackend(BackendAbc):
         if node_type >= len(self._nodes_list):
             raise Exception("Invalid node type.")
 
-        cdef str _dtype = "i"
-
-        if dtype == AttributeType.Short:
-            _dtype = "i2"
-        elif dtype == AttributeType.Long:
-            _dtype = "i8"
-        elif dtype == AttributeType.Float:
-            _dtype = "f"
-        elif dtype == AttributeType.Double:
-            _dtype = "d"
+        cdef str _dtype = attribute_type_mapping[dtype]
 
         cdef NodeInfo node = self._nodes_list[node_type]
         cdef AttrInfo new_attr = AttrInfo(attr_name, len(self._attrs_list), node.type, dtype, slot_num)
