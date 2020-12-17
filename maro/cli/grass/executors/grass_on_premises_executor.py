@@ -46,6 +46,13 @@ class GrassOnPremisesExecutor:
         # Standardize create deployment
         GrassOnPremisesExecutor._standardize_create_deployment(create_deployment=create_deployment)
 
+        # Create user account
+        GrassOnPremisesExecutor.create_user(
+            "",
+            create_deployment["user"]["admin_username"],
+            create_deployment["master"]["public_ip_address"],
+            create_deployment["user"]["admin_public_key"])
+
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
         if os.path.isdir(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}")):
@@ -75,7 +82,6 @@ class GrassOnPremisesExecutor:
             actual_dict=create_deployment,
             optional_key_to_value=optional_key_to_value
         )
-
 
     def create(self):
         logger.info("Creating cluster")
@@ -189,7 +195,6 @@ class GrassOnPremisesExecutor:
 
         logger.info_green("Master node is initialized")
 
-
     def delete(self):
         # Load details
         cluster_name = self.cluster_name
@@ -206,23 +211,31 @@ class GrassOnPremisesExecutor:
 
     def node_join_cluster(self, node_join_info: dict):
         node_name = node_join_info["name"]
+        cluster_details = self.cluster_details
+        node_ip_address = node_join_info["public_ip_address"]
+        # Create user account
+        GrassOnPremisesExecutor.create_user(
+            "",
+            cluster_details["user"]["admin_username"],
+            node_ip_address,
+            cluster_details["user"]["admin_public_key"])
+
         self._create_node_data(node_join_info)
         self._init_node(node_name)
 
-    def _create_node_data(self, node_join_info: dict):
 
+    def _create_node_data(self, node_join_info: dict):
         # Load details
         cluster_details = self.cluster_details
         cluster_id = cluster_details["id"]
         node_name = node_join_info["name"]
         master_details = cluster_details["master"]
-        master_public_ip_address = master_details["public_ip_address"]
         node_ip_address = node_join_info["public_ip_address"]
 
         # Get resources
         cpu = node_join_info["resources"]["cpu"]
         memory = node_join_info["resources"]["memory"]
-        gpu = node_join_info["gpu"]
+        gpu = node_join_info["resources"]["gpu"]
 
         # Save details
         node_details = {
@@ -255,15 +268,43 @@ class GrassOnPremisesExecutor:
         # Make sure the node is able to connect
         self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
 
+        # Create folders
+        sync_mkdir(
+            remote_path=GlobalPaths.MARO_GRASS_LIB,
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
+        sync_mkdir(
+            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
+
         # Copy required files
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_node.py",
-            remote_dir="~/",
-            admin_username=admin_username, node_ip_address=node_public_ip_address)
+            local_path=GlobalPaths.MARO_GRASS_LIB,
+            remote_dir=GlobalPaths.MARO_LIB,
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
-            remote_dir="~/",
-            admin_username=admin_username, node_ip_address=node_public_ip_address)
+            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            remote_dir=GlobalPaths.MARO_CLUSTERS,
+            admin_username=admin_username, node_ip_address=node_public_ip_address
+        )
 
         # Remote init node
         self.grass_executor.remote_init_node(
@@ -282,9 +323,10 @@ class GrassOnPremisesExecutor:
         )
 
         # Update node status
+        # Since On-Premises machines don't need to shutdown, it will be set to start directly.
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
-            action='create'
+            action="start"
         )
 
         # Load images
@@ -300,10 +342,33 @@ class GrassOnPremisesExecutor:
             node_ip_address=node_public_ip_address
         )
 
-        logger.info_green(f"Node {node_name} is initialized")
+        logger.info_green(f"Node {node_name} has been initialized.")
 
     def node_leave_cluster(self, node_name: str):
         pass
+
+    @staticmethod
+    def create_user(admin_username: str, maro_user: str, ip_address: str, pubkey: str) -> None:
+        if("" == admin_username):
+            admin_username = input("Please input a user account that has permissions to create user:\r\n")
+
+        copy_files_to_node(
+            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/create_user.py",
+            remote_dir="~/",
+            admin_username=admin_username, node_ip_address=ip_address)
+        GrassExecutor.remote_add_user_to_node(admin_username, maro_user, ip_address, pubkey)
+
+    def delete_user(self, admin_username: str, ip_address: str) -> None:
+        executor = self.grass_executor
+        if("" == admin_username):
+            admin_username = input("Please input a user account that has permissions to create user:\r\n")
+
+        copy_files_to_node(
+            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/delete_user.py",
+            remote_dir="~/",
+            admin_username=admin_username, node_ip_address=ip_address)
+
+        self.grass_executor.remote_delete_user_from_node(admin_username, ip_address)
 
     @staticmethod
     def is_legal_ip(test_str: str):

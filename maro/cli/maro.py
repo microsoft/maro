@@ -211,13 +211,13 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass node join
     from maro.cli.grass.node import node_join
     parser_node_join = parser_node_subparsers.add_parser(
-        "join",
-        help="join a on-premises node to cluster",
-        examples=CliExamples.MARO_GRASS_NODE_LIST,
+        'join',
+        help="Let one node join in a cluster in on-premises mode.",
+        examples=CliExamples.MARO_GRASS_NODE_JOIN,
         parents=[global_parser]
     )
     parser_node_join.add_argument(
-        "cluster_name", help="name of the cluster")
+        'node_join_path', help='The node join description file path.')
     parser_node_join.set_defaults(func=node_join)
 
     # maro grass node leave
@@ -225,12 +225,24 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     parser_node_leave = parser_node_subparsers.add_parser(
         "leave",
         help="make node leave to cluster",
-        examples=CliExamples.MARO_GRASS_NODE_LIST,
+        examples=CliExamples.MARO_GRASS_NODE_LEAVE,
         parents=[global_parser]
     )
     parser_node_leave.add_argument(
         "cluster_name", help="name of the cluster")
+    parser_node_leave.add_argument(
+        "node_ip_address", help="The IP address of node.")
     parser_node_leave.set_defaults(func=node_leave)
+
+    #maro grass node test
+    from maro.cli.grass.node import node_test
+    parser_node_leave = parser_node_subparsers.add_parser(
+        "test",
+        help="test",
+        examples=CliExamples.MARO_GRASS_NODE_LEAVE,
+        parents=[global_parser]
+    )
+    parser_node_leave.set_defaults(func=node_test)
 
     # maro grass image
     parser_image = subparsers.add_parser(
