@@ -1,6 +1,5 @@
 mode: process
 name: MyJobName # str: name of the training job
-parallel: 1   # allow parallel with other jobs
 
 components: # component config
   actor:

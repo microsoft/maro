@@ -123,10 +123,34 @@ def main():
 def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:
     subparsers = prev_parser.add_subparsers()
 
+    # maro process setup
+    from maro.cli.process.setup import setup
+    parser_setup = subparsers.add_parser(
+        "setup",
+        help="Setup local process environment.",
+        examples=CliExamples.MARO_PROCESS_SETUP,
+        parents=[global_parser]
+    )
+    parser_setup.add_argument(
+        'deployment_path',
+        help='Path of the local process setting deployment.',
+        nargs='?',
+        default=None)
+    parser_setup.set_defaults(func=setup)
+
+    # maro porcess clear
+    from maro.cli.process.clear import clear
+    parser_setup = subparsers.add_parser(
+        "clear",
+        help="Clear the local process environment. Including closing agents and maro Redis.",
+        parents=[global_parser]
+    )
+    parser_setup.set_defaults(func=clear)
+
     # maro process job
     parser_job = subparsers.add_parser(
         "job",
-        help='Manage jobs',
+        help="Manage jobs",
         parents=[global_parser]
     )
     parser_job.set_defaults(func=_help_func(parser=parser_job))
@@ -199,7 +223,7 @@ def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentPars
     parser_schedule.set_defaults(func=_help_func(parser=parser_schedule))
     parser_schedule_subparsers = parser_schedule.add_subparsers()
 
-    # maro grass schedule start
+    # maro process schedule start
     from maro.cli.process.schedule import start_schedule
     parser_schedule_start = parser_schedule_subparsers.add_parser(
         'start',
@@ -211,7 +235,7 @@ def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentPars
         'deployment_path', help='Path of the schedule deployment')
     parser_schedule_start.set_defaults(func=start_schedule)
 
-    # maro grass schedule stop
+    # maro process schedule stop
     from maro.cli.process.schedule import stop_schedule
     parser_schedule_stop = parser_schedule_subparsers.add_parser(
         'stop',
@@ -222,6 +246,26 @@ def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentPars
     parser_schedule_stop.add_argument(
         'schedule_name', help='Name of the schedule')
     parser_schedule_stop.set_defaults(func=stop_schedule)
+
+    # maro process template
+    from maro.cli.process.template import template
+    parser_template = subparsers.add_parser(
+        "template",
+        help="Get deployment templates",
+        examples=CliExamples.MARO_PROCESS_TEMPLATE,
+        parents=[global_parser]
+    )
+    parser_template.add_argument(
+        "--setting_deploy",
+        action="store_true",
+        help="Get environment setting templates"
+    )
+    parser_template.add_argument(
+        "export_path",
+        default="./",
+        nargs='?',
+        help="Path of the export directory")
+    parser_template.set_defaults(func=template)
 
 
 def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:

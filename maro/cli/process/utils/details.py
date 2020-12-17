@@ -1,16 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-
 import os
+import signal
 import subprocess
+from typing import Union
 
+import psutil
 import redis
 import yaml
 
+from maro.cli.utils.params import LocalPaths, ProcessRedisName
 from maro.utils.exception.cli_exception import CliException
-
-LOCAL_PROCESS_PATH = os.path.expanduser("~/.maro/local")
 
 
 def load_details(deployment_path: str = None):
@@ -23,62 +24,72 @@ def load_details(deployment_path: str = None):
     return details
 
 
+def save_setting_info(setting_info):
+    with open(os.path.expanduser(LocalPaths.MARO_PROCESS_SETTING), "w") as wf:
+        yaml.safe_dump(setting_info, wf)
+
+
 def load_redis_info():
-    with open(os.path.join(LOCAL_PROCESS_PATH, "redis_info.yml"), "r") as rf:
-        redis_info = yaml.safe_load(rf)
+    try:
+        with open(os.path.expanduser(LocalPaths.MARO_PROCESS_SETTING), "r") as rf:
+            redis_info = yaml.safe_load(rf)
+    except Exception as e:
+        raise CliException(
+            f"Failure to load setting information, cause by {e}"
+            f"Please run maro process setup, before any process commands."
+        )
 
     return redis_info
 
 
+def close_by_pid(pid: Union[int, list], recursize: bool = False):
+    if isinstance(pid, int):
+        current_process = psutil.Process(pid)
+        if recursize:
+            children_pid = get_child_pid(pid)
+            # May launch by JobTrackingAgent which is child process, so need close parent process first.
+            current_process.kill()
+            for child_pid in children_pid:
+                child_process = psutil.Process(child_pid)
+                child_process.kill()
+        else:
+            current_process.kill()
+    else:
+        assert(not recursize)
+        for p in pid:
+            # os.killpg(os.getpgid(p), signal.SIGTERM)
+            os.kill(p, signal.SIGKILL)
+
+
 def env_preset():
     """Need Redis ready and master agent start."""
-    if not os.path.exists(LOCAL_PROCESS_PATH):
-        os.makedirs(LOCAL_PROCESS_PATH)
+    setting_info = load_redis_info()
 
-    if "redis_info.yml" in os.listdir(LOCAL_PROCESS_PATH):
-        redis_info = load_redis_info()
+    redis_connection = redis.Redis(host=setting_info["redis_info"]["host"], port=setting_info["redis_info"]["port"])
 
-        redis_connection = redis.Redis(host=redis_info["host"], port=redis_info["port"])
-        redis_connection.hset("local_process:setting", "redis_pid", redis_info["pid"])
-    else:
-        # create redis by random port, write down to ~/.maro/local
-        redis_connection = start_redis()
-
-    agent_status = redis_connection.hget("local_process:setting", "agent_status")
+    agent_status = int(redis_connection.hget(ProcessRedisName.SETTING, "agent_status"))
     if not agent_status:
-        start_agent(redis_connection)
+        start_agent()
+        redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 1)
 
     return redis_connection
 
 
-def start_redis():
-    import socket
-
-    # Get random free port.
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
-        temp_socket.bind(("", 0))
-        random_port = temp_socket.getsockname()[1]
-
-    redis_process = subprocess.Popen(["redis-server", "--port", str(random_port), "--daemonize yes"])
-    redis_process.wait(timeout=2)
-
-    redis_info = {"host": "localhost", "port": int(random_port), "pid": redis_process.pid}
-
-    with open(os.path.join(LOCAL_PROCESS_PATH, "redis_info.yml"), "w") as wf:
-        yaml.safe_dump(redis_info, wf)
-
-    redis_connection = redis.Redis(host="localhost", port=int(random_port))
-    redis_connection.hset("local_process:setting", "redis_pid", redis_info["pid"])
-
-    return redis_connection
+def start_agent():
+    # start job_agent.py
+    command = f"python {LocalPaths.MARO_PROCESS_AGENT}"
+    _ = subprocess.Popen(command, shell=True)
 
 
-def start_agent(redis_connection):
-    # get agent.py path
-    current_file_path = os.path.dirname(os.path.abspath(__file__))
-    agent_file_path = os.path.join(current_file_path, "..", "agent/job_agent.py")
+def get_child_pid(parent_pid):
+    command = f"ps -o pid --ppid {parent_pid} --noheaders"
+    children_pid_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    children_pid = children_pid_process.stdout.read()
 
-    command = f"python {agent_file_path}"
-    agent_process = subprocess.Popen(command, shell=True)
-    redis_connection.hset("local_process:setting", "agent_status", 1)
-    redis_connection.hset("local_process:setting", "agent_pid", agent_process.pid)
+    try:
+        children_pid = int(children_pid)
+    except Exception:
+        children_pid = children_pid.decode().split("\n")
+        children_pid = [int(pid) for pid in children_pid[:-1]]
+
+    return children_pid

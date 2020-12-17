@@ -4,12 +4,16 @@
 import json
 import multiprocessing as mp
 import os
+import signal
 import subprocess
 import time
+from collections import defaultdict
 
 import psutil
 import redis
-import yaml
+
+from maro.cli.process.utils.details import close_by_pid, get_child_pid, load_redis_info
+from maro.cli.utils.params import LocalPaths, ProcessRedisName
 
 
 class PendingJobAgent(mp.Process):
@@ -25,44 +29,36 @@ class PendingJobAgent(mp.Process):
 
     def _check_pending_ticket(self):
         # check pending job ticket
-        pending_jobs = self.redis_connection.lrange("local_process:pending_job_tickets", 0, -1)
+        pending_jobs = self.redis_connection.lrange(ProcessRedisName.PENDING_JOB_TICKETS, 0, -1)
 
         for pending_job in pending_jobs:
-            job_detail = json.loads(self.redis_connection.hget("local_process:job_details", pending_job))
+            job_detail = json.loads(self.redis_connection.hget(ProcessRedisName.JOB_DETAILS, pending_job))
 
             # control process number by parallel
-            running_jobs_length = self.redis_connection.hlen("local_process:running_jobs")
-            parallel_level = self.redis_connection.hget("local_process:setting", "parallel_level")
-            if (
-                not parallel_level or
-                (running_jobs_length < job_detail["parallel"] and int(parallel_level) > running_jobs_length)
-            ):
-                self._start_job(job_detail, parallel_level)
+            running_jobs_length = self.redis_connection.hlen(ProcessRedisName.RUNNING_JOB)
+            parallel_level = self.redis_connection.hget(ProcessRedisName.SETTING, "parallel_level")
+            if int(parallel_level) > running_jobs_length:
+                self._start_job(job_detail)
                 # remove using ticket
-                self.redis_connection.lrem("local_process:pending_job_tickets", 0, pending_job)
+                self.redis_connection.lrem(ProcessRedisName.PENDING_JOB_TICKETS, 0, pending_job)
 
-    def _start_job(self, job_details: dict, parallel_level):
-        if (
-            not parallel_level or
-            job_details["parallel"] < int(parallel_level)
-        ):
-            self.redis_connection.hset("local_process:setting", "parallel_level", job_details["parallel"])
-
-        pid_list = []
+    def _start_job(self, job_details: dict):
+        pid_dict = defaultdict(list)
         for component_type, command_info in job_details["components"].items():
             number = command_info["num"]
             command = command_info["command"]
             for num in range(number):
-                job_local_path = os.path.expanduser(f"~/.maro/local/{job_details['name']}")
+                job_local_path = os.path.expanduser(f"{LocalPaths.MARO_PROCESS}/{job_details['name']}")
                 if not os.path.exists(job_local_path):
                     os.makedirs(job_local_path)
 
                 with open(f"{job_local_path}/{component_type}_{num}.log", "w") as log_file:
-                    proc = subprocess.Popen(command, shell=True, stdout=log_file)
-                    pid_list.append(proc.pid)
+                    proc = subprocess.Popen(command, shell=True, stdout=log_file)   # , preexec_fn=os.setsid)
+                    command_pid = get_child_pid(proc.pid)
+                    pid_dict["shell_pids"].append(proc.pid)
+                    pid_dict["command_pids"].append(command_pid)
 
-        self.redis_connection.hset("local_process:running_jobs", job_details["name"], json.dumps(pid_list))
-        self.redis_connection.hset("local_process:job_status", job_details["name"], json.dumps("running"))
+        self.redis_connection.hset(ProcessRedisName.RUNNING_JOB, job_details["name"], json.dumps(pid_dict))
 
 
 class JobTrackingAgent(mp.Process):
@@ -76,43 +72,43 @@ class JobTrackingAgent(mp.Process):
         while True:
             self._check_job_status()
             time.sleep(self.check_interval)
-            self._close_process_cli()
+            keep_alive = int(self.redis_connection.hget(ProcessRedisName.SETTING, "keep_agent_alive"))
+            if not keep_alive:
+                self._close_process_cli()
 
     def _check_job_status(self):
-        running_jobs = self.redis_connection.hgetall("local_process:running_jobs")
+        running_jobs = self.redis_connection.hgetall(ProcessRedisName.RUNNING_JOB)
 
-        for running_job, pid_list in running_jobs.items():
-            # check pid status
-            pid_list = json.loads(pid_list)
+        for running_job, pid_dict in running_jobs.items():
+            # Check pid status
+            pid_dict = json.loads(pid_dict)
             still_alive = False
-            for pid in pid_list:
+            for pid in pid_dict["command_pids"]:
                 if psutil.pid_exists(pid):
                     still_alive = True
 
-            # update if any finished or error
+            # Update if any finished or error
             if not still_alive:
-                self.redis_connection.hdel("local_process:running_jobs", running_job)
-                self.redis_connection.hset("local_process:job_status", running_job, json.dumps("finish"))
+                self.redis_connection.hdel(ProcessRedisName.RUNNING_JOB, running_job)
+                close_by_pid(pid_dict["shell_pids"])
 
     def _close_process_cli(self):
         if (
-            not self.redis_connection.hlen("local_process:running_jobs") and
-            not self.redis_connection.llen("local_process:pending_job_tickets")
+            not self.redis_connection.hlen(ProcessRedisName.RUNNING_JOB) and
+            not self.redis_connection.llen(ProcessRedisName.PENDING_JOB_TICKETS)
         ):
             self._shutdown_count += 1
-            print(self._shutdown_count)
         else:
             self._shutdown_count = 0
 
         if self._shutdown_count >= 5:
-            redis_pid = int(self.redis_connection.hget("local_process:setting", "redis_pid"))
-            agent_pid = int(self.redis_connection.hget("local_process:setting", "agent_pid"))
+            agent_pid = int(self.redis_connection.hget(ProcessRedisName.SETTING, "agent_pid"))
 
-            redis_process = psutil.Process(redis_pid)
-            redis_process.terminate()
+            # close agent
+            close_by_pid(pid=agent_pid, recursive=True)
 
-            agent_process = psutil.Process(agent_pid)
-            agent_process.terminate()
+            # Set agent status to 0
+            self.redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 0)
 
 
 class KilledJobAgent(mp.Process):
@@ -127,55 +123,56 @@ class KilledJobAgent(mp.Process):
             time.sleep(self.check_interval)
 
     def _check_kill_ticket(self):
-        # check pending job ticket
-        killed_job_names = self.redis_connection.lrange("local_process:killed_job_tickets", 0, -1)
+        # Check pending job ticket
+        killed_job_names = self.redis_connection.lrange(ProcessRedisName.KILLED_JOB_TICKETS, 0, -1)
 
         for job_name in killed_job_names:
-            if self.redis_connection.hexists("local_process:running_jobs", job_name):
-                pid_list = json.loads(self.redis_connection.hget("local_process:running_jobs", job_name))
+            if self.redis_connection.hexists(ProcessRedisName.RUNNING_JOB, job_name):
+                pid_list = json.loads(self.redis_connection.hget(ProcessRedisName.RUNNING_JOB, job_name))
                 self._stop_job(job_name, pid_list)
             else:
-                self.redis_connection.lrem("local_process:pending_job_tickets", 0, job_name)
+                self.redis_connection.lrem(ProcessRedisName.PENDING_JOB_TICKETS, 0, job_name)
 
-            self.redis_connection.lrem("local_process:killed_job_tickets", 0, job_name)
+            self.redis_connection.lrem(ProcessRedisName.KILLED_JOB_TICKETS, 0, job_name)
 
     def _stop_job(self, job_name, pid_list):
-        # kill all process by pid
+        # kill all process by pid_list
         for pid in pid_list:
-            process = psutil.Process(pid)
-            process.terminate()
+            os.killpg(os.getpgid(pid), signal.SIGTERM)
 
-        self.redis_connection.hdel("local_process:running_jobs", job_name)
-        self.redis_connection.hset("local_process:job_status", job_name, json.dumps("stop"))
+        self.redis_connection.hdel(ProcessRedisName.RUNNING_JOB, job_name)
 
 
 class MasterAgent:
     def __init__(self, check_interval: int = 60):
-        with open(os.path.expanduser("~/.maro/local/redis_info.yml"), "r") as rf:
-            redis_info = yaml.safe_load(rf)
+        redis_info = load_redis_info()
 
-        self.redis_connection = redis.Redis(host=redis_info["host"], port=redis_info["port"])
+        self.redis_connection = redis.Redis(
+            host=redis_info["redis_info"]["host"],
+            port=redis_info["redis_info"]["port"]
+        )
+        self.redis_connection.hset(ProcessRedisName.SETTING, "agent_pid", os.getpid())
         self.check_interval = check_interval
 
     def start(self) -> None:
         """Start agents."""
-        job_tracking_agent = JobTrackingAgent(
+        self.pending_job_agent = PendingJobAgent(
             redis_connection=self.redis_connection,
             check_interval=self.check_interval
         )
-        job_tracking_agent.start()
+        self.pending_job_agent.start()
 
-        pending_job_agent = PendingJobAgent(
+        self.killed_job_agent = KilledJobAgent(
             redis_connection=self.redis_connection,
             check_interval=self.check_interval
         )
-        pending_job_agent.start()
+        self.killed_job_agent.start()
 
-        killed_job_agent = KilledJobAgent(
+        self.job_tracking_agent = JobTrackingAgent(
             redis_connection=self.redis_connection,
             check_interval=self.check_interval
         )
-        killed_job_agent.start()
+        self.job_tracking_agent.start()
 
 
 if __name__ == "__main__":
