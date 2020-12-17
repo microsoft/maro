@@ -12,7 +12,8 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
+    INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
 
 IF NODES_MEMORY_LAYOUT == "ONE_BLOCK":
@@ -133,6 +134,17 @@ cdef class NumpyBackend(BackendAbc):
         """Add a new attribute for specified node with data type and slot number"""
         if node_type >= len(self._nodes_list):
             raise Exception("Invalid node type.")
+
+        cdef str _dtype = "i"
+
+        if dtype == AttributeType.Short:
+            _dtype = "i2"
+        elif dtype == AttributeType.Long:
+            _dtype = "i8"
+        elif dtype == AttributeType.Float:
+            _dtype = "f"
+        elif dtype == AttributeType.Double:
+            _dtype = "d"
 
         cdef NodeInfo node = self._nodes_list[node_type]
         cdef AttrInfo new_attr = AttrInfo(attr_name, len(self._attrs_list), node.type, dtype, slot_num)

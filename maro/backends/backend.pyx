@@ -4,8 +4,20 @@
 #cython: language_level=3
 #distutils: language = c++
 
+from enum import Enum
 from cpython cimport bool
 
+cdef class AttributeType:
+    Byte = "byte"
+    UByte = "ubyte"
+    Short = "short"
+    UShort = "ushort"
+    Int = "int"
+    UInt = "uint"
+    Long = "long"
+    ULong = "ulong"
+    Float = "float"
+    Double = "double"
 
 cdef int raise_get_attr_error() except +:
     raise Exception("Bad parameters to get attribute value.")

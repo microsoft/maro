@@ -18,7 +18,8 @@ from typing import Union
 from maro.backends.np_backend cimport NumpyBackend
 from maro.backends.raw_backend cimport RawBackend
 
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
+    INT, UINT, ULONG, USHORT, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
 from maro.utils.exception.backends_exception import (
     BackendsGetItemInvalidException,
@@ -33,6 +34,16 @@ from maro.utils.exception.backends_exception import (
     BackendsInvalidNodeException,
     BackendsInvalidAttributeException
 )
+
+# Old type definition mapping.
+old_data_type_definitions = {
+    "i": AttributeType.Int,
+    "i4": AttributeType.Int,
+    "i2": AttributeType.Short,
+    "i8": AttributeType.Long,
+    "f": AttributeType.Float,
+    "d": AttributeType.Double
+}
 
 # Supported backends.
 backend_dict = {
@@ -65,7 +76,17 @@ def node(name: str):
 
 cdef class NodeAttribute:
     def __cinit__(self, str dtype, SLOT_INDEX slot_num = 1, is_const = False, is_list = False):
-        self._dtype = dtype
+        dtype_type = type(dtype)
+
+        # Check the type of dtype, used to compact with old version
+        cdef str _type
+
+        if dtype in old_data_type_definitions:
+            _type = old_data_type_definitions[dtype]
+        else:
+            _type = dtype
+
+        self._dtype = _type
         self._slot_number = slot_num
         self._is_const = is_const
         self._is_list = is_list

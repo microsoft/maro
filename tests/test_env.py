@@ -97,10 +97,12 @@ class TestEnv(unittest.TestCase):
             val_dtype = attributes['val']["type"]
 
             self.assertEqual(
-                "i", val_dtype, msg=f"dummy's val attribute should be int type, got {val_dtype}")
+                "int", val_dtype, msg=f"dummy's val attribute should be int type, got {val_dtype}")
 
             # val should have only one slot (default)
             val_slots = attributes['val']["slots"]
+
+            print(val_slots)
 
             self.assertEqual(
                 1, val_slots, msg=f"dummy's val attribute should be int type, got {val_slots}")

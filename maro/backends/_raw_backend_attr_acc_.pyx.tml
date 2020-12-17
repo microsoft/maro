@@ -1,0 +1,14 @@
+
+
+cdef class Attribute{CLSNAME}Accessor(AttributeAccessor):
+    cdef void set_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        self._backend._frame.set_value[{T}](node_index, self._attr_type, slot_index, value)
+
+    cdef object get_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index) except +:
+        return self._backend._frame.get_value[{T}](node_index, self._attr_type, slot_index)
+
+    cdef void append_value(self, NODE_INDEX node_index, object value) except +:
+        self._backend._frame.append_to_list[{T}](node_index, self._attr_type, value)
+
+    cdef void insert_value(self, NODE_INDEX node_index, SLOT_INDEX slot_index, object value) except +:
+        self._backend._frame.insert_to_list[{T}](node_index, self._attr_type, slot_index, value)

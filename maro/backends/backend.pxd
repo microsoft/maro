@@ -40,6 +40,10 @@ ctypedef ATTR_TYPE NODE_INDEX
 ctypedef ATTR_TYPE SLOT_INDEX
 
 
+cdef class AttributeType:
+    pass
+
+
 # Base of all snapshot accessing implementation
 cdef class SnapshotListAbc:
     # Query states from snapshot list
