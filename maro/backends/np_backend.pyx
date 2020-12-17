@@ -270,13 +270,13 @@ cdef class NumpyBackend(BackendAbc):
 
     cdef void dump(self, str filePath):
         for node_name, data_arr in self._node_data_dict.items():
-            filename = os.path.join(filePath, node_name + '.npy')
-            descFilename = os.path.join(filePath, node_name + '.meta')
-            with open(filename, 'wb+') as f:
+            filename = os.path.join(filePath, node_name + ".npy")
+            descFilename = os.path.join(filePath, node_name + ".meta")
+            with open(filename, "wb+") as f:
                 np.save(f, data_arr)
-            with open(descFilename, 'wt+') as f:
-                f.write(','.join([ai.name for ai in self._node_attr_dict[node_name]]) + '\n')
-                f.write(','.join([str(ai.slot_number) for ai in self._node_attr_dict[node_name]]))
+            with open(descFilename, "wt+") as f:
+                f.write(",".join([ai.name for ai in self._node_attr_dict[node_name]]) + "\n")
+                f.write(",".join([str(ai.slot_number) for ai in self._node_attr_dict[node_name]]))
 
 # TODO:
 # 1. dump as csv
@@ -363,7 +363,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
                     else:
                         # padding for tick which not exist
                         attr = self._backend._node_attr_lut[(node_name, attr_name)]
-                        retq.append(np.zeros(attr.slot_number, dtype='f'))
+                        retq.append(np.zeros(attr.slot_number, dtype="f"))
 
         return np.concatenate(retq)
 

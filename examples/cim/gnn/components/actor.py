@@ -118,7 +118,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         simulation_log_path = os.path.join(config.log.path, f"cim_gnn_{index}")
         if not os.path.exists(simulation_log_path):
             os.makedirs(simulation_log_path)
-        opts = {'enable-dump-snapshot': simulation_log_path}
+        opts = {"enable-dump-snapshot": simulation_log_path}
         env = Env(**config.env.param, options=opts)
     else:
         env = Env(**config.env.param)

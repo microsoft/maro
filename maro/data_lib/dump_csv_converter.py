@@ -27,14 +27,14 @@ class DumpConverter:
         self._manifest_created = False
         self._mapping_created = False
 
-    def __generate_new_folder(self, parent_path):
+    def _generate_new_folder(self, parent_path):
         now = datetime.now()
-        self._foldername = "snapshot_dump_" + now.strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
+        self._foldername = "snapshot_dump_" + now.strftime("%Y_%m_%d_%H_%M_%S_%f")[:-3]
         if parent_path != "":
             self._foldername = os.path.join(parent_path, self._foldername)
 
-        folderPath = Path(self._foldername)
-        if folderPath.exists():
+        folder_path = Path(self._foldername)
+        if folder_path.exists():
             return
         os.mkdir(self._foldername)
 
@@ -51,7 +51,7 @@ class DumpConverter:
         return self._scenario_name
 
     def reset_folder_path(self):
-        self.__generate_new_folder(self._parent_path)
+        self._generate_new_folder(self._parent_path)
         self._serial = 0
 
     def get_new_snapshot_folder(self):
@@ -62,19 +62,19 @@ class DumpConverter:
         return folder
 
     def process_data(self, filesource: str):
-        for curDir, dirs, files in os.walk(self._last_snapshot_folder):
+        for cur_dir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
                 if file.endswith(".meta"):
-                    col_info_dict = self.get_column_info(os.path.join(curDir, file))
-                    data = np.load(os.path.join(curDir, file.replace(".meta", ".npy")))
+                    col_info_dict = self.get_column_info(os.path.join(cur_dir, file))
+                    data = np.load(os.path.join(cur_dir, file.replace(".meta", ".npy")))
 
                     frame_idx = 0
                     csv_data = []
                     for frame in data:
                         node_idx = 0
-                        the_name = file.replace(".meta", "")
+                        file_name = file.replace(".meta", "")
                         for node in frame:
-                            node_dict = {"frame_index": frame_idx, "name": the_name + "_" + str(node_idx)}
+                            node_dict = {"frame_index": frame_idx, "name": file_name + "_" + str(node_idx)}
                             col_idx = 0
                             for key in col_info_dict.keys():
                                 if col_info_dict[key] == 1:
@@ -89,7 +89,7 @@ class DumpConverter:
                         frame_idx = frame_idx + 1
 
                     dataframe = pd.DataFrame(csv_data)
-                    dataframe.to_csv(os.path.join(curDir, file.replace(".meta", ".csv")), index=False)
+                    dataframe.to_csv(os.path.join(cur_dir, file.replace(".meta", ".csv")), index=False)
 
         self.save_manifest_file(filesource)
 
@@ -115,7 +115,7 @@ class DumpConverter:
     def clear_raw_data(self):
         for curDir, dirs, files in os.walk(self._foldername):
             for file in files:
-                if file.endswith('.meta') or file.endswith(".npy"):
+                if file.endswith(".meta") or file.endswith(".npy"):
                     os.remove(file)
 
     def dump_descsion_events(self, decision_events, start_tick: int, resolution: int):
@@ -152,7 +152,7 @@ class DumpConverter:
     def save_manifest_file(self, filesource: str):
         if self._scenario_name == "":
             return
-        outputfile = os.path.join(self._foldername, 'manifest.yml')
+        outputfile = os.path.join(self._foldername, "manifest.yml")
         if os.path.exists(outputfile):
             manifest_content = {}
             with open(outputfile, "r", encoding="utf-8") as manifest_file:
