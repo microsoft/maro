@@ -8,7 +8,7 @@ from typing import Callable
 from maro.communication import Proxy, RegisterTable, SessionMessage, SessionType
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.rl.scheduling.scheduler import Scheduler
-from maro.utils import DummyLogger, Logger
+from maro.utils import InternalLogger
 
 from .common import Component, MessageTag, PayloadKey
 
@@ -34,7 +34,6 @@ class AbsDistLearner(ABC):
         scheduler: Scheduler,
         experience_collecting_func: Callable,
         update_trigger: str = None,
-        logger: Logger = DummyLogger(),
         **proxy_params
     ):
         super().__init__()
@@ -49,7 +48,7 @@ class AbsDistLearner(ABC):
         self._registry_table.register_event_handler(
             f"{ACTOR}:{MessageTag.FINISHED.value}:{update_trigger}", self._update
         )
-        self._logger = logger
+        self._logger = InternalLogger(self._proxy.component_name)
         self._pending_actor_set = None
 
     @abstractmethod

@@ -6,7 +6,7 @@ from typing import List, Union
 
 import numpy as np
 
-from maro.communication import SessionMessage, SessionType
+from maro.communication import SessionMessage
 from maro.utils import DummyLogger, Logger
 
 from .abs_dist_learner import AbsDistLearner

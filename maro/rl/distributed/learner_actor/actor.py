@@ -8,7 +8,7 @@ from typing import Union
 from maro.communication import Message, Proxy
 from maro.rl.agent.abs_agent_manager import AbsAgentManager
 from maro.simulator import Env
-from maro.utils import DummyLogger, Logger
+from maro.utils import InternalLogger
 
 from .common import Component, MessageTag, PayloadKey
 from ..executor import Executor
@@ -29,7 +29,6 @@ class Actor(ABC):
         self,
         env: Env,
         executor: Union[AbsAgentManager, Executor],
-        logger: Logger = DummyLogger(),
         **proxy_params
     ):
         self._env = env
@@ -37,7 +36,7 @@ class Actor(ABC):
         self._proxy = Proxy(component_type=ACTOR, **proxy_params)
         if isinstance(self._executor, Executor):
             self._executor.load_proxy(self._proxy)
-        self._logger = logger
+        self._logger = InternalLogger(self._proxy.component_name)
         self._expected_ep = 0
 
     def run(self):
@@ -51,7 +50,7 @@ class Actor(ABC):
                 (MessageTag.ROLLOUT, "*"), stop_condition=lambda msg: msg.tag == MessageTag.EXIT
             )
             if isinstance(message, Message):
-                sys.exit(0)
+                self.exit()
 
             message = message[0]
             if message.session_id == "test":
