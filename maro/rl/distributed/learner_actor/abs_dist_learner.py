@@ -64,6 +64,7 @@ class AbsDistLearner(ABC):
         self._proxy.ibroadcast(
             component_type=ACTOR, tag=MessageTag.EXIT, session_id=None, session_type=SessionType.NOTIFICATION
         )
+        self._logger.info("Exiting...")
         sys.exit(0)
 
     def load_models(self, dir_path: str):
@@ -86,7 +87,7 @@ class AbsDistLearner(ABC):
             session_id=episode,
             session_type=SessionType.TASK
         )
-        self._logger.info(f"{self._proxy.component_name} sent roll-out requests to {self._actors} for {episode}")
+        self._logger.info(f"Sent roll-out requests to {self._actors} for {episode}")
 
     def _update(self, messages: list):
         if isinstance(messages, SessionMessage):
@@ -108,6 +109,6 @@ class AbsDistLearner(ABC):
             self._agent_manager.train(
                 self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
             )
-            self._logger.info(f"{self._proxy.component_name} finished training")
+            self._logger.info(f"Training finished")
 
         self._registry_table.clear()

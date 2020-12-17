@@ -61,7 +61,7 @@ class Actor(ABC):
                 ep = int(message.session_id.split("-")[-1])
                 if ep < self._expected_ep:
                     self._logger.info(
-                        f"{self._proxy.component_name} expects roll-out requests for episode >= {self._expected_ep}. "
+                        f"Expected roll-out requests for episode >= {self._expected_ep}. "
                         f"Current request ({message.session_id}) ignored."
                     )
                     continue
@@ -89,25 +89,21 @@ class Actor(ABC):
         else:
             self._executor.set_ep("test" if message.session_id == "test" else int(message.session_id.split("-")[-1]))
 
-        self._logger.info(f"{self._proxy.component_name} performing roll-out for {message.session_id}")
+        self._logger.info(f"Rolling out for {message.session_id}...")
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._executor.choose_action(decision_event, self._env.snapshot_list)
             # Reset or exit
             if isinstance(action, Message):
                 self._logger.info(
-                    f"{self._proxy.component_name} received a message with tag {action.tag} and "
-                    f"session {action.session_id}. Roll-out aborted.")
+                    f"Received a message with tag {action.tag} and session {action.session_id}. Roll-out aborted.")
                 return action
 
             metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._executor.on_env_feedback(metrics)
             else:
-                self._logger.debug(
-                    f"{self._proxy.component_name} failed to receive an action before timeout, "
-                    f"proceeds with NULL action."
-                )
+                self._logger.debug(f"Failed to receive an action before timeout, proceeds with NULL action.")
 
         self._proxy.reply(
             received_message=message,
@@ -118,8 +114,8 @@ class Actor(ABC):
                     None if message.session_id == "test" else self._executor.post_process(self._env.snapshot_list)
             }
         )
-        self._logger.info(f"{self._proxy.component_name} finished roll-out for {message.session_id}")
+        self._logger.info(f"Roll-out finished for {message.session_id}")
 
     def exit(self):
-        self._logger.info(f"{self._proxy.component_name} exiting...")
+        self._logger.info(f"Exiting...")
         sys.exit(0)
