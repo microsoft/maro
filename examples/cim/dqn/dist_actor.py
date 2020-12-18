@@ -1,15 +1,23 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+
 import numpy as np
 
-from maro.rl import ActorWorker, AgentMode, KStepExperienceShaper, SimpleActor, TwoPhaseLinearExplorer
+from maro.rl import ActorWorker, AgentManagerMode, KStepExperienceShaper, SimpleActor
 from maro.simulator import Env
+from maro.utils import convert_dottable
 
-from components import CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, config
+from components import (
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents, set_input_dim
+)
 
 
-if __name__ == "__main__":
+def launch(config, distributed_config):
+    set_input_dim(config)
+    config = convert_dottable(config)
+    distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     state_shaper = CIMStateShaper(**config.state_shaping)
@@ -22,29 +30,27 @@ if __name__ == "__main__":
             **config.experience_shaping.k_step
         )
 
-    exploration_config = {
-        "epsilon_range_dict": {"_all_": config.exploration.epsilon_range},
-        "split_point_dict": {"_all_": config.exploration.split_point},
-        "with_cache": config.exploration.with_cache
-    }
-    explorer = TwoPhaseLinearExplorer(agent_id_list, config.general.total_training_episodes, **exploration_config)
     agent_manager = DQNAgentManager(
-        name="cim_remote_actor",
-        agent_id_list=agent_id_list,
-        mode=AgentMode.INFERENCE,
+        name="distributed_cim_actor",
+        mode=AgentManagerMode.INFERENCE,
+        agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper,
-        explorer=explorer
     )
     proxy_params = {
-        "group_name": config.distributed.group_name,
-        "expected_peers": config.distributed.actor.peer,
-        "redis_address": (config.distributed.redis.host_name, config.distributed.redis.port),
-        "max_retries": 10
+        "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
+        "expected_peers": {"learner": 1},
+        "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
+        "max_retries": 15
     }
     actor_worker = ActorWorker(
         local_actor=SimpleActor(env=env, inference_agents=agent_manager),
         proxy_params=proxy_params
     )
     actor_worker.launch()
+
+
+if __name__ == "__main__":
+    from components.config import config, distributed_config
+    launch(config=config, distributed_config=distributed_config)

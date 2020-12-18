@@ -6,7 +6,8 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-ExecStart=/usr/bin/python3 {home_path}/.maro/lib/grass/agents/master_agent.py
+WorkingDirectory={home_path}/.maro/lib/grass
+ExecStart=/usr/bin/python3 -m agents.master_agent
 
 [Install]
 WantedBy=default.target

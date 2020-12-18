@@ -4,7 +4,12 @@
 import io
 import os
 
-from setuptools import Extension, find_packages, setup
+# NOTE: DO NOT change the import order, as sometimes there is a conflict between setuptools and distutils,
+# it will cause following error:
+# error: each element of 'ext_modules' option must be an Extension instance or 2-tuple
+from setuptools import find_packages
+from distutils.core import setup
+from distutils.extension import Extension
 
 from maro import __version__
 
@@ -123,11 +128,12 @@ setup(
         "requests==2.24.0",
         "psutil==5.7.2",
         "deepdiff==5.0.2",
-        "azure-storage-blob==12.3.2",
+        "azure-storage-blob==12.6.0",
         "azure-storage-common==2.1.0",
         "geopy==2.0.0",
         "pandas==0.25.3",
-        "PyYAML==5.3.1"
+        "PyYAML==5.3.1",
+        "paramiko==2.7.2"
     ],
     entry_points={
         "console_scripts": [
