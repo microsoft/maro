@@ -224,7 +224,8 @@ cdef class NodeBase:
         def gen_my_node_definition(float_attr_number: int):
             @node("my nodes")
             class MyNode(NodeBase):
-                my_int_attr = NodeAttribute("i")
+                # Default attribute type is AttributeType.Int, slot number is 1, so we can leave it empty here
+                my_int_attr = NodeAttribute()
                 my_float_array_attr = NodeAttribute("f", float_attr_number)
 
             return MyNode
@@ -297,10 +298,9 @@ cdef class NodeBase:
 cdef class NodeAttribute:
     """Helper class used to declare an attribute in node that inherit from NodeBase.
 
-    Currently we only support these data types: 'i', 'i2', 'i4', 'i8', 'f' and 'd'.
-
     Args:
-        dtype(str): Type of this attribute, it support following data types.
+        dtype(str): Type of this attribute, use type from maro.backends.backend.AttributeType to specify valid type,
+            default is AttributeType.Int if not provided, or invalid type provided.
         slots(int): If this number greater than 1, then it will be treat as an array, this will be the array size,
             this value cannot be changed after definition, max value is 2^32.
         is_const(bool): Is this is a const attribute, True means this attribute will not be copied into snapshot list,
