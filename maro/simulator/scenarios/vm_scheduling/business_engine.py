@@ -495,7 +495,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         tar.close()
 
         # Move to the correct path.
-        unzip_file =  os.path.join(build_folder, "build")
+        unzip_file = os.path.join(build_folder, "build")
         file_names = os.listdir(unzip_file)
         for file_name in file_names:
             shutil.move(os.path.join(unzip_file, file_name), build_folder)
