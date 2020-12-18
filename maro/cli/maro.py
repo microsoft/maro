@@ -231,7 +231,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     parser_node_leave.add_argument(
         "cluster_name", help="name of the cluster")
     parser_node_leave.add_argument(
-        "node_ip_address", help="The IP address of node.")
+        "node_name", help="The name of node going to be leave cluster.")
     parser_node_leave.set_defaults(func=node_leave)
 
     #maro grass node test

@@ -202,11 +202,14 @@ class GrassOnPremisesExecutor:
         cluster_id = cluster_details["id"]
 
         logger.info(f"Deleting cluster {cluster_name}")
+
         # Delete redis and other services
+        node_details_list = self.grass_executor.remote_get_nodes_details()
+        for node_name, node_details in node_details_list.items():
+            self.node_leave_cluster(node_name)
 
         # Delete cluster folder
         rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
-
         logger.info_green(f"The cluster {cluster_name} has been deleted.")
 
     def node_join_cluster(self, node_join_info: dict):
@@ -345,7 +348,28 @@ class GrassOnPremisesExecutor:
         logger.info_green(f"Node {node_name} has been initialized.")
 
     def node_leave_cluster(self, node_name: str):
-        pass
+        cluster_details = self.cluster_details
+        if "grass/on-premises" != cluster_details["mode"]:
+            logger.warning("This sub command only for On-Premises mode.")
+            return
+
+        node_details = self.grass_executor.remote_get_node_details(node_name)
+        if None is node_details:
+            logger.warning("The specified node cannot be found.")
+            return
+
+        # Update node status
+        self.grass_executor.remote_update_node_status(
+            node_name=node_name,
+            action='stop'
+        )
+        # Delete node record in redis.
+        self.grass_executor.remote_update_node_status(node_name, 'delete')
+
+        admin_username = cluster_details["user"]["admin_username"]
+        node_ip_address = node_details["public_ip_address"]
+        GrassOnPremisesExecutor.delete_user("", admin_username, node_ip_address)
+        logger.info_green(f"The node {node_name} has been left cluster {cluster_details['cluster_name']}.")
 
     @staticmethod
     def create_user(admin_username: str, maro_user: str, ip_address: str, pubkey: str) -> None:
@@ -358,17 +382,17 @@ class GrassOnPremisesExecutor:
             admin_username=admin_username, node_ip_address=ip_address)
         GrassExecutor.remote_add_user_to_node(admin_username, maro_user, ip_address, pubkey)
 
-    def delete_user(self, admin_username: str, ip_address: str) -> None:
-        executor = self.grass_executor
+    @staticmethod
+    def delete_user(admin_username: str, maro_user: str, ip_address: str) -> None:
         if("" == admin_username):
-            admin_username = input("Please input a user account that has permissions to create user:\r\n")
+            admin_username = input("Please input a user account that has permissions to delete user:\r\n")
 
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/delete_user.py",
             remote_dir="~/",
             admin_username=admin_username, node_ip_address=ip_address)
 
-        self.grass_executor.remote_delete_user_from_node(admin_username, ip_address)
+        GrassExecutor.remote_delete_user_from_node(admin_username, maro_user, ip_address)
 
     @staticmethod
     def is_legal_ip(test_str: str):

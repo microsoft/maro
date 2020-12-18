@@ -5,8 +5,7 @@
 import yaml
 
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import \
-    GrassOnPremisesExecutor
+from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.cli.utils.checkers import check_details_validity
 from maro.cli.utils.details import load_cluster_details
 from maro.cli.utils.lock import lock
@@ -54,7 +53,7 @@ def list_node(cluster_name: str, **kwargs):
         executor.list_node()
 
 def node_join(node_join_path: str, **kwargs):
-    with open(node_join_path, 'r') as fr:
+    with open(node_join_path, "r") as fr:
         node_join_info = yaml.safe_load(fr)
         fr.close()
 
@@ -64,11 +63,17 @@ def node_join(node_join_path: str, **kwargs):
     executor = GrassOnPremisesExecutor(node_join_info["cluster"])
     executor.node_join_cluster(node_join_info)
 
+def node_leave(cluster_name: str, node_name: str, **kwargs):
+
+    executor = GrassOnPremisesExecutor(cluster_name)
+    executor.node_leave_cluster(node_name)
+
 def node_test(**kwargs):
 
     executor = GrassOnPremisesExecutor("grass_test")
-    executor.delete_user("maro", "139.217.112.148")
+    # executor.delete_user("maro", "139.217.112.148")
     # executor.create_user("", "139.217.112.148")
+    executor.node_leave_cluster("maro_work_node-1")
 
 
 @check_details_validity(mode="grass/on-premises")

@@ -81,7 +81,6 @@ class GrassExecutor:
         print("remote_get_public_key")
         command = f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} " \
                   f"'python3 {GlobalPaths.MARO_GRASS_LIB}/scripts/get_public_key.py'"
-        print(command)
         return_str = SubProcess.run(command).strip('\n')
         logger.debug(return_str)
         return return_str
