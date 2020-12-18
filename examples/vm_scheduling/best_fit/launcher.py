@@ -35,7 +35,6 @@ if __name__ == "__main__":
     is_done: bool = False
     action: PlaceAction = None
     metrics, decision_event, is_done = env.step(None)
-    snapshot_value = ["cpu_cores_capacity", "cpu_cores_allocated"]
 
     while not is_done:
         valid_pm_num: int = len(decision_event.valid_pms)
@@ -46,15 +45,20 @@ if __name__ == "__main__":
                 postpone_frequency=1
             )
         else:
+            # Get the capacity and allocated cores from snapshot.
+            valid_pm_info = env.snapshot_list["pms"][
+                env.tick : decision_event.valid_pms : ["cpu_cores_capacity", "cpu_cores_allocated"]
+            ].reshape(-1, 2)
+            # Calculate to get the remaining cpu cores.
+            cpu_cores_remaining = valid_pm_info[:, 0] - valid_pm_info[:, 1]
             # Choose the one with the closet remaining CPU.
             chosen_idx = 0
-            capacity, allocated_cpu = env.snapshot_list["pms"][env.tick:decision_event.valid_pms[0]:snapshot_value]
-            min_cpu = capacity - allocated_cpu
-            for i in range(1, valid_pm_num):
-                capacity, allocated_cpu = env.snapshot_list["pms"][env.tick:decision_event.valid_pms[i]:snapshot_value]
-                if capacity - allocated_cpu < min_cpu:
+            minimum_remaining_cpu_cores = cpu_cores_remaining[0]
+            for i, remaining in enumerate(cpu_cores_remaining):
+                if remaining < minimum_remaining_cpu_cores:
                     chosen_idx = i
-                    min_cpu = capacity - allocated_cpu
+                    minimum_remaining_cpu_cores = remaining
+            # Take action to place on the closet pm.
             action: PlaceAction = PlaceAction(
                 vm_id=decision_event.vm_id,
                 pm_id=decision_event.valid_pms[chosen_idx]
@@ -63,7 +67,7 @@ if __name__ == "__main__":
 
     end_time = timeit.default_timer()
     print(
-        f"[Best fit] Topology: {config.env.topology}. Total ticks: {config.env.durations}.",
+        f"[Best fit] Topology: {config.env.topology}. Total ticks: {config.env.durations}."
         f" Start tick: {config.env.start_tick}."
     )
     print(f"[Timer] {end_time - start_time:.2f} seconds to finish the simulation.")
