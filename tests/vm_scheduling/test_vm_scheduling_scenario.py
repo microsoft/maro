@@ -7,18 +7,17 @@ from maro.data_lib import BinaryConverter
 from maro.simulator.scenarios.vm_scheduling import CpuReader
 
 
-def build_binary_file():
-    bin_file_name = "tests/data/vm_scheduling/vm_cpu_readings-file-3-of-test.bin"
-    meta_file = "tests/data/vm_scheduling/cpu_readings.yml"
-    csv_file = "tests/data/vm_scheduling/vm_cpu_readings-file-3-of-test.csv"
-
-    converter = BinaryConverter(bin_file_name, meta_file)
-    converter.add_csv(csv_file)
-    converter.flush()
-
-
 class CpuReaderTest(unittest.TestCase):
     def setUp(self):
+        for i in range(1, 4):
+            meta_file = "tests/data/vm_scheduling/cpu_readings.yml"
+            bin_file_name = f"tests/data/vm_scheduling/vm_cpu_readings-file-{i}-of-test.bin"
+            csv_file = f"tests/data/vm_scheduling/vm_cpu_readings-file-{i}-of-test.csv"
+
+            converter = BinaryConverter(bin_file_name, meta_file)
+            converter.add_csv(csv_file)
+            converter.flush()
+
         data_path = "tests/data/vm_scheduling/vm_cpu_readings-file-1-of-test.bin"
         self.cpu_reader = CpuReader(data_path, 0)
 
