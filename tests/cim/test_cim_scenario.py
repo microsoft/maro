@@ -6,7 +6,7 @@ import unittest
 import os
 
 from maro.event_buffer import EventBuffer, EventState
-from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, CimEventType, Events
+from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, Events
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
 from tests.utils import next_step
 from .mock_data_container import MockDataContainer
