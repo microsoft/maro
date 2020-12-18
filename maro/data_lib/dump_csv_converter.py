@@ -113,7 +113,7 @@ class DumpConverter:
         return col_dict
 
     def clear_raw_data(self):
-        for curDir, dirs, files in os.walk(self._foldername):
+        for _, dirs, files in os.walk(self._foldername):
             for file in files:
                 if file.endswith(".meta") or file.endswith(".npy"):
                     os.remove(file)
