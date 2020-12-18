@@ -7,18 +7,22 @@ from typing import List
 class VirtualMachine:
     """VM object.
 
+    The VM lifetime equals to the deletion tick - creation tick + 1.
+    For example:
+        A VM's cpu utilization is  {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
+        Its lifetime will be deletion tick - creation tick + 1 = 2 - 0 + 1 = 3.
+
     Args:
         id (int): The VM id.
-        vcpu_cores_requirement (int): The amount of virtual cores requested by VM.
+        cpu_cores_requirement (int): The amount of virtual cores requested by VM.
         memory_requirement (int): The memory requested by VM. The unit is (GBs).
         lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick + 1.
     """
-    def __init__(self, id: int, vcpu_cores_requirement: int, memory_requirement: int, lifetime: int):
+    def __init__(self, id: int, cpu_cores_requirement: int, memory_requirement: int, lifetime: int):
         # VM Requirement parameters.
         self.id: int = id
-        self.vcpu_cores_requirement: int = vcpu_cores_requirement
+        self.cpu_cores_requirement: int = cpu_cores_requirement
         self.memory_requirement: int = memory_requirement
-        # The VM lifetime which equals to the deletion tick - creation tick.
         self.lifetime: int = lifetime
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
@@ -34,11 +38,15 @@ class VirtualMachine:
 
         return self._utilization_series[cur_tick - self.start_tick]
 
-    def add_utilization_series(self, _utilization_series: List[float]):
+    def add_utilization(self, cpu_utilization: float):
         """VM CPU utilization list."""
-        self._utilization_series = _utilization_series
+        # If cpu_utilization is smaller than 0, it means the missing data in the cpu readings file.
+        # TODO: We use the last utilization, it could be further refined to use average or others.
+        if cpu_utilization < 0.0:
+            self._utilization_series.append(self._utilization_series[-1])
+        else:
+            self._utilization_series.append(cpu_utilization)
 
-    @property
     def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
-        return self._utilization_series[0:cur_tick - self.start_tick]
+        return self._utilization_series[cur_tick - self.start_tick]

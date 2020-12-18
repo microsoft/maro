@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 from maro.cli.data_pipeline.citi_bike import CitiBikeProcess
-from maro.cli.data_pipeline.data_center import DataCenterProcess
+from maro.cli.data_pipeline.vm_scheduling import VmSchedulingProcess
 from maro.utils.logger import CliLogger
 from maro.utils.utils import deploy
 
@@ -10,7 +10,7 @@ logger = CliLogger(name=__name__)
 
 scenario_map = {}
 scenario_map["citi_bike"] = CitiBikeProcess
-scenario_map["data_center"] = DataCenterProcess
+scenario_map["vm_scheduling"] = VmSchedulingProcess
 
 
 def generate(scenario: str, topology: str = "", forced: bool = False, **kwargs):

@@ -264,7 +264,7 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         # After frame initializing, it will help us create the station instances, let's create a reference.
         # The attribute is added by frame that as same defined in frame definition.
 
-        # NOTE: Tthis is the build in station list that index start from 0,
+        # NOTE: This is the build in station list that index start from 0,
         # we need to create a mapping for it, as our trip data only contains id.
         self._stations = self._frame.stations
 

@@ -1,6 +1,0 @@
-AzurePublicDataset:
-vm_data:
-  azure.2017.original:
-    remote_url: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/AzurePublicDatasetV1Links.txt"
-  azure.2019.original:
-    remote_url: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/AzurePublicDatasetLinksV2.txt"
