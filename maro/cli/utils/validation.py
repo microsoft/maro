@@ -7,18 +7,16 @@ from functools import reduce
 
 from deepdiff import DeepDiff
 
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import InvalidDeploymentTemplateError
 
 
 def validate_and_fill_dict(template_dict: dict, actual_dict: dict, optional_key_to_value: dict):
-    deep_diff = DeepDiff(template_dict,
-                         actual_dict).to_dict()
+    deep_diff = DeepDiff(template_dict, actual_dict).to_dict()
 
     missing_keys = deep_diff.get('dictionary_item_removed', [])
     for key in missing_keys:
         if key not in optional_key_to_value:
-            raise CliException(
-                f"Invalid deployment: key {key} not found")
+            raise InvalidDeploymentTemplateError(f"Key '{key}' not found.")
         else:
             set_in_dict(
                 actual_dict,
