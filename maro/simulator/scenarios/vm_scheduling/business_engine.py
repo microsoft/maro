@@ -2,15 +2,19 @@
 # Licensed under the MIT license.
 
 import os
+import shutil
+import tarfile
 from typing import Dict, List
 
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
+from maro.cli.data_pipeline.utils import download_file, StaticParameter
 from maro.data_lib import BinaryReader
 from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
+from maro.utils.logger import CliLogger
 from maro.utils.utils import DottableDict
 
 from .common import (
@@ -32,6 +36,8 @@ failed_placement (int): Accumulative failed VM placement until now.
 total_latency (int): Accumulative used buffer time until now.
 total_subscriptions (int): Accumulative over-subscriptions.
 """
+
+logger = CliLogger(name=__name__)
 
 
 class VmSchedulingBusinessEngine(AbsBusinessEngine):
@@ -65,6 +71,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._register_events()
 
         self._init_frame()
+
+        self._init_data()
 
         # PMs list used for quick accessing.
         self._init_pms()
@@ -108,6 +116,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._delay_duration: int = self._config.DELAY_DURATION
         self._buffer_time_budget: int = self._config.BUFFER_TIME_BUDGET
         self._pm_amount: int = self._config.PM["P1"]["AMOUNT"]
+
+    def _init_data(self):
+        vm_table_data_path = self._config.VM_TABLE
+        if vm_table_data_path.startswith("~"):
+            vm_table_data_path = os.path.expanduser(vm_table_data_path)
+
+        cpu_readings_data_path = self._config.CPU_READINGS
+        if cpu_readings_data_path.startswith("~"):
+            cpu_readings_data_path = os.path.expanduser(cpu_readings_data_path)
+
+        if (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
+            self._download_processed_data()
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
@@ -444,3 +464,40 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     vm_id=vm_id,
                     remaining_buffer_time=remaining_buffer_time - postpone_frequency * self._config["delay_duration"]
                 )
+
+    def _download_processed_data(self):
+        """Build processed data."""
+
+        data_root = StaticParameter.data_root
+        meta_folder = os.path.join(data_root, self._scenario_name, "meta")
+        build_folder = os.path.join(data_root, self._scenario_name, ".build", self._topology)
+
+        # Load configs from source_urls.yml to get the url.
+        meta_path = os.path.join(meta_folder, "source_urls.yml")
+        with open(meta_path) as fp:
+            urls = safe_load(fp)
+
+        source = urls["vm_data"][self._topology]["processed_data_url"]
+        download_file_name = source.split('/')[-1]
+        download_file_path = os.path.join(build_folder, download_file_name)
+
+        # Download file from the Azure blob storage.
+        if not os.path.exists(download_file_path):
+            logger.info_green(f"Downloading data from {source} to {download_file_path}.")
+            download_file(source=source, destination=download_file_path)
+        else:
+            logger.info_green("File already exists, skipping download.")
+
+        logger.info_green(f"Unzip {download_file_path} to {build_folder}")
+        # Unzip files.
+        tar = tarfile.open(download_file_path, "r:gz")
+        tar.extractall(path=build_folder)
+        tar.close()
+
+        # Move to the correct path.
+        unzip_file =  os.path.join(build_folder, "build")
+        file_names = os.listdir(unzip_file)
+        for file_name in file_names:
+            shutil.move(os.path.join(unzip_file, file_name), build_folder)
+
+        os.rmdir(unzip_file)
