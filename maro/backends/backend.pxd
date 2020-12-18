@@ -82,7 +82,7 @@ cdef class BackendAbc:
 
     # Add a new attribute to specified node (id).
     # Returns an ID of this new attribute for current node (id).
-    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, bytes dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +
 
     # Set value of specified attribute slot.
     # NOTE: since we already know which node current attribute belongs to, so we just need to specify attribute id

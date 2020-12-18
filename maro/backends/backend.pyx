@@ -8,16 +8,16 @@ from enum import Enum
 from cpython cimport bool
 
 cdef class AttributeType:
-    Byte = "byte"
-    UByte = "ubyte"
-    Short = "short"
-    UShort = "ushort"
-    Int = "int"
-    UInt = "uint"
-    Long = "long"
-    ULong = "ulong"
-    Float = "float"
-    Double = "double"
+    Byte = b"byte"
+    UByte = b"ubyte"
+    Short = b"short"
+    UShort = b"ushort"
+    Int = b"int"
+    UInt = b"uint"
+    Long = b"long"
+    ULong = b"ulong"
+    Float = b"float"
+    Double = b"double"
 
 cdef int raise_get_attr_error() except +:
     raise Exception("Bad parameters to get attribute value.")
@@ -53,7 +53,7 @@ cdef class BackendAbc:
     cdef NODE_TYPE add_node(self, str name, NODE_INDEX number) except +:
         pass
 
-    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, str dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, bytes dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
         pass
 
     cdef void set_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index, object value) except +:

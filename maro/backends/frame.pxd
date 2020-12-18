@@ -312,7 +312,7 @@ cdef class NodeAttribute:
     """
     cdef:
         # Data type of attribute, same as numpy string dtype.
-        public str _dtype
+        public bytes _dtype
 
         # Array size of tis attribute.
         public SLOT_INDEX _slot_number

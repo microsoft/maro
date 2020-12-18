@@ -75,15 +75,16 @@ def node(name: str):
 
 
 cdef class NodeAttribute:
-    def __cinit__(self, str dtype, SLOT_INDEX slot_num = 1, is_const = False, is_list = False):
+    def __cinit__(self, object dtype, SLOT_INDEX slot_num = 1, is_const = False, is_list = False):
         dtype_type = type(dtype)
 
         # Check the type of dtype, used to compact with old version
-        cdef str _type
+        cdef bytes _type = AttributeType.Int
 
-        if dtype in old_data_type_definitions:
-            _type = old_data_type_definitions[dtype]
-        else:
+        if dtype_type == str:
+            if dtype in old_data_type_definitions:
+                _type = old_data_type_definitions[dtype]
+        elif dtype_type == bytes:
             _type = dtype
 
         self._dtype = _type
