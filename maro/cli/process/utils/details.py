@@ -71,6 +71,9 @@ def start_redis(port: int):
 
 
 def close_by_pid(pid: Union[int, list], recursive: bool = False):
+    if isinstance(pid, int) and not psutil.pid_exists(pid):
+        return
+    
     if recursive:
         assert(isinstance(pid, int))
         current_process = psutil.Process(pid)

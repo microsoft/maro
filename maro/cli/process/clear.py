@@ -9,6 +9,9 @@ import redis
 
 from maro.cli.process.utils.details import close_by_pid, load_setting_info
 from maro.cli.utils.params import LocalPaths, ProcessRedisName
+from maro.utils.logger import CliLogger
+
+logger = CliLogger(name=f"ProcessExecutor.{__name__}")
 
 
 def clear(**kwargs):
@@ -23,6 +26,7 @@ def clear(**kwargs):
         for job_name, pid_list in running_jobs.items():
             pid_list = json.loads(pid_list)
             close_by_pid(pid=pid_list, recursive=False)
+            logger.info(f"Stop running job {job_name.decode()}.")
 
     # Stop Agents
     agent_status = int(redis_connection.hget(ProcessRedisName.SETTING, "agent_status"))
@@ -30,6 +34,9 @@ def clear(**kwargs):
         agent_pid = int(redis_connection.hget(ProcessRedisName.SETTING, "agent_pid"))
         close_by_pid(pid=agent_pid, recursive=True)
         redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 0)
+        logger.info(f"Close agents.")
+    else:
+        logger.info(f"Agents' status is already closed.")
 
     # close Redis
     redis_mode = redis_connection.hget(ProcessRedisName.SETTING, "redis_mode").decode()
@@ -39,6 +46,9 @@ def clear(**kwargs):
         redis_pid = int(get_redis_pid_process.stdout.read())
         get_redis_pid_process.wait()
         close_by_pid(pid=redis_pid, recursive=False)
+        logger.info(f"Close Redis server with port {setting_info['redis_info']['port']}")
+    else:
+        logger.info(f"MARO do not close Redis server with mode {redis_mode}.")
 
     # Rm process environment setting
     os.remove(os.path.expanduser(LocalPaths.MARO_PROCESS_SETTING))

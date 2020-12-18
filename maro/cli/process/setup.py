@@ -8,6 +8,9 @@ import redis
 from maro.cli.process.utils.default_param import process_setting
 from maro.cli.process.utils.details import load_details, save_setting_info, start_agent, start_redis
 from maro.cli.utils.params import LocalPaths, ProcessRedisName
+from maro.utils.logger import CliLogger
+
+logger = CliLogger(name=f"ProcessExecutor.{__name__}")
 
 
 def setup(deployment_path: str, **kwargs):
@@ -25,15 +28,19 @@ def setup(deployment_path: str, **kwargs):
                 setting_info[key] = value
 
     save_setting_info(setting_info)
+    logger.info(f"MARO process mode setting: {setting_info}")
 
     # Start Redis
     if setting_info["redis_mode"] == "MARO":
         start_redis(port=setting_info["redis_info"]["port"])
+        logger.info(f"Redis server start with port {setting_info['redis_info']['port']}.")
+
     redis_connection = redis.Redis(host=setting_info["redis_info"]["host"], port=setting_info["redis_info"]["port"])
 
     # Start agents
     start_agent()
     redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 1)
+    logger.info(f"Agents start.")
 
     # Push default setting into Redis
     del setting_info["redis_info"]

@@ -74,7 +74,7 @@ class JobTrackingAgent(mp.Process):
 
     def _check_job_status(self):
         running_jobs = self.redis_connection.hgetall(ProcessRedisName.RUNNING_JOB)
-        running_jobs = {job_name.decode(): json.loads(pid_list) for job_name, pid_list in running_jobs}
+        running_jobs = {job_name.decode(): json.loads(pid_list) for job_name, pid_list in running_jobs.items()}
 
         for running_job, pid_list in running_jobs.items():
             # Check pid status
