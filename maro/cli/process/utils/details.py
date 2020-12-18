@@ -71,22 +71,22 @@ def start_redis(port: int):
 
 
 def close_by_pid(pid: Union[int, list], recursive: bool = False):
-    if isinstance(pid, int) and not psutil.pid_exists(pid):
-        return
-    
-    if recursive:
-        assert(isinstance(pid, int))
-        current_process = psutil.Process(pid)
-        children_process = current_process.children(recursive=False)
-        # May launch by JobTrackingAgent which is child process, so need close parent process first.
-        current_process.kill()
-        for child_process in children_process:
-            child_process.kill()
-    else:
-        if isinstance(pid, int):
-            os.kill(pid, signal.SIGKILL)
+    if isinstance(pid, int):
+        if not psutil.pid_exists(pid):
+            return
+
+        if recursive:
+            current_process = psutil.Process(pid)
+            children_process = current_process.children(recursive=False)
+            # May launch by JobTrackingAgent which is child process, so need close parent process first.
+            current_process.kill()
+            for child_process in children_process:
+                child_process.kill()
         else:
-            for p in pid:
+            os.kill(pid, signal.SIGKILL)
+    else:
+        for p in pid:
+            if psutil.pid_exists(p):
                 os.kill(p, signal.SIGKILL)
 
 
