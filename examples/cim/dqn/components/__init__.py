@@ -9,7 +9,7 @@ from .state_shaper import CIMStateShaper
 
 __all__ = [
     "CIMActionShaper",
-    "DQNAgentManager", "create_dqn_agents"
+    "DQNAgentManager", "create_dqn_agents",
     "set_input_dim",
     "TruncatedExperienceShaper",
     "CIMStateShaper"
