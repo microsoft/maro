@@ -52,6 +52,14 @@ class PhysicalMachine(NodeBase):
         self.cpu_cores_capacity = self._init_cpu_cores_capacity
         self.memory_capacity = self._init_memory_capacity
 
+        self._live_vms.clear()
+
+        self.cpu_cores_allocated = 0
+        self.memory_allocated = 0
+
+        self.cpu_utilization = 0.0
+        self.energy_consumption = 0.0
+
     @property
     def live_vms(self) -> Set[int]:
         return self._live_vms

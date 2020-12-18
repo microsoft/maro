@@ -9,6 +9,9 @@ from maro.data_lib.binary_reader import BinaryReader
 class CpuReader:
     """A wrapper class for the BinaryReader."""
     def __init__(self, data_path: str, start_tick: int):
+        # Use for re-initialization.
+        self._init_data_path = data_path
+
         self._data_path = data_path
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
@@ -64,4 +67,4 @@ class CpuReader:
         return cur_items
 
     def reset(self):
-        self._cpu_reader.reset()
+        self._cpu_reader = BinaryReader(self._init_data_path)

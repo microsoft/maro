@@ -7,10 +7,12 @@ from typing import List
 class VirtualMachine:
     """VM object.
 
-    The VM lifetime equals to the deletion tick - creation tick + 1.
+    The VM lifetime equals to the deletion tick - creation tick.
     For example:
-        A VM's cpu utilization is  {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
-        Its lifetime will be deletion tick - creation tick + 1 = 2 - 0 + 1 = 3.
+        A VM's cpu utilization is {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
+        The original creation time and deletion time in the dataset is 0, 2 respectively.
+        In our scenario, we define vm's creation tick as 0, and deletion tick as 3.
+        Its lifetime will be deletion tick - creation tick = 3 - 0 = 3
 
     Args:
         id (int): The VM id.

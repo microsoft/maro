@@ -1,8 +1,6 @@
 events:
   REQUIREMENTS:
     display_name: "vm_required"
-  FINISHED:
-    display_name: "vm_finished"
 
   "default": "REQUIREMENTS"
 
