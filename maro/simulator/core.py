@@ -8,7 +8,7 @@ from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
-from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
+from maro.event_buffer import EventBuffer, EventState
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
