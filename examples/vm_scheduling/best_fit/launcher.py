@@ -48,10 +48,10 @@ if __name__ == "__main__":
         else:
             # Choose the one with the closet remaining CPU.
             chosen_idx = 0
-            capacity, allocated_cpu = env.snapshot_list["pm"][env.tick:decision_event.valid_pms[0]:snapshot_value]
+            capacity, allocated_cpu = env.snapshot_list["pms"][env.tick:decision_event.valid_pms[0]:snapshot_value]
             min_cpu = capacity - allocated_cpu
             for i in range(1, valid_pm_num):
-                capacity, allocated_cpu = env.snapshot_list["pm"][env.tick:decision_event.valid_pms[i]:snapshot_value]
+                capacity, allocated_cpu = env.snapshot_list["pms"][env.tick:decision_event.valid_pms[i]:snapshot_value]
                 if capacity - allocated_cpu < min_cpu:
                     chosen_idx = i
                     min_cpu = capacity - allocated_cpu
