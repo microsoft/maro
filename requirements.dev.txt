@@ -31,4 +31,5 @@ recommonmark
 sphinx_rtd_theme
 jinja2
 flake8
+PuLP=2.1
 editorconfig-checker

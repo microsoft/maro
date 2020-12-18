@@ -1,5 +1,5 @@
 mode: k8s
-name: job_for_test
+name: test_job
 
 components:
   actor:

@@ -46,9 +46,9 @@ FORMAT_NAME_TO_FILE_FORMAT = {
     LogFormat.internal: logging.Formatter(
         fmt='%(asctime)s | %(component)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_debug: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(message)s', datefmt='%H:%M:%S'),
+        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.cli_info: logging.Formatter(
-        fmt='%(asctime)s | %(levelname)-7s | %(message)s', datefmt='%H:%M:%S'),
+        fmt='%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s', datefmt='%H:%M:%S'),
     LogFormat.none: None
 }
 
@@ -141,8 +141,7 @@ class Logger(object):
         filename += f'.{self._extension_name}'
 
         # File handler
-        fh = logging.FileHandler(
-            filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode)
+        fh = logging.FileHandler(filename=f'{os.path.join(dump_folder, filename)}', mode=dump_mode, encoding="utf-8")
         fh.setLevel(logging.DEBUG)
         if self._file_format is not None:
             fh.setFormatter(self._file_format)
@@ -186,6 +185,7 @@ class Logger(object):
 
 class DummyLogger:
     """A dummy Logger, which is used when disabling logs."""
+
     def __init__(self):
         pass
 
@@ -274,6 +274,15 @@ class CliLogger:
         """
         self.passive_init()
         self._logger.debug('\033[33m' + message + '\033[0m')
+
+    def debug_green(self, message: str) -> None:
+        """``logger.debug()`` with color green and passive init.
+
+        Args:
+            message (str): logged message.
+        """
+        self.passive_init()
+        self._logger.debug('\033[32m' + message + '\033[0m')
 
     def info(self, message: str) -> None:
         """``logger.info()`` with passive init.

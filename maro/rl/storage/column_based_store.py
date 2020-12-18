@@ -7,6 +7,7 @@ from typing import Callable, List, Sequence, Tuple
 import numpy as np
 
 from maro.utils import clone
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
 
 from .abs_store import AbsStore
 from .utils import OverwriteType, check_uniformity, get_update_indexes, normalize
@@ -55,7 +56,8 @@ class ColumnBasedStore(AbsStore):
         return {k: lst[index] for k, lst in self._store.items()}
 
     def __getstate__(self):
-        """A patch for picking the object with lambda.
+        """A patch to make the object picklable.
+
         Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
         ``defaultdict`` definition of the ``_store`` attribute.
         """
@@ -85,7 +87,8 @@ class ColumnBasedStore(AbsStore):
         """Put new contents in the store.
 
         Args:
-            contents (Sequence): Item object list.
+            contents (dict): dictionary of items to add to the store. If the store is not empty, this must have the
+                same keys as the store itself. Otherwise an ``StoreMisalignmentError`` will be raised.
             overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
                 used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
@@ -94,11 +97,15 @@ class ColumnBasedStore(AbsStore):
             The indexes where the newly added entries reside in the store.
         """
         if len(self._store) > 0 and contents.keys() != self._store.keys():
-            raise ValueError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
-        added_size = len(contents[next(iter(contents))])
+            raise StoreMisalignmentError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
+        added = contents[next(iter(contents))]
+        added_size = len(added) if isinstance(added, list) else 1
         if self._capacity < 0:
-            for key, lst in contents.items():
-                self._store[key].extend(lst)
+            for key, val in contents.items():
+                if not isinstance(val, list):
+                    self._store[key].append(val)
+                else:
+                    self._store[key].extend(val)
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
@@ -137,7 +144,6 @@ class ColumnBasedStore(AbsStore):
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
                 e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
-
         Returns:
             Filtered indexes and corresponding objects.
         """
