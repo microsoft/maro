@@ -9,6 +9,8 @@ VM_TABLE: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vmtable.bin"
 # Path of the cpu readings file.
 CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.10k/vm_cpu_readings-file-1-of-195.bin"
 
+PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.10k/azure.2019.10k.tar.gz"
+
 PM:
   P1:
     AMOUNT: 100

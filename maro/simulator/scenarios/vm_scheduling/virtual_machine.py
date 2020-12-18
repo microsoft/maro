@@ -28,15 +28,23 @@ class VirtualMachine:
         self._utilization_series: List[float] = []
         # The physical machine Id that the VM is assigned.
         self.pm_id: int = -1
-        self.cpu_utilization: float = 0.0
-        self.start_tick: int = -1
-        self.end_tick: int = -1
+        self._cpu_utilization: float = 0.0
+        self.creation_tick: int = -1
+        self.deletion_tick: int = -1
+
+    @property
+    def cpu_utilization(self) -> float:
+        return self._cpu_utilization
+
+    @cpu_utilization.setter
+    def cpu_utilization(self, cpu_utilization: float):
+        self._cpu_utilization = min(max(0, cpu_utilization), 100)
 
     def get_utilization(self, cur_tick: int):
-        if cur_tick - self.start_tick > len(self._utilization_series):
+        if cur_tick - self.creation_tick > len(self._utilization_series):
             return 0.0
 
-        return self._utilization_series[cur_tick - self.start_tick]
+        return self._utilization_series[cur_tick - self.creation_tick]
 
     def add_utilization(self, cpu_utilization: float):
         """VM CPU utilization list."""
@@ -49,4 +57,4 @@ class VirtualMachine:
 
     def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
-        return self._utilization_series[cur_tick - self.start_tick]
+        return self._utilization_series[cur_tick - self.creation_tick]

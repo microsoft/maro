@@ -11,15 +11,13 @@ from yaml import safe_load
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.cli.data_pipeline.utils import download_file, StaticParameter
 from maro.data_lib import BinaryReader
-from maro.event_buffer import AtomEvent, CascadeEvent, EventBuffer, MaroEvents
+from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import DottableDict
 
-from .common import (
-    DecisionPayload, Latency, PlaceAction, PostponeAction, PostponeType, VmFinishedPayload, VmRequestPayload
-)
+from .common import DecisionPayload, Latency, PlaceAction, PostponeAction, PostponeType, VmRequestPayload
 from .cpu_reader import CpuReader
 from .events import Events
 from .frame_builder import build_frame
@@ -180,7 +178,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             tick (int): Current tick to process.
         """
         self._tick = tick
-
+        # Process finished VMs.
+        self._process_finished_vm()
         # Update all live VMs CPU utilization.
         self._update_vm_workload()
         # Update all PM CPU utilization.
@@ -230,7 +229,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """dict: Event payload details of current scenario."""
         return {
             Events.REQUEST.name: VmRequestPayload.summary_key,
-            Events.FINISH.name: VmFinishedPayload.summary_key,
             MaroEvents.PENDING_DECISION.name: DecisionPayload.summary_key
         }
 
@@ -255,8 +253,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def _register_events(self):
         # Register our own events and their callback handlers.
         self._event_buffer.register_event_handler(event_type=Events.REQUEST, handler=self._on_vm_required)
-        self._event_buffer.register_event_handler(event_type=Events.FINISH, handler=self._on_vm_finished)
-
         # Generate decision event.
         self._event_buffer.register_event_handler(event_type=MaroEvents.TAKE_ACTION, handler=self._on_action_received)
 
@@ -270,8 +266,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # NOTE:
             # We set every VM's finish event at deletion time - creation time + 1. Therefore, in the end tick,
             # the id doesn't exist in the cpu utilization dictionary. We give them a padding 0 instead.
-            if self._tick - live_vm.start_tick >= live_vm.lifetime:
-                live_vm.add_utilization(cpu_utilization=0.0)
+            if self._tick - live_vm.creation_tick >= live_vm.lifetime:
+                raise Exception(f"The VM id: '{live_vm.id}' does not exist.")
             else:
                 # NOTE: Some data could be lost. We use -1.0 to represent the missing data.
                 if live_vm.id not in self._cpu_utilization_dict:
@@ -294,7 +290,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             for vm_id in pm.live_vms:
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
-            pm.cpu_utilization = total_pm_cpu_cores_used / pm.cpu_cores_capacity
+            pm.set_cpu_utilization(cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
 
     def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
@@ -302,10 +298,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        cpu_utilization /= 100
         power: float = self._config.PM["P1"]["POWER_CURVE"]["CALIBRATION_PARAMETER"]
         busy_power = self._config.PM["P1"]["POWER_CURVE"]["BUSY_POWER"]
         idle_power = self._config.PM["P1"]["POWER_CURVE"]["IDLE_POWER"]
+
+        cpu_utilization /= 100
+
         return idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
 
     def _postpone_vm_request(self, postpone_type: PostponeType, vm_id: int, remaining_buffer_time: int):
@@ -346,6 +344,26 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return valid_pm_list
 
+    def _process_finished_vm(self):
+        """Release PM resource from the finished VM."""
+        # Get the VM info.
+        vm_id_list = []
+        for vm in self._live_vms.values():
+            if vm.deletion_tick == self._tick:
+                # Release PM resources.
+                pm: PhysicalMachine = self._machines[vm.pm_id]
+                pm.cpu_cores_allocated -= vm.cpu_cores_requirement
+                pm.memory_allocated -= vm.memory_requirement
+                pm.remove_vm(vm.id)
+
+                vm_id_list.append(vm.id)
+                # VM placement succeed.
+                self._successful_completion += 1
+
+        # Remove dead VM.
+        for vm_id in vm_id_list:
+            self._live_vms.pop(vm_id)
+
     def _on_vm_required(self, vm_request_event: CascadeEvent):
         """Callback when there is a VM request generated."""
         # Get VM data from payload.
@@ -378,31 +396,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 remaining_buffer_time=remaining_buffer_time
             )
 
-    def _on_vm_finished(self, finish_event: AtomEvent):
-        """Callback when there is a VM ready to be terminated."""
-        # Get the VM info.
-        payload: VmFinishedPayload = finish_event.payload
-        vm_id = payload.vm_id
-        vm: VirtualMachine = self._live_vms[vm_id]
-
-        # Release PM resources.
-        pm: PhysicalMachine = self._machines[vm.pm_id]
-        pm.cpu_cores_allocated -= vm.cpu_cores_requirement
-        pm.memory_allocated -= vm.memory_requirement
-        # Calculate the PM's utilization.
-        pm_cpu_utilization = (
-            (pm.cpu_cores_capacity * pm.cpu_utilization - vm.cpu_cores_requirement * vm.cpu_utilization)
-            / pm.cpu_cores_capacity
-        )
-        pm.cpu_utilization = pm_cpu_utilization
-        pm.remove_vm(vm_id)
-
-        # Remove dead VM.
-        self._live_vms.pop(vm_id)
-
-        # VM placement succeed.
-        self._successful_completion += 1
-
     def _on_action_received(self, event: CascadeEvent):
         """Callback wen we get an action from agent."""
         action = None
@@ -424,8 +417,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
                 # Update VM information.
                 vm.pm_id = pm_id
-                vm.start_tick = cur_tick
-                vm.end_tick = cur_tick + lifetime
+                vm.creation_tick = cur_tick
+                vm.deletion_tick = cur_tick + lifetime
                 vm.cpu_utilization = vm.get_utilization(cur_tick=cur_tick)
 
                 # Pop out the VM from pending requests and add to live VM dict.
@@ -433,14 +426,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._live_vms[vm_id] = vm
 
                 # TODO: Current logic can not fulfill the oversubscription case.
-                # Generate VM finished event.
-                finished_payload: VmFinishedPayload = VmFinishedPayload(vm.id)
-                finished_event = self._event_buffer.gen_atom_event(
-                    tick=cur_tick + lifetime,
-                    event_type=Events.FINISH,
-                    payload=finished_payload
-                )
-                self._event_buffer.insert_event(event=finished_event)
 
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
@@ -452,7 +437,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     (pm.cpu_cores_capacity * pm.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
                     / pm.cpu_cores_capacity
                 )
-                pm.cpu_utilization = pm_cpu_utilization
+                pm.set_cpu_utilization(cpu_utilization=pm_cpu_utilization)
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
                 self._successful_placement += 1
             elif type(action) == PostponeAction:
@@ -469,15 +454,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """Build processed data."""
 
         data_root = StaticParameter.data_root
-        meta_folder = os.path.join(data_root, self._scenario_name, "meta")
         build_folder = os.path.join(data_root, self._scenario_name, ".build", self._topology)
 
-        # Load configs from source_urls.yml to get the url.
-        meta_path = os.path.join(meta_folder, "source_urls.yml")
-        with open(meta_path) as fp:
-            urls = safe_load(fp)
-
-        source = urls["vm_data"][self._topology]["processed_data_url"]
+        source = self._config["PROCESSED_DATA_URL"]
         download_file_name = source.split('/')[-1]
         download_file_path = os.path.join(build_folder, download_file_name)
 

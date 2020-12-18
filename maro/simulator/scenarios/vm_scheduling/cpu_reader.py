@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import os
+
 from maro.data_lib.binary_reader import BinaryReader
 
 
@@ -51,6 +53,9 @@ class CpuReader:
             return cur_items
         # If the current tick is the end tick of the file, then switch to next file.
         while end_time == self._cpu_reader.header.endtime:
+            new_file = os.path.expanduser(self._switch_to_next_file_name(self._data_path))
+            if not os.path.exists(new_file):
+                break
             self._switch()
             # Check the start tick of the new file is same as the end tick of the last file.
             if self._cpu_reader.header.starttime == end_time:

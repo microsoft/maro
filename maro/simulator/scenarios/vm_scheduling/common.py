@@ -55,18 +55,6 @@ class VmRequestPayload:
         self.remaining_buffer_time = remaining_buffer_time
 
 
-class VmFinishedPayload:
-    """Payload for the VM finished.
-
-    Args:
-        vm_id (int): The id of the VM.
-    """
-    summary_key = ["vm_id"]
-
-    def __init__(self, vm_id: int):
-        self.vm_id = vm_id
-
-
 class DecisionPayload:
     """Decision event in VM Scheduling scenario that contains information for agent to choose action.
 
