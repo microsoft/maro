@@ -1,32 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
-import collections
-import json
+
 import os
 import secrets
 import string
-from copy import deepcopy
-from multiprocessing.pool import ThreadPool
 from shutil import rmtree
 
 import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
-from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node, sync_mkdir
-from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.utils.details import (
-    load_cluster_details, load_job_details, load_schedule_details, save_cluster_details, save_job_details,
-    save_schedule_details
-)
-from maro.cli.utils.executors.azure_executor import AzureExecutor
-from maro.cli.utils.naming import (
-    generate_cluster_id, generate_component_id, generate_job_id, generate_node_name, get_valid_file_name
-)
+from maro.cli.grass.utils.copy import (copy_files_to_node, sync_mkdir)
+from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
+from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
-from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import CliException, CommandError
+from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -116,7 +104,7 @@ class GrassOnPremisesExecutor:
         cluster_details = self.cluster_details
         cluster_id = cluster_details["id"]
         master_details = cluster_details["master"]
-        #hostname = f"{cluster_id}-master-vm"
+        # hostname = f"{cluster_id}-master-vm"
         hostname = cluster_details["master"]["public_ip_address"]
         master_details["private_ip_address"] = cluster_details["master"]["public_ip_address"]
         master_details["hostname"] = hostname
@@ -198,9 +186,6 @@ class GrassOnPremisesExecutor:
     def delete(self):
         # Load details
         cluster_name = self.cluster_name
-        cluster_details = load_cluster_details(cluster_name=cluster_name)
-        cluster_id = cluster_details["id"]
-
         logger.info(f"Deleting cluster {cluster_name}")
 
         # Delete redis and other services
@@ -226,13 +211,11 @@ class GrassOnPremisesExecutor:
         self._create_node_data(node_join_info)
         self._init_node(node_name)
 
-
     def _create_node_data(self, node_join_info: dict):
         # Load details
         cluster_details = self.cluster_details
         cluster_id = cluster_details["id"]
         node_name = node_join_info["name"]
-        master_details = cluster_details["master"]
         node_ip_address = node_join_info["public_ip_address"]
 
         # Get resources
@@ -411,6 +394,6 @@ class GrassOnPremisesExecutor:
                         pass
                     else:
                         flag = False
-                except:
+                except ValueError:
                     flag = False
             return flag

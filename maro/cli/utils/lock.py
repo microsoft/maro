@@ -8,7 +8,7 @@ import re
 import yaml
 
 from maro.cli.utils.params import GlobalPaths
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import BadRequestError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -89,7 +89,7 @@ def acquire_lock(cluster_name: str, operation: str):
                 allow_acquire = True
                 break
         if not allow_acquire:
-            raise CliException(f"Unable to execute the command, a running operation: '{lock_operation}' blocks it.")
+            raise BadRequestError(f"Unable to execute command, a running operation: '{lock_operation}' blocks it.")
 
     # Save details
     lock_details[operation] = lock_details.get(operation, 0) + 1

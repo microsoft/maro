@@ -5,27 +5,20 @@
 import yaml
 
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
-from maro.utils.exception.cli_exception import ParsingError
+from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
 
 
 def create(deployment_path: str, **kwargs):
-    with open(deployment_path, 'r') as fr:
-        create_deployment = yaml.safe_load(fr)
-
     try:
-        if create_deployment['mode'] == 'grass':
-            if create_deployment['cloud']['infra'] == 'azure':
-                GrassAzureExecutor.build_cluster_details(create_deployment=create_deployment)
-                executor = GrassAzureExecutor(cluster_name=create_deployment['name'])
-                executor.create()
-            else:
-                raise ParsingError(f"Deployment is broken: Invalid infra: {create_deployment['cloud']['infra']}")
-        elif create_deployment["mode"] == "grass/on-premises":
-                GrassOnPremisesExecutor.build_cluster_details(create_deployment=create_deployment)
-                executor = GrassOnPremisesExecutor(cluster_name=create_deployment["name"])
-                executor.create()
+        with open(deployment_path, "r") as fr:
+            create_deployment = yaml.safe_load(fr)
+        if create_deployment["mode"] == "grass/azure":
+            GrassAzureExecutor.build_cluster_details(create_deployment=create_deployment)
+            executor = GrassAzureExecutor(cluster_name=create_deployment["name"])
+            executor.create()
         else:
-            raise ParsingError(f"Deployment is broken: Invalid mode: {create_deployment['mode']}")
+            raise BadRequestError(f"Unsupported command in mode '{create_deployment['mode']}'.")
     except KeyError as e:
-        raise ParsingError(f"Deployment is broken: Missing key: '{e.args[0]}'")
+        raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
+    except FileNotFoundError:
+        raise FileOperationError("Invalid template file path.")
