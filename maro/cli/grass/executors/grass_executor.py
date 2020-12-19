@@ -8,7 +8,7 @@ import time
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import (CliError, CliException)
+from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -246,7 +246,7 @@ class GrassExecutor:
                 logger.debug(f"Unable to connect to {node_ip_address}, remains {remain_retries} retries.")
                 time.sleep(10)
                 continue
-        raise CliException(f"Unable to connect to {node_ip_address}")
+        raise CliError(f"Unable to connect to {node_ip_address}")
 
     def remote_interactive_connect(self, node_ip_address: str):
         command = f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} " \

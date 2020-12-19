@@ -9,7 +9,7 @@ from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesE
 from maro.cli.utils.checkers import check_details_validity
 from maro.cli.utils.details import load_cluster_details
 from maro.cli.utils.lock import lock
-from maro.utils.exception.cli_exception import BadRequestError, ParsingError, FileOperationError
+from maro.utils.exception.cli_exception import BadRequestError, InvalidDeploymentTemplateError, FileOperationError
 
 
 @check_details_validity
@@ -70,7 +70,7 @@ def node_join(node_join_path: str, **kwargs):
             fr.close()
 
         if node_join_info["mode"] != "grass/on-premises":
-            raise ParsingError(f"Node join cluster interrupted: Invalid mode: {node_join_info['mode']}")
+            raise InvalidDeploymentTemplateError(f"Node join cluster interrupted: Invalid mode: {node_join_info['mode']}")
 
         executor = GrassOnPremisesExecutor(node_join_info["cluster"])
         executor.node_join_cluster(node_join_info)

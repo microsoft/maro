@@ -9,12 +9,12 @@ from shutil import rmtree
 import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
-from maro.cli.grass.utils.copy import (copy_files_to_node, sync_mkdir)
+from maro.cli.grass.utils.copy import copy_files_to_node
 from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
 from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -44,7 +44,7 @@ class GrassOnPremisesExecutor:
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
         if os.path.isdir(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}")):
-            raise CliException(f"Cluster {cluster_name} already exist.")
+            raise CliError(f"Cluster {cluster_name} already exist.")
         os.makedirs(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
         save_cluster_details(
             cluster_name=cluster_name,
@@ -126,27 +126,27 @@ class GrassOnPremisesExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
 
         # Create folders
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=GlobalPaths.MARO_GRASS_LIB,
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
             admin_username=admin_username, node_ip_address=master_public_ip_address
         )
@@ -255,27 +255,27 @@ class GrassOnPremisesExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
 
         # Create folders
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=GlobalPaths.MARO_GRASS_LIB,
             admin_username=admin_username, node_ip_address=node_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             admin_username=admin_username, node_ip_address=node_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
             admin_username=admin_username, node_ip_address=node_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
             admin_username=admin_username, node_ip_address=node_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
             admin_username=admin_username, node_ip_address=node_public_ip_address
         )
-        sync_mkdir(
+        self.grass_executor.remote_mkdir(
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
             admin_username=admin_username, node_ip_address=node_public_ip_address
         )
