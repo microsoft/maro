@@ -66,7 +66,8 @@ def node_join(node_join_path: str, **kwargs):
             fr.close()
 
         if node_join_info["mode"] != "grass/on-premises":
-            raise InvalidDeploymentTemplateError(f"Node join cluster interrupted: Invalid mode: {node_join_info['mode']}")
+            raise InvalidDeploymentTemplateError(
+                f"Node join cluster interrupted: Invalid mode: {node_join_info['mode']}")
 
         executor = GrassOnPremisesExecutor(node_join_info["cluster"])
         executor.node_join_cluster(node_join_info)
@@ -78,7 +79,7 @@ def node_leave(cluster_name: str, node_name: str, **kwargs):
 
     cluster_details = load_cluster_details(cluster_name)
     if cluster_details["mode"] != "grass/on-premises":
-        raise InvalidDeploymentTemplateError(f"Node join cluster interrupted: Invalid mode.")
+        raise InvalidDeploymentTemplateError("Node join cluster interrupted: Invalid mode.")
 
     executor = GrassOnPremisesExecutor(cluster_name)
     executor.node_leave_cluster(node_name)
