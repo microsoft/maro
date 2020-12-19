@@ -196,6 +196,7 @@ class GrassOnPremisesExecutor:
         # Delete cluster folder
         rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
         self.grass_executor.remote_clean(1)
+        self.grass_executor.delete_master_details(cluster_name)
         logger.info_green(f"The cluster {cluster_name} has been deleted.")
 
     def node_join_cluster(self, node_join_info: dict):

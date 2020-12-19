@@ -274,3 +274,12 @@ class GrassExecutor:
             f"{delete_user}'"
         )
         _ = SubProcess.run(command)
+
+    def delete_master_details(self, cluster_name: str):
+        command = (
+            "ssh -o StrictHostKeyChecking=no "
+            f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.delete_master_details "
+            f"{self.cluster_name} '"
+        )
+        _ = SubProcess.run(command)
