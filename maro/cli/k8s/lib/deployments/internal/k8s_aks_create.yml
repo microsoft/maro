@@ -1,8 +1,7 @@
-name: ""
 mode: ""
+name: ""
 
 cloud:
-  infra: ""
   subscription: ""
   resource_group: ""
   location: ""
@@ -13,10 +12,3 @@ user:
 
 master:
   node_size: ""
-  redis:
-    port: ""
-  fluentd:
-    port: ""
-  samba:
-    password: ""
-
