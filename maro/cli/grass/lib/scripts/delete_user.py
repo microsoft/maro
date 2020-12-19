@@ -19,7 +19,7 @@ def delete_user(user_name: str):
 
     try:
         user_path = "/home/" + user_name
-        os.system("sudo userdel " + user_name)
+        os.system("sudo userdel -f " + user_name)
         if os.path.exists(user_path):
             os.system("sudo rm -rf " + user_path)
     except:

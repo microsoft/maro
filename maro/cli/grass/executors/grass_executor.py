@@ -71,7 +71,6 @@ class GrassExecutor:
             f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} "
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.get_node_details {self.cluster_name} {node_name}'"
         )
-        return_str = SubProcess.run(command)
         return json.loads(return_str)
 
     def remote_get_nodes_details(self):

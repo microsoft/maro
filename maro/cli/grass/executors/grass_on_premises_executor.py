@@ -10,7 +10,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
-from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
+from maro.cli.utils.details import (load_cluster_details, save_cluster_details, save_job_details)
 from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.validation import validate_and_fill_dict
@@ -127,28 +127,28 @@ class GrassOnPremisesExecutor:
 
         # Create folders
         self.grass_executor.remote_mkdir(
-            remote_path=GlobalPaths.MARO_GRASS_LIB,
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            path=GlobalPaths.MARO_GRASS_LIB,
+            node_ip_address=master_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            node_ip_address=master_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            node_ip_address=master_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            node_ip_address=master_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            node_ip_address=master_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
+            node_ip_address=master_public_ip_address
         )
 
         # Copy required files
@@ -256,28 +256,28 @@ class GrassOnPremisesExecutor:
 
         # Create folders
         self.grass_executor.remote_mkdir(
-            remote_path=GlobalPaths.MARO_GRASS_LIB,
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            path=GlobalPaths.MARO_GRASS_LIB,
+            node_ip_address=node_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            node_ip_address=node_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            node_ip_address=node_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            node_ip_address=node_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            node_ip_address=node_public_ip_address
         )
         self.grass_executor.remote_mkdir(
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
+            node_ip_address=node_public_ip_address
         )
 
         # Copy required files
@@ -336,11 +336,13 @@ class GrassOnPremisesExecutor:
             logger.warning("This sub command only for On-Premises mode.")
             return
 
-        node_details = self.grass_executor.remote_get_node_details(node_name)
-        if None is node_details:
-            logger.warning("The specified node cannot be found.")
+
+        nodes_details = self.grass_executor.remote_get_nodes_details()
+        if node_name not in nodes_details:
+            logger.warning(f"The specified node cannot be found in cluster {cluster_details['name']}.")
             return
 
+        node_details = nodes_details[node_name]
         # Update node status
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
@@ -352,7 +354,7 @@ class GrassOnPremisesExecutor:
         admin_username = cluster_details["user"]["admin_username"]
         node_ip_address = node_details["public_ip_address"]
         GrassOnPremisesExecutor.delete_user("", admin_username, node_ip_address)
-        logger.info_green(f"The node {node_name} has been left cluster {cluster_details['cluster_name']}.")
+        logger.info_green(f"The node {node_name} has been left cluster {cluster_details['name']}.")
 
     @staticmethod
     def create_user(admin_username: str, maro_user: str, ip_address: str, pubkey: str) -> None:
