@@ -16,11 +16,8 @@ def start_job(cluster_name: str, deployment_path: str, **kwargs):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
-        executor.start_job(deployment_path=deployment_path)
-    elif cluster_details["mode"] == "grass/on-premises":
-        executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
         executor.start_job(deployment_path=deployment_path)
     else:
         raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
@@ -32,7 +29,7 @@ def stop_job(cluster_name: str, job_name: str, **kwargs):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure" or cluster_details["mode"] == "grass/on-premises":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.stop_job(job_name=job_name)
     else:
@@ -45,7 +42,7 @@ def list_job(cluster_name: str, **kwargs):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure" or cluster_details["mode"] == "grass/on-premises":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.list_job()
     else:
@@ -58,7 +55,7 @@ def get_job_logs(cluster_name: str, job_name: str, **kwargs):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure" or cluster_details["mode"] == "grass/on-premises":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.get_job_logs(job_name=job_name)
     else:

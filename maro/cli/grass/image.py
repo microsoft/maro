@@ -17,7 +17,7 @@ def push_image(
 ):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.push_image(
             image_name=image_name,

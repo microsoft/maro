@@ -71,6 +71,7 @@ class GrassExecutor:
             f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} "
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.get_node_details {self.cluster_name} {node_name}'"
         )
+        return_str = SubProcess.run(command)
         return json.loads(return_str)
 
     def remote_get_nodes_details(self):
@@ -187,7 +188,6 @@ class GrassExecutor:
         _ = SubProcess.run(command)
 
     def remote_set_master_details(self, master_details: dict):
-        print("remote_set_master_details")
         master_details_b64 = base64.b64encode(json.dumps(master_details).encode("utf8")).decode('utf8')
         command = (
             "ssh -o StrictHostKeyChecking=no "
@@ -198,7 +198,6 @@ class GrassExecutor:
         _ = SubProcess.run(command)
 
     def remote_set_node_details(self, node_name: str, node_details: dict):
-        print("remote_set_node_details")
         node_details_b64 = base64.b64encode(json.dumps(node_details).encode("utf8")).decode('utf8')
         command = (
             "ssh -o StrictHostKeyChecking=no "
@@ -234,7 +233,6 @@ class GrassExecutor:
         _ = SubProcess.run(command)
 
     def retry_until_connected(self, node_ip_address: str) -> bool:
-        print("retry_until_connected")
         remain_retries = 10
         while remain_retries > 0:
             try:

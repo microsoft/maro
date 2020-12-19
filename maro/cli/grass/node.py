@@ -29,10 +29,6 @@ def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass":
-        if cluster_details['cloud']['infra'] == 'azure':
-            executor = GrassAzureExecutor(cluster_name=cluster_name)
-            executor.start_node(replicas=replicas, node_size=node_size)
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.start_node(replicas=replicas, node_size=node_size)
@@ -57,7 +53,7 @@ def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 def list_node(cluster_name: str, **kwargs):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.list_node()
 
@@ -79,13 +75,10 @@ def node_join(node_join_path: str, **kwargs):
 
 
 def node_leave(cluster_name: str, node_name: str, **kwargs):
+
+    cluster_details = load_cluster_details(cluster_name)
+    if cluster_details["mode"] != "grass/on-premises":
+        raise InvalidDeploymentTemplateError(f"Node join cluster interrupted: Invalid mode.")
+
     executor = GrassOnPremisesExecutor(cluster_name)
     executor.node_leave_cluster(node_name)
-
-
-def node_test(**kwargs):
-
-    executor = GrassOnPremisesExecutor("grass_test")
-    # executor.delete_user("maro", "139.217.112.148")
-    # executor.create_user("", "139.217.112.148")
-    executor.node_leave_cluster("maro_work_node-1")

@@ -238,16 +238,6 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
         "node_name", help="The name of node going to be leave cluster.")
     parser_node_leave.set_defaults(func=node_leave)
 
-    # maro grass node test
-    from maro.cli.grass.node import node_test
-    parser_node_leave = parser_node_subparsers.add_parser(
-        "test",
-        help="test",
-        examples=CliExamples.MARO_GRASS_NODE_LEAVE,
-        parents=[global_parser]
-    )
-    parser_node_leave.set_defaults(func=node_test)
-
     # maro grass image
     parser_image = subparsers.add_parser(
         'image',

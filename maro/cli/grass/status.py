@@ -14,7 +14,7 @@ from maro.utils.exception.cli_exception import BadRequestError
 def status(cluster_name: str, resource_name: str, **kwargs):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure":
+    if cluster_details["mode"] == "grass/azure" or "grass/on-premises":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.status(resource_name=resource_name)
     else:
