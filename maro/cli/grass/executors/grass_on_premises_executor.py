@@ -35,6 +35,7 @@ class GrassOnPremisesExecutor:
         GrassOnPremisesExecutor._standardize_create_deployment(create_deployment=create_deployment)
 
         # Create user account
+        logger.info("Now is going to create an user account for maro cluster node.")
         GrassOnPremisesExecutor.create_user(
             "",
             create_deployment["user"]["admin_username"],
@@ -174,7 +175,6 @@ class GrassOnPremisesExecutor:
 
         # Save details
         master_details['public_key'] = public_key
-        # master_details['image_files'] = {}
         save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
@@ -204,6 +204,7 @@ class GrassOnPremisesExecutor:
         cluster_details = self.cluster_details
         node_ip_address = node_join_info["public_ip_address"]
         # Create user account
+        logger.info(f"Now is going to create an user account for maro working node {node_name}.")
         GrassOnPremisesExecutor.create_user(
             "",
             cluster_details["user"]["admin_username"],
@@ -360,7 +361,8 @@ class GrassOnPremisesExecutor:
     @staticmethod
     def create_user(admin_username: str, maro_user: str, ip_address: str, pubkey: str) -> None:
         if("" == admin_username):
-            admin_username = input("Please input a user account that has permissions to create user:\r\n")
+            print("Please input a user account that has permissions to create user:")
+            admin_username = input("> ")
 
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/create_user.py",

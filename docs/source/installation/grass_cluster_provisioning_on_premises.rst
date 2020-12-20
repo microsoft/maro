@@ -101,7 +101,7 @@ Run Job
 Sample Deployments
 ------------------
 
-grass-azure-create
+grass-cluster-create
 ^^^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
@@ -112,6 +112,23 @@ grass-azure-create
    user:
      admin_public_key: "{ssh public key with 'ssh-rsa' prefix}"
      admin_username: admin
+
+
+grass-node-join
+^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+mode: "grass/on-premises"
+name: ""
+cluster: ""
+public_ip_address: ""
+hostname: ""
+system: "linux"
+resources:
+  cpu: 1
+  memory: 1024
+  gpu: 0
 
 
 grass-start-job
