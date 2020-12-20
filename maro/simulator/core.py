@@ -8,17 +8,13 @@ from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.event_buffer import EventBuffer, EventState
-from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
+from maro.utils.exception.simulator_exception import \
+  BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
 from .scenarios.abs_business_engine import AbsBusinessEngine
 from .utils import seed as sim_seed
 from .utils.common import tick_to_frame_index
-
-
-# Used to wrap decision event with source event id to support joint decision mode,
-# but with sequential actions pass in.
-JointSequentialDecisionEvent = namedtuple("JointSequentialDecisionEvent", ["decision_event", "source_event_id"])
 
 
 class Env(AbsEnv):
