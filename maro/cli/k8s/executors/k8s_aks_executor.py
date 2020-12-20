@@ -19,13 +19,13 @@ from maro.cli.utils.naming import generate_cluster_id, generate_component_id, ge
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
 
 
-class K8sAzureExecutor:
+class K8sAksExecutor:
 
     def __init__(self, cluster_name: str):
         self.cluster_name = cluster_name
@@ -36,12 +36,12 @@ class K8sAzureExecutor:
     @staticmethod
     def build_cluster_details(create_deployment: dict):
         # Validate and fill optional value to deployment
-        K8sAzureExecutor._validate_create_deployment(create_deployment=create_deployment)
+        K8sAksExecutor._validate_create_deployment(create_deployment=create_deployment)
 
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
-            raise CliException(f"cluster {cluster_name} is exist")
+            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
         save_cluster_details(
             cluster_name=cluster_name,
@@ -54,7 +54,7 @@ class K8sAzureExecutor:
             "root['master']['redis']": {"port": 6379},
             "root['master']['redis']['port']": 6379
         }
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s-azure-create.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -81,24 +81,20 @@ class K8sAzureExecutor:
         logger.info_green(f"Cluster {self.cluster_name} is created")
 
     def _set_cluster_id(self):
-        # Load details
-        cluster_details = self.cluster_details
-
         # Set cluster id
-        cluster_details["id"] = generate_cluster_id()
+        self.cluster_details["id"] = generate_cluster_id()
 
         # Save details
         save_cluster_details(
             cluster_name=self.cluster_name,
-            cluster_details=cluster_details
+            cluster_details=self.cluster_details
         )
 
     def _create_resource_group(self):
         # Load details
-        cluster_details = self.cluster_details
-        subscription = cluster_details["cloud"]["subscription"]
-        resource_group = cluster_details["cloud"]["resource_group"]
-        location = cluster_details["cloud"]["location"]
+        subscription = self.cluster_details["cloud"]["subscription"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
+        location = self.cluster_details["cloud"]["location"]
 
         # Check if Azure CLI is installed, and print version
         azure_version = AzureExecutor.get_version()
@@ -122,15 +118,16 @@ class K8sAzureExecutor:
         logger.info("Creating k8s cluster")
 
         # Load details
-        cluster_details = self.cluster_details
-        resource_group = cluster_details["cloud"]["resource_group"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Create ARM parameters
         self._create_deployment_parameters(export_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters")
 
         # Start deployment
-        template_file_location = f"{GlobalPaths.ABS_MARO_K8S_LIB}/azure/k8s-create-template.json"
-        parameters_file_location = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters/aks_cluster.json"
+        template_file_location = f"{GlobalPaths.ABS_MARO_K8S_LIB}/azure/create_aks_cluster/template.json"
+        parameters_file_location = (
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters/create_aks_cluster.json"
+        )
         AzureExecutor.start_deployment(
             resource_group=resource_group,
             deployment_name="aks_cluster",
@@ -143,19 +140,18 @@ class K8sAzureExecutor:
 
     def _create_deployment_parameters(self, export_dir: str):
         # Extract variables
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        location = cluster_details["cloud"]["location"]
-        admin_username = cluster_details["user"]["admin_username"]
-        admin_public_key = cluster_details["user"]["admin_public_key"]
-        node_size = cluster_details["master"]["node_size"]
+        cluster_id = self.cluster_details["id"]
+        location = self.cluster_details["cloud"]["location"]
+        admin_username = self.cluster_details["user"]["admin_username"]
+        admin_public_key = self.cluster_details["user"]["admin_public_key"]
+        node_size = self.cluster_details["master"]["node_size"]
 
         # Mkdir
         os.makedirs(export_dir, exist_ok=True)
 
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/azure/k8s-create-parameters.json", "r") as f:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/azure/create_aks_cluster/parameters.json", "r") as f:
             base_parameters = json.load(f)
-        with open(export_dir + "/aks_cluster.json", "w") as fw:
+        with open(export_dir + "/create_aks_cluster.json", "w") as fw:
             parameters = base_parameters["parameters"]
             parameters["location"]["value"] = location
             parameters["adminUsername"]["value"] = admin_username
@@ -172,9 +168,8 @@ class K8sAzureExecutor:
 
     def _attach_acr(self):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Attach ACR
         AzureExecutor.attach_acr(
@@ -209,8 +204,7 @@ class K8sAzureExecutor:
         self._check_and_load_k8s_context()
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
 
         # Fill redis k8s config and saves
         with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/k8s_configs/redis.yml", "r") as fr:
@@ -223,9 +217,8 @@ class K8sAzureExecutor:
 
     def _create_k8s_secret(self):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Get storage account key
         storage_account_keys = AzureExecutor.get_storage_account_keys(
@@ -249,9 +242,8 @@ class K8sAzureExecutor:
         logger.info(f"Deleting cluster {self.cluster_name}")
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Get resource list
         resource_list = AzureExecutor.list_resources(resource_group=resource_group)
@@ -280,7 +272,7 @@ class K8sAzureExecutor:
         # Get node_size_to_spec, and check if node_size is valid
         node_size_to_spec = self._get_node_size_to_spec()
         if node_size not in node_size_to_spec:
-            raise CliException(f"Invalid node_size: {node_size}")
+            raise BadRequestError(f"Invalid node_size '{node_size}'.")
 
         # Scale node
         if node_size not in node_size_to_info:
@@ -299,9 +291,8 @@ class K8sAzureExecutor:
 
     def _get_node_size_to_info(self):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # List nodepool
         nodepools = AzureExecutor.list_nodepool(
@@ -318,8 +309,7 @@ class K8sAzureExecutor:
 
     def _get_node_size_to_spec(self) -> dict:
         # Load details
-        cluster_details = self.cluster_details
-        location = cluster_details["cloud"]["location"]
+        location = self.cluster_details["cloud"]["location"]
 
         # List available sizes for VM
         specs = AzureExecutor.list_vm_sizes(location=location)
@@ -335,15 +325,14 @@ class K8sAzureExecutor:
         logger.info(f"Building {node_size} NodePool")
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Build nodepool
         AzureExecutor.add_nodepool(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks",
-            nodepool_name=K8sAzureExecutor._generate_nodepool_name(key=node_size),
+            nodepool_name=K8sAksExecutor._generate_nodepool_name(key=node_size),
             node_count=replicas,
             node_size=node_size
         )
@@ -354,9 +343,8 @@ class K8sAzureExecutor:
         logger.info(f"Scaling {node_size} NodePool")
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Scale node pool
         AzureExecutor.scale_nodepool(
@@ -374,9 +362,8 @@ class K8sAzureExecutor:
 
     def list_node(self):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Get aks details
         aks_details = AzureExecutor.get_aks(
@@ -400,8 +387,7 @@ class K8sAzureExecutor:
 
     def push_image(self, image_name: str):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
         remote_image_name = f"{cluster_id}acr.azurecr.io/{image_name}"
 
         # ACR login
@@ -417,8 +403,7 @@ class K8sAzureExecutor:
 
     def list_image(self):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
 
         # List acr repository
         acr_repositories = AzureExecutor.list_acr_repositories(acr_name=f"{cluster_id}acr")
@@ -428,8 +413,7 @@ class K8sAzureExecutor:
 
     def push_data(self, local_path: str, remote_dir: str):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
 
         # Get sas
         sas = self._check_and_get_account_sas()
@@ -439,7 +423,7 @@ class K8sAzureExecutor:
         abs_source_path = get_reformatted_source_path(abs_local_path)
         target_dir = get_reformatted_target_dir(remote_dir)
         if not target_dir.startswith("/"):
-            raise CliException("Invalid remote path")
+            raise FileOperationError(f"Invalid remote path: {target_dir}\nShould be started with '/'.")
         copy_command = (
             "azcopy copy "
             f"'{abs_source_path}' "
@@ -450,8 +434,7 @@ class K8sAzureExecutor:
 
     def pull_data(self, local_dir: str, remote_path: str):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
 
         # Get sas
         sas = self._check_and_get_account_sas()
@@ -462,7 +445,7 @@ class K8sAzureExecutor:
         abs_target_dir = get_reformatted_target_dir(abs_local_dir)
         os.makedirs(abs_target_dir, exist_ok=True)
         if not source_path.startswith("/"):
-            raise CliException("Invalid remote path")
+            raise FileOperationError(f"Invalid remote path: {source_path}\nShould be started with '/'.")
         copy_command = (
             "azcopy copy "
             f"'https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}' "
@@ -475,8 +458,7 @@ class K8sAzureExecutor:
         # FIXME: Remove failed, The specified resource may be in use by an SMB client
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
 
         # Get sas
         sas = self._check_and_get_account_sas()
@@ -495,9 +477,8 @@ class K8sAzureExecutor:
         """
 
         # Load details
-        cluster_details = self.cluster_details
-        cloud_details = cluster_details["cloud"]
-        cluster_id = cluster_details["id"]
+        cloud_details = self.cluster_details["cloud"]
+        cluster_id = self.cluster_details["id"]
 
         # Regenerate sas if the key is None or expired TODO:
         if "account_sas" not in cloud_details:
@@ -505,7 +486,7 @@ class K8sAzureExecutor:
             cloud_details["account_sas"] = account_sas
             save_cluster_details(
                 cluster_name=self.cluster_name,
-                cluster_details=cluster_details
+                cluster_details=self.cluster_details
             )
 
         return cloud_details["account_sas"]
@@ -522,7 +503,7 @@ class K8sAzureExecutor:
 
     def _start_job(self, job_details: dict):
         # Validate and fill optional value to deployment
-        K8sAzureExecutor._standardize_start_job_deployment(start_job_deployment=job_details)
+        K8sAksExecutor._standardize_start_job_deployment(start_job_deployment=job_details)
         job_name = job_details["name"]
 
         # Mkdir and save job details
@@ -563,8 +544,8 @@ class K8sAzureExecutor:
 
     @staticmethod
     def _standardize_start_job_deployment(start_job_deployment: dict):
-        # Validate k8s-azure-start-job
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s-azure-start-job.yml") as fr:
+        # Validate k8s_aks_start_job
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -585,9 +566,8 @@ class K8sAzureExecutor:
 
     def _create_k8s_job_config(self, job_name: str) -> dict:
         # Load details
-        cluster_details = self.cluster_details
         job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
         job_id = job_details["id"]
 
         # Check and load k8s context
@@ -630,8 +610,7 @@ class K8sAzureExecutor:
         component_details = job_details["components"][component_type]
 
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
         job_name = job_details["name"]
         job_id = job_details["id"]
         component_id = job_details["components"][component_type]["id"]
@@ -774,7 +753,7 @@ class K8sAzureExecutor:
             start_schedule_deployment = yaml.safe_load(fr)
 
         # Standardize start_schedule_deployment
-        K8sAzureExecutor._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
+        K8sAksExecutor._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
         schedule_name = start_schedule_deployment["name"]
 
         # Save schedule deployment
@@ -787,7 +766,7 @@ class K8sAzureExecutor:
 
         # Start jobs
         for job_name in start_schedule_deployment["job_names"]:
-            job_details = K8sAzureExecutor._build_job_details(
+            job_details = K8sAksExecutor._build_job_details(
                 schedule_details=start_schedule_deployment,
                 job_name=job_name
             )
@@ -813,8 +792,8 @@ class K8sAzureExecutor:
 
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
-        # Validate k8s-azure-start-job
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s-azure-start-schedule.yml") as fr:
+        # Validate k8s_aks_start_schedule
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=start_job_template,
@@ -878,9 +857,8 @@ class K8sAzureExecutor:
 
     def _load_k8s_context(self):
         # Load details
-        cluster_details = self.cluster_details
-        resource_group = cluster_details["cloud"]["resource_group"]
-        cluster_id = cluster_details["id"]
+        resource_group = self.cluster_details["cloud"]["resource_group"]
+        cluster_id = self.cluster_details["id"]
 
         # Load context
         AzureExecutor.load_aks_context(
@@ -890,8 +868,7 @@ class K8sAzureExecutor:
 
     def _check_and_load_k8s_context(self):
         # Load details
-        cluster_details = self.cluster_details
-        cluster_id = cluster_details["id"]
+        cluster_id = self.cluster_details["id"]
 
         # Check and load k8s context
         check_command = "kubectl config view"

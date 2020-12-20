@@ -3,13 +3,13 @@ env:
   param:
     durations: 1120
     scenario: "cim"
-    topology: "global_trade.22p_l0.6"
+    topology: "global_trade.22p_l0.8"
     # topology: "toy.4p_ssdd_l0.0"
 training:
   enable: True
-  parallel_cnt: 24
-  device: "cuda:0"
-  batch_size: 150
+  parallel_cnt: 1
+  device: "cpu"
+  batch_size: 16
   shuffle_time: 1
   rollout_cnt: 500
   train_freq: 1
