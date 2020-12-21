@@ -28,6 +28,9 @@
     },
     "adminPublicKey": {
       "value": null
+    },
+    "sshDestinationPort": {
+      "value": null
     }
   }
 }
