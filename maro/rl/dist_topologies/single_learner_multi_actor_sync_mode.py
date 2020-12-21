@@ -50,6 +50,7 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(
+                component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
                 payload={PayloadKey.DONE: True}
@@ -84,7 +85,7 @@ class ActorWorker(object):
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor", **proxy_params)
-        self._registry_table = RegisterTable(self._proxy.get_peers)
+        self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):

@@ -6,7 +6,7 @@ import datetime
 import json
 
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CommandError, DeploymentError
+from maro.utils.exception.cli_exception import CommandExecutionError, DeploymentError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -29,7 +29,7 @@ class AzureExecutor:
         try:
             return_str = SubProcess.run(command)
             return json.loads(return_str)
-        except CommandError:
+        except CommandExecutionError:
             return None
 
     @staticmethod
@@ -73,7 +73,7 @@ class AzureExecutor:
         )
         try:
             _ = SubProcess.run(command)
-        except CommandError as e:
+        except CommandExecutionError as e:
             error = json.loads(AzureExecutor._get_valid_json(e.get_message()))["error"]
             raise DeploymentError(error["message"])
 

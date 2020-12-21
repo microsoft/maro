@@ -9,8 +9,16 @@ start_tick = 0
 durations = 100
 max_ep = 2
 
+opts = dict()
+"""
+enable-dump-snapshot parameter means business_engine needs dump snapshot data before reset.
+If you leave value to empty string, it will dump to current folder.
+For getting dump data, please uncomment below line and specify dump destination folder.
+"""
+# opts['enable-dump-snapshot'] = ''
+
 env = Env(scenario="citi_bike", topology="toy.4s_4t", start_tick=start_tick,
-          durations=durations, snapshot_resolution=60)
+          durations=durations, snapshot_resolution=60, options=opts)
 
 print(env.summary)
 

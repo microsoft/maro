@@ -1,13 +1,7 @@
-mode: k8s
-name: MyJobName # str: name of the training schedule
+mode: k8s/aks
+name: MyJobName # str: name of the training job
 
-job_names: # list: names of the training jobs
-  - MyJobName2
-  - MyJobName3
-  - MyJobName4
-  - MyJobName5
-
-components: # Component config
+components: # component config
   actor:
     image: MyImageName # str: name of the training image
     resources:

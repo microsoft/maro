@@ -6,7 +6,7 @@ from typing import Dict
 
 import numpy as np
 
-from maro.simulator.scenarios.helpers import MatrixAttributeAccessor
+from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
 from .common import DecisionType, ExtraCostMode
 from .station import Station
