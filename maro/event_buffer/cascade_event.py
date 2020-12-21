@@ -21,7 +21,7 @@ class CascadeEvent(AtomEvent):
         self._immediate_event_head = AtomEvent(None, None, None, None)
 
         # Pointer to last immediate event, used for speed up immediate event extract.
-        self._last_immediate_event = self._immediate_event_head
+        self._last_immediate_event = None
         self._immediate_event_count = 0
 
     def add_immediate_event(self, event, is_head: bool = False) -> bool:
@@ -48,10 +48,17 @@ class CascadeEvent(AtomEvent):
             event._next_event_ = self._immediate_event_head._next_event_
 
             self._immediate_event_head._next_event_ = event
-        else:
-            self._last_immediate_event._next_event_ = event
 
-            self._last_immediate_event = event
+            # Point to new event if not last one, or keep last one, as we are insert to head.
+            if self._last_immediate_event is None:
+                self._last_immediate_event = event
+        else:
+            if self._last_immediate_event is None:
+                self._last_immediate_event = event
+                self._immediate_event_head._next_event_ = event
+            else:
+                self._last_immediate_event._next_event_ = event
+                self._last_immediate_event = event
 
         self._immediate_event_count += 1
 

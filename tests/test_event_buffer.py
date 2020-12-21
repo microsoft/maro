@@ -130,7 +130,7 @@ class TestEventBuffer(unittest.TestCase):
         sub1 = self.eb.gen_decision_event(1, (2, 2, 2))
         sub2 = self.eb.gen_decision_event(1, (3, 3, 3))
 
-        evt1.add_immediate_event(sub1)
+        evt1.add_immediate_event(sub1, is_head=True)
         evt1.add_immediate_event(sub2)
 
         self.eb.insert_event(evt1)
