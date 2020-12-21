@@ -12,7 +12,7 @@ class GlobalParams:
 
     DEFAULT_REDIS_PORT = 6379
     DEFAULT_FLUENTD_PORT = 24224
-    DEFAULT_SSH_PORT = 51811
+    DEFAULT_SSH_PORT = 22
 
 
 class GlobalPaths:

@@ -19,4 +19,4 @@ master: # MARO Master config
 
 connection: # [Optional] connection config
   ssh: # [Optional]
-    port: 51811  # [Optional] int: port of the ssh server, default as 51811
+    port: 22  # [Optional] int: port of the ssh server, default as 22
