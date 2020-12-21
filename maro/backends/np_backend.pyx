@@ -329,7 +329,7 @@ cdef class NumpyBackend(BackendAbc):
                 # we only reset frame here, without snapshot list
                 data_arr[0][attr_info.name] = 0
 
-    cdef void dump(self, str folder):
+    cdef void dump(self, str folder) except +:
         for node_name, data_arr in self._node_data_dict.items():
             filename = os.path.join(folder, node_name + ".npy")
             descFilename = os.path.join(folder, node_name + ".meta")
