@@ -281,8 +281,7 @@ class GrassExecutor:
             except CliError:
                 remain_retries -= 1
                 logger.debug(
-                    f"Unable to connect to {node_ip_address} with port 22, "
-                    f"remains {remain_retries} retries."
+                    f"Unable to connect to {node_ip_address} with port 22, remains {remain_retries} retries."
                 )
             time.sleep(10)
 
