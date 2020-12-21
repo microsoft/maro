@@ -27,8 +27,6 @@ class GrassOnPremisesExecutor:
         self.cluster_details = load_cluster_details(cluster_name=cluster_name)
         self.grass_executor = GrassExecutor(cluster_details=self.cluster_details)
 
-    # maro grass create
-
     @staticmethod
     def build_cluster_details(create_deployment: dict):
         # Standardize create deployment
@@ -36,8 +34,12 @@ class GrassOnPremisesExecutor:
 
         # Create user account
         logger.info("Now is going to create an user account for maro cluster node.")
+        if "super_user" in create_deployment["user"]:
+            super_user = create_deployment["user"]["super_user"]
+        else:
+            super_user = ""
         GrassOnPremisesExecutor.create_user(
-            "",
+            super_user,
             create_deployment["user"]["admin_username"],
             create_deployment["master"]["public_ip_address"],
             create_deployment["user"]["admin_public_key"])
@@ -63,8 +65,9 @@ class GrassOnPremisesExecutor:
             "root['master']['samba']": {'password': ''.join(secrets.choice(alphabet) for _ in range(20))},
             "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20))
         }
-        with open(os.path.expanduser(
-                f'{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-on-premises-create.yml')) as fr:
+        with open(
+            os.path.expanduser(
+                f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-on-premises-create.yml")) as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -105,7 +108,6 @@ class GrassOnPremisesExecutor:
         cluster_details = self.cluster_details
         cluster_id = cluster_details["id"]
         master_details = cluster_details["master"]
-        # hostname = f"{cluster_id}-master-vm"
         hostname = cluster_details["master"]["public_ip_address"]
         master_details["private_ip_address"] = cluster_details["master"]["public_ip_address"]
         master_details["hostname"] = hostname
@@ -174,12 +176,12 @@ class GrassOnPremisesExecutor:
         self.grass_executor.remote_load_master_agent_service()
 
         # Save details
-        master_details['public_key'] = public_key
+        master_details["public_key"] = public_key
         save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
-        self.grass_executor.remote_set_master_details(master_details=cluster_details['master'])
+        self.grass_executor.remote_set_master_details(master_details=cluster_details["master"])
 
         logger.info_green("Master node is initialized")
 
@@ -205,8 +207,12 @@ class GrassOnPremisesExecutor:
         node_ip_address = node_join_info["public_ip_address"]
         # Create user account
         logger.info(f"Now is going to create an user account for maro working node {node_name}.")
+        if "super_user" in node_join_info:
+            super_user = node_join_info["super_user"]
+        else:
+            super_user = ""
         GrassOnPremisesExecutor.create_user(
-            "",
+            super_user,
             cluster_details["user"]["admin_username"],
             node_ip_address,
             cluster_details["user"]["admin_public_key"])
@@ -228,17 +234,17 @@ class GrassOnPremisesExecutor:
 
         # Save details
         node_details = {
-            'public_ip_address': node_ip_address,
-            'private_ip_address': node_ip_address,
-            'node_size': "",
-            'resource_name': f"{cluster_id}-{node_name}-vm",
-            'hostname': f"{cluster_id}-{node_name}-vm",
-            'resources': {
-                'cpu': cpu,
-                'memory': memory,
-                'gpu': gpu
+            "public_ip_address": node_ip_address,
+            "private_ip_address": node_ip_address,
+            "node_size": "",
+            "resource_name": f"{cluster_id}-{node_name}-vm",
+            "hostname": f"{cluster_id}-{node_name}-vm",
+            "resources": {
+                "cpu": cpu,
+                "memory": memory,
+                "gpu": gpu
             },
-            'containers': {}
+            "containers": {}
         }
         self.grass_executor.remote_set_node_details(
             node_name=node_name,
@@ -335,10 +341,6 @@ class GrassOnPremisesExecutor:
 
     def node_leave_cluster(self, node_name: str):
         cluster_details = self.cluster_details
-        if "grass/on-premises" != cluster_details["mode"]:
-            logger.warning("This sub command only for On-Premises mode.")
-            return
-
         nodes_details = self.grass_executor.remote_get_nodes_details()
         if node_name not in nodes_details:
             logger.warning(f"The specified node cannot be found in cluster {cluster_details['name']}.")
@@ -348,10 +350,10 @@ class GrassOnPremisesExecutor:
         # Update node status
         self.grass_executor.remote_update_node_status(
             node_name=node_name,
-            action='stop'
+            action="stop"
         )
         # Delete node record in redis.
-        self.grass_executor.remote_update_node_status(node_name, 'delete')
+        self.grass_executor.remote_update_node_status(node_name, "delete")
 
         admin_username = cluster_details["user"]["admin_username"]
         node_ip_address = node_details["public_ip_address"]

@@ -8,6 +8,7 @@ import getpass
 import os
 import subprocess
 import sys
+import platform
 
 """
 This file is used for deleting a specified account and related files on node.
@@ -15,13 +16,26 @@ Example:
 sudo python3 delete_user.py {account name}
 """
 
+
+def run_command(command: str) -> str:
+    if platform.system() == "Windows":
+        command = f"powershell.exe -Command \"{command}\""
+
+    completed_process = subprocess.run(
+        command,
+        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    if completed_process.returncode != 0:
+        return completed_process.stderr
+    return completed_process.stdout
+
 def delete_user(user_name: str):
 
     try:
         user_path = "/home/" + user_name
-        os.system("sudo userdel -f " + user_name)
+        run_command("sudo userdel -f " + user_name)
         if os.path.exists(user_path):
-            os.system("sudo rm -rf " + user_path)
+            run_command("sudo rm -rf " + user_path)
     except:
         print("Failed to delete user.")
         sys.exit(1)

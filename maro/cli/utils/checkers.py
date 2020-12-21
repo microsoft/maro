@@ -22,8 +22,7 @@ def check_details_validity(func):
             if cluster_details["mode"] not in {
                 "grass/azure",
                 "k8s/aks",
-                "grass/on-premises",
-                "grass/local"
+                "grass/on-premises"
             }:
                 raise ClusterInternalError(f"Cluster details are broken: Invalid mode '{cluster_details['mode']}'.")
         except FileNotFoundError:

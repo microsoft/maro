@@ -3,11 +3,10 @@
 
 
 import argparse
-import crypt
-import getpass
 import os
 import subprocess
 import sys
+import platform
 
 """
 This file is used for creating a user account with SSH public key settings on node.
@@ -15,10 +14,22 @@ Example:
 sudo python3 create_user.py {account name} "{RSA public key}"
 """
 
+def run_command(command: str) -> str:
+    if platform.system() == "Windows":
+        command = f"powershell.exe -Command \"{command}\""
+
+    completed_process = subprocess.run(
+        command,
+        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    if completed_process.returncode != 0:
+        return completed_process.stderr
+    return completed_process.stdout
+
 def create_user(user_name: str) -> None:
     try:
-        os.system("sudo useradd -m " + user_name)
-        os.system("sudo usermod -G root " + user_name)
+        run_command("sudo useradd -m " + user_name)
+        run_command("sudo usermod -G root " + user_name)
         ssh_path = f"/home/{user_name}/.ssh/"
         if not os.path.exists(ssh_path):
             os.mkdir(ssh_path)
@@ -73,7 +84,7 @@ if __name__ == "__main__":
         # create user
         create_user(args.user_name)
         user_path = "/home/" + args.user_name
-        os.system(f"sudo ssh-keygen -t rsa -N '' -f {user_path}/.ssh/id_rsa")
+        run_command(f"sudo ssh-keygen -t rsa -N '' -f {user_path}/.ssh/id_rsa")
         if not check_sudoers(args.user_name):
             add_sudoers(args.user_name)
     # set pub key

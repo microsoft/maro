@@ -8,7 +8,7 @@ import time
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CliError
+from maro.utils.exception.cli_exception import CliError, ClusterInternalError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -243,25 +243,14 @@ class GrassExecutor:
                 logger.debug(f"Unable to connect to {node_ip_address}, remains {remain_retries} retries.")
                 time.sleep(10)
                 continue
-        raise CliError(f"Unable to connect to {node_ip_address}")
-
-    def remote_interactive_connect(self, node_ip_address: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
-            ""
-        )
-        SubProcess.interactive_run(command)
+        raise ClusterInternalError(f"Unable to connect to {node_ip_address}")
 
     @staticmethod
     # Create a new user account on target OS.
     def remote_add_user_to_node(admin_username: str, maro_user: str, node_ip_address: str, pubkey: str):
         # The admin_user is an already exist account which has privileges to create new account on target OS.
         command = (
-            f"ssh "
-            f"{admin_username}@{node_ip_address} "
-            f"'sudo python3 ~/create_user.py "
-            f"{maro_user} "
-            f"\"{pubkey}\"'"
+            f"ssh {admin_username}@{node_ip_address} 'sudo python3 ~/create_user.py {maro_user} \"{pubkey}\"'"
         )
         _ = SubProcess.run(command)
 
@@ -270,10 +259,7 @@ class GrassExecutor:
     def remote_delete_user_from_node(admin_username: str, delete_user: str, node_ip_address: str):
         # The admin_user is an already exist account which has privileges to create new account on target OS.
         command = (
-            f"ssh "
-            f"{admin_username}@{node_ip_address} "
-            f"'sudo python3 ~/delete_user.py "
-            f"{delete_user}'"
+            f"ssh {admin_username}@{node_ip_address} 'sudo python3 ~/delete_user.py {delete_user}'"
         )
         _ = SubProcess.run(command)
 
