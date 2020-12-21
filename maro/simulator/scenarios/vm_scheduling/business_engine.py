@@ -238,6 +238,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """
         return [0]
 
+    def get_node_mapping(self) -> dict:
+        """dict: Node mapping."""
+        node_mapping = {}
+
+        return node_mapping
+
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
 
