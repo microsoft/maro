@@ -13,7 +13,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=f"ProcessExecutor.{__name__}")
 
 
-def setup(deployment_path: str, **kwargs):
+def create(deployment_path: str, **kwargs):
     current_process_path = os.path.expanduser(LocalPaths.MARO_PROCESS)
     # Create folder
     if not os.path.exists(current_process_path):
@@ -40,7 +40,7 @@ def setup(deployment_path: str, **kwargs):
     # Start agents
     start_agent()
     redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 1)
-    logger.info(f"Agents start.")
+    logger.info("Agents start.")
 
     # Push default setting into Redis
     del setting_info["redis_info"]

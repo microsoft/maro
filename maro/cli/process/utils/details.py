@@ -11,7 +11,7 @@ import redis
 import yaml
 
 from maro.cli.utils.params import LocalPaths, ProcessRedisName
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import ProcessInternalError
 
 
 def load_details(deployment_path: str = None):
@@ -19,7 +19,7 @@ def load_details(deployment_path: str = None):
         with open(deployment_path, "r") as cf:
             details = yaml.safe_load(cf)
     except Exception as e:
-        raise CliException(f"Failure to find job details, cause by {e}")
+        raise ProcessInternalError(f"Failure to find job details, cause by {e}")
 
     return details
 
@@ -29,7 +29,7 @@ def load_setting_info():
         with open(os.path.expanduser(LocalPaths.MARO_PROCESS_SETTING), "r") as rf:
             redis_info = yaml.safe_load(rf)
     except Exception as e:
-        raise CliException(
+        raise ProcessInternalError(
             f"Failure to load setting information, cause by {e}"
             f"Please run maro process setup, before any process commands."
         )

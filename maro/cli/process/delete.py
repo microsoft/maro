@@ -14,7 +14,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=f"ProcessExecutor.{__name__}")
 
 
-def clear(**kwargs):
+def delete(**kwargs):
     setting_info = load_setting_info()
 
     # Build connection
@@ -34,9 +34,9 @@ def clear(**kwargs):
         agent_pid = int(redis_connection.hget(ProcessRedisName.SETTING, "agent_pid"))
         close_by_pid(pid=agent_pid, recursive=True)
         redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 0)
-        logger.info(f"Close agents.")
+        logger.info("Close agents.")
     else:
-        logger.info(f"Agents' status is already closed.")
+        logger.info("Agents' status is already closed.")
 
     # close Redis
     redis_mode = redis_connection.hget(ProcessRedisName.SETTING, "redis_mode").decode()
@@ -48,7 +48,7 @@ def clear(**kwargs):
         close_by_pid(pid=redis_pid, recursive=False)
         logger.info(f"Close Redis server with port {setting_info['redis_info']['port']}")
     else:
-        logger.info(f"MARO do not close Redis server with mode {redis_mode}.")
+        logger.info(f"MARO does not close Redis server with mode {redis_mode}.")
 
     # Rm process environment setting
     os.remove(os.path.expanduser(LocalPaths.MARO_PROCESS_SETTING))

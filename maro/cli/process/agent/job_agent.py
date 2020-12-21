@@ -63,6 +63,7 @@ class JobTrackingAgent(mp.Process):
         self.redis_connection = redis_connection
         self.check_interval = check_interval
         self._shutdown_count = 0
+        self._countdown = self.redis_connection.hget(ProcessRedisName.SETTING, "agent_countdown")
 
     def run(self):
         while True:
@@ -96,7 +97,7 @@ class JobTrackingAgent(mp.Process):
         else:
             self._shutdown_count = 0
 
-        if self._shutdown_count >= 5:
+        if self._shutdown_count >= self._countdown:
             agent_pid = int(self.redis_connection.hget(ProcessRedisName.SETTING, "agent_pid"))
 
             # close agent

@@ -127,11 +127,11 @@ def main():
 def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:
     subparsers = prev_parser.add_subparsers()
 
-    # maro process setup
-    from maro.cli.process.setup import setup
+    # maro process create
+    from maro.cli.process.create import create
     parser_setup = subparsers.add_parser(
-        "setup",
-        help="Setup local process environment.",
+        "create",
+        help="Create local process environment.",
         examples=CliExamples.MARO_PROCESS_SETUP,
         parents=[global_parser]
     )
@@ -140,16 +140,16 @@ def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentPars
         help='Path of the local process setting deployment.',
         nargs='?',
         default=None)
-    parser_setup.set_defaults(func=setup)
+    parser_setup.set_defaults(func=create)
 
-    # maro porcess clear
-    from maro.cli.process.clear import clear
+    # maro process delete
+    from maro.cli.process.delete import delete
     parser_setup = subparsers.add_parser(
-        "clear",
-        help="Clear the local process environment. Including closing agents and maro Redis.",
+        "delete",
+        help="Delete the local process environment. Including closing agents and maro Redis.",
         parents=[global_parser]
     )
-    parser_setup.set_defaults(func=clear)
+    parser_setup.set_defaults(func=delete)
 
     # maro process job
     parser_job = subparsers.add_parser(

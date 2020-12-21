@@ -121,3 +121,10 @@ class CommandError(CliError):
 
     def __str__(self):
         return f"command: {self.cli_command}\n {self.strerror}"
+
+
+class ProcessInternalError(CliError):
+    """ Errors in MARO CLI process mode. """
+
+    def __init__(self, message: str = None):
+        super().__init__(error_code=3999, message=message)
