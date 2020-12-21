@@ -105,4 +105,3 @@ cdef class BackendAbc:
 
     cdef void dump(self, str folder) except +:
         pass
-

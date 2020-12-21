@@ -1,4 +1,4 @@
-mode: grass
+mode: grass/azure
 name: ""
 job_names: []
 allocation: {}

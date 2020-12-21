@@ -1,19 +1,13 @@
-mode: grass
-name: MyScheduleName # str: name of the training schedule
+mode: grass/azure
+name: MyJobName # str: name of the training job
 
 allocation:
   mode: single-metric-balanced # enum: single-metric-balanced / single-metric-compacted
   metric: cpu  # enum: cpu / memory / gpu
 
-job_names: # list: names of the training job
-  - MyJobName2
-  - MyJobName3
-  - MyJobName4
-  - MyJobName5
-
 components: # component config
   actor:
-    image: MyImageName
+    image: MyImageName # str: name of the training image
     resources:
       cpu: 2 # int: cpu requirement (unit: cores)
       memory: 4096m # str: memory requirement (unit: MB)

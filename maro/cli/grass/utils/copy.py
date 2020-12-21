@@ -10,7 +10,7 @@ import uuid
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import FileOperationError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -128,7 +128,7 @@ def copy_and_rename(source_path: str, target_dir: str, new_name: str = None):
     target_dir = os.path.expanduser(target_dir)
 
     if os.path.isdir(source_path):
-        raise CliException("Invalid file path: cannot be a folder")
+        raise FileOperationError(f"Cannot be a folder: '{source_path}'.")
     shutil.copy2(source_path, target_dir)
 
     if new_name is not None:
