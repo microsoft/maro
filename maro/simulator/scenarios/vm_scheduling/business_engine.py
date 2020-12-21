@@ -230,6 +230,14 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             MaroEvents.PENDING_DECISION.name: DecisionPayload.summary_key
         }
 
+    def get_agent_idx_list(self) -> List[int]:
+        """Get a list of agent index.
+
+        Returns:
+            list: List of agent index.
+        """
+        return [0]
+
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
 
