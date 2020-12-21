@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 import os
+import math
 import unittest
 import pandas as pd
 import numpy as np
@@ -507,6 +508,50 @@ class TestFrame(unittest.TestCase):
         self.assertEqual(3, len(states))
         self.assertListEqual([10, 11, 12], list(states))
 
+    def test_list_attribute_with_large_size(self):
+        @node("test")
+        class TestNode(NodeBase):
+            a1 = NodeAttribute("i", 1, is_list=True)
+
+        class TestFrame(FrameBase):
+            test_nodes = FrameNode(TestNode, 2)
+
+            def __init__(self):
+                super().__init__(backend_name="dynamic")
+
+        frame = TestFrame()
+
+        n1a1 = frame.test_nodes[0].a1
+
+        max_size = 200*10000
+
+        for i in range(max_size):
+            n1a1.append(1)
+
+        print(len(n1a1))
+        self.assertEqual(max_size, len(n1a1))
+
+    def test_list_attribute_invalid_index_access(self):
+        @node("test")
+        class TestNode(NodeBase):
+            a1 = NodeAttribute("i", 1, is_list=True)
+
+        class TestFrame(FrameBase):
+            test_nodes = FrameNode(TestNode, 2)
+
+            def __init__(self):
+                super().__init__(backend_name="dynamic")
+
+        frame = TestFrame()
+
+        n1a1 = frame.test_nodes[0].a1
+
+        # default list attribute's size is 0, so index accessing will out of range
+        with self.assertRaises(RuntimeError) as ctx:
+            a = n1a1[0]
+
+        with self.assertRaises(RuntimeError) as ctx:
+            n1a1.remove(0)
 
     def test_frame_dump(self):
         frame = build_frame(enable_snapshot=True, total_snapshot=10, backend_name="dynamic")
@@ -540,6 +585,9 @@ class TestFrame(unittest.TestCase):
         frame.take_snapshot(1)
 
         frame.snapshots.dump(".")
+
+        self.assertTrue(os.path.exists("snapshots_dynamic.csv"))
+        self.assertTrue(os.path.exists("snapshots_static.csv"))
 
 if __name__ == "__main__":
     unittest.main()
