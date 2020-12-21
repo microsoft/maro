@@ -60,5 +60,6 @@ jobs:
       - name: Run test
         env:
           test_with_cli: True
+          training_only: True
         run: |
           python -m unittest tests/cli/grass/test_grass.py

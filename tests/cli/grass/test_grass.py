@@ -141,6 +141,7 @@ class TestGrass(unittest.TestCase):
         for _, node_details in nodes_details.items():
             self.assertEqual("Running", node_details["state"])
 
+    @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test12_image1(self) -> None:
         """Push image alpine:latest to the cluster.
@@ -162,6 +163,7 @@ class TestGrass(unittest.TestCase):
             self.assertEqual("Running", node_details["state"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
+    @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test13_node2(self) -> None:
         """Scale node spec Standard_D4s_v3 to 2.
@@ -183,6 +185,7 @@ class TestGrass(unittest.TestCase):
             self.assertEqual("Running", node_details["state"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
+    @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test14_stop(self) -> None:
         """Stop one Standard_D4s_v3.
@@ -210,6 +213,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(running_count, 1)
         self.assertEqual(stopped_count, 1)
 
+    @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test15_image2(self) -> None:
         """Push image ubuntu:latest to the cluster.
@@ -242,6 +246,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(running_count, 1)
         self.assertEqual(stopped_count, 1)
 
+    @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test16_start(self) -> None:
         """Start one Standard_D4s_v3.
@@ -267,6 +272,7 @@ class TestGrass(unittest.TestCase):
                 self.assertIn("ubuntu_latest", node_details["image_files"])
         self.assertEqual(running_count, 2)
 
+    @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test17_data(self) -> None:
         # Create tmp files
