@@ -22,7 +22,6 @@ class CpuReader:
 
         self._init_data_path = self._data_path
 
-
     def _switch_to_next_file_name(self, data_path) -> str:
         """Switch to next file name."""
         file_name = data_path.split("-")
