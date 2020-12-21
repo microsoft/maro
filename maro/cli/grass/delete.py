@@ -14,6 +14,7 @@ from maro.utils.exception.cli_exception import BadRequestError
 @lock
 def delete(cluster_name: str, **kwargs):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
+
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.delete()

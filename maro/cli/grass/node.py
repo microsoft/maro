@@ -79,7 +79,9 @@ def node_leave(cluster_name: str, node_name: str, **kwargs):
 
     cluster_details = load_cluster_details(cluster_name)
     if cluster_details["mode"] != "grass/on-premises":
-        raise InvalidDeploymentTemplateError("Node join cluster interrupted: Invalid mode.")
+        raise BadRequestError("Node join cluster interrupted: Invalid mode.")
 
     executor = GrassOnPremisesExecutor(cluster_name)
     executor.node_leave_cluster(node_name)
+
+    

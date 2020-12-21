@@ -7,6 +7,8 @@ import os
 
 from maro.event_buffer import EventBuffer, EventState
 from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, Events
+from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
+from tests.utils import next_step
 from .mock_data_container import MockDataContainer
 
 from tests.utils import next_step
@@ -39,7 +41,7 @@ def mock_cim_init_func(self, event_buffer, topology_path, max_tick):
     self._vessels = []
     self._ports = []
     self._frame = None
-
+    self._port_orders_exporter = PortOrderExporter(False)
     self._init_frame()
 
     self._snapshots = self._frame.snapshots

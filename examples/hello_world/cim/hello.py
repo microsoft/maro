@@ -7,9 +7,17 @@ from maro.simulator.scenarios.cim.common import Action
 start_tick = 0
 durations = 100  # 100 days
 
+opts = dict()
+"""
+enable-dump-snapshot parameter means business_engine needs dump snapshot data before reset.
+If you leave value to empty string, it will dump to current folder.
+For getting dump data, please uncomment below line and specify dump destination folder.
+"""
+# opts['enable-dump-snapshot'] = ''
+
 # Initialize an environment with a specific scenario, related topology.
 env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=start_tick, durations=durations)
+          start_tick=start_tick, durations=durations, options=opts)
 
 
 # Query environment summary, which includes business instances, intra-instance attributes, etc.
