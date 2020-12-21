@@ -83,5 +83,3 @@ def node_leave(cluster_name: str, node_name: str, **kwargs):
 
     executor = GrassOnPremisesExecutor(cluster_name)
     executor.node_leave_cluster(node_name)
-
-    
