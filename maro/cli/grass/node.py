@@ -5,14 +5,11 @@
 import yaml
 
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import \
-    GrassOnPremisesExecutor
+from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.cli.utils.checkers import check_details_validity
 from maro.cli.utils.details import load_cluster_details
 from maro.cli.utils.lock import lock
-from maro.utils.exception.cli_exception import (BadRequestError,
-                                                FileOperationError,
-                                                InvalidDeploymentTemplateError)
+from maro.utils.exception.cli_exception import (BadRequestError, FileOperationError, InvalidDeploymentTemplateError)
 
 
 @check_details_validity

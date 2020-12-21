@@ -49,6 +49,7 @@ def set_master_details(redis, cluster_name: str, master_details: dict) -> None:
         json.dumps(master_details)
     )
 
+
 def del_master_details(redis, cluster_name: str) -> None:
     redis.delete(f"{cluster_name}:master_details")
 
