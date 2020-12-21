@@ -6,7 +6,8 @@
 
 from cpython cimport bool
 
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport (BackendAbc, SnapshotListAbc, AttributeType,
+    INT, USHORT, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX)
 
 
 cdef class SnapshotList:
@@ -79,7 +80,10 @@ cdef class FrameBase:
             yournodes = FrameNode(YourNode, 12)
 
             def __init__(self, enable_snapshot:bool=True, snapshot_number: int = 10):
-                super().__init__(self, enable_snapshot, total_snapshots=snapshot_number)
+                super().__init__(self, enable_snapshot, total_snapshots=snapshot_number, backend_name="static or dynamic")
+
+    Currently we support 2 kinds of backend implementation for frame: static and dynamic. Dynamic backend support list attribute
+    which works list a normal python list, but only can hold decleared data type.
 
     The snapshot list is used to hold snapshot of current frame at specified point (tick or frame index), it can be
     configured that how many snapshots should be kept in memory, latest snapshot will over-write oldest one if reach
@@ -143,7 +147,7 @@ cdef class FrameBase:
 
     cpdef void reset(self) except *
 
-    cpdef void take_snapshot(self, UINT tick) except *
+    cpdef void take_snapshot(self, INT tick) except *
 
     cpdef void enable_history(self, str path) except *
 
@@ -153,9 +157,7 @@ cdef class FrameBase:
 
     cpdef void resume_node(self, NodeBase node) except +
 
-    cpdef void set_attribute_slot(self, str node_name, str attr_name, SLOT_INDEX slots) except +
-
-    cdef void _setup_backend(self, bool enable_snapshot, UINT total_snapshot, dict options) except *
+    cdef void _setup_backend(self, bool enable_snapshot, USHORT total_snapshot, dict options) except *
 
 
 cdef class FrameNode:
@@ -222,7 +224,8 @@ cdef class NodeBase:
         def gen_my_node_definition(float_attr_number: int):
             @node("my nodes")
             class MyNode(NodeBase):
-                my_int_attr = NodeAttribute("i")
+                # Default attribute type is AttributeType.Int, slot number is 1, so we can leave it empty here
+                my_int_attr = NodeAttribute()
                 my_float_array_attr = NodeAttribute("f", float_attr_number)
 
             return MyNode
@@ -272,13 +275,13 @@ cdef class NodeBase:
         NODE_INDEX _index
 
         # Node id, used to access backend
-        IDENTIFIER _id
+        NODE_TYPE _type
 
         BackendAbc _backend
 
         bool _is_deleted
 
-        # Attriubtes: name -> id.
+        # Attriubtes: name -> type.
         dict _attributes
 
         # Enable dynamic attributes
@@ -286,27 +289,36 @@ cdef class NodeBase:
 
     # Set up the node for using with frame, and index
     # this is called by Frame after the instance is initialized
-    cdef void setup(self, BackendAbc backend, NODE_INDEX index, IDENTIFIER id, dict attr_name_id_dict) except *
+    cdef void setup(self, BackendAbc backend, NODE_INDEX index, NODE_TYPE type, dict attr_name_id_dict) except *
 
     # Internal functions, will be called after Frame's setup, used to bind attributes to instance
     cdef void _bind_attributes(self) except *
-
-    # Internal update, used to support dynamic node
-    cdef void _update(self) except *
 
 
 cdef class NodeAttribute:
     """Helper class used to declare an attribute in node that inherit from NodeBase.
 
-    Currently we only support these data types: 'i', 'i2', 'i4', 'i8', 'f' and 'd'.
-
     Args:
-        dtype(str): Type of this attribute, it support following data types.
-        slots(int): If this number greater than 1, then it will be treat as an array, this will be the array size.
+        dtype(str): Type of this attribute, use type from maro.backends.backend.AttributeType to specify valid type,
+            default is AttributeType.Int if not provided, or invalid type provided.
+        slots(int): If this number greater than 1, then it will be treat as an array, this will be the array size,
+            this value cannot be changed after definition, max value is 2^32.
+        is_const(bool): Is this is a const attribute, True means this attribute will not be copied into snapshot list,
+            share between current frame and snapshots. Default is False.
+        is_list(bool): Is this is a list attribute, True means this attribute works like a list (max size is 2^32),
+            without a fixed size like normal attribute. NOTE: a list attribute cannot be const, it will cause exception,
+            and its default slot number will be 0, but can be resized.
+            Default is False.
     """
     cdef:
-        # data type of attribute, same as numpy string dtype
-        public str _dtype
+        # Data type of attribute, same as numpy string dtype.
+        public bytes _dtype
 
-        # array size of tis attribute
+        # Array size of tis attribute.
         public SLOT_INDEX _slot_number
+
+        # Is this is a const attribute?
+        public bool _is_const
+
+        # Is this is a list attribute?
+        public bool _is_list

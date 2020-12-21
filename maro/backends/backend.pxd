@@ -15,26 +15,39 @@ ctypedef unsigned int UINT
 ctypedef unsigned long long ULONG
 ctypedef unsigned short USHORT
 
-ctypedef int8_t ATTR_BYTE
-ctypedef int16_t ATTR_SHORT
+ctypedef char ATTR_CHAR
+ctypedef unsigned char ATTR_UCHAR
+ctypedef short ATTR_SHORT
+ctypedef USHORT ATTR_USHORT
 ctypedef int32_t ATTR_INT
+ctypedef uint32_t ATTR_UINT
 ctypedef int64_t ATTR_LONG
+ctypedef uint64_t ATTR_ULONG
 ctypedef float ATTR_FLOAT
 ctypedef double ATTR_DOUBLE
 
+# Type for snapshot querying.
+ctypedef float QUERY_FLOAT
 
-# ID of node and attribute
-ctypedef unsigned short IDENTIFIER
+# TYPE of node and attribute
+ctypedef unsigned short NODE_TYPE
+ctypedef uint32_t ATTR_TYPE
+
 # Index type of node
-ctypedef unsigned short NODE_INDEX
+ctypedef ATTR_TYPE NODE_INDEX
+
 # Index type of slot
-ctypedef unsigned short SLOT_INDEX
+ctypedef ATTR_TYPE SLOT_INDEX
+
+
+cdef class AttributeType:
+    pass
 
 
 # Base of all snapshot accessing implementation
 cdef class SnapshotListAbc:
     # Query states from snapshot list
-    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list) except +
+    cdef query(self, NODE_TYPE node_type, list ticks, list node_index_list, list attr_list) except +
 
     # Record current backend state into snapshot list
     cdef void take_snapshot(self, INT tick) except +
@@ -43,10 +56,7 @@ cdef class SnapshotListAbc:
     cdef list get_frame_index_list(self) except +
 
     # Get number of specified node
-    cdef USHORT get_node_number(self, IDENTIFIER node_id) except +
-
-    # Get number of slots for specified attribute
-    cdef USHORT get_slots_number(self, IDENTIFIER attr_id) except +
+    cdef NODE_INDEX get_node_number(self, NODE_TYPE node_type) except +
 
     # Enable history, history will dump backend into files each time take_snapshot called
     cdef void enable_history(self, str history_folder) except +
@@ -63,50 +73,62 @@ cdef class BackendAbc:
     cdef:
         public SnapshotListAbc snapshots
 
-    # Is current backend support dynamic features
+    # Is current backend support dynamic features.
     cdef bool is_support_dynamic_features(self)
 
-    # Add a new node to current backend, with specified number (>=0)
-    # Returns an ID of this new node in current backend
-    cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +
+    # Add a new node to current backend, with specified number (>=0).
+    # Returns an ID of this new node in current backend.
+    cdef NODE_TYPE add_node(self, str name, NODE_INDEX number) except +
 
-    # Add a new attribute to specified node (id)
-    # Returns an ID of this new attribute for current node (id)
-    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +
+    # Add a new attribute to specified node (id).
+    # Returns an ID of this new attribute for current node (id).
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, bytes dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +
 
     # Set value of specified attribute slot.
     # NOTE: since we already know which node current attribute belongs to, so we just need to specify attribute id
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except +
+    cdef void set_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, object value) except +
 
-    # Get value of specified attribute slot
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +
+    # Get value of specified attribute slot.
+    cdef object get_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) except +
 
-    # Set values of specified slots
-    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except +
+    # Set values of specified slots.
+    cdef void set_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX[:] slot_index, list value) except +
 
-    # Get values of specified slots
-    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices) except +
+    # Get values of specified slots.
+    cdef list get_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX[:] slot_indices) except +
 
-    # Get node definition of backend
+    # Get node definition of backend.
     cdef dict get_node_info(self) except +
 
-    # Setup backend with options
+    # Setup backend with options.
     cdef void setup(self, bool enable_snapshot, USHORT total_snapshot, dict options) except +
 
-    # Reset internal states
+    # Reset internal states.
     cdef void reset(self) except +
 
-    # Append specified number of nodes
-    cdef void append_node(self, IDENTIFIER node_id, NODE_INDEX number) except +
+    # Append specified number of nodes.
+    cdef void append_node(self, NODE_TYPE node_type, NODE_INDEX number) except +
 
-    # Delete a node by index
-    cdef void delete_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +
+    # Delete a node by index.
+    cdef void delete_node(self, NODE_TYPE node_type, NODE_INDEX node_index) except +
 
-    # Resume node that been deleted
-    cdef void resume_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +
+    # Resume node that been deleted.
+    cdef void resume_node(self, NODE_TYPE node_type, NODE_INDEX node_index) except +
 
-    # Set slot number of specified attribute
-    cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +
+    # Append value to specified list attribute.
+    cdef void append_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +
+
+    # Resize specified list attribute.
+    cdef void resize_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX new_size) except +
+
+    # Clear specified list attribute.
+    cdef void clear_list(self, NODE_INDEX index, ATTR_TYPE attr_type) except +
+
+    # Remove a slot from list attribute.
+    cdef void remove_from_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) except +
+
+    # Insert a slot to list attribute.
+    cdef void insert_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, object value) except +
 
     # Dump Snapshot into target folder (without filename).
     cdef void dump(self, str folder) except +

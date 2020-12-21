@@ -97,10 +97,12 @@ class TestEnv(unittest.TestCase):
             val_dtype = attributes['val']["type"]
 
             self.assertEqual(
-                "i", val_dtype, msg=f"dummy's val attribute should be int type, got {val_dtype}")
+                "int", val_dtype, msg=f"dummy's val attribute should be int type, got {val_dtype}")
 
             # val should have only one slot (default)
             val_slots = attributes['val']["slots"]
+
+            print(val_slots)
 
             self.assertEqual(
                 1, val_slots, msg=f"dummy's val attribute should be int type, got {val_slots}")
@@ -127,7 +129,7 @@ class TestEnv(unittest.TestCase):
             # after reset, it should 0
             vals_after_reset = dummies_ss[env.frame_index::"val"]
 
-            if backend_name == "raw":
+            if backend_name == "dynamic":
                 self.assertTrue(np.isnan(vals_after_reset).all())
             else:
                 self.assertListEqual(list(vals_after_reset.flatten()), [

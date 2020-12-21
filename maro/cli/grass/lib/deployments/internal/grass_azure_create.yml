@@ -1,0 +1,21 @@
+name: ""
+mode: ""
+
+cloud:
+  subscription: ""
+  resource_group: ""
+  location: ""
+
+user:
+  admin_username: ""
+  admin_public_key: ""
+
+master:
+  node_size: ""
+  redis:
+    port: ""
+  fluentd:
+    port: ""
+  samba:
+    password: ""
+

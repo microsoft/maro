@@ -32,6 +32,7 @@ jobs:
 
     - name: Compile cython files
       run: |
+        python ./scripts/code_gen.py
         cython ./maro/backends/backend.pyx ./maro/backends/np_backend.pyx ./maro/backends/raw_backend.pyx ./maro/backends/frame.pyx ./maro/data_lib/binary/binaryreader.pyx ./maro/data_lib/binary/binaryconverter.pyx --cplus -3 -E NODES_MEMORY_LAYOUT=ONE_BLOCK -X embedsignature=True
 
     - name: Build maro inplace

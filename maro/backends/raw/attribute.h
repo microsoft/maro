@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#ifndef _MARO_BACKEND_RAW_ATTRIBUTE
-#define _MARO_BACKEND_RAW_ATTRIBUTE
+#ifndef _MARO_BACKEND_RAW_ATTRIBUTE_
+#define _MARO_BACKEND_RAW_ATTRIBUTE_
+
+#include <string>
+#include <math.h>
 
 #include "common.h"
 
@@ -14,74 +17,92 @@ namespace maro
   {
     namespace raw
     {
+      // Length of the attribute data.
+      const int ATTRIBUTE_DATA_LENGTH = 8;
+
       /// <summary>
-      /// Invalid casting
+      /// Trait struct to support getter template.
       /// </summary>
-      class InvalidOperation : public exception
+      template<typename T>
+      struct Attribute_Trait
       {
-        public:
-          const char* what() const noexcept override;
+        typedef T type;
       };
 
       /// <summary>
-      /// Attribute for a node, used to hold all supported data type
+      /// Attribute for a node, used to hold all supported data type.
       /// </summary>
       class Attribute
       {
-        // data
-        union
-        {
-          ATTR_BYTE _byte;
-          ATTR_SHORT _short;
-          ATTR_INT _int;
-          ATTR_LONG _long;
-          ATTR_FLOAT _float;
-          ATTR_DOUBLE _double;
+        // Chars to hold all data we supported.
+        char _data[ATTRIBUTE_DATA_LENGTH];
 
-          char _data[8];
-        } _data alignas(8){0};
-
-        // data type enum, default is int
-        AttrDataType _type{AttrDataType::ABYTE};
+        // Type of current attribute, defalut is char
+        AttrDataType _type = AttrDataType::ACHAR;
 
       public:
-        // constructors
-        Attribute() noexcept = default;
-        Attribute(ATTR_BYTE byte_val) noexcept;
-        Attribute(ATTR_SHORT short_val) noexcept;
-        Attribute(ATTR_INT int_val) noexcept;
-        Attribute(ATTR_LONG long_val) noexcept;
-        Attribute(ATTR_FLOAT float_val) noexcept;
-        Attribute(ATTR_DOUBLE double_val) noexcept;
+        // Slot number of list attribute, it will alway be 0 for fixed size attribute.
+        SLOT_INDEX slot_number = 0;
 
-        // getters
-        ATTR_BYTE get_byte();
-        ATTR_SHORT get_short();
-        ATTR_INT get_int();
-        ATTR_LONG get_long();
-        ATTR_FLOAT get_float();
-        ATTR_DOUBLE get_double();
-
-        // setters
-        // NOTE: these setters will change inernal data type
-        void operator=(const ATTR_BYTE val);
-        void operator=(const ATTR_SHORT val);
-        void operator=(const ATTR_INT val);
-        void operator=(const ATTR_LONG val);
-        void operator=(const ATTR_FLOAT val);
-        void operator=(const ATTR_DOUBLE val);
-        void operator=(const Attribute &attr);
+        // Constructors
+        Attribute() noexcept;
+        Attribute(ATTR_CHAR value) noexcept;
+        Attribute(ATTR_UCHAR value) noexcept;
+        Attribute(ATTR_SHORT value) noexcept;
+        Attribute(ATTR_USHORT value) noexcept;
+        Attribute(ATTR_INT value) noexcept;
+        Attribute(ATTR_UINT value) noexcept;
+        Attribute(ATTR_LONG value) noexcept;
+        Attribute(ATTR_ULONG value) noexcept;
+        Attribute(ATTR_FLOAT value) noexcept;
+        Attribute(ATTR_DOUBLE value) noexcept;
 
         /// <summary>
-        /// Used to cast current data to float, for quering result
+        /// Get type of current attribute.
         /// </summary>
-        operator ATTR_FLOAT();
+        AttrDataType get_type() const noexcept;
+
+        /// <summary>
+        /// Get value of current attribute.
+        /// </summary>
+        template<typename T>
+        typename Attribute_Trait<T>::type get_value() const noexcept;
+
+        /// <summary>
+        /// Cast current value into float, for snapshot querying.
+        /// </summary>
+        operator QUERY_FLOAT() const;
+
+        // Assignment, copy from another attribute (deep copy).
+        Attribute& operator=(const Attribute& attr) noexcept;
+
+        // Setters.
+        // NOTE: setters will change its type.
+        Attribute& operator=(ATTR_CHAR value) noexcept;
+        Attribute& operator=(ATTR_UCHAR value) noexcept;
+        Attribute& operator=(ATTR_SHORT value) noexcept;
+        Attribute& operator=(ATTR_USHORT value) noexcept;
+        Attribute& operator=(ATTR_INT value) noexcept;
+        Attribute& operator=(ATTR_UINT value) noexcept;
+        Attribute& operator=(ATTR_LONG value) noexcept;
+        Attribute& operator=(ATTR_ULONG value) noexcept;
+        Attribute& operator=(ATTR_FLOAT value) noexcept;
+        Attribute& operator=(ATTR_DOUBLE value) noexcept;
 
         /// <summary>
         /// Is current value is nan, for float type only.
         /// </summary>
         /// <returns>True if value is nan, or false.</returns>
-        bool is_nan();
+        bool is_nan() const noexcept;
+      };
+
+
+      /// <summary>
+      /// Invalid casting
+      /// </summary>
+      struct AttributeInvalidDataTypeError : public exception
+      {
+        const char* what() const noexcept override;
       };
     } // namespace raw
   }   // namespace backends

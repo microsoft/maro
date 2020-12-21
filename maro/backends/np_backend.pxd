@@ -9,7 +9,7 @@ cimport numpy as np
 cimport cython
 
 from cpython cimport bool
-from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, IDENTIFIER, NODE_INDEX, SLOT_INDEX
+from maro.backends.backend cimport BackendAbc, SnapshotListAbc, UINT, ULONG, NODE_TYPE, ATTR_TYPE, NODE_INDEX, SLOT_INDEX
 
 
 cdef class NumpyBackend(BackendAbc):
@@ -64,7 +64,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
     cdef:
         NumpyBackend _backend
 
-        dict _node_name2id_dict
+        dict _node_name2type_dict
 
         # frame_index -> index mapping
         dict _tick2index_dict

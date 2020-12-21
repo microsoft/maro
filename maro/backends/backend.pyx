@@ -4,24 +4,33 @@
 #cython: language_level=3
 #distutils: language = c++
 
+from enum import Enum
 from cpython cimport bool
 
+cdef class AttributeType:
+    Byte = b"byte"
+    UByte = b"ubyte"
+    Short = b"short"
+    UShort = b"ushort"
+    Int = b"int"
+    UInt = b"uint"
+    Long = b"long"
+    ULong = b"ulong"
+    Float = b"float"
+    Double = b"double"
 
 cdef int raise_get_attr_error() except +:
     raise Exception("Bad parameters to get attribute value.")
 
 
 cdef class SnapshotListAbc:
-    cdef query(self, IDENTIFIER node_id, list ticks, list node_index_list, list attr_list) except +:
+    cdef query(self, NODE_TYPE node_type, list ticks, list node_index_list, list attr_list) except +:
         pass
 
     cdef void take_snapshot(self, INT tick) except +:
         pass
 
-    cdef USHORT get_node_number(self, IDENTIFIER node_id) except +:
-        return 0
-
-    cdef USHORT get_slots_number(self, IDENTIFIER attr_id) except +:
+    cdef NODE_INDEX get_node_number(self, NODE_TYPE node_type) except +:
         return 0
 
     cdef void enable_history(self, str history_folder) except +:
@@ -41,22 +50,22 @@ cdef class BackendAbc:
     cdef bool is_support_dynamic_features(self):
         return False
 
-    cdef IDENTIFIER add_node(self, str name, NODE_INDEX number) except +:
+    cdef NODE_TYPE add_node(self, str name, NODE_INDEX number) except +:
         pass
 
-    cdef IDENTIFIER add_attr(self, IDENTIFIER node_id, str attr_name, str dtype, SLOT_INDEX slot_num) except +:
+    cdef ATTR_TYPE add_attr(self, NODE_TYPE node_type, str attr_name, bytes dtype, SLOT_INDEX slot_num, bool is_const, bool is_list) except +:
         pass
 
-    cdef void set_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index, object value) except +:
+    cdef void set_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index, object value) except +:
         pass
 
-    cdef object get_attr_value(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index) except +:
+    cdef object get_attr_value(self, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX slot_index) except +:
         pass
 
-    cdef void set_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_index, list value) except +:
+    cdef void set_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX[:] slot_index, list value) except +:
         pass
 
-    cdef list get_attr_values(self, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX[:] slot_indices) except +:
+    cdef list get_attr_values(self, NODE_INDEX node_index, ATTR_TYPE attr_id, SLOT_INDEX[:] slot_indices) except +:
         pass
 
     cdef void reset(self) except +:
@@ -68,18 +77,31 @@ cdef class BackendAbc:
     cdef dict get_node_info(self) except +:
         return {}
 
-    cdef void append_node(self, IDENTIFIER node_id, NODE_INDEX number) except +:
+    cdef void append_node(self, NODE_TYPE node_type, NODE_INDEX number) except +:
         pass
 
-    cdef void delete_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +:
+    cdef void delete_node(self, NODE_TYPE node_type, NODE_INDEX node_index) except +:
         pass
 
-    cdef void resume_node(self, IDENTIFIER node_id, NODE_INDEX node_index) except +:
+    cdef void resume_node(self, NODE_TYPE node_type, NODE_INDEX node_index) except +:
         pass
 
-    cdef void set_attribute_slot(self, IDENTIFIER attr_id, SLOT_INDEX slots) except +:
+    cdef void append_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, object value) except +:
+        pass
+
+    # Resize specified list attribute.
+    cdef void resize_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX new_size) except +:
+        pass
+
+    # Clear specified list attribute.
+    cdef void clear_list(self, NODE_INDEX index, ATTR_TYPE attr_type) except +:
+        pass
+
+    cdef void remove_from_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) except +:
+        pass
+
+    cdef void insert_to_list(self, NODE_INDEX index, ATTR_TYPE attr_type, SLOT_INDEX slot_index, object value) except +:
         pass
 
     cdef void dump(self, str folder) except +:
         pass
-

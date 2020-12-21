@@ -1,12 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#ifndef _MARO_BACKENDS_RAW_COMMON
-#define _MARO_BACKENDS_RAW_COMMON
+#ifndef _MARO_BACKEND_RAW_COMMON_
+#define _MARO_BACKEND_RAW_COMMON_
 
 #include <cstdint>
-#include <limits>
-#include <iostream>
+
+using namespace std;
 
 namespace maro
 {
@@ -14,46 +14,54 @@ namespace maro
   {
     namespace raw
     {
-      // Real data type of attributes.
-      using ATTR_BYTE = int8_t;
-      using ATTR_SHORT = int16_t;
+      using UCHAR = unsigned char;
+      using USHORT = unsigned short;
+      using UINT = uint32_t;
+      using LONG = long long;
+      using ULONG = unsigned long long;
+
+      using NODE_TYPE = unsigned short;
+      using ATTR_TYPE = uint32_t;
+
+      const size_t MAX_NODE_TYPE = USHRT_MAX;
+      const size_t MAX_ATTR_TYPE = USHRT_MAX;
+      const size_t MAX_SLOT_NUMBER = UINT32_MAX;
+
+      using NODE_INDEX = uint32_t;
+      using SLOT_INDEX = uint32_t;
+      using QUERY_FLOAT = float;
+
+      using ATTR_CHAR = char;
+      using ATTR_UCHAR = unsigned char;
+      using ATTR_SHORT = short;
+      using ATTR_USHORT = unsigned short;
       using ATTR_INT = int32_t;
+      using ATTR_UINT = uint32_t;
       using ATTR_LONG = int64_t;
+      using ATTR_ULONG = uint64_t;
       using ATTR_FLOAT = float;
       using ATTR_DOUBLE = double;
-      using QUERING_FLOAT = float;
 
-      // NOTE: this should sync with maro/backends/backend.pxd
-      // Common definitions.
-      using INT = int;
-      using USHORT = unsigned short;
-      using UINT = unsigned int;
-      using ULONG = unsigned long long;
-      using LONG = long long;
-      using SHORT = short;
-
-      using IDENTIFIER = unsigned short;
-      using NODE_INDEX = unsigned short; // max 65535
-      using SLOT_INDEX = unsigned short;
-
-      // max type of node/attribute we can have in one backend instance
-      const IDENTIFIER MAX_IDENTIFIERS = USHRT_MAX;
-      const USHORT MAX_SNAPSHOTS = USHRT_MAX;
 
       /// <summary>
-      /// Supported data type for attributes.
+      /// Attribute data type.
       /// </summary>
       enum class AttrDataType : char
       {
-        ABYTE,
+        ACHAR,
+        AUCHAR,
         ASHORT,
+        AUSHORT,
         AINT,
+        AUINT,
         ALONG,
+        AULONG,
         AFLOAT,
         ADOUBLE,
+        APOINTER,
       };
-    } // namespace raw
-  }   // namespace backends
-} // namespace maro
+    }
+  }
+}
 
-#endif
+#endif // ! _MARO_BACKEND_RAW_COMMON_

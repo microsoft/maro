@@ -9,16 +9,11 @@ namespace maro
   {
     namespace raw
     {
-      Bitset::BitsetIterateObject::BitsetIterateObject()
+      inline size_t ceil_to_times(UINT number)
       {
-      }
+        auto bits = sizeof(ULONG) * BITS_PER_BYTE;
 
-      template <typename T>
-      inline UINT ceil_to_times(UINT n)
-      {
-        auto b = sizeof(T) * BITS_PER_BYTE;
-
-        return n % b == 0 ? n / b : (floorl(n / b) + 1);
+        return number % bits == 0 ? number / bits : (floorl(number / bits) + 1);
       }
 
       Bitset::Bitset()
@@ -27,47 +22,62 @@ namespace maro
 
       Bitset::Bitset(UINT size)
       {
-        auto vector_size = ceil_to_times<ULONG>(size);
+        auto vector_size = ceil_to_times(size);
 
         _masks.resize(vector_size);
 
-        _bit_size = vector_size * BITS_PER_MASK;
+        _bit_size = ULONG(vector_size) * BITS_PER_MASK;
       }
 
-      void Bitset::resize(UINT size)
+      Bitset& Bitset::operator=(const Bitset& set) noexcept
       {
-        auto new_size = ceil_to_times<ULONG>(size);
+        if (this != &set)
+        {
+          _masks.resize(set._masks.size());
+
+          memcpy(&_masks[0], &set._masks[0], _masks.size() * sizeof(ULONG));
+
+          _bit_size = set._bit_size;
+        }
+
+        return *this;
+      }
+
+      void Bitset::resize(UINT size) noexcept
+      {
+        auto new_size = ceil_to_times(size);
 
         _masks.resize(new_size);
 
-        _bit_size = new_size * BITS_PER_MASK;
+        _bit_size = ULONG(new_size) * BITS_PER_MASK;
       }
 
-      void Bitset::reset(bool value)
+      void Bitset::reset(bool value) noexcept
       {
         auto v = value ? ULONG_MAX : 0ULL;
 
         memset(&_masks[0], v, _masks.size() * sizeof(ULONG));
       }
 
-      ULONG Bitset::size()
+      ULONG Bitset::size() const noexcept
       {
         return _bit_size;
       }
 
-      UINT Bitset::mask_size()
+      UINT Bitset::mask_size() const noexcept
       {
         return _masks.size();
       }
 
-      bool Bitset::get(ULONG index) const
+      bool Bitset::get(ULONG index) const noexcept
       {
         if (index >= _bit_size)
         {
-          throw IndexOutRange();
+          return false;
         }
 
         ULONG i = floorl(index / BITS_PER_MASK);
+
         auto offset = index % BITS_PER_MASK;
 
         auto mask = _masks[i];
@@ -81,7 +91,7 @@ namespace maro
       {
         if (index >= _bit_size)
         {
-          throw IndexOutRange();
+          throw BitsetIndexOutRangeError();
         }
 
         ULONG i = floorl(index / BITS_PER_MASK);
@@ -89,7 +99,7 @@ namespace maro
 
         if (value)
         {
-          // set to 1
+          // Set to 1.
           _masks[i] |= 0x1ULL << offset;
         }
         else
@@ -98,77 +108,8 @@ namespace maro
         }
       }
 
-      Bitset::BitsetIterateObject &Bitset::empty_iter_obj()
-      {
-        // reset it each time
-        _iter_obj._mask_index = 0ULL;
-        _iter_obj._mask_offset = 0;
 
-        return _iter_obj;
-      }
-
-      bool Bitset::is_end(BitsetIterateObject &iter_obj)
-      {
-        auto index = _iter_obj._mask_index;
-        auto offset = _iter_obj._mask_offset;
-
-        if (offset >= BITS_PER_MASK)
-        {
-          index++;
-          offset = 0;
-        }
-
-        // find next mask that has empty slot (0)
-        if (offset == 0)
-        {
-          while (index < _masks.size())
-          {
-            if (_masks[index] != ULLONG_MAX)
-            {
-              break;
-            }
-
-            index++;
-          }
-        }
-
-        //
-        if (index >= _masks.size())
-        {
-          return true;
-        }
-
-        _iter_obj._mask_index = index;
-        _iter_obj._mask_offset = offset;
-
-        return false;
-      }
-
-      ULONG Bitset::empty_index(BitsetIterateObject &iter_obj)
-      {
-        auto index = _iter_obj._mask_index;
-        auto offset = _iter_obj._mask_offset;
-
-        auto mask = _masks[index];
-
-        for (auto i = offset; i < BITS_PER_MASK; i++)
-        {
-          mask = mask >> i;
-
-          // check if last bit is 0
-          if ((mask & 0x1ULL) == 0)
-          {
-            // pointer offset to next one
-            _iter_obj._mask_offset = offset + 1;
-
-            return index * BITS_PER_MASK + i;
-          }
-        }
-
-        return 0;
-      }
-
-      const char* IndexOutRange::what() const noexcept
+      const char* BitsetIndexOutRangeError::what() const noexcept
       {
         return "Index of bit flag out of range.";
       }

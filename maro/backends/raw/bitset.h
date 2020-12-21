@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#ifndef _MARO_BACKENDS_RAW_BITSET
-#define _MARO_BACKENDS_RAW_BITSET
+#ifndef _MARO_BACKENDS_RAW_BITSET_
+#define _MARO_BACKENDS_RAW_BITSET_
 
 #include <memory>
 #include <vector>
@@ -20,99 +20,73 @@ namespace maro
       const USHORT BITS_PER_BYTE = 8;
       const USHORT BITS_PER_MASK = sizeof(ULONG) * BITS_PER_BYTE;
 
-      /// <summary>
-      /// Query index out of range
-      /// </summary>
-      class IndexOutRange : public exception
-      {
-        public:
-          const char* what() const noexcept override;
-      };
 
+      /// <summary>
+      /// A simple bitset implementation.
+      /// </summary>
       class Bitset
       {
-        /// <summary>
-        /// Iterator to go over bitset for target value
-        /// </summary>
-        class BitsetIterateObject
-        {
-          friend class Bitset;
-
-          ULONG _mask_index{0};
-          // when offset == 0, iterator will check if current mask equals to MAX_ULONG
-          USHORT _mask_offset{0};
-
-        public:
-          BitsetIterateObject();
-        };
-
+        // Masks of current bitset, we use ULL for each item.
         vector<ULONG> _masks;
 
-        //size of bits
-        ULONG _bit_size{0};
-
-        BitsetIterateObject _iter_obj;
-
+        // Size of bits.
+        ULONG _bit_size = 0;
       public:
         Bitset();
         Bitset(UINT size);
 
-        /// <summary>
-        /// Extend mask with spcified size
-        /// </summary>
-        /// <param name="size">Size to extend, it should be 64 times</param>
-        void resize(UINT size);
+        // Copy all from input set.
+        Bitset& operator=(const Bitset& set) noexcept;
 
         /// <summary>
-        /// reset all bit to specified value
+        /// Resize bitset with spcified size.
         /// </summary>
-        /// <param name="">Value to reset</param>
-        void reset(bool value = false);
+        /// <param name="size">Size to extend, it should be 64 times.</param>
+        void resize(UINT size) noexcept;
 
         /// <summary>
-        /// Get value at specified index
+        /// Reset all bit to specified value.
         /// </summary>
-        /// <param name="index">Index of bit</param>
-        /// <returns>True if the bit is 1, or 0</returns>
-        bool get(ULONG index) const;
+        /// <param name="">Value to reset.</param>
+        void reset(bool value = false) noexcept;
 
         /// <summary>
-        /// Set value for specified position
+        /// Get value at specified index.
         /// </summary>
-        /// <param name="index">Index of item</param>
-        /// <param name="value">Value to set</param>
+        /// <param name="index">Index of bit.</param>
+        /// <returns>True if the bit is 1, or false for 0 (not exist).</returns>
+        bool get(ULONG index) const noexcept;
+
+        /// <summary>
+        /// Set value for specified position.
+        /// </summary>
+        /// <param name="index">Index of item.</param>
+        /// <param name="value">Value to set.</param>
         void set(ULONG index, bool value);
 
         /// <summary>
-        /// Current size of items (in bit)
+        /// Current size of items (in bit).
         /// </summary>
-        /// <returns>Number of bits</returns>
-        ULONG size();
+        /// <returns>Number of bits.</returns>
+        ULONG size() const noexcept;
 
         /// <summary>
-        /// Get size of mask items (in ULL)
+        /// Get size of mask items (in ULL).
         /// </summary>
-        /// <returns>Number of mask items</returns>
-        UINT mask_size();
+        /// <returns>Number of mask items.</returns>
+        UINT mask_size() const noexcept;
+      };
 
-        /// <summary>
-        /// Get an iterator to go over all empty slots
-        /// </summary>
-        BitsetIterateObject &empty_iter_obj();
 
-        /// <summary>
-        /// If reach the end
-        /// </summary>
-        /// <param name="iter_obj"></param>
-        bool is_end(BitsetIterateObject &iter_obj);
-
-        /// <summary>
-        /// Get next empty index
-        /// </summary>
-        ULONG empty_index(BitsetIterateObject &iter_obj);
+      /// <summary>
+      /// Query index out of range.
+      /// </summary>
+      struct BitsetIndexOutRangeError : public exception
+      {
+        const char* what() const noexcept override;
       };
     } // namespace raw
   }   // namespace backends
 } // namespace maro
 
-#endif // !_MARO_BACKENDS_RAW_BITSET
+#endif // !_MARO_BACKENDS_RAW_BITSET_

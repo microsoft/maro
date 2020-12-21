@@ -8,6 +8,9 @@ REM delete old .c files
 
 DEL /F .\maro\backends\*.cpp
 
+REM generate code
+python scripts\code_gen.py
+
 REM compile pyx into .c files
 REM use numpy backend, and use a big memory block to hold array
 cython .\maro\backends\backend.pyx ^

@@ -1,17 +1,21 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#ifndef _MARO_BACKENDS_RAW_SNAPSHOTLIST
-#define _MARO_BACKENDS_RAW_SNAPSHOTLIST
+#ifndef _MARO_BACKENDS_RAW_SNAPSHOTLIST_
+#define _MARO_BACKENDS_RAW_SNAPSHOTLIST_
+
 
 #include <map>
 #include <vector>
+#include <string>
 #include <iostream>
-#include <fstream>
 
 #include "common.h"
 #include "attribute.h"
+#include "node.h"
 #include "frame.h"
+
+using namespace std;
 
 namespace maro
 {
@@ -20,252 +24,254 @@ namespace maro
     namespace raw
     {
       /// <summary>
-      /// Tick not supported, like negative tick
+      /// Shape of current querying.
       /// </summary>
-      class InvalidSnapshotTick : public exception
+      struct SnapshotQueryResultShape
       {
-        public:
-          const char* what() const noexcept override;
+        // Number of attribute in result.
+        USHORT attr_number = 0;
+
+        // Number of ticks in result.
+        int tick_number = 0;
+
+        // Number of slot in result, include padding slot.
+        SLOT_INDEX max_slot_number = 0;
+
+        // Number of node in result, include padding nodes.
+        NODE_INDEX max_node_number = 0;
+      };
+
+      /// <summary>
+      /// Snapshot list used to hold snapshot of current frame at specified tick.
+      /// </summary>
+      class SnapshotList
+      {
+        /// <summary>
+        /// Querying parameter from prepare step.
+        /// </summary>
+        struct SnapshotQueryParameters
+        {
+          // Is this query for list?
+          bool is_list = false;
+
+          // For furthur querying, these fields would be changed by prepare function.
+          NODE_TYPE node_type = 0;
+
+          // List of ticks to query.
+          int* ticks = nullptr;
+
+          // Number of ticks in tick list.
+          UINT tick_length = 0;
+
+          // List of node instance index to query.
+          NODE_INDEX* node_indices = nullptr;
+
+          // Node number
+          UINT node_length = 0;
+
+          // Attributes to query.
+          ATTR_TYPE* attributes = nullptr;
+
+          // Number of attribute to query.
+          UINT attr_length = 0;
+
+          // Max slot number in result, for padding.
+          SLOT_INDEX max_slot_number = 0;
+
+          /// <summary>
+          /// Reset current parameter after querying.
+          /// </summary>
+          void reset();
+        };
+
+
+      private:
+        // Tick and its snapshot frame, we will keep a copy of frame.
+        map<int, Frame> _snapshots;
+
+        // Max size of snapshot is memory.
+        USHORT _max_size = 0;
+
+        // Current frame that used to copy.
+        Frame* _cur_frame;
+
+        // Used to hold parameters from prepare function.
+        SnapshotQueryParameters _query_parameters;
+
+        // Is prepare function called?
+        bool _is_prepared = false;
+
+        // Default attribute for invalid attribute, for padding.
+        Attribute _nan_attr = NAN;
+
+        // Query state for list attribute.
+        // NOTE: for list attribute, we only support 1 tick, 1 attribute, 1 node.
+        // and node cannot be null. If ticks not provided, then use latest tick.
+        void query_for_list(QUERY_FLOAT* result);
+
+        // Query for normal attributes.
+        void query_for_normal(QUERY_FLOAT* result);
+
+        // Get attribute from specified tick, this function will not throw exception, it will return a NAN attribute
+        // if invalid.
+        Attribute& get_attr(int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index) noexcept;
+
+        // Make sure currect frame not null.
+        inline void ensure_cur_frame();
+
+        // Make sure max size greater than 0.
+        inline void ensure_max_size();
+
+        inline void write_attribute(ofstream &file, int tick, NODE_INDEX node_index, ATTR_TYPE attr_type, SLOT_INDEX slot_index);
+      public:
+        /// <summary>
+        /// Set max size of snapshot in memory.
+        /// </summary>
+        /// <param name="max_size">Max size to set.</param>
+        void set_max_size(USHORT max_size);
+
+        /// <summary>
+        /// Setup snapshot list with current frame.
+        /// </summary>
+        /// <param name="frame">Current frame that used for snapshots.</param>
+        void setup(Frame* frame);
+
+        /// <summary>
+        /// Take snapshot for specified tick.
+        /// </summary>
+        /// <param name="ticks">Tick to take snapshot.</param>
+        void take_snapshot(int ticks);
+
+        /// <summary>
+        /// Current size of snapshots.
+        /// </summary>
+        /// <returns>Number of current snapshots.</returns>
+        UINT size() const noexcept;
+
+        /// <summary>
+        /// Get max size of current snapshot list.
+        /// </summary>
+        /// <returns>Max number of snapshot list.</returns>
+        UINT max_size() const noexcept;
+
+        /// <summary>
+        /// Reset snapshot list states.
+        /// </summary>
+        void reset();
+
+        /// <summary>
+        /// Dump current snapshots into folder, node will be split into different files.
+        /// </summary>
+        void dump(string path);
+
+        /// <summary>
+        /// Get avaiable ticks from snapshot list.
+        /// </summary>
+        /// <param name="result">List pointer to hold ticks.</param>
+        void get_ticks(int* result) const;
+
+        /// <summary>
+        /// Get current max node number for specified node type.
+        /// </summary>
+        /// <param name="node_type">Target node type.</param>
+        /// <returns>Max node number.</returns>
+        NODE_INDEX get_max_node_number(NODE_TYPE node_type) const;
+
+        /// <summary>
+        /// Prepare for querying.
+        /// </summary>
+        /// <param name="node_type">Target node type.</param>
+        /// <param name="ticks">Ticks to query, leave it as null to retrieve all avaible ticks from snapshots.
+        /// NOTE: if it is null, then use latest tick for list attribute querying.</param>
+        /// <param name="tick_length">Number of ticks to query.</param>
+        /// <param name="node_indices">Indices of node instance to query, leave it as null to retrieve all node instance from snapshots.
+        /// NOTE: it cannot be null if qury for list attribute</param>
+        /// <param name="node_length">Number of node instance to query.</param>
+        /// <param name="attributes">Attribute type list to query, cannot be null.
+        /// NOTE: if first attribute if a list attribute, then there will be a list querying, means only support 1 tick, 1 node, 1 attribute querying.
+        /// </param>
+        /// <param name="attr_length">Target node type.</param>
+        /// <returns>Result shape for input query parameters.</returns>
+        SnapshotQueryResultShape prepare(NODE_TYPE node_type, int ticks[], UINT tick_length,
+          NODE_INDEX node_indices[], UINT node_length, ATTR_TYPE attributes[], UINT attr_length);
+
+        /// <summary>
+        /// Qeury with parameters from prepare function.
+        /// </summary>
+        /// <param name="result">Pointer to list to hold result value. NOTE: query function will leave the default value for padding.</param>
+        void query(QUERY_FLOAT* result);
+
+        /// <summary>
+        /// Cancel current querying, this will clear the parameters from last prepare calling.
+        /// </summary>
+        void cancel_query() noexcept;
+      };
+
+      /// <summary>
+     /// Tick not supported, like negative tick
+     /// </summary>
+      struct SnapshotTickError : public exception
+      {
+        const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Snapshot list max size is 0
       /// </summary>
-      class InvalidSnapshotSize : public exception
+      struct SnapshotSizeError : public exception
       {
-        public:
-          const char* what() const noexcept override;
+        const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Query without call prepare function
       /// </summary>
-      class SnapshotQueryNotPrepared : public exception
+      struct SnapshotQueryNotPreparedError : public exception
       {
-        public:
-          const char* what() const noexcept override;
+        const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Attribute not exist when querying
       /// </summary>
-      class SnapshotQueryNoAttributes : public exception
+      struct SnapshotQueryNoAttributesError : public exception
       {
-        public:
-          const char* what() const noexcept override;
+        const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Frame not set before operations
       /// </summary>
-      class SnapshotInvalidFrameState : public exception
+      struct SnapshotInvalidFrameStateError : public exception
       {
-        public:
-          const char* what() const noexcept override;
+        const char* what() const noexcept override;
       };
 
       /// <summary>
       /// Array pointer is nullptr
       /// </summary>
-      class SnapshotQueryResultPtrNull : public exception
+      struct SnapshotQueryResultPtrNullError : public exception
       {
-        public:
-          const char* what() const noexcept override;
+        const char* what() const noexcept override;
       };
 
-      /**
-      Steps to take snapshot:
-      1. if there is an exist tick?
-        a. yes: if (exist snapshot area + empty slots) is enough to hold current snapshot?
-          I. yes: write from exist area start
-          II. no: mark exist snapshot area as empty slots, append current snapshot to the end
-        b. no: if reach the limitation?
-          I. yes: mark oldest snapshot as empty slots, if remaining empty slots enough to hold current snapshot?
-            I). yes: write to oldest area
-            II). no: keep these empty slots there, append current snapshot to the end
-          II. no: append to the end
-      */
-
-      /**
-      Steps to query:
-      We expect that the result pointer (float*) is a 4d array (numpy array), and length of items for each dimension should be same.
-      */
-
-      struct SnapshotResultShape
+      struct SnapshotQueryInvalidTickError : public exception
       {
-        /* Following 4 parts used for out-side to construct the result array */
-        INT tick_number{0};
-        NODE_INDEX max_node_number{0};
-        USHORT attr_number{0};
-        SLOT_INDEX max_slot_number{0};
+        const char* what() const noexcept override;
       };
 
-      class SnapshotList
+      struct SnapshotQueryNoSnapshotsError : public exception
       {
-        /// <summary>
-        /// Object used to hold the parameter that used for query
-        /// </summary>
-        struct SnapshotQueryParameters
-        {
-          // for furthur querying, these fields would be changed by prepare function
-          IDENTIFIER node_id{0};
-          INT *ticks{nullptr};
-          UINT tick_length{0};
-          NODE_INDEX *node_indices{nullptr};
-          UINT node_length{0};
-          IDENTIFIER *attributes{nullptr};
-          UINT attr_length{0};
-
-          void reset();
-        };
-
-        Frame *_frame;
-
-        // tick -> index of mapping  -> [node_ide, node_index, attr_id, slot_index] -> index in attr store
-        map<INT, size_t> _tick_attr_map;
-
-        // Used to hold all the in-memory snapshots
-        vector<Attribute> _attr_store;
-
-        // where shall we start to check empty slots to hold latest snapshot
-        size_t _first_empty_slot_index{0};
-        size_t _empty_slots_length{0};
-
-        // end index of attribute store that been used
-        // we append from this point
-        size_t _end_index{0};
-
-        // max number of snapshot we should keep in memory
-        USHORT _max_size{0};
-
-        // current number of snapshot
-        USHORT _cur_snapshot_num{0};
-
-        // last tick that take snapshot
-        // used to track same tick over-writing (for last operation only)
-        INT _last_tick{-1};
-
-        map<INT, size_t> _tick2index_map; // tick -> start index
-        map<INT, size_t> _tick2size_map;  // size of each tick
-
-        Attribute _defaultAttr = Attribute(NAN);
-
-        bool _is_prepared{false};
-        SnapshotQueryParameters _query_parameters;
-
-        vector<unordered_map<ULONG, size_t>> _mappings;
-
-      public:
-        /// <summary>
-        /// Set frame we need for taking snapshot
-        /// </summary>
-        /// <param name="frame">Frame we need</param>
-        void set_frame(Frame *frame);
-
-        /// <summary>
-        /// Set max size of snapshots
-        /// </summary>
-        /// <param name="max_size">Max size</param>
-        void set_max_size(USHORT max_size);
-
-        /// <summary>
-        /// Take snapshot for current frame, this function will arrange current frame.
-        ///
-        /// NOTE:
-        /// This function support taking snapshot without frame
-        /// </summary>
-        /// <param name="tick">Tick of current snapshot</param>
-        /// <param name="frame_attr_store">Attributes store used to take snapshot</param>
-        void take_snapshot(INT tick, AttributeStore *frame_attr_store = nullptr);
-
-        /// <summary>
-        /// Get an attribute
-        /// </summary>
-        /// <param name="tick">Tick of attribute</param>
-        /// <param name="node_id">Id of node</param>
-        /// <param name="node_index">Index of node</param>
-        /// <param name="attr_id">Id of attribute</param>
-        /// <param name="slot_index">Index of slot</param>
-        /// <returns>Specified attribute, return NAN attribute if specified not exist</returns>
-        Attribute &operator()(INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
-
-        /// <summary>
-        /// size of current snapshots
-        /// </summary>
-        /// <returns>Size of current snapshots</returns>
-        USHORT size();
-
-        /// <summary>
-        /// Max size of snapshot list
-        /// </summary>
-        /// <returns>Max size</returns>
-        USHORT max_size();
-
-        /// <summary>
-        /// Reset current snapshots
-        /// </summary>
-        void reset();
-
-        /// <summary>
-        /// Dump current snapshot into specified folder
-        /// </summary>
-        /// <param name="path">Folder to place the files</param>
-        void dump(string path);
-
-        /// <summary>
-        /// Get ticks of current snapshot list
-        /// </summary>
-        /// <param name="result">Pointer to hold result</param>
-        void get_ticks(INT *result);
-
-        /// <summary>
-        /// Prepare for querying, used to get shape of result.
-        /// </summary>
-        /// <param name="node_id">Id of node to query</param>
-        /// <param name="ticks">Tick list to query</param>
-        /// <param name="tick_length">Length of tick list</param>
-        /// <param name="node_indices">Node index list to query</param>
-        /// <param name="node_length">Length of node index list</param>
-        /// <param name="attributes">Attribute id list to query</param>
-        /// <param name="attr_length">Lenght of attribute list</param>
-        /// <returns>Shape of expected result</returns>
-        SnapshotResultShape prepare(IDENTIFIER node_id, INT ticks[], UINT tick_length,
-                                    NODE_INDEX node_indices[], UINT node_length, IDENTIFIER attributes[], UINT attr_length);
-
-        /// <summary>
-        /// Qeury with shape from prepare function
-        /// </summary>
-        /// <param name="result">Array to hold result, the size must larger or equal to shape size</param>
-        /// <param name="shape">Shape from prepare function</param>
-        void query(ATTR_FLOAT *result, SnapshotResultShape shape);
-
-#ifdef _DEBUG
-        pair<size_t, size_t> empty_states();
-
-        size_t end_index();
-#endif
-
-      private:
-        // helper function to append attributes of current frame to the end
-        void append_to_end(AttributeStore *frame_attr_store, INT tick);
-
-        // helper function to place attributes of current frame to empty slots
-        void write_to_empty_slots(AttributeStore *frame_attr_store, INT tick);
-
-        // helper function to ensure the max size is correct
-        inline void ensure_max_size();
-
-        // function to write attribute to file stream
-        inline void write_attribute(ofstream &file, INT tick, IDENTIFIER node_id, NODE_INDEX node_index, IDENTIFIER attr_id, SLOT_INDEX slot_index);
-
-        // prepare memory before taking snapshot (only for first time), to avoid to much allocation operation
-        inline void prepare_memory();
-
-        // copy attributes from store to specified position
-        void copy_from_attr_store(AttributeStore *frame_attr_store, INT tick, size_t start_index);
+        const char* what() const noexcept override;
       };
-    } // namespace raw
-  }   // namespace backends
-} // namespace maro
 
-#endif // !_MARO_BACKENDS_RAW_SNAPSHOTLIST
+      struct SnapshotListQueryNoNodeIndexError : public exception
+      {
+        const char* what() const noexcept override;
+      };
+    }
+  }
+}
+
+
+#endif // !_MARO_BACKENDS_RAW_SNAPSHOTLIST_

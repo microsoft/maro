@@ -28,6 +28,14 @@ ERROR_CODE = {
     2100: "Invalid parameter to get attribute value, please use tuple, list or slice instead",
     2101: "Invalid parameter to set attribute value",
     2102: "Cannot set value for frame fields directly if slot number more than 1, please use slice interface instead",
+    2103: "Append method only support for list attribute.",
+    2104: "Resize method only support for list attribute.",
+    2105: "Clear method only fupport for list attribute.",
+    2106: "Insert method only fupport for list attribute.",
+    2107: "Remove method only fupport for list attribute.",
+    2108: "Node already been deleted.",
+    2109: "Node not exist.",
+    2110: "Invalid attribute.",
 
     # simulator
     2200: "Cannot find specified business engine",
