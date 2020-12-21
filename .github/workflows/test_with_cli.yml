@@ -54,7 +54,11 @@ jobs:
       - name: Generate config
         env:
           AZURE_SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION }}
-          test_with_cli: True
         run: |
           python -m tests.cli.scripts.generate_config
+
+      - name: Run test
+        env:
+          test_with_cli: True
+        run: |
           python -m unittest tests/cli/grass/test_grass.py

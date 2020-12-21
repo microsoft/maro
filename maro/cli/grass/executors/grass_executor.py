@@ -19,8 +19,8 @@ class GrassExecutor:
         self.cluster_details = cluster_details
         self.cluster_name = cluster_details["name"]
 
-        self.admin_username = self.cluster_details["user"]['admin_username']
-        self.ssh_port = self.cluster_details["connection"]['ssh_port']
+        self.admin_username = self.cluster_details["user"]["admin_username"]
+        self.ssh_port = self.cluster_details["connection"]["ssh"]["port"]
 
     def remote_build_image(self, remote_context_path: str, remote_image_name: str):
         command = (
