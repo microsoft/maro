@@ -47,7 +47,7 @@ if __name__ == "__main__":
         else:
             # Get the capacity and allocated cores from snapshot.
             valid_pm_info = env.snapshot_list["pms"][
-                env.tick:decision_event.valid_pms:["cpu_cores_capacity", "cpu_cores_allocated"]
+                env.frame_index:decision_event.valid_pms:["cpu_cores_capacity", "cpu_cores_allocated"]
             ].reshape(-1, 2)
             # Calculate to get the remaining cpu cores.
             cpu_cores_remaining = valid_pm_info[:, 0] - valid_pm_info[:, 1]

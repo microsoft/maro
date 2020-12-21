@@ -32,7 +32,7 @@ successful_placement (int): Accumulative successful VM placement until now.
 successful_completion (int): Accumulative successful completion of tasks.
 failed_placement (int): Accumulative failed VM placement until now.
 total_latency (int): Accumulative used buffer time until now.
-total_subscriptions (int): Accumulative over-subscriptions.
+total_oversubscriptions (int): Accumulative over-subscriptions.
 """
 
 logger = CliLogger(name=__name__)
@@ -79,8 +79,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # All request payload of the pending decision VMs.
         # NOTE: Need naming suggestestion.
         self._pending_vm_request_payload: Dict[int, VmRequestPayload] = {}
-        # All vm's cpu utilization at current tick.
-        self._cpu_utilization_dict: Dict[int, float] = {}
 
         self._vm_reader = BinaryReader(self._config.VM_TABLE)
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
@@ -151,21 +149,19 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._total_latency: Latency = Latency()
         self._total_oversubscriptions: int = 0
 
+        self._frame.reset()
+        self._snapshots.reset()
+
         for pm in self._machines:
             pm.reset()
 
-        self._live_vms: Dict[int, VirtualMachine] = {}
-        self._pending_vm_request_payload: Dict[int, VmRequestPayload] = {}
-
-        self._frame.reset()
-
-        self._snapshots.reset()
+        self._live_vms.clear()
+        self._pending_vm_request_payload.clear()
 
         self._vm_reader.reset()
         self._vm_item_picker = self._vm_reader.items_tick_picker(self._start_tick, self._max_tick, time_unit="s")
 
         self._cpu_reader.reset()
-        self._cpu_utilization_dict: Dict[int, float] = {}
 
     def _init_frame(self):
         self._frame = build_frame(self._pm_amount, self.calc_max_snapshots())
@@ -178,16 +174,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             tick (int): Current tick to process.
         """
         self._tick = tick
+        # All vm's cpu utilization at current tick.
+        cur_tick_cpu_utilization = self._cpu_reader.items(tick=tick)
+
         # Process finished VMs.
         self._process_finished_vm()
         # Update all live VMs CPU utilization.
-        self._update_vm_workload()
+        self._update_vm_workload(cur_tick_cpu_utilization=cur_tick_cpu_utilization)
         # Update all PM CPU utilization.
         self._update_pm_workload()
 
-        self._cpu_utilization_dict = self._cpu_reader.items(tick=tick)
-
         for vm in self._vm_item_picker.items(tick):
+            # TODO: Calculate
             vm_info = VirtualMachine(
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
@@ -195,10 +193,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
 
-            if vm.vm_id not in self._cpu_utilization_dict:
+            if vm.vm_id not in cur_tick_cpu_utilization:
                 raise Exception(f"The VM id: '{vm.vm_id}' does not exist at this tick.")
 
-            vm_info.add_utilization(cpu_utilization=self._cpu_utilization_dict[vm.vm_id])
+            vm_info.add_utilization(cpu_utilization=cur_tick_cpu_utilization[vm.vm_id])
             vm_req_payload: VmRequestPayload = VmRequestPayload(
                 vm_info=vm_info,
                 remaining_buffer_time=self._buffer_time_budget
@@ -256,32 +254,26 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Generate decision event.
         self._event_buffer.register_event_handler(event_type=MaroEvents.TAKE_ACTION, handler=self._on_action_received)
 
-    def _update_vm_workload(self):
+    def _update_vm_workload(self, cur_tick_cpu_utilization: dict):
         """Update all live VMs CPU utilization.
 
         The length of VMs utilization series could be difference among all VMs,
         because index 0 represents the VM's CPU utilization at the tick it starts.
         """
         for live_vm in self._live_vms.values():
-            # NOTE:
-            # We set every VM's finish event at deletion time - creation time + 1. Therefore, in the end tick,
-            # the id doesn't exist in the cpu utilization dictionary. We give them a padding 0 instead.
-            if self._tick - live_vm.creation_tick >= live_vm.lifetime:
-                raise Exception(f"The VM id: '{live_vm.id}' does not exist.")
+            # NOTE: Some data could be lost. We use -1.0 to represent the missing data.
+            if live_vm.id not in cur_tick_cpu_utilization:
+                live_vm.add_utilization(cpu_utilization=-1.0)
             else:
-                # NOTE: Some data could be lost. We use -1.0 to represent the missing data.
-                if live_vm.id not in self._cpu_utilization_dict:
-                    live_vm.add_utilization(cpu_utilization=-1.0)
-                else:
-                    live_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[live_vm.id])
-                    live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
+                live_vm.add_utilization(cpu_utilization=cur_tick_cpu_utilization[live_vm.id])
+                live_vm.cpu_utilization = live_vm.get_utilization(cur_tick=self._tick)
 
         for pending_vm_payload in self._pending_vm_request_payload.values():
             pending_vm = pending_vm_payload.vm_info
-            if pending_vm.id not in self._cpu_utilization_dict:
+            if pending_vm.id not in cur_tick_cpu_utilization:
                 pending_vm.add_utilization(cpu_utilization=-1.0)
             else:
-                pending_vm.add_utilization(cpu_utilization=self._cpu_utilization_dict[pending_vm.id])
+                pending_vm.add_utilization(cpu_utilization=cur_tick_cpu_utilization[pending_vm.id])
 
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""
@@ -329,7 +321,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Add failed placement.
             self._failed_placement += 1
 
-    def _get_valid_pms(self, vm_cpu_cores_requirement: int) -> List[int]:
+    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
         """Check all valid PMs.
 
         Args: vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
@@ -339,7 +331,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         #       the PM type (oversubscribable and non-oversubscribable).
         valid_pm_list = []
         for pm in self._machines:
-            if (pm.cpu_cores_capacity - pm.cpu_cores_allocated) >= vm_cpu_cores_requirement:
+            if (pm.cpu_cores_capacity - pm.cpu_cores_allocated >= vm_cpu_cores_requirement and
+                    pm.memory_capacity - pm.memory_allocated >= vm_memory_requirement):
                 valid_pm_list.append(pm.id)
 
         return valid_pm_list
@@ -374,7 +367,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Store the payload inside business engine.
         self._pending_vm_request_payload[vm_info.id] = payload
         # Get valid pm list.
-        valid_pm_list = self._get_valid_pms(vm_cpu_cores_requirement=vm_info.cpu_cores_requirement)
+        valid_pm_list = self._get_valid_pms(
+            vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
+            vm_memory_requirement=vm_info.memory_requirement
+        )
 
         if len(valid_pm_list) > 0:
             # Generate pending decision.

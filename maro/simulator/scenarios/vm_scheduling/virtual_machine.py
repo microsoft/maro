@@ -10,7 +10,6 @@ class VirtualMachine:
     The VM lifetime equals to the deletion tick - creation tick.
     For example:
         A VM's cpu utilization is {tick: cpu_utilization} = {0: 0.1, 1: 0.4, 2: 0.2}.
-        The original creation time and deletion time in the dataset is 0, 2 respectively.
         In our scenario, we define vm's creation tick as 0, and deletion tick as 3.
         Its lifetime will be deletion tick - creation tick = 3 - 0 = 3
 
@@ -44,7 +43,7 @@ class VirtualMachine:
 
     def get_utilization(self, cur_tick: int):
         if cur_tick - self.creation_tick > len(self._utilization_series):
-            return 0.0
+            raise Exception(f"The tick {cur_tick} is invalid for the VM {self.id}.")
 
         return self._utilization_series[cur_tick - self.creation_tick]
 

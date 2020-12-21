@@ -29,7 +29,7 @@ class PhysicalMachine(NodeBase):
         self._live_vms: Set[int] = set()
 
     def set_cpu_utilization(self, cpu_utilization: float):
-        self.cpu_utilization = max(0, cpu_utilization)
+        self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
     def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int):
         """Set initialize state, that will be used after frame reset.
