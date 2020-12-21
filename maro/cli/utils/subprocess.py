@@ -5,7 +5,7 @@
 import platform
 import subprocess
 
-from maro.utils.exception.cli_exception import CommandError
+from maro.utils.exception.cli_exception import CommandExecutionError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -22,7 +22,7 @@ class SubProcess:
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
         )
         if completed_process.returncode != 0:
-            raise CommandError(command, completed_process.stderr)
+            raise CommandExecutionError(message=completed_process.stderr, command=command)
         return completed_process.stdout
 
     @staticmethod
