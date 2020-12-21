@@ -10,8 +10,6 @@ class CpuReader:
     """A wrapper class for the BinaryReader."""
     def __init__(self, data_path: str, start_tick: int):
         # Use for re-initialization.
-        self._init_data_path = data_path
-
         self._data_path = data_path
         self._cpu_reader = BinaryReader(self._data_path)
         self._cpu_item_picker = self._cpu_reader.items_tick_picker(
@@ -21,6 +19,9 @@ class CpuReader:
         )
         while start_tick > self._cpu_reader.header.endtime:
             self._switch()
+
+        self._init_data_path = self._data_path
+
 
     def _switch_to_next_file_name(self, data_path) -> str:
         """Switch to next file name."""
@@ -67,4 +68,10 @@ class CpuReader:
         return cur_items
 
     def reset(self):
-        self._cpu_reader = BinaryReader(self._init_data_path)
+        self._data_path = self._init_data_path
+        self._cpu_reader = BinaryReader(self._data_path)
+        self._cpu_item_picker = self._cpu_reader.items_tick_picker(
+            start_time_offset=self._cpu_reader.header.starttime,
+            end_time_offset=self._cpu_reader.header.endtime,
+            time_unit="s"
+        )
