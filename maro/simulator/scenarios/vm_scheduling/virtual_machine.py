@@ -17,7 +17,7 @@ class VirtualMachine:
         id (int): The VM id.
         cpu_cores_requirement (int): The amount of virtual cores requested by VM.
         memory_requirement (int): The memory requested by VM. The unit is (GBs).
-        lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick + 1.
+        lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick.
     """
     def __init__(self, id: int, cpu_cores_requirement: int, memory_requirement: int, lifetime: int):
         # VM Requirement parameters.
@@ -41,14 +41,20 @@ class VirtualMachine:
     def cpu_utilization(self, cpu_utilization: float):
         self._cpu_utilization = min(max(0, cpu_utilization), 100)
 
-    def get_utilization(self, cur_tick: int):
+    def get_utilization(self, cur_tick: int) -> float:
         if cur_tick - self.creation_tick > len(self._utilization_series):
             raise Exception(f"The tick {cur_tick} is invalid for the VM {self.id}.")
 
         return self._utilization_series[cur_tick - self.creation_tick]
 
     def add_utilization(self, cpu_utilization: float):
-        """VM CPU utilization list."""
+        """VM CPU utilization list.
+
+        In the cpu_readings_file, all CPU utilization of all VMs are sorted by the timestamp, indexed by the VM ID.
+        At each tick, we only read the CPU utilization at specific timestamp (tick).
+        Hence, this function is designed to append the CPU utilization to the end of the corresponding
+        VM utilization series one by one.
+        """
         # If cpu_utilization is smaller than 0, it means the missing data in the cpu readings file.
         # TODO: We use the last utilization, it could be further refined to use average or others.
         if cpu_utilization < 0.0:
@@ -58,4 +64,4 @@ class VirtualMachine:
 
     def get_historical_utilization_series(self, cur_tick: int) -> List[float]:
         """"Only expose the CPU utilization series before the current tick."""
-        return self._utilization_series[cur_tick - self.creation_tick]
+        return self._utilization_series[:cur_tick - self.creation_tick + 1]

@@ -111,7 +111,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         self._delay_duration: int = self._config.DELAY_DURATION
         self._buffer_time_budget: int = self._config.BUFFER_TIME_BUDGET
-        self._pm_amount: int = self._config.PM["P1"]["AMOUNT"]
+        self._pm_type: str = self._config.PM_TYPE
+        self._pm_amount: int = self._config.PM[self._pm_type]["AMOUNT"]
 
     def _init_data(self):
         vm_table_data_path = self._config.VM_TABLE
@@ -127,8 +128,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-        self._pm_cpu_cores_capacity: int = self._config.PM["P1"]["CPU"]
-        self._pm_memory_capacity: int = self._config.PM["P1"]["MEMORY"]
+        self._pm_cpu_cores_capacity: int = self._config.PM[self._pm_type]["CPU"]
+        self._pm_memory_capacity: int = self._config.PM[self._pm_type]["MEMORY"]
 
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
@@ -236,7 +237,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         Returns:
             list: List of agent index.
         """
-        return [0]
+        pass
 
     def get_node_mapping(self) -> dict:
         """dict: Node mapping."""
@@ -296,7 +297,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             for vm_id in pm.live_vms:
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
-            pm.set_cpu_utilization(cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
+            pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
 
     def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
@@ -304,9 +305,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = self._config.PM["P1"]["POWER_CURVE"]["CALIBRATION_PARAMETER"]
-        busy_power = self._config.PM["P1"]["POWER_CURVE"]["BUSY_POWER"]
-        idle_power = self._config.PM["P1"]["POWER_CURVE"]["IDLE_POWER"]
+        power: float = self._config.PM[self._pm_type]["POWER_CURVE"]["CALIBRATION_PARAMETER"]
+        busy_power = self._config.PM[self._pm_type]["POWER_CURVE"]["BUSY_POWER"]
+        idle_power = self._config.PM[self._pm_type]["POWER_CURVE"]["IDLE_POWER"]
 
         cpu_utilization /= 100
 
@@ -442,12 +443,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pm.place_vm(vm.id)
                 pm.cpu_cores_allocated += vm.cpu_cores_requirement
                 pm.memory_allocated += vm.memory_requirement
-                # Calculate the PM's utilization.
-                pm_cpu_utilization = (
-                    (pm.cpu_cores_capacity * pm.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
-                    / pm.cpu_cores_capacity
+                pm.update_cpu_utilization(
+                    vm=vm,
+                    cpu_utilization=None
                 )
-                pm.set_cpu_utilization(cpu_utilization=pm_cpu_utilization)
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
                 self._successful_placement += 1
             elif type(action) == PostponeAction:

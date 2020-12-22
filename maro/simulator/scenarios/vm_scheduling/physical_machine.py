@@ -5,6 +5,8 @@ from typing import Set
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
+from .virtual_machine import VirtualMachine
+
 
 @node("pms")
 class PhysicalMachine(NodeBase):
@@ -28,7 +30,16 @@ class PhysicalMachine(NodeBase):
         # PM resource.
         self._live_vms: Set[int] = set()
 
-    def set_cpu_utilization(self, cpu_utilization: float):
+    def update_cpu_utilization(self, vm: VirtualMachine = None, cpu_utilization: float = None):
+        if vm is None and cpu_utilization is None:
+            raise Exception(f"Wrong calling method {self.update_cpu_utilization.__name__}")
+
+        if vm is not None:
+            cpu_utilization = (
+                (self.cpu_cores_capacity * self.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
+                / self.cpu_cores_capacity
+            )
+
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
     def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int):
