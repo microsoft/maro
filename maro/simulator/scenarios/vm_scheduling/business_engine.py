@@ -17,7 +17,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import DottableDict
 
-from .common import DecisionPayload, Latency, PlaceAction, PostponeAction, PostponeType, VmRequestPayload
+from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, VmRequestPayload
 from .cpu_reader import CpuReader
 from .events import Events
 from .frame_builder import build_frame
@@ -28,10 +28,10 @@ metrics_desc = """
 
 total_vm_requests (int): Total VM requests.
 total_energy_consumption (float): Accumulative total PM energy consumption.
-successful_placement (int): Accumulative successful VM placement until now.
+successful_allocation (int): Accumulative successful VM allocation until now.
 successful_completion (int): Accumulative successful completion of tasks.
-failed_placement (int): Accumulative failed VM placement until now.
-total_latency (int): Accumulative used buffer time until now.
+failed_allocation (int): Accumulative failed VM allocation until now.
+total_latency (Latency): Accumulative used buffer time until now.
 total_oversubscriptions (int): Accumulative over-subscriptions.
 """
 
@@ -58,9 +58,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Env metrics.
         self._total_vm_requests: int = 0
         self._total_energy_consumption: float = 0
-        self._successful_placement: int = 0
+        self._successful_allocation: int = 0
         self._successful_completion: int = 0
-        self._failed_placement: int = 0
+        self._failed_allocation: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscriptions: int = 0
 
@@ -144,9 +144,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def reset(self):
         """Reset internal states for episode."""
         self._total_energy_consumption: float = 0.0
-        self._successful_placement: int = 0
+        self._successful_allocation: int = 0
         self._successful_completion: int = 0
-        self._failed_placement: int = 0
+        self._failed_allocation: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscriptions: int = 0
 
@@ -245,6 +245,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return node_mapping
 
+    def get_vm_cpu_utilization_series(self, vm_id: int) -> List[float]:
+
+        if vm_id in self._live_vms:
+            return self._live_vms[vm_id].get_historical_utilization_series(cur_tick=self._tick)
+
+        return []
+
     def get_metrics(self) -> DocableDict:
         """Get current environment metrics information.
 
@@ -256,9 +263,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             metrics_desc,
             total_vm_requests=self._total_vm_requests,
             total_energy_consumption=self._total_energy_consumption,
-            successful_placement=self._successful_placement,
+            successful_allocation=self._successful_allocation,
             successful_completion=self._successful_completion,
-            failed_placement=self._failed_placement,
+            failed_allocation=self._failed_allocation,
             total_latency=self._total_latency,
             total_oversubscriptions=self._total_oversubscriptions
         )
@@ -333,8 +340,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Fail
             # Pop out VM request payload.
             self._pending_vm_request_payload.pop(vm_id)
-            # Add failed placement.
-            self._failed_placement += 1
+            # Add failed allocation.
+            self._failed_allocation += 1
 
     def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
         """Check all valid PMs.
@@ -362,10 +369,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pm: PhysicalMachine = self._machines[vm.pm_id]
                 pm.cpu_cores_allocated -= vm.cpu_cores_requirement
                 pm.memory_allocated -= vm.memory_requirement
-                pm.remove_vm(vm.id)
+                pm.deallocate_vms(vm_ids=[vm.id])
 
                 vm_id_list.append(vm.id)
-                # VM placement succeed.
+                # VM completed task succeed.
                 self._successful_completion += 1
 
         # Remove dead VM.
@@ -421,7 +428,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             if vm_id not in self._pending_vm_request_payload:
                 raise Exception(f"The VM id: '{vm_id}' sent by agent is invalid.")
 
-            if type(action) == PlaceAction:
+            if type(action) == AllocateAction:
                 pm_id = action.pm_id
                 vm: VirtualMachine = self._pending_vm_request_payload[vm_id].vm_info
                 lifetime = vm.lifetime
@@ -440,7 +447,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
-                pm.place_vm(vm.id)
+                pm.allocate_vms(vm_ids=[vm.id])
                 pm.cpu_cores_allocated += vm.cpu_cores_requirement
                 pm.memory_allocated += vm.memory_requirement
                 pm.update_cpu_utilization(
@@ -448,7 +455,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cpu_utilization=None
                 )
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
-                self._successful_placement += 1
+                self._successful_allocation += 1
             elif type(action) == PostponeAction:
                 postpone_step = action.postpone_step
                 remaining_buffer_time = self._pending_vm_request_payload[vm_id].remaining_buffer_time

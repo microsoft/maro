@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Set
+from typing import List, Set
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
@@ -75,8 +75,10 @@ class PhysicalMachine(NodeBase):
     def live_vms(self) -> Set[int]:
         return self._live_vms
 
-    def place_vm(self, vm_id: int):
-        self._live_vms.add(vm_id)
+    def allocate_vms(self, vm_ids: List[int]):
+        for vm_id in vm_ids:
+            self._live_vms.add(vm_id)
 
-    def remove_vm(self, vm_id: int):
-        self._live_vms.remove(vm_id)
+    def deallocate_vms(self, vm_ids: List[int]):
+        for vm_id in vm_ids:
+            self._live_vms.remove(vm_id)
