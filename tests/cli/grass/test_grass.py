@@ -371,7 +371,7 @@ class TestGrass(unittest.TestCase):
         )
         command = f"maro grass job start {self.cluster_name} {start_job_dqn_template_path}"
         SubProcess.run(command)
-        self._gracefully_wait(30)
+        self._gracefully_wait(60)
 
         # Check job status
         remain_idx = 0

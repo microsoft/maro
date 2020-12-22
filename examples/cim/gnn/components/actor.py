@@ -114,7 +114,14 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
             generate an action.
         exp_output (SharedStructure): The shared memory to transfer the experience list to the main process.
     """
-    env = Env(**config.env.param)
+    if index == 0:
+        simulation_log_path = os.path.join(config.log.path, f"cim_gnn_{index}")
+        if not os.path.exists(simulation_log_path):
+            os.makedirs(simulation_log_path)
+        opts = {"enable-dump-snapshot": simulation_log_path}
+        env = Env(**config.env.param, options=opts)
+    else:
+        env = Env(**config.env.param)
     fix_seed(env, config.env.seed)
     static_code_list, dynamic_code_list = list(env.summary["node_mapping"]["ports"].values()), \
         list(env.summary["node_mapping"]["vessels"].values())
@@ -136,7 +143,6 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
 
     i = 0
     while pipe.recv() == "reset":
-        env.reset()
         r, decision_event, is_done = env.step(None)
 
         j = 0
@@ -172,6 +178,7 @@ def single_player_worker(index, config, exp_idx_mapping, pipe, action_io, exp_ou
         exp_shaper.reset()
         logs = np.array(logs, dtype=np.float)
         pipe.send(logs)
+        env.reset()
 
 
 def compute_shortage(snapshot_list, max_tick, static_code_list):

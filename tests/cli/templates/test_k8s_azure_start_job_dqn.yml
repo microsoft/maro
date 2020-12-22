@@ -1,4 +1,4 @@
-mode: k8s
+mode: k8s/aks
 name: test_job
 
 components:

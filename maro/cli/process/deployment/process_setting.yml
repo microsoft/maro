@@ -1,6 +1,0 @@
-redis_info:
-  host: "localhost"
-  port: 19999
-parallel_level: 1
-keep_agent_alive: 1
-redis_mode: MARO # one of MARO, customized. customized Redis won't exit after maro process clear.

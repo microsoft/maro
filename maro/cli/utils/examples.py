@@ -22,7 +22,7 @@ Examples:
     Remove all nodes with node size 'Standard_D4s_v3'
         maro grass node scale MyClusterName Standard_D4s_v3 0
 
-  For Azure, see more node sizes at https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-general
+    For Azure, see more node sizes at https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-general
 """
 
 MARO_GRASS_NODE_START = """

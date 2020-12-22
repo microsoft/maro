@@ -18,6 +18,7 @@ from .common import Action, ActionScope, DecisionEvent
 from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
 from .events import Events
 from .frame_builder import gen_cim_frame
+from .ports_order_export import PortOrderExporter
 
 metrics_desc = """
 CIM metrics used provide statistics information until now (may be in the middle of current tick).
@@ -61,6 +62,7 @@ class CimBusinessEngine(AbsBusinessEngine):
         self._full_on_ports: MatrixAttributeAccessor = None
         self._full_on_vessels: MatrixAttributeAccessor = None
         self._vessel_plans: MatrixAttributeAccessor = None
+        self._port_orders_exporter = PortOrderExporter("enable-dump-snapshot" in additional_options)
 
         # Read transfer cost factors.
         transfer_cost_factors = self._config["transfer_cost_factors"]
@@ -96,6 +98,11 @@ class CimBusinessEngine(AbsBusinessEngine):
         """SnapshotList: Snapshot list of current frame."""
         return self._snapshots
 
+    @property
+    def name_mapping_file_path(self) -> str:
+        """name mapping file path: Return a file path which contains mapping in specified scenario."""
+        return os.path.join(self._config_path, "config.yml")
+
     def step(self, tick: int):
         """Called at each tick to generate orders and arrival events.
 
@@ -117,6 +124,7 @@ class CimBusinessEngine(AbsBusinessEngine):
                 tick, Events.ORDER, order)
 
             self._event_buffer.insert_event(order_evt)
+            self._port_orders_exporter.add(order)
 
         # Used to hold decision event of this tick, we will append this at the end
         # to make sure all the other logic finished.
@@ -289,6 +297,9 @@ class CimBusinessEngine(AbsBusinessEngine):
             list: A list of port index.
         """
         return [i for i in range(self._data_cntr.port_number)]
+
+    def dump(self, folder: str):
+        self._port_orders_exporter.dump(folder)
 
     def _init_nodes(self):
         # Init ports.

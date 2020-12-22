@@ -5,6 +5,8 @@
 import argparse
 import sys
 
+from maro.utils.exception.cli_exception import CommandNotFoundError
+
 
 class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, examples=None, **kwargs):
@@ -49,13 +51,11 @@ class ArgumentParser(argparse.ArgumentParser):
         # if get 'help', print help without printing errors
         if '--help' in args or '-h' in args:
             self.print_help()
-            self.exit(0)
+            # Otherwise it will print traceback here.
+            sys.exit(0)
         else:
             # Otherwise, print usage and error messages
-            args = {'prog': self.prog, 'message': message}
-            self.print_usage()
-            self._print_message('%(prog)s: error: %(message)s\n' % args, sys.stderr)
-            self.exit(2)
+            raise CommandNotFoundError(message=message, usage=self.format_usage())
 
 
 class HelpFormatter(argparse.RawTextHelpFormatter):
