@@ -24,6 +24,7 @@ class DQNConfig:
         reward_decay (float): Reward decay as defined in standard RL terminology.
         loss_cls: Loss function class for evaluating TD errors.
         target_update_frequency (int): Number of training rounds between target model updates.
+        epsilon (float): Exploration rate for epsilon-greedy exploration. Defaults to None.
         tau (float): Soft update coefficient, i.e., target_model = tau * eval_model + (1 - tau) * target_model.
         is_double (bool): If True, the next Q values will be computed according to the double DQN algorithm,
             i.e., q_next = Q_target(s, argmax(Q_eval(s, a))). Otherwise, q_next = max(Q_target(s, a)).
@@ -34,7 +35,7 @@ class DQNConfig:
             method. Defaults to False.
     """
     __slots__ = [
-        "num_actions", "reward_decay", "loss_func", "target_update_frequency", "tau", "is_double",
+        "num_actions", "reward_decay", "loss_func", "target_update_frequency", "epsilon", "tau", "is_double",
         "advantage_mode", "per_sample_td_error_enabled"
     ]
 
@@ -44,6 +45,7 @@ class DQNConfig:
         reward_decay: float,
         loss_cls,
         target_update_frequency: int,
+        epsilon: float = .0,
         tau: float = 0.1,
         is_double: bool = True,
         advantage_mode: str = None,
@@ -52,6 +54,7 @@ class DQNConfig:
         self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.target_update_frequency = target_update_frequency
+        self.epsilon = epsilon
         self.tau = tau
         self.is_double = is_double
         self.advantage_mode = advantage_mode
@@ -77,7 +80,10 @@ class DQN(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
-        return self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
+        if np.random.random() < self._config.epsilon:
+            return np.random.choice(self._config.num_actions)
+        else:
+            return self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:
@@ -117,3 +123,6 @@ class DQN(AbsAlgorithm):
             self._target_model.soft_update(self._model, self._config.tau)
 
         return loss.detach().numpy()
+
+    def set_exploration_params(self, epsilon):
+        self._config.epsilon = epsilon
