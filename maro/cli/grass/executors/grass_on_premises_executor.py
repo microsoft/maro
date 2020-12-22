@@ -86,7 +86,7 @@ class GrassOnPremisesExecutor:
         except Exception as e:
             # If failed, remove details folder, then raise
             rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}"))
-            raise e
+            raise CliError(f"Failure to create cluster, due to {e}")
 
         logger.info_green(f"Cluster {self.cluster_name} has been created.")
 
@@ -102,6 +102,12 @@ class GrassOnPremisesExecutor:
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
+    def _create_path_in_list(self, target_ip: str, path_list):
+        for path_to_create in path_list:
+            self.grass_executor.remote_mkdir(
+                path=path_to_create,
+                node_ip_address=target_ip
+            )
 
     def _set_master_info(self):
         # Load details
@@ -129,30 +135,15 @@ class GrassOnPremisesExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
 
         # Create folders
-        self.grass_executor.remote_mkdir(
-            path=GlobalPaths.MARO_GRASS_LIB,
-            node_ip_address=master_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            node_ip_address=master_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            node_ip_address=master_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-            node_ip_address=master_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-            node_ip_address=master_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-            node_ip_address=master_public_ip_address
-        )
+        path_list = {
+            GlobalPaths.MARO_GRASS_LIB,
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules"
+        }
+        self._create_path_in_list(master_public_ip_address, path_list)
 
         # Copy required files
         copy_files_to_node(
@@ -264,30 +255,15 @@ class GrassOnPremisesExecutor:
         self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
 
         # Create folders
-        self.grass_executor.remote_mkdir(
-            path=GlobalPaths.MARO_GRASS_LIB,
-            node_ip_address=node_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            node_ip_address=node_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            node_ip_address=node_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-            node_ip_address=node_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-            node_ip_address=node_public_ip_address
-        )
-        self.grass_executor.remote_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-            node_ip_address=node_public_ip_address
-        )
+        path_list = {
+        GlobalPaths.MARO_GRASS_LIB,
+        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules"
+        }
+        self._create_path_in_list(node_public_ip_address, path_list)
 
         # Copy required files
         copy_files_to_node(
@@ -384,23 +360,3 @@ class GrassOnPremisesExecutor:
 
         GrassExecutor.remote_delete_user_from_node(admin_username, maro_user, ip_address)
 
-    @staticmethod
-    def is_legal_ip(test_str: str):
-
-        if "." not in test_str:
-            return False
-        elif test_str.count(".") != 3:
-            return False
-        else:
-            flag = True
-            one_list = test_str.split(".")
-            for one in one_list:
-                try:
-                    one_num = int(one)
-                    if one_num >= 0 and one_num <= 255:
-                        pass
-                    else:
-                        flag = False
-                except ValueError:
-                    flag = False
-            return flag

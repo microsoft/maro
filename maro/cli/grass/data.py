@@ -13,7 +13,6 @@ from maro.utils.exception.cli_exception import BadRequestError
 @lock
 def push_data(cluster_name: str, local_path: str, remote_path: str, **kwargs):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
-
     if cluster_details["mode"] in ["grass/azure", "grass/on-premises"]:
 
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -26,7 +25,6 @@ def push_data(cluster_name: str, local_path: str, remote_path: str, **kwargs):
 @lock
 def pull_data(cluster_name: str, local_path: str, remote_path: str, **kwargs):
     cluster_details = load_cluster_details(cluster_name=cluster_name)
-
     if cluster_details["mode"] in ["grass/azure", "grass/on-premises"]:
 
         executor = GrassAzureExecutor(cluster_name=cluster_name)

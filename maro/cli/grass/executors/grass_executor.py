@@ -245,8 +245,8 @@ class GrassExecutor:
                 continue
         raise ClusterInternalError(f"Unable to connect to {node_ip_address}")
 
-    @staticmethod
     # Create a new user account on target OS.
+    @staticmethod
     def remote_add_user_to_node(admin_username: str, maro_user: str, node_ip_address: str, pubkey: str):
         # The admin_user is an already exist account which has privileges to create new account on target OS.
         command = (
