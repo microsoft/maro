@@ -42,7 +42,7 @@ if __name__ == "__main__":
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
-                postpone_frequency=1
+                postpone_step=1
             )
         else:
             # Get the capacity and allocated cores from snapshot.

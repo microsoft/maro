@@ -22,11 +22,11 @@ class PostponeAction(Action):
 
     Args:
         vm_id (int): The VM id.
-        postpone_frequency (int): The number of times be postponed.
+        postpone_step (int): The number of times be postponed.
     """
-    def __init__(self, vm_id: int, postpone_frequency: int):
+    def __init__(self, vm_id: int, postpone_step: int):
         super().__init__(vm_id)
-        self.postpone_frequency = postpone_frequency
+        self.postpone_step = postpone_step
 
 
 class PlaceAction(Action):

@@ -450,13 +450,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
                 self._successful_placement += 1
             elif type(action) == PostponeAction:
-                postpone_frequency = action.postpone_frequency
+                postpone_step = action.postpone_step
                 remaining_buffer_time = self._pending_vm_request_payload[vm_id].remaining_buffer_time
                 # Either postpone the requirement event or failed.
                 self._postpone_vm_request(
                     postpone_type=PostponeType.Agent,
                     vm_id=vm_id,
-                    remaining_buffer_time=remaining_buffer_time - postpone_frequency * self._config["delay_duration"]
+                    remaining_buffer_time=remaining_buffer_time - postpone_step * self._config["delay_duration"]
                 )
 
     def _download_processed_data(self):
