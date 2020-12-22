@@ -646,8 +646,7 @@ Visualization
 ^^^^^^^^^^^^^
 
 The resource holders in this scenario is the port and vessel.
-Under certain circumstances, the number of epochs in this scenario
-will be greater than 100. In order to facilitate users to select
+Under certain circumstances. In order to facilitate users to select
 specific data and observe the overall or partial data trend, the
 visualization tool provides data selection options in two dimensions:
 Inter-epoch view & Intra-epoch view.
