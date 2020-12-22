@@ -15,7 +15,7 @@ from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
 from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
-from maro.utils.utils import DottableDict
+from maro.utils.utils import convert_dottable
 
 from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, VmRequestPayload
 from .cpu_reader import CpuReader
@@ -107,12 +107,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Update self._config_path with current file path.
         self.update_config_root_path(__file__)
         with open(os.path.join(self._config_path, "config.yml")) as fp:
-            self._config = DottableDict(safe_load(fp))
+            self._config = convert_dottable(safe_load(fp))
 
         self._delay_duration: int = self._config.DELAY_DURATION
         self._buffer_time_budget: int = self._config.BUFFER_TIME_BUDGET
-        self._pm_type: str = self._config.PM_TYPE
-        self._pm_amount: int = self._config.PM[self._pm_type]["AMOUNT"]
+        self._pm_amount: int = self._config.PM.AMOUNT
 
     def _init_data(self):
         vm_table_data_path = self._config.VM_TABLE
@@ -128,8 +127,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-        self._pm_cpu_cores_capacity: int = self._config.PM[self._pm_type]["CPU"]
-        self._pm_memory_capacity: int = self._config.PM[self._pm_type]["MEMORY"]
+        self._pm_cpu_cores_capacity: int = self._config.PM.CPU
+        self._pm_memory_capacity: int = self._config.PM.MEMORY
 
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
@@ -312,9 +311,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = self._config.PM[self._pm_type]["POWER_CURVE"]["CALIBRATION_PARAMETER"]
-        busy_power = self._config.PM[self._pm_type]["POWER_CURVE"]["BUSY_POWER"]
-        idle_power = self._config.PM[self._pm_type]["POWER_CURVE"]["IDLE_POWER"]
+        power: float = self._config.PM.POWER_CURVE.CALIBRATION_PARAMETER
+        busy_power = self._config.PM.POWER_CURVE.BUSY_POWER
+        idle_power = self._config.PM.POWER_CURVE.IDLE_POWER
 
         cpu_utilization /= 100
 
@@ -463,7 +462,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._postpone_vm_request(
                     postpone_type=PostponeType.Agent,
                     vm_id=vm_id,
-                    remaining_buffer_time=remaining_buffer_time - postpone_step * self._config["delay_duration"]
+                    remaining_buffer_time=remaining_buffer_time - postpone_step * self._delay_duration
                 )
 
     def _download_processed_data(self):
@@ -472,7 +471,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         data_root = StaticParameter.data_root
         build_folder = os.path.join(data_root, self._scenario_name, ".build", self._topology)
 
-        source = self._config["PROCESSED_DATA_URL"]
+        source = self._config.PROCESSED_DATA_URL
         download_file_name = source.split('/')[-1]
         download_file_path = os.path.join(build_folder, download_file_name)
 
