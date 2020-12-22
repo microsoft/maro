@@ -1,4 +1,4 @@
-mode: grass
+mode: grass/azure
 allocation:
   mode: single-metric-balanced
   metric: cpu
