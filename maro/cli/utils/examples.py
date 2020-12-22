@@ -41,6 +41,7 @@ MARO_GRASS_NODE_LIST = """
 Examples:
     List all nodes in the cluster
         maro grass node list MyClusterName
+
 """
 
 MARO_GRASS_NODE_JOIN = """
@@ -233,4 +234,59 @@ MARO_K8S_TEMPLATE = """
 Examples:
     Get deployment templates to target directory
         maro k8s template
+
+"""
+
+MARO_PROCESS_SETUP = """
+Examples:
+    Start Redis and agents for local process mode.
+        maro process setup [setting.yml]
+"""
+
+MARO_PROCESS_JOB_START = """
+Examples:
+    Start a training job with a deployment
+        maro process job start ./process-start-job.yml
+"""
+
+MARO_PROCESS_JOB_STOP = """
+Examples:
+    Stop a training job with a job name
+        maro process job stop job_name
+"""
+
+MARO_PROCESS_JOB_DELETE = """
+Examples:
+    Delete local job files with a job name
+        maro process job delete job_name
+"""
+
+MARO_PROCESS_JOB_LIST = """
+Examples:
+    List all jobs
+        maro process job list
+"""
+
+MARO_PROCESS_JOB_LOGS = """
+Examples:
+    Get logs of the job to current directory
+        maro process job logs job_name
+"""
+
+MARO_PROCESS_SCHEDULE_START = """
+Examples:
+    Start a schedule with a deployment
+        maro process schedule start ./process-start-schedule.yml
+"""
+
+MARO_PROCESS_SCHEDULE_STOP = """
+Examples:
+    Stop a training schedule with a schedule name
+        maro process schedule stop schedule_name
+"""
+
+MARO_PROCESS_TEMPLATE = """
+Examples:
+    Get deployment templates (include setting template) to target directory
+        maro k8s template --setting_deploy ./target_directory
 """
