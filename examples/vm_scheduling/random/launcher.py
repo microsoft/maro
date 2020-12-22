@@ -6,7 +6,7 @@ import timeit
 import yaml
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import DecisionPayload, PlaceAction, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
 
 CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     metrics: object = None
     decision_event: DecisionPayload = None
     is_done: bool = False
-    action: PlaceAction = None
+    action: AllocateAction = None
     metrics, decision_event, is_done = env.step(None)
     while not is_done:
         valid_pm_num: int = len(decision_event.valid_pms)
@@ -41,13 +41,13 @@ if __name__ == "__main__":
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
-                postpone_frequency=1
+                postpone_step=1
             )
         else:
             # Randomly choose a vailable PM.
             random_idx = random.randint(0, valid_pm_num - 1)
             pm_id = decision_event.valid_pms[random_idx]
-            action: PlaceAction = PlaceAction(
+            action: AllocateAction = AllocateAction(
                 vm_id=decision_event.vm_id,
                 pm_id=pm_id
             )
