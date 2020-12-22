@@ -21,4 +21,4 @@ if __name__ == '__main__':
         start_cim_dashboard(source_path, epoch_num, prefix)
 
     elif scenario == GlobalScenarios.CITI_BIKE:
-        start_citi_bike_dashboard(source_path, prefix)
+        start_citi_bike_dashboard(source_path, epoch_num, prefix)

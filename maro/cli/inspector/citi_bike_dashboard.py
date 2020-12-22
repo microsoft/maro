@@ -5,6 +5,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from typing import List
 
 import maro.cli.inspector.dashboard_helper as helper
 
@@ -12,36 +13,128 @@ from .params import CITIBIKEItemOption, GlobalFilePaths, GlobalScenarios
 from .visualization_choice import CitiBikeIntraViewChoice, PanelViewChoice
 
 
-def start_citi_bike_dashboard(source_path: str, prefix: str):
+def start_citi_bike_dashboard(source_path: str, epoch_num: int, prefix: str):
     """Entrance of Citi_Bike dashboard.
 
+    Expected folder structure of Scenario Citi Bike:
+    -source_path
+        --epoch_0: Data of each epoch.
+            --stations.csv: Record stations' attributes in this file.
+            --matrices.csv: Record transfer volume information in this file.
+            --stations_summary.csv: Record the summary data of current epoch.
+        ………………
+        --epoch_{epoch_num-1}
+        --manifest.yml: Record basic info like scenario name, name of index_name_mapping file.
+        --full_stations.json: Record the relationship between ports' index and name.
+        --stations_summary.csv: Record cross-epoch summary data.
+
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
+        epoch_num (int): Total number of epoches,
+            i.e. the total number of data folders since there is a folder per epoch.
         prefix (str): Prefix of data folders.
     """
-    option = st.sidebar.selectbox(
-        label="Data Type",
-        options=PanelViewChoice._member_names_)
-    if option == PanelViewChoice.Inter_Epoch.name:
-        render_inter_view(source_path)
-    elif option == PanelViewChoice.Intra_Epoch.name:
-        render_intra_view(source_path, prefix)
+    if epoch_num > 1:
+        option = st.sidebar.selectbox(
+            label="Data Type",
+            options=PanelViewChoice._member_names_)
+        if option == PanelViewChoice.Inter_Epoch.name:
+            render_inter_view(source_path, epoch_num)
+        elif option == PanelViewChoice.Intra_Epoch.name:
+            render_intra_view(source_path, epoch_num, prefix)
+        else:
+            pass
     else:
-        pass
+        render_intra_view(source_path, epoch_num, prefix)
 
 
-def render_intra_view(source_path: str, prefix: str):
-    """Show citi_bike detail plot.
+def render_inter_view(source_path: str, epoch_num: int):
+    """Render the cross-epoch infomartion chart of Citi Bike data.
+
+    This part would be displayed only if epoch_num > 1.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
+        epoch_num (int): Total number of epoches,
+            i.e. the total number of data folders since there is a folder per epoch.
+    """
+    helper.render_h1_title("Citi Bike Inter Epoch Data")
+    sample_ratio = helper.get_sample_ratio_selection_list(epoch_num)
+    # Get epoch sample number.
+    down_pooling_range = helper._get_sampled_epoch_range(epoch_num, sample_ratio)
+    attribute_option_candidates = (
+        CITIBIKEItemOption.quick_info + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
+    )
+    # Generate data.
+    data_summary = helper.read_detail_csv(
+            os.path.join(source_path, GlobalFilePaths.stations_sum)
+        ).iloc[down_pooling_range]
+    # Get formula and selected data.
+    data_formula = helper.get_filtered_formula_and_data(
+        GlobalScenarios.CITI_BIKE, data_summary, attribute_option_candidates
+    )
+    _generate_inter_view_panel(
+        data_formula["data"][data_formula["attribute_option"]],
+        down_pooling_range
+    )
+
+
+def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: List[float]):
+    """Generate inter view plot.
+
+    View info within different epochs.
+
+    Args:
+        data (pd.Dataframe): Original data.
+        down_pooling_range (List[float]): Sampling data index list.
+    """
+    data["Epoch Index"] = list(down_pooling_range)
+    data_melt = data.melt("Epoch Index", var_name="Attributes", value_name="Count")
+
+    inter_line_chart = alt.Chart(data_melt).mark_line().encode(
+        x="Epoch Index",
+        y="Count",
+        color="Attributes",
+        tooltip=["Attributes", "Count", "Epoch Index"]
+    ).properties(
+        width=700,
+        height=380
+    )
+    st.altair_chart(inter_line_chart)
+
+    inter_bar_chart = alt.Chart(data_melt).mark_bar().encode(
+        x="Epoch Index:N",
+        y="Count:Q",
+        color="Attributes:N",
+        tooltip=["Attributes", "Count", "Epoch Index"]
+    ).properties(
+        width=700,
+        height=380
+    )
+    st.altair_chart(inter_bar_chart)
+
+
+def render_intra_view(source_path: str, epoch_num: int, prefix: str):
+    """Show Citi Bike detail plot.
+
+    Args:
+        source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
+        epoch_num (int): Total number of epoches,
+            i.e. the total number of data folders since there is a folder per epoch.
         prefix (str): Prefix of data folders.
     """
-    helper.render_h1_title("CITI_BIKE Detail Data")
-    data_stations = pd.read_csv(os.path.join(source_path, prefix, "stations.csv"))
+    selected_epoch = 0
+    if epoch_num > 1:
+        selected_epoch = st.sidebar.select_slider(
+            label="Choose an Epoch:",
+            options=list(range(0, epoch_num))
+        )
+    helper.render_h1_title("Citi Bike Intra Epoch Data")
+    data_stations = pd.read_csv(os.path.join(source_path, f"{prefix}{selected_epoch}", "stations.csv"))
     view_option = st.sidebar.selectbox(
         label="By station/snapshot:",
-        options=CitiBikeIntraViewChoice._member_names_)
+        options=CitiBikeIntraViewChoice._member_names_
+    )
     stations_num = len(data_stations["id"].unique())
     stations_index = np.arange(stations_num).tolist()
     snapshot_num = len(data_stations["frame_index"].unique())
@@ -53,35 +146,41 @@ def render_intra_view(source_path: str, prefix: str):
             GlobalFilePaths.name_convert
         )
     )
-    option_candidates = CITIBIKEItemOption.quick_info
-    + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
+    attribute_option_candidates = (
+        CITIBIKEItemOption.quick_info + CITIBIKEItemOption.requirement_info + CITIBIKEItemOption.station_info
+    )
     st.sidebar.markdown("***")
+
     # Filter by station index.
     # Display the change of snapshot within 1 station.
-
+    render_top_k_summary(source_path, prefix, selected_epoch)
     if view_option == CitiBikeIntraViewChoice.by_station.name:
-        _generate_inter_view_by_station(
-            data_stations, name_conversion, option_candidates, stations_index, snapshot_num
+        _generate_intra_view_by_station(
+            data_stations, name_conversion, attribute_option_candidates, stations_index, snapshot_num
         )
+
     # Filter by snapshot index.
     # Display all station information within 1 snapshot.
     elif view_option == CitiBikeIntraViewChoice.by_snapshot.name:
-        _generate_inter_view_by_snapshot(
-            data_stations, name_conversion, option_candidates,
+        _generate_intra_view_by_snapshot(
+            data_stations, name_conversion, attribute_option_candidates,
             snapshots_index, snapshot_num, stations_num
         )
 
 
-def render_inter_view(source_path: str):
+def render_top_k_summary(source_path: str, prefix: str, epoch_index: int):
     """ Show summary plot.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
+        prefix (str): Prefix of data folders.
+        epoch_index (int): The index of selected epoch.
     """
-    helper.render_h1_title("CITI_BIKE Summary Data")
+    helper.render_h3_title("Cike Bike Top K")
     data = helper.read_detail_csv(
         os.path.join(
             source_path,
+            f"{prefix}{epoch_index}",
             GlobalFilePaths.stations_sum
         )
     )
@@ -94,56 +193,65 @@ def render_inter_view(source_path: str):
         )
     )
     # Generate top summary.
-    top_number = st.select_slider("Top K", list(range(0, 10)))
+    top_number = st.select_slider(
+        "Select Top K",
+        list(range(1, 5))
+    )
     top_attributes = ["bikes", "trip_requirement", "fulfillment", "fulfillment_ratio"]
     for item in top_attributes:
         helper.generate_by_snapshot_top_summary("station name", data, int(top_number), item)
 
 
-def _generate_inter_view_by_snapshot(
-        data_stations: pd.DataFrame, name_conversion: pd.DataFrame, option_candidates: list,
-        snapshots_index: list, snapshot_num: int, stations_num: int):
-    """Show CITI BIKE detail data by snapshot.
+def _generate_intra_view_by_snapshot(
+    data_stations: pd.DataFrame, name_conversion: pd.DataFrame, attribute_option_candidates: List[str],
+    snapshots_index: List[int], snapshot_num: int, stations_num: int
+):
+    """Show Citi Bike detail data by snapshot.
 
     Args:
-        data_stations (dataframe): Filtered Data.
-        name_conversion (dataframe): Relationship between index and name.
-        option_candidates (list): All options for users to choose.
-        snapshots_index (list): Sampled snapshot index.
+        data_stations (pd.Dataframe): Filtered Data.
+        name_conversion (pd.Dataframe): Relationship between index and name.
+        attribute_option_candidates (List[str]): All options for users to choose.
+        snapshots_index (List[int]): Sampled snapshot index.
         snapshot_num (int): Number of snapshots.
         stations_num (int): Number of stations.
     """
     # Get selected snapshot index.
-    snapshot_index = st.sidebar.select_slider(
-        "snapshot index",
-        snapshots_index)
-    helper.render_h3_title(f"Snapshot-{snapshot_index}:  Detail Data")
+    selected_snapshot = st.sidebar.select_slider(
+        label="snapshot index",
+        options=snapshots_index
+    )
+    helper.render_h3_title(f"Snapshot-{selected_snapshot}:  Detail Data")
     # Get according data with selected snapshot.
-    data_filtered = data_stations[data_stations["frame_index"] == snapshot_index]
+    data_filtered = data_stations[data_stations["frame_index"] == selected_snapshot]
     # Get increasing rate.
-    sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
+    sample_ratio = helper.get_sample_ratio_selection_list(stations_num)
     # Get sample rate (between 0-1).
-    station_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio", sample_ratio)
+    selected_station_sample_ratio = st.sidebar.select_slider(
+        label="Station Sampling Ratio",
+        options=sample_ratio
+    )
 
     # Get formula input and output.
-    filtered_data = helper.get_filtered_formula_and_data(
-        GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
+    data_formula = helper.get_filtered_formula_and_data(
+        GlobalScenarios.CITI_BIKE, data_filtered, attribute_option_candidates
+    )
     # Get sampled data and get station name.
-    down_pooling = list(range(0, stations_num, math.floor(1 / station_sample_num)))
+    down_pooling_sample_list = list(range(0, stations_num, math.floor(1 / selected_station_sample_ratio)))
 
-    item_option = filtered_data["item_option"].append("name")
-    snapshot_filtered = filtered_data["data"][item_option]
-    snapshot_filtered = snapshot_filtered.iloc[down_pooling]
-    snapshot_filtered["name"] = snapshot_filtered["name"].apply(lambda x: int(x[9:]))
-    snapshot_filtered["Station Name"] = snapshot_filtered["name"].apply(
+    attribute_option = data_formula["attribute_option"].append("name")
+    data_filtered = data_formula["data"][attribute_option]
+    data_filtered = data_filtered.iloc[down_pooling_sample_list]
+    data_filtered["name"] = data_filtered["name"].apply(lambda x: int(x[9:]))
+    data_filtered["Station Name"] = data_filtered["name"].apply(
         lambda x: name_conversion.loc[int(x)]
     )
-    data_display = snapshot_filtered.melt(
+    data_melt = data_filtered.melt(
         ["Station Name", "name"],
         var_name="Attributes",
         value_name="Count"
     )
-    snapshot_line_chart = alt.Chart(data_display).mark_bar().encode(
+    intra_snapshot_line_chart = alt.Chart(data_melt).mark_bar().encode(
         x=alt.X("name:N", axis=alt.Axis(title="Name")),
         y="Count:Q",
         color="Attributes:N",
@@ -152,45 +260,54 @@ def _generate_inter_view_by_snapshot(
         width=700,
         height=380
     )
-    st.altair_chart(snapshot_line_chart)
+    st.altair_chart(intra_snapshot_line_chart)
 
 
-def _generate_inter_view_by_station(
-        data_stations: pd.DataFrame, name_conversion: pd.DataFrame, option_candidates: list,
-        stations_index: list, snapshot_num: int):
-    """ Show CITI BIKE detail data by station
+def _generate_intra_view_by_station(
+    data_stations: pd.DataFrame, name_conversion: pd.DataFrame, attribute_option_candidates: List[str],
+    stations_index: List[int], snapshot_num: int
+):
+    """ Show Citi Bike detail data by station.
 
     Args:
-        data_stations (dataframe): Filtered data
-        name_conversion (dataframe): Relationship between index and name.
-        option_candidates (list): All options for users to choose.
-        stations_index (list):  List of station index.
+        data_stations (pd.Dataframe): Filtered station data.
+        name_conversion (pd.Dataframe): Relationship between index and name.
+        attribute_option_candidates (List[str]): All options for users to choose.
+        stations_index (List[int]):  List of station index.
         snapshot_num (int): Number of snapshots.
-
     """
-    station_index = st.sidebar.select_slider(
-        "station index",
-        stations_index)
-    helper.render_h3_title(name_conversion.loc[int(station_index)][0] + " Detail Data")
+    selected_station = st.sidebar.select_slider(
+        label="station index",
+        options=stations_index
+    )
+    helper.render_h3_title(name_conversion.loc[int(selected_station)][0] + " Detail Data")
     # Filter data by station index.
-    data_filtered = data_stations[data_stations["name"] == f"stations_{station_index}"]
-    station_sample_ratio = helper.get_holder_sample_ratio(snapshot_num)
-    snapshot_sample_num = st.sidebar.select_slider("Snapshot Sampling Ratio:", station_sample_ratio)
+    data_filtered = data_stations[data_stations["name"] == f"stations_{selected_station}"]
+    snapshot_sample_ratio_list = helper.get_sample_ratio_selection_list(snapshot_num)
+    selected_snapshot_sample_ratio = st.sidebar.select_slider(
+        label="Snapshot Sampling Ratio:",
+        options=snapshot_sample_ratio_list
+    )
     # Get formula input and output.
-    filtered_data = helper.get_filtered_formula_and_data(
-        GlobalScenarios.CITI_BIKE, data_filtered, option_candidates)
+    data_formula = helper.get_filtered_formula_and_data(
+        GlobalScenarios.CITI_BIKE, data_filtered, attribute_option_candidates
+    )
 
-    item_option = filtered_data["item_option"].append("frame_index")
-    station_filtered = filtered_data["data"][item_option].reset_index(drop=True)
-    down_pooling = helper.get_snapshot_sample_num(snapshot_num, snapshot_sample_num)
-    station_filtered = station_filtered.iloc[down_pooling]
-    station_filtered.rename(columns={"frame_index": "snapshot_index"}, inplace=True)
-    data_display = station_filtered.melt(
+    attribute_option = data_formula["attribute_option"]
+    attribute_option.append("frame_index")
+    data_filtered = data_formula["data"][attribute_option].reset_index(drop=True)
+    down_pooling_sample_list = helper.get_sample_index_list(snapshot_num, selected_snapshot_sample_ratio)
+    data_filtered = data_filtered.iloc[down_pooling_sample_list]
+    data_filtered.rename(
+        columns={"frame_index": "snapshot_index"},
+        inplace=True
+    )
+    data_melt = data_filtered.melt(
         "snapshot_index",
         var_name="Attributes",
         value_name="Count"
     )
-    station_line_chart = alt.Chart(data_display).mark_line().encode(
+    intra_station_line_chart = alt.Chart(data_melt).mark_line().encode(
         x=alt.X("snapshot_index", axis=alt.Axis(title="Snapshot Index")),
         y="Count",
         color="Attributes",
@@ -199,4 +316,15 @@ def _generate_inter_view_by_station(
         width=700,
         height=380
     )
-    st.altair_chart(station_line_chart)
+    st.altair_chart(intra_station_line_chart)
+
+    intra_station_bar_chart = alt.Chart(data_melt).mark_bar().encode(
+        x=alt.X("snapshot_index:N", axis=alt.Axis(title="Snapshot Index")),
+        y="Count:Q",
+        color="Attributes:N",
+        tooltip=["Attributes", "Count", "snapshot_index"]
+    ).properties(
+        width=700,
+        height=380
+    )
+    st.altair_chart(intra_station_bar_chart)
