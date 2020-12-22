@@ -55,3 +55,6 @@ class AbsAlgorithm(ABC):
     def dump_models_to_file(self, path: str):
         """Dump the algorithm's trainable models to disk."""
         return NotImplementedError
+
+    def set_exploration_params(self, **params):
+        pass
