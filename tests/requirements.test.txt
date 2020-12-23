@@ -18,3 +18,4 @@ pytest
 coverage
 paramiko==2.7.2
 pytz==2019.3
+aria2p==0.9.1
