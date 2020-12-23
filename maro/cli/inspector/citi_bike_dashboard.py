@@ -1,4 +1,3 @@
-import math
 import os
 
 import altair as alt
@@ -237,15 +236,21 @@ def _generate_intra_view_by_snapshot(
         GlobalScenarios.CITI_BIKE, data_filtered, attribute_option_candidates
     )
     # Get sampled data and get station name.
-    down_pooling_sample_list = list(range(0, stations_num, math.floor(1 / selected_station_sample_ratio)))
-
-    attribute_option = data_formula["attribute_option"].append("name")
-    data_filtered = data_formula["data"][attribute_option]
-    data_filtered = data_filtered.iloc[down_pooling_sample_list]
-    data_filtered["name"] = data_filtered["name"].apply(lambda x: int(x[9:]))
-    data_filtered["Station Name"] = data_filtered["name"].apply(
-        lambda x: name_conversion.loc[int(x)]
-    )
+    down_pooling_sample_list = helper.get_sample_index_list(stations_num, selected_station_sample_ratio)
+    
+    attribute_option = data_formula["attribute_option"]
+    attribute_option.append("name")
+    if selected_station_sample_ratio == 0:
+        empty_head = attribute_option
+        empty_head.append("Station Name")
+        data_filtered = pd.DataFrame(columns=empty_head)
+    else:
+        data_filtered = data_formula["data"][attribute_option]
+        data_filtered = data_filtered.iloc[down_pooling_sample_list]
+        data_filtered["name"] = data_filtered["name"].apply(lambda x: int(x[9:]))
+        data_filtered["Station Name"] = data_filtered["name"].apply(
+            lambda x: name_conversion.loc[int(x)]
+        )
     data_melt = data_filtered.melt(
         ["Station Name", "name"],
         var_name="Attributes",

@@ -182,13 +182,13 @@ def _get_attribute_option(
     """Convert selected attribute options into column.
 
     Args:
-        scenario (GlobalScenarios): Scenario name.
-        attribute_option (List[str]): User selected attributes list.
+        scenario (GlobalScenarios): Name of scenario
+        attribute_option (List[str]): User-selected attributes list.
         attribute_option_candidates (List[str]): Pre-defined attributes list.
 
     Returns:
         List[str]: Translated attribute list,
-                which contains no user-selected attributes, but only pre-defined attributes.
+            which contains no user-selected attributes, but only pre-defined attributes.
 
     """
     attribute_option_res = []
@@ -225,11 +225,11 @@ def _get_attribute_option(
         return attribute_option_res
 
 
-def _formula_define(data_origin: pd.DataFrame) -> dict:
+def _formula_define(data_original: pd.DataFrame) -> dict:
     """Define formula and get output.
 
     Args:
-        data_origin (pd.Dataframe): Original data to be calculated with selected formula.
+        data_original (pd.Dataframe): Original data to be calculated with selected formula.
 
     Returns:
         dict: Name and output of selected formula and original data.
@@ -247,89 +247,89 @@ def _formula_define(data_origin: pd.DataFrame) -> dict:
         if not _judge_data_length(res, 2):
             return
         else:
-            data_right = _judge_append_data(data_origin.head(0), res)
+            data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
-                data_origin[f"{res[0]}+{res[1]}"] = list(
+                data_original[f"{res[0]}+{res[1]}"] = list(
                     map(
                         lambda x, y: x + y,
-                        data_origin[res[0]],
-                        data_origin[res[1]]
+                        data_original[res[0]],
+                        data_original[res[1]]
                         )
                 )
             else:
                 return
-        data = {"data": data_origin, "name": f"{res[0]}+{res[1]}"}
+        data = {"data": data_original, "name": f"{res[0]}+{res[1]}"}
         return data
 
     if formula_select == "a-b":
         if not _judge_data_length(res, 2):
             return
         else:
-            data_right = _judge_append_data(data_origin.head(0), res)
+            data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
-                data_origin[f"{res[0]}-{res[1]}"] = list(
+                data_original[f"{res[0]}-{res[1]}"] = list(
                     map(
                         lambda x, y: x - y,
-                        data_origin[res[0]],
-                        data_origin[res[1]]
+                        data_original[res[0]],
+                        data_original[res[1]]
                     )
                 )
             else:
                 return
-        data = {"data": data_origin, "name": f"{res[0]}-{res[1]}"}
+        data = {"data": data_original, "name": f"{res[0]}-{res[1]}"}
         return data
 
     if formula_select == "a*b":
         if not _judge_data_length(res, 2):
             return
         else:
-            data_right = _judge_append_data(data_origin.head(0), res)
+            data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
-                data_origin[f"{res[0]}*{res[1]}"] = list(
+                data_original[f"{res[0]}*{res[1]}"] = list(
                     map(
                         lambda x, y: x * y,
-                        data_origin[res[0]],
-                        data_origin[res[1]]
+                        data_original[res[0]],
+                        data_original[res[1]]
                     )
                 )
             else:
                 return
-        data = {"data": data_origin, "name": f"{res[0]}*{res[1]}"}
+        data = {"data": data_original, "name": f"{res[0]}*{res[1]}"}
         return data
 
     if formula_select == "a/b":
         if not _judge_data_length(res, 2):
             return
         else:
-            data_right = _judge_append_data(data_origin.head(0), res)
+            data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
-                data_origin[f"{res[0]}/{res[1]}"] = list(
+                data_original[f"{res[0]}/{res[1]}"] = list(
                     map(
                         lambda x, y: x + y,
-                        data_origin[res[0]],
-                        data_origin[res[1]]
+                        data_original[res[0]],
+                        data_original[res[1]]
                     )
                 )
             else:
                 return
-        data = {"data": data_origin, "name": f"{res[0]}/{res[1]}"}
+        data = {"data": data_original, "name": f"{res[0]}/{res[1]}"}
         return data
 
     if formula_select == "sqrt(a)":
         if not _judge_data_length(res, 1):
             return
         else:
-            data_right = _judge_append_data(data_origin.head(0), res)
+            data_right = _judge_append_data(data_original.head(0), res)
             if data_right:
-                data_origin[f"sqrt({res[0]})"] = list(
+                data_original[f"sqrt({res[0]})"] = list(
                     map(
                         lambda x: math.sqrt(x),
-                        data_origin[res[0]]
+                        data_original[res[0]]
                         )
                 )
             else:
                 return
-        data = {"data": data_origin, "name": f"sqrt({res[0]})"}
+        data = {"data": data_original, "name": f"sqrt({res[0]})"}
         return data
 
 
@@ -337,8 +337,8 @@ def _judge_data_length(res: list, formula_length: int) -> bool:
     """Judge whether the length of input data meet the requirements.
 
     Args:
-        res (list): Input data.
-        formula_length (int): Supposed length of data list.
+        res (list): User-input data.
+        formula_length (int): Supposed length of input data with selected formula.
 
     Returns:
         bool: Whether the length of data meet the requirements of formula.
@@ -377,7 +377,7 @@ def _get_sampled_epoch_range(epoch_num: int, sample_ratio: float) -> List[float]
 
     Args:
         epoch_num (int): Total number of epoches,
-                         i.e. the total number of data folders since there is a folder per epoch.
+            i.e. the total number of data folders since there is a folder per epoch.
         sample_ratio (float): Sampling ratio.
             e.g. If sample_ratio = 0.3, and sample data range = [0, 10],
             down_pooling_list = [0, 0.3, 0.6, 0.9]

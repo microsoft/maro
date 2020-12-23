@@ -113,7 +113,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     )
 
     # Name conversion.
-    name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
+    index_name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
 
     st.sidebar.markdown("***")
     option_view = st.sidebar.selectbox(
@@ -123,13 +123,13 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
 
     if option_view == CIMIntraViewChoice.by_port.name:
         _render_intra_view_by_ports(
-            data_ports, ports_index, name_conversion,
+            data_ports, ports_index, index_name_conversion,
             attribute_option_candidates, snapshot_num
         )
     elif option_view == CIMIntraViewChoice.by_snapshot.name:
         _render_intra_view_by_snapshot(
             source_path, selected_epoch, data_ports, snapshots_index,
-            name_conversion, attribute_option_candidates, ports_num, prefix
+            index_name_conversion, attribute_option_candidates, ports_num, prefix
         )
 
 
@@ -174,14 +174,14 @@ def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: List[floa
 
 def _render_intra_view_by_ports(
     data_ports: pd.DataFrame, ports_index: int,
-    name_conversion: pd.DataFrame, attribute_option_candidates: List[str], snapshot_num: int
+    index_name_conversion: pd.DataFrame, attribute_option_candidates: List[str], snapshot_num: int
 ):
     """ Show intra data by ports.
 
     Args:
         data_ports (pd.Dataframe): Filtered port data.
         ports_index (int):Index of port of current data.
-        name_conversion (pd.Dataframe): Relationship of index and name.
+        index_name_conversion (pd.Dataframe): Relationship of index and name.
         attribute_option_candidates (List[str]): All options for users to choose.
         snapshot_num (int): Number of snapshots on a port.
     """
@@ -197,7 +197,7 @@ def _render_intra_view_by_ports(
     # Accumulated data.
     helper.render_h1_title("CIM Accumulated Data")
     helper.render_h3_title(
-        f"Port Accumulated Attributes: {selected_port} - {name_conversion.loc[int(selected_port)][0]}"
+        f"Port Accumulated Attributes: {selected_port} - {index_name_conversion.loc[int(selected_port)][0]}"
     )
     _generate_intra_panel_by_ports(
         CIMItemOption.basic_info + CIMItemOption.acc_info,
@@ -210,7 +210,7 @@ def _render_intra_view_by_ports(
     )
 
     helper.render_h3_title(
-        f"Port Detail Attributes: {selected_port} - {name_conversion.loc[int(selected_port)][0]}"
+        f"Port Detail Attributes: {selected_port} - {index_name_conversion.loc[int(selected_port)][0]}"
     )
     _generate_intra_panel_by_ports(
         CIMItemOption.basic_info + CIMItemOption.booking_info + CIMItemOption.port_info,
@@ -221,7 +221,7 @@ def _render_intra_view_by_ports(
 
 def _render_intra_view_by_snapshot(
     source_path: str, option_epoch: int, data_ports: pd.DataFrame, snapshots_index: List[int],
-    name_conversion: pd.DataFrame, attribute_option_candidates: List[str], ports_num: int, prefix: str
+    index_name_conversion: pd.DataFrame, attribute_option_candidates: List[str], ports_num: int, prefix: str
 ):
     """ Show intra-view by snapshot.
 
@@ -230,7 +230,7 @@ def _render_intra_view_by_snapshot(
         option_epoch (int): Index of selected epoch.
         data_ports (pd.Dataframe): Filtered port data.
         snapshots_index (List[int]): Index of selected snapshot.
-        name_conversion (pd.Dataframe): Relationship between index and name.
+        index_name_conversion (pd.Dataframe): Relationship between index and name.
         attribute_option_candidates (List[str]): All options for users to choose.
         ports_num (int): Number of ports in current snapshot.
         prefix (str): Prefix of data folders.
@@ -252,9 +252,9 @@ def _render_intra_view_by_snapshot(
     helper.render_h3_title(f"SnapShot-{selected_snapshot}: Port Accumulated Attributes")
     _generate_intra_panel_by_snapshot(
         CIMItemOption.basic_info + CIMItemOption.acc_info, data_ports, selected_snapshot,
-        ports_num, name_conversion, selected_port_sample_ratio
+        ports_num, index_name_conversion, selected_port_sample_ratio
     )
-    _generate_top_k_summary(data_ports, selected_snapshot, name_conversion)
+    _generate_top_k_summary(data_ports, selected_snapshot, index_name_conversion)
     # Detailed data.
     helper.render_h1_title("Detail Data")
     _render_intra_panel_vessel(source_path, prefix, option_epoch, selected_snapshot)
@@ -266,7 +266,7 @@ def _render_intra_view_by_snapshot(
     _generate_intra_panel_by_snapshot(
         CIMItemOption.basic_info + CIMItemOption.booking_info + CIMItemOption.port_info,
         data_formula["data"], selected_snapshot,
-        ports_num, name_conversion, selected_port_sample_ratio, data_formula["attribute_option"])
+        ports_num, index_name_conversion, selected_port_sample_ratio, data_formula["attribute_option"])
 
 
 def _generate_intra_panel_by_ports(
@@ -286,7 +286,7 @@ def _generate_intra_panel_by_ports(
         option_port_name (str): Condition for filtering the name attribute in the data.
         snapshot_num (int): Number of snapshots.
         snapshot_sample_num (float): Number of sampled snapshots.
-        attribute_option (List[str]): Translated user-select option.
+        attribute_option (List[str]): Translated user-selecteded option.
     """
     data_acc = data[info_selector]
     info_selector.pop(0)
@@ -330,7 +330,7 @@ def _generate_intra_panel_by_ports(
 
 def _generate_intra_panel_by_snapshot(
     info: List[str], data: pd.DataFrame, snapshot_index: int, ports_num: int,
-    name_conversion: pd.DataFrame, sample_ratio: List[float], attribute_option: List[str] = None
+    index_name_conversion: pd.DataFrame, sample_ratio: List[float], attribute_option: List[str] = None
 ):
     """Generate detail plot.
 
@@ -341,11 +341,11 @@ def _generate_intra_panel_by_snapshot(
             In this scenario, it is divided into two levels: comprehensive and detail.
             The list stores the column names that will be extracted at different levels.
         data (pd.Dataframe): Filtered data within selected conditions.
-        snapshot_index (int): User-select snapshot index.
+        snapshot_index (int): user-selected snapshot index.
         ports_num (int): Number of ports.
-        name_conversion (pd.Dataframe): Relationship between index and name.
+        index_name_conversion (pd.Dataframe): Relationship between index and name.
         sample_ratio (List[float]): Sampled port index list.
-        attribute_option (List[str]): Translated user-select options.
+        attribute_option (List[str]): Translated user-selected options.
     """
     data_acc = data[info]
     info.pop(1)
@@ -364,7 +364,7 @@ def _generate_intra_panel_by_snapshot(
         attribute_option.append("name")
         data_rename = data_rename[attribute_option]
 
-    data_filtered["Port Name"] = data_rename["name"].apply(lambda x: name_conversion.loc[int(x)])
+    data_filtered["Port Name"] = data_rename["name"].apply(lambda x: index_name_conversion.loc[int(x)])
     data_melt = data_filtered.melt(
         ["name", "Port Name"],
         var_name="Attributes",
@@ -407,7 +407,7 @@ def _generate_intra_panel_vessel(data_vessel: pd.DataFrame, snapshot_index: int,
 
     Args:
         data_vessel (pd.Dataframe): Data of vessel information within selected snapshot index.
-        snapshot_index (int): User-select snapshot index.
+        snapshot_index (int): User-selected snapshot index.
         vessels_num (int): Number of vessels.
     """
     helper.render_h3_title(f"SnapShot-{snapshot_index}: Vessel Attributes")
@@ -506,13 +506,13 @@ def _generate_intra_heat_map(matrix_data: str):
     st.altair_chart(transfer_volume_heat_map)
 
 
-def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conversion: pd.DataFrame):
+def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, index_name_conversion: pd.DataFrame):
     """Generate CIM top k summary.
 
     Args:
         data (pd.Dataframe): Data of current snapshot.
         snapshot_index (int): Selected snapshot index.
-        name_conversion (pd.Dataframe): Relationship between index and name.
+        index_name_conversion (pd.Dataframe): Relationship between index and name.
     """
     data_summary = data[data["frame_index"] == snapshot_index].reset_index(drop=True)
     data_summary["fulfillment_ratio"] = list(
@@ -525,7 +525,7 @@ def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, name_conver
 
     data_summary["port name"] = list(
         map(
-            lambda x: name_conversion.loc[int(x[6:])][0],
+            lambda x: index_name_conversion.loc[int(x[6:])][0],
             data_summary["name"]
         )
     )
