@@ -3,13 +3,14 @@
 
 from enum import Enum
 from functools import wraps
+from os import environ
 
 import numpy as np
 import torch
 
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTaskError
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = environ.get("DEVICE", torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
 
 def validate_task_names(task_enum: Enum):
@@ -60,6 +61,9 @@ def expand_dim(func):
         if is_single:
             state = state.unsqueeze(dim=0)
         result = func(self, state, **kwargs)
-        return result.item() if is_single else result.numpy()
+        if isinstance(result, torch.Tensor):
+            return result.item() if is_single else result.numpy()
+        else:
+            return result
 
     return wrapper
