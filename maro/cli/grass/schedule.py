@@ -15,7 +15,7 @@ def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure":
+    if cluster_details["mode"] in ["grass/azure", "grass/on-premises"]:
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.start_schedule(deployment_path=deployment_path)
     else:
@@ -28,7 +28,7 @@ def stop_schedule(cluster_name: str, schedule_name: str, **kwargs):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
-    if cluster_details["mode"] == "grass/azure":
+    if cluster_details["mode"] in ["grass/azure", "grass/on-premises"]:
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.stop_schedule(schedule_name=schedule_name)
     else:
