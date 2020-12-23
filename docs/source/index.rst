@@ -83,6 +83,7 @@ Contents
     installation/playground.rst
     installation/grass_cluster_provisioning_on_azure.rst
     installation/k8s_cluster_provisioning_on_azure.rst
+    installation/grass_cluster_provisioning_on_premises.rst'
 
 .. toctree::
     :maxdepth: 2
