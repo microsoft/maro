@@ -124,15 +124,15 @@ class TestGrass(unittest.TestCase):
 
     @record_running_time(func_to_time=test_func_to_time)
     def test11_node1(self) -> None:
-        """Scale node spec Standard_D4s_v3 to 1.
+        """Scale node spec Standard_D2s_v3 to 1.
 
-        A Standard_D4s_v3 should be in running state.
+        A Standard_D2s_v3 should be in running state.
 
         Returns:
             None.
         """
         # Run cli command
-        command = f"maro grass node scale {self.cluster_name} --debug Standard_D4s_v3 1"
+        command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
 
         # Check validity
@@ -146,7 +146,7 @@ class TestGrass(unittest.TestCase):
     def test12_image1(self) -> None:
         """Push image alpine:latest to the cluster.
 
-        The only Standard_D4s_v3 should have loaded the image alpine:latest.
+        The only Standard_D2s_v3 should have loaded the image alpine:latest.
 
         Returns:
             None.
@@ -166,15 +166,15 @@ class TestGrass(unittest.TestCase):
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test13_node2(self) -> None:
-        """Scale node spec Standard_D4s_v3 to 2.
+        """Scale node spec Standard_D2s_v3 to 2.
 
-        Two Standard_D4s_v3 should be in running state, and they should have loaded the image alpine:latest.
+        Two Standard_D2s_v3 should be in running state, and they should have loaded the image alpine:latest.
 
         Returns:
             None.
         """
         # Run cli command
-        command = f"maro grass node scale {self.cluster_name} --debug Standard_D4s_v3 2"
+        command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 2"
         SubProcess.interactive_run(command)
         self._gracefully_wait()
 
@@ -188,15 +188,15 @@ class TestGrass(unittest.TestCase):
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test14_stop(self) -> None:
-        """Stop one Standard_D4s_v3.
+        """Stop one Standard_D2s_v3.
 
-        One Standard_D4s_v3 should be in running state, and the other should be in Stopped state.
+        One Standard_D2s_v3 should be in running state, and the other should be in Stopped state.
 
         Returns:
             None.
         """
         # Run cli command
-        command = f"maro grass node stop {self.cluster_name} --debug Standard_D4s_v3 1"
+        command = f"maro grass node stop {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
         self._gracefully_wait()
 
@@ -218,7 +218,7 @@ class TestGrass(unittest.TestCase):
     def test15_image2(self) -> None:
         """Push image ubuntu:latest to the cluster.
 
-        The only Running Standard_D4s_v3 should have loaded the image ubuntu:latest,
+        The only Running Standard_D2s_v3 should have loaded the image ubuntu:latest,
         and the other should have not.
 
         Returns:
@@ -249,15 +249,15 @@ class TestGrass(unittest.TestCase):
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test16_start(self) -> None:
-        """Start one Standard_D4s_v3.
+        """Start one Standard_D2s_v3.
 
-        Two Standard_D4s_v3 should be in running state,
+        Two Standard_D2s_v3 should be in running state,
         and they should have loaded the image alpine:latest and ubuntu:latest.
 
         Returns:
             None.
         """
-        command = f"maro grass node start {self.cluster_name} --debug Standard_D4s_v3 1"
+        command = f"maro grass node start {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
         self._gracefully_wait()
 
