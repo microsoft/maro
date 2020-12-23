@@ -7,6 +7,7 @@ import unittest
 import numpy as np
 from dummy.dummy_business_engine import DummyEngine
 
+from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
 from maro.simulator.core import BusinessEngineNotFoundError, Env
 from tests.utils import backends_to_test
 
@@ -101,8 +102,6 @@ class TestEnv(unittest.TestCase):
 
             # val should have only one slot (default)
             val_slots = attributes['val']["slots"]
-
-            print(val_slots)
 
             self.assertEqual(
                 1, val_slots, msg=f"dummy's val attribute should be int type, got {val_slots}")
@@ -267,6 +266,22 @@ class TestEnv(unittest.TestCase):
         # not exist topology
         with self.assertRaises(FileNotFoundError) as ctx:
             env = Env("cim", "None", 100)
+
+    def test_get_avaiable_envs(self):
+        scenario_names = get_scenarios()
+
+        # we have 2 built-in scenarios
+        self.assertEqual(2, len(scenario_names))
+
+        self.assertTrue("cim" in scenario_names)
+        self.assertTrue("citi_bike" in scenario_names)
+
+        cim_topoloies = get_topologies("cim")
+        citi_bike_topologies = get_topologies("citi_bike")
+
+        env_list = get_available_envs()
+
+        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies))
 
 
 if __name__ == "__main__":
