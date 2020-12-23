@@ -43,6 +43,18 @@ Examples:
         maro grass node list MyClusterName
 """
 
+MARO_GRASS_NODE_JOIN = """
+Examples:
+    Let one node join in a cluster in on-premises mode.
+        maro grass node join node_join_info.yml
+"""
+
+MARO_GRASS_NODE_LEAVE = """
+Examples:
+    Let one node leave in a cluster in on-premises mode.
+        maro grass node leave MyClusterName node_ip_address
+"""
+
 MARO_GRASS_IMAGE_PUSH = """
 Examples:
     Push a local image in the docker registry and load it into cluster

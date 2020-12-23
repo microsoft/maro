@@ -107,15 +107,15 @@ class AbsAgentManager(ABC):
         """Train the agents."""
         return NotImplemented
 
-    def update_exploration_params(self, exploration_params):
+    def set_exploration_params(self, params):
         # Per-agent exploration parameters
-        if isinstance(exploration_params, dict) and exploration_params.keys() <= self._agent_dict.keys():
-            for agent_id, params in exploration_params.items():
-                self._agent_dict[agent_id].update(**params)
+        if isinstance(params, dict) and params.keys() <= self.agent_dict.keys():
+            for agent_id, params in params.items():
+                self.agent_dict[agent_id].set_exploration_params(**params)
         # Shared exploration parameters for all agents
         else:
-            for agent in self._agent_dict.values():
-                agent.update(**exploration_params)
+            for agent in self.agent_dict.values():
+                agent.set_exploration_params(**params)
 
     def load_models(self, agent_model_dict):
         """Load models from memory for each agent."""

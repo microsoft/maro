@@ -46,3 +46,6 @@ class AbsAlgorithm(ABC):
         algorithm, this may look like train(self, state_batch, action_batch, reward_batch, next_state_batch).
         """
         return NotImplementedError
+
+    def set_exploration_params(self, **params):
+        pass
