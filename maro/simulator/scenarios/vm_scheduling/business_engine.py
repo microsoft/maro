@@ -25,6 +25,8 @@ from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
 
 metrics_desc = """
+VM scheduling metrics used provide statistics information until now.
+It contains following keys:
 
 total_vm_requests (int): Total VM requests.
 total_energy_consumption (float): Accumulative total PM energy consumption.
@@ -114,6 +116,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._pm_amount: int = self._config.PM.AMOUNT
 
     def _init_data(self):
+        """If the file does not exist, then trigger the short data pipeline to download the processed data."""
         vm_table_data_path = self._config.VM_TABLE
         if vm_table_data_path.startswith("~"):
             vm_table_data_path = os.path.expanduser(vm_table_data_path)
@@ -231,11 +234,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         }
 
     def get_agent_idx_list(self) -> List[int]:
-        """Get a list of agent index.
-
-        Returns:
-            list: List of agent index.
-        """
+        """Get a list of agent index."""
         pass
 
     def get_node_mapping(self) -> dict:
@@ -245,7 +244,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         return node_mapping
 
     def get_vm_cpu_utilization_series(self, vm_id: int) -> List[float]:
-
+        """Get the CPU utilization series of the specific VM by the given ID."""
         if vm_id in self._live_vms:
             return self._live_vms[vm_id].get_historical_utilization_series(cur_tick=self._tick)
 
@@ -467,7 +466,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _download_processed_data(self):
         """Build processed data."""
-
         data_root = StaticParameter.data_root
         build_folder = os.path.join(data_root, self._scenario_name, ".build", self._topology)
 
