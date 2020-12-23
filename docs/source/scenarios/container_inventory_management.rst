@@ -687,7 +687,7 @@ snapshot would be displayed. The charts and data involved in this part
 are relatively rich, and we will introduce them by level.
 
 Accumulated Data
-````````````````
+~~~~~~~~~~~~~~~~
 
 This part includes the transfer volume heat map, bar chart of port
 accumulated attributes and top-k ports of different attributes.
@@ -706,7 +706,7 @@ ports.
    :alt: cim\_intra\_epoch\_by\_snapshot\_acc\_data
 
 Detail Data
-```````````
+~~~~~~~~~~~
 
 Since the cargoes is transported through vessels, information of vessels
 could be viewed by snapshot.
