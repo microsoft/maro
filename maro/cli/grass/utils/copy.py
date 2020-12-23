@@ -33,7 +33,7 @@ def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, no
     mkdir_script = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {target_dir}'"
     _ = SubProcess.run(mkdir_script)
 
-    if platform.system() == "Linux":
+    if platform.system() in ["Linux", "Darwin"]:
         # Copy with pipe
         copy_script = (
             f"tar czf - -C {folder_name} {basename} | "
@@ -83,7 +83,7 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
     # Create local dir
     os.makedirs(os.path.expanduser(target_dir), exist_ok=True)
 
-    if platform.system() == "Linux":
+    if platform.system() in ["Linux", "Darwin"]:
         # Copy with pipe
         copy_script = (
             f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
