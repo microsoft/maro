@@ -5,7 +5,6 @@ import os
 from abc import ABC, abstractmethod
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.storage.abs_store import AbsStore
 
 
