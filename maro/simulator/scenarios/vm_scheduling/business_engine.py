@@ -88,6 +88,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._cpu_reader = CpuReader(data_path=self._config.CPU_READINGS, start_tick=self._start_tick)
 
         self._tick: int = 0
+        self._pending_action_vm_id: int = 0
 
     @property
     def configs(self) -> dict:
@@ -401,6 +402,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm_memory_requirement=vm_info.memory_requirement,
                 remaining_buffer_time=remaining_buffer_time
             )
+            self._pending_action_vm_id = vm_info.id
             pending_decision_event = self._event_buffer.gen_decision_event(
                 tick=vm_request_event.tick, payload=decision_payload)
             vm_request_event.add_immediate_event(event=pending_decision_event)
@@ -416,6 +418,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """Callback wen we get an action from agent."""
         action = None
         if event is None or event.payload is None:
+            self._pending_vm_request_payload.pop(self._pending_action_vm_id)
             return
 
         cur_tick: int = event.tick
