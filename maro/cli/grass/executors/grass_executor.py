@@ -5,6 +5,7 @@
 import base64
 import json
 import time
+from subprocess import TimeoutExpired
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
@@ -234,14 +235,14 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
             "echo 'Connection established'"
         )
-        _ = SubProcess.run(command)
+        _ = SubProcess.run(command=command, timeout=5)
 
     def test_ssh_default_port_connection(self, node_ip_address: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
             "echo 'Connection established'"
         )
-        _ = SubProcess.run(command)
+        _ = SubProcess.run(command=command, timeout=5)
 
     def remote_set_ssh_port(self, node_ip_address: str):
         # Don't have to do the setting if it is assigned 22
@@ -268,7 +269,7 @@ class GrassExecutor:
             try:
                 self.test_ssh_default_port_connection(node_ip_address=node_ip_address)
                 return True
-            except CliError:
+            except (CliError, TimeoutExpired):
                 remain_retries -= 1
                 logger.debug(
                     f"Unable to connect to {node_ip_address} with port {self.ssh_port}, "
@@ -278,7 +279,7 @@ class GrassExecutor:
                 self.test_ssh_22_connection(node_ip_address=node_ip_address)
                 self.remote_set_ssh_port(node_ip_address=node_ip_address)
                 return True
-            except CliError:
+            except (CliError, TimeoutExpired):
                 remain_retries -= 1
                 logger.debug(
                     f"Unable to connect to {node_ip_address} with port 22, remains {remain_retries} retries."
