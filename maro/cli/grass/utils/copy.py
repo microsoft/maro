@@ -17,8 +17,11 @@ logger = CliLogger(name=__name__)
 
 
 def copy_files_to_node(
-    local_path: str, remote_dir: str,
-    admin_username: str, node_ip_address: str, ssh_port: int
+    local_path: str,
+    remote_dir: str,
+    admin_username: str,
+    node_ip_address: str,
+    ssh_port: int
 ) -> None:
     """Copy local files to node, automatically create folder if not exist.
 
@@ -75,8 +78,11 @@ def copy_files_to_node(
 
 
 def copy_files_from_node(
-    local_dir: str, remote_path: str,
-    admin_username: str, node_ip_address: str, ssh_port: int
+    local_dir: str,
+    remote_path: str,
+    admin_username: str,
+    node_ip_address: str,
+    ssh_port: int
 ) -> None:
     """Copy node files to local, automatically create folder if not exist.
 
