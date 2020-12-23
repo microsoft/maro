@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 postpone_step=1
             )
         else:
-            # Randomly choose a vailable PM.
+            # Randomly choose an available PM.
             random_idx = random.randint(0, valid_pm_num - 1)
             pm_id = decision_event.valid_pms[random_idx]
             action: AllocateAction = AllocateAction(
