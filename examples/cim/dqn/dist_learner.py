@@ -10,16 +10,16 @@ from maro.rl import (
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-from components import DQNAgentManager, create_dqn_agents, set_input_dim
+from components import CIMStateShaper, DQNAgentManager, create_dqn_agents
 
 
 def launch(config, distributed_config):
-    set_input_dim(config)
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
+    config["agents"]["algorithm"]["input_dim"] = CIMStateShaper(**config.env.state_shaping).dim
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
@@ -29,17 +29,14 @@ def launch(config, distributed_config):
     proxy_params = {
         "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
         "expected_peers": {
-            "actor": int(
-                os.environ["NUM_ACTORS"] if "NUM_ACTORS" in os.environ
-                else distributed_config.num_actors
-            )},
+            "actor": int(os.environ["NUM_ACTORS"] if "NUM_ACTORS" in os.environ else distributed_config.num_actors)
+        },
         "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
         "max_retries": 15
     }
 
     scheduler = Scheduler(
         config.main_loop.max_episode,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
         exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
         exploration_parameter_generator_config=config.main_loop.exploration,
     )
