@@ -20,7 +20,7 @@ logger = CliLogger(name=__name__)
 def start_vis(source_path: str, force: str, **kwargs: dict):
     """Entrance of data pre-processing.
 
-    Generate name_conversion CSV file and summary file.
+    Generate index_name_conversion CSV file and summary file.
 
     Expected File Structure:
     -input_file_folder_path
@@ -57,7 +57,7 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
 
     if force:
         logger.info("Generating Dashboard Data.")
-        _get_holder_name_conversion(scenario, source_path, conversion_path)
+        _get_index_index_name_conversion(scenario, source_path, conversion_path)
         logger.info_green("[1/2]:Generate Name Conversion File Done.")
         logger.info_green("[2/2]:Generating Summary.")
         _generate_summary(scenario, source_path, prefix, epoch_num)
@@ -176,13 +176,13 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
             )
 
 
-def _get_holder_name_conversion(scenario: GlobalScenarios, source_path: str, conversion_path: str):
+def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str, conversion_path: str):
     """ Generate a CSV File which indicates the relationship between resource holder's index and name.
 
     Args:
         scenario (GlobalScenarios): Current scenario. Different scenario has different type of mapping file.
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
-        conversion_path (str): Path of origin mapping file.
+        conversion_path (str): Path of original mapping file.
     """
     conversion_path = os.path.join(source_path, conversion_path)
     if os.path.exists(os.path.join(source_path, GlobalFilePaths.name_convert)):

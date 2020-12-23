@@ -843,7 +843,8 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         "env",
         fromfile_prefix_chars="@",
         help="Dashboard of selected env displayed.",
-        parents=[global_parser])
+        parents=[global_parser]
+    )
 
     build_cmd_parser.add_argument(
         "--source_path",
@@ -857,7 +858,7 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
         type=bool,
         required=False,
         default=True,
-        help="Overwrite the generated middle data or not: True/False."
+        help="Overwrite the generated summary data or not: True/False."
     )
 
     build_cmd_parser.set_defaults(func=start_vis)

@@ -79,9 +79,7 @@ def render_inter_view(source_path: str, epoch_num: int):
 
 
 def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: List[float]):
-    """Generate inter view plot.
-
-    View info within different epochs.
+    """Generate inter-view i.e. cross-epoch summary data plot.
 
     Args:
         data (pd.Dataframe): Original data.
@@ -114,7 +112,7 @@ def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: List[floa
 
 
 def render_intra_view(source_path: str, epoch_num: int, prefix: str):
-    """Show Citi Bike detail plot.
+    """Show Citi Bike intra-view plot.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
@@ -139,7 +137,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     snapshot_num = len(data_stations["frame_index"].unique())
     snapshots_index = np.arange(snapshot_num).tolist()
 
-    name_conversion = helper.read_detail_csv(
+    index_name_conversion = helper.read_detail_csv(
         os.path.join(
             source_path,
             GlobalFilePaths.name_convert
@@ -155,20 +153,20 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     render_top_k_summary(source_path, prefix, selected_epoch)
     if view_option == CitiBikeIntraViewChoice.by_station.name:
         _generate_intra_view_by_station(
-            data_stations, name_conversion, attribute_option_candidates, stations_index, snapshot_num
+            data_stations, index_name_conversion, attribute_option_candidates, stations_index, snapshot_num
         )
 
     # Filter by snapshot index.
     # Display all station information within 1 snapshot.
     elif view_option == CitiBikeIntraViewChoice.by_snapshot.name:
         _generate_intra_view_by_snapshot(
-            data_stations, name_conversion, attribute_option_candidates,
+            data_stations, index_name_conversion, attribute_option_candidates,
             snapshots_index, snapshot_num, stations_num
         )
 
 
 def render_top_k_summary(source_path: str, prefix: str, epoch_index: int):
-    """ Show summary plot.
+    """ Show top-k summary plot.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
@@ -184,10 +182,10 @@ def render_top_k_summary(source_path: str, prefix: str, epoch_index: int):
         )
     )
     # Convert index to station name.
-    name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
+    index_name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
     data["station name"] = list(
         map(
-            lambda x: name_conversion.loc[int(x[9:])][0],
+            lambda x: index_name_conversion.loc[int(x[9:])][0],
             data["name"]
         )
     )
@@ -202,16 +200,16 @@ def render_top_k_summary(source_path: str, prefix: str, epoch_index: int):
 
 
 def _generate_intra_view_by_snapshot(
-    data_stations: pd.DataFrame, name_conversion: pd.DataFrame, attribute_option_candidates: List[str],
+    data_stations: pd.DataFrame, index_name_conversion: pd.DataFrame, attribute_option_candidates: List[str],
     snapshots_index: List[int], snapshot_num: int, stations_num: int
 ):
-    """Show Citi Bike detail data by snapshot.
+    """Show Citi Bike intra-view data by snapshot.
 
     Args:
         data_stations (pd.Dataframe): Filtered Data.
-        name_conversion (pd.Dataframe): Relationship between index and name.
+        index_name_conversion (pd.Dataframe): Relationship between index and name.
         attribute_option_candidates (List[str]): All options for users to choose.
-        snapshots_index (List[int]): Sampled snapshot index.
+        snapshots_index (List[int]): Sampled snapshot index list.
         snapshot_num (int): Number of snapshots.
         stations_num (int): Number of stations.
     """
@@ -249,7 +247,7 @@ def _generate_intra_view_by_snapshot(
         data_filtered = data_filtered.iloc[down_pooling_sample_list]
         data_filtered["name"] = data_filtered["name"].apply(lambda x: int(x[9:]))
         data_filtered["Station Name"] = data_filtered["name"].apply(
-            lambda x: name_conversion.loc[int(x)]
+            lambda x: index_name_conversion.loc[int(x)]
         )
     data_melt = data_filtered.melt(
         ["Station Name", "name"],
@@ -269,14 +267,14 @@ def _generate_intra_view_by_snapshot(
 
 
 def _generate_intra_view_by_station(
-    data_stations: pd.DataFrame, name_conversion: pd.DataFrame, attribute_option_candidates: List[str],
+    data_stations: pd.DataFrame, index_name_conversion: pd.DataFrame, attribute_option_candidates: List[str],
     stations_index: List[int], snapshot_num: int
 ):
-    """ Show Citi Bike detail data by station.
+    """ Show Citi Bike intra-view data by station.
 
     Args:
         data_stations (pd.Dataframe): Filtered station data.
-        name_conversion (pd.Dataframe): Relationship between index and name.
+        index_name_conversion (pd.Dataframe): Relationship between index and name.
         attribute_option_candidates (List[str]): All options for users to choose.
         stations_index (List[int]):  List of station index.
         snapshot_num (int): Number of snapshots.
@@ -285,7 +283,7 @@ def _generate_intra_view_by_station(
         label="station index",
         options=stations_index
     )
-    helper.render_h3_title(name_conversion.loc[int(selected_station)][0] + " Detail Data")
+    helper.render_h3_title(index_name_conversion.loc[int(selected_station)][0] + " Detail Data")
     # Filter data by station index.
     data_filtered = data_stations[data_stations["name"] == f"stations_{selected_station}"]
     snapshot_sample_ratio_list = helper.get_sample_ratio_selection_list(snapshot_num)

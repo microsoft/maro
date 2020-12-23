@@ -45,7 +45,7 @@ def start_cim_dashboard(source_path: str, epoch_num: int, prefix: str):
 
 
 def render_inter_view(source_path: str, epoch_num: int):
-    """Show CIM summary plot.
+    """Show CIM inter-view plot.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
@@ -79,7 +79,7 @@ def render_inter_view(source_path: str, epoch_num: int):
 
 
 def render_intra_view(source_path: str, epoch_num: int, prefix: str):
-    """Show CIM detail plot.
+    """Show CIM intra-view plot.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
@@ -134,9 +134,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
 
 
 def _generate_inter_view_panel(data: pd.DataFrame, down_pooling_range: List[float]):
-    """Generate summary plot.
-
-    View info within different epochs.
+    """Generate inter-view plot.
 
     Args:
         data (pd.Dataframe): Summary(cross-epoch) data.
@@ -176,7 +174,7 @@ def _render_intra_view_by_ports(
     data_ports: pd.DataFrame, ports_index: int,
     index_name_conversion: pd.DataFrame, attribute_option_candidates: List[str], snapshot_num: int
 ):
-    """ Show intra data by ports.
+    """ Show intra-view data by ports.
 
     Args:
         data_ports (pd.Dataframe): Filtered port data.
@@ -223,7 +221,7 @@ def _render_intra_view_by_snapshot(
     source_path: str, option_epoch: int, data_ports: pd.DataFrame, snapshots_index: List[int],
     index_name_conversion: pd.DataFrame, attribute_option_candidates: List[str], ports_num: int, prefix: str
 ):
-    """ Show intra-view by snapshot.
+    """ Show intra-view data by snapshot.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
@@ -273,7 +271,7 @@ def _generate_intra_panel_by_ports(
     info_selector: List[str], data: pd.DataFrame, option_port_name: str,
     snapshot_num: int, snapshot_sample_num: float, attribute_option: List[str] = None
 ):
-    """Generate detail plot.
+    """Generate intra-view plot.
 
     View info within different resource holders(In this senario, ports) in the same epoch.
     Change snapshot sampling num freely.
@@ -332,7 +330,7 @@ def _generate_intra_panel_by_snapshot(
     info: List[str], data: pd.DataFrame, snapshot_index: int, ports_num: int,
     index_name_conversion: pd.DataFrame, sample_ratio: List[float], attribute_option: List[str] = None
 ):
-    """Generate detail plot.
+    """Generate intra-view plot.
 
     View info within different snapshot in the same epoch.
 
@@ -403,7 +401,7 @@ def _render_intra_panel_vessel(source_path: str, prefix: str, option_epoch: int,
 
 
 def _generate_intra_panel_vessel(data_vessel: pd.DataFrame, snapshot_index: int, vessels_num: int):
-    """Generate vessel detail plot.
+    """Generate vessel data plot.
 
     Args:
         data_vessel (pd.Dataframe): Data of vessel information within selected snapshot index.
@@ -450,7 +448,7 @@ def _generate_intra_panel_vessel(data_vessel: pd.DataFrame, snapshot_index: int,
 def _render_intra_heat_map(
     source_path: str, scenario: GlobalScenarios, epoch_index: int, snapshot_index: int, prefix: str
 ):
-    """Get matrix data and provide entrance to hot map of different scenario.
+    """Get matrix data and provide entrance to heat map of different scenario.
 
     Args:
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
