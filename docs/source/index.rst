@@ -90,7 +90,7 @@ Contents
 
     scenarios/container_inventory_management.rst
     scenarios/citi_bike.rst
-
+    scenarios/vm_scheduling.rst
 
 .. toctree::
     :maxdepth: 2
