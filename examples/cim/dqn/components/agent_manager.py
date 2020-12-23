@@ -5,8 +5,8 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-    ColumnBasedStore, DQN, DQNConfig, EpsilonGreedyExplorer, FullyConnectedBlock, LearningModuleManager, LearningModule,
-    OptimizerOptions, SimpleAgentManager
+    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModuleManager, LearningModule, OptimizerOptions,
+    SimpleAgentManager
 )
 from maro.utils import set_seeds
 
