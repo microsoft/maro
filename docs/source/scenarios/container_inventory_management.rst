@@ -643,16 +643,16 @@ Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/
 for a quick experience.
 
 Visualization
-^^^^^^^^^^^^^
+-------------
 
 The resource holders in this scenario is the port and vessel.
-Under certain circumstances. In order to facilitate users to select
-specific data and observe the overall or partial data trend, the
+In order to facilitate users to select specific data and 
+observe the overall or partial data trend, the
 visualization tool provides data selection options in two dimensions:
 Inter-epoch view & Intra-epoch view.
 
 Inter-epoch view
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
@@ -665,7 +665,7 @@ Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
    :alt: cim\_inter\_epoch
 
 Intra-epoch view
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 This part shows the data under a selected epoch. By scrolling the
 slider, users can select different epochs. Furthermore, this part of

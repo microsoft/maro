@@ -757,21 +757,26 @@ for a quick experience.
 ~~~~~~
 
 Visualization
-^^^^^^^^^^^^^
+-------------
 
 The resource holder in this scenario is the bike station.
+The number of epoches is varied based on selected strategy.
+Currently, we generate result with Greedy algorithm.
+Only one epoch is included in result.
 
 Inter-epoch view
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
+This part display cross-epoch summary information. User could select
+the Start Epoch and End Epoch, as well as Epoch Sampling Ratio. Since 
+there is only one epoch, this part would be muted automatically.
 
-For Inter-view, user could view top-k stations with different
-attributes.
+For Inter-view, user could view cross-epoch 
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch.gif
    :alt: citi\_bike\_inter\_epoch
 
 Intra-epoch view
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 Intra-view is divided into two dimensions according to time and space.
 
