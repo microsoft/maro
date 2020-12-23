@@ -21,24 +21,22 @@ def setup_case(case_name: str, max_tick: int):
     # trips.bin
     trips_bin = os.path.join(config_path, "trips.bin")
 
-    if not os.path.exists(trips_bin):
-        converter = MaroBinaryConverter()
-        converter.open(trips_bin)
-        converter.load_meta(os.path.join("tests/data/citi_bike", "trips.meta.toml"))
+    converter = MaroBinaryConverter()
+    converter.open(trips_bin)
+    converter.load_meta(os.path.join("tests/data/citi_bike", "trips.meta.toml"))
 
-        converter.add_csv(os.path.join(config_path, "trips.csv"))
-        converter.close()
+    converter.add_csv(os.path.join(config_path, "trips.csv"))
+    converter.close()
 
     # weathers.bin
     weathers_bin = os.path.join("tests/data/citi_bike", "weathers.bin")
 
-    if not os.path.exists(weathers_bin):
-        converter = MaroBinaryConverter()
-        converter.open(weathers_bin)
-        converter.load_meta(os.path.join("tests/data/citi_bike", "weather.meta.toml"))
+    converter = MaroBinaryConverter()
+    converter.open(weathers_bin)
+    converter.load_meta(os.path.join("tests/data/citi_bike", "weather.meta.toml"))
 
-        converter.add_csv(os.path.join("tests/data/citi_bike", "weather.csv"))
-        converter.close()
+    converter.add_csv(os.path.join("tests/data/citi_bike", "weather.csv"))
+    converter.close()
 
     eb = EventBuffer()
     be = CitibikeBusinessEngine(event_buffer=eb, topology=config_path, start_tick=0,

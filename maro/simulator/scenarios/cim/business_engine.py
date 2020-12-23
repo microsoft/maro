@@ -15,7 +15,8 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.simulator.scenarios.matrix_accessor import MatrixAttributeAccessor
 
 from .common import Action, ActionScope, DecisionEvent
-from .event_payload import EmptyReturnPayload, LadenReturnPayload, VesselDischargePayload, VesselStatePayload
+from .event_payload import (EmptyReturnPayload, LadenReturnPayload,
+                            VesselDischargePayload, VesselStatePayload)
 from .events import Events
 from .frame_builder import gen_cim_frame
 from .ports_order_export import PortOrderExporter
