@@ -5,18 +5,6 @@ env:
   state_shaping:
     look_back: 7
     max_ports_downstream: 2
-    port_attributes:
-      - "empty"
-      - "full"
-      - "on_shipper"
-      - "on_consignee"
-      - "booking"
-      - "shortage"
-      - "fulfillment"
-    vessel_attributes:
-      - "empty"
-      - "full"
-      - "remaining_space"
   experience_shaping:
     time_window: 100
     fulfillment_factor: 1.0

@@ -15,7 +15,6 @@ class Scheduler(object):
 
     Args:
         max_ep (int): Maximum number of episodes to be run.
-        warmup_ep (int): Episode from which early stopping checking is initiated.
         early_stopping_callback (Callable): Function that returns a boolean indicating whether early stopping should
             be triggered. Defaults to None, in which case no early stopping check will be performed.
         exploration_parameter_generator_cls: Subclass of StaticExplorationParameterGenerator or
@@ -27,7 +26,6 @@ class Scheduler(object):
     def __init__(
         self,
         max_ep: int,
-        warmup_ep: int = 0,
         early_stopping_callback: Callable = None,
         exploration_parameter_generator_cls=None,
         exploration_parameter_generator_config: dict = None
@@ -40,7 +38,6 @@ class Scheduler(object):
                 "is provided. "
             )
         self._max_ep = max_ep
-        self._warmup_ep = warmup_ep
         self._early_stopping_callback = early_stopping_callback
         self._current_ep = 0
         self._performance_history = []
@@ -68,9 +65,8 @@ class Scheduler(object):
     def __next__(self):
         if self._current_ep == self._max_ep:
             raise StopIteration
-        if self._current_ep >= self._warmup_ep:
-            if self._early_stopping_callback and self._early_stopping_callback(self._performance_history):
-                raise StopIteration
+        if self._early_stopping_callback and self._early_stopping_callback(self._performance_history):
+            raise StopIteration
         if isinstance(self._exploration_parameter_generator, StaticExplorationParameterGenerator):
             self._exploration_params = self._exploration_parameter_generator.next()
         elif isinstance(self._exploration_parameter_generator, DynamicExplorationParameterGenerator):

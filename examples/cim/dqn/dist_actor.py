@@ -16,7 +16,6 @@ from components import (
 
 
 def launch(config, distributed_config):
-    set_input_dim(config)
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
@@ -25,6 +24,7 @@ def launch(config, distributed_config):
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
+    config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
     agent_manager = DQNAgentManager(
         name="distributed_cim_actor",
         mode=AgentManagerMode.INFERENCE,
