@@ -1,0 +1,10 @@
+entity:
+  timestamp:
+    column: 'timestamp'
+    dtype: 'i'
+  vm_id:
+    column: 'vmid'
+    dtype: 'i'
+  cpu_utilization:
+    column: 'maxcpu'
+    dtype: 'f'
