@@ -90,6 +90,14 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
+    # maro process
+    parser_process = subparsers.add_parser(
+        "process",
+        help="Run application by mulit-process to simulate distributed mode."
+    )
+    parser_process.set_defaults(func=_help_func(parser=parser_process))
+    load_parser_process(prev_parser=parser_process, global_parser=global_parser)
+
     args = None
     try:
         # Get args and parse global arguments
@@ -114,6 +122,154 @@ def main():
             logger.error_red(f"{e.__class__.__name__}: {e.get_message()}\n{traceback.format_exc()}")
         else:
             logger.error_red(f"{e.__class__.__name__}: {e.get_message()}")
+
+
+def load_parser_process(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:
+    subparsers = prev_parser.add_subparsers()
+
+    # maro process create
+    from maro.cli.process.create import create
+    parser_setup = subparsers.add_parser(
+        "create",
+        help="Create local process environment.",
+        examples=CliExamples.MARO_PROCESS_SETUP,
+        parents=[global_parser]
+    )
+    parser_setup.add_argument(
+        'deployment_path',
+        help='Path of the local process setting deployment.',
+        nargs='?',
+        default=None)
+    parser_setup.set_defaults(func=create)
+
+    # maro process delete
+    from maro.cli.process.delete import delete
+    parser_setup = subparsers.add_parser(
+        "delete",
+        help="Delete the local process environment. Including closing agents and maro Redis.",
+        parents=[global_parser]
+    )
+    parser_setup.set_defaults(func=delete)
+
+    # maro process job
+    parser_job = subparsers.add_parser(
+        "job",
+        help="Manage jobs",
+        parents=[global_parser]
+    )
+    parser_job.set_defaults(func=_help_func(parser=parser_job))
+    parser_job_subparsers = parser_job.add_subparsers()
+
+    # maro process job start
+    from maro.cli.process.job import start_job
+    parser_job_start = parser_job_subparsers.add_parser(
+        'start',
+        help='Start a training job',
+        examples=CliExamples.MARO_PROCESS_JOB_START,
+        parents=[global_parser]
+    )
+    parser_job_start.add_argument(
+        'deployment_path', help='Path of the job deployment')
+    parser_job_start.set_defaults(func=start_job)
+
+    # maro process job stop
+    from maro.cli.process.job import stop_job
+    parser_job_stop = parser_job_subparsers.add_parser(
+        'stop',
+        help='Stop a training job',
+        examples=CliExamples.MARO_PROCESS_JOB_STOP,
+        parents=[global_parser]
+    )
+    parser_job_stop.add_argument(
+        'job_name', help='Name of the job')
+    parser_job_stop.set_defaults(func=stop_job)
+
+    # maro process job delete
+    from maro.cli.process.job import delete_job
+    parser_job_delete = parser_job_subparsers.add_parser(
+        'delete',
+        help='delete a stopped job',
+        examples=CliExamples.MARO_PROCESS_JOB_DELETE,
+        parents=[global_parser]
+    )
+    parser_job_delete.add_argument(
+        'job_name', help='Name of the job or the schedule')
+    parser_job_delete.set_defaults(func=delete_job)
+
+    # maro process job list
+    from maro.cli.process.job import list_jobs
+    parser_job_list = parser_job_subparsers.add_parser(
+        'list',
+        help='List all jobs',
+        examples=CliExamples.MARO_PROCESS_JOB_LIST,
+        parents=[global_parser]
+    )
+    parser_job_list.set_defaults(func=list_jobs)
+
+    # maro process job logs
+    from maro.cli.process.job import get_job_logs
+    parser_job_logs = parser_job_subparsers.add_parser(
+        'logs',
+        help='Get logs of the job',
+        examples=CliExamples.MARO_PROCESS_JOB_LOGS,
+        parents=[global_parser]
+    )
+    parser_job_logs.add_argument(
+        'job_name', help='Name of the job')
+    parser_job_logs.set_defaults(func=get_job_logs)
+
+    # maro process schedule
+    parser_schedule = subparsers.add_parser(
+        'schedule',
+        help='Manage schedules',
+        parents=[global_parser]
+    )
+    parser_schedule.set_defaults(func=_help_func(parser=parser_schedule))
+    parser_schedule_subparsers = parser_schedule.add_subparsers()
+
+    # maro process schedule start
+    from maro.cli.process.schedule import start_schedule
+    parser_schedule_start = parser_schedule_subparsers.add_parser(
+        'start',
+        help='Start a schedule',
+        examples=CliExamples.MARO_PROCESS_SCHEDULE_START,
+        parents=[global_parser]
+    )
+    parser_schedule_start.add_argument(
+        'deployment_path', help='Path of the schedule deployment')
+    parser_schedule_start.set_defaults(func=start_schedule)
+
+    # maro process schedule stop
+    from maro.cli.process.schedule import stop_schedule
+    parser_schedule_stop = parser_schedule_subparsers.add_parser(
+        'stop',
+        help='Stop a schedule',
+        examples=CliExamples.MARO_PROCESS_SCHEDULE_STOP,
+        parents=[global_parser]
+    )
+    parser_schedule_stop.add_argument(
+        'schedule_name', help='Name of the schedule')
+    parser_schedule_stop.set_defaults(func=stop_schedule)
+
+    # maro process template
+    from maro.cli.process.template import template
+    parser_template = subparsers.add_parser(
+        "template",
+        help="Get deployment templates",
+        examples=CliExamples.MARO_PROCESS_TEMPLATE,
+        parents=[global_parser]
+    )
+    parser_template.add_argument(
+        "--setting_deploy",
+        action="store_true",
+        help="Get environment setting templates"
+    )
+    parser_template.add_argument(
+        "export_path",
+        default="./",
+        nargs='?',
+        help="Path of the export directory")
+    parser_template.set_defaults(func=template)
 
 
 def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser) -> None:
@@ -211,6 +367,32 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     parser_node_list.add_argument(
         'cluster_name', help='Name of the cluster')
     parser_node_list.set_defaults(func=list_node)
+
+    # maro grass node join
+    from maro.cli.grass.node import node_join
+    parser_node_join = parser_node_subparsers.add_parser(
+        'join',
+        help="Let one node join in a cluster in on-premises mode.",
+        examples=CliExamples.MARO_GRASS_NODE_JOIN,
+        parents=[global_parser]
+    )
+    parser_node_join.add_argument(
+        'node_join_path', help='The node join description file path.')
+    parser_node_join.set_defaults(func=node_join)
+
+    # maro grass node leave
+    from maro.cli.grass.node import node_leave
+    parser_node_leave = parser_node_subparsers.add_parser(
+        "leave",
+        help="make node leave to cluster",
+        examples=CliExamples.MARO_GRASS_NODE_LEAVE,
+        parents=[global_parser]
+    )
+    parser_node_leave.add_argument(
+        "cluster_name", help="name of the cluster")
+    parser_node_leave.add_argument(
+        "node_name", help="The name of node going to be leave cluster.")
+    parser_node_leave.set_defaults(func=node_leave)
 
     # maro grass image
     parser_image = subparsers.add_parser(
