@@ -12,11 +12,11 @@ from subprocess import TimeoutExpired
 
 import yaml
 
-from maro.cli.grass.utils.copy import copy_files_from_node, copy_files_to_node, copy_and_rename
+from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node
 from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.utils.details import load_job_details, save_job_details, load_schedule_details, save_schedule_details
-from maro.cli.utils.naming import get_valid_file_name, generate_job_id, generate_component_id
-from maro.cli.utils.params import GlobalPaths, GlobalParams
+from maro.cli.utils.details import load_job_details, load_schedule_details, save_job_details, save_schedule_details
+from maro.cli.utils.naming import generate_component_id, generate_job_id, get_valid_file_name
+from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
 from maro.utils.exception.cli_exception import (
