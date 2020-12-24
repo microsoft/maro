@@ -3,61 +3,32 @@
 
 from typing import Callable
 
-from maro.utils.exception.rl_toolkit_exception import (
-    InfiniteTrainingLoopError, InvalidEpisodeError, UnrecognizedExplorationParameterGeneratorClass
-)
-
-from .exploration_parameter_generator import DynamicExplorationParameterGenerator, StaticExplorationParameterGenerator
+from maro.utils.exception.rl_toolkit_exception import InvalidTrainingLoop, InvalidEpisode
 
 
 class Scheduler(object):
     """Scheduler that generates exploration parameters for each episode.
 
     Args:
-        max_ep (int): Maximum number of episodes to be run.
+        max_ep (int): Maximum number of episodes to be run. If -1, an early stopping callback is expected to prevent
+            the training loop from running forever.
         early_stopping_callback (Callable): Function that returns a boolean indicating whether early stopping should
             be triggered. Defaults to None, in which case no early stopping check will be performed.
-        exploration_parameter_generator_cls: Subclass of StaticExplorationParameterGenerator or
-            DynamicExplorationParameterGenerator. Defaults to None, which means no exploration outside the algorithm.
-        exploration_parameter_generator_config (dict): Configuration for the exploration parameter generator.
-            Defaults to None.
     """
 
-    def __init__(
-        self,
-        max_ep: int,
-        early_stopping_callback: Callable = None,
-        exploration_parameter_generator_cls=None,
-        exploration_parameter_generator_config: dict = None
-    ):
+    def __init__(self, max_ep: int, early_stopping_callback: Callable = None):
         if max_ep < -1:
-            raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
+            raise InvalidEpisode("max_episode can only be a non-negative integer or -1.")
         if max_ep == -1 and early_stopping_callback is None:
-            raise InfiniteTrainingLoopError(
-                "The training loop will run forever since neither maximum episode nor early stopping checker "
-                "is provided. "
+            raise InvalidTrainingLoop(
+                "A positive max_ep or an early stopping checker must be provided to prevent the training loop from "
+                "running forever."
             )
         self._max_ep = max_ep
         self._early_stopping_callback = early_stopping_callback
         self._current_ep = -1
         self._performance_history = []
         self._exploration_params = None
-
-        if exploration_parameter_generator_cls is None:
-            self._exploration_parameter_generator = None
-        elif issubclass(exploration_parameter_generator_cls, StaticExplorationParameterGenerator):
-            self._exploration_parameter_generator = exploration_parameter_generator_cls(
-                max_ep, **exploration_parameter_generator_config
-            )
-        elif issubclass(exploration_parameter_generator_cls, DynamicExplorationParameterGenerator):
-            self._exploration_parameter_generator = exploration_parameter_generator_cls(
-                **exploration_parameter_generator_config
-            )
-        else:
-            raise UnrecognizedExplorationParameterGeneratorClass(
-                "exploration_parameter_generator_cls must be a subclass of StaticExplorationParameterGenerator "
-                "or DynamicExplorationParameterGenerator"
-            )
 
     def __iter__(self):
         return self
@@ -68,12 +39,12 @@ class Scheduler(object):
             raise StopIteration
         if self._early_stopping_callback and self._early_stopping_callback(self._performance_history):
             raise StopIteration
-        if isinstance(self._exploration_parameter_generator, StaticExplorationParameterGenerator):
-            self._exploration_params = self._exploration_parameter_generator.next()
-        elif isinstance(self._exploration_parameter_generator, DynamicExplorationParameterGenerator):
-            self._exploration_params = self._exploration_parameter_generator.next(self._performance_history)
 
+        self._exploration_params = self.get_next_exploration_params()
         return self._exploration_params
+
+    def get_next_exploration_params(self):
+        pass
 
     @property
     def current_ep(self):

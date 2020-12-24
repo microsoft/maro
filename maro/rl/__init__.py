@@ -26,11 +26,8 @@ from maro.rl.learner.simple_learner import SimpleLearner
 from maro.rl.models.abs_block import AbsBlock
 from maro.rl.models.fc_block import FullyConnectedBlock
 from maro.rl.models.learning_model import LearningModule, LearningModuleManager, OptimizerOptions
-from maro.rl.scheduling.exploration_parameter_generator import (
-    DynamicExplorationParameterGenerator, LinearExplorationParameterGenerator, StaticExplorationParameterGenerator,
-    TwoPhaseLinearExplorationParameterGenerator
-)
 from maro.rl.scheduling.scheduler import Scheduler
+from maro.rl.scheduling.simple_parameter_scheduler import LinearParameterScheduler, TwoPhaseLinearParameterScheduler
 from maro.rl.shaping.abs_shaper import AbsShaper
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
@@ -59,7 +56,6 @@ __all__ = [
     'DQNConfig',
     'DistributedTrainingMode',
     'DuelingDQNTask',
-    'DynamicExplorationParameterGenerator',
     'EpsilonGreedyExplorer',
     'Executor',
     'ExperienceShaper',
@@ -68,7 +64,7 @@ __all__ = [
     'LearnerActorComponent',
     'LearningModuleManager',
     'LearningModule',
-    'LinearExplorationParameterGenerator',
+    'LinearParameterScheduler',
     'OptimizerOptions',
     'OverwriteType',
     'SEEDLearner',
@@ -78,9 +74,8 @@ __all__ = [
     'SimpleDistLearner',
     'SimpleLearner',
     'StateShaper',
-    'StaticExplorationParameterGenerator',
     'Trainer',
-    'TwoPhaseLinearExplorationParameterGenerator',
+    'TwoPhaseLinearParameterScheduler',
     'concat_experiences_by_agent',
     'merge_experiences_with_trajectory_boundaries',
     'preprocess',

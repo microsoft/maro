@@ -20,7 +20,6 @@ class DQNConfig:
     """Configuration for the DQN algorithm.
 
     Args:
-        num_actions (int): Number of possible actions.
         reward_decay (float): Reward decay as defined in standard RL terminology.
         loss_cls: Loss function class for evaluating TD errors.
         target_update_frequency (int): Number of training rounds between target model updates.
@@ -35,13 +34,12 @@ class DQNConfig:
             method. Defaults to False.
     """
     __slots__ = [
-        "num_actions", "reward_decay", "loss_func", "target_update_frequency", "epsilon", "tau", "is_double",
-        "advantage_mode", "per_sample_td_error_enabled"
+        "reward_decay", "loss_func", "target_update_frequency", "epsilon", "tau", "is_double", "advantage_mode",
+        "per_sample_td_error_enabled"
     ]
 
     def __init__(
         self,
-        num_actions: int,
         reward_decay: float,
         loss_cls,
         target_update_frequency: int,
@@ -51,7 +49,6 @@ class DQNConfig:
         advantage_mode: str = None,
         per_sample_td_error_enabled: bool = False
     ):
-        self.num_actions = num_actions
         self.reward_decay = reward_decay
         self.target_update_frequency = target_update_frequency
         self.epsilon = epsilon
@@ -75,13 +72,17 @@ class DQN(AbsAlgorithm):
     @validate_task_names(DuelingDQNTask)
     def __init__(self, model: LearningModuleManager, config: DQNConfig):
         super().__init__(model, config)
+        if isinstance(self._model.output_dim, int):
+            self._num_actions = self._model.output_dim
+        else:
+            self._num_actions = self._model.output_dim[DuelingDQNTask.ADVANTAGE.value]
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
         if np.random.random() < self._config.epsilon:
-            return np.random.choice(self._config.num_actions)
+            return np.random.choice(self._num_actions)
         else:
             return self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
 

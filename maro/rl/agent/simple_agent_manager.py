@@ -7,7 +7,7 @@ from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
-from maro.utils.exception.rl_toolkit_exception import MissingShaperError
+from maro.utils.exception.rl_toolkit_exception import MissingShaper
 
 from .abs_agent_manager import AbsAgentManager, AgentManagerMode
 
@@ -24,11 +24,11 @@ class SimpleAgentManager(AbsAgentManager):
     ):
         if mode in {AgentManagerMode.INFERENCE, AgentManagerMode.TRAIN_INFERENCE}:
             if state_shaper is None:
-                raise MissingShaperError(msg=f"state shaper cannot be None under mode {self._mode}")
+                raise MissingShaper(msg=f"state shaper cannot be None under mode {self._mode}")
             if action_shaper is None:
-                raise MissingShaperError(msg=f"action_shaper cannot be None under mode {self._mode}")
+                raise MissingShaper(msg=f"action_shaper cannot be None under mode {self._mode}")
             if experience_shaper is None:
-                raise MissingShaperError(msg=f"experience_shaper cannot be None under mode {self._mode}")
+                raise MissingShaper(msg=f"experience_shaper cannot be None under mode {self._mode}")
 
         super().__init__(
             name, mode, agent_dict,

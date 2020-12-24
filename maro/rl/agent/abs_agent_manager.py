@@ -8,7 +8,7 @@ from enum import Enum
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
-from maro.utils.exception.rl_toolkit_exception import WrongAgentManagerModeError
+from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError
 
 
 class AgentManagerMode(Enum):
@@ -145,8 +145,8 @@ class AbsAgentManager(ABC):
 
     def _assert_train_mode(self):
         if self._mode != AgentManagerMode.TRAIN and self._mode != AgentManagerMode.TRAIN_INFERENCE:
-            raise WrongAgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
+            raise AgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
 
     def _assert_inference_mode(self):
         if self._mode != AgentManagerMode.INFERENCE and self._mode != AgentManagerMode.TRAIN_INFERENCE:
-            raise WrongAgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
+            raise AgentManagerModeError(msg=f"this method is unavailable under mode {self._mode}")
