@@ -151,14 +151,15 @@ class GrassAzureExecutor(GrassExecutor):
         image_name = f"{self.cluster_id}-node-image"
         vm_name = f"{self.cluster_id}-{resource_name}-vm"
 
-        # Create ARM parameters and start deployment
+        # Create ARM parameters and start deployment.
+        # For simplicity, we use master_node_size as the size of build_node_image_vm here
         template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_build_node_image_vm/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_build_node_image_vm/parameters.json"
         )
         ArmTemplateParameterBuilder.create_build_node_image_vm(
             cluster_details=self.cluster_details,
-            node_size="Standard_D4_v3",
+            node_size=self.cluster_details["master"]["node_size"],
             export_path=parameters_file_path
         )
         AzureExecutor.start_deployment(
