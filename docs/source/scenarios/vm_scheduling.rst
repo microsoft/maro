@@ -8,7 +8,7 @@ machines(PM), different VM placement strategeies result in different amount of
 successful completion and different operating cost for the data center. For cloud proivders, a 
 good VM allocation strategy can maximize the resourece utilization and thus can increase the profit by 
 providing more VMs to users. For cloud users, a good VM allocation strategy can 
-minimize the VM response time and have a better experience of using VM. We hope this scenario can meet 
+minimize the VM response time and have a better using experience. We hope this scenario can meet 
 the real needs and provide you with a demand simulation that is closest to the real situation.
 
 
@@ -21,7 +21,7 @@ resource life cycle always contains the steps below:
 
 - Coming VM requests ask for a certain amount of resources. Resource requirements are varied
   based on the different VM requests.
-- According to the scheduling agent's strategy, the VM will be allocated to and be created
+- Based on the scheduling agent's strategy, the VM will be allocated to and be created
   in a specified PM as long as that PM's remaining resources are enough.
 - The VM's resource utilization changes dynamically and the PM's real-time energy consumption
   will be simulated in the runtime simulation.
@@ -37,11 +37,15 @@ workloads. As long as the original dataset is large enough and the sample ratio
 is not too small, the sampled VM requests can follow a similar distribution to the
 original ones. 
 
-Before the decision making by the agent, the MARO simulator will first calculate the 
-remaining resource of each PM. The resources includes CPU cores and memory. The simulator will then 
-generate a ``PendingDecision`` event with the ``DecisionPayload``, which contains all 
-valid PMs (valid here means that the remaining resources are enough), and the information of the 
-awaiting VM.
+Given a fixed time interval, a VM request will arise according to the real VM workload data and it  
+might also be the request sent by the ``PostponeAction``. The request contains the VM information and 
+the buffer time. 
+
+* Whenever receive a VM request, the MARO simulator will first calculate the 
+  remaining resources of each PM. The required resources includes CPU cores and memory. 
+* Then, the simulator will generate a ``PendingDecision`` event with the ``DecisionPayload``, which 
+  contains all valid PMs (valid here means that the remaining resources are enough), and the 
+  information of the awaiting VM.
 
 VM Allocation
 ^^^^^^^^^^^^^^
@@ -51,6 +55,7 @@ The agent will decide one PM to host the VM based on the given strategy. Afterwa
 will send the ``Action`` back to the simulator for the following simulation. 
 There are three different valid ``Action`` in current VM Scheduling scenario. 
 
+* **None**: If the MARO simulator receives the **None** Action, it will do nothing and ignore the VM request.
 * ``AllocateAction``: If the MARO simulator receives the ``AllocateAction``, the VM's creation time will be 
   fixed at that tick. Besides, the simulator will update the workloads (the workloads include CPU cores,
   the memory, and the energy consumption) of the target PM.
@@ -72,8 +77,9 @@ Dynamic Utilization
 ~~~~~~~~~~~~~~~~~~~~
 
 To make the simulated environment closest to the real situation. We also simulate CPU utilization of each
-VM. The CPU utilization of the VM varies every tick. We will re-calculate the total resources (CPU utilization)
-of each PM in every tick and update to the PM workload for the following decision.
+VM. The CPU utilization of the VM varies every tick based on the real VM workload readings. 
+We will regularly calculate the total resources (CPU utilization) of each PM in every tick and update 
+to the PM workload for the following decision.
 
 Real-time Energy Consumption
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,13 +92,13 @@ if it has higher CPU utilization. [`Reference <https://dl.acm.org/doi/10.1145/12
 VM Deallocation
 ^^^^^^^^^^^^^^^^
 
-The MARO simulator checks every tick to detect the finished VMs. It will then release the resources of PMs,
-including CPU cores and memory, and finally remove the VM from the PM.
+The MARO simulator regularly checks the finished VMs in every tick. It will then release the finished VM's
+resources, including CPU cores and memory, and finally remove the VM from the PM.
 
 Topologies
 -----------
 
-To provide samples from easy to difficult, two kinds of topologies are designed and 
+To provide samples from easy to difficult, two kinds of simple topologies are designed and 
 provided in VM Scheduling scenario. 
 
 Azure Topologies
@@ -101,22 +107,22 @@ Azure Topologies
 The original data are provided by `Azure public dataset 
 <https://github.com/Azure/AzurePublicDataset>`_. In our scenario, we pre-processed the AzurePublicDatasetV2. 
 The dataset contains real Azure VM workloads, including the information of VMs and their utilization readings 
-in 2019 lasting for 30 days.
+in 2019 lasting for 30 days. The original dataset contains 2,695,548 VMs.
 
 The detailed information of the data schema can be found
 `here <https://github.com/Azure/AzurePublicDataset/blob/master/AzurePublicDatasetV2.md>`_. After pre-processed,
 we only retain real VM creation and deletion time (converted to the tick, 1 tick means 5 minutes in real time),
 VM cores and memory(GB) requirements, and we also renumber the original VM ID.
-As for the utilization readings part, we use the renumbered VM ID and VM's CPU utilization sorting by the timestamp (tick).
+As for the utilization readings part, we store the renumbered VM ID and VM's CPU utilization sorting by the timestamp (tick).
 
-**azure.2019.10k**\ : 
+**azure.2019.10k**\ : We randomly sampled 10,000 VMs from the AzurePublicDatasetV2.
 
-**azure.2019.336k**\ : 
+**azure.2019.336k**\ : We randomly sampled 336,000 VMs from the AzurePublicDatasetV2.
 
 Naive Baseline
 ^^^^^^^^^^^^^^^
 
-Below are the final environment metrics of the method random allocation and best-fit allocation in 
+Belows are the final environment metrics of the method random allocation and best-fit allocation in 
 different topologies. For each experiment, we setup the environment and test for a duration of 30 days.
 
 
