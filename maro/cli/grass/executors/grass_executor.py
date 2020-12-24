@@ -691,7 +691,7 @@ class GrassExecutor:
             time.sleep(10)
         raise ClusterInternalError(f"Unable to connect to {node_ip_address}.")
 
-    def delete_master_details(self):
+    def remote_delete_master_details(self):
         command = (
             "ssh -o StrictHostKeyChecking=no "
             f"{self.admin_username}@{self.master_public_ip_address} "
