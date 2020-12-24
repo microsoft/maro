@@ -211,6 +211,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Load details
         master_details = self.cluster_details["master"]
+        vm_name = f"{self.cluster_id}-master-vm"
 
         # Create ARM parameters and start deployment
         template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_master/template.json"
@@ -232,15 +233,15 @@ class GrassAzureExecutor(GrassExecutor):
         # Get master IP addresses
         ip_addresses = AzureExecutor.list_ip_addresses(
             resource_group=self.resource_group,
-            vm_name=f"{self.cluster_id}-master-vm"
+            vm_name=vm_name
         )
         public_ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
         private_ip_address = ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
-        hostname = f"{self.cluster_id}-master-vm"
+        hostname = vm_name
         master_details["public_ip_address"] = public_ip_address
         master_details["private_ip_address"] = private_ip_address
         master_details["hostname"] = hostname
-        master_details["resource_name"] = f"{self.cluster_id}-master-vm"
+        master_details["resource_name"] = vm_name
         self.master_public_ip_address = public_ip_address
         logger.info_green(f"You can login to your master node with: {self.admin_username}@{public_ip_address}")
 
