@@ -19,13 +19,6 @@ main_loop:
     start_values: 0.4
     mid_values: 0.32
     end_values: 0.0
-  early_stopping:
-    warmup_ep: 50
-    last_k: 10
-    perf_threshold: 0.9   # minimum performance (fulfillment ratio) required to trigger early stopping
-    perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
-                                   # over the last k eisodes (where perf is short for performance). This value must
-                                   # be below this threshold to trigger early stopping
 agents:
   algorithm:
     num_actions: 21
