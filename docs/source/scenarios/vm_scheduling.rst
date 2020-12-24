@@ -2,7 +2,7 @@ Virtual Machine Scheduling (VM Scheduling)
 ===========================================
 
 The Virtual Machine (VM) Scheduling scenario simulates the VM scheduling problem
-in a data center. Within a specific time window, the number of VM
+in a cloud data center. Within a specific time, the number of VM 
 requests and arrival pattern is fixed. Given a cluster of limited physical
 machines(PM), different VM placement strategeies result in different amount of
 successful completion and different operating cost for the data center. For cloud proivders, a 
