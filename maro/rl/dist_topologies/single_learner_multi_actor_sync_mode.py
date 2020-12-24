@@ -50,28 +50,29 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(
+                component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
                 payload={PayloadKey.DONE: True}
             )
             return None, None
-        else:
-            payloads = [(peer, {PayloadKey.MODEL: model_dict,
-                                PayloadKey.EXPLORATION_PARAMS: exploration_params,
-                                PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers_name["actor"]]
-            # TODO: double check when ack enable
-            replies = self._proxy.scatter(
-                tag=MessageTag.ROLLOUT,
-                session_type=SessionType.TASK,
-                destination_payload_list=payloads
-            )
 
-            performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-            details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
-            details = self._experience_collecting_func(details_by_source) if return_details else None
+        payloads = [(peer, {PayloadKey.MODEL: model_dict,
+                            PayloadKey.EXPLORATION_PARAMS: exploration_params,
+                            PayloadKey.RETURN_DETAILS: return_details})
+                    for peer in self._proxy.peers_name["actor"]]
+        # TODO: double check when ack enable
+        replies = self._proxy.scatter(
+            tag=MessageTag.ROLLOUT,
+            session_type=SessionType.TASK,
+            destination_payload_list=payloads
+        )
 
-            return performance, details
+        performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
+        details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
+        details = self._experience_collecting_func(details_by_source) if return_details else None
+
+        return performance, details
 
 
 class ActorWorker(object):
@@ -84,7 +85,7 @@ class ActorWorker(object):
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor", **proxy_params)
-        self._registry_table = RegisterTable(self._proxy.get_peers)
+        self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):

@@ -126,7 +126,7 @@ experience pools before training, in accordance with the DQN algorithm.
         set_seeds(config.seed)
         agent_dict = {}
         for agent_id in agent_id_list:
-            eval_model = LearningModel(
+            eval_model = LearningModuleManager(
                 decision_layers=FullyConnectedNet(
                     name=f'{agent_id}.policy',
                     input_dim=config.algorithm.input_dim,

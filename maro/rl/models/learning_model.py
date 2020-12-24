@@ -7,10 +7,10 @@ import torch
 import torch.nn as nn
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import MissingOptimizerError
+from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
 
 from .abs_block import AbsBlock
-from .utils import check_chainability
+from .utils import validate_dims
 
 OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
@@ -74,9 +74,9 @@ class LearningModule(nn.Module):
         """
         return self._net(inputs)
 
-    def zero_grad(self):
+    def zero_gradients(self):
         if not self._is_trainable:
-            raise MissingOptimizerError("No optimizer registered to the model")
+            raise MissingOptimizer("No optimizer registered to the model")
         self._optimizer.zero_grad()
 
     def step(self):
@@ -86,14 +86,14 @@ class LearningModule(nn.Module):
         return clone(self)
 
 
-class LearningModel(nn.Module):
+class LearningModuleManager(nn.Module):
     """NN model that consists of multiple task heads and an optional shared stack.
 
     Args:
         task_modules (LearningModule): LearningModule instances, each of which performs a designated task.
         shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to None.
     """
-    @check_chainability
+    @validate_dims
     def __init__(self, *task_modules: LearningModule, shared_module: LearningModule = None):
         super().__init__()
         self._task_names = [module.name for module in task_modules]
@@ -103,6 +103,11 @@ class LearningModel(nn.Module):
 
         # task_heads
         self._task_module_dict = nn.ModuleDict({task_module.name: task_module for task_module in task_modules})
+        self._input_dim = self._shared_module.input_dim if self._shared_module else task_modules[0].input_dim
+        if len(task_modules) == 1:
+            self._output_dim = task_modules[0].output_dim
+        else:
+            self._output_dim = {task_module.name: task_module.output_dim for task_module in task_modules}
 
     @property
     def task_names(self) -> [str]:
@@ -111,6 +116,14 @@ class LearningModel(nn.Module):
     @property
     def shared_module(self):
         return self._shared_module
+
+    @property
+    def input_dim(self):
+        return self._input_dim
+
+    @property
+    def output_dim(self):
+        return self._output_dim
 
     @property
     def is_trainable(self) -> bool:
@@ -161,9 +174,9 @@ class LearningModel(nn.Module):
     def learn(self, loss):
         """Use the loss to back-propagate gradients and apply them to the underlying parameters."""
         for task_module in self._task_module_dict.values():
-            task_module.zero_grad()
+            task_module.zero_gradients()
         if self._shared_module is not None:
-            self._shared_module.zero_grad()
+            self._shared_module.zero_gradients()
 
         # Obtain gradients through back-propagation
         loss.backward()

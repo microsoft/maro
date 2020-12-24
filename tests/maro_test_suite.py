@@ -28,13 +28,13 @@ if __name__ == "__main__":
                 cur_script_path = os.path.join(path, fn)
 
                 spliter = "\\" if sys.platform == "win32" else "/"
-                
+
                 module_name = ".".join(os.path.relpath(cur_script_path)[0:-3].split(spliter))
 
                 test_case_list.append(module_name)
-    
+
     print("loading test cases from following module")
-    
+
     for i, n in enumerate(test_case_list):
         print(f"{i}: {n}")
 

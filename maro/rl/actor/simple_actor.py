@@ -44,7 +44,7 @@ class SimpleActor(AbsActor):
 
         # load exploration parameters:
         if exploration_params is not None:
-            self._agents.update(exploration_params)
+            self._agents.set_exploration_params(exploration_params)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:

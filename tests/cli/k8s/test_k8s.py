@@ -6,6 +6,7 @@ import ast
 import json
 import logging
 import os
+import platform
 import shutil
 import time
 import unittest
@@ -163,10 +164,10 @@ class TestK8s(unittest.TestCase):
         test_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}")
         os.makedirs(f"{test_dir}/push/test_data", exist_ok=True)
         os.makedirs(f"{test_dir}/pull", exist_ok=True)
-        command = (
-            f"dd if=/dev/zero of={test_dir}/push/test_data/a.file "
-            f"bs=1 count=0 seek=1M"
-        )
+        if platform.system() == "Windows":
+            command = f"fsutil file createnew {test_dir}/push/test_data/a.file 1048576"
+        else:
+            command = f"fallocate -l 1M {test_dir}/push/test_data/a.file"
         SubProcess.run(command)
 
         # Push file to an existed folder
@@ -276,12 +277,12 @@ class TestK8s(unittest.TestCase):
         )
         command = f"maro k8s job start {self.cluster_name} {start_job_dqn_template_path}"
         SubProcess.run(command)
-        self._gracefully_wait(30)
+        self._gracefully_wait(60)
 
         # Check job status
         remain_idx = 0
         is_finished = False
-        while remain_idx <= 50:
+        while remain_idx <= 100:
             jobs_details = self._list_jobs_details()
             job_details = jobs_details[self.test_name]
             if "succeeded" in job_details["status"] and job_details["status"]["succeeded"] == 1:
