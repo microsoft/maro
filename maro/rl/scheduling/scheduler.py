@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from maro.utils.exception.rl_toolkit_exception import InfiniteTrainingLoopError, InvalidEpisodeError
+from maro.utils.exception.rl_toolkit_exception import InvalidTrainingLoop, InvalidEpisode
 
 
 class Scheduler(ABC):
@@ -19,9 +19,9 @@ class Scheduler(ABC):
 
     def __init__(self, max_ep: int, early_stopping_callback: Callable = None):
         if max_ep < -1:
-            raise InvalidEpisodeError("max_episode can only be a non-negative integer or -1.")
+            raise InvalidEpisode("max_episode can only be a non-negative integer or -1.")
         if max_ep == -1 and early_stopping_callback is None:
-            raise InfiniteTrainingLoopError(
+            raise InvalidTrainingLoop(
                 "A positive max_ep or an early stopping checker must be provided to prevent the training loop from "
                 "running forever."
             )

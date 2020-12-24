@@ -8,7 +8,7 @@ from os import environ
 import numpy as np
 import torch
 
-from maro.utils.exception.rl_toolkit_exception import UnrecognizedTaskError
+from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 device = environ.get("DEVICE", torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
@@ -20,7 +20,7 @@ def validate_task_names(task_enum: Enum):
             recognized_task_names = set(member.value for member in task_enum)
             model_task_names = set(model.task_names)
             if len(model_task_names) > 1 and model_task_names != recognized_task_names:
-                raise UnrecognizedTaskError(f"Expected task names {recognized_task_names}, got {model_task_names}")
+                raise UnrecognizedTask(f"Expected task names {recognized_task_names}, got {model_task_names}")
 
             init_func(self, model, config)
 

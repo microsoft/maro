@@ -7,7 +7,7 @@ from typing import Callable, List, Sequence, Tuple
 import numpy as np
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import StoreMisalignmentError
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignment
 
 from .abs_store import AbsStore
 from .utils import OverwriteType, check_uniformity, get_update_indexes, normalize
@@ -88,7 +88,7 @@ class ColumnBasedStore(AbsStore):
 
         Args:
             contents (dict): dictionary of items to add to the store. If the store is not empty, this must have the
-                same keys as the store itself. Otherwise an ``StoreMisalignmentError`` will be raised.
+                same keys as the store itself. Otherwise an ``StoreMisalignment`` will be raised.
             overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
                 used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
@@ -97,7 +97,7 @@ class ColumnBasedStore(AbsStore):
             The indexes where the newly added entries reside in the store.
         """
         if len(self._store) > 0 and contents.keys() != self._store.keys():
-            raise StoreMisalignmentError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
+            raise StoreMisalignment(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
         added = contents[next(iter(contents))]
         added_size = len(added) if isinstance(added, list) else 1
         if self._capacity < 0:
