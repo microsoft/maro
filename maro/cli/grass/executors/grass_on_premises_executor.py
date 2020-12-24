@@ -13,6 +13,7 @@ from maro.cli.grass.utils.copy import copy_files_to_node
 from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
 from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
+from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
@@ -20,12 +21,10 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class GrassOnPremisesExecutor:
+class GrassOnPremisesExecutor(GrassExecutor):
 
     def __init__(self, cluster_name: str):
-        self.cluster_name = cluster_name
-        self.cluster_details = load_cluster_details(cluster_name=cluster_name)
-        self.grass_executor = GrassExecutor(cluster_details=self.cluster_details)
+        super().__init__(cluster_details=load_cluster_details(cluster_name=cluster_name))
 
     @staticmethod
     def build_cluster_details(create_deployment: dict):
@@ -58,21 +57,22 @@ class GrassOnPremisesExecutor:
 
     @staticmethod
     def _standardize_create_deployment(create_deployment: dict):
-        alphabet = string.ascii_letters + string.digits
+        samba_password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
         optional_key_to_value = {
-            "root['master']['redis']": {'port': 6379},
-            "root['master']['redis']['port']": 6379,
-            "root['master']['fluentd']": {'port': 24224},
-            "root['master']['fluentd']['port']": 24224,
-            "root['master']['samba']": {'password': ''.join(secrets.choice(alphabet) for _ in range(20))},
-            "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20)),
+            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
+            "root['master']['fluentd']": {"port": GlobalParams.DEFAULT_FLUENTD_PORT},
+            "root['master']['fluentd']['port']": GlobalParams.DEFAULT_FLUENTD_PORT,
+            "root['master']['samba']": {"password": samba_password},
+            "root['master']['samba']['password']": samba_password,
             "root['connection']": {"ssh": {"port": GlobalParams.DEFAULT_SSH_PORT}},
             "root['connection']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
             "root['connection']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT
         }
         with open(
             os.path.expanduser(
-                f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-on-premises-create.yml")) as fr:
+                f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-on-premises-create.yml")
+        ) as fr:
             create_deployment_template = yaml.safe_load(fr)
         validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -110,7 +110,7 @@ class GrassOnPremisesExecutor:
 
     def _create_path_in_list(self, target_ip: str, path_list):
         for path_to_create in path_list:
-            self.grass_executor.remote_mkdir(
+            self.remote_mkdir(
                 path=path_to_create,
                 node_ip_address=target_ip
             )
@@ -139,7 +139,7 @@ class GrassOnPremisesExecutor:
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Make sure master is able to connect
-        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=master_public_ip_address)
+        self.retry_connection_and_set_ssh_port(node_ip_address=master_public_ip_address)
 
         # Create folders
         path_list = {
@@ -165,13 +165,13 @@ class GrassOnPremisesExecutor:
         )
 
         # Get public key
-        public_key = self.grass_executor.remote_get_public_key(node_ip_address=master_public_ip_address)
+        public_key = self.remote_get_public_key(node_ip_address=master_public_ip_address)
 
         # Remote init master
-        self.grass_executor.remote_init_master()
+        self.remote_init_master()
 
         # Load master agent service
-        self.grass_executor.remote_load_master_agent_service()
+        self.remote_load_master_agent_service()
 
         # Save details
         master_details["public_key"] = public_key
@@ -179,7 +179,7 @@ class GrassOnPremisesExecutor:
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
-        self.grass_executor.remote_set_master_details(master_details=cluster_details["master"])
+        self.remote_set_master_details(master_details=cluster_details["master"])
 
         logger.info_green("Master node is initialized")
 
@@ -189,14 +189,14 @@ class GrassOnPremisesExecutor:
         logger.info(f"Deleting cluster {cluster_name}")
 
         # Delete redis and other services
-        node_details_list = self.grass_executor.remote_get_nodes_details()
+        node_details_list = self.remote_get_nodes_details()
         for node_name, node_details in node_details_list.items():
             self.node_leave_cluster(node_name)
 
         # Delete cluster folder
         rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
-        self.grass_executor.remote_clean(1)
-        self.grass_executor.delete_master_details(cluster_name)
+        self.remote_clean(1)
+        self.delete_master_details()
         logger.info_green(f"The cluster {cluster_name} has been deleted.")
 
     def node_join_cluster(self, node_join_info: dict):
@@ -246,7 +246,7 @@ class GrassOnPremisesExecutor:
             },
             "containers": {}
         }
-        self.grass_executor.remote_set_node_details(
+        self.remote_set_node_details(
             node_name=node_name,
             node_details=node_details,
         )
@@ -257,12 +257,12 @@ class GrassOnPremisesExecutor:
         # Load details
         cluster_details = self.cluster_details
         admin_username = cluster_details["user"]["admin_username"]
-        node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
+        node_details = self.remote_get_node_details(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Make sure the node is able to connect
-        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=node_public_ip_address)
+        self.retry_connection_and_set_ssh_port(node_ip_address=node_public_ip_address)
 
         # Create folders
         path_list = {
@@ -288,37 +288,37 @@ class GrassOnPremisesExecutor:
         )
 
         # Remote init node
-        self.grass_executor.remote_init_node(
+        self.remote_init_node(
             node_name=node_name,
             node_ip_address=node_public_ip_address
         )
 
         # Get public key
-        public_key = self.grass_executor.remote_get_public_key(node_ip_address=node_public_ip_address)
+        public_key = self.remote_get_public_key(node_ip_address=node_public_ip_address)
 
         # Save details
         node_details["public_key"] = public_key
-        self.grass_executor.remote_set_node_details(
+        self.remote_set_node_details(
             node_name=node_name,
             node_details=node_details
         )
 
         # Update node status
         # Since On-Premises machines don't need to shutdown, it will be set to start directly.
-        self.grass_executor.remote_update_node_status(
+        self.remote_update_node_status(
             node_name=node_name,
             action="start"
         )
 
         # Load images
-        self.grass_executor.remote_load_images(
+        self.remote_load_images(
             node_name=node_name,
             parallels=GlobalParams.PARALLELS,
             node_ip_address=node_public_ip_address
         )
 
         # Load node agent service
-        self.grass_executor.remote_load_node_agent_service(
+        self.remote_load_node_agent_service(
             node_name=node_name,
             node_ip_address=node_public_ip_address
         )
@@ -327,19 +327,19 @@ class GrassOnPremisesExecutor:
 
     def node_leave_cluster(self, node_name: str):
         cluster_details = self.cluster_details
-        nodes_details = self.grass_executor.remote_get_nodes_details()
+        nodes_details = self.remote_get_nodes_details()
         if node_name not in nodes_details:
             logger.warning(f"The specified node cannot be found in cluster {cluster_details['name']}.")
             return
 
         node_details = nodes_details[node_name]
         # Update node status
-        self.grass_executor.remote_update_node_status(
+        self.remote_update_node_status(
             node_name=node_name,
             action="stop"
         )
         # Delete node record in redis.
-        self.grass_executor.remote_update_node_status(node_name, "delete")
+        self.remote_update_node_status(node_name, "delete")
 
         admin_username = cluster_details["user"]["admin_username"]
         node_ip_address = node_details["public_ip_address"]
@@ -363,7 +363,7 @@ class GrassOnPremisesExecutor:
             remote_dir="~/",
             admin_username=admin_username, node_ip_address=ip_address, ssh_port=ssh_port
         )
-        GrassExecutor.remote_add_user_to_node(admin_username, maro_user, ip_address, pubkey)
+        GrassOnPremisesExecutor.remote_add_user_to_node(admin_username, maro_user, ip_address, pubkey)
 
     @staticmethod
     def delete_user(admin_username: str, maro_user: str, ip_address: str, ssh_port: int) -> None:
@@ -376,4 +376,24 @@ class GrassOnPremisesExecutor:
             admin_username=admin_username, node_ip_address=ip_address, ssh_port=ssh_port
         )
 
-        GrassExecutor.remote_delete_user_from_node(admin_username, maro_user, ip_address)
+        GrassOnPremisesExecutor.remote_delete_user_from_node(admin_username, maro_user, ip_address)
+
+    # Remote utils
+
+    # Create a new user account on target OS.
+    @staticmethod
+    def remote_add_user_to_node(admin_username: str, maro_user: str, node_ip_address: str, pubkey: str):
+        # The admin_user is an already exist account which has privileges to create new account on target OS.
+        command = (
+            f"ssh {admin_username}@{node_ip_address} 'sudo python3 ~/create_user.py {maro_user} \"{pubkey}\"'"
+        )
+        _ = SubProcess.run(command)
+
+    # Delete maro cluster user account on target OS.
+    @staticmethod
+    def remote_delete_user_from_node(admin_username: str, delete_user: str, node_ip_address: str):
+        # The admin_user is an already exist account which has privileges to create new account on target OS.
+        command = (
+            f"ssh {admin_username}@{node_ip_address} 'sudo python3 ~/delete_user.py {delete_user}'"
+        )
+        _ = SubProcess.run(command)

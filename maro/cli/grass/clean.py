@@ -12,7 +12,6 @@ from maro.utils.exception.cli_exception import BadRequestError
 @check_details_validity
 @lock
 def clean(cluster_name: str, **kwargs):
-    # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
