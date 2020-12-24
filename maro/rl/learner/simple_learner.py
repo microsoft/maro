@@ -68,7 +68,7 @@ class SimpleLearner(AbsLearner):
 
         # load exploration parameters:
         if exploration_params is not None:
-            self._agent_manager.update_exploration_params(exploration_params)
+            self._agent_manager.set_exploration_params(exploration_params)
 
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:

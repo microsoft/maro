@@ -85,7 +85,7 @@ class Actor(ABC):
                 self._executor.load_models(model_dict)
             exploration_params = message.payload.get(PayloadKey.EXPLORATION_PARAMS, None)
             if exploration_params is not None:
-                self._executor.update_exploration_params(exploration_params)
+                self._executor.set_exploration_params(exploration_params)
         else:
             self._executor.set_ep("test" if message.session_id == "test" else int(message.session_id.split("-")[-1]))
 

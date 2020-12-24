@@ -22,7 +22,7 @@ class SimpleDistLearner(AbsDistLearner):
         for exploration_params in self._scheduler:
             # load exploration parameters
             if exploration_params:
-                self._agent_manager.update_exploration_params(exploration_params)
+                self._agent_manager.set_exploration_params(exploration_params)
             current_ep = f"ep-{self._scheduler.current_ep}"
             self._request_rollout(current_ep)
             self._wait_for_actor_results(current_ep)
@@ -80,7 +80,7 @@ class SEEDLearner(AbsDistLearner):
         for exploration_params in self._scheduler:
             # load exploration parameters
             if exploration_params:
-                self._agent_manager.update_exploration_params(exploration_params)
+                self._agent_manager.set_exploration_params(exploration_params)
             current_ep = f"ep-{self._scheduler.current_ep}"
             self._request_rollout(current_ep)
             self._serve_and_update(current_ep)

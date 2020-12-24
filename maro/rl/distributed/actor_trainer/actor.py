@@ -38,7 +38,7 @@ class AutoActor(ABC):
         for exploration_params in self._scheduler:
             self._env.reset()
             if exploration_params is not None:
-                self._update_exploration_params(exploration_params)
+                self._set_exploration_params(exploration_params)
             metrics, decision_event, is_done = self._env.step(None)
             while not is_done:
                 action = self._executor.choose_action(decision_event, self._env.snapshot_list)
@@ -52,11 +52,11 @@ class AutoActor(ABC):
                 if isinstance(self._executor, AbsAgentManager):
                     self._executor.load_models(reply[0].payload[PayloadKey.MODEL])
 
-    def _update_exploration_params(self, exploration_params):
+    def _set_exploration_params(self, exploration_params):
         # load exploration parameters
         if isinstance(self._executor, AbsAgentManager):
             if exploration_params is not None:
-                self._executor.update_exploration_params(exploration_params)
+                self._executor.set_exploration_params(exploration_params)
         else:
             session_id = ".".join([self._proxy.component_name, f"ep-{self._scheduler.current_ep}"])
             self._proxy.send(

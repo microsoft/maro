@@ -38,7 +38,7 @@ class Trainer(object):
         self._exploration_params_by_actor = defaultdict(lambda: None)
         self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler(
-            f"actor:{MessageTag.EXPLORATION_PARAMS.value}:1", self._update_exploration_params
+            f"actor:{MessageTag.EXPLORATION_PARAMS.value}:1", self._set_exploration_params
         )
         if update_trigger is None:
             update_trigger = self._num_actors
@@ -52,7 +52,7 @@ class Trainer(object):
             for handler_fn, cached_messages in self._registry_table.get():
                 handler_fn(cached_messages)
 
-    def _update_exploration_params(self, message):
+    def _set_exploration_params(self, message):
         actor_id = message.session_id.split(".")[0]
         self._exploration_params_by_actor[actor_id] = message.payload[PayloadKey.EXPLORATION_PARAMS]
         self._proxy.reply(received_message=message, tag=MessageTag.EXPLORATION_PARAMS_ACK)
@@ -117,7 +117,7 @@ class SEEDTrainer(Trainer):
                 actor_id = msg.session_id.split(".")[0]
                 agent_id = msg.payload[PayloadKey.AGENT_ID]
                 if self._exploration_params_by_actor[actor_id] is not None:
-                    self._agent_manager.update_exploration_params(self._exploration_params_by_actor[actor_id])
+                    self._agent_manager.set_exploration_params(self._exploration_params_by_actor[actor_id])
                 model_action = self._agent_manager[agent_id].choose_action(msg.payload[PayloadKey.STATE])
                 self._proxy.reply(
                     received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: model_action}
