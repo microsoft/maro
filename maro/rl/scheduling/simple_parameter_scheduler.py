@@ -1,42 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
 
-
-class StaticExplorationParameterGenerator(ABC):
-    """Exploration parameter generator based on a pre-defined schedule.
-
-    Args:
-        max_ep (int): Maximum number of episodes to run.
-    """
-    def __init__(self, max_ep: int):
-        super().__init__()
-        self._max_ep = max_ep
-
-    @abstractmethod
-    def next(self):
-        raise NotImplementedError
+from .scheduler import Scheduler
 
 
-class DynamicExplorationParameterGenerator(ABC):
-    """Dynamic exploration parameter generator based on the performances history."""
-    def __init__(self):
-        super().__init__()
-
-    @abstractmethod
-    def next(self, performance_history: list):
-        raise NotImplementedError
-
-
-class LinearExplorationParameterGenerator(StaticExplorationParameterGenerator):
+class LinearParameterScheduler(Scheduler):
     """Static exploration parameter generator based on a linear schedule.
 
     Args:
         max_ep (int): Maximum number of episodes to run.
+        early_stopping_callback (Callable): Function that returns a boolean indicating whether early stopping should
+            be triggered. Defaults to None, in which case no early stopping check will be performed.
         parameter_names ([str]): List of exploration parameter names.
         start_values (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
             These values must correspond to ``parameter_names``.
@@ -46,12 +24,13 @@ class LinearExplorationParameterGenerator(StaticExplorationParameterGenerator):
     def __init__(
         self,
         max_ep: int,
+        early_stopping_callback: Callable = None,
         *,
         parameter_names: [str],
         start_values: Union[float, list, tuple, np.ndarray],
         end_values: Union[float, list, tuple, np.ndarray]
     ):
-        super().__init__(max_ep)
+        super().__init__(max_ep, early_stopping_callback=early_stopping_callback)
         self._parameter_names = parameter_names
         if isinstance(start_values, float):
             self._current_values = start_values * np.ones(len(self._parameter_names))
@@ -65,19 +44,21 @@ class LinearExplorationParameterGenerator(StaticExplorationParameterGenerator):
         elif isinstance(end_values, (list, tuple)):
             end_values = np.asarray(end_values)
 
-        self._delta = (end_values - self._current_values) / (max_ep - 1)
+        self._delta = (end_values - self._current_values) / (self._max_ep - 1)
 
-    def next(self):
+    def _get_next_exploration_params(self):
         current_values = self._current_values.copy()
         self._current_values += self._delta
         return dict(zip(self._parameter_names, current_values))
 
 
-class TwoPhaseLinearExplorationParameterGenerator(StaticExplorationParameterGenerator):
+class TwoPhaseLinearParameterScheduler(Scheduler):
     """Exploration parameter generator based on two linear schedules joined together.
 
     Args:
         max_ep (int): Maximum number of episodes to run.
+        early_stopping_callback (Callable): Function that returns a boolean indicating whether early stopping should
+            be triggered. Defaults to None, in which case no early stopping check will be performed.
         parameter_names ([str]): List of exploration parameter names.
         split_ep (float): The episode where the switch from the first linear schedule to the second occurs.
         start_values (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
@@ -94,6 +75,7 @@ class TwoPhaseLinearExplorationParameterGenerator(StaticExplorationParameterGene
     def __init__(
         self,
         max_ep: int,
+        early_stopping_callback: Callable = None,
         *,
         parameter_names: [str],
         split_ep: float,
@@ -103,7 +85,7 @@ class TwoPhaseLinearExplorationParameterGenerator(StaticExplorationParameterGene
     ):
         if split_ep <= 0 or split_ep >= max_ep:
             raise ValueError("split_ep must be between 0 and max_ep - 1.")
-        super().__init__(max_ep)
+        super().__init__(max_ep, early_stopping_callback=early_stopping_callback)
         self._parameter_names = parameter_names
         self._split_ep = split_ep
         if isinstance(start_values, float):
@@ -125,10 +107,8 @@ class TwoPhaseLinearExplorationParameterGenerator(StaticExplorationParameterGene
 
         self._delta_1 = (mid_values - self._current_values) / split_ep
         self._delta_2 = (end_values - mid_values) / (max_ep - split_ep - 1)
-        self._current_ep = 0
 
-    def next(self):
+    def _get_next_exploration_params(self):
         current_values = self._current_values.copy()
         self._current_values += self._delta_1 if self._current_ep < self._split_ep else self._delta_2
-        self._current_ep += 1
         return dict(zip(self._parameter_names, current_values))
