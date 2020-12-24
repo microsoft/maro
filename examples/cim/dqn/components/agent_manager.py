@@ -32,11 +32,7 @@ def create_dqn_agents(agent_id_list, config):
 
         algorithm = DQN(
             model=LearningModuleManager(q_module),
-            config=DQNConfig(
-                **config.algorithm.config,
-                loss_cls=nn.SmoothL1Loss,
-                num_actions=num_actions
-            )
+            config=DQNConfig(**config.algorithm.config, loss_cls=nn.SmoothL1Loss)
         )
 
         agent_dict[agent_id] = CIMAgent(
