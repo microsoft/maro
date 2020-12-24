@@ -13,6 +13,7 @@ import uuid
 
 import yaml
 
+from maro.cli.grass.utils.params import NodeStatus
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
@@ -139,7 +140,7 @@ class TestGrass(unittest.TestCase):
         nodes_details = self._get_node_details()
         self.assertEqual(len(nodes_details), 1)
         for _, node_details in nodes_details.items():
-            self.assertEqual("Running", node_details["state"])
+            self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -160,7 +161,7 @@ class TestGrass(unittest.TestCase):
         nodes_details = self._get_node_details()
         self.assertEqual(len(nodes_details), 1)
         for _, node_details in nodes_details.items():
-            self.assertEqual("Running", node_details["state"])
+            self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
@@ -182,7 +183,7 @@ class TestGrass(unittest.TestCase):
         nodes_details = self._get_node_details()
         self.assertEqual(len(nodes_details), 2)
         for _, node_details in nodes_details.items():
-            self.assertEqual("Running", node_details["state"])
+            self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
@@ -206,9 +207,9 @@ class TestGrass(unittest.TestCase):
         running_count = 0
         stopped_count = 0
         for _, node_details in nodes_details.items():
-            if node_details["state"] == "Running":
+            if node_details["state"]["status"] == NodeStatus.RUNNING:
                 running_count += 1
-            if node_details["state"] == "Stopped":
+            if node_details["state"]["status"] == NodeStatus.STOPPED:
                 stopped_count += 1
         self.assertEqual(running_count, 1)
         self.assertEqual(stopped_count, 1)
@@ -235,11 +236,11 @@ class TestGrass(unittest.TestCase):
         running_count = 0
         stopped_count = 0
         for _, node_details in nodes_details.items():
-            if node_details["state"] == "Running":
+            if node_details["state"]["status"] == NodeStatus.RUNNING:
                 running_count += 1
                 self.assertIn("alpine_latest", node_details["image_files"])
                 self.assertIn("ubuntu_latest", node_details["image_files"])
-            if node_details["state"] == "Stopped":
+            if node_details["state"]["status"] == NodeStatus.STOPPED:
                 stopped_count += 1
                 self.assertIn("alpine_latest", node_details["image_files"])
                 self.assertNotIn("ubuntu_latest", node_details["image_files"])
@@ -266,7 +267,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
         for _, node_details in nodes_details.items():
-            if node_details["state"] == "Running":
+            if node_details["state"]["status"] == NodeStatus.RUNNING:
                 running_count += 1
                 self.assertIn("alpine_latest", node_details["image_files"])
                 self.assertIn("ubuntu_latest", node_details["image_files"])

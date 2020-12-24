@@ -34,7 +34,7 @@ if __name__ == "__main__":
         )
         node_details['image_files'] = {}
         node_details['containers'] = {}
-        node_details['state'] = 'Running'
+        node_details["state"] = {"status": "Running"}
         set_node_details(
             redis=redis,
             cluster_name=args.cluster_name,
@@ -53,7 +53,7 @@ if __name__ == "__main__":
             cluster_name=args.cluster_name,
             node_name=args.node_name
         )
-        node_details['state'] = 'Stopped'
+        node_details["state"] = {"status": "Stopped"}
         set_node_details(
             redis=redis,
             cluster_name=args.cluster_name,
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             cluster_name=args.cluster_name,
             node_name=args.node_name
         )
-        node_details['state'] = 'Running'
+        node_details["state"] = {"status": "Running"}
         set_node_details(
             redis=redis,
             cluster_name=args.cluster_name,

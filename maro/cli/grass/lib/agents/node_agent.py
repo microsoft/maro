@@ -85,7 +85,7 @@ class NodeTrackingAgent(multiprocessing.Process):
         self._update_actual_resources(node_details=node_details)
 
         # Other updates.
-        node_details["state"] = "Running"
+        node_details["state"]["status"] = "Running"
         node_details["check_time"] = self._redis.time()[0]
 
         # Save details.

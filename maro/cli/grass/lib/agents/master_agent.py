@@ -1154,7 +1154,7 @@ class ResourceManagementExecutor:
             target_free_memory = node_details["resources"]["target_free_memory"]
             target_free_gpu = node_details["resources"]["target_free_gpu"]
 
-            if node_details["state"] == "Running":
+            if node_details["state"]["status"] == "Running":
                 free_resources_list.append(
                     NodeResource(
                         node_name=node_name,

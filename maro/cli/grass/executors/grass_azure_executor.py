@@ -585,7 +585,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Get startable nodes
         startable_nodes = []
         for node_name, node_details in nodes_details.items():
-            if node_details["node_size"] == node_size and node_details["state"] == NodeStatus.STOPPED:
+            if node_details["node_size"] == node_size and node_details["state"]["status"] == NodeStatus.STOPPED:
                 startable_nodes.append(node_name)
 
         # Check replicas
@@ -650,7 +650,7 @@ class GrassAzureExecutor(GrassExecutor):
         for node_name, node_details in nodes_details.items():
             if (
                 node_details["node_size"] == node_size and
-                node_details["state"] == NodeStatus.RUNNING and
+                node_details["state"]["status"] == NodeStatus.RUNNING and
                 self._count_running_containers(node_details) == 0
             ):
                 stoppable_nodes.append(node_name)

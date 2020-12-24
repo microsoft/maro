@@ -14,6 +14,7 @@ import yaml
 
 from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node
 from maro.cli.grass.utils.hash import get_checksum
+from maro.cli.grass.utils.params import NodeStatus
 from maro.cli.utils.details import load_job_details, load_schedule_details, save_job_details, save_schedule_details
 from maro.cli.utils.naming import generate_component_id, generate_job_id, get_valid_file_name
 from maro.cli.utils.params import GlobalParams, GlobalPaths
@@ -133,7 +134,7 @@ class GrassExecutor:
         # build params
         params = []
         for node_name, node_details in nodes_details.items():
-            if node_details["state"] == "Running":
+            if node_details["state"]["status"] == NodeStatus.RUNNING:
                 params.append([
                     node_name,
                     GlobalParams.PARALLELS,
