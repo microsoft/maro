@@ -75,7 +75,6 @@ def launch(config):
         config.main_loop.max_episode,
         early_stopping_callback=EarlyStopping(**config.main_loop.early_stopping)
     )
-
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager, actor, scheduler,
