@@ -45,10 +45,10 @@ class SimpleLearner(AbsLearner):
                 exploration_params=exploration_params
             )
             self._scheduler.record_performance(performance)
-            self._logger.info(
-                f"ep {self._scheduler.current_ep} - performance: {performance}, "
-                f"exploration_params: {self._scheduler.exploration_params}"
-            )
+            ep_summary = f"ep {self._scheduler.current_ep} - performance: {performance}"
+            if exploration_params:
+                ep_summary = f"{ep_summary}, exploration_params: {self._scheduler.exploration_params}"
+            self._logger.info(ep_summary)
             self._agent_manager.train(exp_by_agent)
 
     def test(self):

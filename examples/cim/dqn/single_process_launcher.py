@@ -7,9 +7,9 @@ from statistics import mean
 import numpy as np
 
 
-from maro.rl import AgentManagerMode, Scheduler, SimpleActor, SimpleLearner, TwoPhaseLinearExplorationParameterGenerator
+from maro.rl import AgentManagerMode, SimpleActor, SimpleLearner, TwoPhaseLinearParameterScheduler
 from maro.simulator import Env
-from maro.utils import Logger, convert_dottable
+from maro.utils import LogFormat, Logger, convert_dottable
 
 from components import CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
 
@@ -71,16 +71,16 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    scheduler = Scheduler(
+    scheduler = TwoPhaseLinearParameterScheduler(
         config.main_loop.max_episode,
         early_stopping_callback=EarlyStopping(**config.main_loop.early_stopping),
-        exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
-        exploration_parameter_generator_config=config.main_loop.exploration
+        **config.main_loop.exploration
     )
 
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
-        agent_manager, actor, scheduler, logger=Logger("single_host_cim_learner", auto_timestamp=False)
+        agent_manager, actor, scheduler,
+        logger=Logger("single_host_cim_learner", format_=LogFormat.simple, auto_timestamp=False)
     )
     learner.learn()
     learner.test()
