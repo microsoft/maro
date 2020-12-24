@@ -6,7 +6,6 @@ from statistics import mean
 
 import numpy as np
 
-
 from maro.rl import AgentManagerMode, SimpleActor, SimpleLearner, TwoPhaseLinearParameterScheduler
 from maro.simulator import Env
 from maro.utils import LogFormat, Logger, convert_dottable

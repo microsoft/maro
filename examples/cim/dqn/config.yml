@@ -52,4 +52,4 @@ agents:
     min_experiences_to_train: 1024
     num_batches: 10
     batch_size: 128
-  seed: 1024   # for reproducibility
+  seed: 1   # for reproducibility
