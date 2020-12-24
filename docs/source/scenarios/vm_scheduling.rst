@@ -2,28 +2,32 @@ Virtual Machine Scheduling (VM Scheduling)
 ===========================================
 
 The Virtual Machine (VM) Scheduling scenario simulates the VM scheduling problem
-in a data center. In a specific time window where a specific total number of VM
-requests and arrival pattern is fixed, given a cluster of limited physical
-machines(PM), different VM placement solutions result in different number of
-successful completion and different operating cost for the data center.
+in a data center. Within a specific time window, the number of VM
+requests and arrival pattern is fixed. Given a cluster of limited physical
+machines(PM), different VM placement strategeies result in different amount of
+successful completion and different operating cost for the data center. For cloud proivders, a 
+good VM allocation strategy can maximize the resourece utilization and thus can increase the profit by 
+providing more VMs to users. For cloud users, a good VM allocation strategy can 
+minimize the VM response time and have a better experience of using VM. We hope this scenario can meet 
+the real needs and provide you with a demand simulation that is closest to the real situation.
 
 
 Resource Flow
 --------------
 
 In this scenario, the physical resources in each physical machine (PM) are the
-central resource, which currently includes the physical cores and memory. A complete
+central resource, which currently includes the physical cores and memory. A full
 resource life cycle always contains the steps below:
 
-- Coming VM requests ask for a certain amount of resources. Resource requirements may be 
-  different based on the different VM requests.
+- Coming VM requests ask for a certain amount of resources. Resource requirements are varied
+  based on the different VM requests.
 - According to the scheduling agent's strategy, the VM will be allocated to and be created
-  in a specific PM as long as that PM's remaining resources are enough.
-- The resource utilization changes dynamically and the real-time energy consumption
-  will be simulated in the runtime simulation of this VM.
+  in a specified PM as long as that PM's remaining resources are enough.
+- The VM's resource utilization changes dynamically and the PM's real-time energy consumption
+  will be simulated in the runtime simulation.
 - After a period of execution, the VM completes its tasks. The simulator will release the resources
-  allocated to this VM and deallocates this VM. Finally, the resource is free again and is ready to 
-  serve the next VM request.
+  allocated to this VM and deallocate this VM from the PM. 
+  Finally, the resource is free and is ready to serve the next VM request.
 
 VM Request
 ^^^^^^^^^^^
@@ -31,11 +35,35 @@ VM Request
 In the VM scheduling scenario, the VM requests are uniformly sampled from real
 workloads. As long as the original dataset is large enough and the sample ratio
 is not too small, the sampled VM requests can follow a similar distribution to the
-original ones. We hope this scenario can meet the real needs and provide
-you with a demand simulation that is closest to the real situation.
+original ones. 
+
+Before the decision making by the agent, the MARO simulator will first calculate the 
+remaining resource of each PM. The resources includes CPU cores and memory. The simulator will then 
+generate a ``PendingDecision`` event with the ``DecisionPayload``, which contains all 
+valid PMs (valid here means that the remaining resources are enough), and the information of the 
+awaiting VM.
 
 VM Allocation
 ^^^^^^^^^^^^^^
+
+The agent will make the decision among all valid PMs after get the ``DecisionPayload``.
+The agent will decide one PM to host the VM based on the given strategy. Afterwards, the agent 
+will send the ``Action`` back to the simulator for the following simulation. 
+There are three different valid ``Action`` in current VM Scheduling scenario. 
+
+* ``AllocateAction``: If the MARO simulator receives the ``AllocateAction``, the VM's creation time will be 
+  fixed at that tick. Besides, the simulator will update the workloads (the workloads include CPU cores,
+  the memory, and the energy consumption) of the target PM.
+* ``PostponeAction``: If the MARO simulator receives the ``PostponeAction``, it will calculate the 
+  remaining buffer time. 
+
+  * If the time is still enough, the simulator will re-generate a new requirement
+    event and insert it to the corresponding tick (based on the ``Postpone Step`` and ``DELAY_DURATION``). 
+    The ``DecisionPayload`` of the new requirement event only differs in the remaining buffer time from the 
+    old ones.
+  * If the time is exhausted, the simulator will note it as a failed allocation.
+
+See the detailed attributes `here <#action>`_.
 
 Runtime Simulation
 ^^^^^^^^^^^^^^^^^^^
@@ -43,21 +71,47 @@ Runtime Simulation
 Dynamic Utilization
 ~~~~~~~~~~~~~~~~~~~~
 
+To make the simulated environment closest to the real situation. We also simulate CPU utilization of each
+VM. The CPU utilization of the VM varies every tick. We will re-calculate the total resources (CPU utilization)
+of each PM in every tick and update to the PM workload for the following decision.
+
 Real-time Energy Consumption
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One of the most important characteristics that cloud providers concern is the PM's enery consumption. As we
+mention before, the lower energy consumption of the PMs, the lower cost to maintain the physical servers. In 
+our simulation, we currently simulate the energy based on the CPU utilization. In short, PM cost more energy
+if it has higher CPU utilization. [`Reference <https://dl.acm.org/doi/10.1145/1273440.1250665>`_]
 
 VM Deallocation
 ^^^^^^^^^^^^^^^^
 
+The MARO simulator checks every tick to detect the finished VMs. It will then release the resources of PMs,
+including CPU cores and memory, and finally remove the VM from the PM.
 
 Topologies
 -----------
 
-To provide an exploration road map from easy to difficult, two kinds of topologies are designed and 
+To provide samples from easy to difficult, two kinds of topologies are designed and 
 provided in VM Scheduling scenario. 
 
 Azure Topologies
 ^^^^^^^^^^^^^^^^^
+
+The original data are provided by `Azure public dataset 
+<https://github.com/Azure/AzurePublicDataset>`_. In our scenario, we pre-processed the AzurePublicDatasetV2. 
+The dataset contains real Azure VM workloads, including the information of VMs and their utilization readings 
+in 2019 lasting for 30 days.
+
+The detailed information of the data schema can be found
+`here <https://github.com/Azure/AzurePublicDataset/blob/master/AzurePublicDatasetV2.md>`_. After pre-processed,
+we only retain real VM creation and deletion time (converted to the tick, 1 tick means 5 minutes in real time),
+VM cores and memory(GB) requirements, and we also renumber the original VM ID.
+As for the utilization readings part, we use the renumbered VM ID and VM's CPU utilization sorting by the timestamp (tick).
+
+**azure.2019.10k**\ : 
+
+**azure.2019.336k**\ : 
 
 Naive Baseline
 ^^^^^^^^^^^^^^^
@@ -93,20 +147,20 @@ Random Allocation
      - 8,011
      - 7,411
      - 1,989
-   * - Azure.2019.336k 
+   * - Azure.2019.336k
+     - 880 PMs, 32 Cores, 128 GB
+     - 335,985
+     - 26,681,249.7
+     - 176,468
+     - 165,715
+     - 159,517
+   * -  
      - 880 PMs, 16 Cores, 112 GB
      - 335,985
      - 26,367,238.7
      - 92,885
      - 87,153
      - 243,100
-   * - 
-     - 880 PMs, 32 Cores, 128 GB
-     - 336,000
-     - 
-     - 
-     - 
-     - 
 
 Best-Fit Allocation
 ~~~~~~~~~~~~~~~~~~~~
@@ -131,24 +185,25 @@ Best-Fit Allocation
    * - 
      - 100 PMs, 16 Cores, 112 GB
      - 10,000
-     - 
-     - 
-     - 
-     - 
+     - 2,987,086.6
+     - 7,917
+     - 7,313
+     - 2,083
    * - Azure.2019.336k 
+     - 880 PMs, 32 Cores, 128 GB
+     - 335,985
+     - 26,695,470.8
+     - 171,044
+     - 160,495
+     - 164,941
+   * - 
      - 880 PMs, 16 Cores, 112 GB
      - 335,985
      - 26,390,972.9
      - 92,263
      - 86,600
      - 243,722
-   * - 
-     - 880 PMs, 32 Cores, 128 GB
-     - 336,000
-     - 
-     - 
-     - 
-     - 
+
 
 
 Quick Start
@@ -162,10 +217,6 @@ and process the data files. Afterwards, if you want to run multiple simulations,
 whether the processed data files exist or not. If not, it will then trigger the pipeline again. Otherwise,
 the system will reuse the processed data files. 
 
-The original data are provided by `Azure public dataset 
-<https://github.com/Azure/AzurePublicDataset>`_. In our scenario, we pre-processed the AzurePublicDatasetV2. 
-The dataset contains real Azure VM workloads, including the information of VMs and their utilization readings 
-in 2019 lasting for 30 days.
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^^
