@@ -6,7 +6,7 @@ import timeit
 import yaml
 
 from maro.simulator import Env
-from maro.simulator.scenarios.vm_scheduling import DecisionPayload, PlaceAction, PostponeAction
+from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 from maro.utils import convert_dottable
 
 CONFIG_PATH = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     metrics: object = None
     decision_event: DecisionPayload = None
     is_done: bool = False
-    action: PlaceAction = None
+    action: AllocateAction = None
     metrics, decision_event, is_done = env.step(None)
 
     while not is_done:
@@ -42,12 +42,12 @@ if __name__ == "__main__":
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
                 vm_id=decision_event.vm_id,
-                postpone_frequency=1
+                postpone_step=1
             )
         else:
             # Get the capacity and allocated cores from snapshot.
             valid_pm_info = env.snapshot_list["pms"][
-                env.tick : decision_event.valid_pms : ["cpu_cores_capacity", "cpu_cores_allocated"]
+                env.frame_index:decision_event.valid_pms:["cpu_cores_capacity", "cpu_cores_allocated"]
             ].reshape(-1, 2)
             # Calculate to get the remaining cpu cores.
             cpu_cores_remaining = valid_pm_info[:, 0] - valid_pm_info[:, 1]
@@ -58,8 +58,8 @@ if __name__ == "__main__":
                 if remaining < minimum_remaining_cpu_cores:
                     chosen_idx = i
                     minimum_remaining_cpu_cores = remaining
-            # Take action to place on the closet pm.
-            action: PlaceAction = PlaceAction(
+            # Take action to allocate on the closet pm.
+            action: AllocateAction = AllocateAction(
                 vm_id=decision_event.vm_id,
                 pm_id=decision_event.valid_pms[chosen_idx]
             )

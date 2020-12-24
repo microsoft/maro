@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from typing import Set
+from typing import List, Set
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
+
+from .virtual_machine import VirtualMachine
 
 
 @node("pms")
@@ -28,8 +30,17 @@ class PhysicalMachine(NodeBase):
         # PM resource.
         self._live_vms: Set[int] = set()
 
-    def set_cpu_utilization(self, cpu_utilization: float):
-        self.cpu_utilization = max(0, cpu_utilization)
+    def update_cpu_utilization(self, vm: VirtualMachine = None, cpu_utilization: float = None):
+        if vm is None and cpu_utilization is None:
+            raise Exception(f"Wrong calling method {self.update_cpu_utilization.__name__}")
+
+        if vm is not None:
+            cpu_utilization = (
+                (self.cpu_cores_capacity * self.cpu_utilization + vm.cpu_cores_requirement * vm.cpu_utilization)
+                / self.cpu_cores_capacity
+            )
+
+        self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
     def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int):
         """Set initialize state, that will be used after frame reset.
@@ -64,8 +75,10 @@ class PhysicalMachine(NodeBase):
     def live_vms(self) -> Set[int]:
         return self._live_vms
 
-    def place_vm(self, vm_id: int):
-        self._live_vms.add(vm_id)
+    def allocate_vms(self, vm_ids: List[int]):
+        for vm_id in vm_ids:
+            self._live_vms.add(vm_id)
 
-    def remove_vm(self, vm_id: int):
-        self._live_vms.remove(vm_id)
+    def deallocate_vms(self, vm_ids: List[int]):
+        for vm_id in vm_ids:
+            self._live_vms.remove(vm_id)
