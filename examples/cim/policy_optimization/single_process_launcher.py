@@ -7,21 +7,46 @@ from statistics import mean
 import numpy as np
 
 from maro.simulator import Env
-from maro.rl import (
-    AgentManagerMode, SimpleActor, SimpleEarlyStoppingChecker, SimpleLearner, MaxDeltaEarlyStoppingChecker
-)
-from maro.utils import Logger, convert_dottable
+from maro.rl import AgentManagerMode, Scheduler, SimpleActor, SimpleLearner
+from maro.utils import LogFormat, Logger, convert_dottable
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import create_po_agents, POAgentManager
-from components.config import set_input_dim
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
+from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
+
+
+class EarlyStopping:
+    """Callable class that checks the performance history to determine early stopping.
+
+    Args:
+        warmup_ep (int): Episode from which early stopping checking is initiated.
+        last_k (int): Number of latest performance records to check for early stopping.
+        perf_threshold (float): The mean of the ``last_k`` performance metric values must be above this value to
+            trigger early stopping.
+        perf_stability_threshold (float): The maximum one-step change over the ``last_k`` performance metrics must be
+            below this value to trigger early stopping.
+    """
+    def __init__(self, warmup_ep: int, last_k: int, perf_threshold: float, perf_stability_threshold: float):
+        self._warmup_ep = warmup_ep
+        self._last_k = last_k
+        self._perf_threshold = perf_threshold
+        self._perf_stability_threshold = perf_stability_threshold
+
+        def get_metric(record):
+            return 1 - record["container_shortage"] / record["order_requirements"]
+        self._metric_func = get_metric
+
+    def __call__(self, perf_history) -> bool:
+        if len(perf_history) < max(self._last_k, self._warmup_ep):
+            return False
+
+        metric_series = list(map(self._metric_func, perf_history[-self._last_k:]))
+        max_delta = max(
+            abs(metric_series[i] - metric_series[i - 1]) / metric_series[i - 1] for i in range(1, self._last_k)
+        )
+        return mean(metric_series) > self._perf_threshold and max_delta < self._perf_stability_threshold
 
 
 def launch(config):
     # First determine the input dimension and add it to the config.
-    set_input_dim(config)
     config = convert_dottable(config)
 
     # Step 1: initialize a CIM environment for using a toy dataset.
@@ -30,11 +55,12 @@ def launch(config):
 
     # Step 2: create state, action and experience shapers. We also need to create an explorer here due to the
     # greedy nature of the DQN algorithm.
-    state_shaper = CIMStateShaper(**config.state_shaping)
+    state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.num_actions)))
-    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
+    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
     # Step 3: create an agent manager.
+    config["agents"]["input_dim"] = state_shaper.dim
     agent_manager = POAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
@@ -45,31 +71,17 @@ def launch(config):
     )
 
     # Step 4: Create an actor and a learner to start the training process.
-    perf_checker = SimpleEarlyStoppingChecker(
-        last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.perf_threshold,
-        measure_func=lambda vals: mean(vals)
+    scheduler = Scheduler(
+        config.main_loop.max_episode,
+        early_stopping_callback=EarlyStopping(**config.main_loop.early_stopping)
     )
 
-    perf_stability_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.perf_stability_threshold
-    )
-
-    combined_checker = perf_checker & perf_stability_checker
-
-    actor = SimpleActor(env=env, agent_manager=agent_manager)
+    actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
-        agent_manager=agent_manager,
-        actor=actor,
-        logger=Logger("single_host_cim_learner", auto_timestamp=False)
+        agent_manager, actor, scheduler,
+        logger=Logger("cim_learner", format_=LogFormat.simple, auto_timestamp=False)
     )
-    learner.learn(
-        max_episode=config.main_loop.max_episode,
-        early_stopping_checker=combined_checker,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"]
-    )
+    learner.learn()
     learner.test()
     learner.dump_models(os.path.join(os.getcwd(), "models"))
 

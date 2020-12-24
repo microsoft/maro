@@ -38,7 +38,7 @@ def launch(config, distributed_config):
         agent_manager=agent_manager,
         actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
         scheduler=TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration),
-        logger=Logger("distributed_cim_learner", auto_timestamp=False)
+        logger=Logger("cim_learner", auto_timestamp=False)
     )
     learner.learn()
     learner.test()

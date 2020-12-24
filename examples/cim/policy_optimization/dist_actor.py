@@ -9,24 +9,20 @@ from maro.simulator import Env
 from maro.rl import AgentManagerMode, SimpleActor, ActorWorker
 from maro.utils import convert_dottable
 
-from components.action_shaper import CIMActionShaper
-from components.agent_manager import create_po_agents, POAgentManager
-from components.config import config, set_input_dim
-from components.experience_shaper import TruncatedExperienceShaper
-from components.state_shaper import CIMStateShaper
+from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
 
 
 def launch(config):
-    set_input_dim(config)
     config = convert_dottable(config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    state_shaper = CIMStateShaper(**config.state_shaping)
+    state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.num_actions)))
-    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping)
+    experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
+    config["agents"]["input_dim"] = state_shaper.dim
     agent_manager = POAgentManager(
-        name="cim_remote_actor",
+        name="cim_actor",
         mode=AgentManagerMode.INFERENCE,
         agent_dict=create_po_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,

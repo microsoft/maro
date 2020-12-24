@@ -2,35 +2,23 @@ env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
+  state_shaping:
+    look_back: 7
+    max_ports_downstream: 2
+  experience_shaping:
+    time_window: 100
+    fulfillment_factor: 1.0
+    shortage_factor: 1.0
+    time_decay_factor: 0.97
 main_loop:
   max_episode: 500
   early_stopping:
     warmup_ep: 50
     last_k: 10
-    perf_threshold: 0.9   # minimum performance (fulfillment ratio) required to trigger early stopping
+    perf_threshold: 0.95   # minimum performance (fulfillment ratio) required to trigger early stopping
     perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
     # over the last k episodes (where perf is short for performance). This value must
     # be below this threshold to trigger early stopping
-state_shaping:
-  look_back: 7
-  max_ports_downstream: 2
-  port_attributes:
-    - "empty"
-    - "full"
-    - "on_shipper"
-    - "on_consignee"
-    - "booking"
-    - "shortage"
-    - "fulfillment"
-  vessel_attributes:
-    - "empty"
-    - "full"
-    - "remaining_space"
-experience_shaping:
-  time_window: 100
-  fulfillment_factor: 1.0
-  shortage_factor: 1.0
-  time_decay_factor: 0.97
 agents:
   seed: 1024   # for reproducibility
   num_actions: 21
@@ -68,12 +56,3 @@ agents:
     critic_train_iters: 10
     k: 1
     lam: 0.0
-distributed:
-  group_name: "ac_distributed_test"
-  actor:
-    peer: {"actor": 1}
-  learner:
-    peer: {"actor_worker": 1}
-  redis:
-    host_name: "localhost"
-    port: 6379
