@@ -10,7 +10,6 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.ac import ActorCritic, ActorCriticConfig
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.pg import PolicyGradient, PolicyGradientConfig
-from maro.rl.algorithms.ppo import PPO, PPOConfig
 from maro.rl.algorithms.utils import ActionWithLogProbability, expand_dim, preprocess, to_device, validate_task_names
 from maro.rl.dist_topologies.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
@@ -65,8 +64,6 @@ __all__ = [
     'OverwriteType',
     'PolicyGradient',
     'PolicyGradientConfig',
-    'PPO',
-    'PPOConfig',
     'Scheduler',
     'SimpleActor',
     'SimpleAgentManager',

@@ -29,6 +29,7 @@ class EarlyStopping:
         self._last_k = last_k
         self._perf_threshold = perf_threshold
         self._perf_stability_threshold = perf_stability_threshold
+        print(f"perf threshold: {self._perf_threshold}, perf stability threshold: {self._perf_stability_threshold}")
 
         def get_metric(record):
             return 1 - record["container_shortage"] / record["order_requirements"]
@@ -42,6 +43,7 @@ class EarlyStopping:
         max_delta = max(
             abs(metric_series[i] - metric_series[i - 1]) / metric_series[i - 1] for i in range(1, self._last_k)
         )
+        print(f"mean_metric: {mean(metric_series)}, max_delta: {max_delta}")
         return mean(metric_series) > self._perf_threshold and max_delta < self._perf_stability_threshold
 
 

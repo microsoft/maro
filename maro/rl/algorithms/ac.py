@@ -25,32 +25,37 @@ class ActorCriticConfig:
     Args:
         reward_decay (float): Reward decay as defined in standard RL terminology.
         critic_loss_func (Callable): Loss function for the critic model.
-        actor_train_iters (int): Number of gradient descent steps for the policy model per call to ``train``.
-        critic_train_iters (int): Number of gradient descent steps for the value model per call to ``train``.
+        train_iters (int): Number of gradient descent steps per call to ``train``.
+        actor_loss_coefficient (float): The coefficient for actor loss in the total loss function, e.g.,
+            loss = critic_loss + ``actor_loss_coefficient`` * actor_loss. Defaults to 1.0.
         k (int): Number of time steps used in computing returns or return estimates. Defaults to -1, in which case
             rewards are accumulated until the end of the trajectory.
         lam (float): Lambda coefficient used in computing lambda returns. Defaults to 1.0, in which case the usual
             k-step return is computed.
+        clip_ratio (float): Clip ratio in the PPO algorithm (https://arxiv.org/pdf/1707.06347.pdf). Defaults to None,
+            in which case the actor loss is calculated using the usual policy gradient theorem.
     """
     __slots__ = [
-        "reward_decay", "critic_loss_func", "actor_train_iters", "critic_train_iters", "k", "lam"
+        "reward_decay", "critic_loss_func", "train_iters", "actor_loss_coefficient", "k", "lam", "clip_ratio"
     ]
 
     def __init__(
         self,
         reward_decay: float,
         critic_loss_func: Callable,
-        actor_train_iters: int,
-        critic_train_iters: int,
+        train_iters: int,
+        actor_loss_coefficient: float = 1.0,
         k: int = -1,
-        lam: float = 1.0
+        lam: float = 1.0,
+        clip_ratio: float = None
     ):
         self.reward_decay = reward_decay
         self.critic_loss_func = critic_loss_func
-        self.actor_train_iters = actor_train_iters
-        self.critic_train_iters = critic_train_iters
+        self.train_iters = train_iters
+        self.actor_loss_coefficient = actor_loss_coefficient
         self.k = k
         self.lam = lam
+        self.clip_ratio = clip_ratio
 
 
 class ActorCritic(AbsAlgorithm):
@@ -91,21 +96,27 @@ class ActorCritic(AbsAlgorithm):
         return state_values, return_est
 
     @preprocess
-    def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray):
+    def train(
+        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
+    ):
         state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
         advantages = return_est - state_values
-        if self._model.shared_module and self._model.shared_module.is_trainable:
-            pass
-        else:
-            # policy model training
-            for _ in range(self._config.actor_train_iters):
-                action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
-                actor_loss = -(torch.log(action_prob) * advantages).mean()
-                self._model.learn(actor_loss)
+        for _ in range(self._config.train_iters):
+            critic_loss = self._config.critic_loss_func(
+                self._model(states, task_name="critic").squeeze(), return_est
+            )
+            action_prob = self._model(states, task_name="actor").gather(1, actions.unsqueeze(1)).squeeze()  # (N,)
+            log_action_prob_new = torch.log(action_prob)
+            actor_loss = self._actor_loss(log_action_prob_new, log_action_prob, advantages)
+            loss = critic_loss + self._config.actor_loss_coefficient * actor_loss
+            self._model.learn(loss)
 
-            # value model training
-            for _ in range(self._config.critic_train_iters):
-                critic_loss = self._config.critic_loss_func(
-                    self._model(states, task_name="critic").squeeze(), return_est
-                )
-                self._model.learn(critic_loss)
+    def _actor_loss(self, log_action_prob_new, log_action_prob_old, advantages):
+        if self._config.clip_ratio is not None:
+            ratio = torch.exp(log_action_prob_new - log_action_prob_old)
+            clip_ratio = torch.clamp(ratio, 1 - self._config.clip_ratio, 1 + self._config.clip_ratio)
+            actor_loss = -(torch.min(ratio * advantages, clip_ratio * advantages)).mean()
+        else:
+            actor_loss = -(log_action_prob_new * advantages).mean()
+
+        return actor_loss
