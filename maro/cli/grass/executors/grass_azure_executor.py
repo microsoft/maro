@@ -242,7 +242,7 @@ class GrassAzureExecutor(GrassExecutor):
         master_details["hostname"] = hostname
         master_details["resource_name"] = f"{self.cluster_id}-master-vm"
         self.master_public_ip_address = public_ip_address
-        logger.info_green(f"You can login to your master node with: ssh {self.admin_username}@{public_ip_address}")
+        logger.info_green(f"You can login to your master node with: {self.admin_username}@{public_ip_address}")
 
         # Save details
         save_cluster_details(
@@ -416,8 +416,8 @@ class GrassAzureExecutor(GrassExecutor):
                 )
         else:
             logger.warning_yellow(
-                "Unable to scale down."
-                f" Only {len(deletable_nodes)} are deletable, but need to delete {num} to meet the replica"
+                "Unable to scale down.\n"
+                f"Only {len(deletable_nodes)} nodes are deletable, but need to delete {num} to meet the replica"
             )
 
     def _create_vm(self, node_name: str, node_size: str, node_size_to_spec: dict):
@@ -588,7 +588,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Check replicas
         if len(startable_nodes) < replicas:
             raise BadRequestError(
-                f"No enough '{node_size}' nodes can be started (only {len(startable_nodes)} is startable)."
+                f"No enough '{node_size}' nodes can be started, only {len(startable_nodes)} is able to start."
             )
 
         # Parallel start

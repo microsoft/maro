@@ -194,7 +194,7 @@ class GrassExecutor:
         )
 
     def _start_job(self, job_details: dict):
-        logger.info(f"Start sending job ticket {job_details['name']}")
+        logger.info(f"Sending job ticket {job_details['name']}")
 
         # Load details
         job_name = job_details["name"]
