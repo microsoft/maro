@@ -7,7 +7,7 @@ from typing import Callable
 import numpy as np
 import torch
 
-from maro.rl.models.learning_model import LearningModel
+from maro.rl.models.learning_model import LearningModuleManager
 
 from .abs_algorithm import AbsAlgorithm
 from .utils import expand_dim, preprocess, to_device, validate_task_names
@@ -52,7 +52,7 @@ class DDPG(AbsAlgorithm):
     """
     @validate_task_names(DDPGTask)
     @to_device
-    def __init__(self, model: LearningModel, config: DDPGConfig):
+    def __init__(self, model: LearningModuleManager, config: DDPGConfig):
         super().__init__(model, config)
         self._target_model = model.copy() if model.is_trainable else None
         self._train_cnt = 0
