@@ -46,7 +46,7 @@ class LinearParameterScheduler(Scheduler):
 
         self._delta = (end_values - self._current_values) / (self._max_ep - 1)
 
-    def _get_next_exploration_params(self):
+    def get_next_exploration_params(self):
         current_values = self._current_values.copy()
         self._current_values += self._delta
         return dict(zip(self._parameter_names, current_values))
@@ -108,7 +108,7 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
         self._delta_1 = (mid_values - self._current_values) / split_ep
         self._delta_2 = (end_values - mid_values) / (max_ep - split_ep - 1)
 
-    def _get_next_exploration_params(self):
+    def get_next_exploration_params(self):
         current_values = self._current_values.copy()
         self._current_values += self._delta_1 if self._current_ep < self._split_ep else self._delta_2
         return dict(zip(self._parameter_names, current_values))

@@ -1,13 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from abc import ABC, abstractmethod
 from typing import Callable
 
 from maro.utils.exception.rl_toolkit_exception import InvalidTrainingLoop, InvalidEpisode
 
 
-class Scheduler(ABC):
+class Scheduler(object):
     """Scheduler that generates exploration parameters for each episode.
 
     Args:
@@ -41,11 +40,10 @@ class Scheduler(ABC):
         if self._early_stopping_callback and self._early_stopping_callback(self._performance_history):
             raise StopIteration
 
-        self._exploration_params = self._get_next_exploration_params()
+        self._exploration_params = self.get_next_exploration_params()
         return self._exploration_params
 
-    @abstractmethod
-    def _get_next_exploration_params(self):
+    def get_next_exploration_params(self):
         pass
 
     @property
