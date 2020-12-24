@@ -1,0 +1,14 @@
+name: ""
+mode: ""
+
+user:
+  admin_username: ""
+  admin_public_key: ""
+
+master:
+  redis:
+    port: ""
+  fluentd:
+    port: ""
+  samba:
+    password: ""

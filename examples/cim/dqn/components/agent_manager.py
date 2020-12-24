@@ -5,8 +5,8 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-    ColumnBasedStore, DQN, DQNConfig, EpsilonGreedyExplorer, FullyConnectedBlock, LearningModuleManager, LearningModule,
-    OptimizerOptions, SimpleAgentManager
+    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModuleManager, LearningModule, OptimizerOptions,
+    SimpleAgentManager
 )
 from maro.utils import set_seeds
 
@@ -32,15 +32,11 @@ def create_dqn_agents(agent_id_list, config):
 
         algorithm = DQN(
             model=LearningModuleManager(q_module),
-            config=DQNConfig(
-                **config.algorithm.config,
-                loss_cls=nn.SmoothL1Loss
-            )
+            config=DQNConfig(**config.algorithm.config, loss_cls=nn.SmoothL1Loss)
         )
 
-        experience_pool = ColumnBasedStore(**config.experience_pool)
         agent_dict[agent_id] = DQNAgent(
-            agent_id, algorithm, EpsilonGreedyExplorer(num_actions), experience_pool,
+            agent_id, algorithm, ColumnBasedStore(**config.experience_pool),
             **config.training_loop_parameters
         )
 
@@ -48,7 +44,7 @@ def create_dqn_agents(agent_id_list, config):
 
 
 class DQNAgentManager(SimpleAgentManager):
-    def train(self, experiences_by_agent):
+    def train(self, experiences_by_agent, performance=None):
         self._assert_train_mode()
 
         # store experiences for each agent

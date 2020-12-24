@@ -8,6 +8,7 @@ from maro.rl.actor.simple_actor import SimpleActor
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.dist_topologies.single_learner_multi_actor_sync_mode import ActorProxy
 from maro.rl.scheduling.scheduler import Scheduler
+from maro.utils import DummyLogger, Logger
 
 from .abs_learner import AbsLearner
 
@@ -21,17 +22,20 @@ class SimpleLearner(AbsLearner):
             (environment sampling).
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
+        logger (Logger): Used to log important messages.
     """
     def __init__(
         self,
         agent_manager: SimpleAgentManager,
         actor: Union[SimpleActor, ActorProxy],
-        scheduler: Scheduler
+        scheduler: Scheduler,
+        logger: Logger = DummyLogger()
     ):
         super().__init__()
         self._agent_manager = agent_manager
         self._actor = actor
         self._scheduler = scheduler
+        self._logger = logger
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
@@ -41,6 +45,10 @@ class SimpleLearner(AbsLearner):
                 exploration_params=exploration_params
             )
             self._scheduler.record_performance(performance)
+            ep_summary = f"ep {self._scheduler.current_ep} - performance: {performance}"
+            if exploration_params:
+                ep_summary = f"{ep_summary}, exploration_params: {self._scheduler.exploration_params}"
+            self._logger.info(ep_summary)
             self._agent_manager.train(exp_by_agent)
 
     def test(self):

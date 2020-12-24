@@ -2,6 +2,14 @@ env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
+  state_shaping:
+    look_back: 7
+    max_ports_downstream: 2
+  experience_shaping:
+    time_window: 100
+    fulfillment_factor: 1.0
+    shortage_factor: 1.0
+    time_decay_factor: 0.97
 main_loop:
   max_episode: 500
   exploration:
@@ -18,31 +26,6 @@ main_loop:
     perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
                                    # over the last k episodes (where perf is short for performance). This value must
                                    # be below this threshold to trigger early stopping
-state_shaping:
-  look_back: 7
-  max_ports_downstream: 2
-  port_attributes:
-    - "empty"
-    - "full"
-    - "on_shipper"
-    - "on_consignee"
-    - "booking"
-    - "shortage"
-    - "fulfillment"
-  vessel_attributes:
-    - "empty"
-    - "full"
-    - "remaining_space"
-experience_shaping:
-  type: "truncated"
-  k_step:
-    reward_decay: 0.9
-    steps: 5
-  truncated:
-    time_window: 100
-    fulfillment_factor: 1.0
-    shortage_factor: 1.0
-    time_decay_factor: 0.97
 agents:
   algorithm:
     num_actions: 21
@@ -62,7 +45,6 @@ agents:
       target_update_frequency: 5
       tau: 0.1
       is_double: true
-      advantage_mode: "mean"
       per_sample_td_error_enabled: true
   experience_pool:
     capacity: -1
@@ -70,4 +52,4 @@ agents:
     min_experiences_to_train: 1024
     num_batches: 10
     batch_size: 128
-  seed: 1024   # for reproducibility
+  seed: 1   # for reproducibility

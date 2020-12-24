@@ -10,7 +10,7 @@ import uuid
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import FileOperationError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -33,7 +33,7 @@ def copy_files_to_node(local_path: str, remote_dir: str, admin_username: str, no
     mkdir_script = f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} 'mkdir -p {target_dir}'"
     _ = SubProcess.run(mkdir_script)
 
-    if platform.system() == "Linux":
+    if platform.system() in ["Linux", "Darwin"]:
         # Copy with pipe
         copy_script = (
             f"tar czf - -C {folder_name} {basename} | "
@@ -83,7 +83,7 @@ def copy_files_from_node(local_dir: str, remote_path: str, admin_username: str, 
     # Create local dir
     os.makedirs(os.path.expanduser(target_dir), exist_ok=True)
 
-    if platform.system() == "Linux":
+    if platform.system() in ["Linux", "Darwin"]:
         # Copy with pipe
         copy_script = (
             f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
@@ -128,7 +128,7 @@ def copy_and_rename(source_path: str, target_dir: str, new_name: str = None):
     target_dir = os.path.expanduser(target_dir)
 
     if os.path.isdir(source_path):
-        raise CliException("Invalid file path: cannot be a folder")
+        raise FileOperationError(f"Cannot be a folder: '{source_path}'.")
     shutil.copy2(source_path, target_dir)
 
     if new_name is not None:

@@ -8,7 +8,7 @@ import time
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import CliError, ClusterInternalError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -238,10 +238,36 @@ class GrassExecutor:
             try:
                 self.test_connection(node_ip_address)
                 return True
-            except CliException:
+            except CliError:
                 remain_retries -= 1
-                logger.debug(
-                    f"Unable to connect to {node_ip_address}, remains {remain_retries} retries")
+                logger.debug(f"Unable to connect to {node_ip_address}, remains {remain_retries} retries.")
                 time.sleep(10)
                 continue
-        raise CliException(f"Unable to connect to {node_ip_address}")
+        raise ClusterInternalError(f"Unable to connect to {node_ip_address}")
+
+    # Create a new user account on target OS.
+    @staticmethod
+    def remote_add_user_to_node(admin_username: str, maro_user: str, node_ip_address: str, pubkey: str):
+        # The admin_user is an already exist account which has privileges to create new account on target OS.
+        command = (
+            f"ssh {admin_username}@{node_ip_address} 'sudo python3 ~/create_user.py {maro_user} \"{pubkey}\"'"
+        )
+        _ = SubProcess.run(command)
+
+    # Delete maro cluster user account on target OS.
+    @staticmethod
+    def remote_delete_user_from_node(admin_username: str, delete_user: str, node_ip_address: str):
+        # The admin_user is an already exist account which has privileges to create new account on target OS.
+        command = (
+            f"ssh {admin_username}@{node_ip_address} 'sudo python3 ~/delete_user.py {delete_user}'"
+        )
+        _ = SubProcess.run(command)
+
+    def delete_master_details(self, cluster_name: str):
+        command = (
+            "ssh -o StrictHostKeyChecking=no "
+            f"{self.admin_username}@{self.cluster_details['master']['public_ip_address']} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.delete_master_details "
+            f"{self.cluster_name} '"
+        )
+        _ = SubProcess.run(command)

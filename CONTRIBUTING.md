@@ -33,6 +33,13 @@ MARO is newborn for Reinforcement learning as a Service (RaaS) in the resource o
   # Lint with flake8.
   flake8 --config .github/linters/tox.ini
 
+  # Install editorconfig-checker.
+  pip install editorconfig-checker
+
+  # Lint with editorconfig-checker.
+  # PATH: Directory or file path of your changes.
+  editorconfig-checker --config .editorconfig PATH
+
   ```
 
 - [Update Change Log](https://github.com/github-changelog-generator/github-changelog-generator#installation) (if needed)

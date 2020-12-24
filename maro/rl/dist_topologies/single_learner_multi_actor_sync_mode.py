@@ -50,6 +50,7 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(
+                component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
                 payload={PayloadKey.DONE: True}

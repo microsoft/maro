@@ -1,0 +1,22 @@
+events:
+  REQUIREMENTS:
+    display_name: "vm_required"
+
+  "default": "REQUIREMENTS"
+
+entity:
+  vm_id:
+    column: 'vmid'
+    dtype: 'i'
+  timestamp:
+    column: 'vmcreated'
+    dtype: 'i'
+  vm_deleted:
+    column: 'vmdeleted'
+    dtype: 'i'
+  vm_cpu_cores:
+    column: 'vmcorecountbucket'
+    dtype: 'i'
+  vm_memory:
+    column: 'vmmemorybucket'
+    dtype: 'i'
