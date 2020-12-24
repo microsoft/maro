@@ -171,14 +171,14 @@ class GrassAzureExecutor(GrassExecutor):
         # Gracefully wait
         time.sleep(10)
 
-        # Get IP addresses
+        # Get public ip address
         ip_addresses = AzureExecutor.list_ip_addresses(
             resource_group=self.resource_group,
             vm_name=vm_name
         )
         public_ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
 
-        # Make sure capture-node-image-vm is able to connect
+        # Make sure build_node_image_vm is able to connect
         self.retry_connection_and_set_ssh_port(node_ip_address=public_ip_address)
 
         # Run init image script
