@@ -16,6 +16,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
+from maro.cli.grass.utils.params import NodeStatus, ContainerStatus
 from maro.cli.utils.details import load_cluster_details, save_cluster_details
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_node_name
@@ -583,7 +584,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Get startable nodes
         startable_nodes = []
         for node_name, node_details in nodes_details.items():
-            if node_details["node_size"] == node_size and node_details["state"] == "Stopped":
+            if node_details["node_size"] == node_size and node_details["state"] == NodeStatus.STOPPED:
                 startable_nodes.append(node_name)
 
         # Check replicas
@@ -648,7 +649,7 @@ class GrassAzureExecutor(GrassExecutor):
         for node_name, node_details in nodes_details.items():
             if (
                 node_details["node_size"] == node_size and
-                node_details["state"] == "Running" and
+                node_details["state"] == NodeStatus.RUNNING and
                 self._count_running_containers(node_details) == 0
             ):
                 stoppable_nodes.append(node_name)
@@ -703,7 +704,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Do counting
         count = 0
         for container_details in containers_details:
-            if container_details["Status"] == "running":
+            if container_details["Status"] == ContainerStatus.RUNNING:
                 count += 1
 
         return count
