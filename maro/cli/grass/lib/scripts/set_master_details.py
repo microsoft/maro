@@ -8,7 +8,7 @@ import json
 
 from redis import Redis
 
-from .utils import load_cluster_details, set_master_details
+from .utils.details import load_cluster_details, set_master_details
 
 if __name__ == "__main__":
     # Load args

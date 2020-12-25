@@ -10,7 +10,7 @@ from multiprocessing.pool import ThreadPool
 
 from redis import Redis
 
-from .utils import get_master_details, get_node_details, load_cluster_details, set_node_details
+from .utils.details import get_master_details, get_node_details, load_cluster_details, set_node_details
 
 LOAD_IMAGE_COMMAND = '''\
 docker load -q -i "{image_path}"

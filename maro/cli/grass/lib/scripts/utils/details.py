@@ -2,10 +2,8 @@
 # Licensed under the MIT license.
 
 
-import hashlib
 import json
 import os
-import uuid
 
 import yaml
 
@@ -13,23 +11,15 @@ import yaml
 
 
 def load_cluster_details(cluster_name: str) -> dict:
-    with open(os.path.expanduser(f"~/.maro/clusters/{cluster_name}/details.yml"), 'r') as fr:
+    with open(os.path.expanduser(f"~/.maro/clusters/{cluster_name}/details.yml"), "r") as fr:
         cluster_details = yaml.safe_load(fr)
     return cluster_details
 
 
 def load_job_details(cluster_name: str, job_name: str) -> dict:
-    with open(os.path.expanduser(f"~/.maro/clusters/{cluster_name}/jobs/{job_name}/details.yml"), 'r') as fr:
+    with open(os.path.expanduser(f"~/.maro/clusters/{cluster_name}/jobs/{job_name}/details.yml"), "r") as fr:
         job_details = yaml.safe_load(fr)
     return job_details
-
-
-"""Generate ID."""
-
-
-def generate_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
-    postfix = uuid.uuid4().hex[:uuid_len]
-    return f"{prefix}{postfix}"
 
 
 """Master details."""
@@ -129,14 +119,3 @@ def get_containers_details(redis, cluster_name: str) -> dict:
     for container_name, container_details in containers_details.items():
         containers_details[container_name] = json.loads(container_details)
     return containers_details
-
-
-"""Hash related."""
-
-
-def get_checksum(file_path: str, block_size=128):
-    md5 = hashlib.md5()
-    with open(file_path, 'rb') as f:
-        for chunk in iter(lambda: f.read(block_size * md5.block_size), b''):
-            md5.update(chunk)
-    return md5.hexdigest()

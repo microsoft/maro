@@ -9,7 +9,7 @@ from multiprocessing.pool import ThreadPool
 
 from redis import Redis
 
-from .utils import get_nodes_details, load_cluster_details
+from .utils.details import get_nodes_details, load_cluster_details
 
 LIST_CONTAINERS_COMMAND = """\
 ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} \

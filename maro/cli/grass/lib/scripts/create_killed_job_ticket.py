@@ -6,7 +6,7 @@ import argparse
 
 from redis import Redis
 
-from .utils import load_cluster_details
+from .utils.details import load_cluster_details
 
 
 def create_killed_job_ticket(cluster_name: str, job_name: str):
