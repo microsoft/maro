@@ -15,7 +15,7 @@ the real needs and provide you with a demand simulation that is closest to the r
 Resource Flow
 --------------
 
-In this scenario, the physical resources in each physical machine (PM) are the
+In this scenario, the physical resources in each PM are the
 central resource, which currently includes the physical cores and memory. A full
 resource life cycle always contains the steps below:
 
