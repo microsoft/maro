@@ -476,7 +476,8 @@ class GrassExecutor:
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
             f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_node_details {self.cluster_name} {node_name}'"
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_node_details "
+            f"{self.cluster_name} {node_name}'"
         )
         return_str = SubProcess.run(command)
         return json.loads(return_str)
@@ -549,7 +550,8 @@ class GrassExecutor:
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
             f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.load_master_agent_service {self.cluster_name}'"
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.load_master_agent_service "
+            f"{self.cluster_name}'"
         )
         _ = SubProcess.run(command)
 
