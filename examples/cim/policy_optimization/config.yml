@@ -41,7 +41,7 @@ agents:
     batch_norm_enabled: true
   critic_optimizer:
     lr: 0.001
-  reward_decay: .0
+  reward_discount: .0
   actor_critic_hyper_parameters:
     train_iters: 10
     actor_loss_coefficient: 0.1

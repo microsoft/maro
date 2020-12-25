@@ -7,7 +7,7 @@ from torch.optim import Adam, RMSprop
 
 from maro.rl import (
     AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModuleManager, LearningModule,
-    OptimizerOptions, PolicyGradient, PolicyGradientConfig, SimpleAgentManager
+    OptimizerOptions, PolicyGradient, PolicyOptimizationConfig, SimpleAgentManager
 )
 from maro.utils import set_seeds
 
@@ -48,13 +48,15 @@ def create_po_agents(agent_id_list, config):
             )
 
             hyper_params = config.actor_critic_hyper_parameters
-            hyper_params.update({"reward_decay": config.reward_decay})
+            hyper_params.update({"reward_discount": config.reward_discount})
             algorithm = ActorCritic(
                 LearningModuleManager(actor_module, critic_module),
                 ActorCriticConfig(critic_loss_func=nn.functional.smooth_l1_loss, **hyper_params)
             )
         else:
-            algorithm = PolicyGradient(LearningModuleManager(actor_module), PolicyGradientConfig(config.reward_decay))
+            algorithm = PolicyGradient(
+                LearningModuleManager(actor_module), PolicyOptimizationConfig(config.reward_discount)
+            )
 
         agent_dict[agent_id] = POAgent(name=agent_id, algorithm=algorithm)
 

@@ -1,29 +1,84 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
-from typing import Callable
+from collections import namedtuple
+from typing import Callable, List, Union
 
 import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModuleManager
-from maro.rl.utils.trajectory_utils import get_lambda_returns
+from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
 
-from .utils import ActionWithLogProbability, expand_dim, preprocess, to_device, validate_task_names
-
-
-class ActorCriticTask(Enum):
-    ACTOR = "actor"
-    CRITIC = "critic"
+ActionWithLogProbability = namedtuple("ActionWithLogProbability", ["action", "log_probability"])
 
 
-class ActorCriticConfig:
+class PolicyOptimizationConfig:
+    """Configuration for the policy optimization algorithm family."""
+    __slots__ = ["reward_discount"]
+
+    def __init__(self, reward_discount):
+        self.reward_discount = reward_discount
+
+
+class PolicyOptimization(AbsAlgorithm):
+    """Policy optimization algorithm family.
+
+    The algorithm family includes policy gradient (e.g. REINFORCE), actor-critic, PPO, etc.
+    """
+    def choose_action(self, state: np.ndarray) -> Union[ActionWithLogProbability, List[ActionWithLogProbability]]:
+        """Use the actor (policy) model to generate stochastic actions.
+
+        Args:
+            state: Input to the actor model.
+
+        Returns:
+            A single ActionWithLogProbability namedtuple or a list of ActionWithLogProbability namedtuples.
+        """
+        state = torch.from_numpy(state).to(self._device)
+        is_single = len(state.shape) == 1
+        if is_single:
+            state = state.unsqueeze(dim=0)
+
+        action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
+        if is_single:
+            action = np.random.choice(len(action_distribution), p=action_distribution)
+            return ActionWithLogProbability(action=action, log_probability=np.log(action_distribution[action]))
+
+        # batch inference
+        batch_results = []
+        for distribution in action_distribution:
+            action = np.random.choice(len(distribution), p=distribution)
+            batch_results.append(ActionWithLogProbability(action=action, log_probability=np.log(distribution[action])))
+
+        return batch_results
+
+    def train(
+        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
+    ):
+        raise NotImplementedError
+
+
+class PolicyGradient(PolicyOptimization):
+    def train(
+        self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
+    ):
+        states = torch.from_numpy(states).to(self._device)
+        actions = torch.from_numpy(actions).to(self._device)
+        returns = get_truncated_cumulative_reward(rewards, self._config.reward_discount)
+        returns = torch.from_numpy(returns).to(self._device)
+        action_distributions = self._model(states)
+        action_prob = action_distributions.gather(1, actions.unsqueeze(1)).squeeze()   # (N, 1)
+        loss = -(torch.log(action_prob) * returns).mean()
+        self._model.learn(loss)
+
+
+class ActorCriticConfig(PolicyOptimizationConfig):
     """Configuration for the Actor-Critic algorithm.
 
     Args:
-        reward_decay (float): Reward decay as defined in standard RL terminology.
+        reward_discount (float): Reward decay as defined in standard RL terminology.
         critic_loss_func (Callable): Loss function for the critic model.
         train_iters (int): Number of gradient descent steps per call to ``train``.
         actor_loss_coefficient (float): The coefficient for actor loss in the total loss function, e.g.,
@@ -36,12 +91,12 @@ class ActorCriticConfig:
             in which case the actor loss is calculated using the usual policy gradient theorem.
     """
     __slots__ = [
-        "reward_decay", "critic_loss_func", "train_iters", "actor_loss_coefficient", "k", "lam", "clip_ratio"
+        "reward_discount", "critic_loss_func", "train_iters", "actor_loss_coefficient", "k", "lam", "clip_ratio"
     ]
 
     def __init__(
         self,
-        reward_decay: float,
+        reward_discount: float,
         critic_loss_func: Callable,
         train_iters: int,
         actor_loss_coefficient: float = 1.0,
@@ -49,7 +104,7 @@ class ActorCriticConfig:
         lam: float = 1.0,
         clip_ratio: float = None
     ):
-        self.reward_decay = reward_decay
+        super().__init__(reward_discount)
         self.critic_loss_func = critic_loss_func
         self.train_iters = train_iters
         self.actor_loss_coefficient = actor_loss_coefficient
@@ -58,7 +113,7 @@ class ActorCriticConfig:
         self.clip_ratio = clip_ratio
 
 
-class ActorCritic(AbsAlgorithm):
+class ActorCritic(PolicyOptimization):
     """Actor Critic algorithm with separate policy and value models (no shared layers).
 
     The Actor-Critic algorithm base on the policy gradient theorem.
@@ -68,37 +123,24 @@ class ActorCritic(AbsAlgorithm):
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    @validate_task_names(ActorCriticTask)
-    @to_device
     def __init__(self, model: LearningModuleManager, config: ActorCriticConfig):
+        self.validate_task_names(model.task_names, {"actor", "critic"})
         super().__init__(model, config)
-
-    @expand_dim
-    def choose_action(self, state: np.ndarray):
-        """Use the actor (policy) model to generate a stochastic action.
-
-        Args:
-            state: Input to the actor model.
-
-        Returns:
-            A ActionWithLogProbability namedtuple instance containing the action index and the corresponding
-            log probability.
-        """
-        action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
-        action = np.random.choice(len(action_distribution), p=action_distribution)
-        return ActionWithLogProbability(action=action, log_probability=np.log(action_distribution[action]))
 
     def _get_values_and_bootstrapped_returns(self, state_sequence, reward_sequence):
         state_values = self._model(state_sequence, task_name="critic").detach().squeeze()
         return_est = get_lambda_returns(
-            reward_sequence, state_values, self._config.reward_decay, self._config.lam, k=self._config.k
+            reward_sequence, state_values, self._config.reward_discount, self._config.lam, k=self._config.k
         )
         return state_values, return_est
 
-    @preprocess
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):
+        states = torch.from_numpy(states).to(self._device)
+        actions = torch.from_numpy(actions).to(self._device)
+        log_action_prob = torch.from_numpy(log_action_prob).to(self._device)
+        rewards = torch.from_numpy(rewards).to(self._device)
         state_values, return_est = self._get_values_and_bootstrapped_returns(states, rewards)
         advantages = return_est - state_values
         for _ in range(self._config.train_iters):

@@ -16,9 +16,9 @@ def get_truncated_cumulative_reward(
 ):
     """Compute K-step cumulative rewards from a reward sequence.
     Args:
-        rewards (Union[list, np.ndarray, torch.tensor]): reward sequence from a trajectory.
-        discount (float): reward discount as in standard RL.
-        k (int): number of steps in computing cumulative rewards. If it is -1, returns are computed using the
+        rewards (Union[list, np.ndarray, torch.tensor]): Reward sequence from a trajectory.
+        discount (float): Reward discount as in standard RL.
+        k (int): Number of steps in computing cumulative rewards. If it is -1, returns are computed using the
             largest possible number of steps. Defaults to -1.
 
     Returns:
@@ -41,10 +41,10 @@ def get_k_step_returns(
 ):
     """Compute K-step returns given reward and value sequences.
     Args:
-        rewards (Union[list, np.ndarray, torch.tensor]): reward sequence from a trajectory.
-        values (Union[list, np.ndarray, torch.tensor]): sequence of values for the traversed states in a trajectory.
-        discount (float): reward discount as in standard RL.
-        k (int): number of steps in computing returns. If it is -1, returns are computed using the largest possible
+        rewards (Union[list, np.ndarray, torch.tensor]): Reward sequence from a trajectory.
+        values (Union[list, np.ndarray, torch.tensor]): Sequence of values for the traversed states in a trajectory.
+        discount (float): Reward discount as in standard RL.
+        k (int): Number of steps in computing returns. If it is -1, returns are computed using the largest possible
             number of steps. Defaults to -1.
 
     Returns:
@@ -72,11 +72,11 @@ def get_lambda_returns(
 ):
     """Compute lambda returns given reward and value sequences and a k.
     Args:
-        rewards (Union[list, np.ndarray, torch.tensor]): reward sequence from a trajectory.
-        values (Union[list, np.ndarray, torch.tensor]): sequence of values for the traversed states in a trajectory.
-        discount (float): reward discount as in standard RL.
-        lam (float): the lambda coefficient involved in computing lambda returns.
-        k (int): number of steps where the lambda return series is truncated. If it is -1, no truncating is done and
+        rewards (Union[list, np.ndarray, torch.tensor]): Reward sequence from a trajectory.
+        values (Union[list, np.ndarray, torch.tensor]): Sequence of values for the traversed states in a trajectory.
+        discount (float): Reward discount as in standard RL.
+        lam (float): Lambda coefficient involved in computing lambda returns.
+        k (int): Number of steps where the lambda return series is truncated. If it is -1, no truncating is done and
             the lambda return is carried out to the end of the sequence. Defaults to -1.
 
     Returns:

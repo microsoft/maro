@@ -4,7 +4,7 @@
 import os
 from abc import abstractmethod
 
-from maro.rl.algorithms.utils import ActionWithLogProbability
+from maro.rl.algorithms.policy_optimization import ActionWithLogProbability
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper

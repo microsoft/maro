@@ -13,7 +13,7 @@ from maro.utils import LogFormat, Logger, convert_dottable
 from components import CIMActionShaper, CIMStateShaper, POAgentManager, TruncatedExperienceShaper, create_po_agents
 
 
-class EarlyStopping:
+class EarlyStoppingChecker:
     """Callable class that checks the performance history to determine early stopping.
 
     Args:
@@ -29,7 +29,6 @@ class EarlyStopping:
         self._last_k = last_k
         self._perf_threshold = perf_threshold
         self._perf_stability_threshold = perf_stability_threshold
-        print(f"perf threshold: {self._perf_threshold}, perf stability threshold: {self._perf_stability_threshold}")
 
         def get_metric(record):
             return 1 - record["container_shortage"] / record["order_requirements"]
@@ -75,7 +74,7 @@ def launch(config):
     # Step 4: Create an actor and a learner to start the training process.
     scheduler = Scheduler(
         config.main_loop.max_episode,
-        early_stopping_callback=EarlyStopping(**config.main_loop.early_stopping)
+        early_stopping_checker=EarlyStoppingChecker(**config.main_loop.early_stopping)
     )
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
