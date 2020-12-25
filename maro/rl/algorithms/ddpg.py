@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
 from typing import Callable
 
 import numpy as np
@@ -10,12 +9,6 @@ import torch
 from maro.rl.models.learning_model import LearningModuleManager
 
 from .abs_algorithm import AbsAlgorithm
-from .utils import expand_dim, preprocess, to_device, validate_task_names
-
-
-class DDPGTask(Enum):
-    POLICY = "policy"
-    Q_VALUE = "q_value"
 
 
 class DDPGConfig:
@@ -50,18 +43,15 @@ class DDPG(AbsAlgorithm):
         model (LearningModel): DDPG policy and q-value models.
         config: Configuration for DDPG algorithm.
     """
-    @validate_task_names(DDPGTask)
-    @to_device
     def __init__(self, model: LearningModuleManager, config: DDPGConfig):
+        self.validate_task_names(model.task_names, {"policy", "q_value"})
         super().__init__(model, config)
         self._target_model = model.copy() if model.is_trainable else None
         self._train_cnt = 0
 
-    @expand_dim
     def choose_action(self, state):
         return self.model(state, task_name="actor", is_training=False)
 
-    @preprocess
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         if len(actions.shape) == 1:
             actions = actions.unsqueeze(1)  # (N, 1)
