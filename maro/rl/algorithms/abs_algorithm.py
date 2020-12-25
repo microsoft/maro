@@ -56,5 +56,6 @@ class AbsAlgorithm(ABC):
 
     @staticmethod
     def validate_task_names(model_task_names, expected_task_names):
-        if len(model_task_names) > 1 and set(model_task_names) != set(expected_task_names):
-            raise UnrecognizedTask(f"Expected task names {expected_task_names}, got {model_task_names}")
+        task_names, expected_task_names = set(model_task_names), set(expected_task_names)
+        if len(model_task_names) > 1 and task_names != expected_task_names:
+            raise UnrecognizedTask(f"Expected task names {expected_task_names}, got {task_names}")
