@@ -5,21 +5,16 @@ import os
 
 import numpy as np
 
-from maro.rl import (
-    Actor, AgentManagerMode, DistributedTrainingMode, Executor, LearnerActorComponent, KStepExperienceShaper
-)
+from maro.rl import Actor, AgentManagerMode, DistributedTrainingMode, Executor, LearnerActorComponent
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-from examples.cim.dqn.components.action_shaper import CIMActionShaper
-from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
-from examples.cim.dqn.components.config import set_input_dim
-from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
-from examples.cim.dqn.components.state_shaper import CIMStateShaper
+from examples.cim.dqn.components import (
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
+)
 
 
 def launch(config, distributed_config):
-    set_input_dim(config)
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
@@ -35,6 +30,7 @@ def launch(config, distributed_config):
             action_wait_timeout=distributed_config.action_wait_timeout
         )
     elif distributed_mode == "simple":
+        config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
         executor = DQNAgentManager(
             name="distributed_cim_actor",
             mode=AgentManagerMode.INFERENCE,
@@ -48,7 +44,6 @@ def launch(config, distributed_config):
 
     actor = Actor(
         env, executor,
-        logger=Logger("cim_actor", auto_timestamp=False),
         group_name=os.environ.get("GROUP", distributed_config.group),
         expected_peers={LearnerActorComponent.LEARNER.value: 1},
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),

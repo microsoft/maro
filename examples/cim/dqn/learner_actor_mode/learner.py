@@ -5,35 +5,28 @@ import os
 import time
 
 from maro.rl import (
-    AgentManagerMode, LearnerActorComponent, Scheduler, TwoPhaseLinearExplorationParameterGenerator,
-    concat_experiences_by_agent
+    AgentManagerMode, LearnerActorComponent, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
 )
 from maro.simulator import Env
 from maro.utils import Logger, convert_dottable
 
-from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
-from examples.cim.dqn.components.config import set_input_dim
+from examples.cim.dqn.components import CIMStateShaper, DQNAgentManager, create_dqn_agents
 
 
 def launch(config, distributed_config):
-    set_input_dim(config)
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
+    config["agents"]["algorithm"]["input_dim"] = CIMStateShaper(**config.env.state_shaping).dim
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
         agent_dict=create_dqn_agents(agent_id_list, config.agents)
     )
 
-    scheduler = Scheduler(
-        config.main_loop.max_episode,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
-        exploration_parameter_generator_config=config.main_loop.exploration
-    )
+    scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
     if distributed_mode == "seed":
@@ -47,7 +40,6 @@ def launch(config, distributed_config):
         agent_manager,
         scheduler,
         concat_experiences_by_agent,
-        logger=Logger("cim_learner", auto_timestamp=False),
         expected_peers={
             LearnerActorComponent.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))
         },

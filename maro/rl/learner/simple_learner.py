@@ -4,7 +4,7 @@
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.simulator import Env
-from maro.utils import DummyLogger, Logger
+from maro.utils import InternalLogger, Logger
 
 from .abs_learner import AbsLearner
 
@@ -17,14 +17,13 @@ class SimpleLearner(AbsLearner):
         agent_manager (AbsAgentManager): An AgentManager instance that manages all agents.
         scheduler (AbsScheduler): A scheduler responsible for iterating over episodes and generating exploration
             parameters if necessary.
-        logger (Logger): Used to log important messages.
     """
     def __init__(
         self,
         env: Env,
         agent_manager: SimpleAgentManager,
         scheduler: Scheduler,
-        logger: Logger = DummyLogger()
+        logger: Logger = InternalLogger("learner")
     ):
         super().__init__()
         self._env = env

@@ -62,8 +62,7 @@ def expand_dim(func):
             state = state.unsqueeze(dim=0)
         result = func(self, state, **kwargs)
         if isinstance(result, torch.Tensor):
-            return result.item() if is_single else result.numpy()
-        else:
-            return result
+            result = result.item() if is_single else result.numpy()
+        return result
 
     return wrapper

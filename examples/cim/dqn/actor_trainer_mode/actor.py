@@ -7,31 +7,22 @@ import time
 import numpy as np
 
 from maro.rl import (
-    ActorTrainerComponent, AgentManagerMode, AutoActor, DistributedTrainingMode, Executor, KStepExperienceShaper,
-    Scheduler, TwoPhaseLinearExplorationParameterGenerator
+    ActorTrainerComponent, AgentManagerMode, AutoActor, DistributedTrainingMode, Executor,
+    TwoPhaseLinearParameterScheduler
 )
 from maro.simulator import Env
-from maro.utils import Logger, convert_dottable
+from maro.utils import convert_dottable
 
-from examples.cim.dqn.components.action_shaper import CIMActionShaper
-from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
-from examples.cim.dqn.components.config import set_input_dim
-from examples.cim.dqn.components.experience_shaper import TruncatedExperienceShaper
-from examples.cim.dqn.components.state_shaper import CIMStateShaper
+from examples.cim.dqn.components import (
+    CIMActionShaper, CIMStateShaper, DQNAgentManager, TruncatedExperienceShaper, create_dqn_agents
+)
 
 
 def launch(config, distributed_config):
-    set_input_dim(config)
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-    scheduler = Scheduler(
-        config.main_loop.max_episode,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        exploration_parameter_generator_cls=TwoPhaseLinearExplorationParameterGenerator,
-        exploration_parameter_generator_config=config.main_loop.exploration
-    )
     state_shaper = CIMStateShaper(**config.env.state_shaping)
     action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
@@ -43,6 +34,7 @@ def launch(config, distributed_config):
             action_wait_timeout=distributed_config.action_wait_timeout
         )
     elif distributed_mode == "simple":
+        config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
         executor = DQNAgentManager(
             name="distributed_cim_actor",
             mode=AgentManagerMode.INFERENCE,
@@ -54,6 +46,7 @@ def launch(config, distributed_config):
     else:
         raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
+    scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
     actor = AutoActor(
         env, executor, scheduler,
         group_name=os.environ.get("GROUP", distributed_config.group),

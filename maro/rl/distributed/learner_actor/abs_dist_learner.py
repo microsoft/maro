@@ -25,7 +25,6 @@ class AbsDistLearner(ABC):
         experience_collection_func (Callable): Function to collect experiences from multiple remote actors.
         update_trigger (str): Number or percentage of ``MessageTag.FINISHED`` messages required to trigger
             the ``_update`` method, i.e., model training.
-        logger (Logger): Used to log important messages.
         proxy_params: Parameters required for instantiating an internal proxy for communication.
     """
     def __init__(

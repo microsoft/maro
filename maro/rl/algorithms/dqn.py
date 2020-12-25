@@ -81,10 +81,18 @@ class DQN(AbsAlgorithm):
 
     @expand_dim
     def choose_action(self, state: np.ndarray):
-        if np.random.random() < self._config.epsilon:
-            return np.random.choice(self._num_actions)
+        greedy_action = self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
+        if self._config.epsilon == .0:
+            return greedy_action
+
+        def get_exploration_action(action_index: int, epsilon: float):
+            assert (action_index < self._num_actions), f"Invalid action: {action_index}"
+            return action_index if np.random.random() > epsilon else np.random.choice(self._num_actions)
+
+        if len(greedy_action) > 1:
+            return np.array([get_exploration_action(act, self._config.epsilon) for act in greedy_action])
         else:
-            return self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
+            return get_exploration_action(greedy_action.item(), self._config.epsilon)
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:

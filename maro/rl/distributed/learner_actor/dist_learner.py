@@ -61,12 +61,10 @@ class SEEDLearner(AbsDistLearner):
         experience_collecting_func,
         choose_action_trigger: str = None,
         update_trigger: str = None,
-        logger: Logger = DummyLogger(),
         **proxy_params
     ):
         super().__init__(
-            agent_manager, scheduler, experience_collecting_func,
-            update_trigger=update_trigger, logger=logger, **proxy_params
+            agent_manager, scheduler, experience_collecting_func, update_trigger=update_trigger, **proxy_params
         )
         if choose_action_trigger is None:
             choose_action_trigger = len(self._actors)

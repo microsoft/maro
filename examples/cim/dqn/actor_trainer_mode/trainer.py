@@ -7,17 +7,16 @@ from maro.rl import AgentManagerMode, ActorTrainerComponent, concat_experiences_
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
-from examples.cim.dqn.components.agent_manager import DQNAgentManager, create_dqn_agents
-from examples.cim.dqn.components.config import set_input_dim
+from examples.cim.dqn.components import CIMStateShaper, DQNAgentManager, create_dqn_agents
 
 
 def launch(config, distributed_config):
-    set_input_dim(config)
     config = convert_dottable(config)
     distributed_config = convert_dottable(distributed_config)
     env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
 
+    config["agents"]["algorithm"]["input_dim"] = CIMStateShaper(**config.env.state_shaping).dim
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
