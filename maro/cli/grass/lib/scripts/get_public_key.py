@@ -11,10 +11,12 @@ cat ~/.ssh/id_rsa.pub
 """
 
 if __name__ == "__main__":
-    process = subprocess.Popen(command,
-                               executable='/bin/bash',
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8')
+    process = subprocess.Popen(
+        command,
+        executable="/bin/bash",
+        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+    )
     stdout, stderr = process.communicate()
     if stderr:
-        sys.stderr.write(stderr.strip('\n'))
-    sys.stdout.write(stdout.strip('\n'))
+        sys.stderr.write(stderr.strip("\n"))
+    sys.stdout.write(stdout.strip("\n"))

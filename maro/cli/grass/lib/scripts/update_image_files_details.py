@@ -18,8 +18,8 @@ def get_current_image_files_details(cluster_name: str) -> dict:
     for image_path in image_paths:
         file_name = os.path.basename(image_path)
         image_files_details[file_name] = {
-            'modify_time': os.path.getmtime(image_path),
-            'size': os.path.getsize(image_path)
+            "modify_time": os.path.getmtime(image_path),
+            "size": os.path.getsize(image_path)
         }
 
     return image_files_details
@@ -28,13 +28,13 @@ def get_current_image_files_details(cluster_name: str) -> dict:
 if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
-    parser.add_argument('cluster_name')
+    parser.add_argument("cluster_name")
     args = parser.parse_args()
 
     # Load details and redis
     cluster_details = load_cluster_details(cluster_name=args.cluster_name)
-    master_hostname = cluster_details['master']['hostname']
-    redis_port = cluster_details['master']['redis']['port']
+    master_hostname = cluster_details["master"]["hostname"]
+    redis_port = cluster_details["master"]["redis"]["port"]
     redis = Redis(
         host=master_hostname,
         port=redis_port,

@@ -12,8 +12,8 @@ from .utils.details import load_cluster_details
 def create_pending_job_ticket(cluster_name: str, job_name: str):
     # Load details
     cluster_details = load_cluster_details(cluster_name=cluster_name)
-    master_hostname = cluster_details['master']['hostname']
-    redis_port = cluster_details['master']['redis']['port']
+    master_hostname = cluster_details["master"]["hostname"]
+    redis_port = cluster_details["master"]["redis"]["port"]
 
     redis = Redis(
         host=master_hostname,
@@ -29,8 +29,8 @@ def create_pending_job_ticket(cluster_name: str, job_name: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('cluster_name')
-    parser.add_argument('job_name')
+    parser.add_argument("cluster_name")
+    parser.add_argument("job_name")
     args = parser.parse_args()
 
     create_pending_job_ticket(cluster_name=args.cluster_name, job_name=args.job_name)

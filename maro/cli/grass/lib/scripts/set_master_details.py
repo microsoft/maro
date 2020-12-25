@@ -13,14 +13,14 @@ from .utils.details import load_cluster_details, set_master_details
 if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
-    parser.add_argument('cluster_name')
-    parser.add_argument('master_details')
+    parser.add_argument("cluster_name")
+    parser.add_argument("master_details")
     args = parser.parse_args()
 
     # Load details
     cluster_details = load_cluster_details(cluster_name=args.cluster_name)
-    master_hostname = cluster_details['master']['hostname']
-    redis_port = cluster_details['master']['redis']['port']
+    master_hostname = cluster_details["master"]["hostname"]
+    redis_port = cluster_details["master"]["redis"]["port"]
 
     # Get nodes details
     redis = Redis(
@@ -31,5 +31,5 @@ if __name__ == "__main__":
     set_master_details(
         redis=redis,
         cluster_name=args.cluster_name,
-        master_details=json.loads(base64.b64decode(args.master_details).decode('utf8'))
+        master_details=json.loads(base64.b64decode(args.master_details).decode("utf8"))
     )

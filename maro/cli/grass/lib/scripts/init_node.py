@@ -9,7 +9,7 @@ import sys
 
 import yaml
 
-INIT_COMMAND = '''\
+INIT_COMMAND = """\
 # create group 'docker' and add admin user
 sudo groupadd docker
 sudo gpasswd -a {admin_username} docker
@@ -31,7 +31,7 @@ rm ~/details.yml
 rm ~/init_node.py
 
 echo "Finish node initialization"
-'''
+"""
 
 if __name__ == "__main__":
     # Load args

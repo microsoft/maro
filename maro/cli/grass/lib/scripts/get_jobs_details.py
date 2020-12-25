@@ -13,14 +13,14 @@ from .utils.details import get_jobs_details, load_cluster_details
 if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
-    parser.add_argument('cluster_name')
+    parser.add_argument("cluster_name")
     args = parser.parse_args()
 
     # Load details
     cluster_details = load_cluster_details(cluster_name=args.cluster_name)
-    master_details = cluster_details['master']
-    master_hostname = cluster_details['master']['hostname']
-    redis_port = cluster_details['master']['redis']['port']
+    master_details = cluster_details["master"]
+    master_hostname = cluster_details["master"]["hostname"]
+    redis_port = cluster_details["master"]["redis"]["port"]
 
     # Get job details
     redis = Redis(

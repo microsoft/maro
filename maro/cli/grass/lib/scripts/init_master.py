@@ -9,7 +9,7 @@ import sys
 
 from .utils.details import load_cluster_details
 
-INIT_COMMAND = '''\
+INIT_COMMAND = """\
 # create group 'docker' and add admin user
 sudo groupadd docker
 sudo gpasswd -a {admin_username} docker
@@ -53,20 +53,20 @@ sudo apt install -y python3-pip
 pip3 install redis
 
 echo "Finish master initialization"
-'''
+"""
 
 if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
-    parser.add_argument('cluster_name')
+    parser.add_argument("cluster_name")
     args = parser.parse_args()
 
     # Load details
     cluster_details = load_cluster_details(cluster_name=args.cluster_name)
-    admin_username = cluster_details['user']['admin_username']
-    samba_password = cluster_details['master']['samba']['password']
-    redis_port = cluster_details['master']['redis']['port']
-    fluentd_port = cluster_details['master']['fluentd']['port']
+    admin_username = cluster_details["user"]["admin_username"]
+    samba_password = cluster_details["master"]["samba"]["password"]
+    redis_port = cluster_details["master"]["redis"]["port"]
+    fluentd_port = cluster_details["master"]["fluentd"]["port"]
 
     # Parse command
     command = INIT_COMMAND.format(
@@ -80,15 +80,15 @@ if __name__ == "__main__":
 
     # Exec command
     process = subprocess.Popen(
-        command, executable='/bin/bash', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf8'
+        command, executable="/bin/bash", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
     )
     while True:
         nextline = process.stdout.readline()
-        if nextline == '' and process.poll() is not None:
+        if nextline == "" and process.poll() is not None:
             break
         sys.stdout.write(nextline)
         sys.stdout.flush()
     stdout, stderr = process.communicate()
     if stderr:
-        sys.stderr.write(stderr.strip('\n'))
-    sys.stdout.write(stdout.strip('\n'))
+        sys.stderr.write(stderr.strip("\n"))
+    sys.stdout.write(stdout.strip("\n"))
