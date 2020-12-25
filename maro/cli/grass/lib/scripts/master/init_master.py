@@ -4,10 +4,9 @@
 
 import argparse
 import os
-import subprocess
-import sys
 
 from .utils.details import load_cluster_details
+from .utils.subprocess import SubProcess
 
 INIT_COMMAND = """\
 # create group 'docker' and add admin user
@@ -68,7 +67,7 @@ if __name__ == "__main__":
     redis_port = cluster_details["master"]["redis"]["port"]
     fluentd_port = cluster_details["master"]["fluentd"]["port"]
 
-    # Parse command
+    # Parse and exec command
     command = INIT_COMMAND.format(
         admin_username=admin_username,
         samba_password=samba_password,
@@ -77,18 +76,4 @@ if __name__ == "__main__":
         fluentd_port=fluentd_port,
         steps=5
     )
-
-    # Exec command
-    process = subprocess.Popen(
-        command, executable="/bin/bash", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    while True:
-        nextline = process.stdout.readline()
-        if nextline == "" and process.poll() is not None:
-            break
-        sys.stdout.write(nextline)
-        sys.stdout.flush()
-    stdout, stderr = process.communicate()
-    if stderr:
-        sys.stderr.write(stderr.strip("\n"))
-    sys.stdout.write(stdout.strip("\n"))
+    SubProcess.interactive_run(command=command)

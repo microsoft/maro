@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 
+import platform
 import subprocess
 import sys
 
@@ -45,20 +46,23 @@ rm ~/init_build_node_image_vm.py
 """
 
 if __name__ == "__main__":
-    # Exec command
+    # Parse and exec command
     command = INIT_COMMAND.format(steps=5)
+    if platform.system() == "Windows":
+        command = "powershell.exe " + command
     process = subprocess.Popen(
         command,
-        executable="/bin/bash",
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True
     )
     while True:
-        nextline = process.stdout.readline()
-        if nextline == "" and process.poll() is not None:
+        next_line = process.stdout.readline()
+        if next_line == "" and process.poll() is not None:
             break
-        sys.stdout.write(nextline)
+        sys.stdout.write(next_line)
         sys.stdout.flush()
     stdout, stderr = process.communicate()
     if stderr:
         sys.stderr.write(stderr.strip("\n"))
-    sys.stdout.write(stdout.strip("\n"))

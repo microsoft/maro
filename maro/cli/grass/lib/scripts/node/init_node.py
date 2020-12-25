@@ -4,6 +4,7 @@
 
 import argparse
 import os
+import platform
 import subprocess
 import sys
 
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     admin_username = cluster_details["user"]["admin_username"]
     samba_password = cluster_details["master"]["samba"]["password"]
 
-    # Load command
+    # Parse and exec command
     command = INIT_COMMAND.format(
         admin_username=admin_username,
         maro_path=os.path.expanduser("~/.maro"),
@@ -57,20 +58,21 @@ if __name__ == "__main__":
         master_public_key=master_public_key,
         steps=3
     )
-
-    # Exec command
+    if platform.system() == "Windows":
+        command = "powershell.exe " + command
     process = subprocess.Popen(
         command,
-        executable="/bin/bash",
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True
     )
     while True:
-        nextline = process.stdout.readline()
-        if nextline == "" and process.poll() is not None:
+        next_line = process.stdout.readline()
+        if next_line == "" and process.poll() is not None:
             break
-        sys.stdout.write(nextline)
+        sys.stdout.write(next_line)
         sys.stdout.flush()
     stdout, stderr = process.communicate()
     if stderr:
         sys.stderr.write(stderr.strip("\n"))
-    sys.stdout.write(stdout.strip("\n"))

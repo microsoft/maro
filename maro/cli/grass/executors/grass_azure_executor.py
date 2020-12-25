@@ -184,7 +184,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Run init image script
         self._sync_mkdir(path=GlobalPaths.MARO_LOCAL_TMP, node_ip_address=public_ip_address)
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_build_node_image_vm.py",
+            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
             remote_dir="~/",
             admin_username=self.admin_username,
             node_ip_address=public_ip_address,
@@ -527,7 +527,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Copy required files
         self._sync_mkdir(path=f"{GlobalPaths.MARO_LOCAL_TMP}", node_ip_address=node_public_ip_address)
         copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_node.py",
+            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/node/init_node.py",
             remote_dir="~/",
             admin_username=self.admin_username,
             node_ip_address=node_public_ip_address,
