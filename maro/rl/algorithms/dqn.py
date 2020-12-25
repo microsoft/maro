@@ -1,19 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
+from typing import Union
 
 import numpy as np
+import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModuleManager
-
-from .utils import expand_dim, preprocess, to_device, validate_task_names
-
-
-class DuelingDQNTask(Enum):
-    STATE_VALUE = "state_value"
-    ADVANTAGE = "advantage"
 
 
 class DQNConfig:
@@ -68,23 +62,34 @@ class DQN(AbsAlgorithm):
         model (LearningModuleManager): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    @validate_task_names(DuelingDQNTask)
-    @to_device
     def __init__(self, model: LearningModuleManager, config: DQNConfig):
+        self.validate_task_names(model.task_names, {"state_value", "advantage"})
         super().__init__(model, config)
         if isinstance(self._model.output_dim, int):
             self._num_actions = self._model.output_dim
         else:
-            self._num_actions = self._model.output_dim[DuelingDQNTask.ADVANTAGE.value]
+            self._num_actions = self._model.output_dim["advantage"]
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
-    @expand_dim
-    def choose_action(self, state: np.ndarray):
-        if np.random.random() < self._config.epsilon:
-            return np.random.choice(self._num_actions)
-        else:
-            return self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
+    def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray]:
+        state = torch.from_numpy(state).to(self._device)
+        is_single = len(state.shape) == 1
+        if is_single:
+            state = state.unsqueeze(dim=0)
+
+        greedy_action = self._get_q_values(self._model, state, is_training=False).argmax(dim=1).data
+        # No exploration
+        if self._config.epsilon == .0:
+            return greedy_action.item() if is_single else greedy_action.numpy()
+
+        if is_single:
+            return greedy_action if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
+
+        return np.array([
+            act if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
+            for act in greedy_action
+        ])
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:
@@ -115,8 +120,11 @@ class DQN(AbsAlgorithm):
         target_q_values = (rewards + self._config.reward_decay * next_q_values).detach()  # (N,)
         return self._config.loss_func(current_q_values, target_q_values)
 
-    @preprocess
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+        states = torch.from_numpy(states).to(self._device)
+        actions = torch.from_numpy(actions).to(self._device)
+        rewards = torch.from_numpy(rewards).to(self._device)
+        next_states = torch.from_numpy(next_states).to(self._device)
         loss = self._compute_td_errors(states, actions, rewards, next_states)
         self._model.learn(loss.mean() if self._config.per_sample_td_error_enabled else loss)
         self._training_counter += 1

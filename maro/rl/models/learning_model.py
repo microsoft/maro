@@ -7,10 +7,9 @@ import torch
 import torch.nn as nn
 
 from maro.utils import clone
-from maro.utils.exception.rl_toolkit_exception import MissingOptimizer
+from maro.utils.exception.rl_toolkit_exception import LearningModuleDimensionError, MissingOptimizer
 
 from .abs_block import AbsBlock
-from .utils import validate_dims
 
 OptimizerOptions = namedtuple("OptimizerOptions", ["cls", "params"])
 
@@ -93,8 +92,8 @@ class LearningModuleManager(nn.Module):
         task_modules (LearningModule): LearningModule instances, each of which performs a designated task.
         shared_module (LearningModule): Network module that forms that shared part of the model. Defaults to None.
     """
-    @validate_dims
     def __init__(self, *task_modules: LearningModule, shared_module: LearningModule = None):
+        self.validate_dims(*task_modules, shared_module=shared_module)
         super().__init__()
         self._task_names = [module.name for module in task_modules]
 
@@ -205,3 +204,12 @@ class LearningModuleManager(nn.Module):
 
     def dump_to_file(self, path: str):
         torch.save(self.state_dict(), path)
+
+    @staticmethod
+    def validate_dims(*task_modules, shared_module=None):
+        expected_dim = shared_module.output_dim if shared_module else task_modules[0].input_dim
+        for task_module in task_modules:
+            if task_module.input_dim != expected_dim:
+                raise LearningModuleDimensionError(
+                    f"Expected input dimension {expected_dim} for task module: {task_module.name}, "
+                    f"got {task_module.input_dim}")

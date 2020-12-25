@@ -3,7 +3,10 @@
 
 from abc import ABC, abstractmethod
 
+import torch
+
 from maro.rl.models.learning_model import LearningModuleManager
+from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 
 class AbsAlgorithm(ABC):
@@ -18,7 +21,8 @@ class AbsAlgorithm(ABC):
         config: Settings for the algorithm.
     """
     def __init__(self, model: LearningModuleManager, config):
-        self._model = model
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._model = model.to(self._device)
         self._config = config
 
     @property
@@ -49,3 +53,9 @@ class AbsAlgorithm(ABC):
 
     def set_exploration_params(self, **params):
         pass
+
+    @staticmethod
+    def validate_task_names(model_task_names, expected_task_names):
+        task_names, expected_task_names = set(model_task_names), set(expected_task_names)
+        if len(model_task_names) > 1 and task_names != expected_task_names:
+            raise UnrecognizedTask(f"Expected task names {expected_task_names}, got {task_names}")
