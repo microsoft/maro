@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 
-import platform
 import subprocess
 import sys
 
@@ -19,10 +18,10 @@ class SubProcess:
         Returns:
             str: return stdout of the command.
         """
-        if platform.system() == "Windows":
-            command = f"powershell.exe -Command \"{command}\""
+        # TODO: Windows master
         completed_process = subprocess.run(
             command,
+            executable="/bin/bash",
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -31,7 +30,7 @@ class SubProcess:
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)
-        return completed_process.stdout
+        return completed_process.stdout.strip("\n")
 
     @staticmethod
     def interactive_run(command: str) -> None:
@@ -43,10 +42,10 @@ class SubProcess:
         Returns:
             None.
         """
-        if platform.system() == "Windows":
-            command = "powershell.exe " + command
+        # TODO: Windows master
         process = subprocess.Popen(
             command,
+            executable="/bin/bash",
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

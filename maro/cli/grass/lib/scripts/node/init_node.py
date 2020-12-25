@@ -4,7 +4,6 @@
 
 import argparse
 import os
-import platform
 import subprocess
 import sys
 
@@ -58,10 +57,10 @@ if __name__ == "__main__":
         master_public_key=master_public_key,
         steps=3
     )
-    if platform.system() == "Windows":
-        command = "powershell.exe " + command
+    # TODO: Windows node
     process = subprocess.Popen(
         command,
+        executable="/bin/bash",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

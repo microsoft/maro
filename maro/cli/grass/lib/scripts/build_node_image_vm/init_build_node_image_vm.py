@@ -48,10 +48,9 @@ rm ~/init_build_node_image_vm.py
 if __name__ == "__main__":
     # Parse and exec command
     command = INIT_COMMAND.format(steps=5)
-    if platform.system() == "Windows":
-        command = "powershell.exe " + command
     process = subprocess.Popen(
         command,
+        executable="/bin/bash",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
