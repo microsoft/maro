@@ -61,14 +61,17 @@ class GrassAzureExecutor:
 
     @staticmethod
     def _standardize_create_deployment(create_deployment: dict):
-        alphabet = string.ascii_letters + string.digits
+        samba_password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20))
         optional_key_to_value = {
-            "root['master']['redis']": {"port": 6379},
-            "root['master']['redis']['port']": 6379,
-            "root['master']['fluentd']": {"port": 24224},
-            "root['master']['fluentd']['port']": 24224,
-            "root['master']['samba']": {"password": "".join(secrets.choice(alphabet) for _ in range(20))},
-            "root['master']['samba']['password']": "".join(secrets.choice(alphabet) for _ in range(20))
+            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
+            "root['master']['fluentd']": {"port": GlobalParams.DEFAULT_FLUENTD_PORT},
+            "root['master']['fluentd']['port']": GlobalParams.DEFAULT_FLUENTD_PORT,
+            "root['master']['samba']": {"password": samba_password},
+            "root['master']['samba']['password']": samba_password,
+            "root['connection']": {"ssh": {"port": GlobalParams.DEFAULT_SSH_PORT}},
+            "root['connection']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
+            "root['connection']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT
         }
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
@@ -167,6 +170,7 @@ class GrassAzureExecutor:
         cluster_id = self.cluster_details["id"]
         resource_group = self.cluster_details["cloud"]["resource_group"]
         admin_username = self.cluster_details["user"]["admin_username"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
         image_name = f"{cluster_id}-node-image"
         vm_name = f"{cluster_id}-{resource_name}-vm"
 
@@ -197,14 +201,14 @@ class GrassAzureExecutor:
         public_ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
 
         # Make sure capture-node-image-vm is able to connect
-        self.grass_executor.retry_until_connected(node_ip_address=public_ip_address)
+        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=public_ip_address)
 
         # Run init image script
         self._sync_mkdir(path=GlobalPaths.MARO_LOCAL_TMP, node_ip_address=public_ip_address)
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_build_node_image_vm.py",
             remote_dir="~/",
-            admin_username=admin_username, node_ip_address=public_ip_address
+            admin_username=admin_username, node_ip_address=public_ip_address, ssh_port=ssh_port
         )
         self.grass_executor.remote_init_build_node_image_vm(vm_ip_address=public_ip_address)
 
@@ -281,9 +285,10 @@ class GrassAzureExecutor:
         master_details = self.cluster_details["master"]
         admin_username = self.cluster_details["user"]["admin_username"]
         master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
 
         # Make sure master is able to connect
-        self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
+        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=master_public_ip_address)
 
         # Create folders
         self._sync_mkdir(path=GlobalPaths.MARO_GRASS_LIB, node_ip_address=master_public_ip_address)
@@ -313,12 +318,12 @@ class GrassAzureExecutor:
         copy_files_to_node(
             local_path=GlobalPaths.MARO_GRASS_LIB,
             remote_dir=GlobalPaths.MARO_LIB,
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             remote_dir=GlobalPaths.MARO_CLUSTERS,
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
 
         # Get public key
@@ -554,20 +559,23 @@ class GrassAzureExecutor:
         admin_username = self.cluster_details["user"]["admin_username"]
         node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
 
         # Make sure the node is able to connect
-        self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
+        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=node_public_ip_address)
 
         # Copy required files
         self._sync_mkdir(path=f"{GlobalPaths.MARO_LOCAL_TMP}", node_ip_address=node_public_ip_address)
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/init_node.py",
             remote_dir="~/",
-            admin_username=admin_username, node_ip_address=node_public_ip_address)
+            admin_username=admin_username, node_ip_address=node_public_ip_address, ssh_port=ssh_port
+        )
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
             remote_dir="~/",
-            admin_username=admin_username, node_ip_address=node_public_ip_address)
+            admin_username=admin_username, node_ip_address=node_public_ip_address, ssh_port=ssh_port
+        )
 
         # Remote init node
         self.grass_executor.remote_init_node(
@@ -652,7 +660,7 @@ class GrassAzureExecutor:
         )
 
         # Make sure the node is able to connect
-        self.grass_executor.retry_until_connected(
+        self.grass_executor.retry_connection_and_set_ssh_port(
             node_ip_address=node_public_ip_address
         )
 
@@ -768,6 +776,7 @@ class GrassAzureExecutor:
         # Load details
         admin_username = self.cluster_details["user"]["admin_username"]
         master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
 
         # Get images dir
         images_dir = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images"
@@ -789,7 +798,7 @@ class GrassAzureExecutor:
             copy_files_to_node(
                 local_path=abs_image_path,
                 remote_dir=images_dir,
-                admin_username=admin_username, node_ip_address=master_public_ip_address
+                admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
             )
             self.grass_executor.remote_update_image_files_details()
             self._batch_load_images()
@@ -811,7 +820,7 @@ class GrassAzureExecutor:
             copy_files_to_node(
                 local_path=abs_image_path,
                 remote_dir=images_dir,
-                admin_username=admin_username, node_ip_address=master_public_ip_address
+                admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
             )
             self.grass_executor.remote_update_image_files_details()
             self._batch_load_images()
@@ -869,28 +878,30 @@ class GrassAzureExecutor:
 
     def push_data(self, local_path: str, remote_path: str):
         # Load details
-        admin_username = self.cluster_details['user']['admin_username']
-        master_public_ip_address = self.cluster_details['master']['public_ip_address']
+        admin_username = self.cluster_details["user"]["admin_username"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
 
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
         copy_files_to_node(
             local_path=local_path,
             remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
 
     def pull_data(self, local_path: str, remote_path: str):
         # Load details
-        admin_username = self.cluster_details['user']['admin_username']
-        master_public_ip_address = self.cluster_details['master']['public_ip_address']
+        admin_username = self.cluster_details["user"]["admin_username"]
+        master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
 
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
         copy_files_from_node(
             local_dir=local_path,
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
 
     # maro grass job
@@ -914,6 +925,7 @@ class GrassAzureExecutor:
         # Load details
         admin_username = self.cluster_details["user"]["admin_username"]
         master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
         job_name = job_details["name"]
 
         # Sync mkdir
@@ -938,7 +950,7 @@ class GrassAzureExecutor:
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/details.yml",
             remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
 
         # Remote start job
@@ -972,6 +984,7 @@ class GrassAzureExecutor:
         )
         admin_username = self.cluster_details["user"]["admin_username"]
         master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        ssh_port = self.cluster_details["connection"]["ssh"]["port"]
         job_id = job_details["id"]
 
         # Copy logs from master
@@ -979,7 +992,7 @@ class GrassAzureExecutor:
             copy_files_from_node(
                 local_dir=export_dir,
                 remote_path=f"~/.maro/logs/{job_id}",
-                admin_username=admin_username, node_ip_address=master_public_ip_address
+                admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
             )
         except CommandExecutionError:
             logger.error_red("No logs have been created at this time.")
@@ -1215,6 +1228,7 @@ class ArmTemplateParameterBuilder:
         location = cluster_details["cloud"]["location"]
         admin_username = cluster_details["user"]["admin_username"]
         admin_public_key = cluster_details["user"]["admin_public_key"]
+        ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Load and update parameters
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_master/parameters.json", "r") as f:
@@ -1229,6 +1243,7 @@ class ArmTemplateParameterBuilder:
             parameters["virtualMachineSize"]["value"] = node_size
             parameters["adminUsername"]["value"] = admin_username
             parameters["adminPublicKey"]["value"] = admin_public_key
+            parameters["sshDestinationPort"]["value"] = f"{ssh_port}"
 
         # Export parameters if the path is set
         if export_path:
@@ -1246,6 +1261,7 @@ class ArmTemplateParameterBuilder:
         location = cluster_details["cloud"]["location"]
         admin_username = cluster_details["user"]["admin_username"]
         admin_public_key = cluster_details["user"]["admin_public_key"]
+        ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Load and update parameters
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_build_node_image_vm/parameters.json", "r") as f:
@@ -1260,6 +1276,7 @@ class ArmTemplateParameterBuilder:
             parameters["virtualMachineSize"]["value"] = node_size
             parameters["adminUsername"]["value"] = admin_username
             parameters["adminPublicKey"]["value"] = admin_public_key
+            parameters["sshDestinationPort"]["value"] = f"{ssh_port}"
 
         # Export parameters if the path is set
         if export_path:
@@ -1281,6 +1298,7 @@ class ArmTemplateParameterBuilder:
         location = cluster_details["cloud"]["location"]
         admin_username = cluster_details["user"]["admin_username"]
         admin_public_key = cluster_details["user"]["admin_public_key"]
+        ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Load and update parameters
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/azure/create_node/parameters.json", "r") as f:
@@ -1296,6 +1314,7 @@ class ArmTemplateParameterBuilder:
             parameters["imageResourceId"]["value"] = image_resource_id
             parameters["adminUsername"]["value"] = admin_username
             parameters["adminPublicKey"]["value"] = admin_public_key
+            parameters["sshDestinationPort"]["value"] = f"{ssh_port}"
 
         # Export parameters if the path is set
         if export_path:
