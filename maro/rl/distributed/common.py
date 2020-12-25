@@ -1,9 +1,25 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-
 from enum import Enum
 
 
-class DistributedTrainingMode(Enum):
-    LEARNER_ACTOR = "learner_actor"
-    ACTOR_TRAINER = "actor_trainer"
+class Component(Enum):
+    LEARNER = "learner"
+    ACTOR = "actor"
+
+
+class MessageTag(Enum):
+    ROLLOUT = "rollout"
+    ACTION = "action"
+    FINISHED = "finished"
+    EXIT = "exit"
+
+
+class PayloadKey(Enum):
+    ACTION = "action"
+    AGENT_ID = "agent_id"
+    EPISODE = "episode"
+    MODEL = "model"
+    EXPLORATION_PARAMS = "exploration_params"
+    PERFORMANCE = "performance"
+    EXPERIENCES = "experiences"
+    STATE = "state"
+    IS_TRAINING = "is_training"

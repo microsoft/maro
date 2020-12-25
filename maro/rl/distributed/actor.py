@@ -11,7 +11,7 @@ from maro.simulator import Env
 from maro.utils import InternalLogger
 
 from .common import Component, MessageTag, PayloadKey
-from ..executor import Executor
+from .executor import Executor
 
 ACTOR = Component.ACTOR.value
 LEARNER = Component.LEARNER.value

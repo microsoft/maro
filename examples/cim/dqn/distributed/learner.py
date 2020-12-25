@@ -8,7 +8,7 @@ from maro.rl import (
     AgentManagerMode, LearnerActorComponent, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
 )
 from maro.simulator import Env
-from maro.utils import Logger, convert_dottable
+from maro.utils import convert_dottable
 
 from examples.cim.dqn.components import CIMStateShaper, DQNAgentManager, create_dqn_agents
 

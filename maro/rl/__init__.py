@@ -7,18 +7,14 @@ from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.algorithms.dqn import DQN, DQNConfig, DuelingDQNTask
 from maro.rl.algorithms.utils import preprocess, to_device, validate_task_names
-from maro.rl.distributed.actor_trainer.actor import AutoActor
-from maro.rl.distributed.actor_trainer.common import Component as ActorTrainerComponent
-from maro.rl.distributed.actor_trainer.trainer import SEEDTrainer, Trainer
-from maro.rl.distributed.common import DistributedTrainingMode
 from maro.rl.distributed.executor import Executor
 from maro.rl.distributed.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 )
-from maro.rl.distributed.learner_actor.abs_dist_learner import AbsDistLearner
-from maro.rl.distributed.learner_actor.actor import Actor
-from maro.rl.distributed.learner_actor.common import Component as LearnerActorComponent
-from maro.rl.distributed.learner_actor.dist_learner import SEEDLearner, SimpleDistLearner
+from maro.rl.distributed.abs_dist_learner import AbsDistLearner
+from maro.rl.distributed.actor import Actor
+from maro.rl.distributed.common import Component as LearnerActorComponent
+from maro.rl.distributed.dist_learner import SEEDLearner, SimpleDistLearner
 from maro.rl.exploration.abs_explorer import AbsExplorer
 from maro.rl.exploration.epsilon_greedy_explorer import EpsilonGreedyExplorer
 from maro.rl.learner.abs_learner import AbsLearner
@@ -48,13 +44,10 @@ __all__ = [
     'AbsStore',
     'ActionShaper',
     'Actor',
-    'ActorTrainerComponent',
     'AgentManagerMode',
-    'AutoActor',
     'ColumnBasedStore',
     'DQN',
     'DQNConfig',
-    'DistributedTrainingMode',
     'DuelingDQNTask',
     'EpsilonGreedyExplorer',
     'Executor',
@@ -68,13 +61,11 @@ __all__ = [
     'OptimizerOptions',
     'OverwriteType',
     'SEEDLearner',
-    'SEEDTrainer',
     'Scheduler',
     'SimpleAgentManager',
     'SimpleDistLearner',
     'SimpleLearner',
     'StateShaper',
-    'Trainer',
     'TwoPhaseLinearParameterScheduler',
     'concat_experiences_by_agent',
     'merge_experiences_with_trajectory_boundaries',

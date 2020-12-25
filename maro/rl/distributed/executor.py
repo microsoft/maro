@@ -9,7 +9,7 @@ from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 
-from .common import DistributedTrainingMode
+from .common import Component, MessageTag, PayloadKey
 
 
 class Executor(object):
@@ -32,23 +32,14 @@ class Executor(object):
         state_shaper: StateShaper,
         action_shaper: ActionShaper,
         experience_shaper: ExperienceShaper,
-        distributed_mode: DistributedTrainingMode,
         action_wait_timeout: int = None
     ):
         self._state_shaper = state_shaper
         self._action_shaper = action_shaper
         self._experience_shaper = experience_shaper
-        self._distributed_mode = distributed_mode
         self._action_wait_timeout = action_wait_timeout
-        if self._distributed_mode == DistributedTrainingMode.LEARNER_ACTOR:
-            from maro.rl.distributed.learner_actor.common import Component, MessageTag, PayloadKey
-            self._action_source = Component.LEARNER.value
-        else:
-            from maro.rl.distributed.actor_trainer.common import Component, MessageTag, PayloadKey
-            self._action_source = Component.TRAINER.value
+        self._action_source = Component.LEARNER.value
 
-        self._message_tags = MessageTag
-        self._payload_keys = PayloadKey
         # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
@@ -71,10 +62,10 @@ class Executor(object):
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        payload = {self._payload_keys.STATE: model_state, self._payload_keys.AGENT_ID: agent_id}
+        payload = {PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id}
         reply = self._proxy.send(
             SessionMessage(
-                tag=self._message_tags.ACTION,
+                tag=MessageTag.ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
                 session_id=".".join([self._current_session_prefix, f"t-{self._time_step}"]),
@@ -82,8 +73,8 @@ class Executor(object):
             ),
             timeout=self._action_wait_timeout,
             stop_condition=lambda msg:
-            msg.tag == self._message_tags.EXIT or
-            msg.tag == self._message_tags.ROLLOUT and
+            msg.tag == MessageTag.EXIT or
+            msg.tag == MessageTag.ROLLOUT and
             (msg.session_id == "test" or int(msg.session_id.split("-")[-1]) > self._current_ep)
         )
         # Reset or exit
@@ -96,7 +87,7 @@ class Executor(object):
         if not reply:
             return
 
-        model_action = reply[0].payload[self._payload_keys.ACTION]
+        model_action = reply[0].payload[PayloadKey.ACTION]
         self._transition_cache = {
             "state": model_state,
             "action": model_action,
