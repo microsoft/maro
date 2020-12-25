@@ -39,10 +39,12 @@ class GrassOnPremisesExecutor:
         else:
             super_user = ""
         GrassOnPremisesExecutor.create_user(
-            super_user,
-            create_deployment["user"]["admin_username"],
-            create_deployment["master"]["public_ip_address"],
-            create_deployment["user"]["admin_public_key"])
+            admin_username=super_user,
+            maro_user=create_deployment["user"]["admin_username"],
+            ip_address=create_deployment["master"]["public_ip_address"],
+            pubkey=create_deployment["user"]["admin_public_key"],
+            ssh_port=create_deployment["connection"]["ssh"]["port"]
+        )
 
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
@@ -63,7 +65,10 @@ class GrassOnPremisesExecutor:
             "root['master']['fluentd']": {'port': 24224},
             "root['master']['fluentd']['port']": 24224,
             "root['master']['samba']": {'password': ''.join(secrets.choice(alphabet) for _ in range(20))},
-            "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20))
+            "root['master']['samba']['password']": ''.join(secrets.choice(alphabet) for _ in range(20)),
+            "root['connection']": {"ssh": {"port": GlobalParams.DEFAULT_SSH_PORT}},
+            "root['connection']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
+            "root['connection']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT
         }
         with open(
             os.path.expanduser(
@@ -102,6 +107,7 @@ class GrassOnPremisesExecutor:
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
+
     def _create_path_in_list(self, target_ip: str, path_list):
         for path_to_create in path_list:
             self.grass_executor.remote_mkdir(
@@ -130,9 +136,10 @@ class GrassOnPremisesExecutor:
         master_details = cluster_details["master"]
         admin_username = cluster_details["user"]["admin_username"]
         master_public_ip_address = cluster_details["master"]["public_ip_address"]
+        ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Make sure master is able to connect
-        self.grass_executor.retry_until_connected(node_ip_address=master_public_ip_address)
+        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=master_public_ip_address)
 
         # Create folders
         path_list = {
@@ -149,12 +156,12 @@ class GrassOnPremisesExecutor:
         copy_files_to_node(
             local_path=GlobalPaths.MARO_GRASS_LIB,
             remote_dir=GlobalPaths.MARO_LIB,
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             remote_dir=GlobalPaths.MARO_CLUSTERS,
-            admin_username=admin_username, node_ip_address=master_public_ip_address
+            admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
 
         # Get public key
@@ -203,10 +210,12 @@ class GrassOnPremisesExecutor:
         else:
             super_user = ""
         GrassOnPremisesExecutor.create_user(
-            super_user,
-            cluster_details["user"]["admin_username"],
-            node_ip_address,
-            cluster_details["user"]["admin_public_key"])
+            admin_username=super_user,
+            maro_user=cluster_details["user"]["admin_username"],
+            ip_address=node_ip_address,
+            pubkey=cluster_details["user"]["admin_public_key"],
+            ssh_port=cluster_details["connection"]["ssh"]["port"]
+        )
 
         self._create_node_data(node_join_info)
         self._init_node(node_name)
@@ -250,18 +259,19 @@ class GrassOnPremisesExecutor:
         admin_username = cluster_details["user"]["admin_username"]
         node_details = self.grass_executor.remote_get_node_details(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
+        ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Make sure the node is able to connect
-        self.grass_executor.retry_until_connected(node_ip_address=node_public_ip_address)
+        self.grass_executor.retry_connection_and_set_ssh_port(node_ip_address=node_public_ip_address)
 
         # Create folders
         path_list = {
-        GlobalPaths.MARO_GRASS_LIB,
-        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
-        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-        f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules"
+            GlobalPaths.MARO_GRASS_LIB,
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules"
         }
         self._create_path_in_list(node_public_ip_address, path_list)
 
@@ -269,12 +279,12 @@ class GrassOnPremisesExecutor:
         copy_files_to_node(
             local_path=GlobalPaths.MARO_GRASS_LIB,
             remote_dir=GlobalPaths.MARO_LIB,
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            admin_username=admin_username, node_ip_address=node_public_ip_address, ssh_port=ssh_port
         )
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             remote_dir=GlobalPaths.MARO_CLUSTERS,
-            admin_username=admin_username, node_ip_address=node_public_ip_address
+            admin_username=admin_username, node_ip_address=node_public_ip_address, ssh_port=ssh_port
         )
 
         # Remote init node
@@ -333,30 +343,37 @@ class GrassOnPremisesExecutor:
 
         admin_username = cluster_details["user"]["admin_username"]
         node_ip_address = node_details["public_ip_address"]
-        GrassOnPremisesExecutor.delete_user("", admin_username, node_ip_address)
+        ssh_port = cluster_details["connection"]["ssh"]["port"]
+        GrassOnPremisesExecutor.delete_user(
+            admin_username="",
+            maro_user=admin_username,
+            ip_address=node_ip_address,
+            ssh_port=ssh_port
+        )
         logger.info_green(f"The node {node_name} has been left cluster {cluster_details['name']}.")
 
     @staticmethod
-    def create_user(admin_username: str, maro_user: str, ip_address: str, pubkey: str) -> None:
-        if("" == admin_username):
+    def create_user(admin_username: str, maro_user: str, ip_address: str, pubkey: str, ssh_port: int) -> None:
+        if "" == admin_username:
             print("Please input a user account that has permissions to create user:")
             admin_username = input("> ")
 
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/create_user.py",
             remote_dir="~/",
-            admin_username=admin_username, node_ip_address=ip_address)
+            admin_username=admin_username, node_ip_address=ip_address, ssh_port=ssh_port
+        )
         GrassExecutor.remote_add_user_to_node(admin_username, maro_user, ip_address, pubkey)
 
     @staticmethod
-    def delete_user(admin_username: str, maro_user: str, ip_address: str) -> None:
-        if("" == admin_username):
+    def delete_user(admin_username: str, maro_user: str, ip_address: str, ssh_port: int) -> None:
+        if "" == admin_username:
             admin_username = input("Please input a user account that has permissions to delete user:\r\n")
 
         copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/delete_user.py",
             remote_dir="~/",
-            admin_username=admin_username, node_ip_address=ip_address)
+            admin_username=admin_username, node_ip_address=ip_address, ssh_port=ssh_port
+        )
 
         GrassExecutor.remote_delete_user_from_node(admin_username, maro_user, ip_address)
-
