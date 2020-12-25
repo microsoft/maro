@@ -1,6 +1,6 @@
 
 Grass Cluster Provisioning in On-Premises Environment
-===================================
+=====================================================
 
 With the following guide, you can build up a MARO cluster in
 `grass mode <../distributed_training/orchestration_with_grass.html#orchestration-with-grass>`_
@@ -10,12 +10,12 @@ Prerequisites
 -------------
 
 * Liunx with Python 3.6+
-* `Install Powershell if you are using Windows Server <https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1>`
+* `Install Powershell <https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1>`_ if you are using Windows Server
 
 Cluster Management
 ------------------
 
-* Create a cluster with a `deployment <#grass-azure-create>`_
+* Create a cluster with a `deployment <#grass-cluster-create>`_
 
   .. code-block:: sh
 
@@ -102,7 +102,7 @@ Sample Deployments
 ------------------
 
 grass-cluster-create
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
@@ -115,20 +115,20 @@ grass-cluster-create
 
 
 grass-node-join
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
-mode: "grass/on-premises"
-name: ""
-cluster: ""
-public_ip_address: ""
-hostname: ""
-system: "linux"
-resources:
-  cpu: 1
-  memory: 1024
-  gpu: 0
+    mode: "grass/on-premises"
+    name: ""
+    cluster: ""
+    public_ip_address: ""
+    hostname: ""
+    system: "linux"
+    resources:
+      cpu: 1
+      memory: 1024
+      gpu: 0
 
 
 grass-start-job
