@@ -780,7 +780,10 @@ class ArmTemplateParameterBuilder:
             parameters["virtualMachineSize"]["value"] = node_size
             parameters["adminUsername"]["value"] = admin_username
             parameters["adminPublicKey"]["value"] = admin_public_key
-            parameters["sshDestinationPort"]["value"] = f"{ssh_port}"
+            parameters["sshDestinationPorts"]["value"] = (
+                [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
+                else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
+            )
 
         # Export parameters if the path is set
         if export_path:
@@ -813,7 +816,10 @@ class ArmTemplateParameterBuilder:
             parameters["virtualMachineSize"]["value"] = node_size
             parameters["adminUsername"]["value"] = admin_username
             parameters["adminPublicKey"]["value"] = admin_public_key
-            parameters["sshDestinationPort"]["value"] = f"{ssh_port}"
+            parameters["sshDestinationPorts"]["value"] = (
+                [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
+                else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
+            )
 
         # Export parameters if the path is set
         if export_path:
@@ -851,7 +857,10 @@ class ArmTemplateParameterBuilder:
             parameters["imageResourceId"]["value"] = image_resource_id
             parameters["adminUsername"]["value"] = admin_username
             parameters["adminPublicKey"]["value"] = admin_public_key
-            parameters["sshDestinationPort"]["value"] = f"{ssh_port}"
+            parameters["sshDestinationPorts"]["value"] = (
+                [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
+                else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
+            )
 
         # Export parameters if the path is set
         if export_path:

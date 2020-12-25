@@ -32,7 +32,7 @@
     "adminPublicKey": {
       "value": null
     },
-    "sshDestinationPort": {
+    "sshDestinationPorts": {
       "value": null
     }
   }

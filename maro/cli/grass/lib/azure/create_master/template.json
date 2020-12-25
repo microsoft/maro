@@ -29,8 +29,8 @@
     "adminPublicKey": {
       "type": "securestring"
     },
-    "sshDestinationPort": {
-      "type": "string"
+    "sshDestinationPorts": {
+      "type": "array"
     }
   },
   "variables": {
@@ -85,7 +85,7 @@
               "access": "Allow",
               "priority": 100,
               "direction": "Inbound",
-              "destinationPortRanges": ["22", "[parameters('sshDestinationPort')]"]
+              "destinationPortRanges": "[parameters('sshDestinationPorts')]"
             }
           }
         ]
