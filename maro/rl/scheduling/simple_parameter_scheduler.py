@@ -13,7 +13,7 @@ class LinearParameterScheduler(Scheduler):
 
     Args:
         max_ep (int): Maximum number of episodes to run.
-        early_stopping_callback (Callable): Function that returns a boolean indicating whether early stopping should
+        early_stopping_checker (Callable): Function that returns a boolean indicating whether early stopping should
             be triggered. Defaults to None, in which case no early stopping check will be performed.
         parameter_names ([str]): List of exploration parameter names.
         start_values (Union[float, list, tuple, np.ndarray]): Exploration parameter values for the first episode.
@@ -24,13 +24,13 @@ class LinearParameterScheduler(Scheduler):
     def __init__(
         self,
         max_ep: int,
-        early_stopping_callback: Callable = None,
+        early_stopping_checker: Callable = None,
         *,
         parameter_names: [str],
         start_values: Union[float, list, tuple, np.ndarray],
         end_values: Union[float, list, tuple, np.ndarray]
     ):
-        super().__init__(max_ep, early_stopping_callback=early_stopping_callback)
+        super().__init__(max_ep, early_stopping_checker=early_stopping_checker)
         self._parameter_names = parameter_names
         if isinstance(start_values, float):
             self._current_values = start_values * np.ones(len(self._parameter_names))
@@ -57,7 +57,7 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
 
     Args:
         max_ep (int): Maximum number of episodes to run.
-        early_stopping_callback (Callable): Function that returns a boolean indicating whether early stopping should
+        early_stopping_checker (Callable): Function that returns a boolean indicating whether early stopping should
             be triggered. Defaults to None, in which case no early stopping check will be performed.
         parameter_names ([str]): List of exploration parameter names.
         split_ep (float): The episode where the switch from the first linear schedule to the second occurs.
@@ -75,7 +75,7 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
     def __init__(
         self,
         max_ep: int,
-        early_stopping_callback: Callable = None,
+        early_stopping_checker: Callable = None,
         *,
         parameter_names: [str],
         split_ep: float,
@@ -85,7 +85,7 @@ class TwoPhaseLinearParameterScheduler(Scheduler):
     ):
         if split_ep <= 0 or split_ep >= max_ep:
             raise ValueError("split_ep must be between 0 and max_ep - 1.")
-        super().__init__(max_ep, early_stopping_callback=early_stopping_callback)
+        super().__init__(max_ep, early_stopping_checker=early_stopping_checker)
         self._parameter_names = parameter_names
         self._split_ep = split_ep
         if isinstance(start_values, float):
