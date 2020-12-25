@@ -7,11 +7,11 @@ from maro.rl.agent.abs_agent import AbsAgent
 from maro.rl.agent.abs_agent_manager import AbsAgentManager, AgentManagerMode
 from maro.rl.agent.simple_agent_manager import SimpleAgentManager
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
+from maro.rl.algorithms.dqn import DQN, DQNConfig
 from maro.rl.algorithms.policy_optimization import (
     ActionWithLogProbability, ActorCritic, ActorCriticConfig, PolicyGradient, PolicyOptimization,
     PolicyOptimizationConfig
 )
-from maro.rl.algorithms.dqn import DQN, DQNConfig
 from maro.rl.dist_topologies.experience_collection import (
     concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 )
