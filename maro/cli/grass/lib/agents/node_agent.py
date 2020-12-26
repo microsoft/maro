@@ -10,8 +10,8 @@ import time
 
 import redis
 
-from .resource import BasicResource
-from .utils import get_node_details, set_node_details
+from .utils.details import get_node_details, set_node_details
+from .utils.resource import BasicResource
 
 INSPECT_CONTAINER_COMMAND = "docker inspect {containers}"
 GET_CONTAINERS_COMMAND = "docker container ls -a --format='{{.Names}}'"
@@ -28,11 +28,11 @@ class NodeAgent:
         self._redis_port = redis_port
 
     def start(self) -> None:
-        container_tracking_agent = NodeTrackingAgent(
+        node_tracking_agent = NodeTrackingAgent(
             cluster_name=self._cluster_name, node_name=self._node_name,
             master_hostname=self._master_hostname, redis_port=self._redis_port
         )
-        container_tracking_agent.start()
+        node_tracking_agent.start()
 
 
 class NodeTrackingAgent(multiprocessing.Process):
@@ -242,8 +242,7 @@ class NodeTrackingAgent(multiprocessing.Process):
 
 
 if __name__ == "__main__":
-    # FIXME: what about get it from argparse?
-    with open(os.path.expanduser("~/.maro-local/agents/node_agent.config"), "r") as fr:
+    with open(os.path.expanduser("~/.maro-local/agents/maro-node-agent.config"), "r") as fr:
         node_agent_config = json.load(fr)
 
     node_agent = NodeAgent(

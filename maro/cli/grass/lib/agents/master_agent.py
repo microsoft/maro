@@ -14,15 +14,15 @@ import uuid
 
 from redis import Redis
 
-from .exception import AllocationFailed, StartContainerFailed
-from .resource import ContainerResource, NodeResource
-from .utils import (
+from .utils.details import (
     delete_rejoin_container_name_to_component_name, get_containers_details, get_job_details, get_job_runtime_details,
     get_jobs_details, get_killed_job_tickets, get_node_details, get_nodes_details, get_pending_job_tickets,
     get_rejoin_component_restart_times, get_rejoin_container_name_to_component_name,
     incr_rejoin_component_restart_times, load_cluster_details, remove_killed_job_ticket, remove_pending_job_ticket,
     set_containers_details, set_job_details
 )
+from .utils.exception import AllocationFailed, StartContainerFailed
+from .utils.resource import ContainerResource, NodeResource
 
 logger = logging.getLogger(__name__)
 
@@ -1238,11 +1238,13 @@ class JobExecutor:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG,
-                        format="[%(levelname)-7s] - %(asctime)s - %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S")
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="[%(levelname)-7s] - %(asctime)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
-    with open(os.path.expanduser("~/.maro-local/agents/master_agent.config"), "r") as fr:
+    with open(os.path.expanduser("~/.maro-local/agents/maro-master-agent.config"), "r") as fr:
         master_agent_config = json.load(fr)
 
     master_agent = MasterAgent(
