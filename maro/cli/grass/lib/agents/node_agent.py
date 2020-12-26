@@ -5,9 +5,9 @@
 import json
 import multiprocessing
 import os
-import subprocess
 import time
 
+import psutil
 import redis
 
 from .utils.details import get_node_details, set_node_details
@@ -17,9 +17,9 @@ from .utils.subprocess import SubProcess
 
 INSPECT_CONTAINER_COMMAND = "docker inspect {containers}"
 GET_CONTAINERS_COMMAND = "docker container ls -a --format='{{.Names}}'"
-UPTIME_COMMAND = "uptime"
-FREE_COMMAND = "free"
-NVIDIA_SMI_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+
+GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
+GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 
 
 class NodeAgent:
@@ -28,13 +28,52 @@ class NodeAgent:
         self._node_name = node_name
         self._master_hostname = master_hostname
         self._redis_port = redis_port
+        self._redis = redis.Redis(
+            host=master_hostname,
+            port=redis_port,
+            charset="utf-8", decode_responses=True
+        )
 
     def start(self) -> None:
+        self.init_agent()
         node_tracking_agent = NodeTrackingAgent(
             cluster_name=self._cluster_name, node_name=self._node_name,
             master_hostname=self._master_hostname, redis_port=self._redis_port
         )
         node_tracking_agent.start()
+
+    def init_agent(self) -> None:
+        self._init_resource_info()
+
+    def _init_resource_info(self) -> None:
+        resource = {}
+
+        # Get cpu info
+        resource["cpu"] = psutil.cpu_count()
+
+        # Get memory info
+        resource["memory"] = psutil.virtual_memory().total / 1024
+
+        # Get GPU info
+        try:
+            return_str = SubProcess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
+            resource["gpu"] = int(return_str)
+        except CommandExecutionError:
+            resource["gpu"] = 0
+
+        # Set resource details
+        node_details = get_node_details(
+            redis=self._redis,
+            cluster_name=self._cluster_name,
+            node_name=self._node_name
+        )
+        node_details["resources"] = resource
+        set_node_details(
+            redis=self._redis,
+            cluster_name=self._cluster_name,
+            node_name=self._node_name,
+            node_details=node_details
+        )
 
 
 class NodeTrackingAgent(multiprocessing.Process):
@@ -156,32 +195,21 @@ class NodeTrackingAgent(multiprocessing.Process):
             None.
         """
         # Update actual cpu.
-        completed_process = subprocess.run(
-            UPTIME_COMMAND,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        uptime_str = completed_process.stdout
-        split_uptime = uptime_str.split()
-        node_details["resources"]["actual_free_cpu"] = (
-            node_details["resources"]["cpu"]
-            - float(split_uptime[-3].replace(",", ""))
-        )
+        node_details["resources"]["actual_free_cpu"] = node_details["resources"]["cpu"] - psutil.getloadavg()[0]
 
         # Update actual memory.
-        completed_process = subprocess.run(
-            FREE_COMMAND,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        free_str = completed_process.stdout
-        split_free = free_str.split()
-        node_details["resources"]["actual_free_memory"] = float(split_free[12]) / 1024
+        node_details["resources"]["actual_free_memory"] = psutil.virtual_memory().free / 1024
 
         # Update actual gpu.
         node_details["resources"]["actual_free_gpu"] = node_details["resources"]["target_free_gpu"]
         # Get nvidia-smi result.
         try:
-            return_str = SubProcess.run(command=NVIDIA_SMI_COMMAND)
-            node_details["resources"]["actual_gpu_usage"] = f"{float(return_str)}%"
+            return_str = SubProcess.run(command=GET_UTILIZATION_GPUS_COMMAND)
+            split_str = return_str.split("\n")
+            total_usage = 0
+            for single_usage in split_str:
+                total_usage += float(single_usage)
+            node_details["resources"]["actual_gpu_usage"] = f"{float(total_usage) / len(split_str)}%"
         except CommandExecutionError:
             pass
 

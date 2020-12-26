@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+
 class BasicResource:
     def __init__(self, cpu: float, memory: float, gpu: float):
         self.cpu = cpu

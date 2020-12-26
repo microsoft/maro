@@ -346,7 +346,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Init node_size_to_count
         node_size_to_count = collections.defaultdict(lambda: 0)
-        for node_name, node_details in nodes_details.items():
+        for _, node_details in nodes_details.items():
             node_size_to_count[node_details["node_size"]] += 1
 
         # Get node_size_to_spec
@@ -363,23 +363,22 @@ class GrassAzureExecutor(GrassExecutor):
         elif node_size_to_count[node_size] < replicas:
             self._create_nodes(
                 num=replicas - node_size_to_count[node_size],
-                node_size=node_size,
-                node_size_to_spec=node_size_to_spec
+                node_size=node_size
             )
         else:
             logger.warning_yellow("Replica is match, no create or delete")
 
-    def _create_nodes(self, num: int, node_size: str, node_size_to_spec: dict) -> None:
+    def _create_nodes(self, num: int, node_size: str) -> None:
         logger.info(f"Scaling up {num}")
 
         # Parallel create
         with ThreadPool(GlobalParams.PARALLELS) as pool:
             pool.starmap(
                 self._create_node,
-                [[node_size, node_size_to_spec]] * num
+                [[node_size]] * num
             )
 
-    def _create_node(self, node_size: str, node_size_to_spec: dict):
+    def _create_node(self, node_size: str):
         # Generate node name
         node_name = generate_node_name()
         logger.info(message=f"Creating node {node_name}")
@@ -387,8 +386,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Create node
         self._create_vm(
             node_name=node_name,
-            node_size=node_size,
-            node_size_to_spec=node_size_to_spec
+            node_size=node_size
         )
 
         # Init node
@@ -423,7 +421,7 @@ class GrassAzureExecutor(GrassExecutor):
                 f"Only {len(deletable_nodes)} nodes are deletable, but need to delete {num} to meet the replica"
             )
 
-    def _create_vm(self, node_name: str, node_size: str, node_size_to_spec: dict):
+    def _create_vm(self, node_name: str, node_size: str):
         logger.info(message=f"Creating VM {node_name}")
 
         # Build params
@@ -458,16 +456,6 @@ class GrassAzureExecutor(GrassExecutor):
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
 
-        # Get sku and check gpu nums
-        gpu_nums = 0
-        node_size_sku = AzureExecutor.get_sku(
-            vm_size=node_size, location=self.location)
-        if node_size_sku is not None:
-            for capability in node_size_sku["capabilities"]:
-                if capability["name"] == "GPUs":
-                    gpu_nums = int(capability["value"])
-                    break
-
         # Save details
         node_details = {
             "name": node_name,
@@ -477,11 +465,6 @@ class GrassAzureExecutor(GrassExecutor):
             "node_size": node_size,
             "resource_name": f"{self.cluster_id}-{node_name}-vm",
             "hostname": f"{self.cluster_id}-{node_name}-vm",
-            "resources": {
-                "cpu": node_size_to_spec[node_size]["numberOfCores"],
-                "memory": node_size_to_spec[node_size]["memoryInMb"],
-                "gpu": gpu_nums
-            },
             "containers": {}
         }
         self.remote_create_node_details(
