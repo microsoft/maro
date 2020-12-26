@@ -50,12 +50,20 @@ class DDPG(AbsAlgorithm):
         self._train_cnt = 0
 
     def choose_action(self, state):
+        state = torch.from_numpy(state).to(self._device)
+        is_single = len(state.shape) == 1
+        if is_single:
+            state = state.unsqueeze(dim=0)
+
         return self.model(state, task_name="actor", is_training=False)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
+        states = torch.from_numpy(states).to(self._device)
+        actions = torch.from_numpy(actions).to(self._device)
+        rewards = torch.from_numpy(rewards).to(self._device)
+        next_states = torch.from_numpy(next_states).to(self._device)
         if len(actions.shape) == 1:
             actions = actions.unsqueeze(1)  # (N, 1)
-
         current_q_values = self._model(torch.cat([states, actions]), task_name="q_value").squeeze(1)  # (N,)
         next_actions = self._target_model(states, task_name="policy", is_training=False).unsqueeze(dim=1)
         next_q_values = self._target_model(
