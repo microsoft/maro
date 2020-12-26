@@ -29,7 +29,7 @@ class InvalidEpisode(MAROException):
         super().__init__(4003, msg)
 
 
-class InvalidTrainingLoop(MAROException):
+class InfiniteTrainingLoop(MAROException):
     """Raised when the ``SimpleLearner``'s training loop becomes infinite."""
     def __init__(self, msg: str = None):
         super().__init__(4004, msg)
