@@ -23,11 +23,12 @@ if __name__ == "__main__":
     master_hostname = cluster_details["master"]["hostname"]
     redis_port = cluster_details["master"]["redis"]["port"]
 
-    # Get nodes details
+    # Create node details
     redis = Redis(
         host=master_hostname,
         port=redis_port,
-        charset="utf-8", decode_responses=True
+        charset="utf-8",
+        decode_responses=True
     )
     set_node_details(
         redis=redis,

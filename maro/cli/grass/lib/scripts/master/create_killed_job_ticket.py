@@ -28,10 +28,10 @@ def create_killed_job_ticket(cluster_name: str, job_name: str):
 
 
 if __name__ == "__main__":
+    # Load args
     parser = argparse.ArgumentParser()
     parser.add_argument("cluster_name")
     parser.add_argument("job_name")
     args = parser.parse_args()
 
-    create_killed_job_ticket(
-        cluster_name=args.cluster_name, job_name=args.job_name)
+    create_killed_job_ticket(cluster_name=args.cluster_name, job_name=args.job_name)

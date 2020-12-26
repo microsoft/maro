@@ -311,7 +311,7 @@ class GrassAzureExecutor(GrassExecutor):
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
         )
-        self.remote_set_master_details(master_details=master_details)
+        self.remote_create_master_details(master_details=master_details)
 
         logger.info_green("Master VM is initialized")
 
@@ -484,7 +484,7 @@ class GrassAzureExecutor(GrassExecutor):
             },
             "containers": {}
         }
-        self.remote_set_node_details(
+        self.remote_create_node_details(
             node_name=node_name,
             node_details=node_details,
         )
@@ -552,7 +552,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Save details
         node_details["public_key"] = public_key
-        self.remote_set_node_details(
+        self.remote_create_node_details(
             node_name=node_name,
             node_details=node_details
         )

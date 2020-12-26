@@ -599,22 +599,22 @@ class GrassExecutor:
         )
         _ = SubProcess.run(command)
 
-    def remote_set_master_details(self, master_details: dict):
+    def remote_create_master_details(self, master_details: dict):
         master_details_b64 = base64.b64encode(json.dumps(master_details).encode("utf8")).decode('utf8')
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
             f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.set_master_details "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_master_details "
             f"{self.cluster_name} {master_details_b64}'"
         )
         _ = SubProcess.run(command)
 
-    def remote_set_node_details(self, node_name: str, node_details: dict):
+    def remote_create_node_details(self, node_name: str, node_details: dict):
         node_details_b64 = base64.b64encode(json.dumps(node_details).encode("utf8")).decode('utf8')
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
             f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.set_node_details "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_node_details "
             f"{self.cluster_name} {node_name} {node_details_b64}'"
         )
         _ = SubProcess.run(command)

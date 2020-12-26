@@ -179,7 +179,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
-        self.remote_set_master_details(master_details=cluster_details["master"])
+        self.remote_create_master_details(master_details=cluster_details["master"])
 
         logger.info_green("Master node is initialized")
 
@@ -246,7 +246,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             },
             "containers": {}
         }
-        self.remote_set_node_details(
+        self.remote_create_node_details(
             node_name=node_name,
             node_details=node_details,
         )
@@ -298,7 +298,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         # Save details
         node_details["public_key"] = public_key
-        self.remote_set_node_details(
+        self.remote_create_node_details(
             node_name=node_name,
             node_details=node_details
         )

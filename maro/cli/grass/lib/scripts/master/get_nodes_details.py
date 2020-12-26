@@ -25,7 +25,8 @@ if __name__ == "__main__":
     redis = Redis(
         host=master_hostname,
         port=redis_port,
-        charset="utf-8", decode_responses=True
+        charset="utf-8",
+        decode_responses=True
     )
     nodes_details = get_nodes_details(
         redis=redis,
