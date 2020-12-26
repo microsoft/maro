@@ -3,16 +3,16 @@
 
 
 import argparse
-import subprocess
 import sys
 
 from .utils.naming import generate_name_with_uuid
+from .utils.subprocess import SubProcess
 
-build_image_command = """\
+BUILD_IMAGE_COMMAND = """\
 docker build -t {image_name} {docker_file_path}
 """
 
-save_image_command = """\
+SAVE_IMAGE_COMMAND = """\
 docker save {image_name} > {export_path}
 """
 
@@ -25,28 +25,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Build image
-    command = build_image_command.format(
+    command = BUILD_IMAGE_COMMAND.format(
         image_name=args.image_name,
         docker_file_path=f"~/.maro/clusters/{args.cluster_name}/data/{args.docker_file_path}"
     )
-    completed_process = subprocess.run(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    if completed_process.returncode != 0:
-        raise Exception(completed_process.stderr)
-    sys.stdout.write(command)
+    return_str = SubProcess.run(command=command)
+    sys.stdout.write(return_str)
 
     # Get image file name
     image_file_name = generate_name_with_uuid("image")
 
     # Save image
-    command = save_image_command.format(
+    command = SAVE_IMAGE_COMMAND.format(
         image_name=args.image_name,
         export_path=f"~/.maro/clusters/{args.cluster_name}/images/{image_file_name}"
     )
-    completed_process = subprocess.run(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    if completed_process.returncode != 0:
-        raise Exception(completed_process.stderr)
+    _ = SubProcess.run(command=command)
     sys.stdout.write(command)

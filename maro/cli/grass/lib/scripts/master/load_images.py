@@ -4,13 +4,13 @@
 
 import argparse
 import os
-import subprocess
 import sys
 from multiprocessing.pool import ThreadPool
 
 from redis import Redis
 
 from .utils.details import get_master_details, get_node_details, load_cluster_details, set_node_details
+from .utils.subprocess import SubProcess
 
 LOAD_IMAGE_COMMAND = """\
 docker load -q -i "{image_path}"
@@ -19,12 +19,9 @@ docker load -q -i "{image_path}"
 
 def load_image(image_path: str):
     command = LOAD_IMAGE_COMMAND.format(image_path=image_path)
-    completed_process = subprocess.run(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    if completed_process.returncode != 0:
-        raise Exception(completed_process.stderr)
-    sys.stdout.write(completed_process.stdout)
+    return_str = SubProcess.run(command=command)
+    sys.stdout.write(return_str)
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":
@@ -63,8 +60,10 @@ if __name__ == "__main__":
     for image_file, image_file_details in master_image_files_details.items():
         if image_file not in node_image_files_details:
             unloaded_images.append(image_file)
-        elif image_file_details["modify_time"] != node_image_files_details[image_file]["modify_time"] or \
-                image_file_details["size"] != node_image_files_details[image_file]["size"]:
+        elif (
+            image_file_details["modify_time"] != node_image_files_details[image_file]["modify_time"]
+            or image_file_details["size"] != node_image_files_details[image_file]["size"]
+        ):
             unloaded_images.append(image_file)
     sys.stdout.write(f"Unloaded_images: {unloaded_images}\n")
     sys.stdout.flush()

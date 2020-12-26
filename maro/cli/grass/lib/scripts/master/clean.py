@@ -3,13 +3,13 @@
 
 
 import argparse
-import subprocess
 import sys
 from multiprocessing.pool import ThreadPool
 
 from redis import Redis
 
 from .utils.details import get_nodes_details, load_cluster_details
+from .utils.subprocess import SubProcess
 
 LIST_CONTAINERS_COMMAND = """\
 ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} \
@@ -67,12 +67,7 @@ def _clean_node_containers(admin_username: str, node_hostname: str, ssh_port: in
         node_hostname=node_hostname,
         ssh_port=ssh_port
     )
-    completed_process = subprocess.run(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    if completed_process.returncode != 0:
-        raise Exception(completed_process.stderr)
-    return_str = completed_process.stdout.strip("\n")
+    return_str = SubProcess.run(command=command)
     if return_str == "":
         return
     containers = return_str.split("\n")
@@ -84,11 +79,7 @@ def _clean_node_containers(admin_username: str, node_hostname: str, ssh_port: in
         containers=" ".join(containers),
         ssh_port=ssh_port
     )
-    completed_process = subprocess.run(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    if completed_process.returncode != 0:
-        sys.stderr.write(completed_process.stderr + "\n")
+    _ = SubProcess.run(command=command)
     sys.stdout.write(command + "\n")
 
     # Remove containers
@@ -98,11 +89,7 @@ def _clean_node_containers(admin_username: str, node_hostname: str, ssh_port: in
         containers=" ".join(containers),
         ssh_port=ssh_port
     )
-    completed_process = subprocess.run(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    if completed_process.returncode != 0:
-        sys.stderr.write(completed_process.stderr + "\n")
+    _ = SubProcess.run(command=command)
     sys.stdout.write(command + "\n")
 
 

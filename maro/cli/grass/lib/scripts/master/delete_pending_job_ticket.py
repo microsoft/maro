@@ -34,5 +34,4 @@ if __name__ == "__main__":
     parser.add_argument("job_name")
     args = parser.parse_args()
 
-    delete_pending_job_ticket(
-        cluster_name=args.cluster_name, job_name=args.job_name)
+    delete_pending_job_ticket(cluster_name=args.cluster_name, job_name=args.job_name)

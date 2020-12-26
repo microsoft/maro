@@ -2,21 +2,15 @@
 # Licensed under the MIT license.
 
 
-import subprocess
 import sys
 
-command = """\
+from .utils.subprocess import SubProcess
+
+GET_PUBLIC_KEY_COMMAND = """\
 ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y >/dev/null
 cat ~/.ssh/id_rsa.pub
 """
 
 if __name__ == "__main__":
-    process = subprocess.Popen(
-        command,
-        executable="/bin/bash",
-        shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    stdout, stderr = process.communicate()
-    if stderr:
-        sys.stderr.write(stderr.strip("\n"))
-    sys.stdout.write(stdout.strip("\n"))
+    return_str = SubProcess.run(command=GET_PUBLIC_KEY_COMMAND)
+    sys.stdout.write(return_str)

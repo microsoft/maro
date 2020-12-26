@@ -5,11 +5,11 @@
 import argparse
 import json
 import os
-import subprocess
 import sys
 from pathlib import Path
 
 from .utils.details import load_cluster_details
+from .utils.subprocess import SubProcess
 
 START_SERVICE_COMMAND = """\
 systemctl --user daemon-reload
@@ -55,10 +55,5 @@ if __name__ == "__main__":
 
     # Exec command
     command = START_SERVICE_COMMAND.format(admin_username=admin_username)
-    process = subprocess.Popen(
-        command, executable="/bin/bash", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-    )
-    stdout, stderr = process.communicate()
-    if stderr:
-        sys.stderr.write(stderr.strip("\n"))
-    sys.stdout.write(stdout.strip("\n"))
+    return_str = SubProcess.run(command=command)
+    sys.stdout.write(return_str)
