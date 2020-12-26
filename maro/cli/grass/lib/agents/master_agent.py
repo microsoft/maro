@@ -7,7 +7,6 @@ import json
 import logging
 import multiprocessing
 import os
-import subprocess
 import sys
 import time
 import uuid
@@ -21,8 +20,9 @@ from .utils.details import (
     incr_rejoin_component_restart_times, load_cluster_details, remove_killed_job_ticket, remove_pending_job_ticket,
     set_containers_details, set_job_details
 )
-from .utils.exception import AllocationFailed, StartContainerFailed
+from .utils.exception import ResourceAllocationFailed, StartContainerError, CommandExecutionError
 from .utils.resource import ContainerResource, NodeResource
+from .utils.subprocess import SubProcess
 
 logger = logging.getLogger(__name__)
 
@@ -422,9 +422,9 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     job_id=container_details["job_id"],
                     component_id=container_details["component_id"]
                 )
-            except AllocationFailed as e:
-                logger.warning(f"Allocation failed with {e}")
-            except StartContainerFailed as e:
+            except ResourceAllocationFailed as e:
+                logger.warning(f"{e}")
+            except StartContainerError as e:
                 logger.warning(f"Start container failed with {e}")
 
     def _remove_container(self, container_name: str, container_details: dict) -> None:
@@ -452,11 +452,9 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             containers=container_name,
             ssh_port=self._ssh_port
         )
-        completed_process = subprocess.run(
-            command,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        if completed_process.returncode != 0:
+        try:
+            _ = SubProcess.run(command=command)
+        except CommandExecutionError:
             logger.error(f"No container {container_name} in {node_name}")
 
     def _stop_job(self, job_id: str, is_remove_container: bool) -> None:
@@ -509,13 +507,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                         containers=" ".join(stoppable_containers),
                         ssh_port=self._ssh_port
                     )
-                completed_process = subprocess.run(
-                    command,
-                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    encoding="utf8"
-                )
-                if completed_process.returncode != 0:
-                    logger.error(completed_process.stderr)
+                try:
+                    _ = SubProcess.run(command=command)
+                except CommandExecutionError as e:
+                    logger.error(e)
                 logger.info(command)
 
     def _start_container(self, container_name: str, node_details: dict, job_details: dict, component_name: str) -> None:
@@ -609,12 +604,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
         # Exec command.
         logger.info(command)
-        completed_process = subprocess.run(
-            command,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        if completed_process.returncode != 0:
-            raise AllocationFailed(completed_process.stderr)
+        try:
+            _ = SubProcess.run(command=command)
+        except CommandExecutionError as e:
+            raise StartContainerError(e)
 
 
 class PendingJobAgent(multiprocessing.Process):
@@ -697,9 +690,9 @@ class PendingJobAgent(multiprocessing.Process):
                     cluster_name=self._cluster_name,
                     job_name=pending_job_name
                 )
-            except AllocationFailed as e:
+            except ResourceAllocationFailed as e:
                 logger.warning(f"Allocation failed with {e}")
-            except StartContainerFailed as e:
+            except StartContainerError as e:
                 remove_pending_job_ticket(
                     redis=self._redis,
                     cluster_name=self._cluster_name,
@@ -796,12 +789,10 @@ class PendingJobAgent(multiprocessing.Process):
 
         # Exec command.
         logger.info(command)
-        completed_process = subprocess.run(
-            command,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        if completed_process.returncode != 0:
-            raise AllocationFailed(completed_process.stderr)
+        try:
+            _ = SubProcess.run(command=command)
+        except CommandExecutionError as e:
+            raise ResourceAllocationFailed(e)
 
 
 class KilledJobAgent(multiprocessing.Process):
@@ -908,13 +899,10 @@ class KilledJobAgent(multiprocessing.Process):
                     containers=" ".join(removable_containers),
                     ssh_port=self._ssh_port
                 )
-                completed_process = subprocess.run(
-                    command,
-                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    encoding="utf8"
-                )
-                if completed_process.returncode != 0:
-                    logger.error(completed_process.stderr)
+                try:
+                    _ = SubProcess.run(command=command)
+                except CommandExecutionError as e:
+                    logger.error(e)
                 logger.info(command)
 
 
@@ -944,7 +932,7 @@ class ResourceManagementExecutor:
                 free_resources=free_resources
             )
         else:
-            raise AllocationFailed("Invalid allocation mode")
+            raise ResourceAllocationFailed("Invalid allocation mode.")
 
     @staticmethod
     def get_single_metric_compacted_allocation_plan(
@@ -968,7 +956,7 @@ class ResourceManagementExecutor:
         # Init params.
         allocation_plan = {}
         if "metric" not in allocation_details or allocation_details["metric"].lower() not in AVAILABLE_METRICS:
-            raise AllocationFailed("Invalid allocation parameter: metric")
+            raise ResourceAllocationFailed("Invalid allocation parameter: metric")
         metric = allocation_details["metric"].lower()
 
         # Init resources PQ.
@@ -1032,7 +1020,7 @@ class ResourceManagementExecutor:
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
                 logger.warning(free_resources_pq)
-                raise AllocationFailed("Unable to allocate, Abort")
+                raise ResourceAllocationFailed("Unable to allocate, Abort")
 
         logger.info(required_resources)
         logger.info(free_resources)
@@ -1060,7 +1048,7 @@ class ResourceManagementExecutor:
         # Init params.
         allocation_plan = {}
         if "metric" not in allocation_details or allocation_details["metric"].lower() not in AVAILABLE_METRICS:
-            raise AllocationFailed("Invalid allocation parameter: metric")
+            raise ResourceAllocationFailed("Invalid allocation parameter: metric")
         metric = allocation_details["metric"].lower()
 
         # Init resources PQ.
@@ -1124,7 +1112,7 @@ class ResourceManagementExecutor:
                 logger.warning(allocation_plan)
                 logger.warning(required_resources_pq)
                 logger.warning(free_resources_pq)
-                raise AllocationFailed("Unable to allocate, Abort")
+                raise ResourceAllocationFailed("Unable to allocate, Abort")
 
         logger.info(required_resources)
         logger.info(free_resources)

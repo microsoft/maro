@@ -11,7 +11,9 @@ import time
 import redis
 
 from .utils.details import get_node_details, set_node_details
+from .utils.exception import CommandExecutionError
 from .utils.resource import BasicResource
+from .utils.subprocess import SubProcess
 
 INSPECT_CONTAINER_COMMAND = "docker inspect {containers}"
 GET_CONTAINERS_COMMAND = "docker container ls -a --format='{{.Names}}'"
@@ -178,13 +180,9 @@ class NodeTrackingAgent(multiprocessing.Process):
         node_details["resources"]["actual_free_gpu"] = node_details["resources"]["target_free_gpu"]
         # Get nvidia-smi result.
         try:
-            completed_process = subprocess.run(
-                NVIDIA_SMI_COMMAND,
-                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-            )
-            nvidia_smi_str = completed_process.stdout
-            node_details["resources"]["actual_gpu_usage"] = f"{float(nvidia_smi_str)}%"
-        except Exception:
+            return_str = SubProcess.run(command=NVIDIA_SMI_COMMAND)
+            node_details["resources"]["actual_gpu_usage"] = f"{float(return_str)}%"
+        except CommandExecutionError:
             pass
 
     @staticmethod
@@ -195,21 +193,13 @@ class NodeTrackingAgent(multiprocessing.Process):
             dict[str, dict]: container_name to inspect_details mapping.
         """
         # Get containers in current node.
-        completed_process = subprocess.run(
-            GET_CONTAINERS_COMMAND,
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        return_str = completed_process.stdout.strip("\n")
+        return_str = SubProcess.run(command=GET_CONTAINERS_COMMAND)
         containers = [] if return_str == "" else return_str.split("\n")
         if len(containers) == 0:
             return {}
 
         # Get inspect_details_list then build inspects_details.
-        completed_process = subprocess.run(
-            INSPECT_CONTAINER_COMMAND.format(containers=" ".join(containers)),
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf8"
-        )
-        return_str = completed_process.stdout
+        return_str = SubProcess.run(command=INSPECT_CONTAINER_COMMAND.format(containers=" ".join(containers)))
         inspect_details_list = json.loads(return_str)
         return {inspect_details["Config"]["Labels"]["container_name"]: inspect_details
                 for inspect_details in inspect_details_list}
