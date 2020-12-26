@@ -20,7 +20,7 @@ from .utils.details import (
     incr_rejoin_component_restart_times, load_cluster_details, remove_killed_job_ticket, remove_pending_job_ticket,
     set_containers_details, set_job_details
 )
-from .utils.exception import ResourceAllocationFailed, StartContainerError, CommandExecutionError
+from .utils.exception import CommandExecutionError, ResourceAllocationFailed, StartContainerError
 from .utils.resource import ContainerResource, NodeResource
 from .utils.subprocess import SubProcess
 
