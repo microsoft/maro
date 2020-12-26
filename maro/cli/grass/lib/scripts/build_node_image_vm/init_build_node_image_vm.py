@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 
-import platform
 import subprocess
 import sys
 
@@ -39,8 +38,7 @@ sudo systemctl restart docker
 echo 'Step 4/{steps}: Install python3 and related packages'
 sudo apt update
 sudo apt install -y python3-pip
-pip3 install redis
-pip3 install psutil
+pip3 install redis psutil docker
 
 echo 'Step 5/{steps}: Delete outdated files'
 rm ~/init_build_node_image_vm.py

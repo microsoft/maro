@@ -7,6 +7,7 @@ import multiprocessing
 import os
 import time
 
+import docker
 import psutil
 import redis
 
@@ -14,9 +15,6 @@ from .utils.details import get_node_details, set_node_details
 from .utils.exception import CommandExecutionError
 from .utils.resource import BasicResource
 from .utils.subprocess import SubProcess
-
-INSPECT_CONTAINER_COMMAND = "docker inspect {containers}"
-GET_CONTAINERS_COMMAND = "docker container ls -a --format='{{.Names}}'"
 
 GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
 GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
@@ -29,23 +27,23 @@ class NodeAgent:
         self._master_hostname = master_hostname
         self._redis_port = redis_port
         self._redis = redis.Redis(
-            host=master_hostname,
-            port=redis_port,
-            charset="utf-8", decode_responses=True
+            host=master_hostname, port=redis_port,
+            encoding="utf-8", decode_responses=True
         )
 
     def start(self) -> None:
         self.init_agent()
         node_tracking_agent = NodeTrackingAgent(
             cluster_name=self._cluster_name, node_name=self._node_name,
-            master_hostname=self._master_hostname, redis_port=self._redis_port
+            master_hostname=self._master_hostname, redis_port=self._redis_port,
+            check_interval=5
         )
         node_tracking_agent.start()
 
     def init_agent(self) -> None:
-        self._init_resource_info()
+        self._init_resources_details()
 
-    def _init_resource_info(self) -> None:
+    def _init_resources_details(self) -> None:
         resource = {}
 
         # Get cpu info
@@ -78,17 +76,19 @@ class NodeAgent:
 
 class NodeTrackingAgent(multiprocessing.Process):
     def __init__(
-        self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int,
-        check_interval: int = 10
+        self,
+        cluster_name: str, node_name: str,
+        master_hostname: str, redis_port: int,
+        check_interval: int = 5
     ):
         super().__init__()
         self._cluster_name = cluster_name
         self._node_name = node_name
         self._redis = redis.Redis(
-            host=master_hostname,
-            port=redis_port,
-            charset="utf-8", decode_responses=True
+            host=master_hostname, port=redis_port,
+            encoding="utf-8", decode_responses=True
         )
+        self._docker = docker.APIClient(base_url="unix:///var/run/docker.sock")
 
         # Other params.
         self._check_interval = check_interval
@@ -101,8 +101,9 @@ class NodeTrackingAgent(multiprocessing.Process):
             None.
         """
         while True:
+            start_time = time.time()
             self._update_details()
-            time.sleep(self._check_interval)
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
 
     def _update_details(self) -> None:
         """Update details.
@@ -127,7 +128,7 @@ class NodeTrackingAgent(multiprocessing.Process):
 
         # Other updates.
         node_details["state"]["status"] = "Running"
-        node_details["check_time"] = self._redis.time()[0]
+        node_details["state"]["check_time"] = self._redis.time()[0]
 
         # Save details.
         set_node_details(
@@ -213,24 +214,21 @@ class NodeTrackingAgent(multiprocessing.Process):
         except CommandExecutionError:
             pass
 
-    @staticmethod
-    def _get_inspects_details() -> dict:
+    def _get_inspects_details(self) -> dict:
         """Get inspects_details of containers in the current node.
 
         Returns:
             dict[str, dict]: container_name to inspect_details mapping.
         """
-        # Get containers in current node.
-        return_str = SubProcess.run(command=GET_CONTAINERS_COMMAND)
-        containers = [] if return_str == "" else return_str.split("\n")
-        if len(containers) == 0:
-            return {}
+        # Get container infos in current node.
+        container_infos = self._docker.containers(all=True)
 
-        # Get inspect_details_list then build inspects_details.
-        return_str = SubProcess.run(command=INSPECT_CONTAINER_COMMAND.format(containers=" ".join(containers)))
-        inspect_details_list = json.loads(return_str)
-        return {inspect_details["Config"]["Labels"]["container_name"]: inspect_details
-                for inspect_details in inspect_details_list}
+        # Build inspect_details and return
+        inspects_details = {}
+        for container_info in container_infos:
+            inspect_details = self._docker.inspect_container(container_info["Id"])
+            inspects_details[inspect_details["Config"]["Labels"]["container_name"]] = inspect_details
+        return inspects_details
 
     @staticmethod
     def _extract_state(inspect_details: dict) -> dict:
