@@ -2,9 +2,12 @@
 # Licensed under the MIT license.
 
 
+import csv
 import unittest
 import os
+import tempfile
 
+from collections import namedtuple
 from maro.event_buffer import EventBuffer, EventState
 from maro.simulator.scenarios.cim.business_engine import CimBusinessEngine, Events
 from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
@@ -469,6 +472,27 @@ class TestCimScenarios(unittest.TestCase):
             self.assertEqual(
                 100, p1.empty, "there should be 100 empty at tick 20 at port 1")
 
+    def test_order_export(self):
+        """order.tick, order.src_port_idx, order.dest_port_idx, order.quantity"""
+        Order = namedtuple("Order", ["tick", "src_port_idx", "dest_port_idx", "quantity"])
+
+        exportor = PortOrderExporter(True)
+
+        for i in range(5):
+            exportor.add(Order(0, 0, 1, i + 1))
+
+        out_folder = tempfile.gettempdir()
+
+        exportor.dump(out_folder)
+
+        with open(f"{out_folder}/orders.csv") as fp:
+            reader = csv.DictReader(fp)
+
+            row = 0
+            for line in reader:
+                self.assertEqual(row+1, int(line["quantity"]))
+
+                row += 1
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,7 @@ import numpy as np
 from dummy.dummy_business_engine import DummyEngine
 
 from maro.simulator.utils import get_available_envs, get_scenarios, get_topologies
+from maro.simulator.utils.common import frame_index_to_ticks
 from maro.simulator.core import BusinessEngineNotFoundError, Env
 from tests.utils import backends_to_test
 
@@ -284,6 +285,13 @@ class TestEnv(unittest.TestCase):
 
         self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties))
 
+    def test_frame_index_to_ticks(self):
+        ticks = frame_index_to_ticks(0, 10, 2)
+
+        self.assertEqual(5, len(ticks))
+
+        self.assertListEqual([0, 1], ticks[0])
+        self.assertListEqual([8, 9], ticks[4])
 
 if __name__ == "__main__":
     unittest.main()
