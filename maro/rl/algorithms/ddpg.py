@@ -15,22 +15,31 @@ class DDPGConfig:
     """Configuration for the DDPG algorithm.
     Args:
         reward_decay (float): Reward decay as defined in standard RL terminology
-        q_value_loss_func (Callable):
+        q_value_loss_func (Callable): Loss function for the Q-value estimator.
         target_update_frequency (int): Number of training rounds between policy target model updates.
-        tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model
+        explorer_cls: Explorer class.
+        explorer_params: Parameters required for the explorer class.
+        tau (float): Soft update coefficient, e.g., target_model = tau * eval_model + (1-tau) * target_model.
+            Defaults to 1.0.
     """
-    __slots__ = ["reward_decay", "q_value_loss_func", "target_update_frequency", "tau"]
+    __slots__ = [
+        "reward_decay", "q_value_loss_func", "target_update_frequency", "tau", "explorer_cls", "explorer_params"
+    ]
 
     def __init__(
         self,
         reward_decay: float,
         q_value_loss_func: Callable,
         target_update_frequency: int,
-        tau: float = 1.0
+        explorer_cls,
+        explorer_params: dict,
+        tau: float = 1.0,
     ):
         self.reward_decay = reward_decay
         self.q_value_loss_func = q_value_loss_func
         self.target_update_frequency = target_update_frequency
+        self.explorer_cls = explorer_cls
+        self.explorer_params = explorer_params
         self.tau = tau
 
 
@@ -46,16 +55,22 @@ class DDPG(AbsAlgorithm):
     def __init__(self, model: LearningModuleManager, config: DDPGConfig):
         self.validate_task_names(model.task_names, {"policy", "q_value"})
         super().__init__(model, config)
+        self._explorer = self._config.explorer_cls(self._model.output_dim["policy"], **self._config.explorer_params)
         self._target_model = model.copy() if model.is_trainable else None
         self._train_cnt = 0
 
-    def choose_action(self, state):
+    def choose_action(self, state) -> np.ndarray:
         state = torch.from_numpy(state).to(self._device)
         is_single = len(state.shape) == 1
         if is_single:
             state = state.unsqueeze(dim=0)
 
-        return self.model(state, task_name="actor", is_training=False)
+        model_action = self.model(state, task_name="policy", is_training=False)
+        if is_single:
+            return self._explorer(model_action)
+
+        # batch inference
+        return np.vstack([self._explorer(action) for action in model_action])
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
         states = torch.from_numpy(states).to(self._device)
