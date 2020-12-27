@@ -52,6 +52,9 @@ class UniformNoiseExplorer(NoiseExplorer):
         self._noise_upper_bound = noise_upper_bound
 
     def __call__(self, action: np.ndarray):
+        return [self._get_exploration_action(act) for act in action]
+
+    def _get_exploration_action(self, action):
         action += np.random.uniform(self._noise_lower_bound, self._noise_upper_bound)
         if self._min_action is not None or self._max_action is not None:
             return np.clip(action, self._min_action, self._max_action)
@@ -83,6 +86,9 @@ class GaussianNoiseExplorer(NoiseExplorer):
         self._noise_stddev = noise_stddev
 
     def __call__(self, action: np.ndarray):
+        return [self._get_exploration_action(act) for act in action]
+
+    def _get_exploration_action(self, action):
         noise = np.random.normal(loc=self._noise_mean, scale=self._noise_stddev)
         action += (noise * action) if self._is_relative else noise
         if self._min_action is not None or self._max_action is not None:
