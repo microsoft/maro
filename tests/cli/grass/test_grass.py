@@ -74,9 +74,9 @@ class TestGrass(unittest.TestCase):
 
         # Pull "ubuntu" as testing image
         command = "docker pull alpine:latest"
-        SubProcess.run(command)
+        SubProcess.run(command=command)
         command = "docker pull ubuntu:latest"
-        SubProcess.run(command)
+        SubProcess.run(command=command)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -93,6 +93,10 @@ class TestGrass(unittest.TestCase):
 
         # Delete tmp test folder
         shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"))
+
+        # Delete docker image
+        command = "docker rmi maro_runtime_cpu:test"
+        SubProcess.run(command=command)
 
     # Utils
 
