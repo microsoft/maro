@@ -31,6 +31,9 @@
     },
     "adminPublicKey": {
       "type": "securestring"
+    },
+    "sshDestinationPort": {
+      "type": "string"
     }
   },
   "variables": {
@@ -78,18 +81,14 @@
           {
             "name": "SSH",
             "properties": {
-              "protocol": "Tcp",
+              "protocol": "*",
               "sourcePortRange": "*",
-              "destinationPortRange": "22",
               "sourceAddressPrefix": "*",
               "destinationAddressPrefix": "*",
               "access": "Allow",
-              "priority": 300,
+              "priority": 100,
               "direction": "Inbound",
-              "sourcePortRanges": [],
-              "destinationPortRanges": [],
-              "sourceAddressPrefixes": [],
-              "destinationAddressPrefixes": []
+              "destinationPortRanges": ["22", "[parameters('sshDestinationPort')]"]
             }
           }
         ]
