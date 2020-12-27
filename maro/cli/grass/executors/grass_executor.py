@@ -7,17 +7,15 @@ import copy
 import json
 import os
 import time
-from multiprocessing.pool import ThreadPool
 from subprocess import TimeoutExpired
 
 import yaml
 
 from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node
 from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.grass.utils.params import NodeStatus
 from maro.cli.utils.details import load_job_details, load_schedule_details, save_job_details, save_schedule_details
 from maro.cli.utils.naming import generate_component_id, generate_job_id, get_valid_file_name
-from maro.cli.utils.params import GlobalParams, GlobalPaths
+from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.cli.utils.validation import validate_and_fill_dict
 from maro.utils.exception.cli_exception import (
@@ -87,7 +85,6 @@ class GrassExecutor:
                 ssh_port=self.ssh_port
             )
             self.remote_update_image_files_details()
-            self._batch_load_images()
             logger.info_green(f"Image {image_name} is loaded")
         elif image_path:
             file_name = os.path.basename(image_path)
@@ -111,13 +108,11 @@ class GrassExecutor:
                 ssh_port=self.ssh_port
             )
             self.remote_update_image_files_details()
-            self._batch_load_images()
         elif remote_context_path and remote_image_name:
             self.remote_build_image(
                 remote_context_path=remote_context_path,
                 remote_image_name=remote_image_name
             )
-            self._batch_load_images()
         else:
             raise BadRequestError("Invalid arguments.")
 
@@ -126,27 +121,6 @@ class GrassExecutor:
         # Save image to specific folder
         command = f"docker save '{image_name}' --output '{export_path}'"
         _ = SubProcess.run(command)
-
-    def _batch_load_images(self):
-        # Load details
-        nodes_details = self.remote_get_nodes_details()
-
-        # build params
-        params = []
-        for node_name, node_details in nodes_details.items():
-            if node_details["state"]["status"] == NodeStatus.RUNNING:
-                params.append([
-                    node_name,
-                    GlobalParams.PARALLELS,
-                    node_details["public_ip_address"]
-                ])
-
-        # Parallel load image
-        with ThreadPool(GlobalParams.PARALLELS) as pool:
-            pool.starmap(
-                self.remote_load_images,
-                params
-            )
 
     def _check_checksum_validity(self, local_file_path: str, remote_file_path: str) -> bool:
         local_checksum = get_checksum(file_path=local_file_path)
@@ -537,14 +511,6 @@ class GrassExecutor:
             f"'mkdir -p {path}'"
         )
         SubProcess.run(command)
-
-    def remote_load_images(self, node_name: str, parallels: int, node_ip_address: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.load_images "
-            f"{self.cluster_name} {node_name} {parallels}'"
-        )
-        SubProcess.interactive_run(command)
 
     def remote_load_master_agent_service(self):
         command = (

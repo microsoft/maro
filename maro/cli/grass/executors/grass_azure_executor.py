@@ -546,13 +546,6 @@ class GrassAzureExecutor(GrassExecutor):
             action="create"
         )
 
-        # Load images
-        self.remote_load_images(
-            node_name=node_name,
-            parallels=GlobalParams.PARALLELS,
-            node_ip_address=node_public_ip_address
-        )
-
         # Load node agent service
         self.remote_load_node_agent_service(
             node_name=node_name,
@@ -606,13 +599,6 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Make sure the node is able to connect
         self.retry_connection_and_set_ssh_port(
-            node_ip_address=node_public_ip_address
-        )
-
-        # Load images
-        self.remote_load_images(
-            node_name=node_name,
-            parallels=GlobalParams.PARALLELS,
             node_ip_address=node_public_ip_address
         )
 

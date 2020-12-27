@@ -17,6 +17,7 @@ from maro.cli.grass.utils.params import NodeStatus
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
+from maro.utils.exception.cli_exception import CommandExecutionError
 from tests.cli.utils import record_running_time
 
 
@@ -95,8 +96,11 @@ class TestGrass(unittest.TestCase):
         shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"))
 
         # Delete docker image
-        command = "docker rmi maro_runtime_cpu:test"
-        SubProcess.run(command=command)
+        try:
+            command = "docker rmi maro_runtime_cpu:test"
+            SubProcess.run(command=command)
+        except CommandExecutionError:
+            pass
 
     # Utils
 
@@ -159,7 +163,7 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass image push {self.cluster_name} --debug --image-name alpine:latest"
         SubProcess.interactive_run(command)
-        self._gracefully_wait()
+        self._gracefully_wait(secs=15)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -232,7 +236,7 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass image push {self.cluster_name} --debug --image-name ubuntu:latest"
         SubProcess.interactive_run(command)
-        self._gracefully_wait()
+        self._gracefully_wait(secs=15)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -264,7 +268,7 @@ class TestGrass(unittest.TestCase):
         """
         command = f"maro grass node start {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
-        self._gracefully_wait()
+        self._gracefully_wait(secs=15)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -335,6 +339,7 @@ class TestGrass(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/test_data")))
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F2/test_data")))
 
+    @unittest.skipIf(os.environ.get("orchestration_only", False), "Skip if we want to test orchestration stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test20_train_env_provision(self):
         # Build docker image and load docker image
@@ -346,6 +351,7 @@ class TestGrass(unittest.TestCase):
         command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
         SubProcess.interactive_run(command)
 
+    @unittest.skipIf(os.environ.get("orchestration_only", False), "Skip if we want to test orchestration stage only.")
     @record_running_time(func_to_time=test_func_to_time)
     def test21_train_dqn(self) -> None:
         # Copy dqn examples to test folder

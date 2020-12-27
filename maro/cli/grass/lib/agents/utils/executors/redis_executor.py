@@ -11,7 +11,14 @@ class RedisExecutor:
     def __init__(self, redis: Redis):
         self._redis = redis
 
-    """Node details Related."""
+    """Master Details Related."""
+
+    def get_master_details(self, cluster_name: str) -> dict:
+        return json.loads(
+            self._redis.get(f"{cluster_name}:master_details")
+        )
+
+    """Node Details Related."""
 
     def get_node_details(self, cluster_name: str, node_name: str) -> dict:
         return json.loads(

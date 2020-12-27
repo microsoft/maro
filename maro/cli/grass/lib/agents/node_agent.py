@@ -3,9 +3,10 @@
 
 
 import json
-import multiprocessing
 import os
+import threading
 import time
+from multiprocessing.pool import ThreadPool
 
 import docker
 import psutil
@@ -18,6 +19,8 @@ from .utils.subprocess import SubProcess
 
 GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
 GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
+
+NODE_DETAILS_LOCK = threading.Lock()
 
 
 class NodeAgent:
@@ -39,7 +42,12 @@ class NodeAgent:
             master_hostname=self._master_hostname, redis_port=self._redis_port,
             check_interval=5
         )
+        load_image_agent = LoadImageAgent(
+            cluster_name=self._cluster_name, node_name=self._node_name,
+            master_hostname=self._master_hostname, redis_port=self._redis_port
+        )
         node_tracking_agent.start()
+        load_image_agent.start()
 
     def init_agent(self) -> None:
         self._init_resources_details()
@@ -73,7 +81,7 @@ class NodeAgent:
         )
 
 
-class NodeTrackingAgent(multiprocessing.Process):
+class NodeTrackingAgent(threading.Thread):
     def __init__(
         self,
         cluster_name: str, node_name: str,
@@ -112,29 +120,31 @@ class NodeTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get or init details.
-        node_details = self._redis_executor.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name
-        )
-        node_details["containers"] = {}
-        containers_details = node_details["containers"]
-        inspects_details = self._get_inspects_details()
 
-        # Major updates.
-        self._update_containers_details(inspects_details=inspects_details, containers_details=containers_details)
-        self._update_occupied_resources(inspects_details=inspects_details, node_details=node_details)
-        self._update_actual_resources(node_details=node_details)
+        with NODE_DETAILS_LOCK:
+            node_details = self._redis_executor.get_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name
+            )
+            node_details["containers"] = {}
+            containers_details = node_details["containers"]
+            inspects_details = self._get_inspects_details()
 
-        # Other updates.
-        node_details["state"]["status"] = "Running"
-        node_details["state"]["check_time"] = self._redis.time()[0]
+            # Major updates.
+            self._update_containers_details(inspects_details=inspects_details, containers_details=containers_details)
+            self._update_occupied_resources(inspects_details=inspects_details, node_details=node_details)
+            self._update_actual_resources(node_details=node_details)
 
-        # Save details.
-        self._redis_executor.set_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name,
-            node_details=node_details
-        )
+            # Other updates.
+            node_details["state"]["status"] = "Running"
+            node_details["state"]["check_time"] = self._redis.time()[0]
+
+            # Save details.
+            self._redis_executor.set_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name,
+                node_details=node_details
+            )
 
     @staticmethod
     def _update_containers_details(inspects_details: dict, containers_details: dict) -> None:
@@ -254,6 +264,88 @@ class NodeTrackingAgent(multiprocessing.Process):
             return BasicResource(cpu=occupied_cpu, memory=occupied_memory, gpu=occupied_gpu)
         else:
             return BasicResource(cpu=0, memory=0, gpu=0)
+
+
+class LoadImageAgent(threading.Thread):
+    def __init__(
+        self,
+        cluster_name: str, node_name: str,
+        master_hostname: str, redis_port: int,
+        check_interval: int = 10
+    ):
+        super().__init__()
+        self._cluster_name = cluster_name
+        self._node_name = node_name
+        self._redis_executor = RedisExecutor(
+            redis=redis.Redis(host=master_hostname, port=redis_port, encoding="utf-8", decode_responses=True)
+        )
+        self._docker = docker.APIClient(base_url="unix:///var/run/docker.sock")
+
+        # Other params.
+        self._check_interval = check_interval
+
+    def run(self) -> None:
+        """Start tracking node status and updating details.
+
+        Returns:
+            None.
+        """
+        while True:
+            start_time = time.time()
+            self.load_images()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+
+    def load_images(self) -> None:
+        """Load image from files.
+
+        Returns:
+            None.
+        """
+
+        master_details = self._redis_executor.get_master_details(cluster_name=self._cluster_name)
+        node_details = self._redis_executor.get_node_details(
+            cluster_name=self._cluster_name,
+            node_name=self._node_name
+        )
+        master_image_files_details = master_details["image_files"]
+        node_image_files_details = node_details["image_files"]
+
+        # Get unloaded images
+        unloaded_images = []
+        for image_file, image_file_details in master_image_files_details.items():
+            if image_file not in node_image_files_details:
+                unloaded_images.append(image_file)
+            elif (
+                image_file_details["modify_time"] != node_image_files_details[image_file]["modify_time"]
+                or image_file_details["size"] != node_image_files_details[image_file]["size"]
+            ):
+                unloaded_images.append(image_file)
+
+        # Parallel load
+        with ThreadPool(5) as pool:
+            params = [
+                [os.path.expanduser(f"~/.maro/clusters/{self._cluster_name}/images/{unloaded_image}")]
+                for unloaded_image in unloaded_images
+            ]
+            pool.starmap(
+                self._load_image,
+                params
+            )
+
+        with NODE_DETAILS_LOCK:
+            node_details = self._redis_executor.get_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name
+            )
+            node_details["image_files"] = master_image_files_details
+            self._redis_executor.set_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name,
+                node_details=node_details
+            )
+
+    def _load_image(self, image_path: str):
+        self._docker.load_image(data=open(image_path, "rb"))
 
 
 if __name__ == "__main__":
