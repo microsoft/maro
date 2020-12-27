@@ -271,17 +271,18 @@ class TestEnv(unittest.TestCase):
         scenario_names = get_scenarios()
 
         # we have 2 built-in scenarios
-        self.assertEqual(2, len(scenario_names))
+        self.assertEqual(3, len(scenario_names))
 
         self.assertTrue("cim" in scenario_names)
         self.assertTrue("citi_bike" in scenario_names)
 
         cim_topoloies = get_topologies("cim")
         citi_bike_topologies = get_topologies("citi_bike")
+        vm_topoloties = get_topologies("vm_scheduling")
 
         env_list = get_available_envs()
 
-        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies))
+        self.assertEqual(len(env_list), len(cim_topoloies) + len(citi_bike_topologies) + len(vm_topoloties))
 
 
 if __name__ == "__main__":
