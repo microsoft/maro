@@ -11,8 +11,8 @@ import docker
 import psutil
 import redis
 
-from .utils.details import get_node_details, set_node_details
 from .utils.exception import CommandExecutionError
+from .utils.executors.redis_executor import RedisExecutor
 from .utils.resource import BasicResource
 from .utils.subprocess import SubProcess
 
@@ -30,6 +30,7 @@ class NodeAgent:
             host=master_hostname, port=redis_port,
             encoding="utf-8", decode_responses=True
         )
+        self._redis_executor = RedisExecutor(redis=self._redis)
 
     def start(self) -> None:
         self.init_agent()
@@ -60,14 +61,12 @@ class NodeAgent:
             resource["gpu"] = 0
 
         # Set resource details
-        node_details = get_node_details(
-            redis=self._redis,
+        node_details = self._redis_executor.get_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
         node_details["resources"] = resource
-        set_node_details(
-            redis=self._redis,
+        self._redis_executor.set_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name,
             node_details=node_details
@@ -88,6 +87,7 @@ class NodeTrackingAgent(multiprocessing.Process):
             host=master_hostname, port=redis_port,
             encoding="utf-8", decode_responses=True
         )
+        self._redis_executor = RedisExecutor(redis=self._redis)
         self._docker = docker.APIClient(base_url="unix:///var/run/docker.sock")
 
         # Other params.
@@ -112,8 +112,7 @@ class NodeTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get or init details.
-        node_details = get_node_details(
-            redis=self._redis,
+        node_details = self._redis_executor.get_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
@@ -131,8 +130,7 @@ class NodeTrackingAgent(multiprocessing.Process):
         node_details["state"]["check_time"] = self._redis.time()[0]
 
         # Save details.
-        set_node_details(
-            redis=self._redis,
+        self._redis_executor.set_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name,
             node_details=node_details
@@ -154,7 +152,8 @@ class NodeTrackingAgent(multiprocessing.Process):
             # Extract container state and labels.
             containers_details[container_name] = NodeTrackingAgent._extract_labels(inspect_details=inspect_details)
             containers_details[container_name]["state"] = NodeTrackingAgent._extract_state(
-                inspect_details=inspect_details)
+                inspect_details=inspect_details
+            )
 
     @staticmethod
     def _update_occupied_resources(inspects_details: dict, node_details: dict) -> None:
