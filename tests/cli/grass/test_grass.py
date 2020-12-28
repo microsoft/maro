@@ -143,6 +143,7 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
+        self._gracefully_wait(secs=15)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -185,7 +186,7 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 2"
         SubProcess.interactive_run(command)
-        self._gracefully_wait()
+        self._gracefully_wait(secs=15)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -207,7 +208,7 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass node stop {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
-        self._gracefully_wait()
+        self._gracefully_wait(secs=15)
 
         # Check validity
         nodes_details = self._get_node_details()

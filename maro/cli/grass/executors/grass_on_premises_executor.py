@@ -171,7 +171,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         self.remote_init_master()
 
         # Load master agent service
-        self.remote_load_master_agent_service()
+        self.remote_start_master_agent_service()
 
         # Save details
         master_details["public_key"] = public_key
@@ -318,7 +318,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         )
 
         # Load node agent service
-        self.remote_load_node_agent_service(
+        self.remote_start_node_agent_service(
             node_name=node_name,
             node_ip_address=node_public_ip_address
         )

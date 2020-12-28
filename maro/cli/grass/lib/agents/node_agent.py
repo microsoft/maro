@@ -4,6 +4,8 @@
 
 import json
 import os
+import signal
+import sys
 import threading
 import time
 from multiprocessing.pool import ThreadPool
@@ -14,6 +16,7 @@ import redis
 
 from .utils.exception import CommandExecutionError
 from .utils.executors.redis_executor import RedisExecutor
+from .utils.params import NodeStatus
 from .utils.resource import BasicResource
 from .utils.subprocess import SubProcess
 
@@ -35,19 +38,60 @@ class NodeAgent:
         )
         self._redis_executor = RedisExecutor(redis=self._redis)
 
-    def start(self) -> None:
-        self.init_agent()
-        node_tracking_agent = NodeTrackingAgent(
-            cluster_name=self._cluster_name, node_name=self._node_name,
-            master_hostname=self._master_hostname, redis_port=self._redis_port,
-            check_interval=5
-        )
-        load_image_agent = LoadImageAgent(
+        # Init agents.
+        self.load_image_agent = LoadImageAgent(
             cluster_name=self._cluster_name, node_name=self._node_name,
             master_hostname=self._master_hostname, redis_port=self._redis_port
         )
-        node_tracking_agent.start()
-        load_image_agent.start()
+        self.node_tracking_agent = NodeTrackingAgent(
+            cluster_name=self._cluster_name, node_name=self._node_name,
+            master_hostname=self._master_hostname, redis_port=self._redis_port
+        )
+
+        # When SIGTERM, gracefully exit.
+        signal.signal(signal.SIGTERM, self.gracefully_exit)
+
+    def start(self) -> None:
+        self.init_agent()
+
+        # Start agents.
+        self.node_tracking_agent.start()
+        self.load_image_agent.start()
+
+        # Wait joins.
+        self.node_tracking_agent.join()
+        self.load_image_agent.join()
+
+        print("At here")
+
+    def gracefully_exit(self, signum, frame) -> None:
+        """ Gracefully exit when SIGTERM.
+
+        If we get SIGKILL here, it means that the node is not stopped properly,
+        the status of the node remains 'RUNNING'.
+        Then MARO Master will scan the status of all nodes, and label it 'anomaly'
+        because of the incorrect check_time and node status.
+
+        Returns:
+            None.
+        """
+        # Stop agents
+        self.node_tracking_agent.is_terminated = True
+        self.load_image_agent.is_terminated = True
+
+        # Set STOPPED state
+        node_details = self._redis_executor.get_node_details(
+            cluster_name=self._cluster_name,
+            node_name=self._node_name
+        )
+        node_details["state"]["status"] = NodeStatus.STOPPED
+        node_details["state"]["check_time"] = self._redis.time()[0]
+        self._redis_executor.set_node_details(
+            cluster_name=self._cluster_name,
+            node_name=self._node_name,
+            node_details=node_details
+        )
+        sys.exit(0)
 
     def init_agent(self) -> None:
         self._init_resources_details()
@@ -101,6 +145,7 @@ class NodeTrackingAgent(threading.Thread):
         # Other params.
         self._check_interval = check_interval
         self._container_details = {}
+        self.is_terminated = False
 
     def run(self) -> None:
         """Start tracking node status and updating details.
@@ -108,9 +153,10 @@ class NodeTrackingAgent(threading.Thread):
         Returns:
             None.
         """
-        while True:
+        while not self.is_terminated:
             start_time = time.time()
             self._update_details()
+            print(f"NodeTracking sleep time: {max(self._check_interval - (time.time() - start_time), 0)}")
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
 
     def _update_details(self) -> None:
@@ -136,7 +182,7 @@ class NodeTrackingAgent(threading.Thread):
             self._update_actual_resources(node_details=node_details)
 
             # Other updates.
-            node_details["state"]["status"] = "Running"
+            node_details["state"]["status"] = NodeStatus.RUNNING
             node_details["state"]["check_time"] = self._redis.time()[0]
 
             # Save details.
@@ -283,6 +329,7 @@ class LoadImageAgent(threading.Thread):
 
         # Other params.
         self._check_interval = check_interval
+        self.is_terminated = False
 
     def run(self) -> None:
         """Start tracking node status and updating details.
@@ -290,9 +337,10 @@ class LoadImageAgent(threading.Thread):
         Returns:
             None.
         """
-        while True:
+        while not self.is_terminated:
             start_time = time.time()
             self.load_images()
+            print(f"LoadImage sleep time: {max(self._check_interval - (time.time() - start_time), 0)}")
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
 
     def load_images(self) -> None:

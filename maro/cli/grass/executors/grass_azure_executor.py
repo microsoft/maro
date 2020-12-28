@@ -302,7 +302,7 @@ class GrassAzureExecutor(GrassExecutor):
         self.remote_init_master()
 
         # Load master agent service
-        self.remote_load_master_agent_service()
+        self.remote_start_master_agent_service()
 
         # Save details
         master_details["public_key"] = public_key
@@ -465,7 +465,9 @@ class GrassAzureExecutor(GrassExecutor):
             "node_size": node_size,
             "resource_name": f"{self.cluster_id}-{node_name}-vm",
             "hostname": f"{self.cluster_id}-{node_name}-vm",
-            "containers": {}
+            "image_files": [],
+            "containers": {},
+            "state": {}
         }
         self.remote_create_node_details(
             node_name=node_name,
@@ -488,12 +490,6 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Delete parameters_file
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/azure/create_{node_name}")
-
-        # Update node status
-        self.remote_update_node_status(
-            node_name=node_name,
-            action="delete"
-        )
 
         logger.info_green(f"Node {node_name} is deleted")
 
@@ -540,14 +536,8 @@ class GrassAzureExecutor(GrassExecutor):
             node_details=node_details
         )
 
-        # Update node status
-        self.remote_update_node_status(
-            node_name=node_name,
-            action="create"
-        )
-
         # Load node agent service
-        self.remote_load_node_agent_service(
+        self.remote_start_node_agent_service(
             node_name=node_name,
             node_ip_address=node_public_ip_address
         )
@@ -591,19 +581,13 @@ class GrassAzureExecutor(GrassExecutor):
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
 
-        # Update node status
-        self.remote_update_node_status(
-            node_name=node_name,
-            action="start"
-        )
-
         # Make sure the node is able to connect
         self.retry_connection_and_set_ssh_port(
             node_ip_address=node_public_ip_address
         )
 
-        # Load node agent service
-        self.remote_load_node_agent_service(
+        # Start node agent service
+        self.remote_start_node_agent_service(
             node_name=node_name,
             node_ip_address=node_public_ip_address
         )
@@ -615,42 +599,42 @@ class GrassAzureExecutor(GrassExecutor):
         nodes_details = self.remote_get_nodes_details()
 
         # Get stoppable nodes
-        stoppable_nodes = []
+        stoppable_nodes_details = []
         for node_name, node_details in nodes_details.items():
             if (
                 node_details["node_size"] == node_size and
                 node_details["state"]["status"] == NodeStatus.RUNNING and
                 self._count_running_containers(node_details) == 0
             ):
-                stoppable_nodes.append(node_name)
+                stoppable_nodes_details.append(node_details)
 
         # Check replicas
-        if len(stoppable_nodes) < replicas:
+        if len(stoppable_nodes_details) < replicas:
             raise BadRequestError(
-                f"No more '{node_size}' nodes can be stopped, only {len(stoppable_nodes)} are stoppable."
+                f"No more '{node_size}' nodes can be stopped, only {len(stoppable_nodes_details)} are stoppable."
             )
 
         # Parallel stop
-        params = [[stoppable_node] for stoppable_node in stoppable_nodes[:replicas]]
+        params = [
+            [node_details["name"], node_details["public_ip_address"]]
+            for node_details in stoppable_nodes_details[:replicas]
+        ]
         with ThreadPool(GlobalParams.PARALLELS) as pool:
             pool.starmap(
                 self._stop_node,
                 params
             )
 
-    def _stop_node(self, node_name: str):
+    def _stop_node(self, node_name: str, node_ip_address: str):
         logger.info(f"Stopping node {node_name}")
+
+        # Stop node agent service
+        self.remote_stop_node_agent_service(node_ip_address=node_ip_address)
 
         # Stop node
         AzureExecutor.stop_vm(
             resource_group=self.resource_group,
             vm_name=f"{self.cluster_id}-{node_name}-vm"
-        )
-
-        # Update node status
-        self.remote_update_node_status(
-            node_name=node_name,
-            action="stop"
         )
 
         logger.info_green(f"Node {node_name} is stopped")
