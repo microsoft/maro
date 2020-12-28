@@ -5,7 +5,7 @@ The Virtual Machine (VM) Scheduling scenario simulates the VM scheduling problem
 in a cloud data center. Within a specific time, the number of VM 
 requests and arrival pattern is fixed. Given a cluster of limited physical
 machines(PM), different VM placement strategeies result in different amount of
-successful completion and different operating cost for the data center. For cloud proivders, a 
+successful completion and different operating cost for the data center. For cloud providers, a 
 good VM allocation strategy can maximize the resourece utilization and thus can increase the profit by 
 providing more VMs to users. For cloud users, a good VM allocation strategy can 
 minimize the VM response time and have a better using experience. We hope this scenario can meet 
@@ -38,7 +38,7 @@ is not too small, the sampled VM requests can follow a similar distribution to t
 original ones. 
 
 Given a fixed time interval, a VM request will arise according to the real VM workload data. 
-The request contains the VM information of the required resources, including the required CPU cores, and 
+The request contains the VM information of the required resources, including the required CPU cores, 
 the required memory, and the remaining buffer time. 
 
 * Whenever receive a VM request, the MARO simulator will first calculate the 
@@ -52,10 +52,13 @@ VM Allocation
 
 Based on the valid PM list, the histortical information recorded by the simulator, and the detailed
 required resources of the VM, the VM scheduler (decision agent) will make the decision according to its 
-allocation strategy. There are two type of the strategeies:
+allocation strategy. 
+
+There are two types of meaningful actions:
 
 * Deliver a valid PM ID to the simulator.
-* Postpone the VM request.
+* Postpone the VM request, which will leave this request to be handled later if
+  the remaining buffer time is enough.
 
 See the detailed attributes of `Action <#id1>`_.
 
@@ -85,9 +88,10 @@ Energy Curve
    :alt: data center energy curve
 
 As we mention before, the lower energy consumption of the PMs, the lower cost to maintain the physical 
-servers. In our simulation, we currently simulate the energy based on the CPU utilization. 
+servers. In our simulation, we currently use a non-linear energy curve like the one in the above
+`figure <https://dl.acm.org/doi/10.1145/1273440.1250665>`_ to
+simulate the energy based on the CPU utilization. 
 
-See the figure above for the reference. [`Paper Link <https://dl.acm.org/doi/10.1145/1273440.1250665>`_]
 
 VM Deallocation
 ^^^^^^^^^^^^^^^^
@@ -99,9 +103,6 @@ The simulator will then release the finished VM's resources, and finally remove 
 
 Topologies
 -----------
-
-To provide samples from light to heavy, two kinds of simple topologies are designed and 
-provided in VM Scheduling scenario. 
 
 Azure Topologies
 ^^^^^^^^^^^^^^^^^
@@ -119,6 +120,9 @@ After pre-processed, the data contains
 * VM cores and memory(GB) requirements
 * Real VM creation and deletion time (converted to the tick, 1 tick means 5 minutes in real time)
 As for the utilization readings part, we sort the renumbered VM ID and CPU utilization pairs by the timestamp (tick).
+
+To provide system workloads from light to heavy, two kinds of simple topologies are designed and 
+provided in VM Scheduling scenario. 
 
 azure.2019.10k
 ~~~~~~~~~~~~~~~~
@@ -270,7 +274,8 @@ Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Before starting interaction with the environment, we need to know the definition of ``DecisionPayload`` and 
-``Action`` in VM Scheduling scenario first. Besides, you can query the environment snapshot list to get more 
+``Action`` in VM Scheduling scenario first. Besides, you can query the environment 
+`snapshot list <../key_components/data_model.html#advanced-features>`_ to get more 
 detailed information for the decision making.
 
 DecisionPayload
