@@ -80,8 +80,8 @@ we also simulate the energy usage based on the CPU utilization.
 Energy Curve
 *****************
 
-.. image:: 
-   :target: 
+.. image:: ../images/scenario/vm.energy_curve.svg
+   :target: ../images/scenario/vm.energy_curve.svg
    :alt: data center energy curve
 
 As we mention before, the lower energy consumption of the PMs, the lower cost to maintain the physical 
