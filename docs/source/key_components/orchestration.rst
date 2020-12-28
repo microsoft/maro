@@ -15,6 +15,32 @@ abstraction/interface for different orchestration framework
    :alt: Orchestration Overview
    :width: 600
 
+Process
+-------
+The process mode is designed for starting the training job by multi-processes
+and simulating the real distributed cluster. Depending on the Redis, The process
+mode realizes job management and self-control. The reason for designing the process
+mode is to reduce the difficulty of running jobs in the distributed cluster.
+It has the following advantages:
+
+* No need deployment.
+* Easy to use.
+* Lightweight, no other dependencies are required.
+
+In the Process mode:
+
+* All jobs will be started by multi-processes and managed by MARO Process CLI.
+* Customized settings support, such as Redis, the number of parallel running jobs,
+  and agents check interval.
+* For each job's start/stop, a ticket will be pushed into the job queue in Redis.
+  The agents will check those job queues periodically, and start/stop jobs depending
+  on the tickets in the job queues.
+
+.. image:: ../images/distributed/orch_process.svg
+   :target: ../images/distributed/orch_process.svg
+   :alt: Orchestration Overview
+   :width: 600
+
 Grass
 -----
 
