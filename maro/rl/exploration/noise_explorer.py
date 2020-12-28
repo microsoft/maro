@@ -23,7 +23,7 @@ class NoiseExplorer(AbsExplorer):
         self._max_action = max_action
 
     @abstractmethod
-    def update(self, **exploration_params):
+    def set_parameters(self, **parameters):
         raise NotImplementedError
 
     @abstractmethod
@@ -47,7 +47,7 @@ class UniformNoiseExplorer(NoiseExplorer):
         self._noise_lower_bound = noise_lower_bound
         self._noise_upper_bound = noise_upper_bound
 
-    def update(self, *, noise_lower_bound: Union[float, np.ndarray], noise_upper_bound: Union[float, np.ndarray]):
+    def set_parameters(self, *, noise_lower_bound, noise_upper_bound):
         self._noise_lower_bound = noise_lower_bound
         self._noise_upper_bound = noise_upper_bound
 
@@ -81,7 +81,7 @@ class GaussianNoiseExplorer(NoiseExplorer):
         self._noise_stddev = noise_stddev
         self._is_relative = is_relative
 
-    def update(self, *, noise_mean: Union[float, np.ndarray], noise_stddev: Union[float, np.ndarray]):
+    def set_parameters(self, *, noise_mean, noise_stddev):
         self._noise_mean = noise_mean
         self._noise_stddev = noise_stddev
 
