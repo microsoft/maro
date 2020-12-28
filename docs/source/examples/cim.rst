@@ -143,7 +143,7 @@ the DQN algorithm and an experience pool for each agent.
             set_seeds(config.agents.seed)
             num_actions = config.agents.algorithm.num_actions
             for agent_id in self._agent_id_list:
-                eval_model = LearningModel(decision_layers=MLPDecisionLayers(name=f'{agent_id}.policy',
+                eval_model = LearningModuleManager(decision_layers=MLPDecisionLayers(name=f'{agent_id}.policy',
                                                                              input_dim=self._state_shaper.dim,
                                                                              output_dim=num_actions,
                                                                              **config.agents.algorithm.model)
@@ -152,7 +152,7 @@ the DQN algorithm and an experience pool for each agent.
                 algorithm = DQN(model_dict={"eval": eval_model},
                                 optimizer_opt=(RMSprop, config.agents.algorithm.optimizer),
                                 loss_func_dict={"eval": smooth_l1_loss},
-                                hyper_params=DQNHyperParams(**config.agents.algorithm.hyper_parameters,
+                                hyper_params=DQNConfig(**config.agents.algorithm.hyper_parameters,
                                                             num_actions=num_actions))
 
                 experience_pool = ColumnBasedStore(**config.agents.experience_pool)

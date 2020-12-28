@@ -3,6 +3,11 @@
 
 from abc import ABC, abstractmethod
 
+import torch
+
+from maro.rl.models.learning_model import LearningModuleManager
+from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
+
 
 class AbsAlgorithm(ABC):
     """Abstract RL algorithm class.
@@ -10,9 +15,19 @@ class AbsAlgorithm(ABC):
     The class provides uniform policy interfaces such as ``choose_action`` and ``train``. We also provide some
     predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit from it to customize their own
     algorithms.
+
+    Args:
+        model (LearningModuleManager): Task model or container of task models required by the algorithm.
+        config: Settings for the algorithm.
     """
-    def __init__(self):
-        pass
+    def __init__(self, model: LearningModuleManager, config):
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._model = model.to(self._device)
+        self._config = config
+
+    @property
+    def model(self):
+        return self._model
 
     @abstractmethod
     def choose_action(self, state):
@@ -36,25 +51,11 @@ class AbsAlgorithm(ABC):
         """
         return NotImplementedError
 
-    @abstractmethod
-    def load_models(self, *models, **model_dict):
-        """Load trainable models from memory."""
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_models(self):
-        """Return the algorithm's trainable models."""
-        return NotImplementedError
-
-    @abstractmethod
-    def load_models_from_file(self, path):
-        """Load trainable models from disk."""
-        return NotImplementedError
-
-    @abstractmethod
-    def dump_models_to_file(self, path: str):
-        """Dump the algorithm's trainable models to disk."""
-        return NotImplementedError
-
     def set_exploration_params(self, **params):
         pass
+
+    @staticmethod
+    def validate_task_names(model_task_names, expected_task_names):
+        task_names, expected_task_names = set(model_task_names), set(expected_task_names)
+        if len(model_task_names) > 1 and task_names != expected_task_names:
+            raise UnrecognizedTask(f"Expected task names {expected_task_names}, got {task_names}")
