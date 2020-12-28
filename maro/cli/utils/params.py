@@ -10,6 +10,10 @@ class GlobalParams:
     PARALLELS = 5
     LOG_LEVEL = logging.INFO
 
+    DEFAULT_REDIS_PORT = 6379
+    DEFAULT_FLUENTD_PORT = 24224
+    DEFAULT_SSH_PORT = 22
+
 
 class GlobalPaths:
     MARO_LIB = "~/.maro/lib"
