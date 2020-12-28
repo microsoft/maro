@@ -62,8 +62,6 @@ class NodeAgent:
         self.node_tracking_agent.join()
         self.load_image_agent.join()
 
-        print("At here")
-
     def gracefully_exit(self, signum, frame) -> None:
         """ Gracefully exit when SIGTERM.
 
@@ -156,7 +154,6 @@ class NodeTrackingAgent(threading.Thread):
         while not self.is_terminated:
             start_time = time.time()
             self._update_details()
-            print(f"NodeTracking sleep time: {max(self._check_interval - (time.time() - start_time), 0)}")
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
 
     def _update_details(self) -> None:
@@ -340,7 +337,6 @@ class LoadImageAgent(threading.Thread):
         while not self.is_terminated:
             start_time = time.time()
             self.load_images()
-            print(f"LoadImage sleep time: {max(self._check_interval - (time.time() - start_time), 0)}")
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
 
     def load_images(self) -> None:

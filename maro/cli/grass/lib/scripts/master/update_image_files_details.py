@@ -8,7 +8,7 @@ import os
 
 from redis import Redis
 
-from .utils.details import get_master_details, load_cluster_details, set_master_details
+from ..utils.details import get_master_details, load_cluster_details, set_master_details
 
 
 def get_current_image_files_details(cluster_name: str) -> dict:

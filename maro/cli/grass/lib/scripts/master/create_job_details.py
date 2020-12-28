@@ -6,7 +6,7 @@ import argparse
 
 from redis import Redis
 
-from .utils.details import load_cluster_details, load_job_details, set_job_details
+from ..utils.details import load_cluster_details, load_job_details, set_job_details
 
 if __name__ == "__main__":
     # Load args

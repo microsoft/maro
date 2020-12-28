@@ -4,7 +4,7 @@
 
 import sys
 
-from .utils.subprocess import SubProcess
+from ..utils.subprocess import SubProcess
 
 GET_PUBLIC_KEY_COMMAND = """\
 ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y >/dev/null

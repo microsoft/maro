@@ -8,8 +8,8 @@ import os
 import sys
 from pathlib import Path
 
-from .utils.details import load_cluster_details
-from .utils.subprocess import SubProcess
+from ..utils.details import load_cluster_details
+from ..utils.subprocess import SubProcess
 
 START_SERVICE_COMMAND = """\
 systemctl --user daemon-reload

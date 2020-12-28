@@ -5,8 +5,8 @@
 import argparse
 import os
 
-from .utils.details import load_cluster_details
-from .utils.subprocess import SubProcess
+from ..utils.details import load_cluster_details
+from ..utils.subprocess import SubProcess
 
 INIT_COMMAND = """\
 # create group 'docker' and add admin user
