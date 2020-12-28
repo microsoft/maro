@@ -42,12 +42,10 @@ class SimpleAgentManager(AbsAgentManager):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-    def choose_action(self, decision_event, snapshot_list, epsilon_dict: dict = None):
+    def choose_action(self, decision_event, snapshot_list):
         self._assert_inference_mode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        model_action = self.agent_dict[agent_id].choose_action(
-            model_state, epsilon_dict[agent_id] if epsilon_dict else None
-        )
+        model_action = self.agent_dict[agent_id].choose_action(model_state)
         self._transition_cache = {
             "state": model_state,
             "action": model_action,

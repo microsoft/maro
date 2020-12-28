@@ -3,20 +3,32 @@
 
 import numpy as np
 
-from maro.rl import AbsAgent, ColumnBasedStore
+from maro.rl import AbsAgent, EpsilonGreedyExplorer, ColumnBasedStore
 
 
 class CIMAgent(AbsAgent):
     """Implementation of AbsAgent for the DQN algorithm.
 
     Args:
+        name (str): Agent's name.
+        algorithm (AbsAlgorithm): A concrete algorithm instance that inherits from AbstractAlgorithm.
+        explorer (AbsExplorer): Explorer instance to generate exploratory actions.
+        experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
+            used by some value-based algorithms, such as DQN.
         min_experiences_to_train: minimum number of experiences required for training.
         num_batches: number of batches to train the DQN model on per call to ``train``.
         batch_size: mini-batch size.
     """
-    def __init__(self, name, algorithm, experience_pool: ColumnBasedStore, min_experiences_to_train,
-                 num_batches, batch_size):
-        super().__init__(name, algorithm, experience_pool)
+    def __init__(
+        self,
+        name: str,
+        algorithm,
+        experience_pool: ColumnBasedStore,
+        min_experiences_to_train,
+        num_batches,
+        batch_size
+    ):
+        super().__init__(name, algorithm, experience_pool=experience_pool)
         self._min_experiences_to_train = min_experiences_to_train
         self._num_batches = num_batches
         self._batch_size = batch_size

@@ -15,14 +15,11 @@ class AbsAlgorithm(ABC):
         pass
 
     @abstractmethod
-    def choose_action(self, state, epsilon: float = None):
+    def choose_action(self, state):
         """This method uses the underlying model(s) to compute an action from a shaped state.
 
         Args:
             state: A state object shaped by a ``StateShaper`` to conform to the model input format.
-            epsilon (float, optional): Exploration rate. For greedy value-based algorithms, this being None means
-                using the model output without exploration. For algorithms with inherently stochastic policies such
-                as policy gradient, this is usually ignored. Defaults to None.
 
         Returns:
             The action to be taken given ``state``. It is usually necessary to use an ``ActionShaper`` to convert
@@ -58,3 +55,6 @@ class AbsAlgorithm(ABC):
     def dump_models_to_file(self, path: str):
         """Dump the algorithm's trainable models to disk."""
         return NotImplementedError
+
+    def set_exploration_params(self, **params):
+        pass

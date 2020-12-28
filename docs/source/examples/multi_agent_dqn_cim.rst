@@ -208,7 +208,7 @@ policies.
         explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("single_host_cim_learner", auto_timestamp=False)
     )
-    learner.train(
+    learner.learn(
         max_episode=config.general.max_episode,
         early_stopping_checker=early_stopping_checker,
         warmup_ep=config.general.early_stopping.warmup_ep,
@@ -283,7 +283,7 @@ inside.
         explorer=TwoPhaseLinearExplorer(**config.exploration),
         logger=Logger("distributed_cim_learner", auto_timestamp=False)
     )
-    learner.train(
+    learner.learn(
         max_episode=config.general.max_episode,
         early_stopping_checker=early_stopping_checker,
         warmup_ep=config.general.early_stopping.warmup_ep,

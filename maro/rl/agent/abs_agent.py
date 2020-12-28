@@ -26,7 +26,12 @@ class AbsAgent(ABC):
         experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN. Defaults to None.
     """
-    def __init__(self, name: str, algorithm: AbsAlgorithm, experience_pool: AbsStore = None):
+    def __init__(
+        self,
+        name: str,
+        algorithm: AbsAlgorithm,
+        experience_pool: AbsStore = None
+    ):
         self._name = name
         self._algorithm = algorithm
         self._experience_pool = experience_pool
@@ -41,16 +46,19 @@ class AbsAgent(ABC):
         """Underlying experience pool where the agent stores experiences."""
         return self._experience_pool
 
-    def choose_action(self, model_state, epsilon: float = .0):
+    def choose_action(self, model_state):
         """Choose an action using the underlying algorithm based on a preprocessed env state.
 
         Args:
             model_state: State vector as accepted by the underlying algorithm.
-            epsilon (float): Exploration rate.
         Returns:
-            Action given by the underlying policy model.
+            If the agent's explorer is None, the action given by the underlying model is returned. Otherwise,
+            an exploratory action is returned.
         """
-        return self._algorithm.choose_action(model_state, epsilon)
+        return self._algorithm.choose_action(model_state)
+
+    def set_exploration_params(self, **params):
+        self._algorithm.set_exploration_params(**params)
 
     @abstractmethod
     def train(self, *args, **kwargs):
