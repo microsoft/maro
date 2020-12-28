@@ -26,7 +26,7 @@ class EpsilonGreedyExplorer(AbsExplorer):
         else:
             return self._get_exploration_action(action_index)
 
-    def update(self, *, epsilon: float):
+    def set_parameters(self, *, epsilon: float):
         self._epsilon = epsilon
 
     def _get_exploration_action(self, action_index):
