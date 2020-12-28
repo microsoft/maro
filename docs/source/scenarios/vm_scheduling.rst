@@ -37,38 +37,27 @@ workloads. As long as the original dataset is large enough and the sample ratio
 is not too small, the sampled VM requests can follow a similar distribution to the
 original ones. 
 
-Given a fixed time interval, a VM request will arise according to the real VM workload data and it  
-might also be the request sent by the ``PostponeAction``. The request contains the VM information and 
-the buffer time. 
+Given a fixed time interval, a VM request will arise according to the real VM workload data. 
+The request contains the VM information of the required resources, including the required CPU cores, and 
+the required memory, and the remaining buffer time. 
 
 * Whenever receive a VM request, the MARO simulator will first calculate the 
-  remaining resources of each PM. The required resources includes CPU cores and memory. 
-* Then, the simulator will generate a ``PendingDecision`` event with the ``DecisionPayload``, which 
-  contains all valid PMs (valid here means that the remaining resources are enough), and the 
-  information of the awaiting VM.
+  remaining resources of each PM, filtering out the valid PMs (valid PMs means that the remaining 
+  resources of PM are enough for the required resources of the VM).
+* Then, the simulator delivers all valid PMs and the required resources of the awaiting VM 
+  to the VM scheduler (agent) for a decision.
 
 VM Allocation
 ^^^^^^^^^^^^^^
 
-The agent will make the decision among all valid PMs after get the ``DecisionPayload``.
-The agent will decide one PM to host the VM based on the given strategy. Afterwards, the agent 
-will send the ``Action`` back to the simulator for the following simulation. 
-There are three different valid ``Action`` in current VM Scheduling scenario. 
+Based on the valid PM list, the histortical information recorded by the simulator, and the detailed
+required resources of the VM, the VM scheduler (decision agent) will make the decision according to its 
+allocation strategy. There are two type of the strategeies:
 
-* **None**: If the MARO simulator receives the **None** Action, it will do nothing and ignore the VM request.
-* ``AllocateAction``: If the MARO simulator receives the ``AllocateAction``, the VM's creation time will be 
-  fixed at that tick. Besides, the simulator will update the workloads (the workloads include CPU cores,
-  the memory, and the energy consumption) of the target PM.
-* ``PostponeAction``: If the MARO simulator receives the ``PostponeAction``, it will calculate the 
-  remaining buffer time. 
+* Deliver a valid PM ID to the simulator.
+* Postpone the VM request.
 
-  * If the time is still enough, the simulator will re-generate a new requirement
-    event and insert it to the corresponding tick (based on the ``Postpone Step`` and ``DELAY_DURATION``). 
-    The ``DecisionPayload`` of the new requirement event only differs in the remaining buffer time from the 
-    old ones.
-  * If the time is exhausted, the simulator will note it as a failed allocation.
-
-See the detailed attributes `here <#action>`_.
+See the detailed attributes of `Action <#id1>`_.
 
 Runtime Simulation
 ^^^^^^^^^^^^^^^^^^^
@@ -76,58 +65,109 @@ Runtime Simulation
 Dynamic Utilization
 ~~~~~~~~~~~~~~~~~~~~
 
-To make the simulated environment closest to the real situation. We also simulate CPU utilization of each
-VM. The CPU utilization of the VM varies every tick based on the real VM workload readings. 
-We will regularly calculate the total resources (CPU utilization) of each PM in every tick and update 
-to the PM workload for the following decision.
+To make the simulated environment closest to the real situation. We also simulate the resource utilization 
+(currently only CPU utilization) of each VM. The CPU utilization of the VM varies every tick based on 
+the real VM workload readings. We will also regularly update the real-time resource utilization of 
+each PM based on the live VMs in it.
 
 Real-time Energy Consumption
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-One of the most important characteristics that cloud providers concern is the PM's enery consumption. As we
-mention before, the lower energy consumption of the PMs, the lower cost to maintain the physical servers. In 
-our simulation, we currently simulate the energy based on the CPU utilization. In short, PM cost more energy
-if it has higher CPU utilization. [`Reference <https://dl.acm.org/doi/10.1145/1273440.1250665>`_]
+One of the most important characteristics that cloud providers concern is the enery consumption of the
+data center. The different VM allocation can result in different energy consumption of the PM cluster,
+we also simulate the energy usage based on the CPU utilization.
+
+Energy Curve
+*****************
+
+.. image:: 
+   :target: 
+   :alt: data center energy curve
+
+As we mention before, the lower energy consumption of the PMs, the lower cost to maintain the physical 
+servers. In our simulation, we currently simulate the energy based on the CPU utilization. 
+
+See the figure above for the reference. [`Paper Link <https://dl.acm.org/doi/10.1145/1273440.1250665>`_]
 
 VM Deallocation
 ^^^^^^^^^^^^^^^^
 
-The MARO simulator regularly checks the finished VMs in every tick. It will then release the finished VM's
-resources, including CPU cores and memory, and finally remove the VM from the PM.
+The MARO simulator regularly checks the finished VMs in every tick. 
+A finished VM means that it goes through a comlete life cycle, is ready to be terminated, and
+the resources it occupies will be available again in the end.
+The simulator will then release the finished VM's resources, and finally remove the VM from the PM. 
 
 Topologies
 -----------
 
-To provide samples from easy to difficult, two kinds of simple topologies are designed and 
+To provide samples from light to heavy, two kinds of simple topologies are designed and 
 provided in VM Scheduling scenario. 
 
 Azure Topologies
 ^^^^^^^^^^^^^^^^^
 
-The original data are provided by `Azure public dataset 
-<https://github.com/Azure/AzurePublicDataset>`_. In our scenario, we pre-processed the AzurePublicDatasetV2. 
-The dataset contains real Azure VM workloads, including the information of VMs and their utilization readings 
-in 2019 lasting for 30 days. The original dataset contains 2,695,548 VMs.
+The original data comes from `Azure public dataset <https://github.com/Azure/AzurePublicDataset>`_. 
+The dataset contains real Azure VM workloads, including the information of VMs and their 
+utilization readings in 2019 lasting for 30 days. Total number of VM recorded is 2,695,548.
 
+In our scenario, we pre-processed the AzurePublicDatasetV2. 
 The detailed information of the data schema can be found
-`here <https://github.com/Azure/AzurePublicDataset/blob/master/AzurePublicDatasetV2.md>`_. After pre-processed,
-we only retain real VM creation and deletion time (converted to the tick, 1 tick means 5 minutes in real time),
-VM cores and memory(GB) requirements, and we also renumber the original VM ID.
-As for the utilization readings part, we store the renumbered VM ID and VM's CPU utilization sorting by the timestamp (tick).
+`here <https://github.com/Azure/AzurePublicDataset/blob/master/AzurePublicDatasetV2.md>`_. 
+After pre-processed, the data contains
 
-**azure.2019.10k**\ : We randomly sampled 10,000 VMs from the AzurePublicDatasetV2.
+* Renumbered VM ID
+* VM cores and memory(GB) requirements
+* Real VM creation and deletion time (converted to the tick, 1 tick means 5 minutes in real time)
+As for the utilization readings part, we sort the renumbered VM ID and CPU utilization pairs by the timestamp (tick).
 
-**azure.2019.336k**\ : We randomly sampled 336,000 VMs from the AzurePublicDatasetV2.
+azure.2019.10k
+~~~~~~~~~~~~~~~~
+
+Uniformly random sample.
+
+* Total number of VMs: 10,000
+* Average number of concurrent VMs: 835.7
+* Average number of CPU cores requested: 3.8
+* Average memory requested: 15.9 GB
+* Average CPU utilization: 15.7 %
+
+PM setting (Given by the /[topologies]/config.yml):
+
+* Amount: 100
+* CPU Cores: 32
+* Memory: 128 GB
+
+azure.2019.336k
+~~~~~~~~~~~~~~~~~
+
+Uniformly random sample.
+
+* Total number of VMs: 336,000
+* Average number of concurrent VMs: 28,305.9
+* Average number of CPU cores requested: 3.8
+* Average memory requested: 16.1 GB
+* Average CPU utilization: 15.6 %
+
+PM setting (Given by the /[topologies]/config.yml):
+
+* Amount: 880
+* CPU Cores: 16
+* Memory: 112 GB
 
 Naive Baseline
 ^^^^^^^^^^^^^^^
 
-Belows are the final environment metrics of the method random allocation and best-fit allocation in 
-different topologies. For each experiment, we setup the environment and test for a duration of 30 days.
+Belows are the final environment metrics of the method **Random Allocation** and 
+**Best-Fit Allocation** in different topologies. 
+For each experiment, we setup the environment and test for a duration of 30 days.
+Besides, we use several settings of PM capacity to test performance under different 
+initial resources.
 
 
 Random Allocation
 ~~~~~~~~~~~~~~~~~~~~
+
+Randomly allocate to a valid PM.
 
 .. list-table::
    :header-rows: 1
@@ -170,6 +210,8 @@ Random Allocation
 
 Best-Fit Allocation
 ~~~~~~~~~~~~~~~~~~~~
+
+Choose the valid PM with the least remaining resources (only consider CPU cores here).
 
 .. list-table::
    :header-rows: 1
@@ -251,11 +293,22 @@ Once get a ``PendingDecision`` event from the envirionment, the agent should res
 ``Action`` includes:
 
 * **None**. It means do nothing but ignore this VM request.
-* ``AllocateAction``. It includes:
+* ``AllocateAction``: If the MARO simulator receives the ``AllocateAction``, the VM's creation time will be 
+  fixed at the tick it receives. Besides, the simulator will update the workloads (the workloads include 
+  CPU cores, the memory, and the energy consumption) of the target PM. 
+  The ``AllocateAction`` includes:
 
   * vm_id (int): The ID of the VM that is waiting for the allocation.
   * pm_id (int): The ID of the PM where the VM is scheduled to allocate to.
-* ``PostponeAction``. It includes:
+* ``PostponeAction``: If the MARO simulator receives the ``PostponeAction``, it will calculate the 
+  remaining buffer time. 
+
+  * If the time is still enough, the simulator will re-generate a new request
+    event and insert it to the corresponding tick (based on the ``Postpone Step`` and ``DELAY_DURATION``). 
+    The ``DecisionPayload`` of the new requirement event only differs in the remaining buffer time from the 
+    old ones.
+  * If the time is exhausted, the simulator will note it as a failed allocation.
+  The ``PostponeAction`` includes:
 
   * vm_id (int): The ID of the VM that is waiting for the allocation.
   * postpone_step (int): The number of times that the allocation to be postponed. The unit 
