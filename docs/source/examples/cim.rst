@@ -195,7 +195,6 @@ policies.
     actor = SimpleActor(env=env, inference_agents=agent_manager)
     learner = SimpleLearner(trainable_agents=agent_manager, actor=actor,
                             logger=Logger("single_host_cim_learner", auto_timestamp=False))
-
     learner.learn(total_episodes=config.main_loop.total_training_episodes)
 
 
@@ -252,4 +251,3 @@ inside.
                             actor=ActorProxy(proxy_params=proxy_params),
                             logger=Logger("distributed_cim_learner", auto_timestamp=False))
     learner.learn(total_episodes=config.main_loop.total_training_episodes)
-

@@ -72,7 +72,7 @@ class DQN(AbsAlgorithm):
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
 
-    def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray, list]:
+    def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray]:
         state = torch.from_numpy(state).to(self._device)
         is_single = len(state.shape) == 1
         if is_single:
@@ -87,10 +87,10 @@ class DQN(AbsAlgorithm):
             return greedy_action if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
 
         # batch inference
-        return [
+        return np.array([
             act if np.random.random() > self._config.epsilon else np.random.choice(self._num_actions)
             for act in greedy_action
-        ]
+        ])
 
     def _get_q_values(self, model, states, is_training: bool = True):
         if self._config.advantage_mode is not None:
