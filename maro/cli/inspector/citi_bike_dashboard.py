@@ -8,7 +8,7 @@ from typing import List
 
 import maro.cli.inspector.dashboard_helper as helper
 
-from .params import CITIBIKEItemOption, GlobalFilePaths, GlobalScenarios
+from .params import CITIBIKEItemOption, GlobalFileNames, GlobalScenarios
 from .visualization_choice import CitiBikeIntraViewChoice, PanelViewChoice
 
 
@@ -66,7 +66,7 @@ def render_inter_view(source_path: str, epoch_num: int):
     )
     # Generate data.
     data_summary = helper.read_detail_csv(
-            os.path.join(source_path, GlobalFilePaths.stations_sum)
+            os.path.join(source_path, GlobalFileNames.stations_sum)
         ).iloc[down_pooling_range]
     # Get formula and selected data.
     data_formula = helper.get_filtered_formula_and_data(
@@ -140,7 +140,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     index_name_conversion = helper.read_detail_csv(
         os.path.join(
             source_path,
-            GlobalFilePaths.name_convert
+            GlobalFileNames.name_convert
         )
     )
     attribute_option_candidates = (
@@ -178,11 +178,11 @@ def render_top_k_summary(source_path: str, prefix: str, epoch_index: int):
         os.path.join(
             source_path,
             f"{prefix}{epoch_index}",
-            GlobalFilePaths.stations_sum
+            GlobalFileNames.stations_sum
         )
     )
     # Convert index to station name.
-    index_name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
+    index_name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFileNames.name_convert))
     data["station name"] = list(
         map(
             lambda x: index_name_conversion.loc[int(x[9:])][0],

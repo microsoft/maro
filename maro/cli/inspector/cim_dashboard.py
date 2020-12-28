@@ -9,7 +9,7 @@ from typing import List
 
 import maro.cli.inspector.dashboard_helper as helper
 
-from .params import CIMItemOption, GlobalFilePaths, GlobalScenarios
+from .params import CIMItemOption, GlobalFileNames, GlobalScenarios
 from .visualization_choice import CIMIntraViewChoice, PanelViewChoice
 
 
@@ -61,7 +61,7 @@ def render_inter_view(source_path: str, epoch_num: int):
     )
 
     # Generate data.
-    data = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.ports_sum)).iloc[down_pooling_range]
+    data = helper.read_detail_csv(os.path.join(source_path, GlobalFileNames.ports_sum)).iloc[down_pooling_range]
     data["remaining_space"] = list(
         map(
             lambda x, y, z: x - y - z,
@@ -113,7 +113,7 @@ def render_intra_view(source_path: str, epoch_num: int, prefix: str):
     )
 
     # Name conversion.
-    index_name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFilePaths.name_convert))
+    index_name_conversion = helper.read_detail_csv(os.path.join(source_path, GlobalFileNames.name_convert))
 
     st.sidebar.markdown("***")
     option_view = st.sidebar.selectbox(

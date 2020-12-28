@@ -12,7 +12,7 @@ from maro.utils.exception.cli_exception import CliException
 from maro.utils.logger import CliLogger
 
 from .launch_env_dashboard import launch_dashboard
-from .params import GlobalFilePaths, GlobalScenarios
+from .params import GlobalFileNames, GlobalScenarios
 
 logger = CliLogger(name=__name__)
 
@@ -65,14 +65,14 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
 
     else:
         logger.info_green("Skip Data Generation")
-        if not os.path.exists(os.path.join(source_path, GlobalFilePaths.name_convert)):
+        if not os.path.exists(os.path.join(source_path, GlobalFileNames.name_convert)):
             raise CliException("Have to regenerate data. Name Conversion File is missed.")
 
         if scenario == GlobalScenarios.CIM:
-            if not os.path.exists(os.path.join(source_path, GlobalFilePaths.ports_sum)):
+            if not os.path.exists(os.path.join(source_path, GlobalFileNames.ports_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed.")
         elif scenario == GlobalScenarios.CITI_BIKE:
-            if not os.path.exists(os.path.join(source_path, GlobalFilePaths.stations_sum)):
+            if not os.path.exists(os.path.join(source_path, GlobalFileNames.stations_sum)):
                 raise CliException("Have to regenerate data. Summary File is missed.")
 
     launch_dashboard(source_path, scenario, epoch_num, prefix)
@@ -135,27 +135,27 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
     stations_header = ["bikes", "shortage", "trip_requirement", "fulfillment", "capacity"]
 
     if scenario == GlobalScenarios.CIM:
-        _init_csv(os.path.join(source_path, GlobalFilePaths.ports_sum), ports_header)
+        _init_csv(os.path.join(source_path, GlobalFileNames.ports_sum), ports_header)
         ports_sum_dataframe = pd.read_csv(
-            os.path.join(source_path, GlobalFilePaths.ports_sum),
+            os.path.join(source_path, GlobalFileNames.ports_sum),
             names=ports_header
         )
         for epoch_index in tqdm.tqdm(range(0, epoch_num)):
             input_path = os.path.join(source_path, f"{prefix}{epoch_index}", "ports.csv")
             _summary_append(
                 scenario, input_path, ports_header,
-                ports_sum_dataframe, epoch_index, os.path.join(source_path, GlobalFilePaths.ports_sum)
+                ports_sum_dataframe, epoch_index, os.path.join(source_path, GlobalFileNames.ports_sum)
             )
     elif scenario == GlobalScenarios.CITI_BIKE:
-        _init_csv(os.path.join(source_path, GlobalFilePaths.stations_sum), stations_header)
+        _init_csv(os.path.join(source_path, GlobalFileNames.stations_sum), stations_header)
         stations_sum_dataframe = pd.read_csv(
-            os.path.join(source_path, GlobalFilePaths.stations_sum),
+            os.path.join(source_path, GlobalFileNames.stations_sum),
             names=stations_header
         )
         for epoch_index in tqdm.tqdm(range(0, epoch_num)):
             _init_csv(
                 os.path.join(
-                    source_path, f"{prefix}{epoch_index}", GlobalFilePaths.stations_sum
+                    source_path, f"{prefix}{epoch_index}", GlobalFileNames.stations_sum
                 ),
                 stations_header
             )
@@ -169,10 +169,10 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
                     data["trip_requirement"]
                     )
                 )
-            data.to_csv(os.path.join(source_path, f"{prefix}{epoch_index}", GlobalFilePaths.stations_sum))
+            data.to_csv(os.path.join(source_path, f"{prefix}{epoch_index}", GlobalFileNames.stations_sum))
             _summary_append(
                 scenario, input_path, stations_header, stations_sum_dataframe,
-                epoch_index, os.path.join(source_path, GlobalFilePaths.stations_sum)
+                epoch_index, os.path.join(source_path, GlobalFileNames.stations_sum)
             )
 
 
@@ -185,8 +185,8 @@ def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str
         conversion_path (str): Path of original mapping file.
     """
     conversion_path = os.path.join(source_path, conversion_path)
-    if os.path.exists(os.path.join(source_path, GlobalFilePaths.name_convert)):
-        os.remove(os.path.join(source_path, GlobalFilePaths.name_convert))
+    if os.path.exists(os.path.join(source_path, GlobalFileNames.name_convert)):
+        os.remove(os.path.join(source_path, GlobalFileNames.name_convert))
     if scenario == GlobalScenarios.CITI_BIKE:
         with open(conversion_path, "r", encoding="utf8")as mapping_file:
             mapping_json_data = json.load(mapping_file)
@@ -194,7 +194,7 @@ def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str
             for item in mapping_json_data["data"]["stations"]:
                 name_list.append(item["name"])
             df = pd.DataFrame({"name": name_list})
-            df.to_csv(os.path.join(source_path, GlobalFilePaths.name_convert), index=False)
+            df.to_csv(os.path.join(source_path, GlobalFileNames.name_convert), index=False)
     elif scenario == GlobalScenarios.CIM:
         cim_information = yaml.load(
             open(conversion_path, "r").read(),
@@ -202,4 +202,4 @@ def _get_index_index_name_conversion(scenario: GlobalScenarios, source_path: str
         )
         conversion = cim_information["ports"].keys()
         df = pd.DataFrame(list(conversion))
-        df.to_csv(os.path.join(source_path, GlobalFilePaths.name_convert), index=False)
+        df.to_csv(os.path.join(source_path, GlobalFileNames.name_convert), index=False)

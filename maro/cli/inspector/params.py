@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class GlobalFilePaths:
+class GlobalFileNames:
     ports_sum = "ports_summary.csv"
     vessels_sum = "vessels_summary.csv"
     stations_sum = "stations_summary.csv"
