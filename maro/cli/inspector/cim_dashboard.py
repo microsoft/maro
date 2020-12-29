@@ -530,7 +530,7 @@ def _generate_top_k_summary(data: pd.DataFrame, snapshot_index: int, index_name_
     helper.render_h3_title("Select Top k:")
     selected_top_number = st.select_slider(
         label="",
-        options=list(range(1, 5))
+        options=list(range(1, 6))
     )
     top_attributes = CIMItemOption.acc_info + ["fulfillment_ratio"]
     for item in top_attributes:

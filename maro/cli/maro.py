@@ -855,9 +855,9 @@ def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentPa
 
     build_cmd_parser.add_argument(
         "--force",
-        type=bool,
+        type=str,
         required=False,
-        default=True,
+        default="True",
         help="Overwrite the generated summary data or not: True/False."
     )
 

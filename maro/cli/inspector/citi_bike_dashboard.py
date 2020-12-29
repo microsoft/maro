@@ -192,7 +192,7 @@ def render_top_k_summary(source_path: str, prefix: str, epoch_index: int):
     # Generate top summary.
     top_number = st.select_slider(
         "Select Top K",
-        list(range(1, 5))
+        list(range(1, 6))
     )
     top_attributes = ["bikes", "trip_requirement", "fulfillment", "fulfillment_ratio"]
     for item in top_attributes:

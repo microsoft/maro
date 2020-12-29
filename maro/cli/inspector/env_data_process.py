@@ -39,6 +39,7 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
         force (str): Indicates whether regenerate data. Expected input is True/False.
         **kwargs (dict): The irrelevant variable length key-value pair.
     """
+    
     if not os.path.exists(os.path.join(source_path, "manifest.yml")):
         raise CliException("Manifest file missed.")
     settings = yaml.load(
@@ -49,12 +50,11 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
     conversion_path = str(settings["mappings"])
     epoch_num = int(settings["dump_details"]["epoch_num"])
     prefix = settings["dump_details"]["prefix"]
-
+    force = str2bool(str(force))
     if not os.path.exists(source_path):
         raise CliException("Input path is not correct.")
     elif not os.path.exists(os.path.join(source_path, f"{prefix}0")):
         raise CliException("No data under input folder path.")
-
     if force:
         logger.info("Generating Dashboard Data.")
         _get_index_index_name_conversion(scenario, source_path, conversion_path)
@@ -76,6 +76,25 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
                 raise CliException("Have to regenerate data. Summary File is missed.")
 
     launch_dashboard(source_path, scenario, epoch_num, prefix)
+
+
+def str2bool(force_type) -> bool:
+    """Convert the parameter "force" from string to bool.
+
+    Argsparse could not identify bool type automatically.
+    Manually conversion is compulsory.
+
+    Args:
+        force_type (str): The parameter input by user.
+
+    Returns:
+        bool: Converted parameter.
+
+    """
+    if force_type.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif force_type.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
 
 
 def _init_csv(file_path: str, header: List[str]):
