@@ -72,7 +72,6 @@ class DQN(AbsAlgorithm):
             self._num_actions = self._model.output_dim["advantage"]
         self._training_counter = 0
         self._target_model = model.copy() if model.is_trainable else None
-        self._training_counter = 0
 
     def choose_action(self, state: np.ndarray) -> Union[int, np.ndarray]:
         state = torch.from_numpy(state).to(self._device)
