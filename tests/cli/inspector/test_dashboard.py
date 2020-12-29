@@ -1,6 +1,6 @@
 import unittest
 
-from maro.cli.inspector.common_helper import get_sample_ratio_selection_list, get_sample_index_list
+from maro.cli.inspector.dashboard_helper import get_sample_ratio_selection_list, get_sample_index_list
 
 
 class TestDashboard(unittest.TestCase):
