@@ -90,6 +90,15 @@ def main():
     parser_k8s.set_defaults(func=_help_func(parser=parser_k8s))
     load_parser_k8s(prev_parser=parser_k8s, global_parser=global_parser)
 
+    # maro inspector
+    parser_inspector = subparsers.add_parser(
+        'inspector',
+        help=("Display visualization of post-experiment data."),
+        parents=[global_parser]
+    )
+    parser_inspector.set_defaults(func=_help_func(parser=parser_inspector))
+    load_parser_inspector(parser_inspector, global_parser)
+
     # Get args and parse global arguments
     args = parser.parse_args()
     if args.debug:
@@ -816,7 +825,6 @@ def load_parser_data(prev_parser: ArgumentParser, global_parser: ArgumentParser)
 
 def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser):
     meta_cmd_sub_parsers = prev_parser.add_subparsers()
-
     # Deploy
     from maro.cli.data_pipeline.data_process import meta_deploy
     deploy_cmd_parser = meta_cmd_sub_parsers.add_parser(
@@ -825,6 +833,35 @@ def load_parser_meta(prev_parser: ArgumentParser, global_parser: ArgumentParser)
         parents=[global_parser])
 
     deploy_cmd_parser.set_defaults(func=meta_deploy)
+
+
+def load_parser_inspector(prev_parser: ArgumentParser, global_parser: ArgumentParser):
+    inspector_cmd_sub_parsers = prev_parser.add_subparsers()
+
+    from maro.cli.inspector.env_data_process import start_vis
+    build_cmd_parser = inspector_cmd_sub_parsers.add_parser(
+        "env",
+        fromfile_prefix_chars="@",
+        help="Dashboard of selected env displayed.",
+        parents=[global_parser]
+    )
+
+    build_cmd_parser.add_argument(
+        "--source_path",
+        type=str,
+        required=True,
+        help="Folder path to load data, should be root path of snapshot folders. e.g. ~/project_root/dump_files/"
+    )
+
+    build_cmd_parser.add_argument(
+        "--force",
+        type=str,
+        required=False,
+        default="True",
+        help="Overwrite the generated summary data or not: True/False."
+    )
+
+    build_cmd_parser.set_defaults(func=start_vis)
 
 
 def _help_func(parser):
