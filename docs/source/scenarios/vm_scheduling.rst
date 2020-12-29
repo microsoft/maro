@@ -1,12 +1,17 @@
 Virtual Machine Scheduling (VM Scheduling)
 ===========================================
 
-The Virtual Machine (VM) Scheduling scenario simulates the VM scheduling problem
-in a cloud data center. Within a specific time, the number of VM 
+In 21th century, the business needs of cloud computing are dramatically increasing. 
+During the cloud service, users request Virtual Machine (VM) with a certain amount of resources (eg. CPU, memory, etc).
+The following important issue is how to allocate the physical resources for these VMs?
+The VM Scheduling scenario aims to find a better solution of the VM scheduling problem
+in cloud data centers. 
+Now, consider a specific time, the number of VM 
 requests and arrival pattern is fixed. Given a cluster of limited physical
-machines(PM), different VM placement strategeies result in different amount of
-successful completion and different operating cost for the data center. For cloud providers, a 
-good VM allocation strategy can maximize the resourece utilization and thus can increase the profit by 
+machines(PM) with limited physical resources, different VM allocation strategeies result in
+different amount of
+successful completion and different operating cost of the data center. For cloud providers, a 
+good VM allocation strategy can maximize the resource utilization and thus can increase the profit by 
 providing more VMs to users. For cloud users, a good VM allocation strategy can 
 minimize the VM response time and have a better using experience. We hope this scenario can meet 
 the real needs and provide you with a demand simulation that is closest to the real situation.
@@ -97,7 +102,7 @@ VM Deallocation
 ^^^^^^^^^^^^^^^^
 
 The MARO simulator regularly checks the finished VMs in every tick. 
-A finished VM means that it goes through a comlete life cycle, is ready to be terminated, and
+A finished VM means that it goes through a complete life cycle, is ready to be terminated, and
 the resources it occupies will be available again in the end.
 The simulator will then release the finished VM's resources, and finally remove the VM from the PM. 
 
