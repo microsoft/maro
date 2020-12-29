@@ -32,6 +32,11 @@ sphinx_rtd_theme
 jinja2
 flake8
 PuLP=2.1
+<<<<<<< HEAD
 streamlit==0.69.1
 altair==4.1.0
 tqdm==4.51.0
+=======
+editorconfig-checker
+aria2p==0.9.1
+>>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6

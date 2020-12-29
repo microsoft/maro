@@ -2,82 +2,16 @@
 # Licensed under the MIT license.
 
 
-# TODO:
-# 1. priority
-# 2. event object pool, this will make get_finished_events function stop working.
-#    we can enable this to disable pooling
-
 from collections import defaultdict
-from enum import IntEnum
-from typing import Callable, List
+from typing import Callable
 
-DECISION_EVENT = 0
-"""Predefined decision event type, if business engine need to process actions from agent,
-then it must register handler with this event."""
-
-
-class EventCategory(IntEnum):
-    """Event category that mark the usage of event.
-    """
-    ATOM = 0
-    CASCADE = 1
-
-
-class EventState(IntEnum):
-    """State of event for internal using.
-    """
-    PENDING = 0
-    EXECUTING = 1
-    FINISHED = 2
-
-
-class Event:
-    """Event object that used to hold information that for callback.
-
-    Some times there may be some events that depend on another one,
-    then you can append these events into immediate_event_list, then
-    these events will be processed after the main event at same tick.
-
-    Note:
-        The payload of event can be any object that related with specified logic.
-
-    Args:
-        tick (int): Tick that this event will be processed.
-        event_type (int): Type of this event, this is a customize field,
-            there is one predefined event type is 0 (PREDEFINE_EVENT_ACTION).
-        payload (object): Payload of this event.
-        category (EventCategory): Category mark of this event.
-
-    Attributes:
-        id (int): Id of this event, usually this is used for "joint decision" node
-                that need "sequential action".
-        tick (int): Process tick of this event.
-        payload (object): Payload of this event, can be any object.
-        category (EventCategory): Category of this event.
-        event_type (object): Type of this event, can be any type, usually int,
-                EventBuffer will use this to match handlers.
-        state (EventState): Internal life-circle state of event.
-        immediate_event_list (List[Event]): Used to hold events that depend on current event,
-                these events will be processed after this event.
-    """
-
-    def __init__(self, id: int, tick: int, event_type: object, payload, category: EventCategory):
-        self.id = id
-        self.tick = tick
-        self.payload = payload
-        self.immediate_event_list = []
-        self.category = category
-        self.event_type = event_type
-        self.state = EventState.PENDING
-
-    def __repr__(self):
-        return (
-            f"{{ tick: {self.tick}, type: {self.event_type}, "
-            f"category: {self.category}, state: {self.state}, payload: {self.payload} }}"
-        )
-
-    def __str__(self):
-        return self.__repr__()
+from .atom_event import AtomEvent
+from .cascade_event import CascadeEvent
+from .event_linked_list import EventLinkedList
+from .event_pool import EventPool
+from .event_state import EventState
+from .maro_events import MaroEvents
+from .typings import Event, EventList
 
 
 class EventBuffer:
@@ -92,34 +26,42 @@ class EventBuffer:
 
         And insert order will affect the processing order,
         so ensure the order when you need something strange.
+
+    Args:
+        disable_finished_events (bool): Is disable the method to get finished event list,
+            EventBuffer will recycle the finished events for furthure using, not push them
+            into finished events list, so it will cause method "get_finished_events" return
+            empty list.
     """
 
-    def __init__(self):
+    def __init__(self, disable_finished_events: bool = False):
         # id for events that generate from this instance
-        self._id = 0
-        self._pending_events = defaultdict(list)
+        self._pending_events = defaultdict(EventLinkedList)
         self._handlers = defaultdict(list)
-        # used to hold all the events that being processed
-        self._finished_events = []
-        # index of current pending event
-        self._current_index = 0
 
-    def get_finished_events(self) -> List[Event]:
+        # used to hold all the events that been processed
+        self._finished_events = []
+
+        self._event_pool = EventPool()
+
+        self._disable_finished_events = disable_finished_events
+
+    def get_finished_events(self) -> EventList:
         """Get all the processed events, call this function before reset method.
 
         Returns:
-            List[Event]: List of Event object.
+            EventList: List of event object.
         """
         return self._finished_events
 
-    def get_pending_events(self, tick: int) -> List[Event]:
+    def get_pending_events(self, tick: int) -> EventList:
         """Get pending event at specified tick.
 
         Args:
             Tick (int): tick of events to get.
 
         Returns:
-            List[Event]: List of Event object.
+            EventList: List of event object.
         """
         return [evt for evt in self._pending_events[tick] if evt is not None]
 
@@ -129,53 +71,75 @@ class EventBuffer:
         NOTE:
             After reset the get_finished_event method will return empty list.
         """
-        self._pending_events = defaultdict(list)
-        self._finished_events = []
-        self._current_index = 0
+        # Collect the events from pendding and finished pool to reuse them.
+        self._event_pool.recycle(self._finished_events)
 
-    def gen_atom_event(self, tick: int, event_type: int, payload: object = None) -> Event:
+        self._finished_events.clear()
+
+        for pending_pool in self._pending_events.values():
+            self._event_pool.recycle(pending_pool)
+
+            pending_pool.clear()
+
+    def gen_atom_event(self, tick: int, event_type: object, payload: object = None) -> AtomEvent:
         """Generate an atom event, an atom event is for normal usages,
         they will not stop current event dispatching process.
 
         Args:
             tick (int): Tick that the event will be processed.
-            event_type (int): Type of this event.
+            event_type (object): Type of this event.
             payload (object): Payload of event, used to pass data to handlers.
 
         Returns:
-            Event: Event object with ATOM category.
+            AtomEvent: Atom event object
         """
-        self._id += 1
+        return self._event_pool.gen(tick, event_type, payload, False)
 
-        return Event(self._id, tick, event_type, payload, EventCategory.ATOM)
-
-    def gen_cascade_event(self, tick: int, event_type: int, payload: object) -> Event:
-        """Generate an cascade event that used to retrieve action from agent.
-
-        A cascade event will stop current dispatching process,
-        and simulator will try to generate a decision event to ask agent give it an action.
+    def gen_cascade_event(self, tick: int, event_type: object, payload: object) -> CascadeEvent:
+        """Generate an cascade event that used to hold immediate events that
+        run right after current event.
 
         Args:
             tick (int): Tick that the event will be processed.
-            event_type (int): Type of this event.
+            event_type (object): Type of this event.
             payload (object): Payload of event, used to pass data to handlers.
 
         Returns:
-            Event: Event object with CASCADE category.
+            CascadeEvent: Cascade event object.
         """
-        self._id += 1
+        return self._event_pool.gen(tick, event_type, payload, True)
 
-        return Event(self._id, tick, event_type, payload, EventCategory.CASCADE)
+    def gen_decision_event(self, tick: int, payload: object) -> CascadeEvent:
+        """Generate a decision event that will stop current simulation, and ask agent for action.
 
-    def register_event_handler(self, event_type: int, handler: Callable):
+        Args:
+            tick (int): Tick that the event will be processed.
+            payload (object): Payload of event, used to pass data to handlers.
+        Returns:
+            CascadeEvent: Event object
+        """
+        return self._event_pool.gen(tick, MaroEvents.PENDING_DECISION, payload, True)
+
+    def gen_action_event(self, tick: int, payload: object) -> CascadeEvent:
+        """Generate an event that used to dispatch action to business engine.
+
+        Args:
+            tick (int): Tick that the event will be processed.
+            payload (object): Payload of event, used to pass data to handlers.
+        Returns:
+            CascadeEvent: Event object
+        """
+        return self._event_pool.gen(tick, MaroEvents.TAKE_ACTION, payload, True)
+
+    def register_event_handler(self, event_type: object, handler: Callable):
         """Register an event with handler, when there is an event need to be processed,
         EventBuffer will invoke the handler if there are any event's type match specified at each tick.
 
         NOTE:
-            Callback function should only hold one parameter that is Event object.
+            Callback function should only hold one parameter that is the event object.
 
         Args:
-            event_type (int): Type of event that the handler want to process.
+            event_type (object): Type of event that the handler want to process.
             handler (Callable): Handler that will process the event.
         """
         self._handlers[event_type].append(handler)
@@ -190,7 +154,7 @@ class EventBuffer:
 
         self._pending_events[event.tick].append(event)
 
-    def execute(self, tick: int) -> List[Event]:
+    def execute(self, tick: int) -> EventList:
         """Process and dispatch event by tick.
 
         NOTE:
@@ -202,62 +166,38 @@ class EventBuffer:
             tick (int): Tick used to process events.
 
         Returns:
-            List[Event]: Pending cascade event list at current point.
+            EventList: A list of events that are pending decisions at the current tick.
         """
-
         if tick in self._pending_events:
-            cur_events = self._pending_events[tick]
+            cur_events_list: EventLinkedList = self._pending_events[tick]
 
-            # 1. check if current events match tick
-            while self._current_index < len(cur_events):
-                event = cur_events[self._current_index]
+            # 1. check if current events match tick.
+            while len(cur_events_list):
+                next_events = cur_events_list.pop()
 
-                if event is None:
+                if next_events is None:
+                    # End of current tick.
                     break
 
-                # 2. check if it is a cascade event and its state,
-                #    we only process cascade events that in pending state
-                if event.category == EventCategory.CASCADE and event.state == EventState.PENDING:
-                    # NOTE: here we return all the cascade events next to current one
-                    result = []
+                # Only decision event is a list (even only one item).
+                # NOTE: decision event do not have handlers, and simulator will set its state
+                # to finished after recieved an action.
+                if type(next_events) == list:
+                    return next_events
+                else:
+                    next_events.state = EventState.EXECUTING
 
-                    for j in range(self._current_index, len(cur_events)):
-                        if cur_events[j].category == EventCategory.CASCADE:
-                            result.append(cur_events[j])
-
-                    return result
-
-                # 3. or it is an atom event, just invoke the handlers
-                if event.state == EventState.FINISHED:
-                    self._current_index += 1
-                    continue
-
-                # 3.1. if handler exist
-                if event.event_type and event.event_type in self._handlers:
-                    handlers = self._handlers[event.event_type]
+                # Invoke handlers.
+                if next_events.event_type and next_events.event_type in self._handlers:
+                    handlers = self._handlers[next_events.event_type]
 
                     for handler in handlers:
-                        handler(event)
+                        handler(next_events)
 
-                # 3.2. sub events
-                for sub_event in event.immediate_event_list:
-                    if sub_event.event_type in self._handlers:
-                        handlers = self._handlers[sub_event.event_type]
+                next_events.state = EventState.FINISHED
 
-                        for handler in handlers:
-                            handler(sub_event)
-
-                        sub_event.state = EventState.FINISHED
-
-                event.state = EventState.FINISHED
-
-                # remove process event
-                # NOTE: bad performance
-                cur_events[self._current_index] = None
-                self._current_index += 1
-
-                self._finished_events.append(event)
-
-            # reset
-            self._current_index = 0
+                if self._disable_finished_events:
+                    self._event_pool.recycle(next_events)
+                else:
+                    self._finished_events.append(next_events)
         return []

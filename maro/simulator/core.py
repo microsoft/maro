@@ -8,7 +8,7 @@ from typing import List
 
 from maro.backends.frame import FrameBase, SnapshotList
 from maro.data_lib.dump_csv_converter import DumpConverter
-from maro.event_buffer import DECISION_EVENT, EventBuffer, EventState
+from maro.event_buffer import EventBuffer, EventState
 from maro.utils.exception.simulator_exception import BusinessEngineNotFoundError
 
 from .abs_core import AbsEnv, DecisionMode
@@ -30,8 +30,10 @@ class Env(AbsEnv):
         max_snapshots(int): Max in-memory snapshot number.
             When the number of dumped snapshots reached the limitation, oldest one will be overwrote by new one.
             None means keeping all snapshots in memory. Defaults to None.
-        business_engine_cls: Class of business engine. If specified, use it to construct the be instance,
+        business_engine_cls (type): Class of business engine. If specified, use it to construct the be instance,
             or search internally by scenario.
+        disable_finished_events (bool): Disable finished events list, with this set to True, EventBuffer will
+            re-use finished event object, this reduce event object number.
         options (dict): Additional parameters passed to business engine.
     """
 
@@ -39,19 +41,23 @@ class Env(AbsEnv):
         self, scenario: str = None, topology: str = None,
         start_tick: int = 0, durations: int = 100, snapshot_resolution: int = 1, max_snapshots: int = None,
         decision_mode: DecisionMode = DecisionMode.Sequential,
-        business_engine_cls: type = None,
+        business_engine_cls: type = None, disable_finished_events: bool = False,
         options: dict = {}
     ):
         super().__init__(
             scenario, topology, start_tick, durations,
-            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls, options
+            snapshot_resolution, max_snapshots, decision_mode, business_engine_cls,
+            disable_finished_events, options
         )
 
         self._name = f'{self._scenario}:{self._topology}' if business_engine_cls is None \
             else business_engine_cls.__name__
         self._business_engine: AbsBusinessEngine = None
 
-        self._event_buffer = EventBuffer()
+        self._event_buffer = EventBuffer(disable_finished_events)
+
+        # decision_events array for dump.
+        self._decision_events = []
 
         # decision_events array for dump.
         self._decision_events = []
@@ -62,8 +68,8 @@ class Env(AbsEnv):
         # Initialize the business engine.
         self._init_business_engine()
 
-        if 'enable-dump-snapshot' in self._additional_options:
-            parent_path = self._additional_options['enable-dump-snapshot']
+        if "enable-dump-snapshot" in self._additional_options:
+            parent_path = self._additional_options["enable-dump-snapshot"]
             self._converter = DumpConverter(parent_path, self._business_engine._scenario_name)
             self._converter.reset_folder_path()
 
@@ -101,11 +107,13 @@ class Env(AbsEnv):
 
         self._event_buffer.reset()
 
-        if 'enable-dump-snapshot' in self._additional_options:
-            if self._business_engine._frame is not None:
-                self._business_engine._frame.dump(self._converter.get_new_snapshot_folder())
-                self._converter.start_processing(self._business_engine.name_mapping_file_path)
-                self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
+        if ("enable-dump-snapshot" in self._additional_options) and (self._business_engine._frame is not None):
+            dump_folder = self._converter.get_new_snapshot_folder()
+
+            self._business_engine._frame.dump(dump_folder)
+            self._converter.start_processing(self._business_engine.name_mapping_file_path)
+            self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
+            self._business_engine.dump(dump_folder)
 
         self._decision_events.clear()
 
@@ -282,17 +290,19 @@ class Env(AbsEnv):
                     actions = [actions]
 
                 # Generate a new atom event first.
-                action_event = self._event_buffer.gen_atom_event(self._tick, DECISION_EVENT, actions)
+                action_event = self._event_buffer.gen_action_event(self._tick, actions)
 
+                # NOTE: decision event always be a CascadeEvent
                 # We just append the action into sub event of first pending cascade event.
                 pending_events[0].state = EventState.EXECUTING
-                pending_events[0].immediate_event_list.append(action_event)
+                pending_events[0].add_immediate_event(action_event, is_head=True)
 
                 if self._decision_mode == DecisionMode.Joint:
                     # For joint event, we will disable following cascade event.
 
                     # We expect that first action contains a src_event_id to support joint event with sequential action.
-                    action_related_event_id = None if len(actions) == 1 else getattr(actions[0], "src_event_id", None)
+                    action_related_event_id = None if len(
+                        actions) == 1 else getattr(actions[0], "src_event_id", None)
 
                     # If the first action has a decision event attached, it means sequential action is supported.
                     is_support_seq_action = action_related_event_id is not None

@@ -4,15 +4,16 @@ import os
 from maro.simulator import Env
 from maro.utils import Logger
 
-from .actor import ParallelActor
-from .agent_manager import SimpleAgentManger
-from .learner import GNNLearner
-from .state_shaper import GNNStateShaper
-from .utils import decision_cnt_analysis, load_config, return_scaler, save_code, save_config
+from components import (
+    GNNLearner, GNNStateShaper, ParallelActor, SimpleAgentManger,
+    decision_cnt_analysis, load_config, return_scaler, save_code, save_config
+)
 
 if __name__ == "__main__":
-    config_pth = "examples/cim/gnn/config.yml"
-    config = load_config(config_pth)
+    real_path = os.path.split(os.path.realpath(__file__))[0]
+
+    config_path = os.path.join(real_path, "config.yml")
+    config = load_config(config_path)
 
     # Generate log path.
     date_str = datetime.datetime.now().strftime("%Y%m%d")
@@ -63,7 +64,7 @@ if __name__ == "__main__":
 
     # Learner function for training and testing.
     learner = GNNLearner(actor, agent_manager, logger=simulation_logger)
-    learner.train(config.training)
+    learner.learn(config.training)
 
     # Cancel all the child process used for rollout.
     actor.exit()
