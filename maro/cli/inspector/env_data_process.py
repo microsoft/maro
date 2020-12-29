@@ -39,7 +39,7 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
         force (str): Indicates whether regenerate data. Expected input is True/False.
         **kwargs (dict): The irrelevant variable length key-value pair.
     """
-    
+
     if not os.path.exists(os.path.join(source_path, "manifest.yml")):
         raise CliException("Manifest file missed.")
     settings = yaml.load(
@@ -147,7 +147,7 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
         scenario (GlobalScenarios): Current scenario.
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
-        epoch_num (int): Total number of epoches, 
+        epoch_num (int): Total number of epoches,
             i.e. the total number of data folders since there is a folder per epoch.
     """
     ports_header = ["capacity", "empty", "full", "on_shipper", "on_consignee", "shortage", "booking", "fulfillment"]

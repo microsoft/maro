@@ -6,7 +6,7 @@ import datetime
 import json
 
 from maro.cli.utils.subprocess import SubProcess
-from maro.utils.exception.cli_exception import CommandError, DeploymentError
+from maro.utils.exception.cli_exception import CommandExecutionError, DeploymentError
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -29,7 +29,7 @@ class AzureExecutor:
         try:
             return_str = SubProcess.run(command)
             return json.loads(return_str)
-        except CommandError:
+        except CommandExecutionError:
             return None
 
     @staticmethod
@@ -38,7 +38,15 @@ class AzureExecutor:
         _ = SubProcess.run(command)
 
     @staticmethod
-    def delete_resource_group(resource_group: str):
+    def delete_resource_group(resource_group: str) -> None:
+        """Delete a resource group without prompting.
+
+        Args:
+            resource_group (str): Name of resource group.
+
+        Returns:
+            None.
+        """
         command = f"az group delete --yes --name {resource_group}"
         _ = SubProcess.run(command)
 
@@ -65,7 +73,7 @@ class AzureExecutor:
         )
         try:
             _ = SubProcess.run(command)
-        except CommandError as e:
+        except CommandExecutionError as e:
             error = json.loads(AzureExecutor._get_valid_json(e.get_message()))["error"]
             raise DeploymentError(error["message"])
 
@@ -219,6 +227,20 @@ class AzureExecutor:
         sas_str = SubProcess.run(command=command).strip("\n").replace('"', "")
         logger.debug(sas_str)
         return sas_str
+
+    @staticmethod
+    def get_connection_string(storage_account_name: str):
+        """Get the connection string for a storage account.
+
+        Args:
+            storage_account_name: The storage account name.
+
+        Returns:
+            str: Connection string.
+        """
+        command = f"az storage account show-connection-string --name {storage_account_name}"
+        return_str = SubProcess.run(command=command)
+        return json.loads(return_str)["connectionString"]
 
     # Utils
 

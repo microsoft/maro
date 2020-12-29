@@ -28,7 +28,7 @@ class ActorProxy(object):
         self._experience_collecting_func = experience_collecting_func
 
     def roll_out(
-        self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = False, return_details: bool = True
+        self, model_dict: dict = None, exploration_params=None, done: bool = False, return_details: bool = True
     ):
         """Send roll-out requests to remote actors.
 
@@ -40,7 +40,7 @@ class ActorProxy(object):
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
                 to perform roll-out.
-            epsilon_dict (dict): Exploration rate by agent.
+            exploration_params: Exploration parameters.
             done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
                 This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return experiences as well as performance metrics provided by the env.
@@ -50,28 +50,29 @@ class ActorProxy(object):
         """
         if done:
             self._proxy.ibroadcast(
+                component_type="actor",
                 tag=MessageTag.ROLLOUT,
                 session_type=SessionType.NOTIFICATION,
                 payload={PayloadKey.DONE: True}
             )
             return None, None
-        else:
-            payloads = [(peer, {PayloadKey.MODEL: model_dict,
-                                PayloadKey.EPSILON: epsilon_dict,
-                                PayloadKey.RETURN_DETAILS: return_details})
-                        for peer in self._proxy.peers["actor"]]
-            # TODO: double check when ack enable
-            replies = self._proxy.scatter(
-                tag=MessageTag.ROLLOUT,
-                session_type=SessionType.TASK,
-                destination_payload_list=payloads
-            )
 
-            performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
-            details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
-            details = self._experience_collecting_func(details_by_source) if return_details else None
+        payloads = [(peer, {PayloadKey.MODEL: model_dict,
+                            PayloadKey.EXPLORATION_PARAMS: exploration_params,
+                            PayloadKey.RETURN_DETAILS: return_details})
+                    for peer in self._proxy.peers_name["actor"]]
+        # TODO: double check when ack enable
+        replies = self._proxy.scatter(
+            tag=MessageTag.ROLLOUT,
+            session_type=SessionType.TASK,
+            destination_payload_list=payloads
+        )
 
-            return performance, details
+        performance = [(msg.source, msg.payload[PayloadKey.PERFORMANCE]) for msg in replies]
+        details_by_source = {msg.source: msg.payload[PayloadKey.DETAILS] for msg in replies}
+        details = self._experience_collecting_func(details_by_source) if return_details else None
+
+        return performance, details
 
 
 class ActorWorker(object):
@@ -84,7 +85,7 @@ class ActorWorker(object):
     def __init__(self, local_actor: AbsActor, proxy_params):
         self._local_actor = local_actor
         self._proxy = Proxy(component_type="actor", **proxy_params)
-        self._registry_table = RegisterTable(self._proxy.get_peers)
+        self._registry_table = RegisterTable(self._proxy.peers_name)
         self._registry_table.register_event_handler("learner:rollout:1", self.on_rollout_request)
 
     def on_rollout_request(self, message):
@@ -99,7 +100,7 @@ class ActorWorker(object):
 
         performance, details = self._local_actor.roll_out(
             model_dict=data[PayloadKey.MODEL],
-            epsilon_dict=data[PayloadKey.EPSILON],
+            exploration_params=data[PayloadKey.EXPLORATION_PARAMS],
             return_details=data[PayloadKey.RETURN_DETAILS]
         )
 

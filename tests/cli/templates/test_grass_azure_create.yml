@@ -1,8 +1,7 @@
 name: ""
-mode: grass
+mode: grass/azure
 
 cloud:
-  infra: azure
   location: japaneast
   resource_group: ""
   subscription: ""
@@ -13,3 +12,7 @@ user:
 
 master:
   node_size: Standard_D2s_v3
+
+connection:
+  ssh:
+    port: 51811

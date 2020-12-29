@@ -235,7 +235,7 @@ def _generate_intra_view_by_snapshot(
     )
     # Get sampled data and get station name.
     down_pooling_sample_list = helper.get_sample_index_list(stations_num, selected_station_sample_ratio)
-    
+
     attribute_option = data_formula["attribute_option"]
     attribute_option.append("name")
     if selected_station_sample_ratio == 0:

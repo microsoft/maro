@@ -382,7 +382,6 @@ cdef class FrameBase:
     def dump(self, filePath):
         self._backend.dump(filePath)
 
-
 # Wrapper to access specified node in snapshots (read-only), to provide quick way for querying.
 # All the slice interface will start from here to construct final parameters.
 cdef class SnapshotNode:

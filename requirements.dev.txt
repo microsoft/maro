@@ -35,3 +35,5 @@ PuLP=2.1
 streamlit==0.69.1
 altair==4.1.0
 tqdm==4.51.0
+editorconfig-checker
+aria2p==0.9.1
