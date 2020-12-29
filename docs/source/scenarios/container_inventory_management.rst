@@ -659,7 +659,7 @@ data range. To change "Epoch Sampling Ratio", user could change the
 sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <../citi_bike.html>`_.
 
 For description of Attributes Selection in charts and Formula
-Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
+Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_.
 
 .. figure:: ..\images\visualization\dashboard\cim_inter_epoch.gif
    :alt: cim\_inter\_epoch
@@ -677,7 +677,7 @@ types of attributes, it is divided into two levels: accumulated data
 If user choose to view information by ports, attributes of the selected
 port would be displayed.
 
-Chart characteristics and data selection method please refer to `Citi Bike Examples <../citi_bike.html>`_
+Chart characteristics and data selection method please refer to `Citi Bike Examples <../citi_bike.html>`_.
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif
    :alt: cim\_intra\_epoch\_by\_ports

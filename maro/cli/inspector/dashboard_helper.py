@@ -71,6 +71,7 @@ def get_sample_ratio_selection_list(data_num: int) -> list:
         List(float): The sample ratio list for user to select, which is a list range from 0 to 1.
 
     """
+    print([round(i / 1, 2) for i in range(0, 1 + 1)])
     return [round(i / data_num, 2) for i in range(0, data_num + 1)]
 
 
