@@ -656,7 +656,7 @@ Inter-epoch view
 
 To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
-sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <../citi_bike.html>`_
+sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <../citi_bike.html>`_.
 
 For description of Attributes Selection in charts and Formula
 Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
@@ -714,7 +714,7 @@ could be viewed by snapshot.
 Same as ports, user could change the sampling rate of vessels.
 
 Bar chart of Port Detail Attributes and Formula Calculation please refer
-to `Citi Bike Examples <../citi_bike.html>`_
+to `Citi Bike Examples <../citi_bike.html>`_.
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data

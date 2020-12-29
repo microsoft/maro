@@ -770,11 +770,6 @@ This part display cross-epoch summary information. User could select
 the Start Epoch and End Epoch, as well as Epoch Sampling Ratio. Since 
 there is only one epoch, this part would be muted automatically.
 
-For Inter-view, user could view cross-epoch 
-
-.. figure:: ..\images\visualization\dashboard\citi_bike_inter_epoch.gif
-   :alt: citi\_bike\_inter\_epoch
-
 Intra-epoch view
 ^^^^^^^^^^^^^^^^
 
