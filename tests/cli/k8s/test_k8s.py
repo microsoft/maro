@@ -17,8 +17,7 @@ import yaml
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from tests.cli.utils import record_running_time
-
+from ..utils import record_running_time
 
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require cli prerequisites.")
 class TestK8s(unittest.TestCase):

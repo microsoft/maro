@@ -9,8 +9,7 @@ from maro.event_buffer import EventBuffer
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.business_engine import CitibikeBusinessEngine
 from maro.simulator.scenarios.citi_bike.events import CitiBikeEvents
-from tests.utils import be_run_to_end, next_step
-
+from ..utils import be_run_to_end, next_step
 
 def setup_case(case_name: str, max_tick: int):
     config_path = os.path.join("tests/data/citi_bike", case_name)
