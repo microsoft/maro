@@ -117,21 +117,11 @@ Folder Structure
 .. code-block:: sh
 
     ~/.source_folder_root
-        epoch_#                         # folders to restore data of
-                                        each epoch.
+        epoch_#                         # folders to restore data of each epoch.
             {resource_holder}.csv       # attributes of current epoch.
-                                        Resource_holder could be port,
-                                        vessel in senario
-                                        container_inventory_management
-                                        or station in senario citi_bike.
-       manifest.yml                     # record basic info like
-                                        scenario name, epoch\_num,
-                                        index\_name\_mapping file name.
-       index\_name\_mapping file        # record the relationship
-                                        between an index and its name of
-                                        resource holders.
-       {resource_holder}_summary.csv    # record cross-epoch summary information.
-                                        Generated after data processing.
+       manifest.yml                     # basic info like scenario name, epoch\_num.
+       index\_name\_mapping file        # relationship between an index and its name of resource holders.
+       {resource_holder}_summary.csv    # cross-epoch summary information. 
 
 
 
@@ -140,5 +130,5 @@ Folder Structure
 Examples
 --------
 Examples of each scenarios please refer to docs of each scenarios:
-`Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
+`Container Inventory Management <https://github.com/Meroy9819/maro/blob/v0.2_vis/docs/source/scenarios/container_inventory_management.rst>`_.
 `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
