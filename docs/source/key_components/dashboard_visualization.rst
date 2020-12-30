@@ -15,13 +15,22 @@ and inter-epoch view. User could switch between them freely.
 
 Intra-epoch view
 ~~~~~~~~~~~~~~~~
-Detailed information of resource holders and selected tick could be
-viewed under this mode.
+User could view detailed information of selected resource holders or tick
+under this mode. In order for users to better understand the data, we
+separate the data into time dimension and space dimension. Users could view
+both the value of a resource holder's property over time and the state of
+all resource holders at a selected time(e.g. tick).
 
 Inter-epoch view
 ~~~~~~~~~~~~~~~~
-Cross-epoch comprehensive and specific information could be 
-viewed under this mode.
+User could view cross-epoch information under this mode.
+In order to make users intuitively observe the results of the iterative
+algorithm, such as whether the results converge as expected, we extracted
+important attributes of resource holder from each epoch as a summary of
+the current epoch and display them centrally in the Inter-epoch View.
+Users are free to choose the interval they care about and the sampling
+rate within the selected interval. Line chart and bar chart can
+effectively help users to know the results of the experiment.
 
 Epoch/Snapshot/Resource Holder Selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -115,4 +124,6 @@ Folder Structure
 
 Examples
 --------
-Examples of each scenarios please refer to docs of each scenarios.
+Examples of each scenarios please refer to docs of each scenarios:
+`Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
+`Citi Bike <../scenarios/citi_bike.html#Visualization>`_.

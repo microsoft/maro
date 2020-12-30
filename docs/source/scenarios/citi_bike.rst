@@ -762,7 +762,7 @@ Visualization
 The resource holder in this scenario is the bike station.
 The number of epoches is varied based on selected strategy.
 Currently, we generate result with Greedy algorithm.
-Only one epoch is included in result.
+Only one epoch is included in result. 
 
 Inter-epoch view
 ^^^^^^^^^^^^^^^^
