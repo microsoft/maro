@@ -110,8 +110,8 @@ e.g.
 ----
 
 Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
-Expected source_path is dumped snapshot files. The structure of input file
-folder should be like this:
+Parameter **source_path** refers to the path of dumped snapshot files.
+The expected structure of file folder should be like this:
 
 Folder Structure
 
