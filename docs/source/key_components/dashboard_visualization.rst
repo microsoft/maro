@@ -105,11 +105,12 @@ e.g.
 
 .. code-block:: sh
 
-    maro inspector env --source .\maro\dumper_files --force true
+    maro inspector env --source_path .\maro\dumper_files --force true
 
 ----
 
-Expected data is dumped snapshot files. The structure of input file
+Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
+Expected source_path is dumped snapshot files. The structure of input file
 folder should be like this:
 
 Folder Structure
@@ -126,6 +127,11 @@ Folder Structure
 
 
 ----
+
+Check files in your folder carefully before launching the visualization tool.
+If any file is missed compared with the expected folder structure
+displayed above, the command line would prompt users with an error message.
+The visualization Tool looks for the free port to launch page in sequence, starting with port 8501.
 
 Examples
 --------
