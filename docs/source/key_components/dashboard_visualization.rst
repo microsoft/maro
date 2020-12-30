@@ -130,5 +130,5 @@ Folder Structure
 Examples
 --------
 Examples of each scenarios please refer to docs of each scenarios:
-`Container Inventory Management <https://github.com/Meroy9819/maro/blob/v0.2_vis/docs/source/scenarios/container_inventory_management.rst>`_.
+`Container Inventory Management <https://github.com/Meroy9819/maro/blob/v0.2_vis/docs/source/scenarios/container_inventory_management.rst#Visualization>`_.
 `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
