@@ -20,13 +20,11 @@ class TestDashboard(unittest.TestCase):
         """Test method get_sample_index_list(a,b)"""
         self.assertEqual(
             [
-                [
-                    0, 4, 8, 12, 16, 20,
-                    24, 28, 32, 36, 40,
-                    44, 48, 52, 56, 60,
-                    64, 68, 72, 76, 80,
-                    84, 88, 92, 96
-                ]
+                0, 4, 8, 12, 16, 20,
+                24, 28, 32, 36, 40,
+                44, 48, 52, 56, 60,
+                64, 68, 72, 76, 80,
+                84, 88, 92, 96
             ],
             get_sample_index_list(100, 0.21)
         )
