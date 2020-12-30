@@ -11,12 +11,13 @@ from pathlib import Path
 from ..utils.details import load_cluster_details
 from ..utils.subprocess import SubProcess
 
-START_SERVICE_COMMAND = """\
+START_NODE_AGENT_COMMAND = """\
 systemctl --user daemon-reload
 systemctl --user start maro-node-agent.service
 systemctl --user enable maro-node-agent.service
 loginctl enable-linger {admin_username}  # Make sure the user is not logged out
 """
+
 
 if __name__ == "__main__":
     # Load args
@@ -32,8 +33,8 @@ if __name__ == "__main__":
     redis_port = cluster_details["master"]["redis"]["port"]
 
     # Dump node_agent.config
-    os.makedirs(os.path.expanduser("~/.maro-local/agents/"), exist_ok=True)
-    with open(os.path.expanduser("~/.maro-local/agents/maro-node-agent.config"), "w") as fw:
+    os.makedirs(os.path.expanduser("~/.maro-local/services/"), exist_ok=True)
+    with open(os.path.expanduser("~/.maro-local/services/maro-node-agent.config"), "w") as fw:
         json.dump({
             "cluster_name": args.cluster_name,
             "node_name": args.node_name,
@@ -42,7 +43,7 @@ if __name__ == "__main__":
         }, fw)
 
     # Load .service
-    with open(os.path.expanduser("~/.maro/lib/grass/agents/systemd/maro-node-agent.service"), "r") as fr:
+    with open(os.path.expanduser("~/.maro/lib/grass/services/node_agent/maro-node-agent.service"), "r") as fr:
         service_file = fr.read()
 
     # Rewrite data in .service and write it to systemd folder
@@ -52,6 +53,6 @@ if __name__ == "__main__":
         fw.write(service_file)
 
     # Exec command
-    command = START_SERVICE_COMMAND.format(admin_username=admin_username)
+    command = START_NODE_AGENT_COMMAND.format(admin_username=admin_username)
     return_str = SubProcess.run(command=command)
     sys.stdout.write(return_str)

@@ -16,7 +16,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
-from maro.cli.grass.utils.params import ContainerStatus, NodeStatus
+from maro.cli.grass.utils.params import ContainerStatus, NodeStatus, GrassParams
 from maro.cli.utils.details import load_cluster_details, save_cluster_details
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_node_name
@@ -68,9 +68,14 @@ class GrassAzureExecutor(GrassExecutor):
             "root['master']['fluentd']['port']": GlobalParams.DEFAULT_FLUENTD_PORT,
             "root['master']['samba']": {"password": samba_password},
             "root['master']['samba']['password']": samba_password,
-            "root['connection']": {"ssh": {"port": GlobalParams.DEFAULT_SSH_PORT}},
+            "root['connection']": {
+                "ssh": {"port": GlobalParams.DEFAULT_SSH_PORT},
+                "api_server": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
+            },
             "root['connection']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
-            "root['connection']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT
+            "root['connection']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT,
+            "root['connection']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
+            "root['connection']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT
         }
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
@@ -302,7 +307,7 @@ class GrassAzureExecutor(GrassExecutor):
         self.remote_init_master()
 
         # Load master agent service
-        self.remote_start_master_agent_service()
+        self.remote_start_master_services()
 
         # Save details
         master_details["public_key"] = public_key
@@ -526,20 +531,20 @@ class GrassAzureExecutor(GrassExecutor):
             node_ip_address=node_public_ip_address
         )
 
-        # Get public key
+        # Load node agent service
+        self.remote_start_node_services(
+            node_name=node_name,
+            node_ip_address=node_public_ip_address
+        )
+
+        # Get public key FIXME: deprecated
         public_key = self.remote_get_public_key(node_ip_address=node_public_ip_address)
 
-        # Save details
+        # Save details FIXME: deprecated
         node_details["public_key"] = public_key
         self.remote_create_node_details(
             node_name=node_name,
             node_details=node_details
-        )
-
-        # Load node agent service
-        self.remote_start_node_agent_service(
-            node_name=node_name,
-            node_ip_address=node_public_ip_address
         )
 
         logger.info_green(f"Node {node_name} is initialized")
@@ -587,7 +592,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Start node agent service
-        self.remote_start_node_agent_service(
+        self.remote_start_node_services(
             node_name=node_name,
             node_ip_address=node_public_ip_address
         )
@@ -629,7 +634,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Stopping node {node_name}")
 
         # Stop node agent service
-        self.remote_stop_node_agent_service(node_ip_address=node_ip_address)
+        self.remote_stop_node_services(node_ip_address=node_ip_address)
 
         # Stop node
         AzureExecutor.stop_vm(

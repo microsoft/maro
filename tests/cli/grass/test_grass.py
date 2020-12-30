@@ -104,7 +104,7 @@ class TestGrass(unittest.TestCase):
 
     # Utils
 
-    def _get_node_details(self) -> dict:
+    def _list_nodes_details(self) -> dict:
         command = f"maro grass node list {self.cluster_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
@@ -146,7 +146,7 @@ class TestGrass(unittest.TestCase):
         self._gracefully_wait(secs=15)
 
         # Check validity
-        nodes_details = self._get_node_details()
+        nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 1)
         for _, node_details in nodes_details.items():
             self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
@@ -167,7 +167,7 @@ class TestGrass(unittest.TestCase):
         self._gracefully_wait(secs=15)
 
         # Check validity
-        nodes_details = self._get_node_details()
+        nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 1)
         for _, node_details in nodes_details.items():
             self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
@@ -189,7 +189,7 @@ class TestGrass(unittest.TestCase):
         self._gracefully_wait(secs=15)
 
         # Check validity
-        nodes_details = self._get_node_details()
+        nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 2)
         for _, node_details in nodes_details.items():
             self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
@@ -211,7 +211,7 @@ class TestGrass(unittest.TestCase):
         self._gracefully_wait(secs=15)
 
         # Check validity
-        nodes_details = self._get_node_details()
+        nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
         stopped_count = 0
@@ -240,7 +240,7 @@ class TestGrass(unittest.TestCase):
         self._gracefully_wait(secs=15)
 
         # Check validity
-        nodes_details = self._get_node_details()
+        nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
         stopped_count = 0
@@ -272,7 +272,7 @@ class TestGrass(unittest.TestCase):
         self._gracefully_wait(secs=15)
 
         # Check validity
-        nodes_details = self._get_node_details()
+        nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
         for _, node_details in nodes_details.items():
@@ -351,6 +351,22 @@ class TestGrass(unittest.TestCase):
         SubProcess.run(command)
         command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
         SubProcess.interactive_run(command)
+
+        # Check image status
+        remain_idx = 0
+        is_loaded = False
+        while remain_idx <= 100:
+            is_loaded = True
+            nodes_details = self._list_nodes_details()
+            for _, node_details in nodes_details.items():
+                if "maro_runtime_cpu_test" not in node_details["image_files"]:
+                    is_loaded = False
+                    break
+            if is_loaded:
+                break
+            time.sleep(10)
+            remain_idx += 1
+        self.assertTrue(is_loaded)
 
     @unittest.skipIf(os.environ.get("orchestration_only", False), "Skip if we want to test orchestration stage only.")
     @record_running_time(func_to_time=test_func_to_time)

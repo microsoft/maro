@@ -31,9 +31,10 @@ if __name__ == "__main__":
         charset="utf-8",
         decode_responses=True
     )
-    set_job_details(
-        redis=redis,
-        cluster_name=args.cluster_name,
-        job_name=args.job_name,
-        job_details=job_details
-    )
+    with redis.lock("lock:master"):
+        set_job_details(
+            redis=redis,
+            cluster_name=args.cluster_name,
+            job_name=args.job_name,
+            job_details=job_details
+        )

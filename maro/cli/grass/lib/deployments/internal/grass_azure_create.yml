@@ -22,3 +22,5 @@ master:
 connection:
   ssh:
     port: ""
+  api_server:
+    port: ""

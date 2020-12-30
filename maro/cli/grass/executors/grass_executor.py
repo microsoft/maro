@@ -512,7 +512,7 @@ class GrassExecutor:
         )
         SubProcess.run(command)
 
-    def remote_start_master_agent_service(self):
+    def remote_start_master_services(self):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
             f"{self.admin_username}@{self.master_public_ip_address} "
@@ -521,15 +521,26 @@ class GrassExecutor:
         )
         _ = SubProcess.run(command)
 
-    def remote_start_node_agent_service(self, node_name: str, node_ip_address: str):
+    def remote_start_node_services(self, node_name: str, node_ip_address: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.start_node_agent_service "
             f"{self.cluster_name} {node_name}'"
         )
         _ = SubProcess.run(command)
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.start_node_api_server_service "
+            f"{self.cluster_name}'"
+        )
+        _ = SubProcess.run(command)
 
-    def remote_stop_node_agent_service(self, node_ip_address: str):
+    def remote_stop_node_services(self, node_ip_address: str):
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.stop_node_api_server_service'"
+        )
+        _ = SubProcess.run(command)
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.stop_node_agent_service'"

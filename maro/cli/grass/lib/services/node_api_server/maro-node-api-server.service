@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 WorkingDirectory={home_path}/.maro/lib/grass
-ExecStart=/usr/bin/python3 -m agents.node_agent
+ExecStart={home_path}/.local/bin/gunicorn --bind 0.0.0.0:{api_server_port} services.node_api_server.root:app
 
 [Install]
 WantedBy=default.target

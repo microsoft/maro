@@ -13,56 +13,13 @@ import uuid
 
 from redis import Redis
 
-from .utils.details import load_cluster_details
-from .utils.exception import CommandExecutionError, ResourceAllocationFailed, StartContainerError
-from .utils.executors.redis_executor import RedisExecutor
-from .utils.resource import ContainerResource, NodeResource
-from .utils.subprocess import SubProcess
+from .node_api_client import NodeApiClient
+from ..utils.details import load_cluster_details
+from ..utils.exception import ResourceAllocationFailed, StartContainerError
+from ..utils.executors.redis_executor import RedisExecutor
+from ..utils.resource import ContainerResource, NodeResource
 
 logger = logging.getLogger(__name__)
-
-START_CONTAINER_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
-    "docker run "
-    "-it -d "
-    "--cpus {cpu} "
-    "-m {memory} "
-    "--name {container_name} "
-    "--network host "
-    "--log-driver=fluentd "
-    "--log-opt tag=maro.job_id.{job_id}.container_name.{container_name} "
-    "--log-opt fluentd-address={master_hostname}:{fluentd_port} "
-    "-v {mount_source}:{mount_target} "
-    "{environment_parameters} {labels} "
-    "{image_name} {command}"
-)
-
-START_CONTAINER_WITH_GPU_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
-    "docker run "
-    "-it -d "
-    "--cpus {cpu} "
-    "-m {memory} "
-    "--gpus {gpu} "
-    "--name {container_name} "
-    "--network host "
-    "--log-driver=fluentd "
-    "--log-opt tag=maro.job_id.{job_id}.container_name.{container_name} "
-    "--log-opt fluentd-address={master_hostname}:{fluentd_port} "
-    "-v {mount_source}:{mount_target} "
-    "{environment_parameters} {labels} "
-    "{image_name} {command}"
-)
-
-REMOVE_CONTAINER_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
-    "docker rm -f {containers}"
-)
-
-STOP_CONTAINER_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
-    "docker stop {containers}"
-)
 
 AVAILABLE_METRICS = {
     "cpu",
@@ -222,6 +179,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
         self._ssh_port = cluster_details["connection"]["ssh"]["port"]
+        self._api_server_port = cluster_details["connection"]["api_server"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
         self._redis = Redis(
             host="localhost",
@@ -264,7 +222,16 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 job_runtime_details=job_runtime_details
             )
             if is_remove_container:
-                self._remove_container(container_name=container_name, container_details=container_details)
+                node_name = container_details["node_name"]
+                node_details = self._redis_executor.get_node_details(
+                    cluster_name=self._cluster_name,
+                    node_name=node_name
+                )
+                NodeApiClient.remove_container(
+                    hostname=node_details["hostname"],
+                    port=self._api_server_port,
+                    container_name=container_name,
+                )
 
             # Restart container.
             if self._is_restart_container(
@@ -406,35 +373,6 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             except StartContainerError as e:
                 logger.warning(f"Start container failed with {e}")
 
-    def _remove_container(self, container_name: str, container_details: dict) -> None:
-        """Remove container.
-
-        Args:
-            container_name (str): Name of the container.
-            container_details (dict): Details of the container.
-
-        Returns:
-            None.
-        """
-        # Get details and params.
-        node_name = container_details["node_name"]
-        node_details = self._redis_executor.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=node_name
-        )
-
-        # Load and exec command.
-        command = REMOVE_CONTAINER_COMMAND.format(
-            admin_username=self._admin_username,
-            node_hostname=node_details["hostname"],
-            containers=container_name,
-            ssh_port=self._ssh_port
-        )
-        try:
-            _ = SubProcess.run(command=command)
-        except CommandExecutionError:
-            logger.error(f"No container {container_name} in {node_name}")
-
     def _stop_job(self, job_id: str, is_remove_container: bool) -> None:
         """Stop job.
 
@@ -464,26 +402,19 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     stoppable_containers.append(container_name)
 
             # Stop containers.
-            if len(stoppable_containers) > 0:
+            for container_name in stoppable_containers:
                 if is_remove_container:
-                    command = REMOVE_CONTAINER_COMMAND.format(
-                        admin_username=self._admin_username,
-                        node_hostname=node_hostname,
-                        containers=" ".join(stoppable_containers),
-                        ssh_port=self._ssh_port
+                    NodeApiClient.remove_container(
+                        hostname=node_hostname,
+                        port=self._api_server_port,
+                        container_name=container_name
                     )
                 else:
-                    command = STOP_CONTAINER_COMMAND.format(
-                        admin_username=self._admin_username,
-                        node_hostname=node_hostname,
-                        containers=" ".join(stoppable_containers),
-                        ssh_port=self._ssh_port
+                    NodeApiClient.stop_container(
+                        hostname=node_hostname,
+                        port=self._api_server_port,
+                        container_name=container_name
                     )
-                try:
-                    _ = SubProcess.run(command=command)
-                except CommandExecutionError as e:
-                    logger.error(e)
-                logger.info(command)
 
     def _start_container(self, container_name: str, node_details: dict, job_details: dict, component_name: str) -> None:
         """Start container.
@@ -501,8 +432,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         component_id_to_component_type = JobExecutor.get_component_id_to_component_type(job_details=job_details)
 
         # Parse params.
-        cluster_name = self._cluster_name
         cluster_id = self._cluster_id
+        cluster_name = self._cluster_name
         node_id = node_details["id"]
         node_name = node_details["name"]
         job_id = job_details["id"]
@@ -510,76 +441,67 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         component_id = container_name.split("-")[1]
         component_index = container_name.split("-")[2]
         component_type = component_id_to_component_type[component_id]
+
         cpu = job_details["components"][component_type]["resources"]["cpu"]
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        # Parse environment parameters and labels.
-        environment_parameters = (
-            f"-e CLUSTER_ID={cluster_id} "
-            f"-e CLUSTER_NAME={cluster_name} "
-            f"-e NODE_ID={node_id} "
-            f"-e NODE_NAME={node_name} "
-            f"-e JOB_ID={job_id} "
-            f"-e JOB_NAME={job_name} "
-            f"-e COMPONENT_ID={component_id} "
-            f"-e COMPONENT_TYPE={component_type} "
-            f"-e COMPONENT_INDEX={component_index} "
-            f"-e CONTAINER_NAME={container_name} "
-            f"-e PYTHONUNBUFFERED=0 "
-            f"-e COMPONENT_NAME={component_name}"
+        maro_mount_source = f"~/.maro/clusters/{cluster_name}/data/"
+        mount_target = job_details["components"][component_type]["mount"]["target"]
+
+        # Build create config.
+        create_config = {
+            # User related.
+            "cpu": cpu,
+            "memory": memory,
+            "command": job_details["components"][component_type]["command"],
+            "image_name": job_details["components"][component_type]["image"],
+            "volumes": [f"{maro_mount_source}:{mount_target}"],
+
+            # System related.
+            "container_name": container_name,
+            "fluentd_address": f"{self._master_hostname}:{self._fluentd_port}",
+            "fluentd_tag": f"maro.job_id.{job_id}.container_name.{container_name}",
+            "environments": {
+                "CLUSTER_ID": cluster_id,
+                "CLUSTER_NAME": cluster_name,
+                "NODE_ID": node_id,
+                "NODE_NAME": node_name,
+                "JOB_ID": job_id,
+                "JOB_NAME": job_name,
+                "COMPONENT_ID": component_id,
+                "COMPONENT_TYPE": component_type,
+                "COMPONENT_INDEX": component_index,
+                "CONTAINER_NAME": container_name,
+                "COMPONENT_NAME": component_name,
+                "PYTHONUNBUFFERED": 0
+            },
+            "labels": {
+                "cluster_id": cluster_id,
+                "cluster_name": cluster_name,
+                "node_id": node_id,
+                "node_name": node_name,
+                "job_id": job_id,
+                "job_name": job_name,
+                "component_id": component_id,
+                "component_type": component_type,
+                "component_index": component_index,
+                "container_name": container_name,
+                "component_name": component_name,
+                "cpu": cpu,
+                "memory": memory
+            }
+        }
+
+        if gpu != 0:
+            create_config["gpu"] = gpu
+            create_config["labels"]["gpu"] = gpu
+
+        NodeApiClient.create_container(
+            hostname=node_details["hostname"],
+            port=self._api_server_port,
+            create_config=create_config
         )
-        labels = (
-            f"-l cluster_id={cluster_id} "
-            f"-l cluster_name={cluster_name} "
-            f"-l node_id={node_id} "
-            f"-l node_name={node_name} "
-            f"-l job_id={job_id} "
-            f"-l job_name={job_name} "
-            f"-l component_type={component_type} "
-            f"-l component_id={component_id} "
-            f"-l component_index={component_index} "
-            f"-l container_name={container_name} "
-            f"-l cpu={cpu} "
-            f"-l memory={memory} "
-            f"-l gpu={gpu}"
-        )
-
-        # Load command.
-        if job_details["components"][component_type]["resources"]["gpu"] != 0:
-            command = START_CONTAINER_WITH_GPU_COMMAND
-        else:
-            command = START_CONTAINER_COMMAND
-        command = command.format(
-            # cluster related.
-            admin_username=self._admin_username,
-            master_hostname=self._master_hostname,
-            node_hostname=node_details["hostname"],
-            fluentd_port=self._fluentd_port,
-            ssh_port=self._ssh_port,
-
-            # job related (user).
-            cpu=cpu,
-            memory=memory,
-            gpu=gpu,
-            mount_target=job_details["components"][component_type]["mount"]["target"],
-            command=job_details["components"][component_type]["command"],
-            image_name=job_details["components"][component_type]["image"],
-
-            # job related (system).
-            container_name=container_name,
-            job_id=job_id,
-            mount_source=f"~/.maro/clusters/{cluster_name}/data/",
-            environment_parameters=environment_parameters,
-            labels=labels
-        )
-
-        # Exec command.
-        logger.info(command)
-        try:
-            _ = SubProcess.run(command=command)
-        except CommandExecutionError as e:
-            raise StartContainerError(e)
 
 
 class PendingJobAgent(multiprocessing.Process):
@@ -590,6 +512,7 @@ class PendingJobAgent(multiprocessing.Process):
         self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
         self._ssh_port = cluster_details["connection"]["ssh"]["port"]
+        self._api_server_port = cluster_details["connection"]["api_server"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
         self._redis = Redis(
             host="localhost",
@@ -681,84 +604,74 @@ class PendingJobAgent(multiprocessing.Process):
         component_id_to_component_type = JobExecutor.get_component_id_to_component_type(job_details=job_details)
 
         # Parse params.
-        cluster_name = self._cluster_name
         cluster_id = self._cluster_id
+        cluster_name = self._cluster_name
         node_id = node_details["id"]
         node_name = node_details["name"]
-        job_name = job_details["name"]
         job_id = job_details["id"]
+        job_name = job_details["name"]
         component_id = container_name.split("-")[1]
         component_index = container_name.split("-")[2]
         component_type = component_id_to_component_type[component_id]
+
         cpu = job_details["components"][component_type]["resources"]["cpu"]
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        # Parse environment parameters and labels.
-        environment_parameters = (
-            f"-e CLUSTER_ID={cluster_id} "
-            f"-e CLUSTER_NAME={cluster_name} "
-            f"-e NODE_ID={node_id} "
-            f"-e NODE_NAME={node_name} "
-            f"-e JOB_ID={job_id} "
-            f"-e JOB_NAME={job_name} "
-            f"-e COMPONENT_ID={component_id} "
-            f"-e COMPONENT_TYPE={component_type} "
-            f"-e COMPONENT_INDEX={component_index} "
-            f"-e CONTAINER_NAME={container_name} "
-            f"-e PYTHONUNBUFFERED=0"
+        maro_mount_source = f"~/.maro/clusters/{cluster_name}/data/"
+        mount_target = job_details["components"][component_type]["mount"]["target"]
+
+        # Build create config.
+        create_config = {
+            # User related.
+            "cpu": cpu,
+            "memory": memory,
+            "command": job_details["components"][component_type]["command"],
+            "image_name": job_details["components"][component_type]["image"],
+            "volumes": [f"{maro_mount_source}:{mount_target}"],
+
+            # System related.
+            "container_name": container_name,
+            "fluentd_address": f"{self._master_hostname}:{self._fluentd_port}",
+            "fluentd_tag": f"maro.job_id.{job_id}.container_name.{container_name}",
+            "environments": {
+                "CLUSTER_ID": cluster_id,
+                "CLUSTER_NAME": cluster_name,
+                "NODE_ID": node_id,
+                "NODE_NAME": node_name,
+                "JOB_ID": job_id,
+                "JOB_NAME": job_name,
+                "COMPONENT_ID": component_id,
+                "COMPONENT_TYPE": component_type,
+                "COMPONENT_INDEX": component_index,
+                "CONTAINER_NAME": container_name,
+                "PYTHONUNBUFFERED": 0
+            },
+            "labels": {
+                "cluster_id": cluster_id,
+                "cluster_name": cluster_name,
+                "node_id": node_id,
+                "node_name": node_name,
+                "job_id": job_id,
+                "job_name": job_name,
+                "component_id": component_id,
+                "component_type": component_type,
+                "component_index": component_index,
+                "container_name": container_name,
+                "cpu": cpu,
+                "memory": memory
+            }
+        }
+
+        if gpu != 0:
+            create_config["gpu"] = gpu
+            create_config["labels"]["gpu"] = gpu
+
+        NodeApiClient.create_container(
+            hostname=node_details["hostname"],
+            port=self._api_server_port,
+            create_config=create_config
         )
-        labels = (
-            f"-l cluster_id={cluster_id} "
-            f"-l cluster_name={cluster_name} "
-            f"-l node_id={node_id} "
-            f"-l node_name={node_name} "
-            f"-l job_id={job_id} "
-            f"-l job_name={job_name} "
-            f"-l component_type={component_type} "
-            f"-l component_id={component_id} "
-            f"-l component_index={component_index} "
-            f"-l container_name={container_name} "
-            f"-l cpu={cpu} "
-            f"-l memory={memory} "
-            f"-l gpu={gpu}"
-        )
-
-        # Load command.
-        if job_details["components"][component_type]["resources"]["gpu"] != 0:
-            command = START_CONTAINER_WITH_GPU_COMMAND
-        else:
-            command = START_CONTAINER_COMMAND
-        command = command.format(
-            # cluster related.
-            admin_username=self._admin_username,
-            master_hostname=self._master_hostname,
-            node_hostname=node_details["hostname"],
-            fluentd_port=self._fluentd_port,
-            ssh_port=self._ssh_port,
-
-            # job related (user).
-            cpu=cpu,
-            memory=memory,
-            gpu=gpu,
-            mount_target=job_details["components"][component_type]["mount"]["target"],
-            command=job_details["components"][component_type]["command"],
-            image_name=job_details["components"][component_type]["image"],
-
-            # job related (system).
-            container_name=container_name,
-            job_id=job_id,
-            mount_source=f"~/.maro/clusters/{cluster_name}/data/",
-            environment_parameters=environment_parameters,
-            labels=labels
-        )
-
-        # Exec command.
-        logger.info(command)
-        try:
-            _ = SubProcess.run(command=command)
-        except CommandExecutionError as e:
-            raise ResourceAllocationFailed(e)
 
 
 class KilledJobAgent(multiprocessing.Process):
@@ -768,6 +681,7 @@ class KilledJobAgent(multiprocessing.Process):
         self._cluster_id = cluster_details["id"]
         self._admin_username = cluster_details["user"]["admin_username"]
         self._ssh_port = cluster_details["connection"]["ssh"]["port"]
+        self._api_server_port = cluster_details["connection"]["api_server"]["port"]
         self._redis = Redis(
             host="localhost",
             port=cluster_details["master"]["redis"]["port"],
@@ -848,18 +762,12 @@ class KilledJobAgent(multiprocessing.Process):
                     removable_containers.append(container_name)
 
             # Stop containers.
-            if len(removable_containers) > 0:
-                command = STOP_CONTAINER_COMMAND.format(
-                    admin_username=self._admin_username,
-                    node_hostname=node_hostname,
-                    containers=" ".join(removable_containers),
-                    ssh_port=self._ssh_port
+            for container_name in removable_containers:
+                NodeApiClient.remove_container(
+                    hostname=node_hostname,
+                    port=self._api_server_port,
+                    container_name=container_name
                 )
-                try:
-                    _ = SubProcess.run(command=command)
-                except CommandExecutionError as e:
-                    logger.error(e)
-                logger.info(command)
 
 
 class ResourceManagementExecutor:
@@ -1180,12 +1088,12 @@ class JobExecutor:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.DEBUG,
-        format="[%(levelname)-7s] - %(asctime)s - %(message)s",
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    with open(os.path.expanduser("~/.maro-local/agents/maro-master-agent.config"), "r") as fr:
+    with open(os.path.expanduser("~/.maro-local/services/maro-master-agent.config"), "r") as fr:
         master_agent_config = json.load(fr)
 
     master_agent = MasterAgent(

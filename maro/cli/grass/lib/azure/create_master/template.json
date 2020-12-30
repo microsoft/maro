@@ -76,7 +76,7 @@
       "properties": {
         "securityRules": [
           {
-            "name": "SSH",
+            "name": "ssh",
             "properties": {
               "protocol": "*",
               "sourcePortRange": "*",

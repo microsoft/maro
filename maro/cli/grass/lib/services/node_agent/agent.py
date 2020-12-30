@@ -3,6 +3,7 @@
 
 
 import json
+import logging
 import os
 import signal
 import sys
@@ -10,15 +11,15 @@ import threading
 import time
 from multiprocessing.pool import ThreadPool
 
-import docker
 import psutil
 import redis
 
-from .utils.exception import CommandExecutionError
-from .utils.executors.redis_executor import RedisExecutor
-from .utils.params import NodeStatus
-from .utils.resource import BasicResource
-from .utils.subprocess import SubProcess
+from ..utils.docker_manager import DockerManager
+from ..utils.exception import CommandExecutionError
+from ..utils.executors.redis_executor import RedisExecutor
+from ..utils.params import NodeStatus
+from ..utils.resource import BasicResource
+from ..utils.subprocess import SubProcess
 
 GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
 GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
@@ -74,8 +75,8 @@ class NodeAgent:
             None.
         """
         # Stop agents
-        self.node_tracking_agent.is_terminated = True
-        self.load_image_agent.is_terminated = True
+        self.node_tracking_agent.stop()
+        self.load_image_agent.stop()
 
         # Set STOPPED state
         node_details = self._redis_executor.get_node_details(
@@ -138,12 +139,11 @@ class NodeTrackingAgent(threading.Thread):
             encoding="utf-8", decode_responses=True
         )
         self._redis_executor = RedisExecutor(redis=self._redis)
-        self._docker = docker.APIClient(base_url="unix:///var/run/docker.sock")
 
         # Other params.
         self._check_interval = check_interval
         self._container_details = {}
-        self.is_terminated = False
+        self._is_terminated = False
 
     def run(self) -> None:
         """Start tracking node status and updating details.
@@ -151,10 +151,13 @@ class NodeTrackingAgent(threading.Thread):
         Returns:
             None.
         """
-        while not self.is_terminated:
+        while not self._is_terminated:
             start_time = time.time()
             self._update_details()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+
+    def stop(self):
+        self._is_terminated = True
 
     def _update_details(self) -> None:
         """Update details.
@@ -266,19 +269,20 @@ class NodeTrackingAgent(threading.Thread):
         except CommandExecutionError:
             pass
 
-    def _get_inspects_details(self) -> dict:
+    @staticmethod
+    def _get_inspects_details() -> dict:
         """Get inspects_details of containers in the current node.
 
         Returns:
             dict[str, dict]: container_name to inspect_details mapping.
         """
         # Get container infos in current node.
-        container_infos = self._docker.containers(all=True)
+        container_names = DockerManager.list_container_names()
 
         # Build inspect_details and return
         inspects_details = {}
-        for container_info in container_infos:
-            inspect_details = self._docker.inspect_container(container_info["Id"])
+        for container_name in container_names:
+            inspect_details = DockerManager.inspect_container(container_name)
             inspects_details[inspect_details["Config"]["Labels"]["container_name"]] = inspect_details
         return inspects_details
 
@@ -322,11 +326,10 @@ class LoadImageAgent(threading.Thread):
         self._redis_executor = RedisExecutor(
             redis=redis.Redis(host=master_hostname, port=redis_port, encoding="utf-8", decode_responses=True)
         )
-        self._docker = docker.APIClient(base_url="unix:///var/run/docker.sock")
 
         # Other params.
         self._check_interval = check_interval
-        self.is_terminated = False
+        self._is_terminated = False
 
     def run(self) -> None:
         """Start tracking node status and updating details.
@@ -334,10 +337,13 @@ class LoadImageAgent(threading.Thread):
         Returns:
             None.
         """
-        while not self.is_terminated:
+        while not self._is_terminated:
             start_time = time.time()
             self.load_images()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+
+    def stop(self):
+        self._is_terminated = True
 
     def load_images(self) -> None:
         """Load image from files.
@@ -388,12 +394,21 @@ class LoadImageAgent(threading.Thread):
                 node_details=node_details
             )
 
-    def _load_image(self, image_path: str):
-        self._docker.load_image(data=open(image_path, "rb"))
+    @staticmethod
+    def _load_image(image_path: str):
+        logging.info(f"In loading image: {image_path}")
+        DockerManager.load_image(image_path=image_path)
+        logging.info(f"End of loading image: {image_path}")
 
 
 if __name__ == "__main__":
-    with open(os.path.expanduser("~/.maro-local/agents/maro-node-agent.config"), "r") as fr:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)-7s | %(threadName)-10s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    with open(os.path.expanduser("~/.maro-local/services/maro-node-agent.config"), "r") as fr:
         node_agent_config = json.load(fr)
 
     node_agent = NodeAgent(
