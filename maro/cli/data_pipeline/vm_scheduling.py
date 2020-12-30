@@ -248,7 +248,7 @@ class VmSchedulingPipeline(DataPipeline):
     def _filter_out_vmid(self, vm_table: pd.DataFrame, vm_id_map: dict) -> dict:
         new_id_map = {}
         for key, value in vm_id_map.items():
-            if value in vm_table["vmid"]:
+            if value in vm_table.vmid.values:
                 new_id_map[key] = value
 
         return new_id_map
@@ -257,7 +257,6 @@ class VmSchedulingPipeline(DataPipeline):
         logger.info_green("Process vmtable data.")
         # Process vmtable file.
         id_maps, vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
-
         filtered_vm_id_map = self._filter_out_vmid(vm_table=vm_table, vm_id_map=id_maps[0])
 
         with open(self._clean_file, mode="w", encoding="utf-8", newline="") as f:
