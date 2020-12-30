@@ -185,13 +185,21 @@ class VmSchedulingPipeline(DataPipeline):
             'vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'maxcpu', 'avgcpu', 'p95maxcpu',
             'vmcategory', 'vmcorecountbucket', 'vmmemorybucket'
         ]
-        required_headers = ['vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']
+
+        required_headers = [
+            'vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'vmcategory',
+            'vmcorecountbucket', 'vmmemorybucket'
+        ]
 
         vm_table = pd.read_csv(raw_vm_table_file, header=None, index_col=False, names=headers)
         vm_table = vm_table.loc[:, required_headers]
 
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
         vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
+
+        category_map = {'Delay-insensitive': 0, 'Interactive': 1, 'Unknown': 2}
+        vm_table['vmcategory'] = vm_table['vmcategory'].map(category_map)
+
         # Transform vmcorecount '>24' bucket to 30 and vmmemory '>64' to 70.
         vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 30)
         vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 70)
