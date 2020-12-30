@@ -27,9 +27,9 @@ class NNStack(nn.Module):
     def __init__(self, name: str, *blocks: [AbsBlock]):
         super().__init__()
         self._name = name
-        self._input_dim = block_list[0].input_dim
-        self._output_dim = block_list[-1].output_dim
-        self._net = nn.Sequential(*block_list)
+        self._input_dim = blocks[0].input_dim
+        self._output_dim = blocks[-1].output_dim
+        self._net = nn.Sequential(*blocks)
 
     @property
     def name(self):
@@ -75,7 +75,7 @@ class LearningModel(nn.Module):
     ):
         self.validate_dims(*task_stacks, shared_stack=shared_stack)
         super().__init__()
-        self._stack_dict = {stack.name: stack for stack in task_stacks]  
+        self._stack_dict = {stack.name: stack for stack in task_stacks} 
         # shared stack
         self._shared_stack = shared_stack
         if self._shared_stack:
