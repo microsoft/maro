@@ -44,12 +44,6 @@ e.g.
 
 ----
 
-/************
-*************
-dump data doc
-*************
-*************/
-
 Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
 Parameter **source_path** refers to the path of dumped snapshot files.
 The expected structure of file folder should be like this:
@@ -98,7 +92,7 @@ citi_Bike is much simpler, mainly including top-k attributes summary and the cha
 Station in this senario.
 
 Epoch/Snapshot/Resource Holder Selection
-````````````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To view the details of a resource holder or a tick, user could select
 the specific index of epoch/snapshot/resource holder by sliding the slider
