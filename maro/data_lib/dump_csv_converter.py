@@ -1,10 +1,9 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 
 import os
 import threading
-import urllib
 from datetime import datetime
 from math import floor
 from pathlib import Path
@@ -61,7 +60,7 @@ class DumpConverter:
         self._last_snapshot_folder = folder
         return folder
 
-    def process_data(self, filesource: str):
+    def process_data(self, config_data: dict):
         for cur_dir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
                 if file.endswith(".meta"):
@@ -91,10 +90,10 @@ class DumpConverter:
                     dataframe = pd.DataFrame(csv_data)
                     dataframe.to_csv(os.path.join(cur_dir, file.replace(".meta", ".csv")), index=False)
 
-        self.save_manifest_file(filesource)
+        self.save_manifest_file(config_data)
 
-    def start_processing(self, filesource: str):
-        thread = threading.Thread(target=self.process_data, args=(filesource,))
+    def start_processing(self, config_data: dict):
+        thread = threading.Thread(target=self.process_data, args=(config_data,))
         thread.start()
 
     def get_column_info(self, filename):
@@ -149,7 +148,7 @@ class DumpConverter:
 
         return headers, count
 
-    def save_manifest_file(self, filesource: str):
+    def save_manifest_file(self, config_data: dict):
         if self._scenario_name == "":
             return
         outputfile = os.path.join(self._foldername, "manifest.yml")
@@ -168,21 +167,12 @@ class DumpConverter:
         content = {}
         content["scenario"] = self._scenario_name
         # mapping file.
-        if "" != filesource:
-            file_name = os.path.basename(filesource)
-            file_name = os.path.join(self._foldername, file_name)
-            if filesource.lower().startswith("http"):
-                # Download file from web
-                source_data = urllib.request.urlopen(filesource)
-                res_data = source_data.read()
-                with open(file_name, "wb") as f:
-                    f.write(res_data)
-                    f.close()
-            else:
-                # copy file to folder.
-                if os.path.exists(filesource):
-                    copyfile(filesource, file_name)
-            content["mappings"] = os.path.basename(filesource)
+        if config_data is not None:
+            file_name = os.path.join(self._foldername, "config.yml")
+            with open(file_name, "w+") as config_file:
+                yaml.dump(config_data, config_file)
+                config_file.close()
+            content["mappings"] = os.path.basename(file_name)
 
         dump_details = {}
         meta_file_list = []

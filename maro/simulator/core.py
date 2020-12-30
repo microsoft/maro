@@ -59,9 +59,6 @@ class Env(AbsEnv):
         # decision_events array for dump.
         self._decision_events = []
 
-        # decision_events array for dump.
-        self._decision_events = []
-
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
 
@@ -103,6 +100,7 @@ class Env(AbsEnv):
         self._tick = self._start_tick
 
         self._simulate_generator.close()
+
         self._simulate_generator = self._simulate()
 
         self._event_buffer.reset()
@@ -111,7 +109,7 @@ class Env(AbsEnv):
             dump_folder = self._converter.get_new_snapshot_folder()
 
             self._business_engine._frame.dump(dump_folder)
-            self._converter.start_processing(self._business_engine.name_mapping_file_path)
+            self._converter.start_processing(self.configs)
             self._converter.dump_descsion_events(self._decision_events, self._start_tick, self._snapshot_resolution)
             self._business_engine.dump(dump_folder)
 
@@ -290,12 +288,14 @@ class Env(AbsEnv):
                     actions = [actions]
 
                 # Generate a new atom event first.
-                action_event = self._event_buffer.gen_action_event(self._tick, actions)
+                action_event = self._event_buffer.gen_action_event(
+                    self._tick, actions)
 
                 # NOTE: decision event always be a CascadeEvent
                 # We just append the action into sub event of first pending cascade event.
                 pending_events[0].state = EventState.EXECUTING
-                pending_events[0].add_immediate_event(action_event, is_head=True)
+                pending_events[0].add_immediate_event(
+                    action_event, is_head=True)
 
                 if self._decision_mode == DecisionMode.Joint:
                     # For joint event, we will disable following cascade event.

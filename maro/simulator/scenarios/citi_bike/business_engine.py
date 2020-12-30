@@ -87,15 +87,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
         """dict: Current configuration."""
         return self._conf
 
-    @property
-    def name_mapping_file_path(self) -> str:
-        """name mapping file path: Return a file path which contains mapping in specified scenario."""
-        citi_bike_process = CitiBikeProcess(is_temp=True)
-        if self._topology.startswith("toy"):
-            return citi_bike_process.topologies[self._topology]._data_pipeline["trip"]._station_meta_file
-        else:
-            return citi_bike_process.topologies[self._topology]._data_pipeline["trip"]._station_info
-
     def step(self, tick: int):
         """Push business engine to next step.
 
@@ -157,7 +148,6 @@ class CitibikeBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
-
         self._total_trips = 0
         self._total_operate_num = 0
         self._total_shortages = 0
