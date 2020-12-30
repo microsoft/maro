@@ -15,8 +15,8 @@ class TestDashboard(unittest.TestCase):
     def test_get_sample_index_list(self):
         """Test method get_sample_index_list(a,b)"""
         self.assertNotEqual(
-            [],
-            get_sample_index_list(100, 0)
+            [0, 10, 20, 30, 40],
+            get_sample_index_list(50, 0.1)
         )
 
 
