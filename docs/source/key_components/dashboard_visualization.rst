@@ -1,7 +1,7 @@
 Dashboard Visualization
 =======================
 
-Env-dashboard is a post-experiment visualization tool, aims to provide
+Env-dashboard is a post-experimental visualization tool, aims to provide
 more intuitive environment information, which will guide the design of
 the algorithm and continually fine-tuning.
 
@@ -85,8 +85,8 @@ Folder Structure
 
 If any file is missed compared with the expected folder structure
 displayed above, the command line would prompt users with an error message.
-The visualization Tool looks for the free port to launch page in sequence, starting with port 8501.
-The command line prints out the selected port.
+The visualization tool looks for the free port to launch page in sequence, starting with port 8501.
+The command line would print out the selected port.
 
 Feature List
 ------------
@@ -104,31 +104,31 @@ all resource holders at a selected time (e.g. tick).
 
 Content of intra-epoch view is varied between senarios. For example, in senario
 container_inventory_management, the attributes of resource holders are relatively
-complex. Thus, this part is divided into two pieces: Accumulated Attributes and Detail Attributes.
-The former includes the heat map of transfer volume, top-k attributes summary,
-accumulated attributes summary. The latter includes the chart of two resource holders:
+complex. Thus, this view is divided into two parts: Accumulated Attributes and Detail Attributes.
+The former one includes the heat map of transfer volume, top-k attributes summary,
+accumulated attributes summary. The latter one includes the chart of two resource holders:
 Port and Vessel attributes in the scenario container_inventory_management. 
 Detailed introduction please refer to 
 `Container Inventory Management Visualization <../scenarios/container_inventory_management.html#Visualization>`_.
 
 The content of senario citi_Bike is much simpler,
 mainly including top-k attributes summary and the chart of resource holder:
-Station in this senario.
+Station in senario citi_bike.
 Detailed introduction please refer to 
 `Citi Bike Visualization <../scenarios/citi_bike.html#Visualization>`_.
 
 Epoch/Snapshot/Resource Holder Index Selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To view the details of a resource holder or a tick, user could select
 the specific index of epoch/snapshot/resource holder by sliding the slider
 on the left side of page.
 
 Snapshot/Resource Holder Sampling Ratio Selection
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To view trends in the data, or to weed out excess information, user could
-select the sampling ratio of epoch/snapshot/resource holder by sliding to
+select the sampling ratio of snapshot/resource holder by sliding to
 change the number of data to be displayed.
 
 Formula Calculation
@@ -153,7 +153,7 @@ effectively help users to know the results of the experiment.
 
 
 Epoch Sampling Ratio Selection
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of epoch by sliding to
@@ -169,10 +169,6 @@ Examples
 --------
 Examples of each scenarios please refer to docs of each scenarios:
 
-----
+* `Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
 
-`Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
-
-----
-
-`Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
+* `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
