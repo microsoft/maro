@@ -72,7 +72,7 @@ Folder Structure
 
 .. code-block:: sh
 
-    ~/.source_folder_root
+    ./LOCAL_DUMPER_DATA_FOLDER
         epoch_#                         # folders to restore data of each epoch.
             {resource_holder}.csv       # attributes of current epoch.
        manifest.yml                     # basic info like scenario name, number of epoches.
