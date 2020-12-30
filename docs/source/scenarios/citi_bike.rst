@@ -803,7 +803,7 @@ e.g. In this scenario, item "Requirement Info" refers to
 
 Moreover, to improve the flexibility of visualizing data, user could use
 pre-defined formula and selected attributes to generate new attributes.
-Generated attributes would be treated in the same way as origin
+Generated attributes would be treated in the same way as original
 attributes.
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_3.gif

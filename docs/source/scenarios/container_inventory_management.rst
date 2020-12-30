@@ -669,7 +669,7 @@ slider, users can select different epochs. Furthermore, this part of
 data is divided into two dimensions: by snapshot and by port according
 to time and space. In terms of data display, according to the different
 types of attributes, it is divided into two levels: accumulated data
-(accumulated attributes. e.g. acc\_fulfillment) and detail data.
+ (accumulated attributes. e.g. acc\_fulfillment) and detail data.
 
 If user choose to view information by ports, attributes of the selected
 port would be displayed.
@@ -694,7 +694,7 @@ start port to terminal port. By changing the snapshot index, user could
 view the dynamic changes in the volume of cargo delivered by the port
 over time in the current epoch.
 
-The bar chart of Port Acc Attributes displays the global change of
+The bar chart of Port Accumulated Attributes displays the global change of
 ports.
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_acc_data.gif
