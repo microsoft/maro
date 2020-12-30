@@ -704,12 +704,7 @@ Detail Data
 ~~~~~~~~~~~
 
 Since the cargoes is transported through vessels, information of vessels
-could be viewed by snapshot.
-
-Same as ports, user could change the sampling rate of vessels.
-
-Bar chart of Port Detail Attributes and Formula Calculation please refer
-to `Citi Bike Examples <../citi_bike.html>`_.
+could be viewed by snapshot. Same as ports, user could change the sampling rate of vessels.
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data

@@ -818,7 +818,5 @@ of sampled data.
 Particularly, if user want to check the name of a specific station,
 just hovering on the according bar.
 
-Formula calculation please refer to `Citi Bike Examples <#Visualization#Intra-view>`_
-
 .. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_snapshot.gif
    :alt: citi\_bike\_intra\_epoch\_by\_snapshot
