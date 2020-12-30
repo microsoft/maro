@@ -27,8 +27,24 @@ install them with:
 How to Use?
 -----------
 
-To start this visualization tool, maro should be pre-installed. The
-command format is:
+Get Data
+^^^^^^^^
+
+Experimental data is dumped automatically while running the experiment.
+User need to run experiment through the file in folder maro/examples in source code. 
+User could specify dump destination folder by setting the parameter **opts** as below:
+.. code-block:: sh
+
+    opts['enable-dump-snapshot'] = EXPECTED_OUTPUT_FOLDER
+
+----
+If user leave the parameter **opts** empty, data would be dumped to the folder containing 
+experimental file by default.
+
+Launch Visualization Tool
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To start this visualization tool, user need to input command following the format:
 
 .. code-block:: sh
 
@@ -40,7 +56,7 @@ e.g.
 
 .. code-block:: sh
 
-    maro inspector env --source_path .\maro\dumper_files --force true
+    maro inspector env --source_path .\maro\dumper_files --force false
 
 ----
 
@@ -55,7 +71,7 @@ Folder Structure
     ~/.source_folder_root
         epoch_#                         # folders to restore data of each epoch.
             {resource_holder}.csv       # attributes of current epoch.
-       manifest.yml                     # basic info like scenario name, epoch\_num.
+       manifest.yml                     # basic info like scenario name, number of epoches.
        index\_name\_mapping file        # relationship between an index and its name of resource holders.
        {resource_holder}_summary.csv    # cross-epoch summary information. 
 
