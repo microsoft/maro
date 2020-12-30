@@ -656,7 +656,7 @@ Inter-epoch view
 
 To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
-sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <../citi_bike.html>`_.
+sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <./citi_bike.html>`_.
 
 For description of Attributes Selection in charts and Formula
 Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_.
