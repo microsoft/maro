@@ -5,6 +5,9 @@ Env-dashboard is a post-experiment visualization tool, aims to provide
 more intuitive environment information, which will guide the design of
 the algorithm and continually fine-tuning.
 
+Currently, the visualization of senario Container Inventory Management
+and Citi Bike are supported.
+
 Feature List
 ------------
 Basically, each scenario has 2 parts of visualization: intra-epoch view
@@ -17,8 +20,8 @@ viewed under this mode.
 
 Inter-epoch view
 ~~~~~~~~~~~~~~~~
-Comprehensive and specific information by various types of charts like
-line chart, bar chart or heat map could be viewed under this mode.
+Cross-epoch comprehensive and specific information could be 
+viewed under this mode.
 
 Epoch/Snapshot/Resource Holder Selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -87,19 +90,19 @@ Folder Structure
 .. code-block:: sh
 
    |-- ~/.source_folder_root
-       |-- epoch_#                    # folders to restore data of
+       |-- epoch_#                          # folders to restore data of
                                         each epoch
-       |   |--{instance}_info.csv     # attributes of current epoch.
+       |   |--{resource_holder}.csv     # attributes of current epoch.
                                         Instance could be port,
                                         vessel or station
-       |-- manifest.yml               # record basic info like
+       |-- manifest.yml                     # record basic info like
                                         scenario name, epoch\_num,
                                         index\_name\_mapping file name.
-       |-- index\_name\_mapping file  # record the relationship between
-                                        an index and its name.
+       |-- index\_name\_mapping file        # record the relationship
+                                        between an index and its name.
                                         Type of this file varied
                                         between scenarios.
-       |-- {instance}_summary.csv     # instance could be port,
+       |-- {resource_holder}_summary.csv    # instance could be port,
                                         vessel or station.
                                         more detailed files,
                                         which will be used directly
@@ -110,18 +113,6 @@ Folder Structure
 
 ----
 
-Usage
------
-
-Basically, each scenario has 2 parts of visualization: inter epoch
-and intra epoch. User could switch between them freely.
-
-By changing sampling ratio and data display standard, user could view
-the comprehensive and specific information by various types of charts
-like line-chart, bar-chart or heat map.
-
-When viewing data, users can interact freely, such as inputting custom
-parameters according to predefined formulas, switching parameter
-selection, etc.
-
+Examples
+--------
 Examples of each scenarios please refer to docs of each scenarios.
