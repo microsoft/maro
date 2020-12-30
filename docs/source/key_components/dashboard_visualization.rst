@@ -30,16 +30,6 @@ How to Use?
 Get Data
 ^^^^^^^^
 
-Experimental data is dumped automatically while running the experiment.
-User need to run experiment through the file in folder maro/examples in source code. 
-User could specify dump destination folder by setting the parameter **opts** as below:
-.. code-block:: sh
-
-    opts['enable-dump-snapshot'] = EXPECTED_OUTPUT_FOLDER
-
-----
-If user leave the parameter **opts** empty, data would be dumped to the folder containing 
-experimental file by default.
 
 Launch Visualization Tool
 ^^^^^^^^^^^^^^^^^^^^^^^^^
