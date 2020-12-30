@@ -43,7 +43,7 @@ class PendingJobAgent(mp.Process):
         command_pid_list = []
         for component_type, command_info in job_details["components"].items():
             component_number = command_info["num"]
-            component_command = f"JOB_NAME={job_details["name"]} " + command_info["command"]
+            component_command = f"JOB_NAME={job_details['name']} " + command_info["command"]
             for number in range(component_number):
                 job_local_path = os.path.expanduser(f"{LocalPaths.MARO_PROCESS}/{job_details['name']}")
                 if not os.path.exists(job_local_path):
