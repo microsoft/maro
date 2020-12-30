@@ -13,11 +13,10 @@ Dependency
 
 Module **streamlit** and **altair** should be pre-installed.
 
-`streamlit <https://www.streamlit.io/>`_: An open-source app framework.
+* `streamlit <https://www.streamlit.io/>`_: An open-source app framework.
 
---
 
-`altair <https://www.streamlit.io/>`_: A declarative statistical visualization library.
+* `altair <https://www.streamlit.io/>`_: A declarative statistical visualization library.
 
 install them with:
 
