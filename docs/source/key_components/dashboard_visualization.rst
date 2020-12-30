@@ -33,6 +33,7 @@ Get Data
 Experimental data is dumped automatically while running the experiment.
 User need to run experiment through the file in folder maro/examples in source code. 
 User could specify dump destination folder by setting the parameter **opts** as below:
+
 .. code-block:: sh
 
     opts['enable-dump-snapshot'] = EXPECTED_OUTPUT_FOLDER
@@ -112,7 +113,7 @@ The content of senario citi_Bike is much simpler,
 mainly including top-k attributes summary and the chart of resource holder:
 Station in this senario.
 Detailed introduction please refer to 
-`Citi Bike Visualization<../scenarios/citi_bike.html#Visualization>`_.
+`Citi Bike Visualization <../scenarios/citi_bike.html#Visualization>`_.
 
 Epoch/Snapshot/Resource Holder Index Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
