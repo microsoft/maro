@@ -761,14 +761,16 @@ Visualization
 
 The resource holder in this scenario is the bike station.
 The number of epoches is varied based on selected strategy.
-Currently, we generate result with Greedy algorithm.
-Only one epoch is included in result. 
+Currently, we generate result with Greedy Policy.
+Only one epoch is included in result. Thus, inter-epoch view
+would not be displayed.
 
 Inter-epoch view
 ^^^^^^^^^^^^^^^^
+
 This part display cross-epoch summary information. User could select
 the Start Epoch and End Epoch, as well as Epoch Sampling Ratio. Since 
-there is only one epoch, this part would be muted automatically.
+there is only one epoch, this part is hidden.
 
 Intra-epoch view
 ^^^^^^^^^^^^^^^^
