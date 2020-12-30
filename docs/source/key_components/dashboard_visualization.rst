@@ -13,8 +13,11 @@ Dependency
 
 Module **streamlit** and **altair** should be pre-installed.
 
---`streamlit <https://www.streamlit.io/>`_: An open-source app framework.
---`altair <https://www.streamlit.io/>`_: A declarative statistical visualization library.
+`streamlit <https://www.streamlit.io/>`_: An open-source app framework.
+
+----
+
+`altair <https://www.streamlit.io/>`_: A declarative statistical visualization library.
 
 install them with:
 
@@ -166,5 +169,11 @@ Please refer to `Formula Calculation <#Feature List#Intra_epoch View#Formula Cal
 Examples
 --------
 Examples of each scenarios please refer to docs of each scenarios:
+
+----
+
 `Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
+
+----
+
 `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
