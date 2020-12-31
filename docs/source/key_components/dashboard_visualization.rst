@@ -29,11 +29,10 @@ Install them with:
 How to Use?
 -----------
 
-Get Data
+Generating dump data
 ~~~~~~~~
 
-Experimental data is dumped automatically while Initializing the experiment
-with following code:
+The dump data from environment is the data source of visualization. User needs specify a parameter when creating Env object to determine if needs dump data. To generate data, user needs specify "enable-dump-snapshot" parameter with following code:
 
 .. code-block:: sh
 
@@ -43,7 +42,7 @@ with following code:
 
 ----
 
-User could save the code above into a file named **dump_data.py**, and run this file
+Suppose a file named **dump_data.py** contains code for calling Env object to run experiment, and run this file
 with:
 
 .. code-block:: sh
@@ -53,8 +52,8 @@ with:
 ----
 
 User could specify dump destination folder by setting the parameter **options**.
-If user leave the value of this paremeter empty,
-data would be dumped to the folder which start the command.
+If user leave the value **opts['enable-dump-snapshot']** empty,
+data would be dumped to current folder.
 
 
 The possible values of each parameter are listed below:
@@ -80,14 +79,6 @@ The possible values of each parameter are listed below:
             ny.201901 ~ ny.201912
 
             ny.202001 ~ ny.202006
-
-            toy.3s_4t
-
-            toy.4s_4t
-
-            toy.5s_6t
-
-            train
     START_TICK_NUMBER:
         Integer not less than 0.
     DURATION_TIME:
@@ -100,7 +91,9 @@ with following code:
     
 .. code-block:: sh
 
-    opts['enable-dump-snapshot'] = ./dump_data
+    opts = dict()
+
+    opts["enable-dump-snapshot"] = "./dump_data"
 
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=0, durations=100, options=opts)
@@ -108,16 +101,7 @@ with following code:
 ----
 
 If user do not want to dump data, but only want to Initialize the environment, just do not
-input the parameter **options**.
-
-.. code-block:: sh
-
-    opts['enable-dump-snapshot'] = ./dump_data
-
-    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=0, durations=100)
-
-----
+pass value to the parameter **options**.
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
