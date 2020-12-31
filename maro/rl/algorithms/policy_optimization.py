@@ -11,7 +11,7 @@ from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModuleManager
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
 
-ActionWithLogProbability = namedtuple("ActionWithLogProbability", ["action", "log_probability"])
+ActionInfo = namedtuple("ActionInfo", ["action", "log_probability"])
 
 
 class PolicyOptimizationConfig:
@@ -27,14 +27,14 @@ class PolicyOptimization(AbsAlgorithm):
 
     The algorithm family includes policy gradient (e.g. REINFORCE), actor-critic, PPO, etc.
     """
-    def choose_action(self, state: np.ndarray) -> Union[ActionWithLogProbability, List[ActionWithLogProbability]]:
+    def choose_action(self, state: np.ndarray) -> Union[ActionInfo, List[ActionInfo]]:
         """Use the actor (policy) model to generate stochastic actions.
 
         Args:
             state: Input to the actor model.
 
         Returns:
-            A single ActionWithLogProbability namedtuple or a list of ActionWithLogProbability namedtuples.
+            A single ActionInfo namedtuple or a list of ActionInfo namedtuples.
         """
         state = torch.from_numpy(state).to(self._device)
         is_single = len(state.shape) == 1
@@ -44,13 +44,13 @@ class PolicyOptimization(AbsAlgorithm):
         action_distribution = self._model(state, task_name="actor", is_training=False).squeeze().numpy()
         if is_single:
             action = np.random.choice(len(action_distribution), p=action_distribution)
-            return ActionWithLogProbability(action=action, log_probability=np.log(action_distribution[action]))
+            return ActionInfo(action=action, log_probability=np.log(action_distribution[action]))
 
         # batch inference
         batch_results = []
         for distribution in action_distribution:
             action = np.random.choice(len(distribution), p=distribution)
-            batch_results.append(ActionWithLogProbability(action=action, log_probability=np.log(distribution[action])))
+            batch_results.append(ActionInfo(action=action, log_probability=np.log(distribution[action])))
 
         return batch_results
 

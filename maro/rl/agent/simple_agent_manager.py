@@ -4,7 +4,7 @@
 import os
 from abc import abstractmethod
 
-from maro.rl.algorithms.policy_optimization import ActionWithLogProbability
+from maro.rl.algorithms.policy_optimization import ActionInfo
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
@@ -53,7 +53,7 @@ class SimpleAgentManager(AbsAgentManager):
             "agent_id": agent_id,
             "event": decision_event
         }
-        if isinstance(action_info, ActionWithLogProbability):
+        if isinstance(action_info, ActionInfo):
             self._transition_cache["action"] = action_info.action
             self._transition_cache["log_action_probability"] = action_info.log_probability
         else:

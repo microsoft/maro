@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import LearningModuleManager
+from maro.rl.models.learning_model import LearningModel
 
 
 class DQNConfig:
@@ -59,10 +59,10 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (LearningModuleManager): Q-value model.
+        model (LearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    def __init__(self, model: LearningModuleManager, config: DQNConfig):
+    def __init__(self, model: LearningModel, config: DQNConfig):
         self.validate_task_names(model.task_names, {"state_value", "advantage"})
         super().__init__(model, config)
         if isinstance(self._model.output_dim, int):
