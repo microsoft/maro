@@ -12,7 +12,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class AzureExecutor:
+class AzureController:
 
     # Account related
 
@@ -74,7 +74,7 @@ class AzureExecutor:
         try:
             _ = SubProcess.run(command)
         except CommandExecutionError as e:
-            error = json.loads(AzureExecutor._get_valid_json(e.get_message()))["error"]
+            error = json.loads(AzureController._get_valid_json(e.get_message()))["error"]
             raise DeploymentError(error["message"])
 
     @staticmethod
@@ -114,7 +114,7 @@ class AzureExecutor:
 
     @staticmethod
     def get_sku(vm_size: str, location: str):
-        skus = AzureExecutor.list_skus(vm_size=vm_size, location=location)
+        skus = AzureController.list_skus(vm_size=vm_size, location=location)
         for sku in skus:
             if sku["name"] == vm_size:
                 return sku

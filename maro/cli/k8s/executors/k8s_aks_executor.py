@@ -9,11 +9,11 @@ from copy import deepcopy
 
 import yaml
 
+from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_component_id, generate_job_id, generate_name_with_md5
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
@@ -95,18 +95,18 @@ class K8sAksExecutor:
         location = self.cluster_details["cloud"]["location"]
 
         # Check if Azure CLI is installed, and print version
-        azure_version = AzureExecutor.get_version()
+        azure_version = AzureController.get_version()
         logger.info_green(f"Your Azure CLI version: {azure_version['azure-cli']}")
 
         # Set subscription id
-        AzureExecutor.set_subscription(subscription=subscription)
+        AzureController.set_subscription(subscription=subscription)
 
         # Check and create resource group
-        resource_group_info = AzureExecutor.get_resource_group(resource_group=resource_group)
+        resource_group_info = AzureController.get_resource_group(resource_group=resource_group)
         if resource_group_info is not None:
             logger.warning_yellow(f"Azure resource group {resource_group} is already existed")
         else:
-            AzureExecutor.create_resource_group(
+            AzureController.create_resource_group(
                 resource_group=resource_group,
                 location=location
             )
@@ -126,7 +126,7 @@ class K8sAksExecutor:
         parameters_file_location = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters/create_aks_cluster.json"
         )
-        AzureExecutor.start_deployment(
+        AzureController.start_deployment(
             resource_group=resource_group,
             deployment_name="aks_cluster",
             template_file_path=template_file_location,
@@ -170,7 +170,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Attach ACR
-        AzureExecutor.attach_acr(
+        AzureController.attach_acr(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks",
             acr_name=f"{cluster_id}acr"
@@ -219,7 +219,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Get storage account key
-        storage_account_keys = AzureExecutor.get_storage_account_keys(
+        storage_account_keys = AzureController.get_storage_account_keys(
             resource_group=resource_group,
             storage_account_name=f"{cluster_id}st"
         )
@@ -244,7 +244,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Get resource list
-        resource_list = AzureExecutor.list_resources(resource_group=resource_group)
+        resource_list = AzureController.list_resources(resource_group=resource_group)
 
         # Filter resources
         deletable_ids = []
@@ -254,7 +254,7 @@ class K8sAksExecutor:
 
         # Delete resources
         if deletable_ids:
-            AzureExecutor.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resources=deletable_ids)
 
         # Delete cluster folder
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
@@ -293,7 +293,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # List nodepool
-        nodepools = AzureExecutor.list_nodepool(
+        nodepools = AzureController.list_nodepool(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks"
         )
@@ -310,7 +310,7 @@ class K8sAksExecutor:
         location = self.cluster_details["cloud"]["location"]
 
         # List available sizes for VM
-        specs = AzureExecutor.list_vm_sizes(location=location)
+        specs = AzureController.list_vm_sizes(location=location)
 
         # Build node_size_to_spec
         node_size_to_spec = {}
@@ -327,7 +327,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Build nodepool
-        AzureExecutor.add_nodepool(
+        AzureController.add_nodepool(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks",
             nodepool_name=K8sAksExecutor._generate_nodepool_name(key=node_size),
@@ -345,7 +345,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Scale node pool
-        AzureExecutor.scale_nodepool(
+        AzureController.scale_nodepool(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks",
             nodepool_name=node_size_to_info[node_size]["name"],
@@ -364,7 +364,7 @@ class K8sAksExecutor:
         resource_group = self.cluster_details["cloud"]["resource_group"]
 
         # Get aks details
-        aks_details = AzureExecutor.get_aks(
+        aks_details = AzureController.get_aks(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks"
         )
@@ -389,7 +389,7 @@ class K8sAksExecutor:
         remote_image_name = f"{cluster_id}acr.azurecr.io/{image_name}"
 
         # ACR login
-        AzureExecutor.login_acr(acr_name=f"{cluster_id}acr")
+        AzureController.login_acr(acr_name=f"{cluster_id}acr")
 
         # Tag image
         command = f"docker tag {image_name} {remote_image_name}"
@@ -404,7 +404,7 @@ class K8sAksExecutor:
         cluster_id = self.cluster_details["id"]
 
         # List acr repository
-        acr_repositories = AzureExecutor.list_acr_repositories(acr_name=f"{cluster_id}acr")
+        acr_repositories = AzureController.list_acr_repositories(acr_name=f"{cluster_id}acr")
         logger.info(acr_repositories)
 
     # maro k8s data
@@ -480,7 +480,7 @@ class K8sAksExecutor:
 
         # Regenerate sas if the key is None or expired TODO:
         if "account_sas" not in cloud_details:
-            account_sas = AzureExecutor.get_storage_account_sas(account_name=f"{cluster_id}st")
+            account_sas = AzureController.get_storage_account_sas(account_name=f"{cluster_id}st")
             cloud_details["account_sas"] = account_sas
             DetailsWriter.save_cluster_details(
                 cluster_name=self.cluster_name,
@@ -692,7 +692,7 @@ class K8sAksExecutor:
         cluster_id = self.cluster_details["id"]
 
         # Get repositories
-        acr_repositories = AzureExecutor.list_acr_repositories(acr_name=f"{cluster_id}acr")
+        acr_repositories = AzureController.list_acr_repositories(acr_name=f"{cluster_id}acr")
 
         # Build address
         if image_name in acr_repositories:
@@ -860,7 +860,7 @@ class K8sAksExecutor:
         cluster_id = self.cluster_details["id"]
 
         # Load context
-        AzureExecutor.load_aks_context(
+        AzureController.load_aks_context(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks"
         )

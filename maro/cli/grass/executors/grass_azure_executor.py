@@ -17,10 +17,10 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
 from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
+from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_node_name
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.utils.exception.cli_exception import BadRequestError
@@ -110,19 +110,19 @@ class GrassAzureExecutor(GrassExecutor):
 
     def _create_resource_group(self):
         # Check if Azure CLI is installed
-        version_details = AzureExecutor.get_version()
+        version_details = AzureController.get_version()
         logger.info_green(f"Your Azure CLI version: {version_details['azure-cli']}")
 
         # Set subscription id
-        AzureExecutor.set_subscription(subscription=self.subscription)
+        AzureController.set_subscription(subscription=self.subscription)
         logger.info_green(f"Set subscription to: {self.subscription}")
 
         # Check and create resource group
-        resource_group_details = AzureExecutor.get_resource_group(resource_group=self.resource_group)
+        resource_group_details = AzureController.get_resource_group(resource_group=self.resource_group)
         if resource_group_details is not None:
             logger.warning_yellow(f"Azure resource group {self.resource_group} already exists")
         else:
-            AzureExecutor.create_resource_group(
+            AzureController.create_resource_group(
                 resource_group=self.resource_group,
                 location=self.location
             )
@@ -140,7 +140,7 @@ class GrassAzureExecutor(GrassExecutor):
             cluster_details=self.cluster_details,
             export_path=parameters_file_path
         )
-        AzureExecutor.start_deployment(
+        AzureController.start_deployment(
             resource_group=self.resource_group,
             deployment_name="vnet",
             template_file_path=template_file_path,
@@ -169,7 +169,7 @@ class GrassAzureExecutor(GrassExecutor):
             node_size=self.cluster_details["master"]["node_size"],
             export_path=parameters_file_path
         )
-        AzureExecutor.start_deployment(
+        AzureController.start_deployment(
             resource_group=self.resource_group,
             deployment_name=resource_name,
             template_file_path=template_file_path,
@@ -179,7 +179,7 @@ class GrassAzureExecutor(GrassExecutor):
         time.sleep(10)
 
         # Get public ip address
-        ip_addresses = AzureExecutor.list_ip_addresses(
+        ip_addresses = AzureController.list_ip_addresses(
             resource_group=self.resource_group,
             vm_name=vm_name
         )
@@ -200,9 +200,9 @@ class GrassAzureExecutor(GrassExecutor):
         self.remote_init_build_node_image_vm(vm_ip_address=public_ip_address)
 
         # Extract image
-        AzureExecutor.deallocate_vm(resource_group=self.resource_group, vm_name=vm_name)
-        AzureExecutor.generalize_vm(resource_group=self.resource_group, vm_name=vm_name)
-        AzureExecutor.create_image_from_vm(resource_group=self.resource_group, image_name=image_name, vm_name=vm_name)
+        AzureController.deallocate_vm(resource_group=self.resource_group, vm_name=vm_name)
+        AzureController.generalize_vm(resource_group=self.resource_group, vm_name=vm_name)
+        AzureController.create_image_from_vm(resource_group=self.resource_group, image_name=image_name, vm_name=vm_name)
 
         # Delete resources
         self._delete_resources(resource_name=resource_name)
@@ -232,7 +232,7 @@ class GrassAzureExecutor(GrassExecutor):
             node_size=self.cluster_details["master"]["node_size"],
             export_path=parameters_file_path
         )
-        AzureExecutor.start_deployment(
+        AzureController.start_deployment(
             resource_group=self.resource_group,
             deployment_name="master",
             template_file_path=template_file_path,
@@ -240,7 +240,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Get master IP addresses
-        ip_addresses = AzureExecutor.list_ip_addresses(
+        ip_addresses = AzureController.list_ip_addresses(
             resource_group=self.resource_group,
             vm_name=vm_name
         )
@@ -327,7 +327,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Deleting cluster {self.cluster_name}")
 
         # Get resource list
-        resource_list = AzureExecutor.list_resources(resource_group=self.resource_group)
+        resource_list = AzureController.list_resources(resource_group=self.resource_group)
 
         # Filter resources
         deletable_ids = []
@@ -337,7 +337,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Delete resources
         if len(deletable_ids) > 0:
-            AzureExecutor.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resources=deletable_ids)
 
         # Delete cluster folder
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
@@ -432,7 +432,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Build params
         image_name = f"{self.cluster_id}-node-image"
-        image_resource_id = AzureExecutor.get_image_resource_id(
+        image_resource_id = AzureController.get_image_resource_id(
             resource_group=self.resource_group,
             image_name=image_name
         )
@@ -449,7 +449,7 @@ class GrassAzureExecutor(GrassExecutor):
             image_resource_id=image_resource_id,
             export_path=parameters_file_path
         )
-        AzureExecutor.start_deployment(
+        AzureController.start_deployment(
             resource_group=self.resource_group,
             deployment_name=node_name,
             template_file_path=template_file_path,
@@ -457,7 +457,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Get node IP addresses
-        ip_addresses = AzureExecutor.list_ip_addresses(
+        ip_addresses = AzureController.list_ip_addresses(
             resource_group=self.resource_group,
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
@@ -489,7 +489,7 @@ class GrassAzureExecutor(GrassExecutor):
         self._delete_resources(resource_name=node_name)
 
         # Delete azure deployment
-        AzureExecutor.delete_deployment(
+        AzureController.delete_deployment(
             resource_group=self.resource_group,
             deployment_name=node_name
         )
@@ -582,7 +582,7 @@ class GrassAzureExecutor(GrassExecutor):
         node_public_ip_address = node_details["public_ip_address"]
 
         # Start node
-        AzureExecutor.start_vm(
+        AzureController.start_vm(
             resource_group=self.resource_group,
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
@@ -638,7 +638,7 @@ class GrassAzureExecutor(GrassExecutor):
         self.remote_stop_node_services(node_ip_address=node_ip_address)
 
         # Stop node
-        AzureExecutor.stop_vm(
+        AzureController.stop_vm(
             resource_group=self.resource_group,
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
@@ -647,7 +647,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def _get_node_size_to_spec(self) -> dict:
         # List available sizes for VMs
-        specs = AzureExecutor.list_vm_sizes(location=self.location)
+        specs = AzureController.list_vm_sizes(location=self.location)
 
         # Get node_size_to_spec
         node_size_to_spec = {}
@@ -681,7 +681,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def _delete_resources(self, resource_name: str):
         # Get resource list
-        resource_list = AzureExecutor.list_resources(resource_group=self.resource_group)
+        resource_list = AzureController.list_resources(resource_group=self.resource_group)
 
         # Filter resources
         deletable_ids = []
@@ -691,7 +691,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Delete resources
         if len(deletable_ids) > 0:
-            AzureExecutor.delete_resources(resources=deletable_ids)
+            AzureController.delete_resources(resources=deletable_ids)
 
 
 class ArmTemplateParameterBuilder:

@@ -14,7 +14,7 @@ import uuid
 import yaml
 
 from maro.cli.grass.utils.params import NodeStatus
-from maro.cli.utils.executors.azure_executor import AzureExecutor
+from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import CommandExecutionError
@@ -90,7 +90,7 @@ class TestGrass(unittest.TestCase):
         )
 
         # Delete resource group
-        AzureExecutor.delete_resource_group(resource_group=cls.resource_group)
+        AzureController.delete_resource_group(resource_group=cls.resource_group)
 
         # Delete tmp test folder
         shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{cls.test_id}"))
