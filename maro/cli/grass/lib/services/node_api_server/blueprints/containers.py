@@ -4,7 +4,7 @@
 
 from flask import Blueprint, request, abort
 
-from ...utils.docker_manager import DockerManager
+from ...utils.docker_controller import DockerController
 from ...utils.exception import CommandExecutionError
 
 # Flask related.
@@ -24,7 +24,7 @@ def create():
 
     try:
         create_config = request.json
-        return DockerManager.create_container_with_config(create_config=create_config)
+        return DockerController.create_container_with_config(create_config=create_config)
     except CommandExecutionError:
         abort(400)
 
@@ -41,7 +41,7 @@ def delete(container_name: str):
     """
 
     try:
-        DockerManager.remove_container(container_name=container_name)
+        DockerController.remove_container(container_name=container_name)
         return {}
     except CommandExecutionError:
         abort(400)
@@ -59,7 +59,7 @@ def stop(container_name: str):
     """
 
     try:
-        DockerManager.stop_container(container_name=container_name)
+        DockerController.stop_container(container_name=container_name)
         return {}
     except CommandExecutionError:
         abort(400)

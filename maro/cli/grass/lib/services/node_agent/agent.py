@@ -14,7 +14,7 @@ from multiprocessing.pool import ThreadPool
 import psutil
 import redis
 
-from ..utils.docker_manager import DockerManager
+from ..utils.docker_controller import DockerController
 from ..utils.exception import CommandExecutionError
 from ..utils.executors.redis_executor import RedisExecutor
 from ..utils.params import NodeStatus
@@ -277,12 +277,12 @@ class NodeTrackingAgent(threading.Thread):
             dict[str, dict]: container_name to inspect_details mapping.
         """
         # Get container infos in current node.
-        container_names = DockerManager.list_container_names()
+        container_names = DockerController.list_container_names()
 
         # Build inspect_details and return
         inspects_details = {}
         for container_name in container_names:
-            inspect_details = DockerManager.inspect_container(container_name)
+            inspect_details = DockerController.inspect_container(container_name)
             inspects_details[inspect_details["Config"]["Labels"]["container_name"]] = inspect_details
         return inspects_details
 
@@ -397,7 +397,7 @@ class LoadImageAgent(threading.Thread):
     @staticmethod
     def _load_image(image_path: str):
         logging.info(f"In loading image: {image_path}")
-        DockerManager.load_image(image_path=image_path)
+        DockerController.load_image(image_path=image_path)
         logging.info(f"End of loading image: {image_path}")
 
 

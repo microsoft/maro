@@ -7,7 +7,7 @@ import json
 from .subprocess import SubProcess
 
 
-class DockerManager:
+class DockerController:
     @staticmethod
     def remove_container(container_name: str) -> None:
         command = f"docker rm -f {container_name}"
@@ -65,21 +65,21 @@ class DockerManager:
             memory=create_config["memory"],
             command=create_config["command"],
             image_name=create_config["image_name"],
-            volumes=DockerManager._build_list_params_str(params=create_config["volumes"], option="-v"),
+            volumes=DockerController._build_list_params_str(params=create_config["volumes"], option="-v"),
 
             # System related.
             container_name=create_config["container_name"],
             fluentd_address=create_config["fluentd_address"],
             fluentd_tag=create_config["fluentd_tag"],
-            environments=DockerManager._build_dict_params_str(params=create_config["environments"], option="-e"),
-            labels=DockerManager._build_dict_params_str(params=create_config["labels"], option="-l")
+            environments=DockerController._build_dict_params_str(params=create_config["environments"], option="-e"),
+            labels=DockerController._build_dict_params_str(params=create_config["labels"], option="-l")
         )
 
         # Start creating
         _ = SubProcess.run(command=start_container_command)
 
         # Return inspect info.
-        return DockerManager.inspect_container(container_name=create_config["container_name"])
+        return DockerController.inspect_container(container_name=create_config["container_name"])
 
     @staticmethod
     def list_container_names() -> list:
@@ -93,6 +93,8 @@ class DockerManager:
     def load_image(image_path: str) -> None:
         command = f"docker load -q -i {image_path}"
         _ = SubProcess.run(command=command)
+
+    # Helper functions.
 
     @staticmethod
     def _build_list_params_str(params: list, option: str) -> str:
