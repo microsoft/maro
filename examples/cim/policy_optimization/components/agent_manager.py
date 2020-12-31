@@ -51,7 +51,8 @@ def create_po_agents(agent_id_list, config):
                 actor_net, critic_net, 
                 optimizer_options={
                     "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer)
-                    "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)  
+                    "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)
+                } 
             )
             algorithm = ActorCritic(
                 learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss, **hyper_params)
