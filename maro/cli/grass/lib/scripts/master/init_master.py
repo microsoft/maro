@@ -27,7 +27,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 # install and launch redis
 echo 'Step 2/{steps}: Install and launch redis'
 sudo docker pull redis
-sudo docker run -p {redis_port}:6379 -v ~/.maro/lib/grass/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
+sudo docker run -p {redis_port}:6379 -v ~/.maro/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
     --name maro-redis -d redis redis-server /maro/lib/grass/redis/redis.conf
 
 # install and launch samba
@@ -43,7 +43,7 @@ sudo ufw allow samba
 echo 'Step 4/{steps}: Install and launch fluentd'
 sudo docker pull fluent/fluentd
 sudo docker run -p {fluentd_port}:24224 -v ~/.maro/logs:/fluentd/log\
-    -v ~/.maro/lib/grass/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
+    -v ~/.maro/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
     -e FLUENTD_CONF=fluentd.conf --name maro-fluentd -d fluent/fluentd
 
 # install pip3 and redis
