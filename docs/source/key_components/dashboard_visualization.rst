@@ -30,20 +30,26 @@ How to Use?
 -----------
 
 Generating dump data
-~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
-The dump data from environment is the data source of visualization. User needs specify a parameter when creating Env object to determine if needs dump data. To generate data, user needs specify "enable-dump-snapshot" parameter with following code:
+The dump data from environment is the data source of visualization.
+User needs specify a parameter when creating Env object to determine
+if needs dump data. To generate data, user needs specify "enable-dump-snapshot"
+parameter with following code:
 
 .. code-block:: sh
+
     opts = dict()
+
     opts['enable-dump-snapshot'] = EXPECTED_OUTPUT_FOLDER
+
     env = Env(scenario=SCNENARIO_NAME, topology=TOPOLOGY_FILE_NAME,
           start_tick=START_TICK_NUMBER, durations=DURATION_TIME, options=opts)
 
 ----
 
-Suppose a file named **dump_data.py** contains code for calling Env object to run experiment, and run this file
-with:
+Suppose a file named dump_data.py contains code for calling Env object
+to run experiment, and run this file with:
 
 .. code-block:: sh
 
@@ -52,8 +58,8 @@ with:
 ----
 
 User could specify dump destination folder by setting the parameter **options**.
-If user leave the value **opts['enable-dump-snapshot']** empty,
-data would be dumped to current folder.
+If user leave the value of this paremeter empty,
+data would be dumped to the folder which start the command.
 
 
 The possible values of each parameter are listed below:
@@ -79,6 +85,14 @@ The possible values of each parameter are listed below:
             ny.201901 ~ ny.201912
 
             ny.202001 ~ ny.202006
+
+            toy.3s_4t
+
+            toy.4s_4t
+
+            toy.5s_6t
+
+            train
     START_TICK_NUMBER:
         Integer not less than 0.
     DURATION_TIME:
@@ -93,7 +107,7 @@ with following code:
 
     opts = dict()
 
-    opts["enable-dump-snapshot"] = "./dump_data"
+    opts['enable-dump-snapshot'] = ./dump_data
 
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=0, durations=100, options=opts)
@@ -104,7 +118,9 @@ If user do not want to dump data, but only want to Initialize the environment, j
 input the parameter **options**.
 
 .. code-block:: sh
+
     opts = dict()
+
     opts['enable-dump-snapshot'] = ./dump_data
 
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
