@@ -24,13 +24,13 @@ class KStepExperienceShaper(ExperienceShaper):
     Args:
         reward_func (Callable): a function used to compute immediate rewards from metrics given by the env.
         reward_discount (float): decay factor used to evaluate multi-step returns.
-        num_steps (int): number of time steps used in computing returns
+        steps (int): number of time steps used in computing returns
         is_per_agent (bool): if True, the generated experiences will be bucketed by agent ID.
     """
-    def __init__(self, reward_func: Callable, reward_discount: float, num_steps: int, is_per_agent: bool = True):
+    def __init__(self, reward_func: Callable, reward_discount: float, steps: int, is_per_agent: bool = True):
         super().__init__(reward_func)
         self._reward_discount = reward_discount
-        self._num_steps = num_steps
+        self._steps = steps
         self._is_per_agent = is_per_agent
 
     def __call__(self, trajectory, snapshot_list):
@@ -45,8 +45,8 @@ class KStepExperienceShaper(ExperienceShaper):
             full_return = full_return * self._reward_discount + reward_list[0]
             # compute the partial return
             partial_return = partial_return * self._reward_discount + reward_list[0]
-            if len(reward_list) > self._num_steps:
-                partial_return -= reward_list.pop() * self._reward_discount ** (self._num_steps - 1)
+            if len(reward_list) > self._steps:
+                partial_return -= reward_list.pop() * self._reward_discount ** (self._steps - 1)
             agent_exp = experiences[transition["agent_id"]] if self._is_per_agent else experiences
             agent_exp[KStepExperienceKeys.STATE.value].appendleft(transition["state"])
             agent_exp[KStepExperienceKeys.ACTION.value].appendleft(transition["action"])
@@ -55,7 +55,7 @@ class KStepExperienceShaper(ExperienceShaper):
             agent_exp[KStepExperienceKeys.NEXT_STATE.value].appendleft(next_transition["state"])
             agent_exp[KStepExperienceKeys.NEXT_ACTION.value].appendleft(next_transition["action"])
             agent_exp[KStepExperienceKeys.DISCOUNT.value].appendleft(
-                self._reward_discount ** (min(self._num_steps, len(trajectory) - 1 - i))
+                self._reward_discount ** (min(self._steps, len(trajectory) - 1 - i))
             )
 
         return dict(experiences)

@@ -20,7 +20,7 @@ def launch(config, distributed_config):
 
     config["agents"]["algorithm"]["input_dim"] = CIMStateShaper(**config.env.state_shaping).dim
     agent_manager = DQNAgentManager(
-        name="distributed_cim_learner",
+        name="cim_learner",
         mode=AgentManagerMode.TRAIN,
         agent_dict=create_dqn_agents(agent_id_list, config.agents)
     )
