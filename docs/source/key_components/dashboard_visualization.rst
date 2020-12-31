@@ -39,11 +39,11 @@ if needs to dump data.
 To generate data, user needs to specify the parameter **options**.
 Type of value of this parameter should be Dictionary.
 If user do not need to dump data, then there is no need to pass value to
-this parameter. If user need to dump data, user could specify dump destination
-folder by setting this parameter.
+this parameter. 
 If the value for key "enable-dump-snapshot" of this parameter is an empty string,
 data would be dumped to the folder which start the command.
-If user specify this value, data would be dumped to the specified folder.
+If user specify the value for key "enable-dump-snapshot" of this parameter,
+data would be dumped to the specified folder.
 
 .. code-block:: sh
 
