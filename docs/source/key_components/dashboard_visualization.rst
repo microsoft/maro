@@ -168,6 +168,9 @@ To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of epoch by sliding to
 change the number of data to be displayed.
 
+.. figure:: ..\images\visualization\dashboard\epoch_sampling_ratio.gif
+   :alt: epoch\_sampling\_ratio
+
 Formula Calculation
 ^^^^^^^^^^^^^^^^^^^
 
