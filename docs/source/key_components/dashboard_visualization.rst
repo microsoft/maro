@@ -63,14 +63,21 @@ The possible values of each parameter are listed below:
         * citi_bike
     TOPOLOGY_FILE_NAME:
         * for senario container_inventory_management: 
+
         global.trade.22p.10.0 ~ global.trade.22p.10.8
+
         toy.4p.ssdd_10.0 ~ toy.4p.ssdd_10.8
+
         toy.5p.ssddd_10.0 ~ toy.5p.ssddd_10.8
+
         toy.6p.ssbddd_10.0 ~ toy.6p.ssbddd_10.8
 
         * for scenario citi_bike:
+
         ny.201801 ~ ny.201812
+
         ny.201901 ~ ny.201912
+        
         ny.202001 ~ ny.202006
     START_TICK_NUMBER:
         Integer not less than 0.
@@ -84,7 +91,7 @@ with following code:
     
 .. code-block:: sh
 
-    # opts['enable-dump-snapshot'] = ./dump_data
+    opts['enable-dump-snapshot'] = ./dump_data
 
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=0, durations=100, options=opts)
