@@ -29,13 +29,13 @@ Install them with:
 How to Use?
 -----------
 
-Generate dump data
+Generate dumped data
 ~~~~~~~~~~~~~~~~~~~~
 
-The dump data from environment is the data source of visualization.
-User needs specify a parameter when creating Env object to determine
-if needs dump data. To generate data, user needs specify "options"
-parameter with following code:
+The dumped data from environment is the data source of visualization.
+User needs to specify a parameter when creating Env object to determine
+if needs to dump data. To generate data, user needs to specify the
+parameter **options** with following code:
 
 .. code-block:: sh
 
