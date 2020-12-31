@@ -263,7 +263,7 @@ agent manager in AgentManagerMode.TRAIN mode. Instead of creating an actor, we c
 serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
 processes and receiving results. Calling the train method executes the usual training loop except that the actual
 roll-out is performed remotely. The code snippet below shows the creation of a learner with an actor proxy wrapped
-inside.
+inside that communicates with 3 actors. 
 
 .. code-block:: python
 

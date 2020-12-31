@@ -63,14 +63,19 @@ Learner and Actor
 Scheduler
 ---------
 
-A ``Scheduler`` is an iterable object responsible for driving an episodic learning process and recording 
-roll-out performances. In the simplest case, it repeates the rollout-training cycle a set number of episodes. 
-Optionally, a callable early stopping checker can be registered if one wishes to terminate learning as soon
-as some conditions are met. For algorithms that require explicit exploration (e.g., DQN and DDPG), users can 
-implement the ``get_next_exploratin_params`` interface, so that the scheduler will generate exploration 
-parameter values for each episode. The generated values can either follow a pre-defined schedule, such as
-the ``LinearParameterScheduler`` and ``TwoPhaseLinearParameterScheduler`` provided in the toolkit, or a dynamic
-mechanism where the next values are determined based on the performance history.      
+A ``Scheduler`` is the driver of an episodic learning process. If no explicit exploration is required, 
+the learner uses the scheduler to repeat the rollout-training cycle a set number of episodes. For algorithms
+that require explicit exploration (e.g., DQN and DDPG), there are two types of schedules that a learner may 
+follow:
+
+* Static schedule, where the exploration parameters are generated using a pre-defined function of episode 
+  number. See ``LinearParameterScheduler`` and ``TwoPhaseLinearParameterScheduler`` provided in the toolkit 
+  for example. 
+* Dynamic schedule, where the exploration parameters for the next episode are determined based on the performance
+  history. Such a mechanism is possible in our abstraction because the scheduler provides a ``record_performance``
+  interface that allows it to keep track of roll-out performances.
+
+The 
 
 
 Agent Manager
@@ -121,10 +126,11 @@ scenario agnostic.
 Algorithm
 ---------
 
-The algorithm is the kernel abstraction of the RL formulation for a real-world problem. The 
-``LearningModule`` and ``LearningModuleManager`` abstractions described below allow an algorithm
-to be abstracted as the simple combination of a model (LearningModuleManager) and a configuration 
-object.  
+The algorithm is the kernel abstraction of the RL formulation for a real-world problem. Our abstraction  
+decouples algorithm and model so that an algorithm can exist as an RL paradigm independent of the inner 
+workings of the models it uses to generate actions or estimate values. For example, the actor-critic 
+algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
+critic models. This decoupling is achieved by the ``LearningModel`` abstraction described below.   
 
 
 .. image:: ../images/rl/algorithm.svg
@@ -138,64 +144,69 @@ object.
 .. code-block:: python
 
   class AbsAlgorithm(ABC):
-      def __init__(self, model: LearningModuleManager, config):
+      def __init__(self, model: LearningModel, config):
           self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
           self._model = model.to(self._device)
           self._config = config
 
 
-Block, LearningModule and LearningModuleManager
------------------------------------------------
+Block, NNStack and LearningModel
+--------------------------------
 
 MARO provides an abstraction for the underlying models used by agents to form policies and estimate values.
-The abstraction consists of 3-level hierachy formed from the bottom up by ``AbsBlock``, ``LearningModule`` 
-and ``LearningModuleManager``, all of which subclass torch's nn.Module. Conceptually, an ``AbsBlock`` is the 
-smallest structural unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit 
-represents a stack of fully connected layers with features like batch normalization, drop-out and skip connection. 
-A ``LearningModule`` consists of one or more such blocks, as well as an optimizer responsible for applying gradient 
-steps to the trainable parameters of these blocks. Therefore, a ``LearningModule`` represents the smallest trainable 
-unit of a model. Finally, the complete model as used directly by an ``Algorithm`` is represented as a ``LearningModuleManager``, 
-an abstraction that entails multi-task learning that is common in RL but presents a unified interface to the 
-algorithm. A ``LearningModuleManager`` consists of one or more task modules as "heads" and an optional shared 
-module at the bottom, which serves to produce a representation as input to all task modules. 
+The abstraction consists of 3-level hierachy formed by ``AbsBlock``, ``NNStack`` and ``LearningModel`` from 
+the bottom up, all of which subclass torch's nn.Module. Conceptually, an ``AbsBlock`` is the smallest structural
+unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit represents a stack 
+of fully connected layers with features like batch normalization, drop-out and skip connection. An ``NNStack`` is 
+a composite network that consists of one or more such blocks, each with its own set of network features. 
+The complete model as used directly by an ``Algorithm`` is represented as a ``LearningModel``, which consists of 
+one or more task stacks as "heads" and an optional shared stack at the bottom (which serves to produce a representation 
+as input to all task stacks). It also contains one or more optimizers responsible for applying gradient steps to the 
+trainable parameters within each stack, which is the smallest trainable unit from the perspective of a ``LearningModel``. 
+The assignment of optimizers is flexible: it is possible to freeze certain stacks while optimizing others. Such an 
+abstraction presents a unified interface to the algorithm, regardless of how many individual models it requires and how 
+complex the model architecture might be.  
 
 .. image:: ../images/rl/learning_model.svg
    :target: ../images/rl/learning_model.svg
    :alt: Algorithm
    :width: 650
 
-For intance, the initialization of the actor-critic algorithm may look like this:
+As an example, the initialization of the actor-critic algorithm may look like this:
 
 .. code-block:: python
 
-  actor_module = LearningModule(name="actor", block_list=..., optiimizer_options=...)
-  critic_module = LearningModule(name="critic", block_list=..., optiimizer_options=...)
-  
-  actor_critic = ActorCritic(LearningModuleManager(actor_module, critic_module), config)
+  actor_stack = NNStack(name="actor", block_a1, block_a2, ...)
+  critic_stack = NNStack(name="critic", block_c1, block_c2, ...)
+  learning_model = LearningModel(actor_stack, critic_stack)
+  actor_critic = ActorCritic(learning_model, config)
 
 Choosing an action is simply:
 
 .. code-block:: python
 
-  self._model(state, task_name="actor", is_training=False)
+  learning_model(state, task_name="actor", is_training=False)
 
 And performing one gradient step is simply:
 
 .. code-block:: python
 
-  self._model.learn(critic_loss + actor_loss)
+  learning_model.learn(critic_loss + actor_loss)
 
 
 Explorer
 -------
 
 MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require 
-external perturbations to model-generated actions to explore trajectory search space. The extent of 
-these perturbations usually determined by a set of parameters whose values are generated by the scheduler.
-The ``AbsExplorer`` class defines ``set_parameters`` and ``__call__`` methods to cater to these needs. 
-The ``set_parameters`` method sets the exploration parameters to the values generated by the scheduler, 
-while the ``__call__`` method perturbs a model-generated action to obtain an exploratory action. Simple
+explicit exploration, The extent of which is usually determined by a set of parameters whose values 
+are generated by the scheduler. The ``AbsExplorer`` class is designed to cater to these needs. Simple
 exploration schemes, such as ``EpsilonGreedyExplorer`` for discrete action space and ``UniformNoiseExplorer`` 
-and ``GaussianNoiseExplorer`` for continuous action space, are provided in the toolkit. Users are free to 
-implement their own exploration logic by subclassing ``AbsExplorer`` and implementing the ``set_parameters`` 
-and ``__call__`` methods. 
+and ``GaussianNoiseExplorer`` for continuous action space, are provided in the toolkit. 
+
+As an example, the exploration for DQN :
+
+.. code-block:: python
+
+  explorer = EpsilonGreedyExplorer(num_actions=10)
+  greedy_action = learning_model(state, is_training=False).argmax(dim=1).data
+  exploration_action = explorer(greedy_action)
