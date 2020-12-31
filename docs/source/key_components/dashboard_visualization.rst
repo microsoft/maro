@@ -60,11 +60,9 @@ data would be dumped to current folder.
 The possible values of each parameter are listed below:
 
     SCNENARIO_NAME:
-
         * cim
         * citi_bike
     TOPOLOGY_FILE_NAME:
-
         * for senario container_inventory_management: 
 
             global.trade.22p.10.0 ~ global.trade.22p.10.8
@@ -83,13 +81,10 @@ The possible values of each parameter are listed below:
 
             ny.202001 ~ ny.202006
     START_TICK_NUMBER:
-
         Integer not less than 0.
     DURATION_TIME:
-
         Integer not less than 1.
     opts:
-
         Optional parameter.
 
 For example, user could dump experimental data of senario container_inventory_management
