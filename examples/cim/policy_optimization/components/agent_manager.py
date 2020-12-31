@@ -55,7 +55,7 @@ def create_po_agents(agent_id_list, config):
                 } 
             )
             algorithm = ActorCritic(
-                learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss, **hyper_params)
+                learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss(), **hyper_params)
             )
         else:
             learning_model = LearningModel(
