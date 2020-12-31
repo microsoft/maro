@@ -12,7 +12,6 @@ import time
 from multiprocessing.pool import ThreadPool
 
 import psutil
-import redis
 
 from ..utils.docker_controller import DockerController
 from ..utils.exception import CommandExecutionError
@@ -33,11 +32,8 @@ class NodeAgent:
         self._node_name = node_name
         self._master_hostname = master_hostname
         self._redis_port = redis_port
-        self._redis = redis.Redis(
-            host=master_hostname, port=redis_port,
-            encoding="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
+
+        self._redis_controller = RedisController(host=master_hostname, port=redis_port)
 
         # Init agents.
         self.load_image_agent = LoadImageAgent(
@@ -84,7 +80,7 @@ class NodeAgent:
             node_name=self._node_name
         )
         node_details["state"]["status"] = NodeStatus.STOPPED
-        node_details["state"]["check_time"] = self._redis.time()[0]
+        node_details["state"]["check_time"] = self._redis_controller.get_time()
         self._redis_controller.set_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name,
@@ -134,16 +130,13 @@ class NodeTrackingAgent(threading.Thread):
         super().__init__()
         self._cluster_name = cluster_name
         self._node_name = node_name
-        self._redis = redis.Redis(
-            host=master_hostname, port=redis_port,
-            encoding="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
 
-        # Other params.
+        self._redis_controller = RedisController(host=master_hostname, port=redis_port)
+
         self._check_interval = check_interval
-        self._container_details = {}
         self._is_terminated = False
+
+        self._container_details = {}
 
     def run(self) -> None:
         """Start tracking node status and updating details.
@@ -183,7 +176,7 @@ class NodeTrackingAgent(threading.Thread):
 
             # Other updates.
             node_details["state"]["status"] = NodeStatus.RUNNING
-            node_details["state"]["check_time"] = self._redis.time()[0]
+            node_details["state"]["check_time"] = self._redis_controller.get_time()
 
             # Save details.
             self._redis_controller.set_node_details(
@@ -323,11 +316,9 @@ class LoadImageAgent(threading.Thread):
         super().__init__()
         self._cluster_name = cluster_name
         self._node_name = node_name
-        self._redis_controller = RedisController(
-            redis=redis.Redis(host=master_hostname, port=redis_port, encoding="utf-8", decode_responses=True)
-        )
 
-        # Other params.
+        self._redis_controller = RedisController(host=master_hostname, port=redis_port)
+
         self._check_interval = check_interval
         self._is_terminated = False
 

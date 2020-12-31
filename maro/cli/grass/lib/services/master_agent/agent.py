@@ -11,8 +11,6 @@ import sys
 import time
 import uuid
 
-from redis import Redis
-
 from .node_api_client import NodeApiClient
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
@@ -62,12 +60,9 @@ class JobTrackingAgent(multiprocessing.Process):
         super().__init__()
         self._cluster_details = cluster_details
         self._cluster_name = cluster_details["name"]
-        self._redis = Redis(
-            host="localhost",
-            port=cluster_details["master"]["redis"]["port"],
-            charset="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
+
+        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+
         self._check_interval = check_interval
 
     def run(self) -> None:
@@ -102,7 +97,7 @@ class JobTrackingAgent(multiprocessing.Process):
 
         # Save jobs details.
         for job_name, job_details in jobs_details.items():
-            job_details["check_time"] = self._redis.time()[0]
+            job_details["check_time"] = self._redis_controller.get_time()
             self._redis_controller.set_job_details(
                 cluster_name=self._cluster_name,
                 job_name=job_name,
@@ -132,12 +127,9 @@ class ContainerTrackingAgent(multiprocessing.Process):
         super().__init__()
         self._cluster_details = cluster_details
         self._cluster_name = cluster_details["name"]
-        self._redis = Redis(
-            host="localhost",
-            port=cluster_details["master"]["redis"]["port"],
-            charset="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
+
+        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+
         self._check_interval = check_interval
 
     def run(self) -> None:
@@ -181,12 +173,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         self._ssh_port = cluster_details["connection"]["ssh"]["port"]
         self._api_server_port = cluster_details["connection"]["api_server"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
-        self._redis = Redis(
-            host="localhost",
-            port=cluster_details["master"]["redis"]["port"],
-            charset="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
+
+        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -514,12 +502,8 @@ class PendingJobAgent(multiprocessing.Process):
         self._ssh_port = cluster_details["connection"]["ssh"]["port"]
         self._api_server_port = cluster_details["connection"]["api_server"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
-        self._redis = Redis(
-            host="localhost",
-            port=cluster_details["master"]["redis"]["port"],
-            charset="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
+
+        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
 
         self._check_interval = check_interval
 
@@ -682,12 +666,8 @@ class KilledJobAgent(multiprocessing.Process):
         self._admin_username = cluster_details["user"]["admin_username"]
         self._ssh_port = cluster_details["connection"]["ssh"]["port"]
         self._api_server_port = cluster_details["connection"]["api_server"]["port"]
-        self._redis = Redis(
-            host="localhost",
-            port=cluster_details["master"]["redis"]["port"],
-            charset="utf-8", decode_responses=True
-        )
-        self._redis_controller = RedisController(redis=self._redis)
+
+        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
 
         self._check_interval = check_interval
 

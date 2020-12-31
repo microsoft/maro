@@ -4,12 +4,12 @@
 
 import json
 
-from redis import Redis
+import redis
 
 
 class RedisController:
-    def __init__(self, redis: Redis):
-        self._redis = redis
+    def __init__(self, host: str, port: int):
+        self._redis = redis.Redis(host=host, port=port, encoding="utf-8", decode_responses=True)
 
     """Master Details Related."""
 
@@ -160,3 +160,13 @@ class RedisController:
             component_id,
             1
         )
+
+    # Utils
+
+    def get_time(self) -> int:
+        """ Get current unix timestamp (seconds) from Redis server.
+
+        Returns:
+            int: current timestamp.
+        """
+        return self._redis.time()[0]
