@@ -200,8 +200,7 @@ def _render_intra_view_by_ports(
     helper.render_h3_title(
         f"Port Accumulated Attributes: {selected_port} - {index_name_conversion.loc[int(selected_port)][0]}"
     )
-    _generate_intra_panel_by_ports(
-        CIMItemOption.basic_info + CIMItemOption.acc_info,
+    _generate_intra_panel_accumulated_by_ports(
         data_ports, f"ports_{selected_port}", snapshot_num, selected_snapshot_sample_ratio
     )
     # Detailed data.
@@ -214,7 +213,6 @@ def _render_intra_view_by_ports(
         f"Port Detail Attributes: {selected_port} - {index_name_conversion.loc[int(selected_port)][0]}"
     )
     _generate_intra_panel_by_ports(
-        CIMItemOption.basic_info + CIMItemOption.booking_info + CIMItemOption.port_info,
         data_formula["data"], f"ports_{selected_port}",
         snapshot_num, selected_snapshot_sample_ratio, data_formula["attribute_option"]
     )
@@ -251,8 +249,8 @@ def _render_intra_view_by_snapshot(
     _render_intra_heat_map(source_path, GlobalScenarios.CIM, option_epoch, selected_snapshot, prefix)
 
     helper.render_h3_title(f"SnapShot-{selected_snapshot}: Port Accumulated Attributes")
-    _generate_intra_panel_by_snapshot(
-        CIMItemOption.basic_info + CIMItemOption.acc_info, data_ports, selected_snapshot,
+    _generate_intra_panel_accumulated_by_snapshot(
+        data_ports, selected_snapshot,
         ports_num, index_name_conversion, selected_port_sample_ratio
     )
     _generate_top_k_summary(data_ports, selected_snapshot, index_name_conversion)
@@ -265,13 +263,12 @@ def _render_intra_view_by_snapshot(
         GlobalScenarios.CIM, data_ports, attribute_option_candidates
     )
     _generate_intra_panel_by_snapshot(
-        CIMItemOption.basic_info + CIMItemOption.booking_info + CIMItemOption.port_info,
         data_formula["data"], selected_snapshot,
         ports_num, index_name_conversion, selected_port_sample_ratio, data_formula["attribute_option"])
 
 
 def _generate_intra_panel_by_ports(
-    info_selector: List[str], data: pd.DataFrame, option_port_name: str,
+    data: pd.DataFrame, option_port_name: str,
     snapshot_num: int, snapshot_sample_num: float, attribute_option: List[str] = None
 ):
     """Generate intra-view plot.
@@ -280,9 +277,6 @@ def _generate_intra_panel_by_ports(
     Change snapshot sampling num freely.
 
     Args:
-        info_selector (List[str]): Identifies data at different levels.
-            In this scenario, it is divided into two levels: comprehensive and detail.
-            The list stores the column names that will be extracted at different levels.
         data (pd.Dataframe): Filtered data within selected conditions.
         option_port_name (str): Condition for filtering the name attribute in the data.
         snapshot_num (int): Number of snapshots.
@@ -332,8 +326,102 @@ def _generate_intra_panel_by_ports(
     st.altair_chart(port_bar_chart)
 
 
+def _generate_intra_panel_accumulated_by_snapshot(
+    data: pd.DataFrame, snapshot_index: int, ports_num: int,
+    index_name_conversion: pd.DataFrame, sample_ratio: List[float]
+):
+    """Generate intra-view accumulated plot by snapshot.
+
+    Args:
+        data (pd.Dataframe): Filtered data within selected conditions.
+        snapshot_index (int): user-selected snapshot index.
+        ports_num (int): Number of ports.
+        index_name_conversion (pd.Dataframe): Relationship between index and name.
+        sample_ratio (List[float]): Sampled port index list.
+    """
+    info_selector = CIMItemOption.basic_info + CIMItemOption.acc_info
+    data_acc = data[info_selector]
+    info_selector.pop(1)
+    down_pooling_sample_list = helper.get_sample_index_list(ports_num, sample_ratio)
+    snapshot_filtered = data_acc[data_acc["frame_index"] == snapshot_index][info_selector].reset_index(drop=True)
+    data_rename = pd.DataFrame(columns=info_selector)
+    for index in down_pooling_sample_list:
+        data_rename = pd.concat(
+            [data_rename, snapshot_filtered[snapshot_filtered["name"] == f"ports_{index}"]],
+            axis=0
+        )
+    data_rename = data_rename.reset_index(drop=True)
+
+    data_rename["name"] = data_rename["name"].apply(lambda x: int(x[6:]))
+    data_rename["Port Name"] = data_rename["name"].apply(lambda x: index_name_conversion.loc[int(x)][0])
+    data_melt = data_rename.melt(
+        ["name", "Port Name"],
+        var_name="Attributes",
+        value_name="Count"
+    )
+    intra_bar_chart = alt.Chart(data_melt).mark_bar().encode(
+        x=alt.X("name:N", axis=alt.Axis(title="Name")),
+        y="Count:Q",
+        color="Attributes:N",
+        tooltip=["Attributes", "Count", "Port Name"]
+    ).properties(
+        width=700,
+        height=380
+    )
+    st.altair_chart(intra_bar_chart)
+
+
+def _generate_intra_panel_accumulated_by_ports(
+    data: pd.DataFrame, option_port_name: str, snapshot_num: int, snapshot_sample_num: float
+):
+    """Generate intra-view accumulated plot by ports.
+
+    Args:
+        data (pd.Dataframe): Filtered data within selected conditions.
+        option_port_name (str): Condition for filtering the name attribute in the data.
+        snapshot_num (int): Number of snapshots.
+        snapshot_sample_num (float): Number of sampled snapshots.
+    """
+    info_selector = CIMItemOption.basic_info + CIMItemOption.acc_info
+    data_acc = data[info_selector]
+    info_selector.pop(0)
+    down_pooling_sample_list = helper.get_sample_index_list(snapshot_num, snapshot_sample_num)
+    port_filtered = data_acc[data_acc["name"] == option_port_name][info_selector].reset_index(drop=True)
+    port_filtered.rename(
+        columns={"frame_index": "snapshot_index"},
+        inplace=True
+    )
+
+    data_filtered = port_filtered.loc[down_pooling_sample_list]
+    data_melt = data_filtered.melt(
+        "snapshot_index",
+        var_name="Attributes",
+        value_name="Count"
+    )
+    port_line_chart = alt.Chart(data_melt).mark_line().encode(
+        x=alt.X("snapshot_index", axis=alt.Axis(title="Snapshot Index")),
+        y="Count",
+        color="Attributes",
+        tooltip=["Attributes", "Count", "snapshot_index"]
+    ).properties(
+        width=700,
+        height=380
+    )
+    st.altair_chart(port_line_chart)
+
+    port_bar_chart = alt.Chart(data_melt).mark_bar().encode(
+        x=alt.X("snapshot_index:N", axis=alt.Axis(title="Snapshot Index")),
+        y="Count:Q",
+        color="Attributes:N",
+        tooltip=["Attributes", "Count", "snapshot_index"]
+    ).properties(
+        width=700,
+        height=380)
+    st.altair_chart(port_bar_chart)
+
+
 def _generate_intra_panel_by_snapshot(
-    info: List[str], data: pd.DataFrame, snapshot_index: int, ports_num: int,
+    data: pd.DataFrame, snapshot_index: int, ports_num: int,
     index_name_conversion: pd.DataFrame, sample_ratio: List[float], attribute_option: List[str] = None
 ):
     """Generate intra-view plot.
@@ -341,9 +429,6 @@ def _generate_intra_panel_by_snapshot(
     View info within different snapshot in the same epoch.
 
     Args:
-        info (List[str]): Identifies data at different levels.
-            In this scenario, it is divided into two levels: comprehensive and detail.
-            The list stores the column names that will be extracted at different levels.
         data (pd.Dataframe): Filtered data within selected conditions.
         snapshot_index (int): user-selected snapshot index.
         ports_num (int): Number of ports.

@@ -33,11 +33,9 @@ Generate dumped data
 ~~~~~~~~~~~~~~~~~~~~
 
 The dumped data from environment is the data source of visualization.
-User needs to specify a parameter when creating Env object to determine
-if needs to dump data.
-
-To generate data, user needs to specify the parameter **options**.
+To generate data, user needs to specify the parameter **options** when creating Env object.
 Type of value of this parameter should be Dictionary.
+
 If user does not need to dump data, then there is no need to pass value to
 this parameter. 
 If the value for key "enable-dump-snapshot" of this parameter is an empty string,
