@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import unittest
 
 from maro.cli.inspector.dashboard_helper import get_sample_ratio_selection_list, get_sample_index_list
