@@ -4,8 +4,8 @@
 
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
 from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
-from maro.cli.utils.checkers import check_details_validity
 from maro.cli.utils.details_reader import DetailsReader
+from maro.cli.utils.details_validity_wrapper import check_details_validity
 from maro.cli.utils.lock import lock
 from maro.utils.exception.cli_exception import BadRequestError
 
