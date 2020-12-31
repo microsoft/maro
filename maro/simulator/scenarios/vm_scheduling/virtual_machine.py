@@ -25,6 +25,10 @@ class VirtualMachine:
         self.cpu_cores_requirement: int = cpu_cores_requirement
         self.memory_requirement: int = memory_requirement
         self.lifetime: int = lifetime
+        # The VM belong to a subscription.
+        self.sub_id: int = 0
+        # The region of PM that VM allocated (under a subscription) called a deployment group.
+        self.deployment_id: int = 0
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
         # The physical machine Id that the VM is assigned.

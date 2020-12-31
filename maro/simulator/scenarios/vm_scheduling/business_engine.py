@@ -189,13 +189,15 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._update_pm_workload()
 
         for vm in self._vm_item_picker.items(tick):
-            # TODO: Calculate
+
             vm_info = VirtualMachine(
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
                 memory_requirement=vm.vm_memory,
                 lifetime=vm.vm_deleted - vm.timestamp + 1
             )
+            vm_info.sub_id = vm.sub_id
+            vm_info.deployment_id = vm.deploy_id
 
             if vm.vm_id not in cur_tick_cpu_utilization:
                 raise Exception(f"The VM id: '{vm.vm_id}' does not exist at this tick.")
