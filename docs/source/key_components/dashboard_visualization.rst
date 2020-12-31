@@ -40,7 +40,7 @@ If user does not need to dump data, then there is no need to pass value to
 this parameter. 
 If the value for key "enable-dump-snapshot" of this parameter is an empty string,
 data would be dumped to the folder which start the command.
-If user specify the value for key "enable-dump-snapshot" of this parameter with the
+If user specifies the value for key "enable-dump-snapshot" of this parameter with the
 path of a local file folder, data would be dumped to this folder.
 
 .. code-block:: sh
