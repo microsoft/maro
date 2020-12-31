@@ -9,7 +9,7 @@ import numpy as np
 from maro.rl import AbsAgent, ColumnBasedStore
 
 
-class CIMAgent(AbsAgent):
+class DQNAgent(AbsAgent):
     """Implementation of AbsAgent for the DQN algorithm.
 
     Args:

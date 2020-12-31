@@ -10,7 +10,7 @@ from maro.rl import (
 )
 from maro.utils import set_seeds
 
-from .agent import CIMAgent
+from .agent import DQNAgent
 
 
 def create_dqn_agents(agent_id_list, config):
@@ -36,7 +36,7 @@ def create_dqn_agents(agent_id_list, config):
             learning_model,
             DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss)
         )
-        agent_dict[agent_id] = CIMAgent(
+        agent_dict[agent_id] = DQNAgent(
             agent_id, algorithm, ColumnBasedStore(**config.experience_pool),
             **config.training_loop_parameters
         )
