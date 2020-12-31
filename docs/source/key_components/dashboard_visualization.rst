@@ -58,7 +58,7 @@ to run experiment, and run this file with:
 ----
 
 User could specify dump destination folder by setting the parameter **options**.
-If user leave the value of **opts['enable-dump-snapshot']** empty,
+If user leave the value of **opts["enable-dump-snapshot"]** empty,
 data would be dumped to the folder which start the command.
 
 
@@ -107,7 +107,7 @@ with following code:
 
     opts = dict()
 
-    opts["enable-dump-snapshot"] = ./dump_data
+    opts["enable-dump-snapshot"] = "./dump_data"
 
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=0, durations=100, options=opts)
