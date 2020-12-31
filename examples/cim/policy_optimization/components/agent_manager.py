@@ -50,7 +50,7 @@ def create_po_agents(agent_id_list, config):
             learning_model = LearningModel(
                 actor_net, critic_net, 
                 optimizer_options={
-                    "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer)
+                    "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer),
                     "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)
                 } 
             )
