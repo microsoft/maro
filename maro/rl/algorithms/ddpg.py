@@ -6,7 +6,7 @@ from typing import Callable
 import numpy as np
 import torch
 
-from maro.rl.models.learning_model import LearningModuleManager
+from maro.rl.models.learning_model import LearningModel
 
 from .abs_algorithm import AbsAlgorithm
 
@@ -52,7 +52,7 @@ class DDPG(AbsAlgorithm):
         model (LearningModel): DDPG policy and q-value models.
         config: Configuration for DDPG algorithm.
     """
-    def __init__(self, model: LearningModuleManager, config: DDPGConfig):
+    def __init__(self, model: LearningModel, config: DDPGConfig):
         self.validate_task_names(model.task_names, {"policy", "q_value"})
         super().__init__(model, config)
         self._explorer = self._config.explorer_cls(self._model.output_dim["policy"], **self._config.explorer_params)
