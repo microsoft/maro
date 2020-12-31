@@ -34,7 +34,7 @@ agents:
     optimizer:
       lr: 0.05
     config:
-      reward_decay: .0
+      reward_discount: .0
       target_update_frequency: 5
       tau: 0.1
       is_double: true

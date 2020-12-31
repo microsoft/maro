@@ -15,7 +15,7 @@ from .abs_algorithm import AbsAlgorithm
 class DDPGConfig:
     """Configuration for the DDPG algorithm.
     Args:
-        reward_decay (float): Reward decay as defined in standard RL terminology
+        reward_discount (float): Reward decay as defined in standard RL terminology
         q_value_loss_func (Callable): Loss function for the Q-value estimator.
         target_update_frequency (int): Number of training rounds between policy target model updates.
         actor_loss_coefficient (float): The coefficient for policy loss in the total loss function, e.g.,
@@ -24,18 +24,18 @@ class DDPGConfig:
             Defaults to 1.0.
     """
     __slots__ = [
-        "reward_decay", "q_value_loss_func", "target_update_frequency", "policy_loss_coefficient", "tau"
+        "reward_discount", "q_value_loss_func", "target_update_frequency", "policy_loss_coefficient", "tau"
     ]
 
     def __init__(
         self,
-        reward_decay: float,
+        reward_discount: float,
         q_value_loss_func: Callable,
         target_update_frequency: int,
         policy_loss_coefficient: float = 1.0,
         tau: float = 1.0,
     ):
-        self.reward_decay = reward_decay
+        self.reward_discount = reward_discount
         self.q_value_loss_func = q_value_loss_func
         self.target_update_frequency = target_update_frequency
         self.policy_loss_coefficient = policy_loss_coefficient
@@ -52,7 +52,7 @@ class DDPG(AbsAlgorithm):
         config: Configuration for DDPG algorithm.
         explorer (NoiseExplorer): An NoiseExplorer instance for generating exploratory actions. Defaults to None.
     """
-    def __init__(self, model: LearningModel, config: DDPGConfig):
+    def __init__(self, model: LearningModel, config: DDPGConfig, explorer: NoiseExplorer = None):
         self.validate_task_names(model.task_names, {"policy", "q_value"})
         super().__init__(model, config)
         self._action_dim = model.output_dim["policy"]
@@ -87,7 +87,7 @@ class DDPG(AbsAlgorithm):
         next_q_values = self._target_model(
             torch.cat([next_states, next_actions]), task_name="q_value", is_training=False
         ).squeeze(1)  # (N,)
-        target_q_values = (rewards + self._config.reward_decay * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self._config.reward_discount * next_q_values).detach()  # (N,)
         q_value_loss = self._config.q_value_loss_func(current_q_values, target_q_values)
         actions_from_model = self._model(states, task_name="policy")
         policy_loss = -self._model(torch.cat([states, actions_from_model]), task_name="q_value").mean()
