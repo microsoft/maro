@@ -53,8 +53,8 @@ with:
 ----
 
 User could specify dump destination folder by setting the parameter **options**.
-If user leave the value **opts['enable-dump-snapshot']** empty,
-data would be dumped to current folder.
+If user leave the value of this paremeter empty,
+data would be dumped to the folder which start the command.
 
 
 The possible values of each parameter are listed below:
@@ -100,7 +100,16 @@ with following code:
 ----
 
 If user do not want to dump data, but only want to Initialize the environment, just do not
-pass value to the parameter **options**.
+input the parameter **options**.
+
+.. code-block:: sh
+
+    opts['enable-dump-snapshot'] = ./dump_data
+
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100)
+
+----
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
