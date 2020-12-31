@@ -80,6 +80,14 @@ The possible values of each parameter are listed below:
             ny.201901 ~ ny.201912
 
             ny.202001 ~ ny.202006
+
+            toy.3s_4t
+
+            toy.4s_4t
+
+            toy.5s_6t
+
+            train
     START_TICK_NUMBER:
         Integer not less than 0.
     DURATION_TIME:
