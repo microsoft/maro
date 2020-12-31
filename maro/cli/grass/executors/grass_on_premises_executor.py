@@ -10,11 +10,12 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
-from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
+from maro.cli.utils.deployment_validator import DeploymentValidator
+from maro.cli.utils.details_reader import DetailsReader
+from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
@@ -24,7 +25,7 @@ logger = CliLogger(name=__name__)
 class GrassOnPremisesExecutor(GrassExecutor):
 
     def __init__(self, cluster_name: str):
-        super().__init__(cluster_details=load_cluster_details(cluster_name=cluster_name))
+        super().__init__(cluster_details=DetailsReader.load_cluster_details(cluster_name=cluster_name))
 
     @staticmethod
     def build_cluster_details(create_deployment: dict):
@@ -50,7 +51,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         if os.path.isdir(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}")):
             raise CliError(f"Cluster {cluster_name} already exist.")
         os.makedirs(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=cluster_name,
             cluster_details=create_deployment
         )
@@ -103,7 +104,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         cluster_details["id"] = generate_cluster_id()
 
         # Save details
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
@@ -175,7 +176,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         # Save details
         master_details["public_key"] = public_key
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )

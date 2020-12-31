@@ -4,7 +4,7 @@
 
 from functools import wraps
 
-from maro.cli.utils.details import load_cluster_details
+from maro.cli.utils.details_reader import DetailsReader
 from maro.utils.exception.cli_exception import BadRequestError, ClusterInternalError
 
 
@@ -16,7 +16,7 @@ def check_details_validity(func):
 
         # Get details
         try:
-            cluster_details = load_cluster_details(cluster_name=cluster_name)
+            cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
             # Check details validity
             if cluster_details["mode"] not in {

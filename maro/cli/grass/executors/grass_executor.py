@@ -13,11 +13,12 @@ import yaml
 
 from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node
 from maro.cli.grass.utils.hash import get_checksum
-from maro.cli.utils.details import load_job_details, load_schedule_details, save_job_details, save_schedule_details
+from maro.cli.utils.deployment_validator import DeploymentValidator
+from maro.cli.utils.details_reader import DetailsReader
+from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.naming import generate_component_id, generate_job_id, get_valid_file_name
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.utils.exception.cli_exception import (
     BadRequestError, CliError, ClusterInternalError, CommandExecutionError, FileOperationError
 )
@@ -181,7 +182,7 @@ class GrassExecutor:
         )
 
         # Save job deployment
-        save_job_details(
+        DetailsWriter.save_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name,
             job_details=job_details
@@ -226,7 +227,7 @@ class GrassExecutor:
 
     def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
-        job_details = load_job_details(
+        job_details = DetailsReader.load_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name
         )
@@ -271,7 +272,7 @@ class GrassExecutor:
 
     def _set_job_id(self, job_name: str):
         # Load details
-        job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+        job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
 
         # Set cluster id
         job_details["id"] = generate_job_id()
@@ -281,7 +282,7 @@ class GrassExecutor:
             component_details["id"] = generate_component_id()
 
         # Save details
-        save_job_details(
+        DetailsWriter.save_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name,
             job_details=job_details
@@ -305,7 +306,7 @@ class GrassExecutor:
         )
 
         # Save schedule deployment
-        save_schedule_details(
+        DetailsWriter.save_schedule_details(
             cluster_name=self.cluster_name,
             schedule_name=schedule_name,
             schedule_details=start_schedule_deployment
@@ -324,12 +325,13 @@ class GrassExecutor:
 
     def stop_schedule(self, schedule_name: str):
         # Load details
-        schedule_details = load_schedule_details(cluster_name=self.cluster_name, schedule_name=schedule_name)
+        schedule_details = DetailsReader.load_schedule_details(cluster_name=self.cluster_name,
+                                                               schedule_name=schedule_name)
         job_names = schedule_details["job_names"]
 
         for job_name in job_names:
             # Load job details
-            job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+            job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
             job_schedule_tag = job_details["tags"]["schedule"]
 
             # Remote stop job

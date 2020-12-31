@@ -12,7 +12,7 @@ import uuid
 
 import yaml
 
-from maro.cli.utils.details import load_cluster_details
+from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 
@@ -83,7 +83,7 @@ class TestGrassCopy(unittest.TestCase):
         # Create cluster
         command = f"maro grass create --debug {cls.deployment_path}"
         SubProcess.interactive_run(command)
-        cluster_details = load_cluster_details(cluster_name=cls.cluster_name)
+        cluster_details = DetailsReader.load_cluster_details(cluster_name=cls.cluster_name)
         master_details = cls._get_master_details()
         cls.admin_username = cluster_details["user"]["admin_username"]
         cls.master_public_ip_address = master_details["public_ip_address"]

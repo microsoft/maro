@@ -14,7 +14,7 @@ import uuid
 from redis import Redis
 
 from .node_api_client import NodeApiClient
-from ..utils.details import load_cluster_details
+from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
 from ..utils.executors.redis_executor import RedisExecutor
 from ..utils.resource import ContainerResource, NodeResource
@@ -37,7 +37,7 @@ ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {
 class MasterAgent:
     def __init__(self, cluster_name: str):
         self._cluster_name = cluster_name
-        self._cluster_details = load_cluster_details(cluster_name=cluster_name)
+        self._cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     def start(self) -> None:
         """Start agents.

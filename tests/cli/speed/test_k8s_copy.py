@@ -13,7 +13,7 @@ import uuid
 import yaml
 
 from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
-from maro.cli.utils.details import load_cluster_details
+from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 
@@ -85,7 +85,7 @@ class TestK8sCopy(unittest.TestCase):
         # Create cluster
         command = f"maro k8s create --debug {cls.deployment_path}"
         SubProcess.interactive_run(command)
-        cls.cluster_details = load_cluster_details(cluster_name=cls.cluster_name)
+        cls.cluster_details = DetailsReader.load_cluster_details(cluster_name=cls.cluster_name)
         cls.cluster_id = cls.cluster_details["id"]
         cls.executor = K8sAksExecutor(cluster_name=cls.cluster_name)
         time.sleep(15)

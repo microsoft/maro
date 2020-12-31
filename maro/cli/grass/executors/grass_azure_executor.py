@@ -17,11 +17,12 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
 from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
-from maro.cli.utils.details import load_cluster_details, save_cluster_details
+from maro.cli.utils.deployment_validator import DeploymentValidator
+from maro.cli.utils.details_reader import DetailsReader
+from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_node_name
 from maro.cli.utils.params import GlobalParams, GlobalPaths
-from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.utils.exception.cli_exception import BadRequestError
 from maro.utils.logger import CliLogger
 
@@ -31,7 +32,7 @@ logger = CliLogger(name=__name__)
 class GrassAzureExecutor(GrassExecutor):
 
     def __init__(self, cluster_name: str):
-        super().__init__(cluster_details=load_cluster_details(cluster_name=cluster_name))
+        super().__init__(cluster_details=DetailsReader.load_cluster_details(cluster_name=cluster_name))
 
         # Cloud configs
         self.subscription = self.cluster_details["cloud"]["subscription"]
@@ -53,7 +54,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Set params and save details
         create_deployment["id"] = generate_cluster_id()
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=cluster_name,
             cluster_details=create_deployment
         )
@@ -254,10 +255,9 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green(f"You can login to your master node with: {self.admin_username}@{public_ip_address}")
 
         # Save details
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
-            cluster_details=self.cluster_details,
-            sync=False
+            cluster_details=self.cluster_details
         )
 
         logger.info_green("Master VM is created")
@@ -313,7 +313,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Save details
         master_details["public_key"] = public_key
         master_details["image_files"] = {}
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
         )

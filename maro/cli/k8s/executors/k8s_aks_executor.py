@@ -10,15 +10,13 @@ from copy import deepcopy
 import yaml
 
 from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
-from maro.cli.utils.details import (
-    load_cluster_details, load_job_details, load_schedule_details, save_cluster_details, save_job_details,
-    save_schedule_details
-)
+from maro.cli.utils.deployment_validator import DeploymentValidator
+from maro.cli.utils.details_reader import DetailsReader
+from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_component_id, generate_job_id, generate_name_with_md5
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 from maro.utils.logger import CliLogger
 
@@ -29,7 +27,7 @@ class K8sAksExecutor:
 
     def __init__(self, cluster_name: str):
         self.cluster_name = cluster_name
-        self.cluster_details = load_cluster_details(cluster_name=cluster_name)
+        self.cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     # maro k8s create
 
@@ -43,7 +41,7 @@ class K8sAksExecutor:
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
             raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=cluster_name,
             cluster_details=create_deployment
         )
@@ -85,7 +83,7 @@ class K8sAksExecutor:
         self.cluster_details["id"] = generate_cluster_id()
 
         # Save details
-        save_cluster_details(
+        DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
         )
@@ -484,7 +482,7 @@ class K8sAksExecutor:
         if "account_sas" not in cloud_details:
             account_sas = AzureExecutor.get_storage_account_sas(account_name=f"{cluster_id}st")
             cloud_details["account_sas"] = account_sas
-            save_cluster_details(
+            DetailsWriter.save_cluster_details(
                 cluster_name=self.cluster_name,
                 cluster_details=self.cluster_details
             )
@@ -508,7 +506,7 @@ class K8sAksExecutor:
 
         # Mkdir and save job details
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}", exist_ok=True)
-        save_job_details(
+        DetailsWriter.save_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name,
             job_details=job_details
@@ -566,7 +564,7 @@ class K8sAksExecutor:
 
     def _create_k8s_job_config(self, job_name: str) -> dict:
         # Load details
-        job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+        job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
         cluster_id = self.cluster_details["id"]
         job_id = job_details["id"]
 
@@ -670,7 +668,7 @@ class K8sAksExecutor:
 
     def _set_job_id(self, job_name: str):
         # Load job details
-        job_details = load_job_details(
+        job_details = DetailsReader.load_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name
         )
@@ -683,7 +681,7 @@ class K8sAksExecutor:
             component_details["id"] = generate_component_id()
 
         # Save details
-        save_job_details(
+        DetailsWriter.save_job_details(
             cluster_name=self.cluster_name,
             job_name=job_name,
             job_details=job_details
@@ -721,7 +719,7 @@ class K8sAksExecutor:
 
     def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
-        job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+        job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
         job_id = job_details["id"]
 
         # Get pods details
@@ -758,7 +756,7 @@ class K8sAksExecutor:
 
         # Save schedule deployment
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}", exist_ok=True)
-        save_schedule_details(
+        DetailsWriter.save_schedule_details(
             cluster_name=self.cluster_name,
             schedule_name=schedule_name,
             schedule_details=start_schedule_deployment
@@ -776,12 +774,13 @@ class K8sAksExecutor:
 
     def stop_schedule(self, schedule_name: str):
         # Load details
-        schedule_details = load_schedule_details(cluster_name=self.cluster_name, schedule_name=schedule_name)
+        schedule_details = DetailsReader.load_schedule_details(cluster_name=self.cluster_name,
+                                                               schedule_name=schedule_name)
         job_names = schedule_details["job_names"]
 
         for job_name in job_names:
             # Load job details
-            job_details = load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+            job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
             job_schedule_tag = job_details["tags"]["schedule"]
 
             # Stop job

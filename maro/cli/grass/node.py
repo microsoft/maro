@@ -7,7 +7,7 @@ import yaml
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
 from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.cli.utils.checkers import check_details_validity
-from maro.cli.utils.details import load_cluster_details
+from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.lock import lock
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 
@@ -15,7 +15,7 @@ from maro.utils.exception.cli_exception import BadRequestError, FileOperationErr
 @check_details_validity
 @lock
 def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -27,7 +27,7 @@ def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 @check_details_validity
 @lock
 def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -39,7 +39,7 @@ def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 @check_details_validity
 @lock
 def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -51,7 +51,7 @@ def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 @check_details_validity
 @lock
 def list_node(cluster_name: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -80,7 +80,7 @@ def node_join(node_join_path: str, **kwargs):
 @check_details_validity
 @lock
 def node_leave(cluster_name: str, node_name: str, **kwargs):
-    cluster_details = load_cluster_details(cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name)
 
     if cluster_details["mode"] != "grass/on-premises":
         raise BadRequestError("Node join cluster interrupted: Invalid mode.")

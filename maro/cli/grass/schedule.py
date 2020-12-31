@@ -5,7 +5,7 @@
 from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
 from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.cli.utils.checkers import check_details_validity
-from maro.cli.utils.details import load_cluster_details
+from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.lock import lock
 from maro.utils.exception.cli_exception import BadRequestError
 
@@ -14,7 +14,7 @@ from maro.utils.exception.cli_exception import BadRequestError
 @lock
 def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
     # Load details
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
@@ -30,7 +30,7 @@ def start_schedule(cluster_name: str, deployment_path: str, **kwargs):
 @lock
 def stop_schedule(cluster_name: str, schedule_name: str, **kwargs):
     # Load details
-    cluster_details = load_cluster_details(cluster_name=cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
         executor = GrassAzureExecutor(cluster_name=cluster_name)
