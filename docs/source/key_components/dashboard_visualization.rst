@@ -58,6 +58,7 @@ data would be dumped to current folder.
 
 
 The possible values of each parameter are listed below:
+
     SCNENARIO_NAME:
 
         * cim
@@ -88,7 +89,7 @@ The possible values of each parameter are listed below:
 
         Integer not less than 1.
     opts:
-    
+
         Optional parameter.
 
 For example, user could dump experimental data of senario container_inventory_management
