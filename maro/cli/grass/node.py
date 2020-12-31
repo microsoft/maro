@@ -8,12 +8,12 @@ from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
 from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_validity_wrapper import check_details_validity
-from maro.cli.utils.lock import lock
+from maro.cli.utils.operation_lock_wrapper import operation_lock
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 
 
 @check_details_validity
-@lock
+@operation_lock
 def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -21,11 +21,11 @@ def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.scale_node(replicas=replicas, node_size=node_size)
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 @check_details_validity
-@lock
+@operation_lock
 def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -33,11 +33,11 @@ def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.start_node(replicas=replicas, node_size=node_size)
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 @check_details_validity
-@lock
+@operation_lock
 def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -45,11 +45,11 @@ def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
         executor = GrassAzureExecutor(cluster_name=cluster_name)
         executor.stop_node(replicas=replicas, node_size=node_size)
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 @check_details_validity
-@lock
+@operation_lock
 def list_node(cluster_name: str, **kwargs):
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -60,7 +60,7 @@ def list_node(cluster_name: str, **kwargs):
         executor = GrassOnPremisesExecutor(cluster_name=cluster_name)
         executor.list_node()
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
 def node_join(node_join_path: str, **kwargs):
@@ -78,7 +78,7 @@ def node_join(node_join_path: str, **kwargs):
 
 
 @check_details_validity
-@lock
+@operation_lock
 def node_leave(cluster_name: str, node_name: str, **kwargs):
     cluster_details = DetailsReader.load_cluster_details(cluster_name)
 

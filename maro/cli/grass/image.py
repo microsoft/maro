@@ -6,12 +6,12 @@ from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
 from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_validity_wrapper import check_details_validity
-from maro.cli.utils.lock import lock
+from maro.cli.utils.operation_lock_wrapper import operation_lock
 from maro.utils.exception.cli_exception import BadRequestError
 
 
 @check_details_validity
-@lock
+@operation_lock
 def push_image(
     cluster_name: str, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str,
     **kwargs
@@ -35,4 +35,4 @@ def push_image(
             remote_image_name=remote_image_name
         )
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")

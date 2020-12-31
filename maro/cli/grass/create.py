@@ -22,7 +22,7 @@ def create(deployment_path: str, **kwargs):
             executor = GrassOnPremisesExecutor(cluster_name=create_deployment["name"])
             executor.create()
         else:
-            raise BadRequestError(f"Unsupported command in mode '{create_deployment['mode']}'.")
+            raise BadRequestError(f"Unsupported operation in mode '{create_deployment['mode']}'.")
     except KeyError as e:
         raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
     except FileNotFoundError:

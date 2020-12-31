@@ -5,12 +5,12 @@
 from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_validity_wrapper import check_details_validity
-from maro.cli.utils.lock import lock
+from maro.cli.utils.operation_lock_wrapper import operation_lock
 from maro.utils.exception.cli_exception import BadRequestError
 
 
 @check_details_validity
-@lock
+@operation_lock
 def status(cluster_name: str, **kwargs):
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -18,4 +18,4 @@ def status(cluster_name: str, **kwargs):
         executor = K8sAksExecutor(cluster_name=cluster_name)
         executor.status()
     else:
-        raise BadRequestError(f"Unsupported command in mode '{cluster_details['mode']}'.")
+        raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
