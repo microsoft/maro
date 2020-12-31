@@ -14,7 +14,7 @@ from maro.cli.utils.details import (load_cluster_details, save_cluster_details)
 from maro.cli.utils.naming import generate_cluster_id
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.cli.utils.validation import validate_and_fill_dict
+from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
@@ -74,7 +74,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
                 f"{GlobalPaths.MARO_GRASS_LIB}/deployments/internal/grass-on-premises-create.yml")
         ) as fr:
             create_deployment_template = yaml.safe_load(fr)
-        validate_and_fill_dict(
+        DeploymentValidator.validate_and_fill_dict(
             template_dict=create_deployment_template,
             actual_dict=create_deployment,
             optional_key_to_value=optional_key_to_value

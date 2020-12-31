@@ -17,7 +17,7 @@ from maro.cli.utils.details import load_job_details, load_schedule_details, save
 from maro.cli.utils.naming import generate_component_id, generate_job_id, get_valid_file_name
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
-from maro.cli.utils.validation import validate_and_fill_dict
+from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.utils.exception.cli_exception import (
     BadRequestError, CliError, ClusterInternalError, CommandExecutionError, FileOperationError
 )
@@ -252,7 +252,7 @@ class GrassExecutor:
         }
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
-        validate_and_fill_dict(
+        DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
             actual_dict=start_job_deployment,
             optional_key_to_value=optional_key_to_value
@@ -263,7 +263,7 @@ class GrassExecutor:
             start_job_component_template = yaml.safe_load(fr)
         components_details = start_job_deployment["components"]
         for _, component_details in components_details.items():
-            validate_and_fill_dict(
+            DeploymentValidator.validate_and_fill_dict(
                 template_dict=start_job_component_template,
                 actual_dict=component_details,
                 optional_key_to_value={}
@@ -342,7 +342,7 @@ class GrassExecutor:
         # Validate grass_azure_start_job
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
-        validate_and_fill_dict(
+        DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
             actual_dict=start_schedule_deployment,
             optional_key_to_value={}
@@ -353,7 +353,7 @@ class GrassExecutor:
             start_job_component_template = yaml.safe_load(fr)
         components_details = start_schedule_deployment["components"]
         for _, component_details in components_details.items():
-            validate_and_fill_dict(
+            DeploymentValidator.validate_and_fill_dict(
                 template_dict=start_job_component_template,
                 actual_dict=component_details,
                 optional_key_to_value={}
