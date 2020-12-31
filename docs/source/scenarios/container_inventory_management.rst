@@ -639,6 +639,9 @@ random mode, we hope this could help you learn how to use the environment interf
        print(f"ep: {ep}, environment metrics: {env.metrics}")
        env.reset()
 
+Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
+for a quick experience.
+
 Visualization
 -------------
 
@@ -705,7 +708,3 @@ could be viewed by snapshot. Same as ports, user could change the sampling rate 
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data
-
-
-Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
-for a quick experience.

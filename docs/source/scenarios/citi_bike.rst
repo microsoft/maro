@@ -751,6 +751,9 @@ random mode, we hope this could help you learn how to use the environment interf
        print(f"ep: {ep}, environment metrics: {env.metrics}")
        env.reset()
 
+Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning/interact_with_environment.ipynb>`_
+for a quick experience.
+
 Visualization
 -------------
 
@@ -815,7 +818,3 @@ just hovering on the according bar.
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_snapshot.gif
    :alt: citi\_bike\_intra\_epoch\_by\_snapshot
-
-
-Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning/interact_with_environment.ipynb>`_
-for a quick experience.
