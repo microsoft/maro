@@ -16,7 +16,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.copy import copy_files_to_node
-from maro.cli.grass.utils.params import ContainerStatus, NodeStatus, GrassParams
+from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
 from maro.cli.utils.details import load_cluster_details, save_cluster_details
 from maro.cli.utils.executors.azure_executor import AzureExecutor
 from maro.cli.utils.naming import generate_cluster_id, generate_node_name
