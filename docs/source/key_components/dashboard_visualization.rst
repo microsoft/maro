@@ -35,7 +35,7 @@ Generating dump data
 The dump data from environment is the data source of visualization. User needs specify a parameter when creating Env object to determine if needs dump data. To generate data, user needs specify "enable-dump-snapshot" parameter with following code:
 
 .. code-block:: sh
-
+    opts = dict()
     opts['enable-dump-snapshot'] = EXPECTED_OUTPUT_FOLDER
     env = Env(scenario=SCNENARIO_NAME, topology=TOPOLOGY_FILE_NAME,
           start_tick=START_TICK_NUMBER, durations=DURATION_TIME, options=opts)
@@ -101,7 +101,16 @@ with following code:
 ----
 
 If user do not want to dump data, but only want to Initialize the environment, just do not
-pass value to the parameter **options**.
+input the parameter **options**.
+
+.. code-block:: sh
+    opts = dict()
+    opts['enable-dump-snapshot'] = ./dump_data
+
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100)
+
+----
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
