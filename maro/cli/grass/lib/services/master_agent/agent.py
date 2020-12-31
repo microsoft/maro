@@ -16,7 +16,7 @@ from redis import Redis
 from .node_api_client import NodeApiClient
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
-from ..utils.executors.redis_executor import RedisExecutor
+from ..utils.redis_controller import RedisController
 from ..utils.resource import ContainerResource, NodeResource
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class JobTrackingAgent(multiprocessing.Process):
             port=cluster_details["master"]["redis"]["port"],
             charset="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
         self._check_interval = check_interval
 
     def run(self) -> None:
@@ -87,8 +87,8 @@ class JobTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get details and mapping.
-        containers_details = self._redis_executor.get_containers_details(cluster_name=self._cluster_name)
-        jobs_details = self._redis_executor.get_jobs_details(cluster_name=self._cluster_name)
+        containers_details = self._redis_controller.get_containers_details(cluster_name=self._cluster_name)
+        jobs_details = self._redis_controller.get_jobs_details(cluster_name=self._cluster_name)
         job_id_to_job_name = self._get_job_id_to_job_name(jobs_details=jobs_details)
 
         # Iterate nodes details.
@@ -103,7 +103,7 @@ class JobTrackingAgent(multiprocessing.Process):
         # Save jobs details.
         for job_name, job_details in jobs_details.items():
             job_details["check_time"] = self._redis.time()[0]
-            self._redis_executor.set_job_details(
+            self._redis_controller.set_job_details(
                 cluster_name=self._cluster_name,
                 job_name=job_name,
                 job_details=job_details
@@ -137,7 +137,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
             port=cluster_details["master"]["redis"]["port"],
             charset="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
         self._check_interval = check_interval
 
     def run(self) -> None:
@@ -157,7 +157,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get details and init params.
-        nodes_details = self._redis_executor.get_nodes_details(cluster_name=self._cluster_name)
+        nodes_details = self._redis_controller.get_nodes_details(cluster_name=self._cluster_name)
         containers_details = {}
 
         # Iterate node_details.
@@ -165,7 +165,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
             containers_details.update(node_details["containers"])
 
         # Save containers_details.
-        self._redis_executor.set_containers_details(
+        self._redis_controller.set_containers_details(
             cluster_name=self._cluster_name,
             containers_details=containers_details
         )
@@ -186,7 +186,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             port=cluster_details["master"]["redis"]["port"],
             charset="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
 
         self._check_interval = check_interval
 
@@ -209,12 +209,12 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         # Get details.
-        containers_details = self._redis_executor.get_containers_details(cluster_name=self._cluster_name)
+        containers_details = self._redis_controller.get_containers_details(cluster_name=self._cluster_name)
 
         # Iterate container status.
         for container_name, container_details in containers_details.items():
             # Get job_runtime_details and flags.
-            job_runtime_details = self._redis_executor.get_job_runtime_details(job_id=container_details["job_id"])
+            job_runtime_details = self._redis_controller.get_job_runtime_details(job_id=container_details["job_id"])
 
             # Remove container.
             is_remove_container = self._is_remove_container(
@@ -223,7 +223,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             )
             if is_remove_container:
                 node_name = container_details["node_name"]
-                node_details = self._redis_executor.get_node_details(
+                node_details = self._redis_controller.get_node_details(
                     cluster_name=self._cluster_name,
                     node_name=node_name
                 )
@@ -271,7 +271,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         Returns:
             bool: True or False.
         """
-        exceed_maximum_restart_times = self._redis_executor.get_rejoin_component_restart_times(
+        exceed_maximum_restart_times = self._redis_controller.get_rejoin_component_restart_times(
             job_id=container_details["job_id"],
             component_id=container_details["component_id"]
         ) >= int(job_runtime_details.get("rejoin:max_restart_times", sys.maxsize))
@@ -309,7 +309,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         # Get component_name_to_container_name.
-        rejoin_container_name_to_component_name = self._redis_executor.get_rejoin_container_name_to_component_name(
+        rejoin_container_name_to_component_name = self._redis_controller.get_rejoin_container_name_to_component_name(
             job_id=container_details["job_id"]
         )
 
@@ -327,7 +327,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
                 # Get resources and allocation plan.
                 free_resources = ResourceManagementExecutor.get_free_resources(
-                    redis_executor=self._redis_executor,
+                    redis_controller=self._redis_controller,
                     cluster_name=self._cluster_name
                 )
                 required_resources = [
@@ -349,12 +349,12 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 )
 
                 # Start a new container.
-                job_details = self._redis_executor.get_job_details(
+                job_details = self._redis_controller.get_job_details(
                     cluster_name=self._cluster_name,
                     job_name=container_details["job_name"]
                 )
                 for container_name, node_name in allocation_plan.items():
-                    node_details = self._redis_executor.get_node_details(
+                    node_details = self._redis_controller.get_node_details(
                         cluster_name=self._cluster_name,
                         node_name=node_name
                     )
@@ -364,7 +364,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                         job_details=job_details,
                         component_name=component_name
                     )
-                self._redis_executor.incr_rejoin_component_restart_times(
+                self._redis_controller.incr_rejoin_component_restart_times(
                     job_id=container_details["job_id"],
                     component_id=container_details["component_id"]
                 )
@@ -384,10 +384,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         # Delete mapping if fault tolerance is activated.
-        self._redis_executor.delete_rejoin_container_name_to_component_name(job_id=job_id)
+        self._redis_controller.delete_rejoin_container_name_to_component_name(job_id=job_id)
 
         # Load details and vars.
-        nodes_details = self._redis_executor.get_nodes_details(cluster_name=self._cluster_name)
+        nodes_details = self._redis_controller.get_nodes_details(cluster_name=self._cluster_name)
 
         # Delete containers.
         for node_name, node_details in nodes_details.items():
@@ -519,7 +519,7 @@ class PendingJobAgent(multiprocessing.Process):
             port=cluster_details["master"]["redis"]["port"],
             charset="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
 
         self._check_interval = check_interval
 
@@ -542,19 +542,19 @@ class PendingJobAgent(multiprocessing.Process):
             None.
         """
         # Get tickets.
-        self._pending_jobs = self._redis_executor.get_pending_job_tickets(cluster_name=self._cluster_name)
+        self._pending_jobs = self._redis_controller.get_pending_job_tickets(cluster_name=self._cluster_name)
 
         # Iterate tickets.
         for pending_job_name in self._pending_jobs:
             # Get details.
-            job_details = self._redis_executor.get_job_details(
+            job_details = self._redis_controller.get_job_details(
                 cluster_name=self._cluster_name,
                 job_name=pending_job_name
             )
 
             # Get resources info.
             free_resources = ResourceManagementExecutor.get_free_resources(
-                redis_executor=self._redis_executor,
+                redis_controller=self._redis_controller,
                 cluster_name=self._cluster_name
             )
             required_resources = ResourceManagementExecutor.get_required_resources(job_details=job_details)
@@ -567,7 +567,7 @@ class PendingJobAgent(multiprocessing.Process):
                     free_resources=free_resources
                 )
                 for container_name, node_name in allocation_plan.items():
-                    node_details = self._redis_executor.get_node_details(
+                    node_details = self._redis_controller.get_node_details(
                         cluster_name=self._cluster_name,
                         node_name=node_name
                     )
@@ -576,14 +576,14 @@ class PendingJobAgent(multiprocessing.Process):
                         node_details=node_details,
                         job_details=job_details
                     )
-                self._redis_executor.remove_pending_job_ticket(
+                self._redis_controller.remove_pending_job_ticket(
                     cluster_name=self._cluster_name,
                     job_name=pending_job_name
                 )
             except ResourceAllocationFailed as e:
                 logger.warning(f"Allocation failed with {e}")
             except StartContainerError as e:
-                self._redis_executor.remove_pending_job_ticket(
+                self._redis_controller.remove_pending_job_ticket(
                     cluster_name=self._cluster_name,
                     job_name=pending_job_name
                 )
@@ -687,7 +687,7 @@ class KilledJobAgent(multiprocessing.Process):
             port=cluster_details["master"]["redis"]["port"],
             charset="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
 
         self._check_interval = check_interval
 
@@ -710,12 +710,12 @@ class KilledJobAgent(multiprocessing.Process):
             None.
         """
         # Get tickets.
-        self._killed_job_tickets = self._redis_executor.get_killed_job_tickets(cluster_name=self._cluster_name)
+        self._killed_job_tickets = self._redis_controller.get_killed_job_tickets(cluster_name=self._cluster_name)
 
         # Iterate tickets.
         for job_name in self._killed_job_tickets:
             # Get details.
-            job_details = self._redis_executor.get_job_details(
+            job_details = self._redis_controller.get_job_details(
                 cluster_name=self._cluster_name,
                 job_name=job_name
             )
@@ -726,7 +726,7 @@ class KilledJobAgent(multiprocessing.Process):
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 
             # Remove killed job ticket.
-            self._redis_executor.remove_killed_job_ticket(
+            self._redis_controller.remove_killed_job_ticket(
                 cluster_name=self._cluster_name,
                 job_name=job_name
             )
@@ -744,10 +744,10 @@ class KilledJobAgent(multiprocessing.Process):
         job_id = job_details["id"]
 
         # Delete mapping if fault tolerance is activated.
-        self._redis_executor.delete_rejoin_container_name_to_component_name(job_id=job_id)
+        self._redis_controller.delete_rejoin_container_name_to_component_name(job_id=job_id)
 
         # Load details and vars.
-        nodes_details = self._redis_executor.get_nodes_details(cluster_name=self._cluster_name)
+        nodes_details = self._redis_controller.get_nodes_details(cluster_name=self._cluster_name)
 
         # Delete containers.
         for node_name, node_details in nodes_details.items():
@@ -983,18 +983,18 @@ class ResourceManagementExecutor:
         return allocation_plan
 
     @staticmethod
-    def get_free_resources(redis_executor: RedisExecutor, cluster_name: str) -> list:
+    def get_free_resources(redis_controller: RedisController, cluster_name: str) -> list:
         """Get free resources of nodes in cluster.
 
         Args:
-            redis_executor (RedisExecutor): RedisExecutor of the agent.
+            redis_controller (RedisController): RedisController of the agent.
             cluster_name (str): Name of the cluster.
 
         Returns:
             list: List of NodeResource.
         """
         # Load details.
-        nodes_details = redis_executor.get_nodes_details(cluster_name=cluster_name)
+        nodes_details = redis_controller.get_nodes_details(cluster_name=cluster_name)
 
         # Get free resources.
         free_resources_list = []

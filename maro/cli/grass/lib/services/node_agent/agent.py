@@ -16,8 +16,8 @@ import redis
 
 from ..utils.docker_controller import DockerController
 from ..utils.exception import CommandExecutionError
-from ..utils.executors.redis_executor import RedisExecutor
 from ..utils.params import NodeStatus
+from ..utils.redis_controller import RedisController
 from ..utils.resource import BasicResource
 from ..utils.subprocess import SubProcess
 
@@ -37,7 +37,7 @@ class NodeAgent:
             host=master_hostname, port=redis_port,
             encoding="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
 
         # Init agents.
         self.load_image_agent = LoadImageAgent(
@@ -79,13 +79,13 @@ class NodeAgent:
         self.load_image_agent.stop()
 
         # Set STOPPED state
-        node_details = self._redis_executor.get_node_details(
+        node_details = self._redis_controller.get_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
         node_details["state"]["status"] = NodeStatus.STOPPED
         node_details["state"]["check_time"] = self._redis.time()[0]
-        self._redis_executor.set_node_details(
+        self._redis_controller.set_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name,
             node_details=node_details
@@ -112,12 +112,12 @@ class NodeAgent:
             resource["gpu"] = 0
 
         # Set resource details
-        node_details = self._redis_executor.get_node_details(
+        node_details = self._redis_controller.get_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
         node_details["resources"] = resource
-        self._redis_executor.set_node_details(
+        self._redis_controller.set_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name,
             node_details=node_details
@@ -138,7 +138,7 @@ class NodeTrackingAgent(threading.Thread):
             host=master_hostname, port=redis_port,
             encoding="utf-8", decode_responses=True
         )
-        self._redis_executor = RedisExecutor(redis=self._redis)
+        self._redis_controller = RedisController(redis=self._redis)
 
         # Other params.
         self._check_interval = check_interval
@@ -168,7 +168,7 @@ class NodeTrackingAgent(threading.Thread):
         # Get or init details.
 
         with NODE_DETAILS_LOCK:
-            node_details = self._redis_executor.get_node_details(
+            node_details = self._redis_controller.get_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name
             )
@@ -186,7 +186,7 @@ class NodeTrackingAgent(threading.Thread):
             node_details["state"]["check_time"] = self._redis.time()[0]
 
             # Save details.
-            self._redis_executor.set_node_details(
+            self._redis_controller.set_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name,
                 node_details=node_details
@@ -323,7 +323,7 @@ class LoadImageAgent(threading.Thread):
         super().__init__()
         self._cluster_name = cluster_name
         self._node_name = node_name
-        self._redis_executor = RedisExecutor(
+        self._redis_controller = RedisController(
             redis=redis.Redis(host=master_hostname, port=redis_port, encoding="utf-8", decode_responses=True)
         )
 
@@ -352,8 +352,8 @@ class LoadImageAgent(threading.Thread):
             None.
         """
 
-        master_details = self._redis_executor.get_master_details(cluster_name=self._cluster_name)
-        node_details = self._redis_executor.get_node_details(
+        master_details = self._redis_controller.get_master_details(cluster_name=self._cluster_name)
+        node_details = self._redis_controller.get_node_details(
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
@@ -383,12 +383,12 @@ class LoadImageAgent(threading.Thread):
             )
 
         with NODE_DETAILS_LOCK:
-            node_details = self._redis_executor.get_node_details(
+            node_details = self._redis_controller.get_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name
             )
             node_details["image_files"] = master_image_files_details
-            self._redis_executor.set_node_details(
+            self._redis_controller.set_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name,
                 node_details=node_details

@@ -7,7 +7,7 @@ import json
 from redis import Redis
 
 
-class RedisExecutor:
+class RedisController:
     def __init__(self, redis: Redis):
         self._redis = redis
 
