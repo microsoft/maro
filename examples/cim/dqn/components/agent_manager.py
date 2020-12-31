@@ -28,10 +28,13 @@ def create_dqn_agents(agent_id_list, config):
                 **config.algorithm.model
             )
         )
-
+        learning_model = LearningModel(
+            q_net, 
+            optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
+        )
         algorithm = DQN(
-            LearningModel(q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)),
-            DQNConfig(**config.algorithm.config, loss_cls=nn.SmoothL1Loss)
+            learning_model,
+            DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss)
         )
         agent_dict[agent_id] = CIMAgent(
             agent_id, algorithm, ColumnBasedStore(**config.experience_pool),
