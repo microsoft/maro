@@ -67,10 +67,6 @@ class LearningModel(nn.Module):
             optimize all parameters of the model. If it is a dictionary, for each `(key, value)` pair, an optimizer
             specified by `value` will be created for the internal stack named `key`. Defaults to None.
     """
-<<<<<<< HEAD
-    def __init__(self, *task_modules: LearningModule, shared_module: LearningModule = None):
-        self.validate_dims(*task_modules, shared_module=shared_module)
-=======
     def __init__(
         self, 
         *task_stacks: NNStack, 
@@ -78,7 +74,6 @@ class LearningModel(nn.Module):
         optimizer_options: Union[OptimizerOptions, Dict[str, OptimizerOptions]] = None
     ):
         self.validate_dims(*task_stacks, shared_stack=shared_stack)
->>>>>>> v0.2_learning_model_refinement
         super().__init__()
         self._stack_dict = {stack.name: stack for stack in task_stacks} 
         # shared stack
