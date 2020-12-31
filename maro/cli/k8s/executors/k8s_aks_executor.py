@@ -14,7 +14,7 @@ from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_tar
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.naming import generate_cluster_id, generate_component_id, generate_job_id, generate_name_with_md5
+from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
@@ -80,7 +80,7 @@ class K8sAksExecutor:
 
     def _set_cluster_id(self):
         # Set cluster id
-        self.cluster_details["id"] = generate_cluster_id()
+        self.cluster_details["id"] = NameCreator.create_cluster_id()
 
         # Save details
         DetailsWriter.save_cluster_details(
@@ -356,7 +356,7 @@ class K8sAksExecutor:
 
     @staticmethod
     def _generate_nodepool_name(key: str) -> str:
-        return generate_name_with_md5(prefix="pool", key=key, md5_len=8)
+        return NameCreator.create_name_with_md5(prefix="pool", key=key, md5_len=8)
 
     def list_node(self):
         # Load details
@@ -674,11 +674,11 @@ class K8sAksExecutor:
         )
 
         # Set job id
-        job_details["id"] = generate_job_id()
+        job_details["id"] = NameCreator.create_job_id()
 
         # Set component id
         for component, component_details in job_details["components"].items():
-            component_details["id"] = generate_component_id()
+            component_details["id"] = NameCreator.create_component_id()
 
         # Save details
         DetailsWriter.save_job_details(

@@ -21,7 +21,7 @@ from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.naming import generate_cluster_id, generate_node_name
+from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.utils.exception.cli_exception import BadRequestError
 from maro.utils.logger import CliLogger
@@ -53,7 +53,7 @@ class GrassAzureExecutor(GrassExecutor):
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
 
         # Set params and save details
-        create_deployment["id"] = generate_cluster_id()
+        create_deployment["id"] = NameCreator.create_cluster_id()
         DetailsWriter.save_cluster_details(
             cluster_name=cluster_name,
             cluster_details=create_deployment
@@ -386,7 +386,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def _create_node(self, node_size: str):
         # Generate node name
-        node_name = generate_node_name()
+        node_name = NameCreator.create_node_name()
         logger.info(message=f"Creating node {node_name}")
 
         # Create node

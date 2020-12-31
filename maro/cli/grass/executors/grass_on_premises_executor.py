@@ -13,7 +13,7 @@ from maro.cli.grass.utils.copy import copy_files_to_node
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.naming import generate_cluster_id
+from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import CliError
@@ -101,7 +101,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         cluster_details = self.cluster_details
 
         # Set cluster id
-        cluster_details["id"] = generate_cluster_id()
+        cluster_details["id"] = NameCreator.create_cluster_id()
 
         # Save details
         DetailsWriter.save_cluster_details(

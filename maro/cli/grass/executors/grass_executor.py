@@ -16,7 +16,7 @@ from maro.cli.grass.utils.hash import get_checksum
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
-from maro.cli.utils.naming import generate_component_id, generate_job_id, get_valid_file_name
+from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import (
@@ -66,7 +66,7 @@ class GrassExecutor:
 
         # Push image
         if image_name:
-            new_file_name = get_valid_file_name(image_name)
+            new_file_name = NameCreator.get_valid_file_name(image_name)
             abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
             self._save_image(
                 image_name=image_name,
@@ -89,7 +89,7 @@ class GrassExecutor:
             logger.info_green(f"Image {image_name} is loaded")
         elif image_path:
             file_name = os.path.basename(image_path)
-            new_file_name = get_valid_file_name(file_name)
+            new_file_name = NameCreator.get_valid_file_name(file_name)
             abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
             copy_and_rename(
                 source_path=abs_image_path,
@@ -275,11 +275,11 @@ class GrassExecutor:
         job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
 
         # Set cluster id
-        job_details["id"] = generate_job_id()
+        job_details["id"] = NameCreator.create_job_id()
 
         # Set component id
         for component, component_details in job_details["components"].items():
-            component_details["id"] = generate_component_id()
+            component_details["id"] = NameCreator.create_component_id()
 
         # Save details
         DetailsWriter.save_job_details(
