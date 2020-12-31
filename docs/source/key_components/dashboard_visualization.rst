@@ -45,6 +45,7 @@ with following code:
 
 User could save the code above into a file named **dump_data.py**, and run this file
 with:
+
 .. code-block:: sh
 
     python ./dump_data.py
