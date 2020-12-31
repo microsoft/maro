@@ -15,7 +15,7 @@ from multiprocessing.pool import ThreadPool
 import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
-from maro.cli.grass.utils.copy import copy_files_to_node
+from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
@@ -190,7 +190,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Run init image script
         self._sync_mkdir(path=GlobalPaths.MARO_LOCAL_TMP, node_ip_address=public_ip_address)
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
             remote_dir="~/",
             admin_username=self.admin_username,
@@ -286,14 +286,14 @@ class GrassAzureExecutor(GrassExecutor):
         self._sync_mkdir(path=GlobalPaths.MARO_GRASS_LIB, node_ip_address=self.master_public_ip_address)
 
         # Copy required files
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=GlobalPaths.MARO_GRASS_LIB,
             remote_dir=GlobalPaths.MARO_LIB,
             admin_username=self.admin_username,
             node_ip_address=self.master_public_ip_address,
             ssh_port=self.ssh_port
         )
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             remote_dir=GlobalPaths.MARO_CLUSTERS,
             admin_username=self.admin_username,
@@ -511,14 +511,14 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Copy required files
         self._sync_mkdir(path=f"{GlobalPaths.MARO_LOCAL_TMP}", node_ip_address=node_public_ip_address)
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/node/init_node.py",
             remote_dir="~/",
             admin_username=self.admin_username,
             node_ip_address=node_public_ip_address,
             ssh_port=self.ssh_port
         )
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
             remote_dir="~/",
             admin_username=self.admin_username,

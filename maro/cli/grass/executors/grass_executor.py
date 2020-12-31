@@ -11,7 +11,7 @@ from subprocess import TimeoutExpired
 
 import yaml
 
-from maro.cli.grass.utils.copy import copy_and_rename, copy_files_from_node, copy_files_to_node
+from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.hash import get_checksum
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
@@ -78,7 +78,7 @@ class GrassExecutor:
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
-            copy_files_to_node(
+            FileSynchronizer.copy_files_to_node(
                 local_path=abs_image_path,
                 remote_dir=images_dir,
                 admin_username=self.admin_username,
@@ -91,7 +91,7 @@ class GrassExecutor:
             file_name = os.path.basename(image_path)
             new_file_name = NameCreator.get_valid_file_name(file_name)
             abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
-            copy_and_rename(
+            FileSynchronizer.copy_and_rename(
                 source_path=abs_image_path,
                 target_dir=image_path
             )
@@ -101,7 +101,7 @@ class GrassExecutor:
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
-            copy_files_to_node(
+            FileSynchronizer.copy_files_to_node(
                 local_path=abs_image_path,
                 remote_dir=images_dir,
                 admin_username=self.admin_username,
@@ -135,7 +135,7 @@ class GrassExecutor:
     def push_data(self, local_path: str, remote_path: str):
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=local_path,
             remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
             admin_username=self.admin_username,
@@ -146,7 +146,7 @@ class GrassExecutor:
     def pull_data(self, local_path: str, remote_path: str):
         if not remote_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
-        copy_files_from_node(
+        FileSynchronizer.copy_files_from_node(
             local_dir=local_path,
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
             admin_username=self.admin_username,
@@ -194,7 +194,7 @@ class GrassExecutor:
         )
 
         # Sync job details to master
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/details.yml",
             remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
             admin_username=self.admin_username,
@@ -235,7 +235,7 @@ class GrassExecutor:
 
         # Copy logs from master
         try:
-            copy_files_from_node(
+            FileSynchronizer.copy_files_from_node(
                 local_dir=export_dir,
                 remote_path=f"~/.maro/logs/{job_id}",
                 admin_username=self.admin_username,

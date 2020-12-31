@@ -9,7 +9,7 @@ from shutil import rmtree
 import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
-from maro.cli.grass.utils.copy import copy_files_to_node
+from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
@@ -154,12 +154,12 @@ class GrassOnPremisesExecutor(GrassExecutor):
         self._create_path_in_list(master_public_ip_address, path_list)
 
         # Copy required files
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=GlobalPaths.MARO_GRASS_LIB,
             remote_dir=GlobalPaths.MARO_LIB,
             admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             remote_dir=GlobalPaths.MARO_CLUSTERS,
             admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
@@ -277,12 +277,12 @@ class GrassOnPremisesExecutor(GrassExecutor):
         self._create_path_in_list(node_public_ip_address, path_list)
 
         # Copy required files
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=GlobalPaths.MARO_GRASS_LIB,
             remote_dir=GlobalPaths.MARO_LIB,
             admin_username=admin_username, node_ip_address=node_public_ip_address, ssh_port=ssh_port
         )
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             remote_dir=GlobalPaths.MARO_CLUSTERS,
             admin_username=admin_username, node_ip_address=node_public_ip_address, ssh_port=ssh_port
@@ -359,7 +359,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             print("Please input a user account that has permissions to create user:")
             admin_username = input("> ")
 
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/create_user.py",
             remote_dir="~/",
             admin_username=admin_username, node_ip_address=ip_address, ssh_port=ssh_port
@@ -371,7 +371,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         if "" == admin_username:
             admin_username = input("Please input a user account that has permissions to delete user:\r\n")
 
-        copy_files_to_node(
+        FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/delete_user.py",
             remote_dir="~/",
             admin_username=admin_username, node_ip_address=ip_address, ssh_port=ssh_port
