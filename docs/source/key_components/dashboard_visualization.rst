@@ -34,21 +34,37 @@ Generate dumped data
 
 The dumped data from environment is the data source of visualization.
 User needs to specify a parameter when creating Env object to determine
-if needs to dump data. To generate data, user needs to specify the
-parameter **options** with following code:
+if needs to dump data.
+
+To generate data, user needs to specify the parameter **options**.
+Type of value of this parameter should be Dictionary.
+If user do not need to dump data, then there is no need to pass value to
+this parameter. If user need to dump data, user could specify dump destination
+folder by setting this parameter.
+If the value for key "enable-dump-snapshot" of this parameter is an empty string,
+data would be dumped to the folder which start the command.
+If user specify this value, data would be dumped to the specified folder.
 
 .. code-block:: sh
 
-    opts = dict()
+    opts_have_path = {"enable-dump-snapshot": "./dump_data"}
 
-    opts["enable-dump-snapshot"] = EXPECTED_OUTPUT_FOLDER
+    opts_have_no_path = {"enable-dump-snapshot": ""}
 
-    env = Env(scenario=SCNENARIO_NAME, topology=TOPOLOGY_FILE_NAME,
-          start_tick=START_TICK_NUMBER, durations=DURATION_TIME, options=opts)
+    # dump data to folder ./dump_data.
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100, options=opts_have_path)
 
+    # dump data to the folder which run the command.
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100, options=opts_have_no_path)
+
+    # initialize Env object without dump data.
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100)
 ----
 
-Suppose a file named **dump_data.py** contains code for calling Env object
+Suppose a file named **dump_data.py** contains above code for calling Env object
 to run experiment, and run this file with:
 
 .. code-block:: sh
@@ -57,76 +73,21 @@ to run experiment, and run this file with:
 
 ----
 
-User could specify dump destination folder by setting the parameter **options**.
-If user leave the value of **opts["enable-dump-snapshot"]** empty,
-data would be dumped to the folder which start the command.
-
-
 The possible values of each parameter are listed below:
 
-    SCNENARIO_NAME:
+    scenario:
         * cim
         * citi_bike
-    TOPOLOGY_FILE_NAME:
-        * for senario container_inventory_management: 
+    topology:
+        * `cim <../scenarios/container_inventory_management.html#Topologies>`_
 
-            global.trade.22p.10.0 ~ global.trade.22p.10.8
-
-            toy.4p.ssdd_10.0 ~ toy.4p.ssdd_10.8
-
-            toy.5p.ssddd_10.0 ~ toy.5p.ssddd_10.8
-
-            toy.6p.ssbddd_10.0 ~ toy.6p.ssbddd_10.8
-
-        * for scenario citi_bike:
-
-            ny.201801 ~ ny.201812
-
-            ny.201901 ~ ny.201912
-
-            ny.202001 ~ ny.202006
-
-            toy.3s_4t
-
-            toy.4s_4t
-
-            toy.5s_6t
-
-            train
-    START_TICK_NUMBER:
+        * `citi_bike <../scenarios/citi_bike.html#Topologies>`_
+    start_tick:
         Integer not less than 0.
-    DURATION_TIME:
+    duration:
         Integer not less than 1.
     opts:
-        Optional parameter.
-
-For example, user could dump experimental data of senario container_inventory_management
-with following code:
-    
-.. code-block:: sh
-
-    opts = dict()
-
-    opts["enable-dump-snapshot"] = "./dump_data"
-
-    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=0, durations=100, options=opts)
-
-----
-
-If user do not want to dump data, but only want to Initialize the environment, just do not
-input the parameter **options**.
-
-.. code-block:: sh
-
-    opts = dict()
-
-    opts["enable-dump-snapshot"] = "./dump_data"
-
-    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=0, durations=100)
-
-----
+        Dictionary.
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
