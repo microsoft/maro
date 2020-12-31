@@ -10,12 +10,12 @@ from copy import deepcopy
 import yaml
 
 from maro.cli.utils.azure_controller import AzureController
-from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
+from maro.cli.utils.path_convertor import PathConvertor
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 from maro.utils.logger import CliLogger
@@ -418,8 +418,8 @@ class K8sAksExecutor:
 
         # Push data
         abs_local_path = os.path.expanduser(local_path)
-        abs_source_path = get_reformatted_source_path(abs_local_path)
-        target_dir = get_reformatted_target_dir(remote_dir)
+        abs_source_path = PathConvertor.build_path_without_trailing_slash(abs_local_path)
+        target_dir = PathConvertor.build_path_with_trailing_slash(remote_dir)
         if not target_dir.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {target_dir}\nShould be started with '/'.")
         copy_command = (
@@ -439,8 +439,8 @@ class K8sAksExecutor:
 
         # Push data
         abs_local_dir = os.path.expanduser(local_dir)
-        source_path = get_reformatted_source_path(remote_path)
-        abs_target_dir = get_reformatted_target_dir(abs_local_dir)
+        source_path = PathConvertor.build_path_without_trailing_slash(remote_path)
+        abs_target_dir = PathConvertor.build_path_with_trailing_slash(abs_local_dir)
         os.makedirs(abs_target_dir, exist_ok=True)
         if not source_path.startswith("/"):
             raise FileOperationError(f"Invalid remote path: {source_path}\nShould be started with '/'.")

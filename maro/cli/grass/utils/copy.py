@@ -7,8 +7,8 @@ import platform
 import shutil
 import uuid
 
-from maro.cli.utils.copy import get_reformatted_source_path, get_reformatted_target_dir
 from maro.cli.utils.params import GlobalPaths
+from maro.cli.utils.path_convertor import PathConvertor
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import FileOperationError
 from maro.utils.logger import CliLogger
@@ -32,10 +32,10 @@ def copy_files_to_node(
         node_ip_address (str)
         ssh_port (int): port of the ssh connection
     """
-    source_path = get_reformatted_source_path(local_path)
+    source_path = PathConvertor.build_path_without_trailing_slash(local_path)
     basename = os.path.basename(source_path)
     folder_name = os.path.expanduser(os.path.dirname(source_path))
-    target_dir = get_reformatted_target_dir(remote_dir)
+    target_dir = PathConvertor.build_path_with_trailing_slash(remote_dir)
 
     mkdir_script = (
         f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_ip_address} "
@@ -93,10 +93,10 @@ def copy_files_from_node(
         node_ip_address (str)
         ssh_port (int): port of the ssh connection
     """
-    source_path = get_reformatted_source_path(remote_path)
+    source_path = PathConvertor.build_path_without_trailing_slash(remote_path)
     basename = os.path.basename(source_path)
     folder_name = os.path.dirname(source_path)
-    target_dir = get_reformatted_target_dir(local_dir)
+    target_dir = PathConvertor.build_path_with_trailing_slash(local_dir)
 
     # Create local dir
     os.makedirs(os.path.expanduser(target_dir), exist_ok=True)
