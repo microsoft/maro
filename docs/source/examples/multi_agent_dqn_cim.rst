@@ -120,7 +120,7 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
     def create_dqn_agents(agent_id_list):
         agent_dict = {}
         for agent_id in agent_id_list:
-            q_module = LearningModule(
+            q_net = NNStack(
                 "q_value",
                 FullyConnectedBlock(
                     input_dim=state_shaper.dim,
@@ -135,8 +135,8 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
             )
 
             algorithm = DQN(
-                model=LearningModuleManager(
-                    q_module, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
+                model=LearningModel(
+                    q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
                 ),
                 config=DQNConfig(
                     reward_decay=.0, 
