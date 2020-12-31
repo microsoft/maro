@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.optim import Adam, RMSprop
 
 from maro.rl import (
-    AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModuleManager, LearningModule,
+    AbsAgent, ActorCritic, ActorCriticConfig, FullyConnectedBlock, LearningModel, NNStack,
     OptimizerOptions, PolicyGradient, PolicyOptimizationConfig, SimpleAgentManager
 )
 from maro.utils import set_seeds
@@ -22,41 +22,46 @@ def create_po_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        actor_module = LearningModule(
+        actor_net = NNStack(
             "actor",
-            [FullyConnectedBlock(
+            FullyConnectedBlock(
                 input_dim=input_dim,
                 output_dim=num_actions,
                 activation=nn.Tanh,
                 is_head=True,
                 **config.actor_model
-            )],
-            optimizer_options=OptimizerOptions(cls=Adam, params=config.actor_optimizer)
+            )
         )
 
         if config.type == "actor_critic":
-            critic_module = LearningModule(
+            critic_net = NNStack(
                 "critic",
-                [FullyConnectedBlock(
+                FullyConnectedBlock(
                     input_dim=config.input_dim,
                     output_dim=1,
                     activation=nn.LeakyReLU,
                     is_head=True,
                     **config.critic_model
-                )],
-                optimizer_options=OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)
+                )
             )
 
             hyper_params = config.actor_critic_hyper_parameters
             hyper_params.update({"reward_discount": config.reward_discount})
+            learning_model = LearningModel(
+                actor_net, critic_net, 
+                optimizer_options={
+                    "actor": OptimizerOptions(cls=Adam, params=config.actor_optimizer)
+                    "critic": OptimizerOptions(cls=RMSprop, params=config.critic_optimizer)  
+            )
             algorithm = ActorCritic(
-                LearningModuleManager(actor_module, critic_module),
-                ActorCriticConfig(critic_loss_func=nn.functional.smooth_l1_loss, **hyper_params)
+                learning_model, ActorCriticConfig(critic_loss_func=nn.SmoothL1Loss, **hyper_params)
             )
         else:
-            algorithm = PolicyGradient(
-                LearningModuleManager(actor_module), PolicyOptimizationConfig(config.reward_discount)
+            learning_model = LearningModel(
+                actor_net, 
+                optimizer_options=OptimizerOptions(cls=Adam, params=config.actor_optimizer)  
             )
+            algorithm = PolicyGradient(learning_model, PolicyOptimizationConfig(config.reward_discount))
 
         agent_dict[agent_id] = POAgent(name=agent_id, algorithm=algorithm)
 

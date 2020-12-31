@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import LearningModuleManager
+from maro.rl.models.learning_model import LearningModel
 from maro.rl.utils.trajectory_utils import get_lambda_returns, get_truncated_cumulative_reward
 
 ActionInfo = namedtuple("ActionInfo", ["action", "log_probability"])
@@ -119,11 +119,11 @@ class ActorCritic(PolicyOptimization):
     The Actor-Critic algorithm base on the policy gradient theorem.
 
     Args:
-        model (LearningModuleManager): Multi-task model that computes action distributions and state values.
+        model (LearningModel): Multi-task model that computes action distributions and state values.
             It may or may not have a shared bottom stack.
         config: Configuration for the AC algorithm.
     """
-    def __init__(self, model: LearningModuleManager, config: ActorCriticConfig):
+    def __init__(self, model: LearningModel, config: ActorCriticConfig):
         self.validate_task_names(model.task_names, {"actor", "critic"})
         super().__init__(model, config)
 
