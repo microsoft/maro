@@ -633,14 +633,11 @@ random mode, we hope this could help you learn how to use the environment interf
 
            # Drive the environment with the random action.
            metrics, decision_event, is_done = env.step(action)
-    
+
        # Query for the environment business metrics at the end of each episode,
        # it is usually users' optimized object in CIM scenario (usually includes multi-target).
        print(f"ep: {ep}, environment metrics: {env.metrics}")
        env.reset()
-
-Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
-for a quick experience.
 
 Visualization
 -------------
@@ -709,3 +706,6 @@ could be viewed by snapshot. Same as ports, user could change the sampling rate 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data
 
+
+Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/container_inventory_management/interact_with_environment.ipynb>`_
+for a quick experience.

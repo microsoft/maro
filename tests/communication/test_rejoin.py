@@ -9,7 +9,7 @@ import time
 import unittest
 
 from maro.communication import Proxy, SessionMessage, SessionType
-from .utils import get_random_port
+from tests.communication.utils import get_random_port
 
 
 PROXY_PARAMETER = {

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import argparse
 
 from maro.cli.inspector.cim_dashboard import start_cim_dashboard
