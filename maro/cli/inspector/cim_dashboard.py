@@ -442,10 +442,8 @@ def _generate_intra_panel_by_snapshot(
         attribute_option = ["name"]
     attribute_temp_option = attribute_option
     attribute_temp_option.append("frame_index")
-    
     data_acc = data[attribute_temp_option]
     down_pooling_sample_list = helper.get_sample_index_list(ports_num, sample_ratio)
-    
     snapshot_filtered = data_acc[data_acc["frame_index"] == snapshot_index][attribute_option].reset_index(drop=True)
     data_rename = pd.DataFrame(columns=attribute_option)
     for index in down_pooling_sample_list:
