@@ -38,7 +38,7 @@ if needs to dump data.
 
 To generate data, user needs to specify the parameter **options**.
 Type of value of this parameter should be Dictionary.
-If user do not need to dump data, then there is no need to pass value to
+If user does not need to dump data, then there is no need to pass value to
 this parameter. 
 If the value for key "enable-dump-snapshot" of this parameter is an empty string,
 data would be dumped to the folder which start the command.
@@ -73,7 +73,9 @@ to run experiment, and run this file with:
 
 ----
 
-The possible values of each parameter are listed below:
+Then data would be dumped automatically.
+
+The expected values of each parameter are listed below:
 
     scenario:
         * cim
