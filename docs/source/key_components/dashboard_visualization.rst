@@ -90,6 +90,7 @@ The command line would print out the selected port.
 
 Feature List
 ------------
+
 Basically, each scenario has 2 parts of visualization: intra-epoch view
 and inter-epoch view. User could switch between them freely.
 
@@ -124,12 +125,18 @@ To view the details of a resource holder or a tick, user could select
 the specific index of epoch/snapshot/resource holder by sliding the slider
 on the left side of page.
 
+.. figure:: ..\images\visualization\dashboard\epoch_resource_holder_index_selection.gif
+   :alt: epoch\_resource\_holder\_index\_selection
+
 Snapshot/Resource Holder Sampling Ratio Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of snapshot/resource holder by sliding to
 change the number of data to be displayed.
+
+.. figure:: ..\images\visualization\dashboard\snapshot_sampling_ratio_selection.gif
+   :alt: snapshot\_sampling\_ratio\_selection
 
 Formula Calculation
 ^^^^^^^^^^^^^^^^^^^
@@ -138,6 +145,8 @@ User could generate their own attributes by using pre-defined formulas.
 The results of the formula calculation could be reused as the input
 parameter of formula.
 
+.. figure:: ..\images\visualization\dashboard\formula_calculation.gif
+   :alt: formula\_calculation
 
 Inter-epoch view
 ~~~~~~~~~~~~~~~~

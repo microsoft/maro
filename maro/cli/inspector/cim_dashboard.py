@@ -289,19 +289,22 @@ def _generate_intra_panel_by_ports(
         snapshot_sample_num (float): Number of sampled snapshots.
         attribute_option (List[str]): Translated user-selecteded option.
     """
-    data_acc = data[info_selector]
-    info_selector.pop(0)
+    if attribute_option is not None:
+        attribute_option.append("frame_index")
+    else:
+        attribute_option = ["frame_index"]
+    attribute_temp_option = attribute_option
+    attribute_temp_option.append("name")
+    data_acc = data[attribute_temp_option]
     down_pooling_sample_list = helper.get_sample_index_list(snapshot_num, snapshot_sample_num)
-    port_filtered = data_acc[data_acc["name"] == option_port_name][info_selector].reset_index(drop=True)
-    port_filtered.rename(
+    port_filtered = data_acc[data_acc["name"] == option_port_name][attribute_option].reset_index(drop=True)
+    attribute_option.remove("name")
+    data_filtered = port_filtered.loc[down_pooling_sample_list]
+    data_filtered = data_filtered[attribute_option]
+    data_filtered.rename(
         columns={"frame_index": "snapshot_index"},
         inplace=True
     )
-
-    data_filtered = port_filtered.loc[down_pooling_sample_list]
-    if attribute_option is not None:
-        attribute_option.append("snapshot_index")
-        data_filtered = data_filtered[attribute_option]
     data_melt = data_filtered.melt(
         "snapshot_index",
         var_name="Attributes",
@@ -348,25 +351,29 @@ def _generate_intra_panel_by_snapshot(
         sample_ratio (List[float]): Sampled port index list.
         attribute_option (List[str]): Translated user-selected options.
     """
-    data_acc = data[info]
-    info.pop(1)
+    if attribute_option is not None:
+        attribute_option.append("name")
+    else:
+        attribute_option = ["name"]
+    attribute_temp_option = attribute_option
+    attribute_temp_option.append("frame_index")
+    
+    data_acc = data[attribute_temp_option]
     down_pooling_sample_list = helper.get_sample_index_list(ports_num, sample_ratio)
-    snapshot_filtered = data_acc[data_acc["frame_index"] == snapshot_index][info].reset_index(drop=True)
-    data_rename = pd.DataFrame(columns=info)
+    
+    snapshot_filtered = data_acc[data_acc["frame_index"] == snapshot_index][attribute_option].reset_index(drop=True)
+    data_rename = pd.DataFrame(columns=attribute_option)
     for index in down_pooling_sample_list:
         data_rename = pd.concat(
             [data_rename, snapshot_filtered[snapshot_filtered["name"] == f"ports_{index}"]],
             axis=0
         )
-    data_filtered = data_rename.reset_index(drop=True)
-
+    data_rename = data_rename.reset_index(drop=True)
+    attribute_option.remove("frame_index")
     data_rename["name"] = data_rename["name"].apply(lambda x: int(x[6:]))
-    if attribute_option is not None:
-        attribute_option.append("name")
-        data_rename = data_rename[attribute_option]
-
-    data_filtered["Port Name"] = data_rename["name"].apply(lambda x: index_name_conversion.loc[int(x)])
-    data_melt = data_filtered.melt(
+    data_rename = data_rename[attribute_option]
+    data_rename["Port Name"] = data_rename["name"].apply(lambda x: index_name_conversion.loc[int(x)][0])
+    data_melt = data_rename.melt(
         ["name", "Port Name"],
         var_name="Attributes",
         value_name="Count"
