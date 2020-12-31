@@ -33,7 +33,7 @@ agents:
       dropout_p: 0.0
     optimizer:
       lr: 0.05
-    config:
+    hyper_params:
       reward_discount: .0
       target_update_frequency: 5
       tau: 0.1
