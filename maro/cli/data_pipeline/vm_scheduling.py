@@ -240,7 +240,7 @@ class VmSchedulingPipeline(DataPipeline):
                 for row in csv_reader:
                     # [timestamp, vmid, mincpu, maxcpu, avgcpu]
                     if row[1] in vm_id_map:
-                        new_row = [int(row[0]) // 300, vm_id_map[row[1]], round(float(row[3]), 2)]
+                        new_row = [int(row[0]) // 300, vm_id_map[row[1]], row[3]]
                         csv_writer.writerow(new_row)
 
     def _write_id_map_to_csv(self, id_maps):
