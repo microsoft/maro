@@ -333,7 +333,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             postpone_payload.remaining_buffer_time -= self._delay_duration
             postpone_event = self._event_buffer.gen_cascade_event(
                 tick=self._tick + self._delay_duration,
-                event_type=Events.REQUIREMENTS,
+                event_type=Events.REQUEST,
                 payload=postpone_payload
             )
             self._event_buffer.insert_event(event=postpone_event)
