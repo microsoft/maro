@@ -190,7 +190,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         logger.info(f"Deleting cluster {cluster_name}")
 
         # Delete redis and other services
-        node_details_list = self.remote_get_nodes_details()
+        node_details_list = self.remote_list_nodes()
         for node_name, node_details in node_details_list.items():
             self.node_leave_cluster(node_name)
 
@@ -247,7 +247,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             },
             "containers": {}
         }
-        self.remote_create_node_details(
+        self.remote_create_node(
             node_name=node_name,
             node_details=node_details,
         )
@@ -258,7 +258,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         # Load details
         cluster_details = self.cluster_details
         admin_username = cluster_details["user"]["admin_username"]
-        node_details = self.remote_get_node_details(node_name=node_name)
+        node_details = self.remote_get_node(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
@@ -299,7 +299,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         # Save details
         node_details["public_key"] = public_key
-        self.remote_create_node_details(
+        self.remote_create_node(
             node_name=node_name,
             node_details=node_details
         )
@@ -328,7 +328,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     def node_leave_cluster(self, node_name: str):
         cluster_details = self.cluster_details
-        nodes_details = self.remote_get_nodes_details()
+        nodes_details = self.remote_list_nodes()
         if node_name not in nodes_details:
             logger.warning(f"The specified node cannot be found in cluster {cluster_details['name']}.")
             return

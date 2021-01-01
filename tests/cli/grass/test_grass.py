@@ -104,7 +104,7 @@ class TestGrass(unittest.TestCase):
 
     # Utils
 
-    def _list_nodes_details(self) -> dict:
+    def _list_nodes_details(self) -> list:
         command = f"maro grass node list {self.cluster_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
@@ -155,7 +155,7 @@ class TestGrass(unittest.TestCase):
         # Check validity
         nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 1)
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
@@ -176,7 +176,7 @@ class TestGrass(unittest.TestCase):
         # Check validity
         nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 1)
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
@@ -198,7 +198,7 @@ class TestGrass(unittest.TestCase):
         # Check validity
         nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 2)
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
             self.assertIn("alpine_latest", node_details["image_files"])
 
@@ -222,7 +222,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
         stopped_count = 0
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             if node_details["state"]["status"] == NodeStatus.RUNNING:
                 running_count += 1
             if node_details["state"]["status"] == NodeStatus.STOPPED:
@@ -251,7 +251,7 @@ class TestGrass(unittest.TestCase):
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
         stopped_count = 0
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             if node_details["state"]["status"] == NodeStatus.RUNNING:
                 running_count += 1
                 self.assertIn("alpine_latest", node_details["image_files"])
@@ -282,7 +282,7 @@ class TestGrass(unittest.TestCase):
         nodes_details = self._list_nodes_details()
         self.assertEqual(len(nodes_details), 2)
         running_count = 0
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             if node_details["state"]["status"] == NodeStatus.RUNNING:
                 running_count += 1
                 self.assertIn("alpine_latest", node_details["image_files"])
@@ -365,7 +365,7 @@ class TestGrass(unittest.TestCase):
         while remain_idx <= 100:
             is_loaded = True
             nodes_details = self._list_nodes_details()
-            for _, node_details in nodes_details.items():
+            for node_details in nodes_details:
                 if "maro_runtime_cpu_test" not in node_details["image_files"]:
                     is_loaded = False
                     break

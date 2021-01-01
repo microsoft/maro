@@ -50,7 +50,7 @@ class GrassExecutor:
 
     def list_node(self):
         # Get nodes details
-        nodes_details = self.remote_get_nodes_details()
+        nodes_details = self.remote_list_nodes()
 
         # Print details
         logger.info(
@@ -340,7 +340,7 @@ class GrassExecutor:
         if resource_name == "master":
             return_status = self.remote_get_master_details()
         elif resource_name == "nodes":
-            return_status = self.remote_get_nodes_details()
+            return_status = self.remote_list_nodes()
         elif resource_name == "containers":
             return_status = self.remote_get_containers_details()
         else:
@@ -399,24 +399,26 @@ class GrassExecutor:
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
-    def remote_get_node_details(self, node_name: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_node_details "
-            f"{self.cluster_name} {node_name}'"
-        )
-        return_str = SubProcess.run(command)
-        return json.loads(return_str)
+    def remote_list_nodes(self) -> list:
+        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes")
+        return response.json()
 
-    def remote_get_nodes_details(self):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_nodes_details {self.cluster_name}'"
+    def remote_get_node(self, node_name: str) -> dict:
+        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes/{node_name}")
+        return response.json()
+
+    def remote_create_node(self, node_details: dict) -> dict:
+        response = requests.post(
+            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes",
+            json=node_details
         )
-        return_str = SubProcess.run(command)
-        return json.loads(return_str)
+        return response.json()
+
+    def remote_delete_node(self, node_name: str) -> dict:
+        response = requests.delete(
+            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes/{node_name}"
+        )
+        return response.json()
 
     def remote_get_containers_details(self):
         command = (
@@ -533,16 +535,6 @@ class GrassExecutor:
             f"{self.admin_username}@{self.master_public_ip_address} "
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_master_details "
             f"{self.cluster_name} {master_details_b64}'"
-        )
-        _ = SubProcess.run(command)
-
-    def remote_create_node_details(self, node_name: str, node_details: dict):
-        node_details_b64 = base64.b64encode(json.dumps(node_details).encode("utf8")).decode('utf8')
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_node_details "
-            f"{self.cluster_name} {node_name} {node_details_b64}'"
         )
         _ = SubProcess.run(command)
 

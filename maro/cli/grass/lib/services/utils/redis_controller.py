@@ -20,6 +20,14 @@ class RedisController:
 
     """Node Details Related."""
 
+    def get_name_to_node_details(self, cluster_name: str) -> dict:
+        name_to_node_details = self._redis.hgetall(
+            f"{cluster_name}:node_details"
+        )
+        for node_name, node_details_str in name_to_node_details.items():
+            name_to_node_details[node_name] = json.loads(node_details_str)
+        return name_to_node_details
+
     def get_node_details(self, cluster_name: str, node_name: str) -> dict:
         return json.loads(
             self._redis.hget(
@@ -28,19 +36,17 @@ class RedisController:
             )
         )
 
-    def get_nodes_details(self, cluster_name: str) -> dict:
-        nodes_details = self._redis.hgetall(
-            f"{cluster_name}:node_details"
-        )
-        for node_name, node_details in nodes_details.items():
-            nodes_details[node_name] = json.loads(node_details)
-        return nodes_details
-
     def set_node_details(self, cluster_name: str, node_name: str, node_details: dict) -> None:
         self._redis.hset(
             f"{cluster_name}:node_details",
             node_name,
             json.dumps(node_details)
+        )
+
+    def delete_node_details(self, cluster_name: str, node_name: str) -> None:
+        self._redis.hdel(
+            f"{cluster_name}:node_details",
+            node_name,
         )
 
     """Job Details Related."""
@@ -172,16 +178,6 @@ class RedisController:
             component_id,
             1
         )
-
-    # Utils
-
-    def get_time(self) -> int:
-        """ Get current unix timestamp (seconds) from Redis server.
-
-        Returns:
-            int: current timestamp.
-        """
-        return self._redis.time()[0]
 
     # Utils
 

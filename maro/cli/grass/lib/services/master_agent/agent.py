@@ -149,11 +149,11 @@ class ContainerTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get details and init params.
-        nodes_details = self._redis_controller.get_nodes_details(cluster_name=self._cluster_name)
+        name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
         containers_details = {}
 
         # Iterate node_details.
-        for _, node_details in nodes_details.items():
+        for _, node_details in name_to_node_details.items():
             containers_details.update(node_details["containers"])
 
         # Save containers_details.
@@ -375,10 +375,10 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         self._redis_controller.delete_rejoin_container_name_to_component_name(job_id=job_id)
 
         # Load details and vars.
-        nodes_details = self._redis_controller.get_nodes_details(cluster_name=self._cluster_name)
+        name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
 
         # Delete containers.
-        for node_name, node_details in nodes_details.items():
+        for node_name, node_details in name_to_node_details.items():
             # Load details.
             container_details = node_details["containers"]
             node_hostname = node_details["hostname"]
@@ -727,10 +727,10 @@ class KilledJobAgent(multiprocessing.Process):
         self._redis_controller.delete_rejoin_container_name_to_component_name(job_id=job_id)
 
         # Load details and vars.
-        nodes_details = self._redis_controller.get_nodes_details(cluster_name=self._cluster_name)
+        name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
 
         # Delete containers.
-        for node_name, node_details in nodes_details.items():
+        for node_name, node_details in name_to_node_details.items():
             # Load details.
             container_details = node_details["containers"]
             node_hostname = node_details["hostname"]
@@ -974,11 +974,11 @@ class ResourceManagementExecutor:
             list: List of NodeResource.
         """
         # Load details.
-        nodes_details = redis_controller.get_nodes_details(cluster_name=cluster_name)
+        name_to_node_details = redis_controller.get_name_to_node_details(cluster_name=cluster_name)
 
         # Get free resources.
         free_resources_list = []
-        for node_name, node_details in nodes_details.items():
+        for node_name, node_details in name_to_node_details.items():
             target_free_cpu = node_details["resources"]["target_free_cpu"]
             target_free_memory = node_details["resources"]["target_free_memory"]
             target_free_gpu = node_details["resources"]["target_free_gpu"]

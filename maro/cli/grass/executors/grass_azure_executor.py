@@ -345,11 +345,11 @@ class GrassAzureExecutor(GrassExecutor):
 
     def scale_node(self, replicas: int, node_size: str):
         # Load details
-        nodes_details = self.remote_get_nodes_details()
+        nodes_details = self.remote_list_nodes()
 
         # Init node_size_to_count
         node_size_to_count = collections.defaultdict(lambda: 0)
-        for _, node_details in nodes_details.items():
+        for node_details in nodes_details:
             node_size_to_count[node_details["node_size"]] += 1
 
         # Get node_size_to_spec
@@ -401,13 +401,13 @@ class GrassAzureExecutor(GrassExecutor):
 
     def _delete_nodes(self, num: int, node_size: str) -> None:
         # Load details
-        nodes_details = self.remote_get_nodes_details()
+        nodes_details = self.remote_list_nodes()
 
         # Get deletable_nodes and check, TODO: consider to add -f
         deletable_nodes = []
-        for node_name, node_details in nodes_details.items():
+        for node_details in nodes_details:
             if node_details["node_size"] == node_size and len(node_details["containers"]) == 0:
-                deletable_nodes.append(node_name)
+                deletable_nodes.append(node_details["name"])
         if len(deletable_nodes) >= num:
             logger.info(f"Scaling down {num}")
 
@@ -472,15 +472,15 @@ class GrassAzureExecutor(GrassExecutor):
             "containers": {},
             "state": {}
         }
-        self.remote_create_node_details(
-            node_name=node_name,
-            node_details=node_details,
-        )
+        self.remote_create_node(node_details=node_details)
 
         logger.info_green(f"VM {node_name} is created")
 
     def _delete_node(self, node_name: str):
         logger.info(f"Deleting node {node_name}")
+
+        # Delete node
+        self.remote_delete_node(node_name=node_name)
 
         # Delete resources
         self._delete_resources(resource_name=node_name)
@@ -500,7 +500,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Initiating node {node_name}")
 
         # Load details
-        node_details = self.remote_get_node_details(node_name=node_name)
+        node_details = self.remote_get_node(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
 
         # Make sure the node is able to connect
@@ -535,27 +535,17 @@ class GrassAzureExecutor(GrassExecutor):
             node_ip_address=node_public_ip_address
         )
 
-        # Get public key FIXME: deprecated
-        public_key = self.remote_get_public_key(node_ip_address=node_public_ip_address)
-
-        # Save details FIXME: deprecated
-        node_details["public_key"] = public_key
-        self.remote_create_node_details(
-            node_name=node_name,
-            node_details=node_details
-        )
-
         logger.info_green(f"Node {node_name} is initialized")
 
     def start_node(self, replicas: int, node_size: str):
         # Get nodes details
-        nodes_details = self.remote_get_nodes_details()
+        nodes_details = self.remote_list_nodes()
 
         # Get startable nodes
         startable_nodes = []
-        for node_name, node_details in nodes_details.items():
+        for node_details in nodes_details:
             if node_details["node_size"] == node_size and node_details["state"]["status"] == NodeStatus.STOPPED:
-                startable_nodes.append(node_name)
+                startable_nodes.append(node_details["name"])
 
         # Check replicas
         if len(startable_nodes) < replicas:
@@ -575,7 +565,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Starting node {node_name}")
 
         # Load details
-        node_details = self.remote_get_node_details(node_name=node_name)
+        node_details = self.remote_get_node(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
 
         # Start node
@@ -599,11 +589,11 @@ class GrassAzureExecutor(GrassExecutor):
 
     def stop_node(self, replicas: int, node_size: str):
         # Get nodes details
-        nodes_details = self.remote_get_nodes_details()
+        nodes_details = self.remote_list_nodes()
 
         # Get stoppable nodes
         stoppable_nodes_details = []
-        for node_name, node_details in nodes_details.items():
+        for node_details in nodes_details:
             if (
                 node_details["node_size"] == node_size and
                 node_details["state"]["status"] == NodeStatus.RUNNING and
