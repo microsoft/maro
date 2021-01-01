@@ -89,9 +89,9 @@ class NodeAgent:
         sys.exit(0)
 
     def init_agent(self) -> None:
-        self._init_resources_details()
+        self._init_resources()
 
-    def _init_resources_details(self) -> None:
+    def _init_resources(self) -> None:
         resource = {}
 
         # Get cpu info
@@ -166,12 +166,18 @@ class NodeTrackingAgent(threading.Thread):
                 node_name=self._node_name
             )
             node_details["containers"] = {}
-            containers_details = node_details["containers"]
-            inspects_details = self._get_inspects_details()
+            name_to_container_details = node_details["containers"]
+            container_name_to_inspect_details = self._get_container_name_to_inspect_details()
 
             # Major updates.
-            self._update_containers_details(inspects_details=inspects_details, containers_details=containers_details)
-            self._update_occupied_resources(inspects_details=inspects_details, node_details=node_details)
+            self._update_name_to_container_details(
+                container_name_to_inspect_details=container_name_to_inspect_details,
+                name_to_container_details=name_to_container_details
+            )
+            self._update_occupied_resources(
+                container_name_to_inspect_details=container_name_to_inspect_details,
+                node_details=node_details
+            )
             self._update_actual_resources(node_details=node_details)
 
             # Other updates.
@@ -186,30 +192,33 @@ class NodeTrackingAgent(threading.Thread):
             )
 
     @staticmethod
-    def _update_containers_details(inspects_details: dict, containers_details: dict) -> None:
-        """Update containers_details from inspects_details.
+    def _update_name_to_container_details(container_name_to_inspect_details: dict,
+                                          name_to_container_details: dict) -> None:
+        """Update name_to_container_details from container_name_to_inspect_details.
 
         Args:
-            inspects_details: Details of container inspections.
-            containers_details: Details of containers in the current node.
+            container_name_to_inspect_details: Details of container inspections.
+            name_to_container_details: Details of containers in the current node.
 
         Returns:
             None.
         """
-        # Iterate inspects_details.
-        for container_name, inspect_details in inspects_details.items():
+        # Iterate container_name_to_inspect_details.
+        for container_name, inspect_details in container_name_to_inspect_details.items():
             # Extract container state and labels.
-            containers_details[container_name] = NodeTrackingAgent._extract_labels(inspect_details=inspect_details)
-            containers_details[container_name]["state"] = NodeTrackingAgent._extract_state(
+            name_to_container_details[container_name] = NodeTrackingAgent._extract_labels(
+                inspect_details=inspect_details
+            )
+            name_to_container_details[container_name]["state"] = NodeTrackingAgent._extract_state(
                 inspect_details=inspect_details
             )
 
     @staticmethod
-    def _update_occupied_resources(inspects_details: dict, node_details: dict) -> None:
-        """Update occupied resources from containers' inspects_details.
+    def _update_occupied_resources(container_name_to_inspect_details: dict, node_details: dict) -> None:
+        """Update occupied resources from containers' inspect_details.
 
         Args:
-            inspects_details: Details of container inspections.
+            container_name_to_inspect_details: Details of container inspections.
             node_details: Details of the current node.
 
         Returns:
@@ -220,8 +229,8 @@ class NodeTrackingAgent(threading.Thread):
         occupied_memory_sum = 0.0
         occupied_gpu_sum = 0.0
 
-        # Iterate inspects_details.
-        for _, inspect_details in inspects_details.items():
+        # Iterate container_name_to_inspect_details.
+        for _, inspect_details in container_name_to_inspect_details.items():
             # Extract occupied resource.
             occupied_resource = NodeTrackingAgent._extract_occupied_resources(inspect_details=inspect_details)
             occupied_cpu_sum += occupied_resource.cpu
@@ -263,8 +272,8 @@ class NodeTrackingAgent(threading.Thread):
             pass
 
     @staticmethod
-    def _get_inspects_details() -> dict:
-        """Get inspects_details of containers in the current node.
+    def _get_container_name_to_inspect_details() -> dict:
+        """Get container_name_to_inspect_details of containers in the current node.
 
         Returns:
             dict[str, dict]: container_name to inspect_details mapping.
@@ -273,11 +282,11 @@ class NodeTrackingAgent(threading.Thread):
         container_names = DockerController.list_container_names()
 
         # Build inspect_details and return
-        inspects_details = {}
+        container_name_to_inspect_details = {}
         for container_name in container_names:
             inspect_details = DockerController.inspect_container(container_name)
-            inspects_details[inspect_details["Config"]["Labels"]["container_name"]] = inspect_details
-        return inspects_details
+            container_name_to_inspect_details[inspect_details["Config"]["Labels"]["container_name"]] = inspect_details
+        return container_name_to_inspect_details
 
     @staticmethod
     def _extract_state(inspect_details: dict) -> dict:
@@ -348,25 +357,25 @@ class LoadImageAgent(threading.Thread):
             cluster_name=self._cluster_name,
             node_name=self._node_name
         )
-        master_image_files_details = master_details["image_files"]
-        node_image_files_details = node_details["image_files"]
+        name_to_image_file_details_in_master = master_details["image_files"]
+        name_to_image_file_details_in_node = node_details["image_files"]
 
         # Get unloaded images
-        unloaded_images = []
-        for image_file, image_file_details in master_image_files_details.items():
-            if image_file not in node_image_files_details:
-                unloaded_images.append(image_file)
+        unloaded_image_names = []
+        for image_file_name, image_file_details in name_to_image_file_details_in_master.items():
+            if image_file_name not in name_to_image_file_details_in_node:
+                unloaded_image_names.append(image_file_name)
             elif (
-                image_file_details["modify_time"] != node_image_files_details[image_file]["modify_time"]
-                or image_file_details["size"] != node_image_files_details[image_file]["size"]
+                image_file_details["modify_time"] != name_to_image_file_details_in_node[image_file_name]["modify_time"]
+                or image_file_details["size"] != name_to_image_file_details_in_node[image_file_name]["size"]
             ):
-                unloaded_images.append(image_file)
+                unloaded_image_names.append(image_file_name)
 
         # Parallel load
         with ThreadPool(5) as pool:
             params = [
-                [os.path.expanduser(f"~/.maro/clusters/{self._cluster_name}/images/{unloaded_image}")]
-                for unloaded_image in unloaded_images
+                [os.path.expanduser(f"~/.maro/clusters/{self._cluster_name}/images/{unloaded_image_name}")]
+                for unloaded_image_name in unloaded_image_names
             ]
             pool.starmap(
                 self._load_image,
@@ -378,7 +387,8 @@ class LoadImageAgent(threading.Thread):
                 cluster_name=self._cluster_name,
                 node_name=self._node_name
             )
-            node_details["image_files"] = master_image_files_details
+            # Update with mapping in master.
+            node_details["image_files"] = name_to_image_file_details_in_master
             self._redis_controller.set_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name,

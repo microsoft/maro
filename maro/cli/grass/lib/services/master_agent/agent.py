@@ -66,37 +66,39 @@ class JobTrackingAgent(multiprocessing.Process):
         self._check_interval = check_interval
 
     def run(self) -> None:
-        """Start updating jobs_details.
+        """Start updating name_to_job_details.
 
         Returns:
             None.
         """
         while True:
-            self._update_jobs_details()
+            self._update_name_to_job_details()
             time.sleep(self._check_interval)
 
-    def _update_jobs_details(self) -> None:
-        """Update jobs_details with containers_details.
+    def _update_name_to_job_details(self) -> None:
+        """Update name_to_job_details with name_to_container_details.
 
         Returns:
             None.
         """
         # Get details and mapping.
-        containers_details = self._redis_controller.get_containers_details(cluster_name=self._cluster_name)
-        jobs_details = self._redis_controller.get_jobs_details(cluster_name=self._cluster_name)
-        job_id_to_job_name = self._get_job_id_to_job_name(jobs_details=jobs_details)
+        name_to_container_details = self._redis_controller.get_name_to_container_details(
+            cluster_name=self._cluster_name
+        )
+        name_to_job_details = self._redis_controller.get_name_to_job_details(cluster_name=self._cluster_name)
+        job_id_to_job_name = self._get_job_id_to_job_name(name_to_job_details=name_to_job_details)
 
         # Iterate nodes details.
-        for container_name, container_details in containers_details.items():
+        for container_name, container_details in name_to_container_details.items():
             curr_job_id = container_details["job_id"]
             if curr_job_id in job_id_to_job_name:
                 curr_job_name = job_id_to_job_name[curr_job_id]
-                jobs_details[curr_job_name]["containers"][container_name] = container_details
+                name_to_job_details[curr_job_name]["containers"][container_name] = container_details
             else:
                 logger.warning(f"Job Id {curr_job_id} is not found")
 
         # Save jobs details.
-        for job_name, job_details in jobs_details.items():
+        for job_name, job_details in name_to_job_details.items():
             job_details["check_time"] = self._redis_controller.get_time()
             self._redis_controller.set_job_details(
                 cluster_name=self._cluster_name,
@@ -107,17 +109,17 @@ class JobTrackingAgent(multiprocessing.Process):
     # Utils.
 
     @staticmethod
-    def _get_job_id_to_job_name(jobs_details: dict) -> dict:
-        """Get job_id_to_job_name mapping from jobs_details.
+    def _get_job_id_to_job_name(name_to_job_details: dict) -> dict:
+        """Get job_id_to_job_name mapping from name_to_job_details.
 
         Args:
-            jobs_details: Details of the jobs.
+            name_to_job_details (dict): job_name to job_details mapping.
 
         Returns:
-            dict[int, str]: job_id_to_job_name mapping.
+            dict[int, str]: job_id to job_name mapping.
         """
         job_id_to_job_name = {}
-        for job_name, job_details in jobs_details.items():
+        for job_name, job_details in name_to_job_details.items():
             job_id_to_job_name[job_details["id"]] = job_name
         return job_id_to_job_name
 
@@ -133,33 +135,33 @@ class ContainerTrackingAgent(multiprocessing.Process):
         self._check_interval = check_interval
 
     def run(self) -> None:
-        """Start updating containers_details.
+        """Start updating name_to_container_details.
 
         Returns:
             None.
         """
         while True:
-            self._update_containers_details()
+            self._update_name_to_container_details()
             time.sleep(self._check_interval)
 
-    def _update_containers_details(self) -> None:
-        """Update containers_details with nodes_details.
+    def _update_name_to_container_details(self) -> None:
+        """Update name_to_container_details with name_to_node_details.
 
         Returns:
             None.
         """
         # Get details and init params.
         name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
-        containers_details = {}
+        name_to_container_details = {}
 
         # Iterate node_details.
         for _, node_details in name_to_node_details.items():
-            containers_details.update(node_details["containers"])
+            name_to_container_details.update(node_details["containers"])
 
-        # Save containers_details.
-        self._redis_controller.set_containers_details(
+        # Save name_to_container_details.
+        self._redis_controller.set_multiple_container_details(
             cluster_name=self._cluster_name,
-            containers_details=containers_details
+            name_to_container_details=name_to_container_details
         )
 
 
@@ -197,10 +199,12 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         # Get details.
-        containers_details = self._redis_controller.get_containers_details(cluster_name=self._cluster_name)
+        name_to_container_details = self._redis_controller.get_name_to_container_details(
+            cluster_name=self._cluster_name
+        )
 
         # Iterate container status.
-        for container_name, container_details in containers_details.items():
+        for container_name, container_details in name_to_container_details.items():
             # Get job_runtime_details and flags.
             job_runtime_details = self._redis_controller.get_job_runtime_details(job_id=container_details["job_id"])
 
@@ -1005,12 +1009,12 @@ class ResourceManagementExecutor:
             list: List of ContainerResource.
         """
         # Load configs.
-        components_details = job_details["components"]
+        type_to_component_details = job_details["components"]
         job_id = job_details["id"]
 
         # Get required resources.
         resources_list = []
-        for component_type, component_details in components_details.items():
+        for component_type, component_details in type_to_component_details.items():
             component_id = component_details["id"]
             component_num = component_details["num"]
             required_cpu = component_details["resources"]["cpu"]
@@ -1057,11 +1061,11 @@ class JobExecutor:
             dict[str, str]: component_id_to_component_type mapping.
         """
         # Load details.
-        components_details = job_details["components"]
+        type_to_component_details = job_details["components"]
 
         # Get component_id_to_type.
         component_id_to_component_type = {}
-        for component_type, component_details in components_details.items():
+        for component_type, component_details in type_to_component_details.items():
             component_id_to_component_type[component_details["id"]] = component_type
         return component_id_to_component_type
 

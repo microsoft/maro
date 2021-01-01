@@ -21,8 +21,8 @@ def list_jobs():
         None.
     """
 
-    jobs_details = redis_controller.get_jobs_details(cluster_name=service_config["cluster_name"])
-    return jsonify(list(jobs_details.values()))
+    name_to_job_details = redis_controller.get_name_to_job_details(cluster_name=service_config["cluster_name"])
+    return jsonify(list(name_to_job_details.values()))
 
 
 @blueprint.route("/<job_name>", methods=["GET"])
