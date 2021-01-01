@@ -29,7 +29,7 @@ def create():
         abort(400)
 
 
-@blueprint.route("/<container_name>", methods=["DEL"])
+@blueprint.route("/<container_name>", methods=["DELETE"])
 def delete(container_name: str):
     """Delete a container, aka 'docker rm'.
 
