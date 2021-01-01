@@ -114,10 +114,17 @@ class TestGrass(unittest.TestCase):
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
-    def _list_jobs_details(self) -> dict:
+    def _list_jobs_details(self) -> list:
         command = f"maro grass job list {self.cluster_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
+
+    def _get_name_to_job_details(self) -> dict:
+        jobs_details = self._list_jobs_details()
+        name_to_job_details = {}
+        for job_details in jobs_details:
+            name_to_job_details[job_details["name"]] = job_details
+        return name_to_job_details
 
     @staticmethod
     def _gracefully_wait(secs: int = 10) -> None:
@@ -412,9 +419,9 @@ class TestGrass(unittest.TestCase):
         is_finished = True
         while remain_idx <= 100:
             is_finished = True
-            jobs_details = self._list_jobs_details()
-            self.assertTrue(len(jobs_details[self.test_name]["containers"]), 2)
-            for _, container_details in jobs_details[self.test_name]["containers"].items():
+            name_to_job_details = self._get_name_to_job_details()
+            self.assertTrue(len(name_to_job_details[self.test_name]["containers"]), 2)
+            for _, container_details in name_to_job_details[self.test_name]["containers"].items():
                 if container_details["state"]["Status"] == "running":
                     is_finished = False
             if is_finished:

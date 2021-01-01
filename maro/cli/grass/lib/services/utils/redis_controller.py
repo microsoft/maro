@@ -98,6 +98,12 @@ class RedisController:
 
     """Tickets Related."""
 
+    def create_pending_job_ticket(self, cluster_name: str, job_name: str):
+        self._redis.rpush(
+            f"{cluster_name}:pending_job_tickets",
+            job_name
+        )
+
     def get_pending_job_tickets(self, cluster_name: str):
         return self._redis.lrange(
             f"{cluster_name}:pending_job_tickets",
@@ -117,6 +123,12 @@ class RedisController:
             f"{cluster_name}:killed_job_tickets",
             0,
             -1
+        )
+
+    def create_killed_job_ticket(self, cluster_name: str, job_name: str):
+        self._redis.rpush(
+            f"{cluster_name}:killed_job_tickets",
+            job_name
         )
 
     def remove_killed_job_ticket(self, cluster_name: str, job_name: str):
@@ -160,6 +172,16 @@ class RedisController:
             component_id,
             1
         )
+
+    # Utils
+
+    def get_time(self) -> int:
+        """ Get current unix timestamp (seconds) from Redis server.
+
+        Returns:
+            int: current timestamp.
+        """
+        return self._redis.time()[0]
 
     # Utils
 

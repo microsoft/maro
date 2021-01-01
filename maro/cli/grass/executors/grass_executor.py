@@ -9,6 +9,7 @@ import os
 import time
 from subprocess import TimeoutExpired
 
+import requests
 import yaml
 
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
@@ -43,6 +44,7 @@ class GrassExecutor:
 
         # Connection configs
         self.ssh_port = self.cluster_details["connection"]["ssh"]["port"]
+        self.api_server_port = self.cluster_details["connection"]["api_server"]["port"]
 
     # maro grass node
 
@@ -165,57 +167,26 @@ class GrassExecutor:
         self._standardize_start_job_deployment(start_job_deployment=start_job_deployment)
 
         # Start job
-        self._start_job(
-            job_details=start_job_deployment
-        )
+        self._start_job(job_details=start_job_deployment)
 
     def _start_job(self, job_details: dict):
         logger.info(f"Sending job ticket {job_details['name']}")
 
-        # Load details
-        job_name = job_details["name"]
-
-        # Sync mkdir
-        self._sync_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
-            node_ip_address=self.master_public_ip_address
-        )
-
-        # Save job deployment
-        DetailsWriter.save_job_details(
-            cluster_name=self.cluster_name,
-            job_name=job_name,
-            job_details=job_details
-        )
-
         # Set job id
-        self._set_job_id(
-            job_name=job_name
-        )
+        self._set_job_id(job_details=job_details)
 
-        # Sync job details to master
-        FileSynchronizer.copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/details.yml",
-            remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}",
-            admin_username=self.admin_username,
-            node_ip_address=self.master_public_ip_address,
-            ssh_port=self.ssh_port
-        )
-
-        # Remote start job
-        self.remote_create_job_details(job_name=job_name)
-        self.remote_create_pending_job_ticket(job_name=job_name)
+        # Remote create job object
+        self.remote_create_job(job_details=job_details)
 
         logger.info_green(f"Job ticket {job_details['name']} is sent")
 
     def stop_job(self, job_name: str):
         # Remote stop job
-        self.remote_create_killed_job_ticket(job_name=job_name)
-        self.remote_delete_pending_job_ticket(job_name=job_name)
+        self.remote_delete_job(job_name=job_name)
 
     def list_job(self):
         # Get jobs details
-        jobs_details = self.remote_get_jobs_details()
+        jobs_details = self.remote_list_jobs()
 
         # Print details
         logger.info(
@@ -227,10 +198,7 @@ class GrassExecutor:
 
     def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
-        job_details = DetailsReader.load_job_details(
-            cluster_name=self.cluster_name,
-            job_name=job_name
-        )
+        job_details = self.remote_get_job(job_name=job_name)
         job_id = job_details["id"]
 
         # Copy logs from master
@@ -270,23 +238,16 @@ class GrassExecutor:
                 optional_key_to_value={}
             )
 
-    def _set_job_id(self, job_name: str):
-        # Load details
-        job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+        # Init required fields.
+        start_job_deployment["containers"] = {}
 
+    def _set_job_id(self, job_details: dict):
         # Set cluster id
         job_details["id"] = NameCreator.create_job_id()
 
         # Set component id
-        for component, component_details in job_details["components"].items():
+        for _, component_details in job_details["components"].items():
             component_details["id"] = NameCreator.create_component_id()
-
-        # Save details
-        DetailsWriter.save_job_details(
-            cluster_name=self.cluster_name,
-            job_name=job_name,
-            job_details=job_details
-        )
 
     # maro grass schedule
 
@@ -331,13 +292,12 @@ class GrassExecutor:
 
         for job_name in job_names:
             # Load job details
-            job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+            job_details = self.remote_get_job(job_name=job_name)
             job_schedule_tag = job_details["tags"]["schedule"]
 
             # Remote stop job
             if job_schedule_tag == schedule_name:
-                self.remote_create_killed_job_ticket(job_name=job_name)
-                self.remote_delete_pending_job_ticket(job_name=job_name)
+                self.remote_delete_job(job_name=job_name)
 
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
@@ -430,15 +390,6 @@ class GrassExecutor:
         return_str = SubProcess.run(command)
         return return_str
 
-    def remote_get_jobs_details(self):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_jobs_details {self.cluster_name}'"
-        )
-        return_str = SubProcess.run(command)
-        return json.loads(return_str)
-
     def remote_get_master_details(self):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
@@ -522,6 +473,13 @@ class GrassExecutor:
             f"{self.cluster_name}'"
         )
         _ = SubProcess.run(command)
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
+            f"{self.admin_username}@{self.master_public_ip_address} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_api_server_service "
+            f"{self.cluster_name}'"
+        )
+        _ = SubProcess.run(command)
 
     def remote_start_node_services(self, node_name: str, node_ip_address: str):
         command = (
@@ -549,41 +507,24 @@ class GrassExecutor:
         )
         _ = SubProcess.run(command)
 
-    def remote_create_pending_job_ticket(self, job_name: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_pending_job_ticket "
-            f"{self.cluster_name} {job_name}'"
-        )
-        _ = SubProcess.run(command)
+    def remote_list_jobs(self) -> list:
+        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs")
+        return response.json()
 
-    def remote_create_job_details(self, job_name: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_job_details "
-            f"{self.cluster_name} {job_name}'"
-        )
-        _ = SubProcess.run(command)
+    def remote_get_job(self, job_name: str) -> dict:
+        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs/{job_name}")
+        return response.json()
 
-    def remote_create_killed_job_ticket(self, job_name: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.create_killed_job_ticket "
-            f"{self.cluster_name} {job_name}'"
+    def remote_create_job(self, job_details: dict) -> dict:
+        response = requests.post(
+            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs",
+            json=job_details
         )
-        _ = SubProcess.run(command)
+        return response.json()
 
-    def remote_delete_pending_job_ticket(self, job_name: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.delete_pending_job_ticket "
-            f"{self.cluster_name} {job_name}'"
-        )
-        _ = SubProcess.run(command)
+    def remote_delete_job(self, job_name: str) -> dict:
+        response = requests.post(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs/{job_name}")
+        return response.json()
 
     def remote_create_master_details(self, master_details: dict):
         master_details_b64 = base64.b64encode(json.dumps(master_details).encode("utf8")).decode('utf8')

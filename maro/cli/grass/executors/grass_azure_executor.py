@@ -301,23 +301,20 @@ class GrassAzureExecutor(GrassExecutor):
             ssh_port=self.ssh_port
         )
 
-        # Get public key
-        public_key = self.remote_get_public_key(node_ip_address=self.master_public_ip_address)
-
         # Remote init master
         self.remote_init_master()
 
-        # Load master agent service
-        self.remote_start_master_services()
-
         # Save details
-        master_details["public_key"] = public_key
+        master_details["public_key"] = self.remote_get_public_key(node_ip_address=self.master_public_ip_address)
         master_details["image_files"] = {}
         DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
         )
         self.remote_create_master_details(master_details=master_details)
+
+        # Load master agent service
+        self.remote_start_master_services()
 
         logger.info_green("Master VM is initialized")
 
@@ -725,6 +722,7 @@ class ArmTemplateParameterBuilder:
         admin_username = cluster_details["user"]["admin_username"]
         admin_public_key = cluster_details["user"]["admin_public_key"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
+        api_server_port = cluster_details["connection"]["api_server"]["port"]
 
         # Load and update parameters
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/clouds/azure/create_master/parameters.json", "r") as f:
@@ -743,6 +741,7 @@ class ArmTemplateParameterBuilder:
                 [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
                 else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
             )
+            parameters["masterApiServerDestinationPorts"]["value"] = [f"{api_server_port}"]
 
         # Export parameters if the path is set
         if export_path:

@@ -31,6 +31,9 @@
     },
     "sshDestinationPorts": {
       "value": null
+    },
+    "masterApiServerDestinationPorts": {
+      "value": null
     }
   }
 }

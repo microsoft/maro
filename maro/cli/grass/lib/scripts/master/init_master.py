@@ -49,7 +49,7 @@ sudo docker run -p {fluentd_port}:24224 -v ~/.maro/logs:/fluentd/log\
 # install pip3 and redis
 echo 'Step 5/{steps}: Install pip3 and redis'
 sudo apt install -y python3-pip
-pip3 install redis
+pip3 install redis flask gunicorn
 
 echo "Finish master initialization"
 """

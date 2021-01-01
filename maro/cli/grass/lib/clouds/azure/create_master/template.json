@@ -31,6 +31,9 @@
     },
     "sshDestinationPorts": {
       "type": "array"
+    },
+    "masterApiServerDestinationPorts": {
+      "type": "array"
     }
   },
   "variables": {
@@ -86,6 +89,19 @@
               "priority": 100,
               "direction": "Inbound",
               "destinationPortRanges": "[parameters('sshDestinationPorts')]"
+            }
+          },
+          {
+            "name": "master_api_server",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound",
+              "destinationPortRanges": "[parameters('masterApiServerDestinationPorts')]"
             }
           }
         ]
