@@ -341,7 +341,7 @@ class GrassExecutor:
         elif resource_name == "nodes":
             return_status = self.remote_list_nodes()
         elif resource_name == "containers":
-            return_status = self.remote_get_containers_details()
+            return_status = self.remote_list_containers()
         else:
             raise BadRequestError(f"Resource '{resource_name}' is unsupported.")
 
@@ -425,14 +425,9 @@ class GrassExecutor:
         )
         return response.json()
 
-    def remote_get_containers_details(self):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_containers_details {self.cluster_name}'"
-        )
-        return_str = SubProcess.run(command)
-        return json.loads(return_str)
+    def remote_list_containers(self):
+        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/containers")
+        return response.json()
 
     def remote_get_public_key(self, node_ip_address: str):
         command = (
