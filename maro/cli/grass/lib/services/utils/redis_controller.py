@@ -18,6 +18,15 @@ class RedisController:
             self._redis.get(f"{cluster_name}:master_details")
         )
 
+    def set_master_details(self, cluster_name: str, master_details: dict) -> None:
+        self._redis.set(
+            f"{cluster_name}:master_details",
+            json.dumps(master_details)
+        )
+
+    def delete_master_details(self, cluster_name: str) -> None:
+        self._redis.delete(f"{cluster_name}:master_details")
+
     """Node Details Related."""
 
     def get_name_to_node_details(self, cluster_name: str) -> dict:

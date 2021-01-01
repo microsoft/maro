@@ -86,6 +86,9 @@ class GrassAzureExecutor(GrassExecutor):
             optional_key_to_value=optional_key_to_value
         )
 
+        # Init runtime fields.
+        create_deployment["master"]["image_files"] = []
+
     def create(self):
         logger.info("Creating cluster")
 
@@ -306,12 +309,11 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Save details
         master_details["public_key"] = self.remote_get_public_key(node_ip_address=self.master_public_ip_address)
-        master_details["image_files"] = {}
         DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
         )
-        self.remote_create_master_details(master_details=master_details)
+        self.remote_create_master(master_details=master_details)
 
         # Load master agent service
         self.remote_start_master_services()

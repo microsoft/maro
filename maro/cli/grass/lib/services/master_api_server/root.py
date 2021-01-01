@@ -7,6 +7,7 @@ import time
 from flask import Flask
 
 from .blueprints.jobs import blueprint as jobs_blueprint
+from .blueprints.master import blueprint as master_blueprint
 from .blueprints.nodes import blueprint as nodes_blueprint
 
 # App related
@@ -17,6 +18,7 @@ app.url_map.strict_slashes = False
 # Blueprints related
 
 app.register_blueprint(blueprint=jobs_blueprint)
+app.register_blueprint(blueprint=master_blueprint)
 app.register_blueprint(blueprint=nodes_blueprint)
 
 
