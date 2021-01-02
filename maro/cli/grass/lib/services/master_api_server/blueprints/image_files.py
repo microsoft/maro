@@ -8,13 +8,14 @@ from ..objects import redis_controller, service_config
 
 # Flask related.
 
-blueprint = Blueprint(name="image_files", import_name=__name__, url_prefix="/imageFiles")
+blueprint = Blueprint(name="image_files", import_name=__name__)
+URL_PREFIX = "/imageFiles"
 
 
 # Api functions.
 
 
-@blueprint.route("", methods=["GET"])
+@blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 def list_image_files():
     """List the image files in the cluster.
 
@@ -26,7 +27,7 @@ def list_image_files():
     return jsonify(list(master_details["image_files"].values()))
 
 
-@blueprint.route("/<image_file_name>", methods=["GET"])
+@blueprint.route(f"{URL_PREFIX}/<image_file_name>", methods=["GET"])
 def get_image_file(image_file_name: str):
     """Get the image file.
 
@@ -38,7 +39,7 @@ def get_image_file(image_file_name: str):
     return master_details["image_files"].get(image_file_name, {})
 
 
-@blueprint.route("", methods=["POST"])
+@blueprint.route(f"{URL_PREFIX}", methods=["POST"])
 def create_image_file():
     """Create a image file.
 

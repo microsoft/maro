@@ -8,12 +8,13 @@ from ..objects import redis_controller, service_config
 
 # Flask related.
 
-blueprint = Blueprint(name="containers", import_name=__name__, url_prefix="/containers")
+blueprint = Blueprint(name="containers", import_name=__name__)
+URL_PREFIX = "/containers"
 
 
 # Api functions.
 
-@blueprint.route("", methods=["GET"])
+@blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 def list_containers():
     """List the jobs in the cluster.
 

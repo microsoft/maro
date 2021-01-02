@@ -9,12 +9,13 @@ from ...utils.exception import CommandExecutionError
 
 # Flask related.
 
-blueprint = Blueprint(name="container", import_name=__name__, url_prefix="/container")
+blueprint = Blueprint(name="container", import_name=__name__)
+URL_PREFIX = "/containers"
 
 
 # Api functions.
 
-@blueprint.route("", methods=["POST"])
+@blueprint.route(f"{URL_PREFIX}", methods=["POST"])
 def create():
     """Create a container, aka 'docker run'.
 
@@ -29,7 +30,7 @@ def create():
         abort(400)
 
 
-@blueprint.route("/<container_name>", methods=["DELETE"])
+@blueprint.route(f"{URL_PREFIX}/<container_name>", methods=["DELETE"])
 def delete(container_name: str):
     """Delete a container, aka 'docker rm'.
 
@@ -47,7 +48,7 @@ def delete(container_name: str):
         abort(400)
 
 
-@blueprint.route("/<container_name>:stop", methods=["POST"])
+@blueprint.route(f"{URL_PREFIX}/<container_name>:stop", methods=["POST"])
 def stop(container_name: str):
     """Stop a container, aka 'docker stop'.
 

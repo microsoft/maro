@@ -8,12 +8,13 @@ from ..objects import redis_controller, service_config
 
 # Flask related.
 
-blueprint = Blueprint(name="nodes", import_name=__name__, url_prefix="/nodes")
+blueprint = Blueprint(name="nodes", import_name=__name__)
+URL_PREFIX = "/nodes"
 
 
 # Api functions.
 
-@blueprint.route("", methods=["GET"])
+@blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 def list_nodes():
     """List the nodes in the cluster.
 
@@ -25,7 +26,7 @@ def list_nodes():
     return jsonify(list(name_to_node_details.values()))
 
 
-@blueprint.route("/<node_name>", methods=["GET"])
+@blueprint.route(f"{URL_PREFIX}/<node_name>", methods=["GET"])
 def get_node(node_name: str):
     """Get the node with node_name.
 
@@ -40,7 +41,7 @@ def get_node(node_name: str):
     return node_details
 
 
-@blueprint.route("", methods=["POST"])
+@blueprint.route(f"{URL_PREFIX}", methods=["POST"])
 def create_node():
     """Create a node.
 
@@ -57,7 +58,7 @@ def create_node():
     return {}
 
 
-@blueprint.route("/<node_name>", methods=["DELETE"])
+@blueprint.route(f"{URL_PREFIX}/<node_name>", methods=["DELETE"])
 def delete_node(node_name: str):
     """Delete a node.
 

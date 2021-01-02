@@ -8,12 +8,13 @@ from ..objects import redis_controller, service_config
 
 # Flask related.
 
-blueprint = Blueprint(name="master", import_name=__name__, url_prefix="/master")
+blueprint = Blueprint(name="master", import_name=__name__)
+URL_PREFIX = "/master"
 
 
 # Api functions.
 
-@blueprint.route("", methods=["GET"])
+@blueprint.route(f"{URL_PREFIX}", methods=["GET"])
 def get_master():
     """Get master.
 
@@ -25,7 +26,7 @@ def get_master():
     return master_details
 
 
-@blueprint.route("", methods=["POST"])
+@blueprint.route(f"{URL_PREFIX}", methods=["POST"])
 def create_master():
     """Create master.
 
@@ -41,7 +42,7 @@ def create_master():
     return {}
 
 
-@blueprint.route("", methods=["DELETE"])
+@blueprint.route(f"{URL_PREFIX}", methods=["DELETE"])
 def delete_master():
     """Delete master.
 
