@@ -112,19 +112,19 @@ class RedisController:
             container_details
         )
 
-    """Tickets Related."""
+    """Pending Job Tickets Related."""
 
-    def create_pending_job_ticket(self, cluster_name: str, job_name: str):
-        self._redis.rpush(
-            f"{cluster_name}:pending_job_tickets",
-            job_name
-        )
-
-    def get_pending_job_tickets(self, cluster_name: str):
+    def get_pending_job_ticket(self, cluster_name: str):
         return self._redis.lrange(
             f"{cluster_name}:pending_job_tickets",
             0,
             -1
+        )
+
+    def push_pending_job_ticket(self, cluster_name: str, job_name: str):
+        self._redis.rpush(
+            f"{cluster_name}:pending_job_tickets",
+            job_name
         )
 
     def remove_pending_job_ticket(self, cluster_name: str, job_name: str):
@@ -134,14 +134,19 @@ class RedisController:
             job_name
         )
 
-    def get_killed_job_tickets(self, cluster_name: str):
+    def delete_pending_jobs_queue(self, cluster_name: str):
+        self._redis.delete(f"{cluster_name}:pending_job_tickets")
+
+    """Killed Job Tickets Related."""
+
+    def get_killed_job_ticket(self, cluster_name: str):
         return self._redis.lrange(
             f"{cluster_name}:killed_job_tickets",
             0,
             -1
         )
 
-    def create_killed_job_ticket(self, cluster_name: str, job_name: str):
+    def push_killed_job_ticket(self, cluster_name: str, job_name: str):
         self._redis.rpush(
             f"{cluster_name}:killed_job_tickets",
             job_name
@@ -153,6 +158,9 @@ class RedisController:
             0,
             job_name
         )
+
+    def delete_killed_jobs_queue(self, cluster_name: str):
+        self._redis.delete(f"{cluster_name}:killed_job_tickets")
 
     """Fault Tolerance Related"""
 

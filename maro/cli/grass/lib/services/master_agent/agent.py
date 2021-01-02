@@ -530,7 +530,7 @@ class PendingJobAgent(multiprocessing.Process):
             None.
         """
         # Get tickets.
-        self._pending_jobs = self._redis_controller.get_pending_job_tickets(cluster_name=self._cluster_name)
+        self._pending_jobs = self._redis_controller.get_pending_job_ticket(cluster_name=self._cluster_name)
 
         # Iterate tickets.
         for pending_job_name in self._pending_jobs:
@@ -694,7 +694,7 @@ class KilledJobAgent(multiprocessing.Process):
             None.
         """
         # Get tickets.
-        self._killed_job_tickets = self._redis_controller.get_killed_job_tickets(cluster_name=self._cluster_name)
+        self._killed_job_tickets = self._redis_controller.get_killed_job_ticket(cluster_name=self._cluster_name)
 
         # Iterate tickets.
         for job_name in self._killed_job_tickets:

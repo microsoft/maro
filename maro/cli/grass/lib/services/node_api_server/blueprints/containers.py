@@ -16,7 +16,7 @@ URL_PREFIX = "/containers"
 # Api functions.
 
 @blueprint.route(f"{URL_PREFIX}", methods=["POST"])
-def create():
+def create_container():
     """Create a container, aka 'docker run'.
 
     Returns:
@@ -31,7 +31,7 @@ def create():
 
 
 @blueprint.route(f"{URL_PREFIX}/<container_name>", methods=["DELETE"])
-def delete(container_name: str):
+def delete_container(container_name: str):
     """Delete a container, aka 'docker rm'.
 
     Args:
@@ -49,7 +49,7 @@ def delete(container_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}/<container_name>:stop", methods=["POST"])
-def stop(container_name: str):
+def stop_container(container_name: str):
     """Stop a container, aka 'docker stop'.
 
     Args:
