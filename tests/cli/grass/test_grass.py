@@ -464,7 +464,22 @@ class TestGrass(unittest.TestCase):
         SubProcess.run(command)
         self._gracefully_wait(60)
 
-        # Check job status, failed if does not meet the desired state in 1000s.
+        # Check job status, failed if containers are not in running state in 120s.
+        is_running = False
+        start_time = time.time()
+        while not is_running and start_time + 120 >= time.time():
+            try:
+                is_running = True
+                name_to_job_details = self._get_name_to_job_details()
+                self.assertTrue(len(name_to_job_details[self.test_name]["containers"]), 2)
+                for _, container_details in name_to_job_details[self.test_name]["containers"].items():
+                    self.assertEqual(container_details["state"]["Status"], "running")
+            except AssertionError:
+                is_running = False
+                time.sleep(10)
+        self.assertTrue(is_running)
+
+        # Check job status, failed if containers are not in exited state in 1000s.
         is_finished = False
         start_time = time.time()
         while not is_finished and start_time + 1000 >= time.time():
@@ -473,7 +488,8 @@ class TestGrass(unittest.TestCase):
                 name_to_job_details = self._get_name_to_job_details()
                 self.assertTrue(len(name_to_job_details[self.test_name]["containers"]), 2)
                 for _, container_details in name_to_job_details[self.test_name]["containers"].items():
-                    self.assertEqual(container_details["state"]["Status"], "running")
+                    self.assertEqual(container_details["state"]["Status"], "exited")
+                    self.assertEqual(container_details["state"]["ExitCode"], 0)
             except AssertionError:
                 is_finished = False
                 time.sleep(10)
