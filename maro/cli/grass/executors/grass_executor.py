@@ -3,6 +3,7 @@
 
 
 import copy
+import hashlib
 import json
 import os
 import time
@@ -12,7 +13,6 @@ import requests
 import yaml
 
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
-from maro.cli.grass.utils.hash import get_checksum
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
@@ -62,59 +62,48 @@ class GrassExecutor:
     # maro grass image
 
     def push_image(self, image_name: str, image_path: str, remote_context_path: str, remote_image_name: str):
-        # Get images dir
-        images_dir = f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images"
-
-        # Push image
-        if image_name:
-            new_file_name = NameCreator.get_valid_file_name(image_name)
-            abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
-            self._save_image(
-                image_name=image_name,
-                export_path=abs_image_path
-            )
-            if self._check_checksum_validity(
-                local_file_path=abs_image_path,
-                remote_file_path=os.path.join(images_dir, image_name)
+        # Push image TODO: design a new paradigm for remote build
+        if image_name or image_path:
+            if image_name:
+                # Push image from local docker client.
+                new_file_name = NameCreator.get_valid_file_name(image_name)
+                abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files/{new_file_name}"
+                self._save_image(
+                    image_name=image_name,
+                    export_path=abs_image_path
+                )
+            else:
+                # Push image from local image file.
+                file_name = os.path.basename(image_path)
+                new_file_name = NameCreator.get_valid_file_name(file_name)
+                abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files/{new_file_name}"
+                FileSynchronizer.copy_and_rename(
+                    source_path=image_path,
+                    target_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files",
+                    new_name=new_file_name
+                )
+            remote_image_file_details = self.remote_get_image_file(image_file_name=new_file_name)
+            local_md5_checksum = self._get_md5_checksum(path=abs_image_path)
+            if (
+                "md5_checksum" in remote_image_file_details
+                and remote_image_file_details["md5_checksum"] == local_md5_checksum
             ):
                 logger.info_green(f"The image file '{new_file_name}' already exists")
                 return
             FileSynchronizer.copy_files_to_node(
                 local_path=abs_image_path,
-                remote_dir=images_dir,
+                remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/image_files",
                 admin_username=self.admin_username,
                 node_ip_address=self.master_public_ip_address,
                 ssh_port=self.ssh_port
             )
-            self.remote_update_image_files_details()
+            self.remote_create_image_file(
+                image_file_details={
+                    "name": new_file_name,
+                    "md5_checksum": local_md5_checksum
+                }
+            )
             logger.info_green(f"Image {image_name} is loaded")
-        elif image_path:
-            file_name = os.path.basename(image_path)
-            new_file_name = NameCreator.get_valid_file_name(file_name)
-            abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/images/{new_file_name}"
-            FileSynchronizer.copy_and_rename(
-                source_path=abs_image_path,
-                target_dir=image_path
-            )
-            if self._check_checksum_validity(
-                local_file_path=abs_image_path,
-                remote_file_path=os.path.join(images_dir, new_file_name)
-            ):
-                logger.info_green(f"The image file '{new_file_name}' already exists")
-                return
-            FileSynchronizer.copy_files_to_node(
-                local_path=abs_image_path,
-                remote_dir=images_dir,
-                admin_username=self.admin_username,
-                node_ip_address=self.master_public_ip_address,
-                ssh_port=self.ssh_port
-            )
-            self.remote_update_image_files_details()
-        elif remote_context_path and remote_image_name:
-            self.remote_build_image(
-                remote_context_path=remote_context_path,
-                remote_image_name=remote_image_name
-            )
         else:
             raise BadRequestError("Invalid arguments.")
 
@@ -123,13 +112,6 @@ class GrassExecutor:
         # Save image to specific folder
         command = f"docker save '{image_name}' --output '{export_path}'"
         _ = SubProcess.run(command)
-
-    def _check_checksum_validity(self, local_file_path: str, remote_file_path: str) -> bool:
-        local_checksum = get_checksum(file_path=local_file_path)
-        remote_checksum = self.remote_get_checksum(
-            file_path=remote_file_path
-        )
-        return local_checksum == remote_checksum
 
     # maro grass data
 
@@ -363,15 +345,6 @@ class GrassExecutor:
 
     # Remote utils
 
-    def remote_build_image(self, remote_context_path: str, remote_image_name: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.build_image "
-            f"{self.cluster_name} {remote_context_path} {remote_image_name}'"
-        )
-        _ = SubProcess.run(command)
-
     def remote_clean(self, parallels: int):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
@@ -379,15 +352,6 @@ class GrassExecutor:
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.clean {self.cluster_name} {parallels}'"
         )
         _ = SubProcess.run(command)
-
-    def remote_get_checksum(self, file_path: str) -> str:
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_checksum {file_path}'"
-        )
-        return_str = SubProcess.run(command)
-        return return_str
 
     def remote_get_master(self):
         response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/master")
@@ -528,14 +492,22 @@ class GrassExecutor:
         response = requests.post(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs/{job_name}")
         return response.json()
 
-    def remote_update_image_files_details(self):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.update_image_files_details "
-            f"{self.cluster_name}'"
+    def remote_list_image_files(self) -> list:
+        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/imageFiles")
+        return response.json()
+
+    def remote_get_image_file(self, image_file_name: str) -> dict:
+        response = requests.get(
+            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/imageFiles/{image_file_name}"
         )
-        _ = SubProcess.run(command)
+        return response.json()
+
+    def remote_create_image_file(self, image_file_details: dict) -> dict:
+        response = requests.post(
+            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/imageFiles",
+            json=image_file_details
+        )
+        return response.json()
 
     def test_ssh_22_connection(self, node_ip_address: str):
         command = (
@@ -608,3 +580,20 @@ class GrassExecutor:
 
         # Create remote dir
         self.remote_mkdir(node_ip_address=node_ip_address, path=path)
+
+    @staticmethod
+    def _get_md5_checksum(path: str, block_size=128) -> str:
+        """ Get md5 checksum of a local file.
+
+        Args:
+            path (str): path of the local file.
+            block_size (int): size of the reading block, keep it as default value if you are not familiar with it.
+
+        Returns:
+            str: md5 checksum str.
+        """
+        md5 = hashlib.md5()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(block_size * md5.block_size), b""):
+                md5.update(chunk)
+        return md5.hexdigest()

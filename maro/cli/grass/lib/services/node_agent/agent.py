@@ -363,18 +363,19 @@ class LoadImageAgent(threading.Thread):
         # Get unloaded images
         unloaded_image_names = []
         for image_file_name, image_file_details in name_to_image_file_details_in_master.items():
-            if image_file_name not in name_to_image_file_details_in_node:
-                unloaded_image_names.append(image_file_name)
-            elif (
-                image_file_details["modify_time"] != name_to_image_file_details_in_node[image_file_name]["modify_time"]
-                or image_file_details["size"] != name_to_image_file_details_in_node[image_file_name]["size"]
+            if (
+                image_file_name not in name_to_image_file_details_in_node
+                or (
+                    name_to_image_file_details_in_node[image_file_name]["md5_checksum"] !=
+                    name_to_image_file_details_in_master[image_file_name]["md5_checksum"]
+                )
             ):
                 unloaded_image_names.append(image_file_name)
 
         # Parallel load
         with ThreadPool(5) as pool:
             params = [
-                [os.path.expanduser(f"~/.maro/clusters/{self._cluster_name}/images/{unloaded_image_name}")]
+                [os.path.expanduser(f"~/.maro/clusters/{self._cluster_name}/image_files/{unloaded_image_name}")]
                 for unloaded_image_name in unloaded_image_names
             ]
             pool.starmap(

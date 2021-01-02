@@ -5,6 +5,7 @@
 import json
 
 import redis
+from redis.lock import Lock
 
 
 class RedisController:
@@ -197,3 +198,17 @@ class RedisController:
             int: current timestamp.
         """
         return self._redis.time()[0]
+
+    def lock(self, name: str) -> Lock:
+        """ Get a new lock with redis.
+
+        Use 'with lock(name):' paradigm to do the locking.
+
+        Args:
+            name (str): name of the lock.
+
+        Returns:
+            redis.lock.Lock: lock from the redis.
+        """
+
+        return self._redis.lock(name=name)

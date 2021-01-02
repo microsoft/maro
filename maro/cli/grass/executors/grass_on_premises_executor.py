@@ -147,7 +147,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             GlobalPaths.MARO_GRASS_LIB,
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/image_files",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules"
         }
@@ -270,7 +270,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             GlobalPaths.MARO_GRASS_LIB,
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/image_files",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules"
         }

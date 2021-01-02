@@ -87,7 +87,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Init runtime fields.
-        create_deployment["master"]["image_files"] = []
+        create_deployment["master"]["image_files"] = {}
 
     def create(self):
         logger.info("Creating cluster")
@@ -279,7 +279,7 @@ class GrassAzureExecutor(GrassExecutor):
             GlobalPaths.MARO_GRASS_LIB,
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/images",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/image_files",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
             f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
             GlobalPaths.MARO_LOCAL_TMP
@@ -474,7 +474,7 @@ class GrassAzureExecutor(GrassExecutor):
             "node_size": node_size,
             "resource_name": f"{self.cluster_id}-{node_name}-vm",
             "hostname": f"{self.cluster_id}-{node_name}-vm",
-            "image_files": [],
+            "image_files": {},
             "containers": {},
             "state": {}
         }

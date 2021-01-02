@@ -150,13 +150,22 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
-        self._gracefully_wait(secs=15)
+        self._gracefully_wait()
 
-        # Check validity
-        nodes_details = self._list_nodes_details()
-        self.assertEqual(len(nodes_details), 1)
-        for node_details in nodes_details:
-            self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
+        # Check validity, failed if does not meet the desired state in 120s.
+        is_valid = False
+        start_time = time.time()
+        while not is_valid and start_time + 120 >= time.time():
+            try:
+                is_valid = True
+                nodes_details = self._list_nodes_details()
+                self.assertEqual(len(nodes_details), 1)
+                for node_details in nodes_details:
+                    self.assertEqual(node_details["state"]["status"], NodeStatus.RUNNING)
+            except AssertionError:
+                is_valid = False
+                time.sleep(10)
+        self.assertTrue(is_valid)
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -171,14 +180,23 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass image push {self.cluster_name} --debug --image-name alpine:latest"
         SubProcess.interactive_run(command)
-        self._gracefully_wait(secs=15)
+        self._gracefully_wait()
 
-        # Check validity
-        nodes_details = self._list_nodes_details()
-        self.assertEqual(len(nodes_details), 1)
-        for node_details in nodes_details:
-            self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
-            self.assertIn("alpine_latest", node_details["image_files"])
+        # Check validity, failed if does not meet the desired state in 120s.
+        is_valid = False
+        start_time = time.time()
+        while not is_valid and start_time + 120 >= time.time():
+            try:
+                is_valid = True
+                nodes_details = self._list_nodes_details()
+                self.assertEqual(len(nodes_details), 1)
+                for node_details in nodes_details:
+                    self.assertEqual(node_details["state"]["status"], NodeStatus.RUNNING)
+                    self.assertIn("alpine_latest", node_details["image_files"])
+            except AssertionError:
+                is_valid = False
+                time.sleep(10)
+        self.assertTrue(is_valid)
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -193,14 +211,23 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 2"
         SubProcess.interactive_run(command)
-        self._gracefully_wait(secs=15)
+        self._gracefully_wait()
 
-        # Check validity
-        nodes_details = self._list_nodes_details()
-        self.assertEqual(len(nodes_details), 2)
-        for node_details in nodes_details:
-            self.assertEqual(NodeStatus.RUNNING, node_details["state"]["status"])
-            self.assertIn("alpine_latest", node_details["image_files"])
+        # Check validity, failed if does not meet the desired state in 120s.
+        is_valid = False
+        start_time = time.time()
+        while not is_valid and start_time + 120 >= time.time():
+            try:
+                is_valid = True
+                nodes_details = self._list_nodes_details()
+                self.assertEqual(len(nodes_details), 2)
+                for node_details in nodes_details:
+                    self.assertEqual(node_details["state"]["status"], NodeStatus.RUNNING)
+                    self.assertIn("alpine_latest", node_details["image_files"])
+            except AssertionError:
+                is_valid = False
+                time.sleep(10)
+        self.assertTrue(is_valid)
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -215,20 +242,30 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass node stop {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
-        self._gracefully_wait(secs=15)
+        self._gracefully_wait()
 
-        # Check validity
-        nodes_details = self._list_nodes_details()
-        self.assertEqual(len(nodes_details), 2)
-        running_count = 0
-        stopped_count = 0
-        for node_details in nodes_details:
-            if node_details["state"]["status"] == NodeStatus.RUNNING:
-                running_count += 1
-            if node_details["state"]["status"] == NodeStatus.STOPPED:
-                stopped_count += 1
-        self.assertEqual(running_count, 1)
-        self.assertEqual(stopped_count, 1)
+        # Check validity, failed if does not meet the desired state in 120s.
+        is_valid = False
+        start_time = time.time()
+        while not is_valid and start_time + 120 >= time.time():
+            try:
+                is_valid = True
+                nodes_details = self._list_nodes_details()
+                self.assertEqual(len(nodes_details), 2)
+                running_count = 0
+                stopped_count = 0
+                for node_details in nodes_details:
+                    if node_details["state"]["status"] == NodeStatus.RUNNING:
+                        running_count += 1
+                    if node_details["state"]["status"] == NodeStatus.STOPPED:
+                        stopped_count += 1
+                self.assertEqual(running_count, 1)
+                self.assertEqual(stopped_count, 1)
+            except AssertionError:
+
+                is_valid = False
+                time.sleep(10)
+        self.assertTrue(is_valid)
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -244,24 +281,33 @@ class TestGrass(unittest.TestCase):
         # Run cli command
         command = f"maro grass image push {self.cluster_name} --debug --image-name ubuntu:latest"
         SubProcess.interactive_run(command)
-        self._gracefully_wait(secs=15)
+        self._gracefully_wait()
 
-        # Check validity
-        nodes_details = self._list_nodes_details()
-        self.assertEqual(len(nodes_details), 2)
-        running_count = 0
-        stopped_count = 0
-        for node_details in nodes_details:
-            if node_details["state"]["status"] == NodeStatus.RUNNING:
-                running_count += 1
-                self.assertIn("alpine_latest", node_details["image_files"])
-                self.assertIn("ubuntu_latest", node_details["image_files"])
-            if node_details["state"]["status"] == NodeStatus.STOPPED:
-                stopped_count += 1
-                self.assertIn("alpine_latest", node_details["image_files"])
-                self.assertNotIn("ubuntu_latest", node_details["image_files"])
-        self.assertEqual(running_count, 1)
-        self.assertEqual(stopped_count, 1)
+        # Check validity, failed if does not meet the desired state in 120s.
+        is_valid = False
+        start_time = time.time()
+        while not is_valid and start_time + 120 >= time.time():
+            try:
+                is_valid = True
+                nodes_details = self._list_nodes_details()
+                self.assertEqual(len(nodes_details), 2)
+                running_count = 0
+                stopped_count = 0
+                for node_details in nodes_details:
+                    if node_details["state"]["status"] == NodeStatus.RUNNING:
+                        running_count += 1
+                        self.assertIn("alpine_latest", node_details["image_files"])
+                        self.assertIn("ubuntu_latest", node_details["image_files"])
+                    if node_details["state"]["status"] == NodeStatus.STOPPED:
+                        stopped_count += 1
+                        self.assertIn("alpine_latest", node_details["image_files"])
+                        self.assertNotIn("ubuntu_latest", node_details["image_files"])
+                self.assertEqual(running_count, 1)
+                self.assertEqual(stopped_count, 1)
+            except AssertionError:
+                is_valid = False
+                time.sleep(10)
+        self.assertTrue(is_valid)
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -276,18 +322,24 @@ class TestGrass(unittest.TestCase):
         """
         command = f"maro grass node start {self.cluster_name} --debug Standard_D2s_v3 1"
         SubProcess.interactive_run(command)
-        self._gracefully_wait(secs=15)
+        self._gracefully_wait()
 
-        # Check validity
-        nodes_details = self._list_nodes_details()
-        self.assertEqual(len(nodes_details), 2)
-        running_count = 0
-        for node_details in nodes_details:
-            if node_details["state"]["status"] == NodeStatus.RUNNING:
-                running_count += 1
-                self.assertIn("alpine_latest", node_details["image_files"])
-                self.assertIn("ubuntu_latest", node_details["image_files"])
-        self.assertEqual(running_count, 2)
+        # Check validity, failed if does not meet the desired state in 120s.
+        is_valid = False
+        start_time = time.time()
+        while not is_valid and start_time + 120 >= time.time():
+            try:
+                is_valid = True
+                nodes_details = self._list_nodes_details()
+                self.assertEqual(len(nodes_details), 2)
+                for node_details in nodes_details:
+                    self.assertEqual(node_details["state"]["status"], NodeStatus.RUNNING)
+                    self.assertIn("alpine_latest", node_details["image_files"])
+                    self.assertIn("ubuntu_latest", node_details["image_files"])
+            except AssertionError:
+                is_valid = False
+                time.sleep(10)
+        self.assertTrue(is_valid)
 
     @unittest.skipIf(os.environ.get("training_only", False), "Skip if we want to test training stage only.")
     @record_running_time(func_to_time=test_func_to_time)
@@ -359,20 +411,18 @@ class TestGrass(unittest.TestCase):
         command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
         SubProcess.interactive_run(command)
 
-        # Check image status
-        remain_idx = 0
+        # Check image status, failed if does not meet the desired state in 1000s.
         is_loaded = False
-        while remain_idx <= 100:
-            is_loaded = True
-            nodes_details = self._list_nodes_details()
-            for node_details in nodes_details:
-                if "maro_runtime_cpu_test" not in node_details["image_files"]:
-                    is_loaded = False
-                    break
-            if is_loaded:
-                break
-            time.sleep(10)
-            remain_idx += 1
+        start_time = time.time()
+        while not is_loaded and start_time + 1000 >= time.time():
+            try:
+                is_loaded = True
+                nodes_details = self._list_nodes_details()
+                for node_details in nodes_details:
+                    self.assertIn("maro_runtime_cpu_test", node_details["image_files"])
+            except AssertionError:
+                is_loaded = False
+                time.sleep(10)
         self.assertTrue(is_loaded)
 
     @unittest.skipIf(os.environ.get("orchestration_only", False), "Skip if we want to test orchestration stage only.")
@@ -414,20 +464,19 @@ class TestGrass(unittest.TestCase):
         SubProcess.run(command)
         self._gracefully_wait(60)
 
-        # Check job status
-        remain_idx = 0
-        is_finished = True
-        while remain_idx <= 100:
-            is_finished = True
-            name_to_job_details = self._get_name_to_job_details()
-            self.assertTrue(len(name_to_job_details[self.test_name]["containers"]), 2)
-            for _, container_details in name_to_job_details[self.test_name]["containers"].items():
-                if container_details["state"]["Status"] == "running":
-                    is_finished = False
-            if is_finished:
-                break
-            time.sleep(10)
-            remain_idx += 1
+        # Check job status, failed if does not meet the desired state in 1000s.
+        is_finished = False
+        start_time = time.time()
+        while not is_finished and start_time + 1000 >= time.time():
+            try:
+                is_finished = True
+                name_to_job_details = self._get_name_to_job_details()
+                self.assertTrue(len(name_to_job_details[self.test_name]["containers"]), 2)
+                for _, container_details in name_to_job_details[self.test_name]["containers"].items():
+                    self.assertEqual(container_details["state"]["Status"], "running")
+            except AssertionError:
+                is_finished = False
+                time.sleep(10)
         self.assertTrue(is_finished)
 
     @record_running_time(func_to_time=test_func_to_time)
