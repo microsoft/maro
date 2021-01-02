@@ -313,10 +313,14 @@ class GrassAzureExecutor(GrassExecutor):
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
         )
-        self.remote_create_master(master_details=master_details)
 
         # Load master agent service
         self.remote_start_master_services()
+        # Gracefully wait
+        time.sleep(10)
+
+        # Remote create master
+        self.remote_create_master(master_details=master_details)
 
         logger.info_green("Master VM is initialized")
 
