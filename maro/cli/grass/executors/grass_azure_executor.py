@@ -665,10 +665,8 @@ class GrassAzureExecutor(GrassExecutor):
     # maro grass clean
 
     def clean(self):
-        # TODO add clean redis
-
-        # Remote clean
-        self.remote_clean(parallels=GlobalParams.PARALLELS)
+        # Remote clean jobs
+        self.remote_clean_jobs()
 
     # Utils
 

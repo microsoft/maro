@@ -36,7 +36,8 @@ if __name__ == "__main__":
         json.dump(
             obj={
                 "cluster_name": args.cluster_name,
-                "redis_port": redis_port
+                "redis_port": redis_port,
+                "api_server_port": api_server_port
             },
             fp=fw
         )

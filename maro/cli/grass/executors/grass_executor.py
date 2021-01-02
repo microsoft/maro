@@ -345,14 +345,6 @@ class GrassExecutor:
 
     # Remote utils
 
-    def remote_clean(self, parallels: int):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.clean {self.cluster_name} {parallels}'"
-        )
-        _ = SubProcess.run(command)
-
     def remote_get_master(self):
         response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/master")
         return response.json()
@@ -490,6 +482,10 @@ class GrassExecutor:
 
     def remote_delete_job(self, job_name: str) -> dict:
         response = requests.post(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs/{job_name}")
+        return response.json()
+
+    def remote_clean_jobs(self):
+        response = requests.post(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs:clean")
         return response.json()
 
     def remote_list_image_files(self) -> list:

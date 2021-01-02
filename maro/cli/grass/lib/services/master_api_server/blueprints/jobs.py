@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 
+import requests
 from flask import Blueprint, jsonify, request
 
 from ..objects import redis_controller, service_config
@@ -78,4 +79,28 @@ def delete_job(job_name: str):
         cluster_name=service_config["cluster_name"],
         job_name=job_name
     )
+    return {}
+
+
+@blueprint.route(f"{URL_PREFIX}:clean", methods=["POST"])
+def clean_jobs():
+    """Clean all jobs in the cluster.
+
+    Returns:
+        None.
+    """
+
+    # Get params
+    api_server_port = service_config["api_server_port"]
+
+    # Delete all job related resources.
+    redis_controller.delete_pending_jobs_queue(cluster_name=service_config["cluster_name"])
+    redis_controller.delete_killed_jobs_queue(cluster_name=service_config["cluster_name"])
+    name_to_node_details = redis_controller.get_name_to_node_details(
+        cluster_name=service_config["cluster_name"]
+    )
+    for _, node_details in name_to_node_details.items():
+        node_private_ip_address = node_details["private_ip_address"]
+        for container_name, container_details in node_details["containers"].items():
+            requests.delete(url=f"http://{node_private_ip_address}:{api_server_port}/containers/{container_name}")
     return {}
