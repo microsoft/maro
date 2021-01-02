@@ -165,9 +165,6 @@ class GrassOnPremisesExecutor(GrassExecutor):
             admin_username=admin_username, node_ip_address=master_public_ip_address, ssh_port=ssh_port
         )
 
-        # Get public key
-        public_key = self.remote_get_public_key(node_ip_address=master_public_ip_address)
-
         # Remote init master
         self.remote_init_master()
 
@@ -175,7 +172,6 @@ class GrassOnPremisesExecutor(GrassExecutor):
         self.remote_start_master_services()
 
         # Save details
-        master_details["public_key"] = public_key
         DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
@@ -294,11 +290,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             node_ip_address=node_public_ip_address
         )
 
-        # Get public key
-        public_key = self.remote_get_public_key(node_ip_address=node_public_ip_address)
-
         # Save details
-        node_details["public_key"] = public_key
         self.remote_create_node(
             node_name=node_name,
             node_details=node_details

@@ -308,7 +308,6 @@ class GrassAzureExecutor(GrassExecutor):
         self.remote_init_master()
 
         # Save details
-        master_details["public_key"] = self.remote_get_public_key(node_ip_address=self.master_public_ip_address)
         DetailsWriter.save_cluster_details(
             cluster_name=self.cluster_name,
             cluster_details=self.cluster_details
@@ -399,9 +398,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Init node
-        self._init_node(
-            node_name=node_name
-        )
+        self._init_node(node_name=node_name)
 
         logger.info_green(message=f"Node {node_name} is created")
 

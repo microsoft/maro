@@ -385,15 +385,6 @@ class GrassExecutor:
         response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/containers")
         return response.json()
 
-    def remote_get_public_key(self, node_ip_address: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.get_public_key'"
-        )
-        return_str = SubProcess.run(command).strip("\n")
-        logger.debug(return_str)
-        return return_str
-
     def remote_init_build_node_image_vm(self, vm_ip_address: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{vm_ip_address} "

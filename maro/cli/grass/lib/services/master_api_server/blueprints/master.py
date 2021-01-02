@@ -39,7 +39,7 @@ def create_master():
         cluster_name=service_config["cluster_name"],
         master_details=master_details
     )
-    return {}
+    return master_details
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["DELETE"])
