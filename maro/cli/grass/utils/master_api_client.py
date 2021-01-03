@@ -62,11 +62,29 @@ class MasterApiClient:
         return response.json()
 
     def delete_job(self, job_name: str) -> dict:
-        response = requests.post(url=f"{self.master_api_server_url_prefix}/jobs/{job_name}")
+        response = requests.delete(url=f"{self.master_api_server_url_prefix}/jobs/{job_name}")
         return response.json()
 
     def clean_jobs(self):
         response = requests.post(url=f"{self.master_api_server_url_prefix}/jobs:clean")
+        return response.json()
+
+    # Schedules related
+
+    def list_schedules(self) -> list:
+        response = requests.get(url=f"{self.master_api_server_url_prefix}/schedules")
+        return response.json()
+
+    def get_schedule(self, schedule_name: str) -> dict:
+        response = requests.get(url=f"{self.master_api_server_url_prefix}/schedules/{schedule_name}")
+        return response.json()
+
+    def create_schedule(self, schedule_details: dict) -> dict:
+        response = requests.post(url=f"{self.master_api_server_url_prefix}/schedules", json=schedule_details)
+        return response.json()
+
+    def stop_schedule(self, schedule_name: str) -> dict:
+        response = requests.post(url=f"{self.master_api_server_url_prefix}/schedules/{schedule_name}:stop")
         return response.json()
 
     # Image files related.

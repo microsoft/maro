@@ -15,8 +15,6 @@ from maro.cli.grass.utils.docker_controller import DockerController
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClient
 from maro.cli.utils.deployment_validator import DeploymentValidator
-from maro.cli.utils.details_reader import DetailsReader
-from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
@@ -155,13 +153,13 @@ class GrassExecutor:
         # Set job id
         self._set_job_id(job_details=job_details)
 
-        # Remote create job object
+        # Create job
         self.master_api_client.create_job(job_details=job_details)
 
         logger.info_green(f"Job ticket {job_details['name']} is sent")
 
     def stop_job(self, job_name: str):
-        # Remote stop job
+        # Delete job
         self.master_api_client.delete_job(job_name=job_name)
 
     def list_job(self):
@@ -238,40 +236,15 @@ class GrassExecutor:
 
         # Standardize start_schedule_deployment
         self._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
-        schedule_name = start_schedule_deployment["name"]
 
-        # Save schedule deployment
-        DetailsWriter.save_schedule_details(
-            cluster_name=self.cluster_name,
-            schedule_name=schedule_name,
-            schedule_details=start_schedule_deployment
-        )
+        # Create schedule
+        self.master_api_client.create_schedule(schedule_details=start_schedule_deployment)
 
-        # Start jobs
-        for job_name in start_schedule_deployment["job_names"]:
-            job_details = self._build_job_details(
-                schedule_details=start_schedule_deployment,
-                job_name=job_name
-            )
-
-            self._start_job(
-                job_details=job_details
-            )
+        logger.info_green(f"Multiple job tickets are sent.")
 
     def stop_schedule(self, schedule_name: str):
-        # Load details
-        schedule_details = DetailsReader.load_schedule_details(cluster_name=self.cluster_name,
-                                                               schedule_name=schedule_name)
-        job_names = schedule_details["job_names"]
-
-        for job_name in job_names:
-            # Load job details
-            job_details = self.master_api_client.get_job(job_name=job_name)
-            job_schedule_tag = job_details["tags"]["schedule"]
-
-            # Remote stop job
-            if job_schedule_tag == schedule_name:
-                self.master_api_client.delete_job(job_name=job_name)
+        # Stop schedule, TODO: add delete job
+        self.master_api_client.stop_schedule(schedule_name=schedule_name)
 
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
@@ -294,19 +267,6 @@ class GrassExecutor:
                 actual_dict=component_details,
                 optional_key_to_value={}
             )
-
-    @staticmethod
-    def _build_job_details(schedule_details: dict, job_name: str) -> dict:
-        schedule_name = schedule_details["name"]
-
-        job_details = copy.deepcopy(schedule_details)
-        job_details["name"] = job_name
-        job_details["tags"] = {
-            "schedule": schedule_name
-        }
-        job_details.pop("job_names")
-
-        return job_details
 
     # maro grass status
 

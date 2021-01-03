@@ -83,6 +83,36 @@ class RedisController:
             json.dumps(job_details)
         )
 
+    """Schedule Details Related."""
+
+    def get_name_to_schedule_details(self, cluster_name: str) -> dict:
+        name_to_schedule_details = self._redis.hgetall(
+            f"{cluster_name}:name_to_schedule_details",
+        )
+        for schedule_name, schedule_details_str in name_to_schedule_details.items():
+            name_to_schedule_details[schedule_name] = json.loads(schedule_details_str)
+        return name_to_schedule_details
+
+    def get_schedule_details(self, cluster_name: str, schedule_name: str) -> dict:
+        return_str = self._redis.hget(
+            f"{cluster_name}:name_to_schedule_details",
+            schedule_name
+        )
+        return json.loads(return_str) if return_str is not None else None
+
+    def set_schedule_details(self, cluster_name: str, schedule_name: str, schedule_details: dict) -> None:
+        self._redis.hset(
+            f"{cluster_name}:name_to_schedule_details",
+            schedule_name,
+            json.dumps(schedule_details)
+        )
+
+    def delete_schedule_details(self, cluster_name: str, schedule_name: str) -> None:
+        self._redis.hdel(
+            f"{cluster_name}:name_to_schedule_details",
+            schedule_name,
+        )
+
     """Container Details Related."""
 
     def get_name_to_container_details(self, cluster_name: str) -> dict:
