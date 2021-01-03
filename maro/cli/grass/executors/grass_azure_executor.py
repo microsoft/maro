@@ -16,6 +16,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
+from maro.cli.grass.utils.master_api_client import MasterApiClient
 from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
@@ -192,7 +193,6 @@ class GrassAzureExecutor(GrassExecutor):
         self.retry_connection_and_set_ssh_port(node_ip_address=public_ip_address)
 
         # Run init image script
-        self._sync_mkdir(path=GlobalPaths.MARO_LOCAL_TMP, node_ip_address=public_ip_address)
         FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
             remote_dir="~/",
@@ -274,35 +274,19 @@ class GrassAzureExecutor(GrassExecutor):
         # Make sure master is able to connect
         self.retry_connection_and_set_ssh_port(node_ip_address=self.master_public_ip_address)
 
-        # Create folders
-        sync_paths = [
-            GlobalPaths.MARO_GRASS_LIB,
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/image_files",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/jobs",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules",
-            GlobalPaths.MARO_LOCAL_TMP
-        ]
-        for sync_path in sync_paths:
-            self._sync_mkdir(path=sync_path, node_ip_address=self.master_public_ip_address)
-        self._sync_mkdir(path=GlobalPaths.MARO_GRASS_LIB, node_ip_address=self.master_public_ip_address)
-
         # Copy required files
-        FileSynchronizer.copy_files_to_node(
-            local_path=GlobalPaths.MARO_GRASS_LIB,
-            remote_dir=GlobalPaths.MARO_LIB,
-            admin_username=self.admin_username,
-            node_ip_address=self.master_public_ip_address,
-            ssh_port=self.ssh_port
-        )
-        FileSynchronizer.copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}",
-            remote_dir=GlobalPaths.MARO_CLUSTERS,
-            admin_username=self.admin_username,
-            node_ip_address=self.master_public_ip_address,
-            ssh_port=self.ssh_port
-        )
+        local_path_to_remote_dir = {
+            GlobalPaths.MARO_GRASS_LIB: GlobalPaths.MARO_LIB,
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}": GlobalPaths.MARO_CLUSTERS
+        }
+        for local_path, remote_dir in local_path_to_remote_dir.items():
+            FileSynchronizer.copy_files_to_node(
+                local_path=local_path,
+                remote_dir=remote_dir,
+                admin_username=self.admin_username,
+                node_ip_address=self.master_public_ip_address,
+                ssh_port=self.ssh_port
+            )
 
         # Remote init master
         self.remote_init_master()
@@ -514,21 +498,18 @@ class GrassAzureExecutor(GrassExecutor):
         self.retry_connection_and_set_ssh_port(node_ip_address=node_public_ip_address)
 
         # Copy required files
-        self._sync_mkdir(path=f"{GlobalPaths.MARO_LOCAL_TMP}", node_ip_address=node_public_ip_address)
-        FileSynchronizer.copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/node/init_node.py",
-            remote_dir="~/",
-            admin_username=self.admin_username,
-            node_ip_address=node_public_ip_address,
-            ssh_port=self.ssh_port
-        )
-        FileSynchronizer.copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml",
-            remote_dir="~/",
-            admin_username=self.admin_username,
-            node_ip_address=node_public_ip_address,
-            ssh_port=self.ssh_port
-        )
+        local_path_to_remote_dir = {
+            f"{GlobalPaths.MARO_GRASS_LIB}/scripts/node/init_node.py": "~/",
+            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml": "~/"
+        }
+        for local_path, remote_dir in local_path_to_remote_dir.items():
+            FileSynchronizer.copy_files_to_node(
+                local_path=local_path,
+                remote_dir=remote_dir,
+                admin_username=self.admin_username,
+                node_ip_address=node_public_ip_address,
+                ssh_port=self.ssh_port
+            )
 
         # Remote init node
         self.remote_init_node(

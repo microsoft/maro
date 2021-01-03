@@ -74,7 +74,7 @@ class GrassExecutor:
                 abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files/{new_file_name}"
                 self._save_image(
                     image_name=image_name,
-                    export_path=abs_image_path
+                    abs_export_path=abs_image_path
                 )
             else:
                 # Push image from local image file.
@@ -112,9 +112,10 @@ class GrassExecutor:
             raise BadRequestError("Invalid arguments.")
 
     @staticmethod
-    def _save_image(image_name: str, export_path: str):
+    def _save_image(image_name: str, abs_export_path: str):
         # Save image to specific folder
-        command = f"docker save '{image_name}' --output '{export_path}'"
+        os.makedirs(os.path.dirname(abs_export_path), exist_ok=True)
+        command = f"docker save '{image_name}' --output '{abs_export_path}'"
         _ = SubProcess.run(command)
 
     # maro grass data
@@ -245,12 +246,6 @@ class GrassExecutor:
         self._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
         schedule_name = start_schedule_deployment["name"]
 
-        # Sync mkdir
-        self._sync_mkdir(
-            path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}",
-            node_ip_address=self.master_public_ip_address
-        )
-
         # Save schedule deployment
         DetailsWriter.save_schedule_details(
             cluster_name=self.cluster_name,
@@ -371,13 +366,6 @@ class GrassExecutor:
         )
         SubProcess.interactive_run(command)
 
-    def remote_mkdir(self, node_ip_address: str, path: str):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'mkdir -p {path}'"
-        )
-        SubProcess.run(command)
-
     def remote_start_master_services(self):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
@@ -478,19 +466,6 @@ class GrassExecutor:
         raise ClusterInternalError(f"Unable to connect to {node_ip_address}.")
 
     # Utils
-
-    def _sync_mkdir(self, path: str, node_ip_address: str):
-        """Mkdir synchronously at local and remote.
-
-        Args:
-            path (str): path of the file, should be a string with an initial component of ~ or ~user
-            node_ip_address (str): ip address of the remote node
-        """
-        # Create local dir
-        os.makedirs(os.path.expanduser(path), exist_ok=True)
-
-        # Create remote dir
-        self.remote_mkdir(node_ip_address=node_ip_address, path=path)
 
     @staticmethod
     def _get_md5_checksum(path: str, block_size=128) -> str:
