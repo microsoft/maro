@@ -318,8 +318,12 @@ class GrassAzureExecutor(GrassExecutor):
         # Gracefully wait
         time.sleep(10)
 
-        # Remote create master
-        self.remote_create_master(master_details=master_details)
+        # Init master_api_client and remote create master
+        self.master_api_client = MasterApiClient(
+            master_ip_address=self.master_public_ip_address,
+            api_server_port=self.cluster_details["connection"]["api_server"]["port"]
+        )
+        self.master_api_client.create_master(master_details=master_details)
 
         logger.info_green("Master VM is initialized")
 
@@ -350,7 +354,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def scale_node(self, replicas: int, node_size: str):
         # Load details
-        nodes_details = self.remote_list_nodes()
+        nodes_details = self.master_api_client.list_nodes()
 
         # Init node_size_to_count
         node_size_to_count = collections.defaultdict(lambda: 0)
@@ -404,7 +408,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def _delete_nodes(self, num: int, node_size: str) -> None:
         # Load details
-        nodes_details = self.remote_list_nodes()
+        nodes_details = self.master_api_client.list_nodes()
 
         # Get deletable_nodes and check, TODO: consider to add -f
         deletable_nodes = []
@@ -475,7 +479,7 @@ class GrassAzureExecutor(GrassExecutor):
             "containers": {},
             "state": {}
         }
-        self.remote_create_node(node_details=node_details)
+        self.master_api_client.create_node(node_details=node_details)
 
         logger.info_green(f"VM {node_name} is created")
 
@@ -483,7 +487,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Deleting node {node_name}")
 
         # Delete node
-        self.remote_delete_node(node_name=node_name)
+        self.master_api_client.delete_node(node_name=node_name)
 
         # Delete resources
         self._delete_resources(resource_name=node_name)
@@ -503,7 +507,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Initiating node {node_name}")
 
         # Load details
-        node_details = self.remote_get_node(node_name=node_name)
+        node_details = self.master_api_client.get_node(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
 
         # Make sure the node is able to connect
@@ -542,7 +546,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def start_node(self, replicas: int, node_size: str):
         # Get nodes details
-        nodes_details = self.remote_list_nodes()
+        nodes_details = self.master_api_client.list_nodes()
 
         # Get startable nodes
         startable_nodes = []
@@ -568,7 +572,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(f"Starting node {node_name}")
 
         # Load details
-        node_details = self.remote_get_node(node_name=node_name)
+        node_details = self.master_api_client.get_node(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
 
         # Start node
@@ -592,7 +596,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def stop_node(self, replicas: int, node_size: str):
         # Get nodes details
-        nodes_details = self.remote_list_nodes()
+        nodes_details = self.master_api_client.list_nodes()
 
         # Get stoppable nodes
         stoppable_nodes_details = []
@@ -663,7 +667,7 @@ class GrassAzureExecutor(GrassExecutor):
 
     def clean(self):
         # Remote clean jobs
-        self.remote_clean_jobs()
+        self.master_api_client.clean_jobs()
 
     # Utils
 

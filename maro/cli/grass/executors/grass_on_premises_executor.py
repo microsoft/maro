@@ -176,7 +176,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             cluster_name=self.cluster_name,
             cluster_details=cluster_details
         )
-        self.remote_create_master_details(master_details=cluster_details["master"])
+        self.master_api_client.remote_create_master_details(master_details=cluster_details["master"])
 
         logger.info_green("Master node is initialized")
 
@@ -186,14 +186,14 @@ class GrassOnPremisesExecutor(GrassExecutor):
         logger.info(f"Deleting cluster {cluster_name}")
 
         # Delete redis and other services
-        node_details_list = self.remote_list_nodes()
+        node_details_list = self.master_api_client.list_nodes()
         for node_name, node_details in node_details_list.items():
             self.node_leave_cluster(node_name)
 
         # Delete cluster folder
         rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
-        self.remote_clean_jobs(1)
-        self.remote_delete_master()
+        self.master_api_client.clean_jobs(1)
+        self.master_api_client.delete_master()
         logger.info_green(f"The cluster {cluster_name} has been deleted.")
 
     def node_join_cluster(self, node_join_info: dict):
@@ -243,7 +243,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             },
             "containers": {}
         }
-        self.remote_create_node(
+        self.master_api_client.create_node(
             node_name=node_name,
             node_details=node_details,
         )
@@ -254,7 +254,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
         # Load details
         cluster_details = self.cluster_details
         admin_username = cluster_details["user"]["admin_username"]
-        node_details = self.remote_get_node(node_name=node_name)
+        node_details = self.master_api_client.get_node(node_name=node_name)
         node_public_ip_address = node_details["public_ip_address"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
@@ -291,20 +291,20 @@ class GrassOnPremisesExecutor(GrassExecutor):
         )
 
         # Save details
-        self.remote_create_node(
+        self.master_api_client.create_node(
             node_name=node_name,
             node_details=node_details
         )
 
         # Update node status
         # Since On-Premises machines don't need to shutdown, it will be set to start directly.
-        self.remote_update_node_status(
+        self.master_api_client.remote_update_node_status(
             node_name=node_name,
             action="start"
         )
 
         # Load images
-        self.remote_load_images(
+        self.master_api_client.remote_load_images(
             node_name=node_name,
             parallels=GlobalParams.PARALLELS,
             node_ip_address=node_public_ip_address
@@ -320,19 +320,19 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     def node_leave_cluster(self, node_name: str):
         cluster_details = self.cluster_details
-        nodes_details = self.remote_list_nodes()
+        nodes_details = self.master_api_client.list_nodes()
         if node_name not in nodes_details:
             logger.warning(f"The specified node cannot be found in cluster {cluster_details['name']}.")
             return
 
         node_details = nodes_details[node_name]
         # Update node status
-        self.remote_update_node_status(
+        self.master_api_client.remote_update_node_status(
             node_name=node_name,
             action="stop"
         )
         # Delete node record in redis.
-        self.remote_update_node_status(node_name, "delete")
+        self.master_api_client.remote_update_node_status(node_name, "delete")
 
         admin_username = cluster_details["user"]["admin_username"]
         node_ip_address = node_details["public_ip_address"]

@@ -9,10 +9,10 @@ import os
 import time
 from subprocess import TimeoutExpired
 
-import requests
 import yaml
 
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
+from maro.cli.grass.utils.master_api_client import MasterApiClient
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
@@ -40,6 +40,10 @@ class GrassExecutor:
 
         # Master configs (may be dynamically create)
         self.master_public_ip_address = self.cluster_details["master"].get("public_ip_address", None)
+        self.master_api_client = MasterApiClient(
+            master_ip_address=self.master_public_ip_address,
+            api_server_port=self.cluster_details["connection"]["api_server"]["port"]
+        )
 
         # Connection configs
         self.ssh_port = self.cluster_details["connection"]["ssh"]["port"]
@@ -49,7 +53,7 @@ class GrassExecutor:
 
     def list_node(self):
         # Get nodes details
-        nodes_details = self.remote_list_nodes()
+        nodes_details = self.master_api_client.list_nodes()
 
         # Print details
         logger.info(
@@ -82,7 +86,7 @@ class GrassExecutor:
                     target_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files",
                     new_name=new_file_name
                 )
-            remote_image_file_details = self.remote_get_image_file(image_file_name=new_file_name)
+            remote_image_file_details = self.master_api_client.get_image_file(image_file_name=new_file_name)
             local_md5_checksum = self._get_md5_checksum(path=abs_image_path)
             if (
                 "md5_checksum" in remote_image_file_details
@@ -97,7 +101,7 @@ class GrassExecutor:
                 node_ip_address=self.master_public_ip_address,
                 ssh_port=self.ssh_port
             )
-            self.remote_create_image_file(
+            self.master_api_client.create_image_file(
                 image_file_details={
                     "name": new_file_name,
                     "md5_checksum": local_md5_checksum
@@ -157,17 +161,17 @@ class GrassExecutor:
         self._set_job_id(job_details=job_details)
 
         # Remote create job object
-        self.remote_create_job(job_details=job_details)
+        self.master_api_client.create_job(job_details=job_details)
 
         logger.info_green(f"Job ticket {job_details['name']} is sent")
 
     def stop_job(self, job_name: str):
         # Remote stop job
-        self.remote_delete_job(job_name=job_name)
+        self.master_api_client.delete_job(job_name=job_name)
 
     def list_job(self):
         # Get jobs details
-        jobs_details = self.remote_list_jobs()
+        jobs_details = self.master_api_client.list_jobs()
 
         # Print details
         logger.info(
@@ -179,7 +183,7 @@ class GrassExecutor:
 
     def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
-        job_details = self.remote_get_job(job_name=job_name)
+        job_details = self.master_api_client.get_job(job_name=job_name)
         job_id = job_details["id"]
 
         # Copy logs from master
@@ -273,12 +277,12 @@ class GrassExecutor:
 
         for job_name in job_names:
             # Load job details
-            job_details = self.remote_get_job(job_name=job_name)
+            job_details = self.master_api_client.get_job(job_name=job_name)
             job_schedule_tag = job_details["tags"]["schedule"]
 
             # Remote stop job
             if job_schedule_tag == schedule_name:
-                self.remote_delete_job(job_name=job_name)
+                self.master_api_client.delete_job(job_name=job_name)
 
     @staticmethod
     def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
@@ -319,11 +323,11 @@ class GrassExecutor:
 
     def status(self, resource_name: str):
         if resource_name == "master":
-            return_status = self.remote_get_master()
+            return_status = self.master_api_client.get_master()
         elif resource_name == "nodes":
-            return_status = self.remote_list_nodes()
+            return_status = self.master_api_client.list_nodes()
         elif resource_name == "containers":
-            return_status = self.remote_list_containers()
+            return_status = self.master_api_client.list_containers()
         else:
             raise BadRequestError(f"Resource '{resource_name}' is unsupported.")
 
@@ -343,47 +347,7 @@ class GrassExecutor:
         command = f"cp {GlobalPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}"
         _ = SubProcess.run(command)
 
-    # Remote utils
-
-    def remote_get_master(self):
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/master")
-        return response.json()
-
-    def remote_create_master(self, master_details: dict) -> dict:
-        response = requests.post(
-            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/master",
-            json=master_details
-        )
-        return response.json()
-
-    def remote_delete_master(self):
-        response = requests.delete(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/master")
-        return response.json()
-
-    def remote_list_nodes(self) -> list:
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes")
-        return response.json()
-
-    def remote_get_node(self, node_name: str) -> dict:
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes/{node_name}")
-        return response.json()
-
-    def remote_create_node(self, node_details: dict) -> dict:
-        response = requests.post(
-            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes",
-            json=node_details
-        )
-        return response.json()
-
-    def remote_delete_node(self, node_name: str) -> dict:
-        response = requests.delete(
-            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/nodes/{node_name}"
-        )
-        return response.json()
-
-    def remote_list_containers(self):
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/containers")
-        return response.json()
+    # Remote Scripts
 
     def remote_init_build_node_image_vm(self, vm_ip_address: str):
         command = (
@@ -455,46 +419,6 @@ class GrassExecutor:
             f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.stop_node_agent_service'"
         )
         _ = SubProcess.run(command)
-
-    def remote_list_jobs(self) -> list:
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs")
-        return response.json()
-
-    def remote_get_job(self, job_name: str) -> dict:
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs/{job_name}")
-        return response.json()
-
-    def remote_create_job(self, job_details: dict) -> dict:
-        response = requests.post(
-            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs",
-            json=job_details
-        )
-        return response.json()
-
-    def remote_delete_job(self, job_name: str) -> dict:
-        response = requests.post(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs/{job_name}")
-        return response.json()
-
-    def remote_clean_jobs(self):
-        response = requests.post(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/jobs:clean")
-        return response.json()
-
-    def remote_list_image_files(self) -> list:
-        response = requests.get(url=f"http://{self.master_public_ip_address}:{self.api_server_port}/imageFiles")
-        return response.json()
-
-    def remote_get_image_file(self, image_file_name: str) -> dict:
-        response = requests.get(
-            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/imageFiles/{image_file_name}"
-        )
-        return response.json()
-
-    def remote_create_image_file(self, image_file_details: dict) -> dict:
-        response = requests.post(
-            url=f"http://{self.master_public_ip_address}:{self.api_server_port}/imageFiles",
-            json=image_file_details
-        )
-        return response.json()
 
     def test_ssh_22_connection(self, node_ip_address: str):
         command = (
