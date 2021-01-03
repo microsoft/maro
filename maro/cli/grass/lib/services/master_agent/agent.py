@@ -86,6 +86,8 @@ class JobTrackingAgent(multiprocessing.Process):
             cluster_name=self._cluster_name
         )
         name_to_job_details = self._redis_controller.get_name_to_job_details(cluster_name=self._cluster_name)
+
+        # Get job_id to job_name mapping, we sue job_id as unique identifier.
         job_id_to_job_name = self._get_job_id_to_job_name(name_to_job_details=name_to_job_details)
 
         # Iterate nodes details.

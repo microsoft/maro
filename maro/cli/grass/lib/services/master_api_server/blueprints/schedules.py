@@ -136,6 +136,7 @@ def _build_job_details(schedule_details: dict, job_name: str) -> dict:
         "schedule": schedule_name
     }
     job_details["id"] = NameCreator.create_job_id()
+    job_details["containers"] = {}
 
     # Set component id
     for _, component_details in job_details["components"].items():
