@@ -79,6 +79,29 @@ def delete_job(job_name: str):
         cluster_name=service_config["cluster_name"],
         job_name=job_name
     )
+    redis_controller.delete_job_details(
+        cluster_name=service_config["cluster_name"],
+        job_name=job_name
+    )
+    return {}
+
+
+@blueprint.route(f"{URL_PREFIX}/<job_name>:stop", methods=["POST"])
+def stop_job(job_name: str):
+    """Stop a job.
+
+    Returns:
+        None.
+    """
+
+    redis_controller.remove_pending_job_ticket(
+        cluster_name=service_config["cluster_name"],
+        job_name=job_name
+    )
+    redis_controller.push_killed_job_ticket(
+        cluster_name=service_config["cluster_name"],
+        job_name=job_name
+    )
     return {}
 
 

@@ -56,7 +56,7 @@ class RedisController:
     def delete_node_details(self, cluster_name: str, node_name: str) -> None:
         self._redis.hdel(
             f"{cluster_name}:name_to_node_details",
-            node_name,
+            node_name
         )
 
     """Job Details Related."""
@@ -81,6 +81,12 @@ class RedisController:
             f"{cluster_name}:name_to_job_details",
             job_name,
             json.dumps(job_details)
+        )
+
+    def delete_job_details(self, cluster_name: str, job_name: str) -> None:
+        self._redis.hdel(
+            f"{cluster_name}:name_to_job_details",
+            job_name
         )
 
     """Schedule Details Related."""
@@ -110,7 +116,7 @@ class RedisController:
     def delete_schedule_details(self, cluster_name: str, schedule_name: str) -> None:
         self._redis.hdel(
             f"{cluster_name}:name_to_schedule_details",
-            schedule_name,
+            schedule_name
         )
 
     """Container Details Related."""
