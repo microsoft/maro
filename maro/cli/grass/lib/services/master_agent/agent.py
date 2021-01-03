@@ -318,13 +318,13 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 component_name = rejoin_container_name_to_component_name[container_name]
 
                 # Get resources and allocation plan.
-                free_resources = ResourceManagementExecutor.get_free_resources(
+                free_resources = ResourceController.get_free_resources(
                     redis_controller=self._redis_controller,
                     cluster_name=self._cluster_name
                 )
                 required_resources = [
                     ContainerResource(
-                        container_name=ResourceManagementExecutor.build_container_name(
+                        container_name=ContainerController.build_container_name(
                             job_id=container_details["job_id"],
                             component_id=container_details["component_id"],
                             component_index=container_details["component_index"]
@@ -334,7 +334,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                         gpu=float(container_details["gpu"])
                     )
                 ]
-                allocation_plan = ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
+                allocation_plan = ResourceController._get_single_metric_balanced_allocation_plan(
                     allocation_details={"metric": "cpu"},
                     required_resources=required_resources,
                     free_resources=free_resources
@@ -421,7 +421,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         # Get mapping.
-        component_id_to_component_type = JobExecutor.get_component_id_to_component_type(job_details=job_details)
+        component_id_to_component_type = JobController.get_component_id_to_component_type(job_details=job_details)
 
         # Parse params.
         cluster_id = self._cluster_id
@@ -541,15 +541,15 @@ class PendingJobAgent(multiprocessing.Process):
             )
 
             # Get resources info.
-            free_resources = ResourceManagementExecutor.get_free_resources(
+            free_resources = ResourceController.get_free_resources(
                 redis_controller=self._redis_controller,
                 cluster_name=self._cluster_name
             )
-            required_resources = ResourceManagementExecutor.get_required_resources(job_details=job_details)
+            required_resources = ResourceController.get_required_resources(job_details=job_details)
 
             # Do allocation and start job.
             try:
-                allocation_plan = ResourceManagementExecutor.get_allocation_plan(
+                allocation_plan = ResourceController.get_allocation_plan(
                     allocation_details=job_details["allocation"],
                     required_resources=required_resources,
                     free_resources=free_resources
@@ -589,7 +589,7 @@ class PendingJobAgent(multiprocessing.Process):
             None.
         """
         # Get mapping.
-        component_id_to_component_type = JobExecutor.get_component_id_to_component_type(job_details=job_details)
+        component_id_to_component_type = JobController.get_component_id_to_component_type(job_details=job_details)
 
         # Parse params.
         cluster_id = self._cluster_id
@@ -754,7 +754,7 @@ class KilledJobAgent(multiprocessing.Process):
                 )
 
 
-class ResourceManagementExecutor:
+class ResourceController:
     @staticmethod
     def get_allocation_plan(allocation_details: dict, required_resources: list, free_resources: list) -> dict:
         """Get container allocation mapping.
@@ -768,13 +768,13 @@ class ResourceManagementExecutor:
             dict: container_name to node_name mapping.
         """
         if allocation_details["mode"] == "single-metric-balanced":
-            return ResourceManagementExecutor.get_single_metric_balanced_allocation_plan(
+            return ResourceController._get_single_metric_balanced_allocation_plan(
                 allocation_details=allocation_details,
                 required_resources=required_resources,
                 free_resources=free_resources
             )
         elif allocation_details["mode"] == "single-metric-compacted":
-            return ResourceManagementExecutor.get_single_metric_compacted_allocation_plan(
+            return ResourceController._get_single_metric_compacted_allocation_plan(
                 allocation_details=allocation_details,
                 required_resources=required_resources,
                 free_resources=free_resources
@@ -783,7 +783,7 @@ class ResourceManagementExecutor:
             raise ResourceAllocationFailed("Invalid allocation mode.")
 
     @staticmethod
-    def get_single_metric_compacted_allocation_plan(
+    def _get_single_metric_compacted_allocation_plan(
         allocation_details: dict,
         required_resources: list, free_resources: list
     ) -> dict:
@@ -875,7 +875,7 @@ class ResourceManagementExecutor:
         return allocation_plan
 
     @staticmethod
-    def get_single_metric_balanced_allocation_plan(
+    def _get_single_metric_balanced_allocation_plan(
         allocation_details: dict,
         required_resources: list, free_resources: list
     ) -> dict:
@@ -1024,7 +1024,7 @@ class ResourceManagementExecutor:
             for i in range(component_num):
                 resources_list.append(
                     ContainerResource(
-                        container_name=ResourceManagementExecutor.build_container_name(job_id, component_id, i),
+                        container_name=ContainerController.build_container_name(job_id, component_id, i),
                         cpu=required_cpu,
                         memory=required_memory,
                         gpu=required_gpu,
@@ -1032,6 +1032,8 @@ class ResourceManagementExecutor:
                 )
         return resources_list
 
+
+class ContainerController:
     @staticmethod
     def build_container_name(job_id: str, component_id: str, component_index: int) -> str:
         """Build the container name with job-related params.
@@ -1049,7 +1051,7 @@ class ResourceManagementExecutor:
         return f"{job_id}-{component_id}-{component_index}-{uuid.uuid4().hex[:6]}"
 
 
-class JobExecutor:
+class JobController:
     @staticmethod
     def get_component_id_to_component_type(job_details: dict) -> dict:
         """Get component_id_to_component_type mapping from job_details
