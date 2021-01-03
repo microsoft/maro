@@ -75,17 +75,21 @@ class NodeAgent:
         self.load_image_agent.stop()
 
         # Set STOPPED state
-        node_details = self._redis_controller.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name
-        )
-        node_details["state"]["status"] = NodeStatus.STOPPED
-        node_details["state"]["check_time"] = self._redis_controller.get_time()
-        self._redis_controller.set_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name,
-            node_details=node_details
-        )
+        state_details = {
+            "status": NodeStatus.STOPPED,
+            "check_time": self._redis_controller.get_time()
+        }
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
+            node_details = self._redis_controller.get_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name
+            )
+            node_details["state"] = state_details
+            self._redis_controller.set_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name,
+                node_details=node_details
+            )
         sys.exit(0)
 
     def init_agent(self) -> None:
@@ -108,16 +112,17 @@ class NodeAgent:
             resource["gpu"] = 0
 
         # Set resource details
-        node_details = self._redis_controller.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name
-        )
-        node_details["resources"] = resource
-        self._redis_controller.set_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name,
-            node_details=node_details
-        )
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
+            node_details = self._redis_controller.get_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name
+            )
+            node_details["resources"] = resource
+            self._redis_controller.set_node_details(
+                cluster_name=self._cluster_name,
+                node_name=self._node_name,
+                node_details=node_details
+            )
 
 
 class NodeTrackingAgent(threading.Thread):
@@ -160,31 +165,42 @@ class NodeTrackingAgent(threading.Thread):
         """
         # Get or init details.
 
-        with NODE_DETAILS_LOCK:
+        node_details = self._redis_controller.get_node_details(
+            cluster_name=self._cluster_name,
+            node_name=self._node_name
+        )
+
+        # Containers related
+        name_to_container_details = {}
+        container_name_to_inspect_details = self._get_container_name_to_inspect_details()
+        self._update_name_to_container_details(
+            container_name_to_inspect_details=container_name_to_inspect_details,
+            name_to_container_details=name_to_container_details
+        )
+
+        # Resources related
+        resources_details = node_details["resources"]
+        self._update_occupied_resources(
+            container_name_to_inspect_details=container_name_to_inspect_details,
+            resources_details=resources_details
+        )
+        self._update_actual_resources(resources_details=resources_details)
+
+        # State related.
+        state_details = {
+            "status": NodeStatus.RUNNING,
+            "check_time": self._redis_controller.get_time()
+        }
+
+        # Save details.
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
             node_details = self._redis_controller.get_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name
             )
-            node_details["containers"] = {}
-            name_to_container_details = node_details["containers"]
-            container_name_to_inspect_details = self._get_container_name_to_inspect_details()
-
-            # Major updates.
-            self._update_name_to_container_details(
-                container_name_to_inspect_details=container_name_to_inspect_details,
-                name_to_container_details=name_to_container_details
-            )
-            self._update_occupied_resources(
-                container_name_to_inspect_details=container_name_to_inspect_details,
-                node_details=node_details
-            )
-            self._update_actual_resources(node_details=node_details)
-
-            # Other updates.
-            node_details["state"]["status"] = NodeStatus.RUNNING
-            node_details["state"]["check_time"] = self._redis_controller.get_time()
-
-            # Save details.
+            node_details["containers"] = name_to_container_details
+            node_details["resources"] = resources_details
+            node_details["state"] = state_details
             self._redis_controller.set_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name,
@@ -214,12 +230,12 @@ class NodeTrackingAgent(threading.Thread):
             )
 
     @staticmethod
-    def _update_occupied_resources(container_name_to_inspect_details: dict, node_details: dict) -> None:
+    def _update_occupied_resources(container_name_to_inspect_details: dict, resources_details: dict) -> None:
         """Update occupied resources from containers' inspect_details.
 
         Args:
             container_name_to_inspect_details: Details of container inspections.
-            node_details: Details of the current node.
+            resources_details: Resource details of the current node.
 
         Returns:
             None.
@@ -238,28 +254,28 @@ class NodeTrackingAgent(threading.Thread):
             occupied_gpu_sum += occupied_resource.gpu
 
         # Update target resources.
-        node_details["resources"]["target_free_cpu"] = node_details["resources"]["cpu"] - occupied_cpu_sum
-        node_details["resources"]["target_free_memory"] = node_details["resources"]["memory"] - occupied_memory_sum
-        node_details["resources"]["target_free_gpu"] = node_details["resources"]["gpu"] - occupied_gpu_sum
+        resources_details["target_free_cpu"] = resources_details["cpu"] - occupied_cpu_sum
+        resources_details["target_free_memory"] = resources_details["memory"] - occupied_memory_sum
+        resources_details["target_free_gpu"] = resources_details["gpu"] - occupied_gpu_sum
 
     @staticmethod
-    def _update_actual_resources(node_details: dict) -> None:
+    def _update_actual_resources(resources_details: dict) -> None:
         """Update actual resources status from operating system.
 
         Args:
-            node_details: Details of the current node.
+            resources_details: Resource details of the current node.
 
         Returns:
             None.
         """
         # Update actual cpu.
-        node_details["resources"]["actual_free_cpu"] = node_details["resources"]["cpu"] - psutil.getloadavg()[0]
+        resources_details["actual_free_cpu"] = resources_details["cpu"] - psutil.getloadavg()[0]
 
         # Update actual memory.
-        node_details["resources"]["actual_free_memory"] = psutil.virtual_memory().free / 1024
+        resources_details["actual_free_memory"] = psutil.virtual_memory().free / 1024
 
         # Update actual gpu.
-        node_details["resources"]["actual_free_gpu"] = node_details["resources"]["target_free_gpu"]
+        resources_details["actual_free_gpu"] = resources_details["target_free_gpu"]
         # Get nvidia-smi result.
         try:
             return_str = SubProcess.run(command=GET_UTILIZATION_GPUS_COMMAND)
@@ -267,7 +283,7 @@ class NodeTrackingAgent(threading.Thread):
             total_usage = 0
             for single_usage in split_str:
                 total_usage += float(single_usage)
-            node_details["resources"]["actual_gpu_usage"] = f"{float(total_usage) / len(split_str)}%"
+            resources_details["actual_gpu_usage"] = f"{float(total_usage) / len(split_str)}%"
         except CommandExecutionError:
             pass
 
@@ -383,7 +399,7 @@ class LoadImageAgent(threading.Thread):
                 params
             )
 
-        with NODE_DETAILS_LOCK:
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
             node_details = self._redis_controller.get_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name

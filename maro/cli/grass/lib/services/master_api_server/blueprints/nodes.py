@@ -50,11 +50,14 @@ def create_node():
     """
 
     node_details = request.json
-    redis_controller.set_node_details(
-        cluster_name=service_config["cluster_name"],
-        node_name=node_details["name"],
-        node_details=node_details
-    )
+    node_name = node_details["name"]
+
+    with redis_controller.lock(f"lock:name_to_node_details:{node_name}"):
+        redis_controller.set_node_details(
+            cluster_name=service_config["cluster_name"],
+            node_name=node_name,
+            node_details=node_details
+        )
     return {}
 
 
