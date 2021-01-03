@@ -11,6 +11,7 @@ from subprocess import TimeoutExpired
 
 import yaml
 
+from maro.cli.grass.utils.docker_controller import DockerController
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClient
 from maro.cli.utils.deployment_validator import DeploymentValidator
@@ -72,7 +73,7 @@ class GrassExecutor:
                 # Push image from local docker client.
                 new_file_name = NameCreator.get_valid_file_name(image_name)
                 abs_image_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/image_files/{new_file_name}"
-                self._save_image(
+                DockerController.save_image(
                     image_name=image_name,
                     abs_export_path=abs_image_path
                 )
@@ -110,13 +111,6 @@ class GrassExecutor:
             logger.info_green(f"Image {image_name} is loaded")
         else:
             raise BadRequestError("Invalid arguments.")
-
-    @staticmethod
-    def _save_image(image_name: str, abs_export_path: str):
-        # Save image to specific folder
-        os.makedirs(os.path.dirname(abs_export_path), exist_ok=True)
-        command = f"docker save '{image_name}' --output '{abs_export_path}'"
-        _ = SubProcess.run(command)
 
     # maro grass data
 
