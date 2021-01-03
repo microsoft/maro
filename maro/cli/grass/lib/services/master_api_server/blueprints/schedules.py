@@ -7,6 +7,7 @@ import copy
 from flask import Blueprint, jsonify, request
 
 from ..objects import redis_controller, service_config
+from ...utils.name_creator import NameCreator
 
 # Flask related.
 
@@ -134,6 +135,12 @@ def _build_job_details(schedule_details: dict, job_name: str) -> dict:
     job_details["tags"] = {
         "schedule": schedule_name
     }
+    job_details["id"] = NameCreator.create_job_id()
+
+    # Set component id
+    for _, component_details in job_details["components"].items():
+        component_details["id"] = NameCreator.create_component_id()
+
     job_details.pop("job_names")
 
     return job_details

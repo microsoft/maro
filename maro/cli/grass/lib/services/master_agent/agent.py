@@ -532,6 +532,12 @@ class PendingJobAgent(multiprocessing.Process):
         # Get tickets.
         self._pending_jobs = self._redis_controller.get_pending_job_ticket(cluster_name=self._cluster_name)
 
+        # Get free resources at the very beginning.
+        free_resources = ResourceController.get_free_resources(
+            redis_controller=self._redis_controller,
+            cluster_name=self._cluster_name
+        )
+
         # Iterate tickets.
         for pending_job_name in self._pending_jobs:
             # Get details.
@@ -540,11 +546,7 @@ class PendingJobAgent(multiprocessing.Process):
                 job_name=pending_job_name
             )
 
-            # Get resources info.
-            free_resources = ResourceController.get_free_resources(
-                redis_controller=self._redis_controller,
-                cluster_name=self._cluster_name
-            )
+            # Get required resource
             required_resources = ResourceController.get_required_resources(job_details=job_details)
 
             # Do allocation and start job.
