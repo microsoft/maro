@@ -1002,19 +1002,23 @@ class ResourceController:
         # Get free resources.
         free_resources_list = []
         for node_name, node_details in name_to_node_details.items():
-            target_free_cpu = node_details["resources"]["target_free_cpu"]
-            target_free_memory = node_details["resources"]["target_free_memory"]
-            target_free_gpu = node_details["resources"]["target_free_gpu"]
+            try:
+                target_free_cpu = node_details["resources"]["target_free_cpu"]
+                target_free_memory = node_details["resources"]["target_free_memory"]
+                target_free_gpu = node_details["resources"]["target_free_gpu"]
 
-            if node_details["state"]["status"] == "Running":
-                free_resources_list.append(
-                    NodeResource(
-                        node_name=node_name,
-                        cpu=target_free_cpu,
-                        memory=target_free_memory,
-                        gpu=target_free_gpu
+                if node_details["state"]["status"] == "Running":
+                    free_resources_list.append(
+                        NodeResource(
+                            node_name=node_name,
+                            cpu=target_free_cpu,
+                            memory=target_free_memory,
+                            gpu=target_free_gpu
+                        )
                     )
-                )
+            except KeyError:
+                # node_details is not in stable state.
+                continue
         return free_resources_list
 
     @staticmethod
