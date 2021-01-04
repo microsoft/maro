@@ -213,9 +213,10 @@ class LearningModel(nn.Module):
 
     @staticmethod
     def validate_dims(*task_stacks, shared_stack=None):
-        expected_dim = shared_stack.output_dim if shared_stack else task_stacks[0].input_dim
-        for task_stack in task_stacks:
-            if task_stack.input_dim != expected_dim:
-                raise NNStackDimensionError(
-                    f"Expected input dimension {expected_dim} for task module: {task_stack.name}, "
-                    f"got {task_stack.input_dim}")
+        if shared_stack:
+            expected_dim = shared_stack.output_dim
+            for task_stack in task_stacks:
+                if task_stack.input_dim != expected_dim:
+                    raise NNStackDimensionError(
+                        f"Expected input dimension {expected_dim} for task module: {task_stack.name}, "
+                        f"got {task_stack.input_dim}")
