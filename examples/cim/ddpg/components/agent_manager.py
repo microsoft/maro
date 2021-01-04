@@ -46,7 +46,7 @@ def create_ddpg_agents(agent_id_list, config):
             }
         )
         algorithm = DDPG(
-            learning_model, DDPGConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss),
+            learning_model, DDPGConfig(**config.hyper_params, q_value_loss_func=nn.SmoothL1Loss()),
             explorer=GaussianNoiseExplorer(min_action=config.min_action, max_action=config.max_action)
         )
 
