@@ -11,7 +11,6 @@ from maro.simulator.scenarios.cim.ports_order_export import PortOrderExporter
 from tests.utils import next_step
 from .mock_data_container import MockDataContainer
 
-from tests.utils import next_step
 
 MAX_TICK = 20
 
