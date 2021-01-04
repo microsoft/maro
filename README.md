@@ -60,7 +60,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
-- Max OS / Linux
+- Mac OS / Linux
 
   ```sh
   pip install pymaro
