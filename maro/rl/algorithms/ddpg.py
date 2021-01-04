@@ -81,16 +81,16 @@ class DDPG(AbsAlgorithm):
         rewards = torch.from_numpy(rewards).to(self._device)
         next_states = torch.from_numpy(next_states).to(self._device)
         if len(actual_actions.shape) == 1:
-            actual_actions = actual_actions.unsqueeze(1)  # (N, 1)
-        current_q_values = self._model(torch.cat([states, actual_actions]), task_name="q_value").squeeze(1)  # (N,)
-        next_actions = self._target_model(states, task_name="policy", is_training=False).unsqueeze(dim=1)
+            actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
+        current_q_values = self._model(torch.cat([states, actual_actions], dim=1), task_name="q_value").squeeze(1)  # (N,)
+        next_actions = self._target_model(states, task_name="policy", is_training=False)
         next_q_values = self._target_model(
-            torch.cat([next_states, next_actions]), task_name="q_value", is_training=False
+            torch.cat([next_states, next_actions], dim=1), task_name="q_value", is_training=False
         ).squeeze(1)  # (N,)
         target_q_values = (rewards + self._config.reward_discount * next_q_values).detach()  # (N,)
         q_value_loss = self._config.q_value_loss_func(current_q_values, target_q_values)
         actions_from_model = self._model(states, task_name="policy")
-        policy_loss = -self._model(torch.cat([states, actions_from_model]), task_name="q_value").mean()
+        policy_loss = -self._model(torch.cat([states, actions_from_model], dim=1), task_name="q_value").mean()
         self._model.learn(q_value_loss + self._config.policy_loss_coefficient * policy_loss)
         self._train_cnt += 1
         if self._train_cnt % self._config.target_update_frequency == 0:
