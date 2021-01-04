@@ -56,38 +56,13 @@ path of a local file folder, data would be dumped to this folder.
     # dump data to the folder which run the command.
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=0, durations=100, options=opts_have_no_path)
-
-    # initialize Env object without dump data.
-    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
-          start_tick=0, durations=100)
+    
 ----
 
-Suppose a file named **dump_data.py** contains above code for calling Env object
-to run experiment, and run this file with:
+Data would be dumped automatically when the Env object is initialized.
 
-.. code-block:: sh
-
-    python ./dump_data.py
-
-----
-
-Then data would be dumped automatically.
-
-The expected values of each parameter are listed below:
-
-    scenario:
-        * cim
-        * citi_bike
-    topology:
-        * `cim <../scenarios/container_inventory_management.html#Topologies>`_
-
-        * `citi_bike <../scenarios/citi_bike.html#Topologies>`_
-    start_tick:
-        Integer not less than 0.
-    duration:
-        Integer not less than 1.
-    opts:
-        Dictionary.
+The expected values of each parameter are listed in
+`Environment <../simulation_toolkit.html#Environment>`_
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
