@@ -8,7 +8,7 @@ import torch
 
 from maro.rl.models.learning_model import LearningModel
 
-from .algorithms.abs_algorithm import AbsAlgorithm
+from .abs_algorithm import AbsAlgorithm
 
 
 class DQNConfig:
