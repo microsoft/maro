@@ -44,7 +44,7 @@ class DDPGAgent(AbsAgent):
             return
 
         for _ in range(self._num_batches):
-            _, sample = self._experience_pool.sample_by_key("loss", self._batch_size)
+            _, sample = self._experience_pool.sample(self._batch_size)
             state = np.asarray(sample["state"])
             action = np.asarray(sample["action"])
             reward = np.asarray(sample["reward"])
