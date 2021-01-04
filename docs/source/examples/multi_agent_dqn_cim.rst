@@ -102,7 +102,7 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
 
 .. code-block:: python
     NUM_ACTIONS = 21
-    class CIMAgent(AbsAgent):
+    class DQNAgent(AbsAgent):
         ...
         def train(self):
             if len(self._experience_pool) < self._min_experiences_to_train:
@@ -148,7 +148,8 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
                 )
             )
 
-            agent_dict[agent_id] = CIMAgent(
+            experience_pool = ColumnBasedStore(**config.experience_pool)
+            agent_dict[agent_id] = DQNAgent(
                 agent_id, algorithm, ColumnBasedStore(), 
                 min_experiences_to_train=1024, num_batches=10, batch_size=128
             )

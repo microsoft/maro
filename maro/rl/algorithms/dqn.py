@@ -7,14 +7,14 @@ import numpy as np
 import torch
 
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
-from maro.rl.models.learning_model import LearningModuleManager
+from maro.rl.models.learning_model import LearningModel
 
 
 class DQNConfig:
     """Configuration for the DQN algorithm.
 
     Args:
-        reward_decay (float): Reward decay as defined in standard RL terminology.
+        reward_discount (float): Reward decay as defined in standard RL terminology.
         loss_cls: Loss function class for evaluating TD errors.
         target_update_frequency (int): Number of training rounds between target model updates.
         epsilon (float): Exploration rate for epsilon-greedy exploration. Defaults to None.
@@ -28,13 +28,13 @@ class DQNConfig:
             method. Defaults to False.
     """
     __slots__ = [
-        "reward_decay", "loss_func", "target_update_frequency", "epsilon", "tau", "is_double", "advantage_mode",
+        "reward_discount", "loss_func", "target_update_frequency", "epsilon", "tau", "is_double", "advantage_mode",
         "per_sample_td_error_enabled"
     ]
 
     def __init__(
         self,
-        reward_decay: float,
+        reward_discount: float,
         loss_cls,
         target_update_frequency: int,
         epsilon: float = .0,
@@ -43,7 +43,7 @@ class DQNConfig:
         advantage_mode: str = None,
         per_sample_td_error_enabled: bool = False
     ):
-        self.reward_decay = reward_decay
+        self.reward_discount = reward_discount
         self.target_update_frequency = target_update_frequency
         self.epsilon = epsilon
         self.tau = tau
@@ -59,10 +59,10 @@ class DQN(AbsAlgorithm):
     See https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf for details.
 
     Args:
-        model (LearningModuleManager): Q-value model.
+        model (LearningModel): Q-value model.
         config: Configuration for DQN algorithm.
     """
-    def __init__(self, model: LearningModuleManager, config: DQNConfig):
+    def __init__(self, model: LearningModel, config: DQNConfig):
         self.validate_task_names(model.task_names, {"state_value", "advantage"})
         super().__init__(model, config)
         if isinstance(self._model.output_dim, int):
@@ -117,7 +117,7 @@ class DQN(AbsAlgorithm):
         current_q_values_for_all_actions = self._get_q_values(self._model, states)
         current_q_values = current_q_values_for_all_actions.gather(1, actions).squeeze(1)  # (N,)
         next_q_values = self._get_next_q_values(current_q_values_for_all_actions, next_states)  # (N,)
-        target_q_values = (rewards + self._config.reward_decay * next_q_values).detach()  # (N,)
+        target_q_values = (rewards + self._config.reward_discount * next_q_values).detach()  # (N,)
         return self._config.loss_func(current_q_values, target_q_values)
 
     def train(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray):
