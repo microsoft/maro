@@ -135,7 +135,7 @@ print(f"environment metrics: {env.metrics}")
 
 ```
 
-## [Environment Visualization](TODO)
+## [Environment Visualization](https://maro.readthedocs.io/en/latest/)
 
 ```sh
 # Enable environment dump feature, when initializing the environment instance
@@ -152,10 +152,12 @@ maro inspector env --source ./dump_data
 ### Show Cases
 
 - Case I - Container Inventory Management
-![CIM Dashboard](TODO)
+![CIM Inter Epoch](./docs/source/images/visualization/dashboard/cim_inter_epoch.gif)
+![CIM Intra Epoch](./docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif)
 
 - Case II - Citi Bike
-![Citi Bike Dashboard](TODO)
+![Citi Bike Inter Epoch](./docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif)
+![Citi Bike Intra Epoch](./docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif)
 
 ## Run Playground
 
@@ -217,7 +219,7 @@ with any additional questions or comments.
 
 ## Related Papers
 
-### [Container Inventory Management](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
+### [Container Inventory Management](https://maro.readthedocs.io/en/latest/key_components/dashboard_visualization.html)
 
 ![CIM Vis](./docs/source/images/scenario/cim_vis.gif)
 
