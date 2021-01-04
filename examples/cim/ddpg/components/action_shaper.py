@@ -9,7 +9,6 @@ class CIMActionShaper(ActionShaper):
     def __init__(self, action_space):
         super().__init__()
         self._action_space = action_space
-        self._zero_action_index = action_space.index(0)
 
     def __call__(self, model_action, decision_event, snapshot_list):
         scope = decision_event.action_scope
@@ -20,14 +19,13 @@ class CIMActionShaper(ActionShaper):
         port_empty = snapshot_list["ports"][tick: port_idx: ["empty", "full", "on_shipper", "on_consignee"]][0]
         vessel_remaining_space = snapshot_list["vessels"][tick: vessel_idx: ["empty", "full", "remaining_space"]][2]
         early_discharge = snapshot_list["vessels"][tick:vessel_idx: "early_discharge"][0]
-        assert 0 <= model_action < len(self._action_space)
-        operation_num = self._action_space[model_action]
+        assert -1.0 <= model_action <= 1.0
 
-        if model_action < self._zero_action_index:
-            actual_action = max(round(operation_num * port_empty), -vessel_remaining_space)
-        elif model_action > self._zero_action_index:
-            plan_action = operation_num * (scope.discharge + early_discharge) - early_discharge
-            actual_action = round(plan_action) if plan_action > 0 else round(operation_num * scope.discharge)
+        if model_action < .0:
+            actual_action = max(round(model_action * port_empty), -vessel_remaining_space)
+        elif model_action > .0:
+            plan_action = model_action * (scope.discharge + early_discharge) - early_discharge
+            actual_action = round(plan_action) if plan_action > 0 else round(model_action * scope.discharge)
         else:
             actual_action = 0
 
