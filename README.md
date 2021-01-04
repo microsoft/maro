@@ -235,6 +235,8 @@ Xihan Li, Jia Zhang, Jiang Bian, Yunhai Tong, Tie-Yan Liu. "[A Cooperative Multi
 
 [AI from "Point" to "Surface"](https://mp.weixin.qq.com/s/PggO49wwmS7grTO0nEMgVQ)
 
+## [Cite Us](./CITATION)
+
 ## License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
