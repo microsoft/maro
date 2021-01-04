@@ -9,7 +9,7 @@ in local private network and run your training job in On-Premises distributed en
 Prerequisites
 -------------
 
-* Liunx with Python 3.6+
+* Linux with Python 3.6+
 * `Install Powershell <https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1>`_ if you are using Windows Server
 
 Cluster Management
