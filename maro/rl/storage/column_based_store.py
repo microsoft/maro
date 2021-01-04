@@ -190,7 +190,7 @@ class ColumnBasedStore(AbsStore):
             Sampled indexes and the corresponding objects,
             e.g., [1, 2, 3], ['a', 'b', 'c'].
         """
-        weights = np.assarray(weights)
+        weights = np.asarray(weights)
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
         return indexes, self.get(indexes)
 
