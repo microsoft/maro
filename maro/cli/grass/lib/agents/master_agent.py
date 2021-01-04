@@ -27,7 +27,7 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 START_CONTAINER_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no {admin_username}@{node_hostname} "
+    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
     "docker run "
     "-it -d "
     "--cpus {cpu} "
@@ -43,7 +43,7 @@ START_CONTAINER_COMMAND = (
 )
 
 START_CONTAINER_WITH_GPU_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no {admin_username}@{node_hostname} "
+    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
     "docker run "
     "-it -d "
     "--cpus {cpu} "
@@ -60,12 +60,12 @@ START_CONTAINER_WITH_GPU_COMMAND = (
 )
 
 REMOVE_CONTAINER_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no {admin_username}@{node_hostname} "
+    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
     "docker rm -f {containers}"
 )
 
 STOP_CONTAINER_COMMAND = (
-    "ssh -o StrictHostKeyChecking=no {admin_username}@{node_hostname} "
+    "ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_hostname} "
     "docker stop {containers}"
 )
 
@@ -232,6 +232,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         self._cluster_id = cluster_details["id"]
         self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
+        self._ssh_port = cluster_details["connection"]["ssh"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
         self._redis = Redis(
             host="localhost",
@@ -448,7 +449,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         command = REMOVE_CONTAINER_COMMAND.format(
             admin_username=self._admin_username,
             node_hostname=node_details["hostname"],
-            containers=container_name
+            containers=container_name,
+            ssh_port=self._ssh_port
         )
         completed_process = subprocess.run(
             command,
@@ -497,13 +499,15 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     command = REMOVE_CONTAINER_COMMAND.format(
                         admin_username=self._admin_username,
                         node_hostname=node_hostname,
-                        containers=" ".join(stoppable_containers)
+                        containers=" ".join(stoppable_containers),
+                        ssh_port=self._ssh_port
                     )
                 else:
                     command = STOP_CONTAINER_COMMAND.format(
                         admin_username=self._admin_username,
                         node_hostname=node_hostname,
-                        containers=" ".join(stoppable_containers)
+                        containers=" ".join(stoppable_containers),
+                        ssh_port=self._ssh_port
                     )
                 completed_process = subprocess.run(
                     command,
@@ -585,6 +589,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             master_hostname=self._master_hostname,
             node_hostname=node_details["hostname"],
             fluentd_port=self._fluentd_port,
+            ssh_port=self._ssh_port,
 
             # job related (user).
             cpu=cpu,
@@ -619,6 +624,7 @@ class PendingJobAgent(multiprocessing.Process):
         self._cluster_id = cluster_details["id"]
         self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
+        self._ssh_port = cluster_details["connection"]["ssh"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
         self._redis = Redis(
             host="localhost",
@@ -770,6 +776,7 @@ class PendingJobAgent(multiprocessing.Process):
             master_hostname=self._master_hostname,
             node_hostname=node_details["hostname"],
             fluentd_port=self._fluentd_port,
+            ssh_port=self._ssh_port,
 
             # job related (user).
             cpu=cpu,
@@ -803,6 +810,7 @@ class KilledJobAgent(multiprocessing.Process):
         self._cluster_name = cluster_details["name"]
         self._cluster_id = cluster_details["id"]
         self._admin_username = cluster_details["user"]["admin_username"]
+        self._ssh_port = cluster_details["connection"]["ssh"]["port"]
         self._redis = Redis(
             host="localhost",
             port=cluster_details["master"]["redis"]["port"],
@@ -897,7 +905,8 @@ class KilledJobAgent(multiprocessing.Process):
                 command = STOP_CONTAINER_COMMAND.format(
                     admin_username=self._admin_username,
                     node_hostname=node_hostname,
-                    containers=" ".join(removable_containers)
+                    containers=" ".join(removable_containers),
+                    ssh_port=self._ssh_port
                 )
                 completed_process = subprocess.run(
                     command,

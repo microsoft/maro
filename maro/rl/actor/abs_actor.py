@@ -16,22 +16,23 @@ class AbsActor(ABC):
 
     Args:
         env (Env): An Env instance.
-        inference_agents (AbsAgentManager or dict): A dict of agents or an AgentManager instance that manages
+        agents (AbsAgentManager or dict): A dict of agents or an AgentManager instance that manages
             all agents.
     """
-    def __init__(self, env: Env, inference_agents: Union[AbsAgentManager, dict]):
+    def __init__(self, env: Env, agents: Union[AbsAgentManager, dict]):
         self._env = env
-        self._inference_agents = inference_agents
+        self._agents = agents
 
     @abstractmethod
-    def roll_out(self, model_dict: dict = None, epsilon_dict: dict = None, done: bool = None,
-                 return_details: bool = True):
+    def roll_out(
+        self, model_dict: dict = None, exploration_params=None, done: bool = None, return_details: bool = True
+    ):
         """This method performs a single episode of roll-out.
 
         Args:
             model_dict (dict): If not None, the agents will load the models from model_dict and use these models
                 to perform roll-out.
-            epsilon_dict (dict): Exploration rate by agent.
+            exploration_params: Exploration parameters.
             done (bool): If True, the current call is the last call, i.e., no more roll-outs will be performed.
                 This flag is used to signal remote actor workers to exit.
             return_details (bool): If True, return episode details (e.g., experiences) as well as performance
@@ -43,6 +44,6 @@ class AbsActor(ABC):
         return NotImplementedError
 
     @property
-    def inference_agents(self):
+    def agents(self):
         """Agents performing inference during roll-out."""
-        return self._inference_agents
+        return self._agents
