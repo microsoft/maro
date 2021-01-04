@@ -216,12 +216,22 @@ or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
 with any additional questions or comments.
 
 ## Related Papers
+
 ### [Container Inventory Management](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
+
 ![CIM Vis](./docs/source/images/scenario/cim_vis.gif)
 
 Wenlei Shi, Xinran Wei, Jia Zhang, Xiaoyuan Ni, Arthur Jiang, Jiang Bian, Tie-Yan Liu. "[Cooperative Policy Learning with Pre-trained Heterogeneous Observation Representations](https://arxiv.org/abs/2012.13099)". AAMAS 2021
 
 Xihan Li, Jia Zhang, Jiang Bian, Yunhai Tong, Tie-Yan Liu. "[A Cooperative Multi-Agent Reinforcement Learning Framework for Resource Balancing in Complex Logistics Network](https://arxiv.org/abs/1903.00714)". AAMAS 2019
+
+## Related News
+
+[MSRA Top-10 Hack-Techs in 2021](https://mp.weixin.qq.com/s/Y4kjQq8gKcsEsVadjdwnEQ)
+
+[Open Source Platform MARO: Anywhere Door for Resource Optimization](https://mp.weixin.qq.com/s/zXIpgzomLhDWS_YUFmRlEQ)
+
+[AI from "Point" to "Surface"](https://mp.weixin.qq.com/s/PggO49wwmS7grTO0nEMgVQ)
 
 ## License
 
