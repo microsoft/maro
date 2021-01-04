@@ -754,21 +754,21 @@ random mode, we hope this could help you learn how to use the environment interf
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning/interact_with_environment.ipynb>`_
 for a quick experience.
 
-~~~~~~
-
 Visualization
 -------------
 
 The resource holder in this scenario is the bike station.
 The number of epoches is varied based on selected strategy.
-Currently, we generate result with Greedy algorithm.
-Only one epoch is included in result.
+Currently, we generate result with Greedy Policy.
+Only one epoch is included in result. Thus, inter-epoch view
+would not be displayed.
 
 Inter-epoch view
 ^^^^^^^^^^^^^^^^
+
 This part display cross-epoch summary information. User could select
 the Start Epoch and End Epoch, as well as Epoch Sampling Ratio. Since 
-there is only one epoch, this part would be muted automatically.
+there is only one epoch, this part is hidden.
 
 Intra-epoch view
 ^^^^^^^^^^^^^^^^
@@ -801,7 +801,7 @@ e.g. In this scenario, item "Requirement Info" refers to
 
 Moreover, to improve the flexibility of visualizing data, user could use
 pre-defined formula and selected attributes to generate new attributes.
-Generated attributes would be treated in the same way as origin
+Generated attributes would be treated in the same way as original
 attributes.
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_3.gif
@@ -815,8 +815,6 @@ of sampled data.
 
 Particularly, if user want to check the name of a specific station,
 just hovering on the according bar.
-
-Formula calculation please refer to `Citi Bike Examples Intra-view<#Example#Intra-view>`_
 
 .. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_snapshot.gif
    :alt: citi\_bike\_intra\_epoch\_by\_snapshot

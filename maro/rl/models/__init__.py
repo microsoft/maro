@@ -3,6 +3,6 @@
 
 from .abs_block import AbsBlock
 from .fc_block import FullyConnectedBlock
-from .learning_model import LearningModule, LearningModuleManager, OptimizerOptions
+from .learning_model import LearningModel, NNStack, OptimizerOptions
 
-__all__ = ["AbsBlock", "FullyConnectedBlock", "LearningModule", "LearningModuleManager", "OptimizerOptions"]
+__all__ = ["AbsBlock", "FullyConnectedBlock", "LearningModel", "NNStack", "OptimizerOptions"]

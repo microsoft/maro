@@ -1,6 +1,7 @@
 Dashboard Visualization
 =======================
 
+<<<<<<< HEAD
 Env-dashboard is a post-experiment visualization tool, aims to provide
 more intuitive environment information, which will guide the design of
 the algorithm and continually fine-tuning.
@@ -33,37 +34,75 @@ by sliding to change the number of data to be displayed.
 Formula Calculation
 ~~~~~~~~~~~~~~~~~~~
 User could generate their own attributes by using pre-defined formulas.
+=======
+Env-dashboard is a post-experimental visualization tool, aims to provide
+more intuitive environment information, which will guide the design of
+the algorithm and continually fine-tuning.
+
+Currently, the visualization of senario **Container Inventory Management**
+and **Citi Bike** are supported.
+>>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 Dependency
 ----------
 
 Module **streamlit** and **altair** should be pre-installed.
 
---streamlit: An open-source app framework.
+* `streamlit <https://www.streamlit.io/>`_
 
-install it with:
 
-.. code-block:: sh
+* `altair <https://altair-viz.github.io/>`_
 
-    pip install streamlit
-
-----
-
---altair: A declarative statistical visualization library.
-
-install it with:
+Install them with:
 
 .. code-block:: sh
 
-    pip install altair
+    pip install streamlit altair
 
 ----
 
 How to Use?
 -----------
 
-To start this visualization tool, maro should be pre-installed. The
-command format is:
+Generate dumped data
+~~~~~~~~~~~~~~~~~~~~
+
+The dumped data from environment is the data source of visualization.
+To generate data, user needs to specify the parameter **options** when creating Env object.
+Type of value of this parameter should be Dictionary.
+
+If user does not need to dump data, then there is no need to pass value to
+this parameter. 
+If the value for key "enable-dump-snapshot" of this parameter is an empty string,
+data would be dumped to the folder which start the command.
+If user specifies the value for key "enable-dump-snapshot" of this parameter with the
+path of a local file folder, data would be dumped to this folder.
+
+.. code-block:: sh
+
+    opts_have_path = {"enable-dump-snapshot": "./dump_data"}
+
+    opts_have_no_path = {"enable-dump-snapshot": ""}
+
+    # dump data to folder ./dump_data.
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100, options=opts_have_path)
+
+    # dump data to the folder which run the command.
+    env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
+          start_tick=0, durations=100, options=opts_have_no_path)
+
+----
+
+Data would be dumped automatically when the Env object is initialized.
+
+For more details about Environment, please refer to
+`Environment <../simulation_toolkit.html#Environment>`_.
+
+Launch Visualization Tool
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To start this visualization tool, user need to input command following the format:
 
 .. code-block:: sh
 
@@ -75,17 +114,28 @@ e.g.
 
 .. code-block:: sh
 
+<<<<<<< HEAD
     maro inspector env --source .\maro\dumper_files --force true
 
 ----
 
 Expected data is dumped snapshot files. The structure of input file
 folder should be like this:
+=======
+    maro inspector env --source_path .\maro\dumper_files --force false
+
+----
+
+Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
+Parameter **source_path** refers to the path of dumped snapshot files.
+The expected structure of file folder should be like this:
+>>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 Folder Structure
 
 .. code-block:: sh
 
+<<<<<<< HEAD
    |-- ~/.source_folder_root
        |-- epoch_#                    # folders to restore data of
                                         each epoch
@@ -105,11 +155,20 @@ Folder Structure
                                         which will be used directly
                                         by the visualization tool.
                                         Generated after data processing.
+=======
+    ./LOCAL_DUMPER_DATA_FOLDER
+        epoch_#                         # folders to restore data of each epoch.
+            {resource_holder}.csv       # attributes of current epoch.
+       manifest.yml                     # basic info like scenario name, number of epoches.
+       index\_name\_mapping file        # relationship between an index and its name of resource holders.
+       {resource_holder}_summary.csv    # cross-epoch summary information. 
+>>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 
 
 ----
 
+<<<<<<< HEAD
 Usage
 -----
 
@@ -125,3 +184,106 @@ parameters according to predefined formulas, switching parameter
 selection, etc.
 
 Examples of each scenarios please refer to docs of each scenarios.
+=======
+If any file is missed compared with the expected folder structure
+displayed above, the command line would prompt users with an error message.
+The visualization tool looks for the free port to launch page in sequence, starting with port 8501.
+The command line would print out the selected port.
+
+Feature List
+------------
+
+Basically, each scenario has 2 parts of visualization: intra-epoch view
+and inter-epoch view. User could switch between them freely.
+
+Intra-epoch view
+~~~~~~~~~~~~~~~~
+
+User could view detailed information of selected resource holder or tick
+under this mode. In order for users to better understand the data, we
+separate the data into time dimension and space dimension. Users could view
+both the value of a resource holder's property over time and the state of
+all resource holders at a selected time (e.g. tick).
+
+Content of intra-epoch view is varied between senarios. For example, in senario
+container_inventory_management, the attributes of resource holders are relatively
+complex. Thus, this view is divided into two parts: Accumulated Attributes and Detail Attributes.
+The former one includes the heat map of transfer volume, top-k attributes summary,
+accumulated attributes summary. The latter one includes the chart of two resource holders:
+Port and Vessel attributes in the scenario container_inventory_management. 
+Detailed introduction please refer to 
+`Container Inventory Management Visualization <../scenarios/container_inventory_management.html#Visualization>`_.
+
+The content of senario citi_Bike is much simpler,
+mainly including top-k attributes summary and the chart of resource holder:
+Station in senario citi_bike.
+Detailed introduction please refer to 
+`Citi Bike Visualization <../scenarios/citi_bike.html#Visualization>`_.
+
+Epoch/Snapshot/Resource Holder Index Selection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To view the details of a resource holder or a tick, user could select
+the specific index of epoch/snapshot/resource holder by sliding the slider
+on the left side of page.
+
+.. figure:: ..\images\visualization\dashboard\epoch_resource_holder_index_selection.gif
+   :alt: epoch\_resource\_holder\_index\_selection
+
+Snapshot/Resource Holder Sampling Ratio Selection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To view trends in the data, or to weed out excess information, user could
+select the sampling ratio of snapshot/resource holder by sliding to
+change the number of data to be displayed.
+
+.. figure:: ..\images\visualization\dashboard\snapshot_sampling_ratio_selection.gif
+   :alt: snapshot\_sampling\_ratio\_selection
+
+Formula Calculation
+^^^^^^^^^^^^^^^^^^^
+
+User could generate their own attributes by using pre-defined formulas.
+The results of the formula calculation could be reused as the input
+parameter of formula.
+
+.. figure:: ..\images\visualization\dashboard\formula_calculation.gif
+   :alt: formula\_calculation
+
+Inter-epoch view
+~~~~~~~~~~~~~~~~
+
+User could view cross-epoch information in this view.
+In order to make users intuitively observe the results of the iterative
+algorithm, such as whether the results converge as expected, we extracted
+important attributes of resource holder from each epoch as a summary of
+the current epoch and display them centrally in this view.
+Users are free to choose the interval they care about and the sampling
+rate within the selected interval. Line chart and bar chart can
+effectively help users to know the results of the experiment.
+
+
+Epoch Sampling Ratio Selection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To view trends in the data, or to weed out excess information, user could
+select the sampling ratio of epoch by sliding to
+change the number of data to be displayed.
+
+.. figure:: ..\images\visualization\dashboard\epoch_sampling_ratio.gif
+   :alt: epoch\_sampling\_ratio
+
+Formula Calculation
+^^^^^^^^^^^^^^^^^^^
+
+Please refer to `Formula Calculation <#Feature List#Intra_epoch View#Formula Calculation>`_.
+
+
+Examples
+--------
+Examples of each scenarios please refer to docs of each scenarios:
+
+* `Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
+
+* `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
+>>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2

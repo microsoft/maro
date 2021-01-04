@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import csv
 import json
 import os
@@ -8,7 +11,7 @@ import tqdm
 import yaml
 from typing import List
 
-from maro.utils.exception.cli_exception import CliException
+from maro.utils.exception.cli_exception import CliError
 from maro.utils.logger import CliLogger
 
 from .launch_env_dashboard import launch_dashboard
@@ -39,9 +42,9 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
         force (str): Indicates whether regenerate data. Expected input is True/False.
         **kwargs (dict): The irrelevant variable length key-value pair.
     """
-    
+
     if not os.path.exists(os.path.join(source_path, "manifest.yml")):
-        raise CliException("Manifest file missed.")
+        raise CliError("Manifest file missed.")
     settings = yaml.load(
         open(os.path.join(source_path, "manifest.yml"), "r").read(),
         Loader=yaml.FullLoader
@@ -52,9 +55,9 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
     prefix = settings["dump_details"]["prefix"]
     force = str2bool(str(force))
     if not os.path.exists(source_path):
-        raise CliException("Input path is not correct.")
+        raise CliError("Input path is not correct.")
     elif not os.path.exists(os.path.join(source_path, f"{prefix}0")):
-        raise CliException("No data under input folder path.")
+        raise CliError("No data under input folder path.")
     if force:
         logger.info("Generating Dashboard Data.")
         _get_index_index_name_conversion(scenario, source_path, conversion_path)
@@ -66,14 +69,14 @@ def start_vis(source_path: str, force: str, **kwargs: dict):
     else:
         logger.info_green("Skip Data Generation")
         if not os.path.exists(os.path.join(source_path, GlobalFileNames.name_convert)):
-            raise CliException("Have to regenerate data. Name Conversion File is missed.")
+            raise CliError("Have to regenerate data. Name Conversion File is missed.")
 
         if scenario == GlobalScenarios.CIM:
             if not os.path.exists(os.path.join(source_path, GlobalFileNames.ports_sum)):
-                raise CliException("Have to regenerate data. Summary File is missed.")
+                raise CliError("Have to regenerate data. Summary File is missed.")
         elif scenario == GlobalScenarios.CITI_BIKE:
             if not os.path.exists(os.path.join(source_path, GlobalFileNames.stations_sum)):
-                raise CliException("Have to regenerate data. Summary File is missed.")
+                raise CliError("Have to regenerate data. Summary File is missed.")
 
     launch_dashboard(source_path, scenario, epoch_num, prefix)
 
@@ -147,7 +150,7 @@ def _generate_summary(scenario: GlobalScenarios, source_path: str, prefix: str, 
         scenario (GlobalScenarios): Current scenario.
         source_path (str): The root path of the dumped snapshots data for the corresponding experiment.
         prefix (str): Prefix of data folders.
-        epoch_num (int): Total number of epoches, 
+        epoch_num (int): Total number of epoches,
             i.e. the total number of data folders since there is a folder per epoch.
     """
     ports_header = ["capacity", "empty", "full", "on_shipper", "on_consignee", "shortage", "booking", "fulfillment"]

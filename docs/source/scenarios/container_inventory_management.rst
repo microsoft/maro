@@ -656,10 +656,14 @@ Inter-epoch view
 
 To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
+<<<<<<< HEAD
 sampling rate of selected data, similar as Citi Bike `Citi Bike Examples <../citi_bike.html>`_.
 
 For description of Attributes Selection in charts and Formula
 Calculation, please refer to Citi Bike `Citi Bike Examples <../citi_bike.html>`_
+=======
+sampling rate of selected data.
+>>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 .. figure:: ..\images\visualization\dashboard\cim_inter_epoch.gif
    :alt: cim\_inter\_epoch
@@ -672,12 +676,10 @@ slider, users can select different epochs. Furthermore, this part of
 data is divided into two dimensions: by snapshot and by port according
 to time and space. In terms of data display, according to the different
 types of attributes, it is divided into two levels: accumulated data
-(accumulated attributes. e.g. acc\_fulfillment) and detail data.
+ (accumulated attributes. e.g. acc\_fulfillment) and detail data.
 
 If user choose to view information by ports, attributes of the selected
 port would be displayed.
-
-Chart characteristics and data selection method please refer to `Citi Bike Examples <../citi_bike.html>`_
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif
    :alt: cim\_intra\_epoch\_by\_ports
@@ -699,7 +701,7 @@ start port to terminal port. By changing the snapshot index, user could
 view the dynamic changes in the volume of cargo delivered by the port
 over time in the current epoch.
 
-The bar chart of Port Acc Attributes displays the global change of
+The bar chart of Port Accumulated Attributes displays the global change of
 ports.
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_acc_data.gif
@@ -709,13 +711,7 @@ Detail Data
 ~~~~~~~~~~~
 
 Since the cargoes is transported through vessels, information of vessels
-could be viewed by snapshot.
-
-Same as ports, user could change the sampling rate of vessels.
-
-Bar chart of Port Detail Attributes and Formula Calculation please refer
-to `Citi Bike Examples <../citi_bike.html>`_.
+could be viewed by snapshot. Same as ports, user could change the sampling rate of vessels.
 
 .. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
    :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data
-

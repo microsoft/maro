@@ -26,7 +26,7 @@ def launch(config, distributed_config):
 
     config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
     agent_manager = DQNAgentManager(
-        name="distributed_cim_actor",
+        name="cim_actor",
         mode=AgentManagerMode.INFERENCE,
         agent_dict=create_dqn_agents(agent_id_list, config.agents),
         state_shaper=state_shaper,

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 import torch
 
-from maro.rl.models.learning_model import LearningModuleManager
+from maro.rl.models.learning_model import LearningModel
 from maro.utils.exception.rl_toolkit_exception import UnrecognizedTask
 
 
@@ -17,10 +17,10 @@ class AbsAlgorithm(ABC):
     algorithms.
 
     Args:
-        model (LearningModuleManager): Task model or container of task models required by the algorithm.
+        model (LearningModel): Task model or container of task models required by the algorithm.
         config: Settings for the algorithm.
     """
-    def __init__(self, model: LearningModuleManager, config):
+    def __init__(self, model: LearningModel, config):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = model.to(self._device)
         self._config = config

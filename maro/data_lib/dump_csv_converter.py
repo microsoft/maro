@@ -1,14 +1,12 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 
 import os
 import threading
-import urllib
 from datetime import datetime
 from math import floor
 from pathlib import Path
-from shutil import copyfile
 
 import numpy as np
 import pandas as pd
@@ -18,11 +16,7 @@ import yaml
 class DumpConverter:
     """ This class is used for convert binary snapshot dump content to CSV format. """
 
-<<<<<<< HEAD
-    def __init__(self, parent_path='', scenario_name='', prefix='epoch_', serial=0):
-=======
     def __init__(self, parent_path="", scenario_name="", prefix="epoch_", serial=0):
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
         super().__init__()
         self._parent_path = parent_path
         self._prefix = prefix
@@ -31,23 +25,14 @@ class DumpConverter:
         self._manifest_created = False
         self._mapping_created = False
 
-<<<<<<< HEAD
-    def __generate_new_folder(self, parent_path):
-=======
     def _generate_new_folder(self, parent_path):
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
         now = datetime.now()
         self._foldername = "snapshot_dump_" + now.strftime("%Y_%m_%d_%H_%M_%S_%f")[:-3]
         if parent_path != "":
             self._foldername = os.path.join(parent_path, self._foldername)
 
-<<<<<<< HEAD
-        folderPath = Path(self._foldername)
-        if folderPath.exists():
-=======
         folder_path = Path(self._foldername)
         if folder_path.exists():
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
             return
         os.mkdir(self._foldername)
 
@@ -64,11 +49,7 @@ class DumpConverter:
         return self._scenario_name
 
     def reset_folder_path(self):
-<<<<<<< HEAD
-        self.__generate_new_folder(self._parent_path)
-=======
         self._generate_new_folder(self._parent_path)
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
         self._serial = 0
 
     def get_new_snapshot_folder(self):
@@ -78,34 +59,20 @@ class DumpConverter:
         self._last_snapshot_folder = folder
         return folder
 
-    def process_data(self, filesource: str):
-<<<<<<< HEAD
-        for curDir, dirs, files in os.walk(self._last_snapshot_folder):
-            for file in files:
-                if file.endswith(".meta"):
-                    col_info_dict = self.get_column_info(os.path.join(curDir, file))
-                    data = np.load(os.path.join(curDir, file.replace(".meta", ".npy")))
-=======
+    def process_data(self, config_data: dict):
         for cur_dir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
                 if file.endswith(".meta"):
                     col_info_dict = self.get_column_info(os.path.join(cur_dir, file))
                     data = np.load(os.path.join(cur_dir, file.replace(".meta", ".npy")))
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
 
                     frame_idx = 0
                     csv_data = []
                     for frame in data:
                         node_idx = 0
-<<<<<<< HEAD
-                        the_name = file.replace(".meta", "")
-                        for node in frame:
-                            node_dict = {"frame_index": frame_idx, "name": f"{the_name}_{node_idx}"}
-=======
                         file_name = file.replace(".meta", "")
                         for node in frame:
                             node_dict = {"frame_index": frame_idx, "name": file_name + "_" + str(node_idx)}
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
                             col_idx = 0
                             for key in col_info_dict.keys():
                                 if col_info_dict[key] == 1:
@@ -120,16 +87,12 @@ class DumpConverter:
                         frame_idx = frame_idx + 1
 
                     dataframe = pd.DataFrame(csv_data)
-<<<<<<< HEAD
-                    dataframe.to_csv(os.path.join(curDir, file.replace(".meta", ".csv")), index=False)
-=======
                     dataframe.to_csv(os.path.join(cur_dir, file.replace(".meta", ".csv")), index=False)
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
 
-        self.save_manifest_file(filesource)
+        self.save_manifest_file(config_data)
 
-    def start_processing(self, filesource: str):
-        thread = threading.Thread(target=self.process_data, args=(filesource,))
+    def start_processing(self, config_data: dict):
+        thread = threading.Thread(target=self.process_data, args=(config_data,))
         thread.start()
 
     def get_column_info(self, filename):
@@ -140,40 +103,24 @@ class DumpConverter:
 
         col_dict = {}
         cols = str.split(columns, ",")
-<<<<<<< HEAD
-        eles = str.split(elements, ",")
-        i = 0
-        for col in cols:
-            col_dict[col] = eles[i]
-=======
         element_list = str.split(elements, ",")
         i = 0
         for col in cols:
             col_dict[col] = element_list[i]
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
             i = i + 1
         return col_dict
 
     def clear_raw_data(self):
-<<<<<<< HEAD
-        for curDir, dirs, files in os.walk(self._foldername):
-=======
         for _, dirs, files in os.walk(self._foldername):
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
             for file in files:
                 if file.endswith(".meta") or file.endswith(".npy"):
                     os.remove(file)
 
     def dump_descsion_events(self, decision_events, start_tick: int, resolution: int):
-<<<<<<< HEAD
-        decision_events_file = os.path.join(self._last_snapshot_folder, "decision_events.csv")
-        headers, colums_count = self._calc_event_headers(decision_events[0])
-=======
         if 0 == len(decision_events):
             return
         decision_events_file = os.path.join(self._last_snapshot_folder, "decision_events.csv")
         headers, columns_count = self._calc_event_headers(decision_events[0])
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
         array = []
         for event in decision_events:
             key = event.__getstate__()
@@ -200,32 +147,7 @@ class DumpConverter:
 
         return headers, count
 
-    def save_manifest_file(self, filesource: str):
-<<<<<<< HEAD
-        if self._manifest_created:
-            return
-        if self._scenario_name == "":
-            return
-        outputfile = os.path.join(self._foldername, 'manifest.yml')
-        if os.path.exists(outputfile):
-            manifest_content = {}
-            with open(outputfile, 'r', encoding='utf-8') as manifest_file:
-                manifest_content = yaml.load(manifest_file)
-                manifest_file.close()
-            manifest_content['epcoh_num'] = self._serial
-            with open(outputfile, 'w', encoding="utf-8") as new_manifest_file:
-                yaml.dump(manifest_content, new_manifest_file)
-                new_manifest_file.close()
-            return
-        outputfile = os.path.join(self._foldername, 'manifest.yml')
-        if os.path.exists(outputfile):
-            manifest_content = {}
-            with open(outputfile, 'r', encoding='utf-8') as manifest_file:
-                manifest_content = yaml.load(manifest_file)
-                manifest_file.close()
-            manifest_content['epcoh_num'] = self._serial
-            with open(outputfile, 'w', encoding="utf-8") as new_manifest_file:
-=======
+    def save_manifest_file(self, config_data: dict):
         if self._scenario_name == "":
             return
         outputfile = os.path.join(self._foldername, "manifest.yml")
@@ -237,7 +159,6 @@ class DumpConverter:
 
             manifest_content["dump_details"]["epoch_num"] = self._serial
             with open(outputfile, "w", encoding="utf-8") as new_manifest_file:
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6
                 yaml.dump(manifest_content, new_manifest_file)
                 new_manifest_file.close()
             return
@@ -245,39 +166,17 @@ class DumpConverter:
         content = {}
         content["scenario"] = self._scenario_name
         # mapping file.
-        if "" != filesource:
-            file_name = os.path.basename(filesource)
-            file_name = os.path.join(self._foldername, file_name)
-            if filesource.lower().startswith("http"):
-                # Download file from web
-                source_data = urllib.request.urlopen(filesource)
-                res_data = source_data.read()
-                with open(file_name, "wb") as f:
-                    f.write(res_data)
-                    f.close()
-            else:
-                # copy file to folder.
-                if os.path.exists(filesource):
-                    copyfile(filesource, file_name)
-            content["mappings"] = os.path.basename(filesource)
+        if config_data is not None:
+            file_name = os.path.join(self._foldername, "config.yml")
+            with open(file_name, "w+") as config_file:
+                yaml.dump(config_data, config_file)
+                config_file.close()
+            content["mappings"] = os.path.basename(file_name)
 
         dump_details = {}
         meta_file_list = []
         for curDir, dirs, files in os.walk(self._last_snapshot_folder):
             for file in files:
-<<<<<<< HEAD
-                if file.endswith('.meta'):
-                    meta_file_list.append(file.replace('.meta', '.csv'))
-
-        dump_details['prefix'] = self._prefix
-        dump_details['metafiles'] = meta_file_list
-        dump_details[self._prefix + 'num'] = self._serial
-        content['dump_details'] = dump_details
-        with open(outputfile, 'w', encoding="utf-8") as f:
-            yaml.dump(content, f)
-            f.close()
-        self._manifest_created = True
-=======
                 if file.endswith(".meta"):
                     meta_file_list.append(file.replace(".meta", ".csv"))
 
@@ -289,4 +188,3 @@ class DumpConverter:
             yaml.dump(content, f)
             f.close()
         self._manifest_created = True
->>>>>>> 7594a9b60c359ec0fb0a8860c1671823fd1387d6

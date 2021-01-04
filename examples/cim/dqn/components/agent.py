@@ -6,16 +6,15 @@ import pickle
 
 import numpy as np
 
-from maro.rl import AbsAgent, EpsilonGreedyExplorer, ColumnBasedStore
+from maro.rl import AbsAgent, ColumnBasedStore
 
 
-class CIMAgent(AbsAgent):
+class DQNAgent(AbsAgent):
     """Implementation of AbsAgent for the DQN algorithm.
 
     Args:
         name (str): Agent's name.
         algorithm (AbsAlgorithm): A concrete algorithm instance that inherits from AbstractAlgorithm.
-        explorer (AbsExplorer): Explorer instance to generate exploratory actions.
         experience_pool (AbsStore): It is used to store experiences processed by the experience shaper, which will be
             used by some value-based algorithms, such as DQN.
         min_experiences_to_train: minimum number of experiences required for training.
