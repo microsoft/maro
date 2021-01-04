@@ -4,10 +4,10 @@
 
 import json
 import logging
+import multiprocessing
 import os
 import signal
 import sys
-import threading
 import time
 from multiprocessing.pool import ThreadPool
 
@@ -22,8 +22,6 @@ from ..utils.subprocess import SubProcess
 
 GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
 GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
-
-NODE_DETAILS_LOCK = threading.Lock()
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +125,7 @@ class NodeAgent:
             )
 
 
-class NodeTrackingAgent(threading.Thread):
+class NodeTrackingAgent(multiprocessing.Process):
     def __init__(
         self,
         cluster_name: str, node_name: str,
@@ -335,7 +333,7 @@ class NodeTrackingAgent(threading.Thread):
             return BasicResource(cpu=0, memory=0, gpu=0)
 
 
-class LoadImageAgent(threading.Thread):
+class LoadImageAgent(multiprocessing.Process):
     def __init__(
         self,
         cluster_name: str, node_name: str,
