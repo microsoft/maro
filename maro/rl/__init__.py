@@ -3,7 +3,7 @@
 
 from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManagerMode, SimpleAgentManager
-from maro.rl.algorithms import AbsAlgorithm, DQN, DQNConfig
+from maro.rl.algorithms import DQN, AbsAlgorithm, DQNConfig
 from maro.rl.dist_topologies import (
     ActorProxy, ActorWorker, concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 )
