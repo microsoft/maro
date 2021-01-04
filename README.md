@@ -135,6 +135,28 @@ print(f"environment metrics: {env.metrics}")
 
 ```
 
+## [Environment Visualization](TODO)
+
+```sh
+# Enable environment dump feature, when initializing the environment instance
+env = Env(scenario="cim",
+          topology="toy.5p_ssddd_l0.0",
+          start_tick=0,
+          durations=100,
+          options={"enable-dump-snapshot": "./dump_data"})
+
+# Inspect environment with the dump data
+maro inspector env --source ./dump_data
+```
+
+### Show Cases
+
+- Case I - Container Inventory Management
+![CIM Dashboard](TODO)
+
+- Case II - Citi Bike
+![Citi Bike Dashboard](TODO)
+
 ## Run Playground
 
 - Pull from [Docker Hub](https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1)
@@ -192,6 +214,14 @@ For more information see the
 [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
 or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
 with any additional questions or comments.
+
+## Related Papers
+### [Container Inventory Management](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
+![CIM Vis](./docs/source/images/scenario/cim_vis.gif)
+
+Wenlei Shi, Xinran Wei, Jia Zhang, Xiaoyuan Ni, Arthur Jiang, Jiang Bian, Tie-Yan Liu. "[Cooperative Policy Learning with Pre-trained Heterogeneous Observation Representations](https://arxiv.org/abs/2012.13099)". AAMAS 2021
+
+Xihan Li, Jia Zhang, Jiang Bian, Yunhai Tong, Tie-Yan Liu. "[A Cooperative Multi-Agent Reinforcement Learning Framework for Resource Balancing in Complex Logistics Network](https://arxiv.org/abs/1903.00714)". AAMAS 2019
 
 ## License
 
