@@ -16,19 +16,10 @@ spec:
     spec:
       containers:
         - name: maro-redis
-          image: redis
+          image: redis:latest
           ports:
             - containerPort: 6379
           resources:
             limits:
               cpu: 1000m
-              memory: 512Mi
-          volumeMounts:
-            - name: azure
-              mountPath: /mnt/maro
-      volumes:
-        - name: azure
-          azureFile:
-            secretName: ""
-            shareName: ""
-            readOnly: false
+              memory: 2048Mi

@@ -14,7 +14,7 @@ spec:
       restartPolicy: Never
       containers: []
       volumes:
-        - name: maro-azure-file
+        - name: azure-file-mount
           azureFile:
             secretName: ""
             shareName: ""

@@ -194,7 +194,7 @@ class K8sAksExecutor:
         _ = SubProcess.run(command)
 
         # Apply k8s config
-        command = f"kubectl apply -f {GlobalPaths.ABS_MARO_K8S_LIB}/k8s_configs/nvidia-device-plugin.yml"
+        command = f"kubectl apply -f {GlobalPaths.ABS_MARO_K8S_LIB}/configs/nvidia/nvidia-device-plugin.yml"
         _ = SubProcess.run(command)
 
     def _create_redis_k8s_config(self, export_dir: str):
@@ -205,7 +205,7 @@ class K8sAksExecutor:
         cluster_id = self.cluster_details["id"]
 
         # Fill redis k8s config and saves
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/k8s_configs/redis.yml", "r") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
             base_config = yaml.safe_load(fr)
         with open(export_dir + "/redis.yml", "w") as fw:
             azure_file_config = base_config["spec"]["template"]["spec"]["volumes"][0]["azureFile"]
@@ -572,9 +572,9 @@ class K8sAksExecutor:
         self._check_and_load_k8s_context()
 
         # Get config template
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/k8s_configs/job.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/create_job/job.yml") as fr:
             k8s_job_config = yaml.safe_load(fr)
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/k8s_configs/container.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/create_job/container.yml") as fr:
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs

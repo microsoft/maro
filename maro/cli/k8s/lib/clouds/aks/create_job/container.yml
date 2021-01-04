@@ -10,5 +10,5 @@ resources:
 env: []
 command: []
 volumeMounts:
-  - name: maro-azure-file
+  - name: azure-file-mount
     mountPath: ""
