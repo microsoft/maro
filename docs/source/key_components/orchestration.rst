@@ -8,12 +8,43 @@ These CLI commands can also be used to schedule the training jobs with the
 specified resource requirements. In MARO, all training job related components
 are dockerized for easy deployment and resource allocation. It provides a unified
 abstraction/interface for different orchestration framework
-(e.g. `Grass <#grass>`_\ , `Kubernetes <#kubernetes>`_\ ).
+(e.g. `Grass <#id3>`_\ , `Kubernetes <#id4>`_\ ).
 
 .. image:: ../images/distributed/orch_overview.svg
    :target: ../images/distributed/orch_overview.svg
    :alt: Orchestration Overview
    :width: 600
+
+Process
+-------
+
+The process mode is part of the `MARO CLI`, which uses multi-processes to start the 
+training jobs in the localhost environment. To align with `Grass <#id3>`_ and `Kubernetes 
+<#id4>`_, the process mode also uses Redis for job management. The process mode tries 
+to simulate the operation of the real distributed cluster in localhost so that users can smoothly
+deploy their code to the distributed cluster. Meanwhile, through the training in the process mode, 
+it is a cheaper way to find bugs that will happens during the real distributed training. 
+It has the following advantages:
+
+* Behavior is consistent with the real distributed CLI.
+* Friendly to operate.
+* Lightweight, no other dependencies are required.
+
+In the Process mode:
+
+* All jobs will be started by multi-processes and managed by `MARO Process CLI`.
+* Customized settings support, such as Redis, the number of parallel running jobs,
+  and agents check interval.
+* For each job's start/stop, a ticket will be pushed into job queues. The agents monitor those 
+  job queues and start/stop job components.
+
+Check `Localhost Provisioning <../installation/multi_processes_localhost_provisioning.html>`_
+to get how to use it.
+
+.. image:: ../images/distributed/orch_process.svg
+   :target: ../images/distributed/orch_process.svg
+   :alt: Orchestration Process Mode on Local
+   :width: 300
 
 Grass
 -----
