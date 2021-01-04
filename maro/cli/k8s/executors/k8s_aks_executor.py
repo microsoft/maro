@@ -122,7 +122,7 @@ class K8sAksExecutor:
         self._create_deployment_parameters(export_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters")
 
         # Start deployment
-        template_file_location = f"{GlobalPaths.ABS_MARO_K8S_LIB}/azure/create_aks_cluster/template.json"
+        template_file_location = f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/template.json"
         parameters_file_location = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters/create_aks_cluster.json"
         )
@@ -147,7 +147,7 @@ class K8sAksExecutor:
         # Mkdir
         os.makedirs(export_dir, exist_ok=True)
 
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/azure/create_aks_cluster/parameters.json", "r") as f:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/parameters.json", "r") as f:
             base_parameters = json.load(f)
         with open(export_dir + "/create_aks_cluster.json", "w") as fw:
             parameters = base_parameters["parameters"]
