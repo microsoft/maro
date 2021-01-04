@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 import torch.nn as nn
-from torch.optim import RMSprop
+from torch.optim import Adam, RMSprop
 
 from maro.rl import (
     ColumnBasedStore, DDPG, DDPGConfig, FullyConnectedBlock, GaussianNoiseExplorer, LearningModel, NNStack, 
@@ -20,7 +20,7 @@ def create_ddpg_agents(agent_id_list, config):
         policy_net = NNStack(
             "policy",
             FullyConnectedBlock(
-                input_dim=config.algorithm.input_dim,
+                input_dim=config.input_dim,
                 output_dim=1,
                 activation=nn.LeakyReLU,
                 is_head=True,
@@ -30,7 +30,7 @@ def create_ddpg_agents(agent_id_list, config):
         q_net = NNStack(
             "q_value",
             FullyConnectedBlock(
-                input_dim=config.algorithm.input_dim + 1,
+                input_dim=config.input_dim + 1,
                 output_dim=1,
                 activation=nn.LeakyReLU,
                 is_head=True,

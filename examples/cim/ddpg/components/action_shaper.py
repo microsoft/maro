@@ -6,10 +6,6 @@ from maro.simulator.scenarios.cim.common import Action
 
 
 class CIMActionShaper(ActionShaper):
-    def __init__(self, action_space):
-        super().__init__()
-        self._action_space = action_space
-
     def __call__(self, model_action, decision_event, snapshot_list):
         scope = decision_event.action_scope
         tick = decision_event.tick
