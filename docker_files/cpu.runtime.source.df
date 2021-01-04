@@ -1,0 +1,46 @@
+# Step 1: build maro
+
+FROM quay.io/pypa/manylinux2010_x86_64 as EXT_BUILD
+
+WORKDIR /build
+
+# Build wheels
+ADD ./maro ./maro
+ADD setup.py ./setup.py
+ADD README.md ./README.md
+ADD LICENSE ./LICENSE
+RUN PYBIN="/opt/python/cp36-cp36m/bin"; "${PYBIN}/pip" install -r maro/requirements.build.txt; "${PYBIN}/python" setup.py bdist_wheel --plat-name manylinux2010_x86_64
+
+
+# Step 2: Install components
+
+FROM python:3.6-buster
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install Apt packages
+RUN apt-get update --fix-missing
+RUN apt-get install -y apt-utils
+RUN apt-get install -y sudo
+RUN apt-get install -y gcc
+RUN apt-get install -y libcurl4 libcurl4-openssl-dev libssl-dev curl
+RUN apt-get install -y libzmq3-dev
+RUN rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip install --upgrade pip
+RUN pip install Cython==0.29.14
+RUN pip install pyaml==20.4.0
+RUN pip install pyzmq==19.0.2
+RUN pip install numpy==1.19.1
+RUN pip install torch==1.6.0
+RUN pip install tabulate==0.8.5
+RUN pip install redis
+RUN pip install psutil==5.7.2
+RUN pip install deepdiff==5.0.2
+
+
+# Step 3: Install maro
+
+COPY --from=EXT_BUILD /build/dist/*.whl ./wheels/
+RUN cd ./wheels/; pip install ./*.whl; rm ./*.whl

@@ -1,0 +1,34 @@
+mode: grass/azure
+name: MyScheduleName # str: name of the training schedule
+
+allocation:
+  mode: single-metric-balanced # enum: single-metric-balanced / single-metric-compacted
+  metric: cpu  # enum: cpu / memory / gpu
+
+job_names: # list: names of the training job
+  - MyJobName2
+  - MyJobName3
+  - MyJobName4
+  - MyJobName5
+
+components: # component config
+  actor:
+    image: MyImageName
+    resources:
+      cpu: 2 # int: cpu requirement (unit: cores)
+      memory: 4096m # str: memory requirement (unit: MB)
+      gpu: 0 # int: gpu requirement (units: cards)
+    num: 5 # int: number of this component
+    mount:
+      target: /mnt/data # str: target directory for user data, see "maro grass data push" for reference
+    command: "python /mnt/data/run_actor.py" # str: command to be executed
+  learner:
+    image: MyImageName
+    resources:
+      cpu: 4
+      memory: 8192m
+      gpu: 0
+    num: 1
+    mount:
+      target: /mnt/data
+    command: "python /mnt/data/run_learner.py"

@@ -34,7 +34,7 @@ cdef class BackendAbc:
 
     cdef object get_attr_value(self, str node_name, int node_index, str attr_name, int slot_index):
         pass
-        
+
     cdef void set_attr_values(self, str node_name, int node_index, str attr_name, int[:] slot_index, list value)  except *:
         pass
 
@@ -49,3 +49,6 @@ cdef class BackendAbc:
 
     cdef dict get_node_info(self):
         return {}
+
+    cdef void dump(self, str filePath):
+        pass
