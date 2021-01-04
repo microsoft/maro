@@ -56,13 +56,13 @@ path of a local file folder, data would be dumped to this folder.
     # dump data to the folder which run the command.
     env = Env(scenario="cim", topology="toy.5p_ssddd_l0.0",
           start_tick=0, durations=100, options=opts_have_no_path)
-    
+
 ----
 
 Data would be dumped automatically when the Env object is initialized.
 
 The expected values of each parameter are listed in
-`Environment <../simulation_toolkit.html#Environment>`_
+`Environment <../simulation_toolkit.html#Environment>`_.
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
