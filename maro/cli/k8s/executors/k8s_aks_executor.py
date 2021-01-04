@@ -9,6 +9,7 @@ from copy import deepcopy
 
 import yaml
 
+from maro.cli.k8s.executors.k8s_executor import K8sExecutor
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
@@ -23,7 +24,7 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class K8sAksExecutor:
+class K8sAksExecutor(K8sExecutor):
 
     def __init__(self, cluster_name: str):
         self.cluster_name = cluster_name
@@ -175,43 +176,6 @@ class K8sAksExecutor:
             aks_name=f"{cluster_id}-aks",
             acr_name=f"{cluster_id}acr"
         )
-
-    def _init_redis(self):
-        # Create folder
-        os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/k8s_configs", exist_ok=True)
-
-        # Create k8s config
-        self._create_redis_k8s_config(export_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/k8s_configs")
-
-        # Apply k8s config
-        command = f"kubectl apply -f {GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/k8s_configs/redis.yml"
-        _ = SubProcess.run(command)
-
-    @staticmethod
-    def _init_nvidia_plugin():
-        # Create plugin namespace
-        command = "kubectl create namespace gpu-resources"
-        _ = SubProcess.run(command)
-
-        # Apply k8s config
-        command = f"kubectl apply -f {GlobalPaths.ABS_MARO_K8S_LIB}/configs/nvidia/nvidia-device-plugin.yml"
-        _ = SubProcess.run(command)
-
-    def _create_redis_k8s_config(self, export_dir: str):
-        # Check and load k8s context
-        self._check_and_load_k8s_context()
-
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
-        # Fill redis k8s config and saves
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
-            base_config = yaml.safe_load(fr)
-        with open(export_dir + "/redis.yml", "w") as fw:
-            azure_file_config = base_config["spec"]["template"]["spec"]["volumes"][0]["azureFile"]
-            azure_file_config["secretName"] = f"{cluster_id}-k8s-secret"
-            azure_file_config["shareName"] = f"{cluster_id}-fs"
-            yaml.safe_dump(base_config, fw)
 
     def _create_k8s_secret(self):
         # Load details
@@ -700,40 +664,9 @@ class K8sAksExecutor:
         else:
             return image_name
 
-    def list_job(self):
-        # Get jobs details
-        command = "kubectl get jobs -o=json"
-        return_str = SubProcess.run(command)
-        job_details_list = json.loads(return_str)["items"]
-        jobs_details = {}
-        for job_details in job_details_list:
-            jobs_details[job_details["metadata"]["labels"]["jobName"]] = job_details
 
-        # Print details
-        logger.info(
-            json.dumps(
-                jobs_details,
-                indent=4, sort_keys=True
-            )
-        )
 
-    def get_job_logs(self, job_name: str, export_dir: str = "./"):
-        # Load details
-        job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
-        job_id = job_details["id"]
 
-        # Get pods details
-        pods_details = self.get_pods_details()
-
-        # Export logs
-        for pod_details in pods_details:
-            if pod_details["metadata"]["name"].startswith(job_id):
-                for container_details in pod_details["spec"]["containers"]:
-                    self._export_log(
-                        pod_id=pod_details["metadata"]["name"],
-                        container_name=container_details["name"],
-                        export_dir=export_dir
-                    )
 
     @staticmethod
     def _export_log(pod_id: str, container_name: str, export_dir: str):
