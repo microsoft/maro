@@ -613,6 +613,6 @@ namespace maro
       {
         return "Reach the max number of slot.";
       }
-}
+    }
   }
 }

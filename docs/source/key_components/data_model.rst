@@ -12,9 +12,9 @@ Currenty there are two data model backend implementation: static and dynamic.
 Static implementation used Numpy as its data store, do not support dynamic
 attribute length, the advance of this version is that its memory size is same as its
 declaration.
-Dynamic implementation is hand-craft c++ implementation, it supports dynamic attribute (list),
-its will take more memory than static implementation, but will be faster to query snapshot
-states and attribute accessing.
+Dynamic implementation is hand-craft c++.
+It supports dynamic attribute (list) which will take more memory than the static implementation
+but is faster for querying snapshot states and accessing attributes.
 
 Key Concepts
 ------------
@@ -36,12 +36,12 @@ As shown in the figure above, there are some key concepts in the data model:
   The ``slot`` number can indicate the attribute values (e.g. the three different
   container types in CIM scenario) or the detailed categories (e.g. the ten specific
   products in the `Use Case <#use-case>`_ below). By default, the ``slot`` value is one.
-  Also with dynamic backend implementation, we can mark an attribute with 'is_list' and
-  'is_const' flags, to identify is an attribute a const attribute or a list attribute.
+  As for the dynamic backend implementation, an attribute can be marked as is_list or is_const to identify
+  it is a list attribute or a const attribute respectively.
   A list attribute's default slot number is 0, and can be increased as demand, max number is 2^32.
-  A const attribute mean this attribute will not be copied into snapshot, but being shared between
-  current frame and snapshot list, it is a good options for attributes that value will not be
-  changed after initialization.
+  A const attribute is designed for the value that will not change after initialization,
+  e.g. the capacity of a port/station. The value is shared between frames and will not be copied
+  when taking a snapshot.
 * **Frame** is the collection of all nodes in the environment. The historical frames
   present the aggregated state of the environment during a specific period, while
   the current frame hosts the latest state of the environment at the current time point.
