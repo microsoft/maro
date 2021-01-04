@@ -22,45 +22,60 @@ Learner and Actor
   .. code-block:: python
 
     # Train function of learner.
-    def train(self, max_episode:
-        for current_ep in range(max_episode):
-            models = self._trainable_agents.dump_models()
-            performance, experiences = self._actor.roll_out(models=models,
-                                                            epsilons=self._trainable_agents.explorer.epsilons,
-                                                            seed=self._seed)
-
-            self._trainable_agents.train()
+    def learn(self):
+        for exploration_params in self._scheduler:
+            performance, exp_by_agent = self._actor.roll_out(
+                model_dict=None if self._is_shared_agent_instance() else self._agent_manager.dump_models(),
+                exploration_params=exploration_params
+            )
+            self._scheduler.record_performance(performance)
+            self._agent_manager.train(exp_by_agent)
 
 * **Actor** is the abstraction of experience collection. It is responsible for
-  interacting with the environment and collecting experience. The experiences
+  interacting with the environment and collecting experiences. The experiences
   collected during interaction will be used for the training of the learners.
 
   .. code-block:: python
 
     # Rollout function of actor.
     def roll_out(self, models=None, epsilons=None, seed: int = None):
-        self._env.set_seed(seed)
-
-        # Assign epsilon
-        if epsilons is not None:
-            self._inference_agents.explorer.epsilons = epsilons
-
-        # Load models
-        if models is not None:
-            self._inference_agents.load_models(models)
-
-        metrics, decision_event, is_done = self._env.step(None)
-
-        while not is_done:
-            action = self._inference_agents.choose_action(decision_event, self._env.snapshot_list)
-            metrics, decision_event, is_done = self._env.step(action)
-            self._inference_agents.on_env_feedback(metrics)
-
-        experiences = self._inference_agents.post_process(self._env.snapshot_list)
-        performance = self._env.metrics
         self._env.reset()
 
-        return {'local': performance}, experiences
+        # load models
+        if model_dict is not None:
+            self._agents.load_models(model_dict)
+
+        # load exploration parameters:
+        if exploration_params is not None:
+            self._agents.set_exploration_params(exploration_params)
+
+        metrics, decision_event, is_done = self._env.step(None)
+        while not is_done:
+            action = self._agents.choose_action(decision_event, self._env.snapshot_list)
+            metrics, decision_event, is_done = self._env.step(action)
+            self._agents.on_env_feedback(metrics)
+
+        details = self._agents.post_process(self._env.snapshot_list) if return_details else None
+
+        return self._env.metrics, details
+
+
+Scheduler
+---------
+
+A ``Scheduler`` is the driver of an episodic learning process. The learner uses the scheduler to repeat the 
+rollout-training cycle a set number of episodes. For algorithms that require explicit exploration (e.g., 
+DQN and DDPG), there are two types of schedules that a learner may follow:
+
+* Static schedule, where the exploration parameters are generated using a pre-defined function of episode 
+  number. See ``LinearParameterScheduler`` and ``TwoPhaseLinearParameterScheduler`` provided in the toolkit 
+  for example. 
+* Dynamic schedule, where the exploration parameters for the next episode are determined based on the performance
+  history. Such a mechanism is possible in our abstraction because the scheduler provides a ``record_performance``
+  interface that allows it to keep track of roll-out performances. 
+
+Optionally, an early stopping checker may be registered if one wishes to terminate training when certain performance 
+requirements are satisfied, possibly before reaching the prescribed number of episodes.   
 
 Agent Manager
 -------------
@@ -100,41 +115,22 @@ scenario agnostic.
 
 .. code-block:: python
 
-   class Agent(object):
-       def __init__(self, name: str, algorithm: Algorithm, experience_pool: SimpleStore, params: AgentParameters):
-           """
-               RL agent class. It's a sandbox for the RL algorithm, scenarios specific details will be excluded out.
-               We focus on the abstraction algorithm development here.
-               Environment observation and decision events will be converted to a uniformed format before calling in.
-               And the output will be converted to an environment executable format before return back to the environment.
-               Its key responsibility is optimizing policy based on interaction with the environment.
+  class AbsAgent(ABC):
+      def __init__(self, name: str, algorithm: AbsAlgorithm, experience_pool: AbsStore = None):
+        self._name = name
+        self._algorithm = algorithm
+        self._experience_pool = experience_pool
 
-               Args:
-                   name (str): The name of Agent.
-                   algorithm: A concrete algorithm instance that inherits from AbstractAlgorithm. This is the centerpiece
-                              of the Agent class and is responsible for the most important tasks of an agent: choosing
-                              actions and optimizing models.
-                   experience_pool (SimpleStore): A data store that stores experiences generated by the experience shaper.
-                   params: A collection of hyper-parameters associated with the model training loop.
-           """
-           ...
-
-Under the management of the agent manager:
-
-* In **inference mode**\ , given the shaped model state as input, the agent will
-  output a model action (then the agent manager will shape it into an executable
-  environment action). Also, at the end of each episode, the agent will fill the
-  shaped experiences into the experience pool.
-* In **training mode**\ , the agent will train and update its model with the
-  experiences sampled from its experience pool.
 
 Algorithm
 ---------
 
-The algorithm is the kernel abstraction of the RL formulation for a real-world
-problem. The model architecture, loss function, optimizer, and internal model
-update strategy are designed and parameterized here. In this module, two
-predefined interfaces must be implemented:
+The algorithm is the kernel abstraction of the RL formulation for a real-world problem. Our abstraction  
+decouples algorithm and model so that an algorithm can exist as an RL paradigm independent of the inner 
+workings of the models it uses to generate actions or estimate values. For example, the actor-critic 
+algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
+critic models. This decoupling is achieved by the ``LearningModel`` abstraction described below.   
+
 
 .. image:: ../images/rl/algorithm.svg
    :target: ../images/rl/algorithm.svg
@@ -142,59 +138,74 @@ predefined interfaces must be implemented:
    :width: 650
 
 * ``choose_action`` is used to make a decision based on a provided model state.
-* ``train_on_batch`` is used to trigger training and the policy update from external.
+* ``train`` is used to trigger training and the policy update from external.
 
 .. code-block:: python
 
-   class Algorithm(object):
-       def __init__(self, model_dict: dict, optimizer_opt: Union[dict, tuple], loss_func_dict: dict, hyper_params):
-           """
-               It's the abstraction of RL algorithm, which provides a uniformed policy interface, such choose_action, train_on_batch.
-               We also provide some predefined RL algorithm based on it, such DQN, A2C, etc. User can inherit form it to customized their own algorithms.
+  class AbsAlgorithm(ABC):
+      def __init__(self, model: LearningModel, config):
+          self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+          self._model = model.to(self._device)
+          self._config = config
 
-               Args:
-                   model_dict (dict): underlying models for the algorithm (e.g., for A2C,
-                                      model_dict = {"actor": ..., "critic": ...})
-                   optimizer_opt (tuple or dict): tuple or dict of tuples of (optimizer_class, optimizer_params) associated
-                                                  with the models in model_dict. If it is a tuple, the optimizer to be
-                                                  instantiated applies to all trainable parameters from model_dict. If it
-                                                  is a dict, the optimizer will be applied to the related model with the same key.
-                   loss_func_dict (dict): loss function types associated with the models in model_dict.
-                   hyper_params: algorithm-specific hyper-parameter set.
-           """
-           ...
 
-Shapers
+Block, NNStack and LearningModel
+--------------------------------
+
+MARO provides an abstraction for the underlying models used by agents to form policies and estimate values.
+The abstraction consists of a 3-level hierachy formed by ``AbsBlock``, ``NNStack`` and ``LearningModel`` from 
+the bottom up, all of which subclass torch's nn.Module. An ``AbsBlock`` is the smallest structural
+unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit represents a stack 
+of fully connected layers with features like batch normalization, drop-out and skip connection. An ``NNStack`` is 
+a composite network that consists of one or more such blocks, each with its own set of network features. 
+The complete model as used directly by an ``Algorithm`` is represented by a ``LearningModel``, which consists of 
+one or more task stacks as "heads" and an optional shared stack at the bottom (which serves to produce representations 
+as input to all task stacks). It also contains one or more optimizers responsible for applying gradient steps to the 
+trainable parameters within each stack, which is the smallest trainable unit from the perspective of a ``LearningModel``. 
+The assignment of optimizers is flexible: it is possible to freeze certain stacks while optimizing others. Such an 
+abstraction presents a unified interface to the algorithm, regardless of how many individual models it requires and how 
+complex the model architecture might be.  
+
+.. image:: ../images/rl/learning_model.svg
+   :target: ../images/rl/learning_model.svg
+   :alt: Algorithm
+   :width: 650
+
+As an example, the initialization of the actor-critic algorithm may look like this:
+
+.. code-block:: python
+
+  actor_stack = NNStack(name="actor", block_a1, block_a2, ...)
+  critic_stack = NNStack(name="critic", block_c1, block_c2, ...)
+  learning_model = LearningModel(actor_stack, critic_stack)
+  actor_critic = ActorCritic(learning_model, config)
+
+Choosing an action is simply:
+
+.. code-block:: python
+
+  learning_model(state, task_name="actor", is_training=False)
+
+And performing one gradient step is simply:
+
+.. code-block:: python
+
+  learning_model.learn(critic_loss + actor_loss)
+
+
+Explorer
 -------
 
-MARO uses shapers to isolate business-related details and the algorithm modelings.
-It provides a clean interactive surface for RL agent(s). The followings are the
-three usually used shapers in RL formulations:
+MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require 
+explicit exploration, the extent of which is usually determined by a set of parameters whose values 
+are generated by the scheduler. The ``AbsExplorer`` class is designed to cater to these needs. Simple
+exploration schemes, such as ``EpsilonGreedyExplorer`` for discrete action space and ``UniformNoiseExplorer`` 
+and ``GaussianNoiseExplorer`` for continuous action space, are provided in the toolkit. 
 
-* **State shaper**\ : Given a decision event, the state shaper will extract relevant
-  temporal-spatial information from the environment (snapshot list) for the decision
-  agent. The output usually follows a format that can be directly inputted to the
-  underlying algorithm.
-* **Action shaper**\ : Once the agent outputs a decision action, the agent manager
-  will call the action shaper to convert it into an executable environment action.
-  Then, the executable environment action will be sent to the environment's ``step``
-  function to wake the sleeping environment.
-* **Experience shaper**\ : At the end of each episode, the experience shaper will
-  convert the agent's interaction trajectory to formatted learnable experiences,
-  which usually contain the fields of ``state``\ , ``action``\ , and ``reward``. For the
-  storage of experiences, MARO use in-memory KV store. It can not only provide an
-  extensible experience interface but also give the full control of constructing
-  the algorithm-specific experience to users. As for the reward, since there are
-  multiple optimized business metrics in a real-world business scenario, and the
-  key performance index varies for different needs, how to calculate a simple
-  scalar reward is not reasonable for a fixed pattern. So we left the reward
-  definition to the end-user, and we only provide the raw business metrics in MARO.
-  You can pass a reward function (e.g., a lambda) that directly calculates a reward
-  based on these business metrics, or implement a helper method within the class.
-  We recommend the latter one for complicated reward computations that require
-  information from the environment trajectory and longer historical information
-  (from the environment snapshot list). The actual shaping logic is encapsulated
-  in the ``_shape()`` method, which converts the entire transition trajectory to
-  experiences. By default, we provide a ``k-step return`` experience shaper for
-  general usage, but for better performance, you need to carefully design this part
-  according to your scenario and needs.
+As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExplorer``:
+
+.. code-block:: python
+
+  explorer = EpsilonGreedyExplorer(num_actions=10)
+  greedy_action = learning_model(state, is_training=False).argmax(dim=1).data
+  exploration_action = explorer(greedy_action)

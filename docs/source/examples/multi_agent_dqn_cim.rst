@@ -17,15 +17,17 @@ remaining space on vessel.
 - Spatial information, including related downstream port features.
 
 .. code-block:: python
+    PORT_ATTRIBUTES = ["empty", "full", "on_shipper", "on_consignee", "booking", "shortage", "fulfillment"]
+    VESSEL_ATTRIBUTES = ["empty", "full", "remaining_space"]
 
     class CIMStateShaper(StateShaper):
         ...
         def __call__(self, decision_event, snapshot_list):
             tick, port_idx, vessel_idx = decision_event.tick, decision_event.port_idx, decision_event.vessel_idx
             ticks = [tick - rt for rt in range(self._look_back - 1)]
-            future_port_idx_list = snapshot_list["vessels"][tick : vessel_idx : 'future_stop_list'].astype('int')
-            port_features = snapshot_list["ports"][ticks : [port_idx] + list(future_port_idx_list) : self._port_attributes]
-            vessel_features = snapshot_list["vessels"][tick : vessel_idx : self._vessel_attributes]
+            future_port_idx_list = snapshot_list["vessels"][tick: vessel_idx: 'future_stop_list'].astype('int')
+            port_features = snapshot_list["ports"][ticks: [port_idx] + list(future_port_idx_list): PORT_ATTRIBUTES]
+            vessel_features = snapshot_list["vessels"][tick: vessel_idx: VESSEL_ATTRIBUTES]
             state = np.concatenate((port_features, vessel_features))
             return str(port_idx), state
 
@@ -57,7 +59,10 @@ integers from -10 to 10, with -10 indicating loading 100% of the containers in t
                 actual_action = max(round(self._action_space[model_action] * port_empty), -vessel_remaining_space)
             elif model_action > self._zero_action_index:
                 plan_action = self._action_space[model_action] * (scope.discharge + early_discharge) - early_discharge
-                actual_action = round(plan_action) if plan_action > 0 else round(self._action_space[model_action] * scope.discharge)
+                actual_action = (
+                    round(plan_action) if plan_action > 0
+                    else round(self._action_space[model_action] * scope.discharge)
+                )
             else:
                 actual_action = 0
 
@@ -84,7 +89,7 @@ combination of fulfillment and shortage in a limited time window.
                 experiences["state"].append(transition["state"])
                 experiences["action"].append(transition["action"])
                 experiences["reward"].append(self._compute_reward(transition["event"], snapshot_list))
-                experiences["next_state"].append(trajectory[i+1]["state"])
+                experiences["next_state"].append(trajectory[i + 1]["state"])
 
             return experiences_by_agent
 
@@ -96,6 +101,7 @@ algorithm, experience pool, and a set of parameters that governs the training lo
 abstraction of a port. We choose DQN as our underlying learning algorithm with a TD-error-based sampling mechanism.
 
 .. code-block:: python
+    NUM_ACTIONS = 21
     class DQNAgent(AbsAgent):
         ...
         def train(self):
@@ -111,6 +117,45 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
                 loss = self._algorithm.train(state, action, reward, next_state)
                 self._experience_pool.update(indexes, {"loss": loss})
 
+    def create_dqn_agents(agent_id_list):
+        agent_dict = {}
+        for agent_id in agent_id_list:
+            q_net = NNStack(
+                "q_value",
+                FullyConnectedBlock(
+                    input_dim=state_shaper.dim,
+                    hidden_dims=[256, 128, 64],
+                    output_dim=NUM_ACTIONS,
+                    activation=nn.LeakyReLU,
+                    is_head=True,
+                    batch_norm_enabled=True, 
+                    softmax_enabled=False,
+                    skip_connection_enabled=False,
+                    dropout_p=.0)
+            )
+
+            algorithm = DQN(
+                model=LearningModel(
+                    q_net, optimizer_options=OptimizerOptions(cls=RMSprop, params={"lr": 0.05})
+                ),
+                config=DQNConfig(
+                    reward_decay=.0, 
+                    target_update_frequency=5, 
+                    tau=0.1, 
+                    is_double=True, 
+                    per_sample_td_error_enabled=True,
+                    loss_cls=nn.SmoothL1Loss
+                )
+            )
+
+            experience_pool = ColumnBasedStore(**config.experience_pool)
+            agent_dict[agent_id] = DQNAgent(
+                agent_id, algorithm, ColumnBasedStore(), 
+                min_experiences_to_train=1024, num_batches=10, batch_size=128
+            )
+
+        return agent_dict
+
 Agent Manager
 -------------
 
@@ -121,42 +166,7 @@ that implements the ``train`` method where the newly obtained experiences are st
 experience pools before training, in accordance with the DQN algorithm.
 
 .. code-block:: python
-    def create_dqn_agents(agent_id_list, config):
-        num_actions = config.algorithm.num_actions
-        set_seeds(config.seed)
-        agent_dict = {}
-        for agent_id in agent_id_list:
-            eval_model = LearningModel(
-                decision_layers=FullyConnectedNet(
-                    name=f'{agent_id}.policy',
-                    input_dim=config.algorithm.input_dim,
-                    output_dim=num_actions,
-                    activation=nn.LeakyReLU, **config.algorithm.model
-                )
-            )
-
-            algorithm = DQN(
-                eval_model=eval_model,
-                optimizer_cls=RMSprop,
-                optimizer_params=config.algorithm.optimizer,
-                loss_func=nn.functional.smooth_l1_loss,
-                hyper_params=DQNConfig(
-                    **config.algorithm.hyper_parameters,
-                    num_actions=num_actions
-                )
-            )
-
-            experience_pool = ColumnBasedStore(**config.experience_pool)
-            agent_dict[agent_id] = DQNAgent(
-                name=agent_id,
-                algorithm=algorithm,
-                experience_pool=experience_pool,
-                **config.training_loop_parameters
-            )
-
-        return agent_dict
-
-    class DQNAgentManager(AbsAgentManager):
+    class DQNAgentManager(SimpleAgentManager):
         def train(self, experiences_by_agent, performance=None):
             self._assert_train_mode()
 
@@ -181,39 +191,34 @@ training process in which the agent manager interacts with the environment for c
 policies.
 
 .. code-block::python
-    env = Env(config.env.scenario, config.env.topology, durations=config.env.durations)
+    env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
     agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
-
-    state_shaper = CIMStateShaper(**config.state_shaping)
-    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, config.agents.algorithm.num_actions)))
-    experience_shaper = TruncatedExperienceShaper(**config.experience_shaping.truncated)
-
+    state_shaper = CIMStateShaper(look_back=7, max_ports_downstream=2)
+    action_shaper = CIMActionShaper(action_space=list(np.linspace(-1.0, 1.0, NUM_ACTIONS)))
+    experience_shaper = TruncatedExperienceShaper(
+        time_window=100, fulfillment_factor=1.0, shortage_factor=1.0, time_decay_factor=0.97
+    )
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents),
+        agent_dict=create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
     )
 
-    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.threshold
+    scheduler = TwoPhaseLinearParameterScheduler(
+        max_episode=100,
+        parameter_names=["epsilon"],
+        split_ep=50,
+        start_values=0.4,
+        mid_values=0.32,
+        end_values=.0
     )
-    actor = SimpleActor(env=env, inference_agents=agent_manager)
-    learner = SimpleLearner(
-        trainable_agents=agent_manager,
-        actor=actor,
-        explorer=TwoPhaseLinearExplorer(**config.exploration),
-        logger=Logger("single_host_cim_learner", auto_timestamp=False)
-    )
-    learner.learn(
-        max_episode=config.main_loop.max_episode,
-        early_stopping_checker=early_stopping_checker,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
-    )
+
+    actor = SimpleActor(env, agent_manager)
+    learner = SimpleLearner(agent_manager, actor, scheduler)
+    learner.learn()
 
 
 Main Loop with Actor and Learner (Distributed/Multi-process)
@@ -232,63 +237,62 @@ wrap it in an ActorWorker instance. Finally, we launch the worker and it starts 
 learner. The following code snippet shows the creation of an actor worker with a simple (local) actor wrapped inside.
 
 .. code-block:: python
+    env = Env("cim", "toy.4p_ssdd_l0.0", durations=1120)
+    agent_id_list = [str(agent_id) for agent_id in env.agent_idx_list]
     agent_manager = DQNAgentManager(
-        name="distributed_cim_actor",
+        name="cim_learner",
         mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents),
+        agent_dict=create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
-        experience_shaper=experience_shaper,
+        experience_shaper=experience_shaper
     )
     proxy_params = {
-        "group_name": os.environ["GROUP"],
-        "expected_peers": {"learner": 1},
-        "redis_address": ("localhost", 6379)
+        "group_name": "distributed_cim", 
+        "expected_peers": {"learner": 1}, 
+        "redis_address": ("localhost", 6379),
+        "max_retries": 15
     }
     actor_worker = ActorWorker(
-        local_actor=SimpleActor(env=env, inference_agents=agent_manager),
+        local_actor=SimpleActor(env=env, agent_manager=agent_manager),
         proxy_params=proxy_params
     )
     actor_worker.launch()
 
 On the learner side, an agent manager in AgentManagerMode.TRAIN mode is required. However, it is not necessary to create shapers for an
-agent manager in AgentManagerMode.TRAIN mode (although a state shaper is created in this example so that the model input dimension can
-be readily accessed). Instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
+agent manager in AgentManagerMode.TRAIN mode. Instead of creating an actor, we create an actor proxy and wrap it inside the learner. This proxy
 serves as the communication interface for the learner and is responsible for sending roll-out requests to remote actor
 processes and receiving results. Calling the train method executes the usual training loop except that the actual
 roll-out is performed remotely. The code snippet below shows the creation of a learner with an actor proxy wrapped
-inside.
+inside that communicates with 3 actors. 
 
 .. code-block:: python
+
     agent_manager = DQNAgentManager(
-        name="distributed_cim_learner",
+        name="cim_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents),
+        agent_dict=create_dqn_agents(agent_id_list),
+        state_shaper=state_shaper,
+        action_shaper=action_shaper,
+        experience_shaper=experience_shaper
     )
-
     proxy_params = {
-        "group_name": os.environ["GROUP"],
-        "expected_peers": {"actor": int(os.environ["NUM_ACTORS"])},
-        "redis_address": ("localhost", 6379)
+        "group_name": "distributed_cim", 
+        "expected_peers": {"actor": 3}, 
+        "redis_address": ("localhost", 6379),
+        "max_retries": 15
     }
-
-    early_stopping_checker = MaxDeltaEarlyStoppingChecker(
-        last_k=config.main_loop.early_stopping.last_k,
-        threshold=config.main_loop.early_stopping.threshold
+    actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
+    scheduler = TwoPhaseLinearParameterScheduler(
+        max_episode=100,
+        parameter_names=["epsilon"],
+        split_ep=50,
+        start_values=0.4,
+        mid_values=0.32,
+        end_values=.0
     )
-
-    learner = SimpleLearner(
-        trainable_agents=agent_manager,
-        actor=ActorProxy(proxy_params=proxy_params, experience_collecting_func=concat_experiences_by_agent),
-        explorer=TwoPhaseLinearExplorer(**config.exploration),
-        logger=Logger("distributed_cim_learner", auto_timestamp=False)
-    )
-    learner.learn(
-        max_episode=config.main_loop.max_episode,
-        early_stopping_checker=early_stopping_checker,
-        warmup_ep=config.main_loop.early_stopping.warmup_ep,
-        early_stopping_metric_func=lambda x: 1 - x["container_shortage"] / x["order_requirements"],
-    )
+    learner = SimpleLearner(agent_manager, actor, scheduler)
+    learner.learn()
 
 .. note::
 
