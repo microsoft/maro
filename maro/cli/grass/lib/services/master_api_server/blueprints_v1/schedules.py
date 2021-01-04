@@ -12,7 +12,7 @@ from ...utils.name_creator import NameCreator
 # Flask related.
 
 blueprint = Blueprint(name="schedules", import_name=__name__)
-URL_PREFIX = "/schedules"
+URL_PREFIX = "/v1/schedules"
 
 
 # Api functions.

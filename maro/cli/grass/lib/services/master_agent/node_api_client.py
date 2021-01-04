@@ -5,18 +5,18 @@
 import requests
 
 
-class NodeApiClient:
+class NodeApiClientV1:
     @staticmethod
     def stop_container(hostname: str, port: int, container_name: str) -> dict:
-        response = requests.post(url=f"http://{hostname}:{port}/containers/{container_name}:stop")
+        response = requests.post(url=f"http://{hostname}:{port}/v1/containers/{container_name}:stop")
         return response.json()
 
     @staticmethod
     def remove_container(hostname: str, port: int, container_name: str) -> dict:
-        response = requests.delete(url=f"http://{hostname}:{port}/containers/{container_name}")
+        response = requests.delete(url=f"http://{hostname}:{port}/v1/containers/{container_name}")
         return response.json()
 
     @staticmethod
     def create_container(hostname: str, port: int, create_config: dict) -> dict:
-        response = requests.post(url=f"http://{hostname}:{port}/containers", json=create_config)
+        response = requests.post(url=f"http://{hostname}:{port}/v1/containers", json=create_config)
         return response.json()

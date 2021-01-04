@@ -11,7 +11,7 @@ import sys
 import time
 import uuid
 
-from .node_api_client import NodeApiClient
+from .node_api_client import NodeApiClientV1
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
 from ..utils.redis_controller import RedisController
@@ -230,7 +230,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     cluster_name=self._cluster_name,
                     node_name=node_name
                 )
-                NodeApiClient.remove_container(
+                NodeApiClientV1.remove_container(
                     hostname=node_details["hostname"],
                     port=self._api_server_port,
                     container_name=container_name,
@@ -407,13 +407,13 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             # Stop containers.
             for container_name in stoppable_containers:
                 if is_remove_container:
-                    NodeApiClient.remove_container(
+                    NodeApiClientV1.remove_container(
                         hostname=node_hostname,
                         port=self._api_server_port,
                         container_name=container_name
                     )
                 else:
-                    NodeApiClient.stop_container(
+                    NodeApiClientV1.stop_container(
                         hostname=node_hostname,
                         port=self._api_server_port,
                         container_name=container_name
@@ -500,7 +500,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             create_config["gpu"] = gpu
             create_config["labels"]["gpu"] = gpu
 
-        NodeApiClient.create_container(
+        NodeApiClientV1.create_container(
             hostname=node_details["hostname"],
             port=self._api_server_port,
             create_config=create_config
@@ -671,7 +671,7 @@ class PendingJobAgent(multiprocessing.Process):
             create_config["gpu"] = gpu
             create_config["labels"]["gpu"] = gpu
 
-        NodeApiClient.create_container(
+        NodeApiClientV1.create_container(
             hostname=node_details["hostname"],
             port=self._api_server_port,
             create_config=create_config
@@ -766,7 +766,7 @@ class KilledJobAgent(multiprocessing.Process):
 
             # Stop containers.
             for container_name in removable_containers:
-                NodeApiClient.remove_container(
+                NodeApiClientV1.remove_container(
                     hostname=node_hostname,
                     port=self._api_server_port,
                     container_name=container_name

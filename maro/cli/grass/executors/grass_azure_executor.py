@@ -16,7 +16,7 @@ import yaml
 
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
-from maro.cli.grass.utils.master_api_client import MasterApiClient
+from maro.cli.grass.utils.master_api_client import MasterApiClientV1
 from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
@@ -303,7 +303,7 @@ class GrassAzureExecutor(GrassExecutor):
         time.sleep(10)
 
         # Init master_api_client and remote create master
-        self.master_api_client = MasterApiClient(
+        self.master_api_client = MasterApiClientV1(
             master_ip_address=self.master_public_ip_address,
             api_server_port=self.cluster_details["connection"]["api_server"]["port"]
         )

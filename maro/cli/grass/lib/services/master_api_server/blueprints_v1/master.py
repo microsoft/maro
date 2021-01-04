@@ -9,7 +9,7 @@ from ..objects import redis_controller, service_config
 # Flask related.
 
 blueprint = Blueprint(name="master", import_name=__name__)
-URL_PREFIX = "/master"
+URL_PREFIX = "/v1/master"
 
 
 # Api functions.

@@ -10,7 +10,7 @@ from ...utils.exception import CommandExecutionError
 # Flask related.
 
 blueprint = Blueprint(name="container", import_name=__name__)
-URL_PREFIX = "/containers"
+URL_PREFIX = "/v1/containers"
 
 
 # Api functions.
