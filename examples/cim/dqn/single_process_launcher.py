@@ -42,7 +42,7 @@ def launch(config):
     actor = SimpleActor(env, agent_manager)
     learner = SimpleLearner(
         agent_manager, actor, scheduler,
-        logger=Logger("single_host_cim_learner", format_=LogFormat.simple, auto_timestamp=False)
+        logger=Logger("cim_learner", format_=LogFormat.simple, auto_timestamp=False)
     )
     learner.learn()
     learner.test()

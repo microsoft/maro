@@ -31,7 +31,7 @@ recommonmark~=0.6.0
 sphinx_rtd_theme
 jinja2
 flake8
-PuLP=2.1
+PuLP==2.1
 streamlit==0.69.1
 altair==4.1.0
 tqdm==4.51.0
