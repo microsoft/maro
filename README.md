@@ -14,6 +14,7 @@
 [![Wheel](https://img.shields.io/pypi/wheel/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Citi Bike](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/citi_bike.svg)](https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html)
 [![CIM](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/cim.svg)](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
+[![VM Scheduling](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/vm_scheduling.svg)](https://maro.readthedocs.io/en/latest/scenarios/vm_scheduling.html)
 [![Gitter](https://img.shields.io/gitter/room/microsoft/maro)](https://gitter.im/Microsoft/MARO#)
 [![Stack Overflow](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/stack_overflow.svg)](https://stackoverflow.com/questions/ask?tags=maro)
 [![Releases](https://img.shields.io/github/release-date-pre/microsoft/maro)](https://github.com/microsoft/maro/releases)
