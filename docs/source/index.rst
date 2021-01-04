@@ -113,6 +113,7 @@ Contents
     key_components/distributed_toolkit.rst
     key_components/communication.rst
     key_components/orchestration.rst
+    key_components/dashboard_visualization.rst
 
 .. toctree::
     :maxdepth: 2
