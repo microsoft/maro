@@ -72,10 +72,13 @@ class JobTrackingAgent(multiprocessing.Process):
             None.
         """
         while True:
-            self._update_name_to_job_details()
-            time.sleep(self._check_interval)
+            logger.debug(f"Start in JobTrackingAgent.")
+            start_time = time.time()
+            self.update_name_to_job_details()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in JobTrackingAgent.")
 
-    def _update_name_to_job_details(self) -> None:
+    def update_name_to_job_details(self) -> None:
         """Update name_to_job_details with name_to_container_details.
 
         Returns:
@@ -143,10 +146,13 @@ class ContainerTrackingAgent(multiprocessing.Process):
             None.
         """
         while True:
-            self._update_name_to_container_details()
-            time.sleep(self._check_interval)
+            logger.debug(f"Start in ContainerTrackingAgent.")
+            start_time = time.time()
+            self.update_name_to_container_details()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in ContainerTrackingAgent.")
 
-    def _update_name_to_container_details(self) -> None:
+    def update_name_to_container_details(self) -> None:
         """Update name_to_container_details with name_to_node_details.
 
         Returns:
@@ -189,10 +195,13 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         while True:
-            self._iterate_container_status()
-            time.sleep(self._check_interval)
+            logger.debug(f"Start in ContainerRuntimeAgent.")
+            start_time = time.time()
+            self.iterate_container_status()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in ContainerRuntimeAgent.")
 
-    def _iterate_container_status(self) -> None:
+    def iterate_container_status(self) -> None:
         """Iterate container status.
 
         Find the exited container and try to restart it if the rule exists.
@@ -522,10 +531,13 @@ class PendingJobAgent(multiprocessing.Process):
             None.
         """
         while True:
-            self._schedule_pending_job_tickets()
-            time.sleep(self._check_interval)
+            logger.debug(f"Start in PendingJobAgent.")
+            start_time = time.time()
+            self.schedule_pending_job_tickets()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in PendingJobAgent.")
 
-    def _schedule_pending_job_tickets(self) -> None:
+    def schedule_pending_job_tickets(self) -> None:
         """Schedule pending job tickets.
 
         Returns:
@@ -688,10 +700,13 @@ class KilledJobAgent(multiprocessing.Process):
             None.
         """
         while True:
-            self._schedule_killed_job_tickets()
-            time.sleep(self._check_interval)
+            logger.debug(f"Start in KilledJobAgent.")
+            start_time = time.time()
+            self.schedule_killed_job_tickets()
+            time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in KilledJobAgent.")
 
-    def _schedule_killed_job_tickets(self):
+    def schedule_killed_job_tickets(self):
         """Schedule killed job tickets.
 
         Returns:

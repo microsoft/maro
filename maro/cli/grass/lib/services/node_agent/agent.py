@@ -25,6 +25,8 @@ GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=
 
 NODE_DETAILS_LOCK = threading.Lock()
 
+logger = logging.getLogger(__name__)
+
 
 class NodeAgent:
     def __init__(self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int):
@@ -150,9 +152,11 @@ class NodeTrackingAgent(threading.Thread):
             None.
         """
         while not self._is_terminated:
+            logger.debug(f"Start in NodeTrackingAgent.")
             start_time = time.time()
             self._update_details()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in NodeTrackingAgent.")
 
     def stop(self):
         self._is_terminated = True
@@ -354,9 +358,11 @@ class LoadImageAgent(threading.Thread):
             None.
         """
         while not self._is_terminated:
+            logger.debug(f"Start in LoadImageAgent.")
             start_time = time.time()
             self.load_images()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
+            logger.debug(f"End in LoadImageAgent.")
 
     def stop(self):
         self._is_terminated = True
@@ -381,10 +387,8 @@ class LoadImageAgent(threading.Thread):
         for image_file_name, image_file_details in name_to_image_file_details_in_master.items():
             if (
                 image_file_name not in name_to_image_file_details_in_node
-                or (
-                    name_to_image_file_details_in_node[image_file_name]["md5_checksum"] !=
-                    name_to_image_file_details_in_master[image_file_name]["md5_checksum"]
-                )
+                or name_to_image_file_details_in_node[image_file_name]["md5_checksum"] !=
+                image_file_details["md5_checksum"]
             ):
                 unloaded_image_names.append(image_file_name)
 
@@ -414,9 +418,9 @@ class LoadImageAgent(threading.Thread):
 
     @staticmethod
     def _load_image(image_path: str):
-        logging.info(f"In loading image: {image_path}")
+        logger.info(f"In loading image: {image_path}")
         DockerController.load_image(image_path=image_path)
-        logging.info(f"End of loading image: {image_path}")
+        logger.info(f"End of loading image: {image_path}")
 
 
 if __name__ == "__main__":
