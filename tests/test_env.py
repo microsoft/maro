@@ -3,8 +3,9 @@
 
 
 import unittest
+
 from dummy.dummy_business_engine import DummyEngine
-from maro.simulator.core import Env, BusinessEngineNotFoundError
+from maro.simulator.core import BusinessEngineNotFoundError, Env
 
 
 def run_to_end(env: Env):
@@ -18,7 +19,7 @@ def run_to_end(env: Env):
 class TestEnv(unittest.TestCase):
     """
     this test will use dummy scenario
-    """        
+    """
 
     def test_builtin_scenario_with_default_parameters(self):
         """Test if the env with built-in scenario initializing correct"""
@@ -68,7 +69,7 @@ class TestEnv(unittest.TestCase):
         dummy_number = node_info["dummies"]["number"]
 
         self.assertEqual(10, dummy_number, msg=f"dummy should contains 10 nodes, got {dummy_number}")
-        
+
         attributes = node_info["dummies"]["attributes"]
 
         # it will contains one attribute
@@ -95,7 +96,7 @@ class TestEnv(unittest.TestCase):
         self.assertIsNotNone(env.snapshot_list, msg="snapshot list should  be None")
 
         # reset should work
-        
+
         dummies_ss = env.snapshot_list["dummies"]
         vals_before_reset = dummies_ss[env.frame_index::"val"]
 
@@ -122,9 +123,9 @@ class TestEnv(unittest.TestCase):
 
         # snapshot at 2, 5, 8, 9 ticks
         states = env.snapshot_list["dummies"][::"val"].reshape(-1, 10)
-        
+
         # NOTE: frame_index is the index of frame in snapshot list, it is 0 based, so snapshot resolution will make tick not equals to frame_index
-        # 
+        #
         for frame_index, tick in enumerate((2, 5, 8, 9)):
             self.assertListEqual(list(states[frame_index]), [tick] * 10, msg=f"states should be {tick}")
 
@@ -135,14 +136,14 @@ class TestEnv(unittest.TestCase):
 
         env = Env(business_engine_cls=DummyEngine, start_tick=0, durations=max_tick, max_snapshots=2)
 
-        run_to_end(env)  
+        run_to_end(env)
 
         # we should have 2 snapshots totally with max_snapshots speified
         self.assertEqual(2, len(env.snapshot_list), msg="We should have 2 snapshots in memory")
 
         # and only 87 and 9 in snapshot
         states = env.snapshot_list["dummies"][::"val"].reshape(-1, 10)
-        
+
         # 1st should states at tick 7
         self.assertListEqual(list(states[0]), [8] * 10, msg="1st snapshot should be at tick 8")
 
@@ -162,7 +163,7 @@ class TestEnv(unittest.TestCase):
 
         # and only 7 and 9 in snapshot
         states = env.snapshot_list["dummies"][::"val"].reshape(-1, 10)
-        
+
         # 1st should states at tick 7
         self.assertListEqual(list(states[0]), [7] * 10, msg="1st snapshot should be at tick 7")
 
@@ -183,7 +184,7 @@ class TestEnv(unittest.TestCase):
 
         # avaiable snapshot should be 7 (0-6)
         states = env.snapshot_list["dummies"][::"val"].reshape(-1, 10)
-        
+
         self.assertEqual(7, len(states), msg=f"available snapshot number should be 7, but {len(states)}")
 
         # and last one should be 6

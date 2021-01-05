@@ -4,9 +4,11 @@
 *.log
 *.csv
 *.c
+*.cpp
 *.DS_Store
 .idea/
 .vscode/
+.vs/
 build/
 dist/
 *.egg-info/

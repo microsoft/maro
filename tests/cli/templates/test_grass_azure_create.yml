@@ -1,10 +1,9 @@
-name: test_maro_grass_cluster
-mode: grass
+name: ""
+mode: grass/azure
 
 cloud:
-  infra: azure
   location: japaneast
-  resource_group: test_maro_grass
+  resource_group: ""
   subscription: ""
 
 user:
@@ -13,3 +12,7 @@ user:
 
 master:
   node_size: Standard_D2s_v3
+
+connection:
+  ssh:
+    port: 51811

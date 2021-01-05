@@ -7,7 +7,7 @@ import json
 
 from redis import Redis
 
-from utils import load_cluster_details, load_job_details
+from .utils import load_cluster_details, load_job_details
 
 
 def create_job_details(cluster_name: str, job_name: str):
@@ -20,9 +20,12 @@ def create_job_details(cluster_name: str, job_name: str):
     # Add other parameters
     job_details['containers'] = {}
 
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8",
+        decode_responses=True
+    )
     redis.hset(
         f"{cluster_name}:job_details",
         job_name,

@@ -2,9 +2,8 @@
 # Licensed under the MIT license.
 
 import os
-from csv import DictReader
 from collections import namedtuple
-
+from csv import DictReader
 
 StationInfo = namedtuple("StationInfo", ["index", "bikes", "capacity", "id"])
 

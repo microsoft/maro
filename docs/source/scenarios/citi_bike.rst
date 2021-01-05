@@ -515,8 +515,17 @@ Quick Start
 Data Preparation
 ^^^^^^^^^^^^^^^^
 
-To start the simulation of Citi Bike scenario, users need to first generate the
-related data. Below is the introduction to the related commands:
+To start the simulation of Citi Bike scenario, users have two options for the data preparation:
+
+* If the topology data is not generated in advance, the system will automatically download and
+  process the relevant data when the environment is created. The data will be stored in a
+  temporary folder and be automatically deleted after the experiment.
+
+* Before creating the environment, users can also manually download and generate relevant data.
+  This approach will save you a lot of time if you need to conduct several experiments on the
+  same topology. Therefore, we encourage you to generate the relevant data manually first.
+
+The following is the introduction to related commands:
 
 Environment List Command
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -563,19 +572,19 @@ For the example above, the directory structure should be like:
    |-- ~/.maro
        |-- data
        |   |-- citi_bike
-       |       |-- [topology]
-       |           |-- .build          # bin data file
-       |           |-- .source
-       |               |-- .download   # original data file
-       |               |-- .clean      # cleaned data file
-       |-- temp                        # download temp file
+       |       |-- .build          # bin data file
+       |           |-- [topology]  # topology
+       |       |-- .source
+       |           |-- .download   # original data file
+       |           |-- .clean      # cleaned data file
+       |-- temp                    # download temp file
 
-Convert Command
-~~~~~~~~~~~~~~~
+Build Command
+~~~~~~~~~~~~~
 
-The data ``convert`` command is used to convert the CSV data files to binary data
+The data ``build`` command is used to build the CSV data files to binary data
 files that the simulator needs. Currently, there are three arguments for the data
-``convert`` command:
+``build`` command:
 
 * ``--meta``\ : required, used to specify the path of the meta file. The source
   columns that to be converted and the data type of each columns should be
@@ -587,7 +596,7 @@ files that the simulator needs. Currently, there are three arguments for the dat
 
 .. code-block:: sh
 
-   maro data convert --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
+   maro data build --meta ~/.maro/data/citibike/meta/trips.yml --file ~/.maro/data/citibike/source/_clean/ny201801/trip.csv --output ~/.maro/data/citibike/_build/ny201801/trip.bin
 
 Environment Interface
 ^^^^^^^^^^^^^^^^^^^^^
@@ -744,3 +753,68 @@ random mode, we hope this could help you learn how to use the environment interf
 
 Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/bike_repositioning/interact_with_environment.ipynb>`_
 for a quick experience.
+
+Visualization
+-------------
+
+The resource holder in this scenario is the bike station.
+The number of epoches is varied based on selected strategy.
+Currently, we generate result with Greedy Policy.
+Only one epoch is included in result. Thus, inter-epoch view
+would not be displayed.
+
+Inter-epoch view
+^^^^^^^^^^^^^^^^
+
+This part display cross-epoch summary information. User could select
+the Start Epoch and End Epoch, as well as Epoch Sampling Ratio. Since 
+there is only one epoch, this part is hidden.
+
+Intra-epoch view
+^^^^^^^^^^^^^^^^
+
+Intra-view is divided into two dimensions according to time and space.
+
+If user choose to view information by station, it means that attributes
+of all snapshots within a selected station would be displayed. By
+changing the option "station index", user could view data of different
+stations. By changing the option "Snapshot Sampling Ratio", Users can
+freely adjust the sampling rate. For example, if there are 100 snapshots
+and user selected 0.3 as sampling ratio, 30 snapshots data would be
+selected to render the chart.
+
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station
+
+To be specific, the line chart could be customized with operations in
+the following example.
+
+By choosing the item "All", all of attributes would be displayed. In
+addition, according to the data characteristics of each scenario, users
+will be provided with the option to quickly select a set of data.
+
+e.g. In this scenario, item "Requirement Info" refers to
+[trip\_requirement, shortage, fulfillment].
+
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_2.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station\_2
+
+Moreover, to improve the flexibility of visualizing data, user could use
+pre-defined formula and selected attributes to generate new attributes.
+Generated attributes would be treated in the same way as original
+attributes.
+
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_3.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station\_3
+
+If user choose to view information by snapshot, it means attributes of
+all stations within a selected snapshot would be displayed. By changing
+option "snapshot index", user could view data of different snapshot. By
+changing option "Station Sampling Ratio", user could change the number
+of sampled data.
+
+Particularly, if user want to check the name of a specific station,
+just hovering on the according bar.
+
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_snapshot.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_snapshot

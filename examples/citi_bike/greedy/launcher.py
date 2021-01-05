@@ -1,14 +1,16 @@
 import heapq
 import io
+import os
 import random
+
 import yaml
 
 from maro.simulator import Env
 from maro.simulator.scenarios.citi_bike.common import Action, DecisionEvent, DecisionType
 from maro.utils import convert_dottable
 
-
-with io.open("config.yml", "r") as in_file:
+config_path = os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.yml")
+with io.open(config_path, "r") as in_file:
     raw_config = yaml.safe_load(in_file)
     config = convert_dottable(raw_config)
 

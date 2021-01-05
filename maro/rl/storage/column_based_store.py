@@ -2,13 +2,20 @@
 # Licensed under the MIT license.
 
 from collections import defaultdict
-from typing import Callable, List, Sequence, Tuple
+from enum import Enum
+from typing import Callable, List, Sequence, Tuple, Union
 
 import numpy as np
 
-from .abs_store import AbsStore
-from .utils import check_uniformity, get_update_indexes, normalize, OverwriteType
 from maro.utils import clone
+from maro.utils.exception.rl_toolkit_exception import StoreMisalignment
+
+from .abs_store import AbsStore
+
+
+class OverwriteType(Enum):
+    ROLLING = "rolling"
+    RANDOM = "random"
 
 
 class ColumnBasedStore(AbsStore):
@@ -53,6 +60,16 @@ class ColumnBasedStore(AbsStore):
     def __getitem__(self, index: int):
         return {k: lst[index] for k, lst in self._store.items()}
 
+    def __getstate__(self):
+        """A patch to make the object picklable.
+
+        Using the default ``__dict__`` would make the object unpicklable due to the lambda function involved in the
+        ``defaultdict`` definition of the ``_store`` attribute.
+        """
+        obj_dict = self.__dict__
+        obj_dict["_store"] = dict(obj_dict["_store"])
+        return obj_dict
+
     @property
     def capacity(self):
         """Store capacity.
@@ -70,13 +87,13 @@ class ColumnBasedStore(AbsStore):
     def get(self, indexes: [int]) -> dict:
         return {k: [self._store[k][i] for i in indexes] for k in self._store}
 
-    @check_uniformity(arg_num=1)
     def put(self, contents: dict, overwrite_indexes: Sequence = None) -> List[int]:
         """Put new contents in the store.
 
         Args:
-            contents (Sequence): Item object list.
-            overwrite_indexes (Sequence, optional): indexes where the contents are to be overwritten. This is only
+            contents (dict): Dictionary of items to add to the store. If the store is not empty, this must have the
+                same keys as the store itself. Otherwise an ``StoreMisalignment`` will be raised.
+            overwrite_indexes (Sequence, optional): Indexes where the contents are to be overwritten. This is only
                 used when the store has a fixed capacity and putting ``contents`` in the store would exceed this
                 capacity. If this is None and overwriting is necessary, rolling or random overwriting will be done
                 according to the ``overwrite`` property. Defaults to None.
@@ -84,21 +101,24 @@ class ColumnBasedStore(AbsStore):
             The indexes where the newly added entries reside in the store.
         """
         if len(self._store) > 0 and contents.keys() != self._store.keys():
-            raise ValueError(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
-        added_size = len(contents[next(iter(contents))])
+            raise StoreMisalignment(f"expected keys {list(self._store.keys())}, got {list(contents.keys())}")
+        self.check_uniformity(contents)
+        added = contents[next(iter(contents))]
+        added_size = len(added) if isinstance(added, list) else 1
         if self._capacity < 0:
-            for key, lst in contents.items():
-                self._store[key].extend(lst)
+            for key, val in contents.items():
+                if not isinstance(val, list):
+                    self._store[key].append(val)
+                else:
+                    self._store[key].extend(val)
             self._size += added_size
             return list(range(self._size - added_size, self._size))
         else:
-            write_indexes = get_update_indexes(self._size, added_size, self._capacity, self._overwrite_type,
-                                               overwrite_indexes=overwrite_indexes)
+            write_indexes = self._get_update_indexes(added_size, overwrite_indexes=overwrite_indexes)
             self.update(write_indexes, contents)
             self._size = min(self._capacity, self._size + added_size)
             return write_indexes
 
-    @check_uniformity(arg_num=2)
     def update(self, indexes: Sequence, contents: dict) -> Sequence:
         """
         Update contents at given positions.
@@ -111,6 +131,7 @@ class ColumnBasedStore(AbsStore):
         Returns:
             The indexes where store contents are updated.
         """
+        self.check_uniformity(contents)
         for key, value_list in contents.items():
             assert len(indexes) == len(value_list), f"expected updates at {len(indexes)} indexes, got {len(value_list)}"
             for index, value in zip(indexes, value_list):
@@ -125,7 +146,7 @@ class ColumnBasedStore(AbsStore):
 
         Args:
             filters (Sequence[Callable]): Filter list, each item is a lambda function,
-                                          e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
+                e.g., [lambda d: d['a'] == 1 and d['b'] == 1].
         Returns:
             Filtered indexes and corresponding objects.
         """
@@ -156,21 +177,21 @@ class ColumnBasedStore(AbsStore):
 
         return indexes, self.get(indexes)
 
-    @normalize
-    def sample(self, size, weights: Sequence = None, replace: bool = True):
+    def sample(self, size, weights: Union[list, np.ndarray] = None, replace: bool = True):
         """
         Obtain a random sample from the experience pool.
 
         Args:
-            size (int): sample sizes for each round of sampling in the chain. If this is a single integer, it is
+            size (int): Sample sizes for each round of sampling in the chain. If this is a single integer, it is
                         used as the sample size for all samplers in the chain.
-            weights (Sequence): a sequence of sampling weights.
-            replace (bool): if True, sampling is performed with replacement. Defaults to True.
+            weights (Union[list, np.ndarray]): Sampling weights.
+            replace (bool): If True, sampling is performed with replacement. Defaults to True.
         Returns:
             Sampled indexes and the corresponding objects,
             e.g., [1, 2, 3], ['a', 'b', 'c'].
         """
-        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
+        weights = np.asarray(weights)
+        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
         return indexes, self.get(indexes)
 
     def sample_by_key(self, key, size: int, replace: bool = True):
@@ -178,8 +199,8 @@ class ColumnBasedStore(AbsStore):
         Obtain a random sample from the store using one of the columns as sampling weights.
 
         Args:
-            key: the column whose values are to be used as sampling weights.
-            size (int): sample size.
+            key: The column whose values are to be used as sampling weights.
+            size (int): Sample size.
             replace (bool): If True, sampling is performed with replacement.
         Returns:
             Sampled indexes and the corresponding objects.
@@ -193,8 +214,8 @@ class ColumnBasedStore(AbsStore):
         Obtain a random sample from the store by chained sampling using multiple columns as sampling weights.
 
         Args:
-            keys (Sequence): the column whose values are to be used as sampling weights.
-            sizes (Sequence): sample size.
+            keys (Sequence): The column whose values are to be used as sampling weights.
+            sizes (Sequence): Sample size.
             replace (bool): If True, sampling is performed with replacement.
         Returns:
             Sampled indexes and the corresponding objects.
@@ -223,3 +244,33 @@ class ColumnBasedStore(AbsStore):
         self._store = defaultdict(lambda: [] if self._capacity < 0 else [None] * self._capacity)
         self._size = 0
         self._iter_index = 0
+
+    def _get_update_indexes(self, added_size: int, overwrite_indexes=None):
+        if added_size > self._capacity:
+            raise ValueError("size of added items should not exceed the store capacity.")
+
+        num_overwrites = self._size + added_size - self._capacity
+        if num_overwrites < 0:
+            return list(range(self._size, self._size + added_size))
+
+        if overwrite_indexes is not None:
+            write_indexes = list(range(self._size, self._capacity)) + list(overwrite_indexes)
+        else:
+            # follow the overwrite rule set at init
+            if self._overwrite_type == OverwriteType.ROLLING:
+                # using the negative index convention for convenience
+                start_index = self._size - self._capacity
+                write_indexes = list(range(start_index, start_index + added_size))
+            else:
+                random_indexes = np.random.choice(self._size, size=num_overwrites, replace=False)
+                write_indexes = list(range(self._size, self._capacity)) + list(random_indexes)
+
+        return write_indexes
+
+    @staticmethod
+    def check_uniformity(contents):
+        if all(not isinstance(val, list) for val in contents.values()):
+            return
+        col_length = len(contents[list(contents.keys())[0]])
+        if any(not isinstance(val, list) or len(val) != col_length for val in contents.values()):
+            raise StoreMisalignment("values of contents should consist of lists of the same length")

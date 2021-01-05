@@ -1,8 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.simulator.scenarios import AbsBusinessEngine
 from maro.event_buffer import EventBuffer, EventState
+from maro.simulator.scenarios import AbsBusinessEngine
+
 
 def next_step(eb: EventBuffer, be: AbsBusinessEngine, tick: int):
     if tick > 0:
@@ -26,6 +27,7 @@ def next_step(eb: EventBuffer, be: AbsBusinessEngine, tick: int):
 
     return False
 
+
 def be_run_to_end(eb, be):
     is_done = False
 
@@ -33,4 +35,4 @@ def be_run_to_end(eb, be):
 
     while not is_done:
         is_done = next_step(eb, be, tick)
-        tick+=1
+        tick += 1

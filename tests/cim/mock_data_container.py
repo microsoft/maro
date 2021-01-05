@@ -1,10 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
 import csv
+import os
 from collections import defaultdict
-from maro.data_lib.cim.entities import VesselSetting, PortSetting, Order, Stop
+
+from maro.data_lib.cim.entities import Order, PortSetting, Stop, VesselSetting
 
 PORT_NUM = 3
 VESSEL_NUM = 2

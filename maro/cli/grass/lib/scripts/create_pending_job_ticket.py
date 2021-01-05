@@ -6,7 +6,7 @@ import argparse
 
 from redis import Redis
 
-from utils import load_cluster_details
+from .utils import load_cluster_details
 
 
 def create_pending_job_ticket(cluster_name: str, job_name: str):
@@ -15,11 +15,14 @@ def create_pending_job_ticket(cluster_name: str, job_name: str):
     master_hostname = cluster_details['master']['hostname']
     redis_port = cluster_details['master']['redis']['port']
 
-    redis = Redis(host=master_hostname,
-                  port=redis_port,
-                  charset="utf-8", decode_responses=True)
+    redis = Redis(
+        host=master_hostname,
+        port=redis_port,
+        charset="utf-8",
+        decode_responses=True
+    )
     redis.lpush(
-        f"{cluster_name}:pending_jobs",
+        f"{cluster_name}:pending_job_tickets",
         job_name
     )
 
@@ -30,5 +33,4 @@ if __name__ == "__main__":
     parser.add_argument('job_name')
     args = parser.parse_args()
 
-    create_pending_job_ticket(
-        cluster_name=args.cluster_name, job_name=args.job_name)
+    create_pending_job_ticket(cluster_name=args.cluster_name, job_name=args.job_name)

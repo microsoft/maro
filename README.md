@@ -14,6 +14,7 @@
 [![Wheel](https://img.shields.io/pypi/wheel/pymaro)](https://pypi.org/project/pymaro/#files)
 [![Citi Bike](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/citi_bike.svg)](https://maro.readthedocs.io/en/latest/scenarios/citi_bike.html)
 [![CIM](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/cim.svg)](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
+[![VM Scheduling](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/vm_scheduling.svg)](https://maro.readthedocs.io/en/latest/scenarios/vm_scheduling.html)
 [![Gitter](https://img.shields.io/gitter/room/microsoft/maro)](https://gitter.im/Microsoft/MARO#)
 [![Stack Overflow](https://raw.githubusercontent.com/microsoft/maro/master/docs/source/images/badges/stack_overflow.svg)](https://stackoverflow.com/questions/ask?tags=maro)
 [![Releases](https://img.shields.io/github/release-date-pre/microsoft/maro)](https://github.com/microsoft/maro/releases)
@@ -59,7 +60,7 @@ of user-defined functions for message auto-handling, cluster provision, and job 
 
 ## Install MARO from [PyPI](https://pypi.org/project/pymaro/#files)
 
-- Max OS / Linux
+- Mac OS / Linux
 
   ```sh
   pip install pymaro
@@ -135,6 +136,30 @@ print(f"environment metrics: {env.metrics}")
 
 ```
 
+## [Environment Visualization](https://maro.readthedocs.io/en/latest/)
+
+```sh
+# Enable environment dump feature, when initializing the environment instance
+env = Env(scenario="cim",
+          topology="toy.5p_ssddd_l0.0",
+          start_tick=0,
+          durations=100,
+          options={"enable-dump-snapshot": "./dump_data"})
+
+# Inspect environment with the dump data
+maro inspector env --source ./dump_data
+```
+
+### Show Cases
+
+- Case I - Container Inventory Management
+![CIM Inter Epoch](./docs/source/images/visualization/dashboard/cim_inter_epoch.gif)
+![CIM Intra Epoch](./docs/source/images/visualization/dashboard/cim_intra_epoch_by_ports.gif)
+
+- Case II - Citi Bike
+![Citi Bike Inter Epoch](./docs/source/images/visualization/dashboard/citi_bike_inter_epoch.gif)
+![Citi Bike Intra Epoch](./docs/source/images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif)
+
 ## Run Playground
 
 - Pull from [Docker Hub](https://hub.docker.com/repository/registry-1.docker.io/arthursjiang/maro/tags?page=1)
@@ -192,6 +217,26 @@ For more information see the
 [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
 or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
 with any additional questions or comments.
+
+## Related Papers
+
+### [Container Inventory Management](https://maro.readthedocs.io/en/latest/key_components/dashboard_visualization.html)
+
+![CIM Vis](./docs/source/images/scenario/cim_vis.gif)
+
+Wenlei Shi, Xinran Wei, Jia Zhang, Xiaoyuan Ni, Arthur Jiang, Jiang Bian, Tie-Yan Liu. "[Cooperative Policy Learning with Pre-trained Heterogeneous Observation Representations](https://arxiv.org/abs/2012.13099)". AAMAS 2021
+
+Xihan Li, Jia Zhang, Jiang Bian, Yunhai Tong, Tie-Yan Liu. "[A Cooperative Multi-Agent Reinforcement Learning Framework for Resource Balancing in Complex Logistics Network](https://arxiv.org/abs/1903.00714)". AAMAS 2019
+
+## Related News
+
+[MSRA Top-10 Hack-Techs in 2021](https://mp.weixin.qq.com/s/Y4kjQq8gKcsEsVadjdwnEQ)
+
+[Open Source Platform MARO: Anywhere Door for Resource Optimization](https://mp.weixin.qq.com/s/zXIpgzomLhDWS_YUFmRlEQ)
+
+[AI from "Point" to "Surface"](https://mp.weixin.qq.com/s/PggO49wwmS7grTO0nEMgVQ)
+
+## [Cite Us](./CITATION)
 
 ## License
 
