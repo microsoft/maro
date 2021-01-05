@@ -5,8 +5,8 @@ from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManagerMode, SimpleAgentManager
 from maro.rl.algorithms import DQN, AbsAlgorithm, DQNConfig
 from maro.rl.distributed import (
-    "AbsDistLearner", "Actor", "Component", "Executor", "InferenceLearner", "SimpleDistLearner", 
-    "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries"
+    AbsDistLearner, Actor, Component, Executor, InferenceLearner, SimpleDistLearner, concat_experiences_by_agent,
+    merge_experiences_with_trajectory_boundaries
 )
 from maro.rl.exploration import (
     AbsExplorer, EpsilonGreedyExplorer, GaussianNoiseExplorer, NoiseExplorer, UniformNoiseExplorer
