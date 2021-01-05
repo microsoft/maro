@@ -16,7 +16,7 @@ from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
-from maro.cli.utils.params import GlobalPaths
+from maro.cli.utils.params import GlobalPaths, GlobalParams
 from maro.cli.utils.path_convertor import PathConvertor
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
@@ -80,8 +80,8 @@ class K8sAksExecutor(K8sExecutor):
     @staticmethod
     def _validate_create_deployment(create_deployment: dict):
         optional_key_to_value = {
-            "root['master']['redis']": {"port": 6379},
-            "root['master']['redis']['port']": 6379
+            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT
         }
         with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
