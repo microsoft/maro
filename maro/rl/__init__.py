@@ -4,7 +4,7 @@
 from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManagerMode, SimpleAgentManager
 from maro.rl.algorithms import (
-    DQN, AbsAlgorithm, ActionInfo, ActorCritic, ActorCriticConfig, DQN, DQNConfig, PolicyGradient, PolicyOptimization,
+    DQN, AbsAlgorithm, ActionInfo, ActorCritic, ActorCriticConfig, DQNConfig, PolicyGradient, PolicyOptimization,
     PolicyOptimizationConfig
 )
 from maro.rl.dist_topologies import (
