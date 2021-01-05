@@ -35,7 +35,7 @@ There are two key components in the distributed toolkit:
   ``(i)send``\ , ``receive``\ , ``(i)broadcast``\ , ``(i)scatter``\ , etc. The communication
   component use a replaceable communication protocol driver to adopt different
   communication protocol stack (e.g. `TCP/IP <https://en.wikipedia.org/wiki/Internet_protocol_suite>`_\ ,
-  `InfiniBand <https://en.wikipedia.org/wiki/InfiniBand>`_). Check the	  `InfiniBand <https://en.wikipedia.org/wiki/InfiniBand#:~:text=InfiniBand%20(IB>`_\ %20is%20a%20computer,both%20among%20and%20within%20computers.)
+  `InfiniBand <https://en.wikipedia.org/wiki/InfiniBand>`_). Check the
   `distributed communication <./communication.html>`_ to get more details.
 
 * **Orchestration**\ : It primarily provides a unified interface for cluster
