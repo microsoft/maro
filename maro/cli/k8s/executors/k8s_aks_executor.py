@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 
+import base64
 import json
 import os
 import shutil
@@ -57,7 +58,7 @@ class K8sAksExecutor(K8sExecutor):
             K8sAksExecutor._load_k8s_context(cluster_id=cluster_id, resource_group=resource_group)
             K8sAksExecutor._init_redis()
             K8sAksExecutor._init_nvidia_plugin()
-            K8sAksExecutor._create_k8s_secret(cluster_details=cluster_details)
+            K8sAksExecutor._create_storage_account_secret(cluster_details=cluster_details)
             DetailsWriter.save_cluster_details(cluster_name=cluster_name, cluster_details=cluster_details)
         except Exception as e:
             # If failed, remove details folder, then raise
@@ -196,18 +197,16 @@ class K8sAksExecutor(K8sExecutor):
 
     @staticmethod
     def _init_nvidia_plugin():
-        k8s_client = client.CoreV1Api()
-        k8s_client.create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
+        client.CoreV1Api().create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
 
-        k8s_client = client.AppsV1Api()
         with open(
             f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_nvidia_plugin/nvidia-device-plugin.yml", "r"
         ) as fr:
             redis_deployment = yaml.safe_load(fr)
-        k8s_client.create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")
+        client.AppsV1Api().create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")
 
     @staticmethod
-    def _create_k8s_secret(cluster_details: dict):
+    def _create_storage_account_secret(cluster_details: dict):
         # Load details
         cluster_id = cluster_details["id"]
         resource_group = cluster_details["cloud"]["resource_group"]
@@ -220,13 +219,16 @@ class K8sAksExecutor(K8sExecutor):
         storage_key = storage_account_keys[0]["value"]
 
         # Create k8s secret
-        command = (
-            f"kubectl create secret generic {cluster_id}-k8s-secret "
-            f"--from-literal=azurestorageaccountname={cluster_id}st "
-            f"--from-literal=azurestorageaccountkey={storage_key}"
+        client.CoreV1Api().create_namespaced_secret(
+            body=client.V1Secret(
+                metadata=client.V1ObjectMeta(name="azure-storage-account-secret"),
+                data={
+                    "azurestorageaccountname": base64.b64encode(f"{cluster_id}st".encode()).decode(),
+                    "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode()
+                }
+            ),
+            namespace="default"
         )
-        _ = SubProcess.run(command)
-        logger.debug(command)
 
     # maro k8s delete
 
@@ -505,27 +507,14 @@ class K8sAksExecutor(K8sExecutor):
         # Save details
         K8sDetailsWriter.save_job_details(job_details=job_details)
 
-        # Create and save k8s config
+        # Create and apply k8s config
         k8s_job_config = self._create_k8s_job_config(job_details=job_details)
-        with open(
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml", "w"
-        ) as fw:
-            yaml.safe_dump(k8s_job_config, fw)
+        client.BatchV1Api().create_namespaced_job(body=k8s_job_config, namespace="default")
 
-        # Apply k8s config
-        command = (
-            "kubectl apply -f "
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
-        )
-        _ = SubProcess.run(command)
-
-    def stop_job(self, job_name: str):
-        # Stop job
-        command = (
-            "kubectl delete -f "
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml"
-        )
-        _ = SubProcess.run(command)
+    @staticmethod
+    def stop_job(job_name: str):
+        job_details = K8sDetailsReader.load_job_details(job_name=job_name)
+        client.BatchV1Api().delete_namespaced_job(name=job_details["id"], namespace="default")
 
     @staticmethod
     def _standardize_start_job_deployment(start_job_deployment: dict):
@@ -562,20 +551,17 @@ class K8sAksExecutor(K8sExecutor):
         cluster_id = self.cluster_details["id"]
         job_id = job_details["id"]
 
-        # Check and load k8s context
-        self._check_and_load_k8s_context()
-
         # Get config template
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/create_job/job.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_job/job.yml") as fr:
             k8s_job_config = yaml.safe_load(fr)
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/create_job/container.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_job/container.yml") as fr:
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs
         k8s_job_config["metadata"]["name"] = job_id
         k8s_job_config["metadata"]["labels"]["jobName"] = job_name
         azure_file_config = k8s_job_config["spec"]["template"]["spec"]["volumes"][0]["azureFile"]
-        azure_file_config["secretName"] = f"{cluster_id}-k8s-secret"
+        azure_file_config["secretName"] = f"azure-storage-account-secret"
         azure_file_config["shareName"] = f"{cluster_id}-fs"
 
         # Create and fill container config
@@ -677,8 +663,7 @@ class K8sAksExecutor(K8sExecutor):
     def _export_log(pod_id: str, container_name: str, export_dir: str):
         os.makedirs(os.path.expanduser(export_dir + f"/{pod_id}"), exist_ok=True)
         with open(os.path.expanduser(export_dir + f"/{pod_id}/{container_name}.log"), "w") as fw:
-            command = f"kubectl logs {pod_id} {container_name}"
-            return_str = SubProcess.run(command)
+            return_str = client.CoreV1Api().read_namespaced_pod_log(name=pod_id, namespace="default")
             fw.write(return_str)
 
     # maro k8s schedule
@@ -761,12 +746,12 @@ class K8sAksExecutor(K8sExecutor):
         return_status = {}
 
         # Get pods details
-        pods_details = self.get_pods_details()
+        pod_list = client.CoreV1Api().list_pod_for_all_namespaces(watch=False).to_dict()["items"]
 
-        for pod_details in pods_details:
-            if "app" in pod_details["metadata"]["labels"] and pod_details["metadata"]["labels"]["app"] == "maro-redis":
+        for pod in pod_list:
+            if "app" in pod["metadata"]["labels"] and pod["metadata"]["labels"]["app"] == "maro-redis":
                 return_status["redis"] = {
-                    "private_ip_address": pod_details["status"]["podIP"]
+                    "private_ip_address": pod["status"]["pod_ip"]
                 }
                 break
 
@@ -785,7 +770,7 @@ class K8sAksExecutor(K8sExecutor):
         command = f"cp {GlobalPaths.ABS_MARO_K8S_LIB}/deployments/external/* {export_path}"
         _ = SubProcess.run(command)
 
-    # utils
+    # Utils
 
     def load_k8s_context(self):
         return self._load_k8s_context(
@@ -800,21 +785,3 @@ class K8sAksExecutor(K8sExecutor):
             aks_name=f"{cluster_id}-aks"
         )
         config.load_kube_config(context=f"{cluster_id}-aks")
-
-    def _check_and_load_k8s_context(self):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
-        # Check and load k8s context
-        check_command = "kubectl config view"
-        config_str = SubProcess.run(check_command)
-        config_dict = yaml.safe_load(config_str)
-        if config_dict["current-context"] != f"{cluster_id}-aks":
-            self.load_k8s_context()
-
-    @staticmethod
-    def get_pods_details():
-        # Get pods details
-        command = "kubectl get pods -o json"
-        return_str = SubProcess.run(command)
-        return json.loads(return_str)["items"]

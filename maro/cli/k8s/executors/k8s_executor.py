@@ -9,7 +9,6 @@ import yaml
 from kubernetes import client
 
 from maro.cli.utils.params import GlobalPaths
-from maro.cli.utils.subprocess import SubProcess
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -30,10 +29,9 @@ class K8sExecutor(ABC):
 
     @staticmethod
     def _init_redis():
-        k8s_client = client.AppsV1Api()
         with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
             redis_deployment = yaml.safe_load(fr)
-        k8s_client.create_namespaced_deployment(body=redis_deployment, namespace="default")
+        client.AppsV1Api().create_namespaced_deployment(body=redis_deployment, namespace="default")
 
     @staticmethod
     @abstractmethod
@@ -52,18 +50,15 @@ class K8sExecutor(ABC):
     @staticmethod
     def list_job():
         # Get jobs details
-        command = "kubectl get jobs -o=json"
-        return_str = SubProcess.run(command)
-        job_details_list = json.loads(return_str)["items"]
-        jobs_details = {}
-        for job_details in job_details_list:
-            jobs_details[job_details["metadata"]["labels"]["jobName"]] = job_details
+        job_list = client.BatchV1Api().list_namespaced_job(namespace="default").to_dict()["items"]
 
         # Print details
         logger.info(
             json.dumps(
-                jobs_details,
-                indent=4, sort_keys=True
+                job_list,
+                indent=4,
+                sort_keys=True,
+                default=str
             )
         )
 
