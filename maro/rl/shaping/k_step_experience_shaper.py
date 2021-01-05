@@ -39,7 +39,7 @@ class KStepExperienceShaper(ExperienceShaper):
         full_return = partial_return = 0
         for i in range(len(trajectory) - 2, -1, -1):
             transition = trajectory[i]
-            next_transition = trajectory[min(len(trajectory) - 1, i + self._num_steps)]
+            next_transition = trajectory[min(len(trajectory) - 1, i + self._steps)]
             reward_list.appendleft(self._reward_func(trajectory[i]["metrics"]))
             # compute the full return
             full_return = full_return * self._reward_discount + reward_list[0]
