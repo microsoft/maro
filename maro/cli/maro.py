@@ -106,7 +106,7 @@ def main():
     )
     parser_process.set_defaults(func=_help_func(parser=parser_process))
     load_parser_process(prev_parser=parser_process, global_parser=global_parser)
-    
+
     args = None
     try:
         # Get args and parse global arguments
