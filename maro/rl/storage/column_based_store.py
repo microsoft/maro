@@ -190,8 +190,15 @@ class ColumnBasedStore(AbsStore):
             Sampled indexes and the corresponding objects,
             e.g., [1, 2, 3], ['a', 'b', 'c'].
         """
+<<<<<<< HEAD
         weights = np.asarray(weights)
         indexes = np.random.choice(self._size, size=size, replace=replace, p=weights / np.sum(weights))
+=======
+        if weights is not None:
+            weights = np.asarray(weights)
+            weights /= np.sum(weights)
+        indexes = np.random.choice(self._size, size=size, replace=replace, p=weights)
+>>>>>>> master
         return indexes, self.get(indexes)
 
     def sample_by_key(self, key, size: int, replace: bool = True):
