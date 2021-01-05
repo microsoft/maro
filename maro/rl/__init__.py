@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManagerMode, SimpleAgentManager
 from maro.rl.algorithms import DQN, AbsAlgorithm, DQNConfig
 from maro.rl.distributed import (
@@ -18,7 +17,6 @@ from maro.rl.shaping import AbsShaper, ActionShaper, ExperienceShaper, KStepExpe
 from maro.rl.storage import AbsStore, ColumnBasedStore, OverwriteType
 
 __all__ = [
-    "AbsActor", "SimpleActor",
     "AbsAgent", "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager",
     "AbsAlgorithm", "DQN", "DQNConfig",
     "AbsDistLearner", "Actor", "Component", "Executor", "InferenceLearner", "SimpleDistLearner",
