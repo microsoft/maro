@@ -1,47 +1,12 @@
 Dashboard Visualization
 =======================
 
-<<<<<<< HEAD
-Env-dashboard is a post-experiment visualization tool, aims to provide
-more intuitive environment information, which will guide the design of
-the algorithm and continually fine-tuning.
-
-Feature List
-------------
-Basically, each scenario has 2 parts of visualization: intra-epoch view
-and inter-epoch view. User could switch between them freely.
-
-Intra-epoch view
-~~~~~~~~~~~~~~~~
-Detailed information of resource holders and selected tick could be
-viewed under this mode.
-
-Inter-epoch view
-~~~~~~~~~~~~~~~~
-Comprehensive and specific information by various types of charts like
-line chart, bar chart or heat map could be viewed under this mode.
-
-Epoch/Snapshot/Resource Holder Selection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-User could select the specific index of epoch/snapshot/resource holder
-to view information.
-
-Sampling Ratio
-~~~~~~~~~~~~~~
-User could select the sampling ratio of epoch/snapshot/resource holder
-by sliding to change the number of data to be displayed.
-
-Formula Calculation
-~~~~~~~~~~~~~~~~~~~
-User could generate their own attributes by using pre-defined formulas.
-=======
 Env-dashboard is a post-experimental visualization tool, aims to provide
 more intuitive environment information, which will guide the design of
 the algorithm and continually fine-tuning.
 
 Currently, the visualization of senario **Container Inventory Management**
 and **Citi Bike** are supported.
->>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 Dependency
 ----------
@@ -114,14 +79,6 @@ e.g.
 
 .. code-block:: sh
 
-<<<<<<< HEAD
-    maro inspector env --source .\maro\dumper_files --force true
-
-----
-
-Expected data is dumped snapshot files. The structure of input file
-folder should be like this:
-=======
     maro inspector env --source_path .\maro\dumper_files --force false
 
 ----
@@ -129,62 +86,22 @@ folder should be like this:
 Parameter **force** refers to regenerate cross-epoch summary data or not, default value is 'true'.
 Parameter **source_path** refers to the path of dumped snapshot files.
 The expected structure of file folder should be like this:
->>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 Folder Structure
 
 .. code-block:: sh
 
-<<<<<<< HEAD
-   |-- ~/.source_folder_root
-       |-- epoch_#                    # folders to restore data of
-                                        each epoch
-       |   |--{instance}_info.csv     # attributes of current epoch.
-                                        Instance could be port,
-                                        vessel or station
-       |-- manifest.yml               # record basic info like
-                                        scenario name, epoch\_num,
-                                        index\_name\_mapping file name.
-       |-- index\_name\_mapping file  # record the relationship between
-                                        an index and its name.
-                                        Type of this file varied
-                                        between scenarios.
-       |-- {instance}_summary.csv     # instance could be port,
-                                        vessel or station.
-                                        more detailed files,
-                                        which will be used directly
-                                        by the visualization tool.
-                                        Generated after data processing.
-=======
     ./LOCAL_DUMPER_DATA_FOLDER
         epoch_#                         # folders to restore data of each epoch.
             {resource_holder}.csv       # attributes of current epoch.
        manifest.yml                     # basic info like scenario name, number of epoches.
-       index\_name\_mapping file        # relationship between an index and its name of resource holders.
+       index_name_mapping file        # relationship between an index and its name of resource holders.
        {resource_holder}_summary.csv    # cross-epoch summary information. 
->>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
 
 
 
 ----
 
-<<<<<<< HEAD
-Usage
------
-
-Basically, each scenario has 2 parts of visualization: inter epoch
-and intra epoch. User could switch between them freely.
-
-By changing sampling ratio and data display standard, user could view
-the comprehensive and specific information by various types of charts
-like line-chart, bar-chart or heat map.
-
-When viewing data, users can interact freely, such as inputting custom
-parameters according to predefined formulas, switching parameter
-selection, etc.
-
-Examples of each scenarios please refer to docs of each scenarios.
-=======
 If any file is missed compared with the expected folder structure
 displayed above, the command line would prompt users with an error message.
 The visualization tool looks for the free port to launch page in sequence, starting with port 8501.
@@ -227,8 +144,8 @@ To view the details of a resource holder or a tick, user could select
 the specific index of epoch/snapshot/resource holder by sliding the slider
 on the left side of page.
 
-.. figure:: ..\images\visualization\dashboard\epoch_resource_holder_index_selection.gif
-   :alt: epoch\_resource\_holder\_index\_selection
+.. image:: ../images/visualization/dashboard/epoch_resource_holder_index_selection.gif
+   :alt: epoch_resource_holder_index_selection
 
 Snapshot/Resource Holder Sampling Ratio Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -237,8 +154,8 @@ To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of snapshot/resource holder by sliding to
 change the number of data to be displayed.
 
-.. figure:: ..\images\visualization\dashboard\snapshot_sampling_ratio_selection.gif
-   :alt: snapshot\_sampling\_ratio\_selection
+.. image:: ../images/visualization/dashboard/snapshot_sampling_ratio_selection.gif
+   :alt: snapshot_sampling_ratio_selection
 
 Formula Calculation
 ^^^^^^^^^^^^^^^^^^^
@@ -247,8 +164,8 @@ User could generate their own attributes by using pre-defined formulas.
 The results of the formula calculation could be reused as the input
 parameter of formula.
 
-.. figure:: ..\images\visualization\dashboard\formula_calculation.gif
-   :alt: formula\_calculation
+.. image:: ../images/visualization/dashboard/formula_calculation.gif
+   :alt: formula_calculation
 
 Inter-epoch view
 ~~~~~~~~~~~~~~~~
@@ -270,8 +187,8 @@ To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of epoch by sliding to
 change the number of data to be displayed.
 
-.. figure:: ..\images\visualization\dashboard\epoch_sampling_ratio.gif
-   :alt: epoch\_sampling\_ratio
+.. image:: ../images/visualization/dashboard/epoch_sampling_ratio.gif
+   :alt: epoch_sampling_ratio
 
 Formula Calculation
 ^^^^^^^^^^^^^^^^^^^
@@ -286,4 +203,3 @@ Examples of each scenarios please refer to docs of each scenarios:
 * `Container Inventory Management <../scenarios/container_inventory_management.html#Visualization>`_.
 
 * `Citi Bike <../scenarios/citi_bike.html#Visualization>`_.
->>>>>>> b30ca0eda4353f7413b5502676822363cd7c82b2
