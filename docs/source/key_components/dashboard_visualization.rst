@@ -62,7 +62,7 @@ path of a local file folder, data would be dumped to this folder.
 Data would be dumped automatically when the Env object is initialized.
 
 For more details about Environment, please refer to
-`Environment <../simulation_toolkit.html#Environment>`_.
+`Environment <simulation_toolkit.html>`_.
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
