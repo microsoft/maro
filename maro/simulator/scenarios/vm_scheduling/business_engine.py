@@ -198,6 +198,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             )
             vm_info.sub_id = vm.sub_id
             vm_info.deployment_id = vm.deploy_id
+            vm_info.category = vm.vm_category
 
             if vm.vm_id not in cur_tick_cpu_utilization:
                 raise Exception(f"The VM id: '{vm.vm_id}' does not exist at this tick.")
