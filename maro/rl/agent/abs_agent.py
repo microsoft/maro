@@ -73,9 +73,6 @@ class AbsAgent(ABC):
         if self._experience_pool is not None:
             self._experience_pool.put(experiences)
 
-    def to_shared_memory(self):
-        self._algorithm.model.share_memory()
-
     def load_model(self, model):
         """Load models from memory."""
         self._algorithm.model.load(model)

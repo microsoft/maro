@@ -230,7 +230,7 @@ class ZmqDriver(AbsDriver):
             if message.destination in self._disconnected_peer_name_list:
                 raise PendingToSend(f"Temporary failure to send message to {message.destination}, may rejoin later.")
             else:
-                self._logger.error(f"fFailure to send message caused by: {key_error}")
+                self._logger.error(f"Failure to send message caused by: {key_error}")
                 sys.exit(NON_RESTART_EXIT_CODE)
         except Exception as e:
             raise DriverSendError(f"Failure to send message caused by: {e}")

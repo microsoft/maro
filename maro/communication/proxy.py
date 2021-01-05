@@ -160,6 +160,33 @@ class Proxy:
                 self._logger.error("Unsupported minimal peers type, please use integer or dict.")
                 sys.exit(NON_RESTART_EXIT_CODE)
 
+        # Parameters for dynamic peers.
+        self._enable_rejoin = enable_rejoin
+        self._is_remove_failed_container = is_remove_failed_container
+        self._max_rejoin_times = max_rejoin_times
+        if self._enable_rejoin:
+            self._peers_catch_lifetime = peers_catch_lifetime
+            self._timeout_for_minimal_peer_number = timeout_for_minimal_peer_number
+            self._enable_message_cache = enable_message_cache_for_rejoin
+            if self._enable_message_cache:
+                self._message_cache_for_exited_peers = defaultdict(
+                    lambda: deque([], maxlen=max_length_for_message_cache)
+                )
+
+            if isinstance(minimal_peers, int):
+                self._minimal_peers = {
+                    peer_type: max(minimal_peers, 1)
+                    for peer_type, peer_info in self._peers_info_dict.items()
+                }
+            elif isinstance(minimal_peers, dict):
+                self._minimal_peers = {
+                    peer_type: max(minimal_peers[peer_type], 1)
+                    for peer_type, peer_info in self._peers_info_dict.items()
+                }
+            else:
+                self._logger.error("Unsupported minimal peers type, please use integer or dict.")
+                sys.exit(NON_RESTART_EXIT_CODE)
+
         self._join()
 
     def _signal_handler(self, signum, frame):

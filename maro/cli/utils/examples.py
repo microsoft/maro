@@ -41,6 +41,7 @@ MARO_GRASS_NODE_LIST = """
 Examples:
     List all nodes in the cluster
         maro grass node list MyClusterName
+
 """
 
 MARO_GRASS_NODE_JOIN = """
@@ -233,6 +234,7 @@ MARO_K8S_TEMPLATE = """
 Examples:
     Get deployment templates to target directory
         maro k8s template
+
 """
 
 MARO_PROCESS_SETUP = """

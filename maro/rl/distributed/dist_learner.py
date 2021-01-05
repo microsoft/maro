@@ -49,7 +49,7 @@ class SimpleDistLearner(AbsDistLearner):
                 break
 
 
-class SEEDLearner(AbsDistLearner):
+class InferenceLearner(AbsDistLearner):
     """Distributed learner based on SEED RL architecture.
 
     See https://arxiv.org/pdf/1910.06591.pdf for experiences.
