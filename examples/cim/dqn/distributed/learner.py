@@ -4,9 +4,7 @@
 import os
 import time
 
-from maro.rl import (
-    AgentManagerMode, LearnerActorComponent, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
-)
+from maro.rl import AgentManagerMode, Component, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -41,7 +39,7 @@ def launch(config, distributed_config):
         scheduler,
         concat_experiences_by_agent,
         expected_peers={
-            LearnerActorComponent.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))
+            Component.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))
         },
         group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
         redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
