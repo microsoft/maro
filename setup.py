@@ -145,7 +145,7 @@ setup(
     package_data={
         "maro.simulator.scenarios.cim": ["topologies/*/*.yml", "meta/*.yml"],
         "maro.simulator.scenarios.citi_bike": ["topologies/*/*.yml", "meta/*.yml"],
-        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*"],
+        "maro.cli.k8s": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*"],
         "maro.cli.grass": ["lib/*", "lib/*/*", "lib/*/*/*", "lib/*/*/*/*", "lib/*/*/*/*/*"],
     },
     zip_safe=False,
