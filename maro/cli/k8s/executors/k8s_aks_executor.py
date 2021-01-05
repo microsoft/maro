@@ -11,6 +11,8 @@ import yaml
 from kubernetes import config, client
 
 from maro.cli.k8s.executors.k8s_executor import K8sExecutor
+from maro.cli.k8s.utils.k8s_details_reader import K8sDetailsReader
+from maro.cli.k8s.utils.k8s_details_writer import K8sDetailsWriter
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
@@ -68,7 +70,7 @@ class K8sAksExecutor(K8sExecutor):
     @staticmethod
     def _build_cluster_details(create_deployment: dict) -> dict:
         # Validate and fill optional value to deployment
-        K8sAksExecutor._validate_create_deployment(create_deployment=create_deployment)
+        K8sAksExecutor._standardize_create_deployment(create_deployment=create_deployment)
 
         # Get cluster name and save details
         cluster_name = create_deployment["name"]
@@ -78,9 +80,11 @@ class K8sAksExecutor(K8sExecutor):
         return create_deployment
 
     @staticmethod
-    def _validate_create_deployment(create_deployment: dict):
+    def _standardize_create_deployment(create_deployment: dict):
         optional_key_to_value = {
-            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']": {
+                "port": GlobalParams.DEFAULT_REDIS_PORT
+            },
             "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT
         }
         with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_create.yml") as fr:
@@ -482,34 +486,27 @@ class K8sAksExecutor(K8sExecutor):
     # maro k8s job
 
     def start_job(self, deployment_path: str):
-        # Load start_job_deployment
+        # Load start_job_deployment.
         with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
+
+        # Standardize start job deployment.
+        K8sAksExecutor._standardize_start_job_deployment(start_job_deployment=start_job_deployment)
 
         # Start job
         self._start_job(job_details=start_job_deployment)
 
     def _start_job(self, job_details: dict):
-        # Validate and fill optional value to deployment
-        K8sAksExecutor._standardize_start_job_deployment(start_job_deployment=job_details)
         job_name = job_details["name"]
-
-        # Mkdir and save job details
-        os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}", exist_ok=True)
-        DetailsWriter.save_job_details(
-            cluster_name=self.cluster_name,
-            job_name=job_name,
-            job_details=job_details
-        )
-
-        # Set job id
-        self._set_job_id(job_name=job_name)
 
         # Create folder
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs", exist_ok=True)
 
+        # Save details
+        K8sDetailsWriter.save_job_details(job_details=job_details)
+
         # Create and save k8s config
-        k8s_job_config = self._create_k8s_job_config(job_name=job_name)
+        k8s_job_config = self._create_k8s_job_config(job_details=job_details)
         with open(
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs/jobs.yml", "w"
         ) as fw:
@@ -552,9 +549,16 @@ class K8sAksExecutor(K8sExecutor):
                 optional_key_to_value={}
             )
 
-    def _create_k8s_job_config(self, job_name: str) -> dict:
+        # Init runtime fields
+        start_job_deployment["id"] = NameCreator.create_job_id()
+        for component, component_details in start_job_deployment["components"].items():
+            component_details["id"] = NameCreator.create_component_id()
+
+        return start_job_deployment
+
+    def _create_k8s_job_config(self, job_details: dict) -> dict:
         # Load details
-        job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+        job_name = job_details["name"]
         cluster_id = self.cluster_details["id"]
         job_id = job_details["id"]
 
@@ -656,27 +660,6 @@ class K8sAksExecutor(K8sExecutor):
 
         return k8s_container_config
 
-    def _set_job_id(self, job_name: str):
-        # Load job details
-        job_details = DetailsReader.load_job_details(
-            cluster_name=self.cluster_name,
-            job_name=job_name
-        )
-
-        # Set job id
-        job_details["id"] = NameCreator.create_job_id()
-
-        # Set component id
-        for component, component_details in job_details["components"].items():
-            component_details["id"] = NameCreator.create_component_id()
-
-        # Save details
-        DetailsWriter.save_job_details(
-            cluster_name=self.cluster_name,
-            job_name=job_name,
-            job_details=job_details
-        )
-
     def _build_image_address(self, image_name: str) -> str:
         # Load details
         cluster_id = self.cluster_details["id"]
@@ -711,11 +694,7 @@ class K8sAksExecutor(K8sExecutor):
 
         # Save schedule deployment
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}", exist_ok=True)
-        DetailsWriter.save_schedule_details(
-            cluster_name=self.cluster_name,
-            schedule_name=schedule_name,
-            schedule_details=start_schedule_deployment
-        )
+        K8sDetailsWriter.save_schedule_details(schedule_details=start_schedule_deployment)
 
         # Start jobs
         for job_name in start_schedule_deployment["job_names"]:
@@ -729,13 +708,12 @@ class K8sAksExecutor(K8sExecutor):
 
     def stop_schedule(self, schedule_name: str):
         # Load details
-        schedule_details = DetailsReader.load_schedule_details(cluster_name=self.cluster_name,
-                                                               schedule_name=schedule_name)
+        schedule_details = K8sDetailsReader.load_schedule_details(schedule_name=schedule_name)
         job_names = schedule_details["job_names"]
 
         for job_name in job_names:
             # Load job details
-            job_details = DetailsReader.load_job_details(cluster_name=self.cluster_name, job_name=job_name)
+            job_details = K8sDetailsReader.load_job_details(job_name=job_name)
             job_schedule_tag = job_details["tags"]["schedule"]
 
             # Stop job
