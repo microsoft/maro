@@ -5,7 +5,7 @@ the multi-processes in the localhost environment.
 
 Prerequisites
 -------------
-* Liunx with Python 3.6+
+* Linux with Python 3.6+
 * Redis
 
 Cluster Management

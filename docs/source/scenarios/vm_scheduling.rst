@@ -375,4 +375,4 @@ hope this could help you learn how to use the environment interfaces:
   print(f"[Random] Topology: azure.2019.10k. Total ticks: 8638. Start tick: 0")
   print(metrics)
 
-Jump to `this notebook <>`_ for a quick experience.
+Jump to `this notebook <https://github.com/microsoft/maro/tree/master/notebooks/vm_scheduling/interact_with_environment.ipynb>`_ for a quick experience.
