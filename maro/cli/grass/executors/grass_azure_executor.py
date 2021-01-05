@@ -54,7 +54,6 @@ class GrassAzureExecutor(GrassExecutor):
         os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
 
         # Set params and save details
-        create_deployment["id"] = NameCreator.create_cluster_id()
         DetailsWriter.save_cluster_details(
             cluster_name=cluster_name,
             cluster_details=create_deployment
@@ -88,6 +87,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Init runtime fields.
+        create_deployment["id"] = NameCreator.create_cluster_id()
         create_deployment["master"]["image_files"] = {}
 
     def create(self):
