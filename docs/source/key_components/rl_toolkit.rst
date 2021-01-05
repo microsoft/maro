@@ -208,3 +208,4 @@ As an example, the exploration for DQN may be carried out with the aid of an ``E
 
   explorer = EpsilonGreedyExplorer(num_actions=10)
   greedy_action = learning_model(state, is_training=False).argmax(dim=1).data
+  exploration_action = explorer(greedy_action)
