@@ -235,17 +235,13 @@ class K8sAksExecutor(K8sExecutor):
     def delete(self):
         logger.info(f"Deleting cluster {self.cluster_name}")
 
-        # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-
         # Get resource list
-        resource_list = AzureController.list_resources(resource_group=resource_group)
+        resource_list = AzureController.list_resources(resource_group=self.resource_group)
 
         # Filter resources
         deletable_ids = []
         for resource in resource_list:
-            if resource["name"].startswith(cluster_id):
+            if resource["name"].startswith(self.cluster_id):
                 deletable_ids.append(resource["id"])
 
         # Delete resources
@@ -284,14 +280,10 @@ class K8sAksExecutor(K8sExecutor):
             logger.warning_yellow("Replica is match, no create or delete")
 
     def _get_node_size_to_info(self):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-
         # List nodepool
         nodepools = AzureController.list_nodepool(
-            resource_group=resource_group,
-            aks_name=f"{cluster_id}-aks"
+            resource_group=self.resource_group,
+            aks_name=f"{self.cluster_id}-aks"
         )
 
         # Build node_size_to_count
@@ -302,11 +294,9 @@ class K8sAksExecutor(K8sExecutor):
         return node_size_to_count
 
     def _get_node_size_to_spec(self) -> dict:
-        # Load details
-        location = self.cluster_details["cloud"]["location"]
 
         # List available sizes for VM
-        specs = AzureController.list_vm_sizes(location=location)
+        specs = AzureController.list_vm_sizes(location=self.location)
 
         # Build node_size_to_spec
         node_size_to_spec = {}
@@ -318,14 +308,10 @@ class K8sAksExecutor(K8sExecutor):
     def _build_node_pool(self, replicas: int, node_size: str):
         logger.info(f"Building {node_size} NodePool")
 
-        # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-
         # Build nodepool
         AzureController.add_nodepool(
-            resource_group=resource_group,
-            aks_name=f"{cluster_id}-aks",
+            resource_group=self.resource_group,
+            aks_name=f"{self.cluster_id}-aks",
             nodepool_name=K8sAksExecutor._generate_nodepool_name(key=node_size),
             node_count=replicas,
             node_size=node_size
@@ -336,14 +322,10 @@ class K8sAksExecutor(K8sExecutor):
     def _scale_node_pool(self, replicas: int, node_size: str, node_size_to_info: dict):
         logger.info(f"Scaling {node_size} NodePool")
 
-        # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-
         # Scale node pool
         AzureController.scale_nodepool(
-            resource_group=resource_group,
-            aks_name=f"{cluster_id}-aks",
+            resource_group=self.resource_group,
+            aks_name=f"{self.cluster_id}-aks",
             nodepool_name=node_size_to_info[node_size]["name"],
             node_count=replicas
         )
@@ -355,14 +337,10 @@ class K8sAksExecutor(K8sExecutor):
         return NameCreator.create_name_with_md5(prefix="pool", key=key, md5_len=8)
 
     def list_node(self):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-
         # Get aks details
         aks_details = AzureController.get_aks(
-            resource_group=resource_group,
-            aks_name=f"{cluster_id}-aks"
+            resource_group=self.resource_group,
+            aks_name=f"{self.cluster_id}-aks"
         )
         agent_pools_details = aks_details["agentPoolProfiles"]
 
@@ -380,12 +358,10 @@ class K8sAksExecutor(K8sExecutor):
     # maro k8s image
 
     def push_image(self, image_name: str):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-        remote_image_name = f"{cluster_id}acr.azurecr.io/{image_name}"
+        remote_image_name = f"{self.cluster_id}acr.azurecr.io/{image_name}"
 
         # ACR login
-        AzureController.login_acr(acr_name=f"{cluster_id}acr")
+        AzureController.login_acr(acr_name=f"{self.cluster_id}acr")
 
         # Tag image
         command = f"docker tag {image_name} {remote_image_name}"
@@ -396,19 +372,13 @@ class K8sAksExecutor(K8sExecutor):
         _ = SubProcess.run(command)
 
     def list_image(self):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
         # List acr repository
-        acr_repositories = AzureController.list_acr_repositories(acr_name=f"{cluster_id}acr")
+        acr_repositories = AzureController.list_acr_repositories(acr_name=f"{self.cluster_id}acr")
         logger.info(acr_repositories)
 
     # maro k8s data
 
     def push_data(self, local_path: str, remote_dir: str):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
         # Get sas
         sas = self._check_and_get_account_sas()
 
@@ -421,15 +391,12 @@ class K8sAksExecutor(K8sExecutor):
         copy_command = (
             "azcopy copy "
             f"'{abs_source_path}' "
-            f"'https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{target_dir}?{sas}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs{target_dir}?{sas}' "
             "--recursive=True"
         )
         _ = SubProcess.run(copy_command)
 
     def pull_data(self, local_dir: str, remote_path: str):
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
         # Get sas
         sas = self._check_and_get_account_sas()
 
@@ -442,7 +409,7 @@ class K8sAksExecutor(K8sExecutor):
             raise FileOperationError(f"Invalid remote path: {source_path}\nShould be started with '/'.")
         copy_command = (
             "azcopy copy "
-            f"'https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{source_path}?{sas}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs{source_path}?{sas}' "
             f"'{abs_target_dir}' "
             "--recursive=True"
         )
@@ -451,16 +418,13 @@ class K8sAksExecutor(K8sExecutor):
     def remove_data(self, remote_path: str):
         # FIXME: Remove failed, The specified resource may be in use by an SMB client
 
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
         # Get sas
         sas = self._check_and_get_account_sas()
 
         # Remove data
         copy_command = (
             "azcopy remove "
-            f"'https://{cluster_id}st.file.core.windows.net/{cluster_id}-fs{remote_path}?{sas}' "
+            f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs{remote_path}?{sas}' "
             "--recursive=True"
         )
         _ = SubProcess.run(copy_command)
@@ -472,11 +436,10 @@ class K8sAksExecutor(K8sExecutor):
 
         # Load details
         cloud_details = self.cluster_details["cloud"]
-        cluster_id = self.cluster_details["id"]
 
         # Regenerate sas if the key is None or expired TODO:
         if "account_sas" not in cloud_details:
-            account_sas = AzureController.get_storage_account_sas(account_name=f"{cluster_id}st")
+            account_sas = AzureController.get_storage_account_sas(account_name=f"{self.cluster_id}st")
             cloud_details["account_sas"] = account_sas
             DetailsWriter.save_cluster_details(
                 cluster_name=self.cluster_name,
@@ -548,7 +511,6 @@ class K8sAksExecutor(K8sExecutor):
     def _create_k8s_job_config(self, job_details: dict) -> dict:
         # Load details
         job_name = job_details["name"]
-        cluster_id = self.cluster_details["id"]
         job_id = job_details["id"]
 
         # Get config template
@@ -562,7 +524,7 @@ class K8sAksExecutor(K8sExecutor):
         k8s_job_config["metadata"]["labels"]["jobName"] = job_name
         azure_file_config = k8s_job_config["spec"]["template"]["spec"]["volumes"][0]["azureFile"]
         azure_file_config["secretName"] = f"azure-storage-account-secret"
-        azure_file_config["shareName"] = f"{cluster_id}-fs"
+        azure_file_config["shareName"] = f"{self.cluster_id}-fs"
 
         # Create and fill container config
         for component_type, component_details in job_details["components"].items():
@@ -588,7 +550,6 @@ class K8sAksExecutor(K8sExecutor):
         component_details = job_details["components"][component_type]
 
         # Load details
-        cluster_id = self.cluster_details["id"]
         job_name = job_details["name"]
         job_id = job_details["id"]
         component_id = job_details["components"][component_type]["id"]
@@ -634,7 +595,7 @@ class K8sAksExecutor(K8sExecutor):
             },
             {
                 "name": "CLUSTER_ID",
-                "value": f"{cluster_id}"
+                "value": f"{self.cluster_id}"
             },
             {
                 "name": "PYTHONUNBUFFERED",
@@ -647,15 +608,12 @@ class K8sAksExecutor(K8sExecutor):
         return k8s_container_config
 
     def _build_image_address(self, image_name: str) -> str:
-        # Load details
-        cluster_id = self.cluster_details["id"]
-
         # Get repositories
-        acr_repositories = AzureController.list_acr_repositories(acr_name=f"{cluster_id}acr")
+        acr_repositories = AzureController.list_acr_repositories(acr_name=f"{self.cluster_id}acr")
 
         # Build address
         if image_name in acr_repositories:
-            return f"{cluster_id}acr.azurecr.io/{image_name}"
+            return f"{self.cluster_id}acr.azurecr.io/{image_name}"
         else:
             return image_name
 
