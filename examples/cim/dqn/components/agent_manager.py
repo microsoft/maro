@@ -5,12 +5,12 @@ import torch.nn as nn
 from torch.optim import RMSprop
 
 from maro.rl import (
-    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModuleManager, LearningModule, OptimizerOptions,
+    ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModel, NNStack, OptimizerOptions,
     SimpleAgentManager
 )
 from maro.utils import set_seeds
 
-from .agent import CIMAgent
+from .agent import DQNAgent
 
 
 def create_dqn_agents(agent_id_list, config):
@@ -18,24 +18,25 @@ def create_dqn_agents(agent_id_list, config):
     set_seeds(config.seed)
     agent_dict = {}
     for agent_id in agent_id_list:
-        q_module = LearningModule(
+        q_net = NNStack(
             "q_value",
-            [FullyConnectedBlock(
+            FullyConnectedBlock(
                 input_dim=config.algorithm.input_dim,
                 output_dim=num_actions,
                 activation=nn.LeakyReLU,
                 is_head=True,
                 **config.algorithm.model
-            )],
+            )
+        )
+        learning_model = LearningModel(
+            q_net, 
             optimizer_options=OptimizerOptions(cls=RMSprop, params=config.algorithm.optimizer)
         )
-
         algorithm = DQN(
-            model=LearningModuleManager(q_module),
-            config=DQNConfig(**config.algorithm.config, loss_cls=nn.SmoothL1Loss)
+            learning_model,
+            DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss)
         )
-
-        agent_dict[agent_id] = CIMAgent(
+        agent_dict[agent_id] = DQNAgent(
             agent_id, algorithm, ColumnBasedStore(**config.experience_pool),
             **config.training_loop_parameters
         )
