@@ -8,8 +8,8 @@ from .policy_optimization import (
 )
 
 __all__ = [
-    "AbsAlgorithm", 
+    "AbsAlgorithm",
     "DQN", "DQNConfig",
-    "ActionInfo", "ActorCritic", "ActorCriticConfig", "PolicyGradient", "PolicyOptimization", 
+    "ActionInfo", "ActorCritic", "ActorCriticConfig", "PolicyGradient", "PolicyOptimization",
     "PolicyOptimizationConfig"
 ]

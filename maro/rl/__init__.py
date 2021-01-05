@@ -4,7 +4,7 @@
 from maro.rl.actor import AbsActor, SimpleActor
 from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManagerMode, SimpleAgentManager
 from maro.rl.algorithms import (
-    AbsAlgorithm, ActionInfo, ActorCritic, ActorCriticConfig, DQN, DQNConfig, PolicyGradient, PolicyOptimization,
+    DQN, AbsAlgorithm, ActionInfo, ActorCritic, ActorCriticConfig, DQN, DQNConfig, PolicyGradient, PolicyOptimization,
     PolicyOptimizationConfig
 )
 from maro.rl.dist_topologies import (
@@ -22,7 +22,7 @@ from maro.rl.storage import AbsStore, ColumnBasedStore, OverwriteType
 __all__ = [
     "AbsActor", "SimpleActor",
     "AbsAgent", "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager",
-    "AbsAlgorithm", "ActionInfo", "ActorCritic", "ActorCriticConfig", "DQN", "DQNConfig", "PolicyGradient", 
+    "AbsAlgorithm", "ActionInfo", "ActorCritic", "ActorCriticConfig", "DQN", "DQNConfig", "PolicyGradient",
     "PolicyOptimization", "PolicyOptimizationConfig",
     "ActorProxy", "ActorWorker", "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
