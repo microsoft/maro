@@ -9,7 +9,7 @@ from typing import Dict, List
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
-from maro.cli.data_pipeline.utils import download_file, StaticParameter
+from maro.cli.data_pipeline.utils import StaticParameter, download_file
 from maro.data_lib import BinaryReader
 from maro.event_buffer import CascadeEvent, EventBuffer, MaroEvents
 from maro.simulator.scenarios.abs_business_engine import AbsBusinessEngine
@@ -189,7 +189,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._update_pm_workload()
 
         for vm in self._vm_item_picker.items(tick):
-
+            # TODO: Batch request support.
             vm_info = VirtualMachine(
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
