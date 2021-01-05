@@ -6,9 +6,16 @@ from typing import Union
 import numpy as np
 import torch
 
+<<<<<<< HEAD
 from maro.rl.algorithms.abs_algorithm import AbsAlgorithm
 from maro.rl.models.learning_model import LearningModel
 
+=======
+from maro.rl.models.learning_model import LearningModel
+
+from .abs_algorithm import AbsAlgorithm
+
+>>>>>>> master
 
 class DQNConfig:
     """Configuration for the DQN algorithm.
