@@ -3,6 +3,10 @@
 
 
 import json
+from abc import abstractmethod, ABC
+
+import yaml
+from kubernetes import client
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
@@ -11,25 +15,37 @@ from maro.utils.logger import CliLogger
 logger = CliLogger(name=__name__)
 
 
-class K8sExecutor:
+class K8sExecutor(ABC):
+    def __init__(self, cluster_details: dict):
+        self.cluster_details = cluster_details
+
+        # General configs
+        self.cluster_name = self.cluster_details["name"]
+        self.cluster_id = self.cluster_details["id"]
+
+        # Init k8s_client env
+        self.load_k8s_context()
 
     # Create related.
 
     @staticmethod
     def _init_redis():
-        # Apply k8s config
-        command = f"kubectl apply -f {GlobalPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml"
-        _ = SubProcess.run(command)
+        k8s_client = client.AppsV1Api()
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
+            redis_deployment = yaml.safe_load(fr)
+        k8s_client.create_namespaced_deployment(body=redis_deployment, namespace="default")
 
     @staticmethod
+    @abstractmethod
     def _init_nvidia_plugin():
-        # Create plugin namespace
-        command = "kubectl create namespace gpu-resources"
-        _ = SubProcess.run(command)
+        """ Init nvidia plugin for K8s Cluster.
 
-        # Apply k8s config
-        command = f"kubectl apply -f {GlobalPaths.ABS_MARO_K8S_LIB}/configs/nvidia/nvidia-device-plugin.yml"
-        _ = SubProcess.run(command)
+        Different providers may have different loading mechanisms.
+
+        Returns:
+            None.
+        """
+        pass
 
     # Job related.
 
@@ -50,3 +66,17 @@ class K8sExecutor:
                 indent=4, sort_keys=True
             )
         )
+
+    # Utils related
+
+    @abstractmethod
+    def load_k8s_context(self):
+        """ Load k8s context of the MARO cluster.
+
+        Different providers have different loading mechanisms,
+        but every override methods must invoke "config.load_kube_config()" at the very end.
+
+        Returns:
+            None.
+        """
+        pass

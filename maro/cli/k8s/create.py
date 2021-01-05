@@ -13,9 +13,7 @@ def create(deployment_path: str, **kwargs):
         with open(deployment_path, 'r') as fr:
             create_deployment = yaml.safe_load(fr)
         if create_deployment["mode"] == "k8s/aks":
-            K8sAksExecutor.build_cluster_details(create_deployment=create_deployment)
-            executor = K8sAksExecutor(cluster_name=create_deployment["name"])
-            executor.create()
+            K8sAksExecutor.create(create_deployment=create_deployment)
         else:
             raise BadRequestError(f"Unsupported operation in mode '{create_deployment['mode']}'.")
     except KeyError as e:

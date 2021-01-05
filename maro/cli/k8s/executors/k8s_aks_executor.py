@@ -8,6 +8,7 @@ import shutil
 from copy import deepcopy
 
 import yaml
+from kubernetes import config, client
 
 from maro.cli.k8s.executors.k8s_executor import K8sExecutor
 from maro.cli.utils.azure_controller import AzureController
@@ -27,13 +28,45 @@ logger = CliLogger(name=__name__)
 class K8sAksExecutor(K8sExecutor):
 
     def __init__(self, cluster_name: str):
-        self.cluster_name = cluster_name
         self.cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
+
+        # Cloud configs
+        self.subscription = self.cluster_details["cloud"]["subscription"]
+        self.resource_group = self.cluster_details["cloud"]["resource_group"]
+        self.location = self.cluster_details["cloud"]["location"]
+
+        super().__init__(cluster_details=self.cluster_details)
 
     # maro k8s create
 
     @staticmethod
-    def build_cluster_details(create_deployment: dict):
+    def create(create_deployment: dict):
+        logger.info("Creating cluster")
+
+        cluster_details = K8sAksExecutor._build_cluster_details(create_deployment=create_deployment)
+        cluster_name = cluster_details["name"]
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
+
+        # Start creating
+        try:
+            K8sAksExecutor._create_resource_group(cluster_details=cluster_details)
+            K8sAksExecutor._create_k8s_cluster(cluster_details=cluster_details)
+            K8sAksExecutor._load_k8s_context(cluster_id=cluster_id, resource_group=resource_group)
+            K8sAksExecutor._init_redis()
+            K8sAksExecutor._init_nvidia_plugin()
+            K8sAksExecutor._create_k8s_secret(cluster_details=cluster_details)
+            DetailsWriter.save_cluster_details(cluster_name=cluster_name, cluster_details=cluster_details)
+        except Exception as e:
+            # If failed, remove details folder, then raise
+            shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
+            logger.error_red(f"Failed to create cluster {cluster_name}.")
+            raise e
+
+        logger.info_green(f"Cluster {cluster_name} is created.")
+
+    @staticmethod
+    def _build_cluster_details(create_deployment: dict) -> dict:
         # Validate and fill optional value to deployment
         K8sAksExecutor._validate_create_deployment(create_deployment=create_deployment)
 
@@ -41,11 +74,8 @@ class K8sAksExecutor(K8sExecutor):
         cluster_name = create_deployment["name"]
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
             raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
-        os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
-        DetailsWriter.save_cluster_details(
-            cluster_name=cluster_name,
-            cluster_details=create_deployment
-        )
+
+        return create_deployment
 
     @staticmethod
     def _validate_create_deployment(create_deployment: dict):
@@ -61,39 +91,15 @@ class K8sAksExecutor(K8sExecutor):
             optional_key_to_value=optional_key_to_value
         )
 
-    def create(self):
-        logger.info("Creating cluster")
+        # Init runtime fields.
+        create_deployment["id"] = NameCreator.create_cluster_id()
 
-        # Start creating
-        try:
-            self._set_cluster_id()
-            self._create_resource_group()
-            self._create_k8s_cluster()
-            self._init_redis()
-            self._init_nvidia_plugin()
-            self._create_k8s_secret()
-        except Exception as e:
-            # If failed, remove details folder, then raise
-            shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
-            raise e
-
-        logger.info_green(f"Cluster {self.cluster_name} is created")
-
-    def _set_cluster_id(self):
-        # Set cluster id
-        self.cluster_details["id"] = NameCreator.create_cluster_id()
-
-        # Save details
-        DetailsWriter.save_cluster_details(
-            cluster_name=self.cluster_name,
-            cluster_details=self.cluster_details
-        )
-
-    def _create_resource_group(self):
+    @staticmethod
+    def _create_resource_group(cluster_details: dict):
         # Load details
-        subscription = self.cluster_details["cloud"]["subscription"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-        location = self.cluster_details["cloud"]["location"]
+        subscription = cluster_details["cloud"]["subscription"]
+        resource_group = cluster_details["cloud"]["resource_group"]
+        location = cluster_details["cloud"]["location"]
 
         # Check if Azure CLI is installed, and print version
         azure_version = AzureController.get_version()
@@ -113,19 +119,24 @@ class K8sAksExecutor(K8sExecutor):
             )
             logger.info_green(f"Resource group: {resource_group} is created")
 
-    def _create_k8s_cluster(self):
+    @staticmethod
+    def _create_k8s_cluster(cluster_details: dict):
         logger.info("Creating k8s cluster")
 
         # Load details
-        resource_group = self.cluster_details["cloud"]["resource_group"]
+        resource_group = cluster_details["cloud"]["resource_group"]
+        cluster_name = cluster_details["name"]
 
         # Create ARM parameters
-        self._create_deployment_parameters(export_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters")
+        K8sAksExecutor._create_deployment_parameters(
+            cluster_details=cluster_details,
+            export_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/parameters"
+        )
 
         # Start deployment
         template_file_location = f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/template.json"
         parameters_file_location = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/parameters/create_aks_cluster.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/parameters/create_aks_cluster.json"
         )
         AzureController.start_deployment(
             resource_group=resource_group,
@@ -135,15 +146,16 @@ class K8sAksExecutor(K8sExecutor):
         )
 
         # Attach ACR
-        self._attach_acr()
+        K8sAksExecutor._attach_acr(cluster_details=cluster_details)
 
-    def _create_deployment_parameters(self, export_dir: str):
+    @staticmethod
+    def _create_deployment_parameters(cluster_details: dict, export_dir: str):
         # Extract variables
-        cluster_id = self.cluster_details["id"]
-        location = self.cluster_details["cloud"]["location"]
-        admin_username = self.cluster_details["user"]["admin_username"]
-        admin_public_key = self.cluster_details["user"]["admin_public_key"]
-        node_size = self.cluster_details["master"]["node_size"]
+        cluster_id = cluster_details["id"]
+        location = cluster_details["cloud"]["location"]
+        admin_username = cluster_details["user"]["admin_username"]
+        admin_public_key = cluster_details["user"]["admin_public_key"]
+        node_size = cluster_details["master"]["node_size"]
 
         # Mkdir
         os.makedirs(export_dir, exist_ok=True)
@@ -165,10 +177,11 @@ class K8sAksExecutor(K8sExecutor):
             parameters["fileShareName"]["value"] = f"{cluster_id}-fs"
             json.dump(base_parameters, fw, indent=4)
 
-    def _attach_acr(self):
+    @staticmethod
+    def _attach_acr(cluster_details: dict):
         # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
 
         # Attach ACR
         AzureController.attach_acr(
@@ -177,10 +190,23 @@ class K8sAksExecutor(K8sExecutor):
             acr_name=f"{cluster_id}acr"
         )
 
-    def _create_k8s_secret(self):
+    @staticmethod
+    def _init_nvidia_plugin():
+        k8s_client = client.CoreV1Api()
+        k8s_client.create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
+
+        k8s_client = client.AppsV1Api()
+        with open(
+            f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_nvidia_plugin/nvidia-device-plugin.yml", "r"
+        ) as fr:
+            redis_deployment = yaml.safe_load(fr)
+        k8s_client.create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")
+
+    @staticmethod
+    def _create_k8s_secret(cluster_details: dict):
         # Load details
-        cluster_id = self.cluster_details["id"]
-        resource_group = self.cluster_details["cloud"]["resource_group"]
+        cluster_id = cluster_details["id"]
+        resource_group = cluster_details["cloud"]["resource_group"]
 
         # Get storage account key
         storage_account_keys = AzureController.get_storage_account_keys(
@@ -664,10 +690,6 @@ class K8sAksExecutor(K8sExecutor):
         else:
             return image_name
 
-
-
-
-
     @staticmethod
     def _export_log(pod_id: str, container_name: str, export_dir: str):
         os.makedirs(os.path.expanduser(export_dir + f"/{pod_id}"), exist_ok=True)
@@ -787,16 +809,19 @@ class K8sAksExecutor(K8sExecutor):
 
     # utils
 
-    def _load_k8s_context(self):
-        # Load details
-        resource_group = self.cluster_details["cloud"]["resource_group"]
-        cluster_id = self.cluster_details["id"]
+    def load_k8s_context(self):
+        return self._load_k8s_context(
+            cluster_id=self.cluster_id,
+            resource_group=self.resource_group
+        )
 
-        # Load context
+    @staticmethod
+    def _load_k8s_context(cluster_id: int, resource_group: str):
         AzureController.load_aks_context(
             resource_group=resource_group,
             aks_name=f"{cluster_id}-aks"
         )
+        config.load_kube_config(context=f"{cluster_id}-aks")
 
     def _check_and_load_k8s_context(self):
         # Load details
@@ -807,7 +832,7 @@ class K8sAksExecutor(K8sExecutor):
         config_str = SubProcess.run(check_command)
         config_dict = yaml.safe_load(config_str)
         if config_dict["current-context"] != f"{cluster_id}-aks":
-            self._load_k8s_context()
+            self.load_k8s_context()
 
     @staticmethod
     def get_pods_details():
