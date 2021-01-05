@@ -22,7 +22,7 @@ Learner and Actor
   .. code-block:: python
 
     # Train function of learner.
-    def learn(self, total_episodes):
+    def learn(self):
         for exploration_params in self._scheduler:
             performance, exp_by_agent = self._actor.roll_out(
                 self._agent_manager.dump_models(),
