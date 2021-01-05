@@ -633,7 +633,7 @@ random mode, we hope this could help you learn how to use the environment interf
 
            # Drive the environment with the random action.
            metrics, decision_event, is_done = env.step(action)
-  
+
        # Query for the environment business metrics at the end of each episode,
        # it is usually users' optimized object in CIM scenario (usually includes multi-target).
        print(f"ep: {ep}, environment metrics: {env.metrics}")

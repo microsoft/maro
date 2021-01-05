@@ -7,6 +7,7 @@ import threading
 from datetime import datetime
 from math import floor
 from pathlib import Path
+from shutil import copyfile
 
 import numpy as np
 import pandas as pd

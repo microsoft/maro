@@ -59,9 +59,6 @@ class Env(AbsEnv):
         # decision_events array for dump.
         self._decision_events = []
 
-        # decision_events array for dump.
-        self._decision_events = []
-
         # The generator used to push the simulator forward.
         self._simulate_generator = self._simulate()
 
