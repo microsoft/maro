@@ -11,6 +11,10 @@ CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.336k/vm_cpu_readings
 
 PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.336k/azure.2019.336k.tar.gz"
 
+# Oversubscription configuration. The unit of both rates are percentages.
+MAX_OVERSUB_RATE: 15
+MAX_UTILIZATION_RATE: 100
+
 PM:
   AMOUNT: 880
   CPU: 16
