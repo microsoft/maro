@@ -220,7 +220,7 @@ with any additional questions or comments.
 
 ## Related Papers
 
-### [Container Inventory Management](https://maro.readthedocs.io/en/latest/key_components/dashboard_visualization.html)
+### [Container Inventory Management](https://maro.readthedocs.io/en/latest/scenarios/container_inventory_management.html)
 
 ![CIM Vis](./docs/source/images/scenario/cim_vis.gif)
 

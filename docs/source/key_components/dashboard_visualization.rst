@@ -62,7 +62,7 @@ path of a local file folder, data would be dumped to this folder.
 Data would be dumped automatically when the Env object is initialized.
 
 For more details about Environment, please refer to
-`Environment <../simulation_toolkit.html#Environment>`_.
+`Environment <simulation_toolkit.html>`_.
 
 Launch Visualization Tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,7 +95,7 @@ Folder Structure
         epoch_#                         # folders to restore data of each epoch.
             {resource_holder}.csv       # attributes of current epoch.
        manifest.yml                     # basic info like scenario name, number of epoches.
-       index\_name\_mapping file        # relationship between an index and its name of resource holders.
+       index_name_mapping file        # relationship between an index and its name of resource holders.
        {resource_holder}_summary.csv    # cross-epoch summary information. 
 
 
@@ -144,8 +144,8 @@ To view the details of a resource holder or a tick, user could select
 the specific index of epoch/snapshot/resource holder by sliding the slider
 on the left side of page.
 
-.. figure:: ..\images\visualization\dashboard\epoch_resource_holder_index_selection.gif
-   :alt: epoch\_resource\_holder\_index\_selection
+.. image:: ../images/visualization/dashboard/epoch_resource_holder_index_selection.gif
+   :alt: epoch_resource_holder_index_selection
 
 Snapshot/Resource Holder Sampling Ratio Selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -154,8 +154,8 @@ To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of snapshot/resource holder by sliding to
 change the number of data to be displayed.
 
-.. figure:: ..\images\visualization\dashboard\snapshot_sampling_ratio_selection.gif
-   :alt: snapshot\_sampling\_ratio\_selection
+.. image:: ../images/visualization/dashboard/snapshot_sampling_ratio_selection.gif
+   :alt: snapshot_sampling_ratio_selection
 
 Formula Calculation
 ^^^^^^^^^^^^^^^^^^^
@@ -164,8 +164,8 @@ User could generate their own attributes by using pre-defined formulas.
 The results of the formula calculation could be reused as the input
 parameter of formula.
 
-.. figure:: ..\images\visualization\dashboard\formula_calculation.gif
-   :alt: formula\_calculation
+.. image:: ../images/visualization/dashboard/formula_calculation.gif
+   :alt: formula_calculation
 
 Inter-epoch view
 ~~~~~~~~~~~~~~~~
@@ -187,8 +187,8 @@ To view trends in the data, or to weed out excess information, user could
 select the sampling ratio of epoch by sliding to
 change the number of data to be displayed.
 
-.. figure:: ..\images\visualization\dashboard\epoch_sampling_ratio.gif
-   :alt: epoch\_sampling\_ratio
+.. image:: ../images/visualization/dashboard/epoch_sampling_ratio.gif
+   :alt: epoch_sampling_ratio
 
 Formula Calculation
 ^^^^^^^^^^^^^^^^^^^
