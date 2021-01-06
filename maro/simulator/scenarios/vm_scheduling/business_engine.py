@@ -35,6 +35,8 @@ successful_completion (int): Accumulative successful completion of tasks.
 failed_allocation (int): Accumulative failed VM allocation until now.
 total_latency (Latency): Accumulative used buffer time until now.
 total_oversubscriptions (int): Accumulative over-subscriptions.
+total_overload_pms (int):
+total_overload_vms (int):
 """
 
 logger = CliLogger(name=__name__)
@@ -65,6 +67,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._failed_allocation: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscriptions: int = 0
+        self._total_overload_pms: int = 0
+        self._total_overload_vms: int = 0
 
         # Load configurations.
         self._load_configs()
@@ -114,7 +118,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         self._delay_duration: int = self._config.DELAY_DURATION
         self._buffer_time_budget: int = self._config.BUFFER_TIME_BUDGET
-        self._pm_amount: int = self._config.PM.AMOUNT
+        # Oversubscription rate.
+        self._max_cpu_oversubscription_rate: float = self._config.MAX_CPU_OVERSUBSCRIPTION_RATE / 100
+        self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE / 100
+        self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE / 100
+        # Load PM related configs.
+        self._pm_amount: int = self._config.PM_AMOUNT
+        self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_data(self):
         """If the file does not exist, then trigger the short data pipeline to download the processed data."""
@@ -141,7 +151,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             pm.set_init_state(
                 id=pm_id,
                 cpu_cores_capacity=self._pm_cpu_cores_capacity,
-                memory_capacity=self._pm_memory_capacity
+                memory_capacity=self._pm_memory_capacity,
+                oversubscribable=0
             )
 
     def reset(self):
@@ -220,6 +231,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Update energy to the environment metrices.
         total_energy: float = 0.0
         for pm in self._machines:
+            if pm.oversubscribable and pm.cpu_cores_allocated > pm.cpu_cores_capacity:
+                self._total_oversubscriptions += 1
             total_energy += pm.energy_consumption
         self._total_energy_consumption += total_energy
 
@@ -269,7 +282,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             successful_completion=self._successful_completion,
             failed_allocation=self._failed_allocation,
             total_latency=self._total_latency,
-            total_oversubscriptions=self._total_oversubscriptions
+            total_oversubscriptions=self._total_oversubscriptions,
+            total_overload_pms=self._total_overload_pms,
+            total_overload_vms=self._total_overload_vms
         )
 
     def _register_events(self):
@@ -307,7 +322,34 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
             pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
+            if pm.cpu_utilization > 100:
+                # PM Overload.
+                self._overload(pm_id=pm.id)
+                self._total_overload_pms += 1
+            else:
+                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+
+    def _overload(self, pm_id: int):
+        """Overload logic.
+
+        Currently only support killing all VMs on the overload PM and note them as failed allocations.
+        """
+        # TODO: Future features of overload modeling.
+        #       1. Performance degradation
+        #       2. Quiesce specific VMs.
+        pm: PhysicalMachine = self._machines[pm_id]
+        vm_ids: List[int] = [vm_id for vm_id in pm.live_vms]
+
+        if self._kill_all_vms_if_overload:
+            for vm_id in vm_ids:
+                self._live_vms.pop(vm_id)
+
+            pm.deallocate_vms(vm_ids=vm_ids)
+            pm.update_cpu_utilization(vm=None, cpu_utilization=0)
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+
+        self._failed_allocation += len(vm_ids)
+        self._total_overload_vms += len(vm_ids)
 
     def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
@@ -345,19 +387,63 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Add failed allocation.
             self._failed_allocation += 1
 
-    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
+    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int, vm_category: int) -> List[int]:
         """Check all valid PMs.
 
-        Args: vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
+        Args:
+            vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
+            vm_memory_requirement (int): The memory requested by the VM.
+            vm_category (int): The VM category. Delay-insensitive: 0, Interactive: 1, Unknown: 2.
         """
         # NOTE: Should we implement this logic inside the action scope?
-        # TODO: In oversubscribable scenario, we should consider more situations, like
-        #       the PM type (oversubscribable and non-oversubscribable).
+        valid_pm_list = []
+
+        # Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
+        if vm_category:
+            valid_pm_list = self._get_valid_non_oversubscribable_pms(
+                vm_cpu_cores_requirement=vm_cpu_cores_requirement,
+                vm_memory_requirement=vm_memory_requirement
+            )
+        else:
+            valid_pm_list = self._get_valid_oversubscribable_pms(
+                vm_cpu_cores_requirement=vm_cpu_cores_requirement,
+                vm_memory_requirement=vm_memory_requirement
+            )
+
+        return valid_pm_list
+
+    def _get_valid_non_oversubscribable_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
         valid_pm_list = []
         for pm in self._machines:
-            if (pm.cpu_cores_capacity - pm.cpu_cores_allocated >= vm_cpu_cores_requirement and
-                    pm.memory_capacity - pm.memory_allocated >= vm_memory_requirement):
-                valid_pm_list.append(pm.id)
+            if pm.oversubscribable <= 0:
+                # In the condition of non-oversubscription, the valid PMs mean:
+                # PM allocated resource + VM allocated resource <= PM capacity.
+                if (pm.cpu_cores_allocated + vm_cpu_cores_requirement <= pm.cpu_cores_capacity
+                        and pm.memory_allocated + vm_memory_requirement <= pm.memory_capacity):
+                    valid_pm_list.append(pm.id)
+
+        return valid_pm_list
+
+    def _get_valid_oversubscribable_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
+        valid_pm_list = []
+        for pm in self._machines:
+            if pm.oversubscribable >= 0:
+                # In the condition of oversubscription, the valid PMs mean:
+                # 1. PM allocated resource + VM allocated resource <= Max oversubscription rate * PM capacity.
+                # 2. PM CPU usage + VM requirements <= Max utilization rate * PM capacity.
+                if (
+                    (
+                        pm.cpu_cores_allocated + vm_cpu_cores_requirement
+                        <= self._max_cpu_oversubscription_rate * pm.cpu_cores_capacity
+                    ) and (
+                        pm.memory_allocated + vm_memory_requirement
+                        <= self._max_memory_oversubscription_rate * pm.memory_capacity
+                    ) and (
+                        pm.cpu_utilization / 100 * pm.cpu_cores_capacity + vm_cpu_cores_requirement
+                        <= self._max_utilization_rate * pm.cpu_cores_capacity
+                    )
+                ):
+                    valid_pm_list.append(pm.id)
 
         return valid_pm_list
 
@@ -393,7 +479,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Get valid pm list.
         valid_pm_list = self._get_valid_pms(
             vm_cpu_cores_requirement=vm_info.cpu_cores_requirement,
-            vm_memory_requirement=vm_info.memory_requirement
+            vm_memory_requirement=vm_info.memory_requirement,
+            vm_category=vm_info.category
         )
 
         if len(valid_pm_list) > 0:
@@ -447,10 +534,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._pending_vm_request_payload.pop(vm_id)
                 self._live_vms[vm_id] = vm
 
-                # TODO: Current logic can not fulfill the oversubscription case.
-
                 # Update PM resources requested by VM.
                 pm = self._machines[pm_id]
+
+                # Empty pm (init state).
+                if pm.oversubscribable == 0:
+                    # Delay-Insensitive: oversubscribable.
+                    if not vm.category:
+                        pm.oversubscribable = 1
+                    # Interactive or Unknown: non-oversubscribable
+                    else:
+                        pm.oversubscribable = -1
+
                 pm.allocate_vms(vm_ids=[vm.id])
                 pm.cpu_cores_allocated += vm.cpu_cores_requirement
                 pm.memory_allocated += vm.memory_requirement
