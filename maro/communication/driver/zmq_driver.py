@@ -192,8 +192,8 @@ class ZmqDriver(AbsDriver):
         """Receive message from ``zmq.POLLER`` until timeout.
 
         Args:
-            timeout (int): Timeout in milliseconds. Defaults to None, in which case the function will return only
-                until at least one message has been received.
+            timeout (int): Timeout in milliseconds. Defaults to None, in which case the function blocks until 
+            at least one message has been received.
 
         Yields:
             recv_message (Message): Received message or None if no message is received before timeout.
