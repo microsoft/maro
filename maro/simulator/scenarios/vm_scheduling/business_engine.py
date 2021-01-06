@@ -412,7 +412,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         return valid_pm_list
 
-    def _get_valid_non_oversubscribable_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> List[int]:
+    def _get_valid_non_oversubscribable_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int) -> list:
         valid_pm_list = []
         for pm in self._machines:
             if pm.oversubscribable <= 0:

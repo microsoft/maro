@@ -53,7 +53,10 @@ class PhysicalMachine(NodeBase):
             id (int): PM id, from 0 to N. N means the amount of PM, which can be set in config.
             cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
             memory_capacity (int): The capacity of memory of the PM, which can be set in config.
-            oversubscribable (int): The type of the PM. 0 means empty, -1 means non-oversubscribable; 1 means oversubscribable.
+            oversubscribable (int): The type of the PM:
+                                    - non-oversubscribable: -1.
+                                    - empty: 0.
+                                    - oversubscribable: 1.
         """
         self._id = id
         self._init_cpu_cores_capacity = cpu_cores_capacity
