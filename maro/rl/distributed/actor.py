@@ -87,7 +87,7 @@ class Actor(ABC):
             if exploration_params is not None:
                 self._executor.set_exploration_params(exploration_params)
         else:
-            self._executor.set_ep("test" if message.session_id == "test" else int(message.session_id.split("-")[-1]))
+            self._executor.set_ep(message.session_id)
 
         self._logger.info(f"Rolling out for {message.session_id}...")
         metrics, decision_event, is_done = self._env.step(None)

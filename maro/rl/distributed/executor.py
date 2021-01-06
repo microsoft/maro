@@ -44,8 +44,7 @@ class Executor(object):
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-        self._current_ep = None
-        self._current_session_prefix = None
+        self._current_stage = None
         self._time_step = 0
         self._proxy = None
 
@@ -53,11 +52,8 @@ class Executor(object):
         self._proxy = proxy
         self._action_source = self._proxy.peers_name[self._action_source][0]
 
-    def set_ep(self, ep: Union[int, str]):
-        self._current_ep = ep
-        self._current_session_prefix = ".".join(
-            [self._proxy.component_name, f"ep-{self._current_ep}" if self._current_ep != "test" else "test"]
-        )
+    def set_stage(self, stage: str):
+        self._current_stage = stage
 
     def choose_action(self, decision_event, snapshot_list):
         assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
@@ -68,14 +64,17 @@ class Executor(object):
                 tag=MessageTag.ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
-                session_id=".".join([self._current_session_prefix, f"t-{self._time_step}"]),
+                session_id=".".join([self._current_stage, self._time_step]),
                 payload=payload
             ),
             timeout=self._action_wait_timeout,
             stop_condition=lambda msg:
-            msg.tag == MessageTag.EXIT or
-            msg.tag == MessageTag.ROLLOUT and
-            (msg.session_id == "test" or int(msg.session_id.split("-")[-1]) > self._current_ep)
+                (msg.tag == MessageTag.EXIT or 
+                    msg.tag == MessageTag.ROLLOUT and
+                    (self._current_stage != "test" and
+                        (msg.session_id == "test" or int(msg.session_id) > int(self._current_stage))
+                    )
+                )
         )
         # Reset or exit
         if isinstance(reply, Message):

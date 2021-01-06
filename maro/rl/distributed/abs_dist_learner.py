@@ -47,6 +47,7 @@ class AbsDistLearner(ABC):
         self._registry_table.register_event_handler(
             f"{ACTOR}:{MessageTag.FINISHED.value}:{update_trigger}", self._update
         )
+        self._current_stage = None
         self._logger = InternalLogger(self._proxy.component_name)
         self._pending_actor_set = None
 
@@ -61,7 +62,7 @@ class AbsDistLearner(ABC):
     def exit(self):
         """Tell the remote actor to exit."""
         self._proxy.ibroadcast(
-            component_type=ACTOR, tag=MessageTag.EXIT, session_id=None, session_type=SessionType.NOTIFICATION
+            component_type=ACTOR, tag=MessageTag.EXIT, session_type=SessionType.NOTIFICATION
         )
         self._logger.info("Exiting...")
         sys.exit(0)
@@ -72,7 +73,7 @@ class AbsDistLearner(ABC):
     def dump_models(self, dir_path: str):
         self._agent_manager.dump_models_to_files(dir_path)
 
-    def _request_rollout(self, episode: str):
+    def _request_rollout(self):
         """Send roll-out requests to remote actors.
 
         Args:
@@ -83,10 +84,10 @@ class AbsDistLearner(ABC):
         self._proxy.ibroadcast(
             component_type=ACTOR,
             tag=MessageTag.ROLLOUT,
-            session_id=episode,
+            session_id=self._current_stage,
             session_type=SessionType.TASK
         )
-        self._logger.info(f"Sent roll-out requests to {self._actors} for {episode}")
+        self._logger.info(f"Sent roll-out requests to {self._actors} for {self._current_stage}")
 
     def _update(self, messages: list):
         if isinstance(messages, SessionMessage):
@@ -96,9 +97,9 @@ class AbsDistLearner(ABC):
         for msg in messages:
             performance = msg.payload[PayloadKey.PERFORMANCE]
             self._scheduler.record_performance(performance)
-            current_ep = f"ep-{self._scheduler.current_ep}" if is_training else "test"
+            current_ep = str(self._scheduler.current_ep) if is_training else "test"
             self._logger.info(
-                f"{msg.source}.{current_ep} - performance: {performance}, "
+                f"{msg.source}.ep-{current_ep} - performance: {performance}, "
                 f"exploration_params: {self._scheduler.exploration_params if is_training else None}"
             )
             self._pending_actor_set.remove(msg.source)
