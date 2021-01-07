@@ -293,15 +293,20 @@ class K8sExecutor(abc.ABC):
                 optional_key_to_value={}
             )
 
+        # Init runtime params
+        start_schedule_deployment["id"] = NameCreator.create_schedule_id()
+
         return start_schedule_deployment
 
     @staticmethod
     def _build_job_details_for_schedule(schedule_details: dict, job_name: str) -> dict:
-        schedule_name = schedule_details["name"]
-
+        # Convert schedule_details to job_details
         job_details = copy.deepcopy(schedule_details)
         job_details["name"] = job_name
-        job_details["tags"] = {"schedule_name": schedule_name}
+        job_details["tags"] = {
+            "schedule_name": schedule_details["name"],
+            "schedule_id": schedule_details["id"]
+        }
         job_details.pop("job_names")
 
         return job_details
