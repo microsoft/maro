@@ -31,7 +31,7 @@ class TestK8s(unittest.TestCase):
     Ref: https://docs.python.org/3.7/library/unittest.html#organizing-test-code
     """
     test_id = None
-    test_name = "test_job"
+    job_name = "job1"
     test_func_to_time = {}
     cluster_name = None
     resource_group = None
@@ -111,10 +111,17 @@ class TestK8s(unittest.TestCase):
         return_str = SubProcess.run(command)
         return json.loads(return_str)
 
-    def _list_jobs_details(self) -> dict:
+    def _list_jobs(self) -> dict:
         command = f"maro k8s job list {self.cluster_name}"
         return_str = SubProcess.run(command)
         return json.loads(return_str)
+
+    def _get_name_to_job_details(self) -> dict:
+        jobs = self._list_jobs()
+        name_to_job_details = {}
+        for job in jobs:
+            name_to_job_details[job["metadata"]["labels"]["jobName"]] = job
+        return name_to_job_details
 
     @staticmethod
     def _gracefully_wait(secs: int = 10) -> None:
@@ -283,8 +290,8 @@ class TestK8s(unittest.TestCase):
         remain_idx = 0
         is_finished = False
         while remain_idx <= 100:
-            jobs_details = self._list_jobs_details()
-            job_details = jobs_details[self.test_name]
+            name_to_job_details = self._get_name_to_job_details()
+            job_details = name_to_job_details[self.job_name]
             if "succeeded" in job_details["status"] and job_details["status"]["succeeded"] == 1:
                 is_finished = True
                 break
