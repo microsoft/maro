@@ -14,9 +14,7 @@ def create(deployment_path: str, **kwargs):
         with open(deployment_path, "r") as fr:
             create_deployment = yaml.safe_load(fr)
         if create_deployment["mode"] == "grass/azure":
-            GrassAzureExecutor.build_cluster_details(create_deployment=create_deployment)
-            executor = GrassAzureExecutor(cluster_name=create_deployment["name"])
-            executor.create()
+            GrassAzureExecutor.create(create_deployment=create_deployment)
         elif create_deployment["mode"] == "grass/on-premises":
             GrassOnPremisesExecutor.build_cluster_details(create_deployment=create_deployment)
             executor = GrassOnPremisesExecutor(cluster_name=create_deployment["name"])

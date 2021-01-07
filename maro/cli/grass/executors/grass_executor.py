@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 
-import copy
 import hashlib
 import json
 import os
@@ -298,20 +297,39 @@ class GrassExecutor:
 
     # Remote Scripts
 
-    def remote_init_build_node_image_vm(self, vm_ip_address: str):
+    @staticmethod
+    def remote_init_build_node_image_vm(admin_username: str, vm_ip_address: str, ssh_port: int):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{vm_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{vm_ip_address} "
             "'python3 ~/init_build_node_image_vm.py'"
         )
         SubProcess.interactive_run(command)
 
-    def remote_init_master(self):
+    @staticmethod
+    def remote_init_master(admin_username: str, master_ip_address: str, ssh_port: int, cluster_name: str):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.init_master {self.cluster_name}'"
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} "
+            f"{admin_username}@{master_ip_address} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.init_master {cluster_name}'"
         )
         SubProcess.interactive_run(command)
+
+    @staticmethod
+    def remote_start_master_services(admin_username: str, master_ip_address: str, ssh_port: int, cluster_name: str):
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} "
+            f"{admin_username}@{master_ip_address} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_agent_service "
+            f"{cluster_name}'"
+        )
+        _ = SubProcess.run(command)
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} "
+            f"{admin_username}@{master_ip_address} "
+            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_api_server_service "
+            f"{cluster_name}'"
+        )
+        _ = SubProcess.run(command)
 
     def remote_init_node(self, node_name: str, node_ip_address: str):
         command = (
@@ -319,22 +337,6 @@ class GrassExecutor:
             f"'python3 ~/init_node.py {self.cluster_name} {node_name}'"
         )
         SubProcess.interactive_run(command)
-
-    def remote_start_master_services(self):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_agent_service "
-            f"{self.cluster_name}'"
-        )
-        _ = SubProcess.run(command)
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} "
-            f"{self.admin_username}@{self.master_public_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_api_server_service "
-            f"{self.cluster_name}'"
-        )
-        _ = SubProcess.run(command)
 
     def remote_start_node_services(self, node_name: str, node_ip_address: str):
         command = (
@@ -362,54 +364,69 @@ class GrassExecutor:
         )
         _ = SubProcess.run(command)
 
-    def test_ssh_22_connection(self, node_ip_address: str):
+    @staticmethod
+    def test_ssh_22_connection(admin_username: str, node_ip_address: str):
         command = (
-            f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
             "echo 'Connection established'"
         )
         _ = SubProcess.run(command=command, timeout=5)
 
-    def test_ssh_default_port_connection(self, node_ip_address: str):
+    @staticmethod
+    def test_ssh_default_port_connection(admin_username: str, node_ip_address: str, ssh_port: int):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_ip_address} "
             "echo 'Connection established'"
         )
         _ = SubProcess.run(command=command, timeout=5)
 
-    def remote_set_ssh_port(self, node_ip_address: str):
+    @staticmethod
+    def remote_set_ssh_port(admin_username: str, node_ip_address: str, ssh_port: int):
         # Don't have to do the setting if it is assigned 22
-        if self.ssh_port == 22:
+        if ssh_port == 22:
             return
 
         # Set ssh port.
         command = (
-            f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
-            f"'echo -e \"Port {self.ssh_port}\nPort 22\" | sudo tee -a /etc/ssh/sshd_config'"
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"'echo -e \"Port {ssh_port}\nPort 22\" | sudo tee -a /etc/ssh/sshd_config'"
         )
         _ = SubProcess.run(command)
 
         # Restart sshd service.
         command = (
-            f"ssh -o StrictHostKeyChecking=no {self.admin_username}@{node_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
             "'sudo systemctl restart ssh'"
         )
         _ = SubProcess.run(command)
 
-    def retry_connection_and_set_ssh_port(self, node_ip_address: str) -> bool:
+    @staticmethod
+    def retry_connection_and_set_ssh_port(admin_username: str, node_ip_address: str, ssh_port: int) -> bool:
         remain_retries = 20
         while remain_retries > 0:
             try:
-                self.test_ssh_default_port_connection(node_ip_address=node_ip_address)
+                GrassExecutor.test_ssh_default_port_connection(
+                    admin_username=admin_username,
+                    node_ip_address=node_ip_address,
+                    ssh_port=ssh_port
+                )
                 return True
             except (CliError, TimeoutExpired):
                 remain_retries -= 1
                 logger.debug(
-                    f"Unable to connect to {node_ip_address} with port {self.ssh_port}, "
+                    f"Unable to connect to {node_ip_address} with port {ssh_port}, "
                     f"remains {remain_retries} retries."
                 )
             try:
-                self.test_ssh_22_connection(node_ip_address=node_ip_address)
-                self.remote_set_ssh_port(node_ip_address=node_ip_address)
+                GrassExecutor.test_ssh_22_connection(
+                    admin_username=admin_username,
+                    node_ip_address=node_ip_address
+                )
+                GrassExecutor.remote_set_ssh_port(
+                    admin_username=admin_username,
+                    node_ip_address=node_ip_address,
+                    ssh_port=ssh_port
+                )
                 return True
             except (CliError, TimeoutExpired):
                 remain_retries -= 1
