@@ -116,6 +116,7 @@ def stop_schedule(schedule_name: str):
         schedule_name=schedule_name
     )
     for job_name in schedule_details["job_names"]:
+        # FIXME: use schedule id to check
         redis_controller.remove_pending_job_ticket(
             cluster_name=service_config["cluster_name"],
             job_name=job_name
@@ -128,20 +129,20 @@ def stop_schedule(schedule_name: str):
 
 
 def _build_job_details(schedule_details: dict, job_name: str) -> dict:
-    schedule_name = schedule_details["name"]
-
     job_details = copy.deepcopy(schedule_details)
+
+    # Convert schedule_details to job_details
     job_details["name"] = job_name
     job_details["tags"] = {
-        "schedule": schedule_name
+        "schedule_name": schedule_details["name"],
+        "schedule_id": schedule_details["id"]
     }
+    job_details.pop("job_names")
+
+    # Init runtime params
     job_details["id"] = NameCreator.create_job_id()
     job_details["containers"] = {}
-
-    # Set component id
     for _, component_details in job_details["components"].items():
         component_details["id"] = NameCreator.create_component_id()
-
-    job_details.pop("job_names")
 
     return job_details

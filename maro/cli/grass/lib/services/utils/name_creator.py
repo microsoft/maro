@@ -18,3 +18,7 @@ class NameCreator:
     @staticmethod
     def create_component_id():
         return NameCreator.create_name_with_uuid(prefix="component", uuid_len=8)
+
+    @staticmethod
+    def create_schedule_id():
+        return NameCreator.create_name_with_uuid(prefix="schedule", uuid_len=8)
