@@ -3,6 +3,7 @@
 
 
 class NodeStatus:
+    PENDING = "Pending"
     RUNNING = "Running"
     STOPPED = "Stopped"
 

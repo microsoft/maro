@@ -492,7 +492,9 @@ class GrassAzureExecutor(GrassExecutor):
             "hostname": f"{self.cluster_id}-{node_name}-vm",
             "image_files": {},
             "containers": {},
-            "state": {}
+            "state": {
+                "status": NodeStatus.PENDING
+            }
         }
         self.master_api_client.create_node(node_details=node_details)
 
@@ -527,7 +529,6 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Load details
         node_details = self.master_api_client.get_node(node_name=node_name)
-        node_public_ip_address = node_details["public_ip_address"]
 
         # Make sure the node is able to connect
         self.retry_connection_and_set_ssh_port(
