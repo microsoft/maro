@@ -121,7 +121,7 @@ class K8sAksExecutor(K8sExecutor):
         logger.info("Creating k8s cluster")
 
         # Create ARM parameters and start deployment
-        template_file_path = f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/template.json"
+        template_file_path = f"{GlobalPaths.ABS_MARO_K8S_LIB}/modes/aks/create_aks_cluster/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/parameters/create_aks_cluster.json"
         )
@@ -150,7 +150,7 @@ class K8sAksExecutor(K8sExecutor):
         client.CoreV1Api().create_namespace(body=client.V1Namespace(metadata=client.V1ObjectMeta(name="gpu-resources")))
 
         with open(
-            f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_nvidia_plugin/nvidia-device-plugin.yml", "r"
+            f"{GlobalPaths.ABS_MARO_K8S_LIB}/modes/aks/create_nvidia_plugin/nvidia-device-plugin.yml", "r"
         ) as fr:
             redis_deployment = yaml.safe_load(fr)
         client.AppsV1Api().create_namespaced_daemon_set(body=redis_deployment, namespace="gpu-resources")
@@ -400,9 +400,9 @@ class K8sAksExecutor(K8sExecutor):
 
     def _create_k8s_job(self, job_details: dict) -> dict:
         # Get config template
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_job/job.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/modes/aks/create_job/job.yml") as fr:
             k8s_job_config = yaml.safe_load(fr)
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_job/container.yml") as fr:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/modes/aks/create_job/container.yml") as fr:
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs
@@ -553,7 +553,7 @@ class ArmTemplateParameterBuilder:
         # Get params
         cluster_id = cluster_details['id']
 
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/parameters.json", "r") as f:
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/modes/aks/create_aks_cluster/parameters.json", "r") as f:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
             parameters["location"]["value"] = cluster_details["cloud"]["location"]
