@@ -120,21 +120,17 @@ class K8sAksExecutor(K8sExecutor):
     def _create_k8s_cluster(cluster_details: dict):
         logger.info("Creating k8s cluster")
 
-        # Load details
-        resource_group = cluster_details["cloud"]["resource_group"]
-        cluster_name = cluster_details["name"]
-
-        # Create ARM parameters
-        K8sAksExecutor._create_deployment_parameters(
-            cluster_details=cluster_details,
-            export_dir=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/parameters"
-        )
-
-        # Start deployment
+        # Create ARM parameters and start deployment
         template_file_path = f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/template.json"
-        parameters_file_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/parameters/create_aks_cluster.json"
+        parameters_file_path = (
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/parameters/create_aks_cluster.json"
+        )
+        ArmTemplateParameterBuilder.create_aks_cluster(
+            cluster_details=cluster_details,
+            export_path=parameters_file_path
+        )
         AzureController.start_deployment(
-            resource_group=resource_group,
+            resource_group=cluster_details["cloud"]["resource_group"],
             deployment_name="aks_cluster",
             template_file_path=template_file_path,
             parameters_file_path=parameters_file_path
@@ -143,34 +139,7 @@ class K8sAksExecutor(K8sExecutor):
         # Attach ACR
         K8sAksExecutor._attach_acr(cluster_details=cluster_details)
 
-    @staticmethod
-    def _create_deployment_parameters(cluster_details: dict, export_dir: str):
-        # Extract variables
-        cluster_id = cluster_details["id"]
-        location = cluster_details["cloud"]["location"]
-        admin_username = cluster_details["user"]["admin_username"]
-        admin_public_key = cluster_details["user"]["admin_public_key"]
-        node_size = cluster_details["master"]["node_size"]
-
-        # Mkdir
-        os.makedirs(export_dir, exist_ok=True)
-
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/parameters.json", "r") as f:
-            base_parameters = json.load(f)
-        with open(export_dir + "/create_aks_cluster.json", "w") as fw:
-            parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = location
-            parameters["adminUsername"]["value"] = admin_username
-            parameters["adminPublicKey"]["value"] = admin_public_key
-            parameters["clusterName"]["value"] = f"{cluster_id}-aks"
-            parameters["agentCount"]["value"] = 1
-            parameters["agentVMSize"]["value"] = node_size
-            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
-            parameters["acrName"]["value"] = f"{cluster_id}acr"
-            parameters["acrSku"]["value"] = "Basic"
-            parameters["storageAccountName"]["value"] = f"{cluster_id}st"
-            parameters["fileShareName"]["value"] = f"{cluster_id}-fs"
-            json.dump(base_parameters, fw, indent=4)
+        logger.info_green("K8s cluster is created")
 
     @staticmethod
     def _attach_acr(cluster_details: dict):
@@ -590,3 +559,33 @@ class K8sAksExecutor(K8sExecutor):
             aks_name=f"{cluster_id}-aks"
         )
         config.load_kube_config(context=f"{cluster_id}-aks")
+
+
+class ArmTemplateParameterBuilder:
+    @staticmethod
+    def create_aks_cluster(cluster_details: dict, export_path: str) -> dict:
+        # Get params
+        cluster_id = cluster_details['id']
+
+        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/parameters.json", "r") as f:
+            base_parameters = json.load(f)
+            parameters = base_parameters["parameters"]
+            parameters["location"]["value"] = cluster_details["cloud"]["location"]
+            parameters["adminUsername"]["value"] = cluster_details["user"]["admin_username"]
+            parameters["adminPublicKey"]["value"] = cluster_details["user"]["admin_public_key"]
+            parameters["clusterName"]["value"] = f"{cluster_id}-aks"
+            parameters["agentCount"]["value"] = 1
+            parameters["agentVMSize"]["value"] = cluster_details["master"]["node_size"]
+            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
+            parameters["acrName"]["value"] = f"{cluster_id}acr"
+            parameters["acrSku"]["value"] = "Basic"
+            parameters["storageAccountName"]["value"] = f"{cluster_id}st"
+            parameters["fileShareName"]["value"] = f"{cluster_id}-fs"
+
+        # Export parameters if the path is set
+        if export_path:
+            os.makedirs(os.path.dirname(export_path), exist_ok=True)
+            with open(export_path, "w") as fw:
+                json.dump(base_parameters, fw, indent=4)
+
+        return parameters
