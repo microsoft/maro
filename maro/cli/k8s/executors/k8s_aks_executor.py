@@ -44,12 +44,13 @@ class K8sAksExecutor(K8sExecutor):
     def create(create_deployment: dict):
         logger.info("Creating cluster")
 
+        # Get standardized cluster_details
         cluster_details = K8sAksExecutor._standardize_cluster_details(create_deployment=create_deployment)
         cluster_name = cluster_details["name"]
         cluster_id = cluster_details["id"]
         resource_group = cluster_details["cloud"]["resource_group"]
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
-            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
+            raise BadRequestError(f"Cluster '{cluster_name}' is exist")
 
         # Start creating
         try:
@@ -63,10 +64,10 @@ class K8sAksExecutor(K8sExecutor):
         except Exception as e:
             # If failed, remove details folder, then raise
             shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
-            logger.error_red(f"Failed to create cluster {cluster_name}.")
+            logger.error_red(f"Failed to create cluster '{cluster_name}'")
             raise e
 
-        logger.info_green(f"Cluster {cluster_name} is created.")
+        logger.info_green(f"Cluster '{cluster_name}' is created")
 
     @staticmethod
     def _standardize_cluster_details(create_deployment: dict):
@@ -102,17 +103,18 @@ class K8sAksExecutor(K8sExecutor):
 
         # Set subscription id
         AzureController.set_subscription(subscription=subscription)
+        logger.info_green(f"Set subscription to '{subscription}'")
 
         # Check and create resource group
         resource_group_info = AzureController.get_resource_group(resource_group=resource_group)
         if resource_group_info is not None:
-            logger.warning_yellow(f"Azure resource group {resource_group} is already existed")
+            logger.warning_yellow(f"Azure resource group '{resource_group}' already exists")
         else:
             AzureController.create_resource_group(
                 resource_group=resource_group,
                 location=location
             )
-            logger.info_green(f"Resource group: {resource_group} is created")
+            logger.info_green(f"Resource group '{resource_group}' is created")
 
     @staticmethod
     def _create_k8s_cluster(cluster_details: dict):
@@ -129,15 +131,13 @@ class K8sAksExecutor(K8sExecutor):
         )
 
         # Start deployment
-        template_file_location = f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/template.json"
-        parameters_file_location = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/parameters/create_aks_cluster.json"
-        )
+        template_file_path = f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_aks_cluster/template.json"
+        parameters_file_path = f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}/parameters/create_aks_cluster.json"
         AzureController.start_deployment(
             resource_group=resource_group,
             deployment_name="aks_cluster",
-            template_file_path=template_file_location,
-            parameters_file_path=parameters_file_location
+            template_file_path=template_file_path,
+            parameters_file_path=parameters_file_path
         )
 
         # Attach ACR
@@ -223,7 +223,7 @@ class K8sAksExecutor(K8sExecutor):
     # maro k8s delete
 
     def delete(self):
-        logger.info(f"Deleting cluster {self.cluster_name}")
+        logger.info(f"Deleting cluster '{self.cluster_name}'")
 
         # Get resource list
         resource_list = AzureController.list_resources(resource_group=self.resource_group)
@@ -241,7 +241,7 @@ class K8sAksExecutor(K8sExecutor):
         # Delete cluster folder
         shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
 
-        logger.info_green(f"Cluster {self.cluster_name} is deleted")
+        logger.info_green(f"Cluster '{self.cluster_name}' is deleted")
 
     # maro k8s node
 
@@ -252,7 +252,7 @@ class K8sAksExecutor(K8sExecutor):
         # Get node_size_to_spec, and check if node_size is valid
         node_size_to_spec = self._get_node_size_to_spec()
         if node_size not in node_size_to_spec:
-            raise BadRequestError(f"Invalid node_size '{node_size}'.")
+            raise BadRequestError(f"Invalid node_size '{node_size}'")
 
         # Scale node
         if node_size not in node_size_to_info:
@@ -295,7 +295,7 @@ class K8sAksExecutor(K8sExecutor):
         return node_size_to_spec
 
     def _build_node_pool(self, replicas: int, node_size: str):
-        logger.info(f"Building {node_size} NodePool")
+        logger.info(f"Building '{node_size}' nodepool")
 
         # Build nodepool
         AzureController.add_nodepool(
@@ -306,10 +306,10 @@ class K8sAksExecutor(K8sExecutor):
             node_size=node_size
         )
 
-        logger.info_green(f"{node_size} NodePool is built")
+        logger.info_green(f"'{node_size}' nodepool is built")
 
     def _scale_node_pool(self, replicas: int, node_size: str, node_size_to_info: dict):
-        logger.info(f"Scaling {node_size} NodePool")
+        logger.info(f"Scaling '{node_size}' nodepool")
 
         # Scale node pool
         AzureController.scale_nodepool(
@@ -319,7 +319,7 @@ class K8sAksExecutor(K8sExecutor):
             node_count=replicas
         )
 
-        logger.info_green(f"{node_size} NodePool is scaled")
+        logger.info_green(f"'{node_size}' nodepool is scaled")
 
     @staticmethod
     def _generate_nodepool_name(key: str) -> str:
@@ -376,7 +376,7 @@ class K8sAksExecutor(K8sExecutor):
         abs_source_path = PathConvertor.build_path_without_trailing_slash(abs_local_path)
         target_dir = PathConvertor.build_path_with_trailing_slash(remote_dir)
         if not target_dir.startswith("/"):
-            raise FileOperationError(f"Invalid remote path: {target_dir}\nShould be started with '/'.")
+            raise FileOperationError(f"Invalid remote path: {target_dir}\nShould be started with '/'")
         copy_command = (
             "azcopy copy "
             f"'{abs_source_path}' "
@@ -395,7 +395,7 @@ class K8sAksExecutor(K8sExecutor):
         abs_target_dir = PathConvertor.build_path_with_trailing_slash(abs_local_dir)
         os.makedirs(abs_target_dir, exist_ok=True)
         if not source_path.startswith("/"):
-            raise FileOperationError(f"Invalid remote path: {source_path}\nShould be started with '/'.")
+            raise FileOperationError(f"Invalid remote path: {source_path}\nShould be started with '/'")
         copy_command = (
             "azcopy copy "
             f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs{source_path}?{sas}' "
