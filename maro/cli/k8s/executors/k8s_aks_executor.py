@@ -3,17 +3,15 @@
 
 
 import base64
+import copy
 import json
 import os
 import shutil
-from copy import deepcopy
 
 import yaml
-from kubernetes import config, client
+from kubernetes import client, config
 
 from maro.cli.k8s.executors.k8s_executor import K8sExecutor
-from maro.cli.k8s.utils.k8s_details_reader import K8sDetailsReader
-from maro.cli.k8s.utils.k8s_details_writer import K8sDetailsWriter
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
@@ -46,10 +44,12 @@ class K8sAksExecutor(K8sExecutor):
     def create(create_deployment: dict):
         logger.info("Creating cluster")
 
-        cluster_details = K8sAksExecutor._build_cluster_details(create_deployment=create_deployment)
+        cluster_details = K8sAksExecutor._standardize_cluster_details(create_deployment=create_deployment)
         cluster_name = cluster_details["name"]
         cluster_id = cluster_details["id"]
         resource_group = cluster_details["cloud"]["resource_group"]
+        if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
+            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
 
         # Start creating
         try:
@@ -69,19 +69,7 @@ class K8sAksExecutor(K8sExecutor):
         logger.info_green(f"Cluster {cluster_name} is created.")
 
     @staticmethod
-    def _build_cluster_details(create_deployment: dict) -> dict:
-        # Validate and fill optional value to deployment
-        K8sAksExecutor._standardize_create_deployment(create_deployment=create_deployment)
-
-        # Get cluster name and save details
-        cluster_name = create_deployment["name"]
-        if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
-            raise BadRequestError(f"Cluster '{cluster_name}' is exist.")
-
-        return create_deployment
-
-    @staticmethod
-    def _standardize_create_deployment(create_deployment: dict):
+    def _standardize_cluster_details(create_deployment: dict):
         optional_key_to_value = {
             "root['master']['redis']": {
                 "port": GlobalParams.DEFAULT_REDIS_PORT
@@ -98,6 +86,8 @@ class K8sAksExecutor(K8sExecutor):
 
         # Init runtime fields.
         create_deployment["id"] = NameCreator.create_cluster_id()
+
+        return create_deployment
 
     @staticmethod
     def _create_resource_group(cluster_details: dict):
@@ -294,7 +284,6 @@ class K8sAksExecutor(K8sExecutor):
         return node_size_to_count
 
     def _get_node_size_to_spec(self) -> dict:
-
         # List available sizes for VM
         specs = AzureController.list_vm_sizes(location=self.location)
 
@@ -450,65 +439,7 @@ class K8sAksExecutor(K8sExecutor):
 
     # maro k8s job
 
-    def start_job(self, deployment_path: str):
-        # Load start_job_deployment.
-        with open(deployment_path, "r") as fr:
-            start_job_deployment = yaml.safe_load(fr)
-
-        # Standardize start job deployment.
-        K8sAksExecutor._standardize_start_job_deployment(start_job_deployment=start_job_deployment)
-
-        # Start job
-        self._start_job(job_details=start_job_deployment)
-
-    def _start_job(self, job_details: dict):
-        job_name = job_details["name"]
-
-        # Create folder
-        os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/jobs/{job_name}/k8s_configs", exist_ok=True)
-
-        # Save details
-        K8sDetailsWriter.save_job_details(job_details=job_details)
-
-        # Create and apply k8s config
-        k8s_job_config = self._create_k8s_job_config(job_details=job_details)
-        client.BatchV1Api().create_namespaced_job(body=k8s_job_config, namespace="default")
-
-    @staticmethod
-    def stop_job(job_name: str):
-        job_details = K8sDetailsReader.load_job_details(job_name=job_name)
-        client.BatchV1Api().delete_namespaced_job(name=job_details["id"], namespace="default")
-
-    @staticmethod
-    def _standardize_start_job_deployment(start_job_deployment: dict):
-        # Validate k8s_aks_start_job
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_job.yml") as fr:
-            start_job_template = yaml.safe_load(fr)
-        DeploymentValidator.validate_and_fill_dict(
-            template_dict=start_job_template,
-            actual_dict=start_job_deployment,
-            optional_key_to_value={}
-        )
-
-        # Validate component
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/component.yml", "r") as fr:
-            component_template = yaml.safe_load(fr)
-        components_details = start_job_deployment["components"]
-        for _, component_details in components_details.items():
-            DeploymentValidator.validate_and_fill_dict(
-                template_dict=component_template,
-                actual_dict=component_details,
-                optional_key_to_value={}
-            )
-
-        # Init runtime fields
-        start_job_deployment["id"] = NameCreator.create_job_id()
-        for component, component_details in start_job_deployment["components"].items():
-            component_details["id"] = NameCreator.create_component_id()
-
-        return start_job_deployment
-
-    def _create_k8s_job_config(self, job_details: dict) -> dict:
+    def _create_k8s_job(self, job_details: dict) -> dict:
         # Load details
         job_name = job_details["name"]
         job_id = job_details["id"]
@@ -543,19 +474,16 @@ class K8sAksExecutor(K8sExecutor):
         self, job_details: dict, k8s_container_config_template: dict,
         component_type: str, component_index: int
     ):
-        # Copy config
-        k8s_container_config = deepcopy(k8s_container_config_template)
-
-        # Get container config
-        component_details = job_details["components"][component_type]
+        # Copy config.
+        k8s_container_config = copy.deepcopy(k8s_container_config_template)
 
         # Load details
-        job_name = job_details["name"]
+        component_details = job_details["components"][component_type]
         job_id = job_details["id"]
         component_id = job_details["components"][component_type]["id"]
         container_name = f"{job_id}-{component_id}-{component_index}"
 
-        # Fill config
+        # Fill configs.
         k8s_container_config["name"] = container_name
         k8s_container_config["image"] = self._build_image_address(image_name=component_details["image"])
         k8s_container_config["resources"]["requests"] = {
@@ -570,32 +498,32 @@ class K8sAksExecutor(K8sExecutor):
         }
         k8s_container_config["env"] = [
             {
-                "name": "COMPONENT_TYPE",
-                "value": f"{component_type}"
-            },
-            {
-                "name": "COMPONENT_ID",
-                "value": f"{component_id}"
-            },
-            {
-                "name": "COMPONENT_INDEX",
-                "value": f"{component_index}"
-            },
-            {
-                "name": "JOB_NAME",
-                "value": f"{job_name}"
-            },
-            {
-                "name": "JOB_ID",
-                "value": f"{job_id}"
+                "name": "CLUSTER_ID",
+                "value": f"{self.cluster_id}"
             },
             {
                 "name": "CLUSTER_NAME",
                 "value": f"{self.cluster_name}"
             },
             {
-                "name": "CLUSTER_ID",
-                "value": f"{self.cluster_id}"
+                "name": "JOB_ID",
+                "value": f"{job_id}"
+            },
+            {
+                "name": "JOB_NAME",
+                "value": job_details["name"]
+            },
+            {
+                "name": "COMPONENT_ID",
+                "value": f"{component_id}"
+            },
+            {
+                "name": "COMPONENT_TYPE",
+                "value": f"{component_type}"
+            },
+            {
+                "name": "COMPONENT_INDEX",
+                "value": f"{component_index}"
             },
             {
                 "name": "PYTHONUNBUFFERED",
@@ -624,80 +552,6 @@ class K8sAksExecutor(K8sExecutor):
             return_str = client.CoreV1Api().read_namespaced_pod_log(name=pod_id, namespace="default")
             fw.write(return_str)
 
-    # maro k8s schedule
-
-    def start_schedule(self, deployment_path: str):
-        # Load start_schedule_deployment
-        with open(deployment_path, "r") as fr:
-            start_schedule_deployment = yaml.safe_load(fr)
-
-        # Standardize start_schedule_deployment
-        K8sAksExecutor._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
-        schedule_name = start_schedule_deployment["name"]
-
-        # Save schedule deployment
-        os.makedirs(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/schedules/{schedule_name}", exist_ok=True)
-        K8sDetailsWriter.save_schedule_details(schedule_details=start_schedule_deployment)
-
-        # Start jobs
-        for job_name in start_schedule_deployment["job_names"]:
-            job_details = K8sAksExecutor._build_job_details(
-                schedule_details=start_schedule_deployment,
-                job_name=job_name
-            )
-            self._start_job(
-                job_details=job_details
-            )
-
-    def stop_schedule(self, schedule_name: str):
-        # Load details
-        schedule_details = K8sDetailsReader.load_schedule_details(schedule_name=schedule_name)
-        job_names = schedule_details["job_names"]
-
-        for job_name in job_names:
-            # Load job details
-            job_details = K8sDetailsReader.load_job_details(job_name=job_name)
-            job_schedule_tag = job_details["tags"]["schedule"]
-
-            # Stop job
-            if job_schedule_tag == schedule_name:
-                self.stop_job(
-                    job_name=job_name
-                )
-
-    @staticmethod
-    def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
-        # Validate k8s_aks_start_schedule
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_schedule.yml") as fr:
-            start_job_template = yaml.safe_load(fr)
-        DeploymentValidator.validate_and_fill_dict(
-            template_dict=start_job_template,
-            actual_dict=start_schedule_deployment,
-            optional_key_to_value={}
-        )
-
-        # Validate component
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/component.yml") as fr:
-            start_job_component_template = yaml.safe_load(fr)
-        components_details = start_schedule_deployment["components"]
-        for _, component_details in components_details.items():
-            DeploymentValidator.validate_and_fill_dict(
-                template_dict=start_job_component_template,
-                actual_dict=component_details,
-                optional_key_to_value={}
-            )
-
-    @staticmethod
-    def _build_job_details(schedule_details: dict, job_name: str) -> dict:
-        schedule_name = schedule_details["name"]
-
-        job_details = deepcopy(schedule_details)
-        job_details["name"] = job_name
-        job_details["tags"] = {"schedule": schedule_name}
-        job_details.pop("job_names")
-
-        return job_details
-
     # maro k8s status
 
     def status(self):
@@ -720,13 +574,6 @@ class K8sAksExecutor(K8sExecutor):
                 indent=4, sort_keys=True
             )
         )
-
-    # maro k8s template
-
-    @staticmethod
-    def template(export_path: str):
-        command = f"cp {GlobalPaths.ABS_MARO_K8S_LIB}/deployments/external/* {export_path}"
-        _ = SubProcess.run(command)
 
     # Utils
 
