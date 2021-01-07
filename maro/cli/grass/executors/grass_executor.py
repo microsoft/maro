@@ -37,7 +37,7 @@ class GrassExecutor:
         self.admin_username = self.cluster_details["user"]["admin_username"]
 
         # Master configs (may be dynamically create)
-        self.master_public_ip_address = self.cluster_details["master"].get("public_ip_address", None)
+        self.master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
         self.master_api_client = MasterApiClientV1(
             master_ip_address=self.master_public_ip_address,
             api_server_port=self.cluster_details["connection"]["api_server"]["port"]
@@ -107,13 +107,13 @@ class GrassExecutor:
             )
             logger.info_green(f"Image {image_name} is loaded")
         else:
-            raise BadRequestError("Invalid arguments.")
+            raise BadRequestError("Invalid arguments")
 
     # maro grass data
 
     def push_data(self, local_path: str, remote_path: str):
         if not remote_path.startswith("/"):
-            raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
+            raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'")
         FileSynchronizer.copy_files_to_node(
             local_path=local_path,
             remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
@@ -124,7 +124,7 @@ class GrassExecutor:
 
     def pull_data(self, local_path: str, remote_path: str):
         if not remote_path.startswith("/"):
-            raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'.")
+            raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'")
         FileSynchronizer.copy_files_from_node(
             local_dir=local_path,
             remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
@@ -140,22 +140,16 @@ class GrassExecutor:
         with open(deployment_path, "r") as fr:
             start_job_deployment = yaml.safe_load(fr)
 
+        self._start_job(start_job_deployment=start_job_deployment)
+
+    def _start_job(self, start_job_deployment: dict):
         # Standardize start_job_deployment
-        self._standardize_start_job_deployment(start_job_deployment=start_job_deployment)
-
-        # Start job
-        self._start_job(job_details=start_job_deployment)
-
-    def _start_job(self, job_details: dict):
-        logger.info(f"Sending job ticket {job_details['name']}")
-
-        # Set job id
-        self._set_job_id(job_details=job_details)
+        job_details = self._standardize_job_details(start_job_deployment=start_job_deployment)
 
         # Create job
+        logger.info(f"Sending job ticket '{start_job_deployment['name']}'")
         self.master_api_client.create_job(job_details=job_details)
-
-        logger.info_green(f"Job ticket {job_details['name']} is sent")
+        logger.info_green(f"Job ticket '{job_details['name']}' is sent")
 
     def stop_job(self, job_name: str):
         # Delete job
@@ -176,22 +170,21 @@ class GrassExecutor:
     def get_job_logs(self, job_name: str, export_dir: str = "./"):
         # Load details
         job_details = self.master_api_client.get_job(job_name=job_name)
-        job_id = job_details["id"]
 
         # Copy logs from master
         try:
             FileSynchronizer.copy_files_from_node(
                 local_dir=export_dir,
-                remote_path=f"~/.maro/logs/{job_id}",
+                remote_path=f"~/.maro/logs/{job_details['id']}",
                 admin_username=self.admin_username,
                 node_ip_address=self.master_public_ip_address,
                 ssh_port=self.ssh_port
             )
         except CommandExecutionError:
-            logger.error_red("No logs have been created at this time.")
+            logger.error_red("No logs have been created at this time")
 
     @staticmethod
-    def _standardize_start_job_deployment(start_job_deployment: dict):
+    def _standardize_job_details(start_job_deployment: dict) -> dict:
         # Validate grass_azure_start_job
         optional_key_to_value = {
             "root['tags']": {}
@@ -215,16 +208,13 @@ class GrassExecutor:
                 optional_key_to_value={}
             )
 
-        # Init runtime fields.
+        # Init runtime fields
         start_job_deployment["containers"] = {}
-
-    def _set_job_id(self, job_details: dict):
-        # Set cluster id
-        job_details["id"] = NameCreator.create_job_id()
-
-        # Set component id
-        for _, component_details in job_details["components"].items():
+        start_job_deployment["id"] = NameCreator.create_job_id()
+        for _, component_details in start_job_deployment["components"].items():
             component_details["id"] = NameCreator.create_component_id()
+
+        return start_job_deployment
 
     # maro grass schedule
 
@@ -234,19 +224,19 @@ class GrassExecutor:
             start_schedule_deployment = yaml.safe_load(fr)
 
         # Standardize start_schedule_deployment
-        self._standardize_start_schedule_deployment(start_schedule_deployment=start_schedule_deployment)
+        schedule_details = self._standardize_schedule_details(start_schedule_deployment=start_schedule_deployment)
 
         # Create schedule
-        self.master_api_client.create_schedule(schedule_details=start_schedule_deployment)
+        self.master_api_client.create_schedule(schedule_details=schedule_details)
 
-        logger.info_green(f"Multiple job tickets are sent.")
+        logger.info_green(f"Multiple job tickets are sent")
 
     def stop_schedule(self, schedule_name: str):
         # Stop schedule, TODO: add delete job
         self.master_api_client.stop_schedule(schedule_name=schedule_name)
 
     @staticmethod
-    def _standardize_start_schedule_deployment(start_schedule_deployment: dict):
+    def _standardize_schedule_details(start_schedule_deployment: dict):
         # Validate grass_azure_start_job
         with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
@@ -267,6 +257,8 @@ class GrassExecutor:
                 optional_key_to_value={}
             )
 
+        return start_schedule_deployment
+
     # maro grass status
 
     def status(self, resource_name: str):
@@ -277,7 +269,7 @@ class GrassExecutor:
         elif resource_name == "containers":
             return_status = self.master_api_client.list_containers()
         else:
-            raise BadRequestError(f"Resource '{resource_name}' is unsupported.")
+            raise BadRequestError(f"Resource '{resource_name}' is unsupported")
 
         # Print status
         logger.info(
@@ -415,7 +407,7 @@ class GrassExecutor:
                 remain_retries -= 1
                 logger.debug(
                     f"Unable to connect to {node_ip_address} with port {ssh_port}, "
-                    f"remains {remain_retries} retries."
+                    f"remains {remain_retries} retries"
                 )
             try:
                 GrassExecutor.test_ssh_22_connection(
@@ -431,10 +423,10 @@ class GrassExecutor:
             except (CliError, TimeoutExpired):
                 remain_retries -= 1
                 logger.debug(
-                    f"Unable to connect to {node_ip_address} with port 22, remains {remain_retries} retries."
+                    f"Unable to connect to {node_ip_address} with port 22, remains {remain_retries} retries"
                 )
             time.sleep(10)
-        raise ClusterInternalError(f"Unable to connect to {node_ip_address}.")
+        raise ClusterInternalError(f"Unable to connect to {node_ip_address}")
 
     # Utils
 
