@@ -47,8 +47,6 @@ class K8sAksExecutor(K8sExecutor):
         # Get standardized cluster_details
         cluster_details = K8sAksExecutor._standardize_cluster_details(create_deployment=create_deployment)
         cluster_name = cluster_details["name"]
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
         if os.path.isdir(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}"):
             raise BadRequestError(f"Cluster '{cluster_name}' is exist")
 
@@ -56,7 +54,10 @@ class K8sAksExecutor(K8sExecutor):
         try:
             K8sAksExecutor._create_resource_group(cluster_details=cluster_details)
             K8sAksExecutor._create_k8s_cluster(cluster_details=cluster_details)
-            K8sAksExecutor._load_k8s_context(cluster_id=cluster_id, resource_group=resource_group)
+            K8sAksExecutor._load_k8s_context(
+                cluster_id=cluster_details["id"],
+                resource_group=cluster_details["cloud"]["resource_group"]
+            )
             K8sAksExecutor._init_redis()
             K8sAksExecutor._init_nvidia_plugin()
             K8sAksExecutor._create_storage_account_secret(cluster_details=cluster_details)
@@ -85,17 +86,16 @@ class K8sAksExecutor(K8sExecutor):
             optional_key_to_value=optional_key_to_value
         )
 
-        # Init runtime fields.
+        # Init runtime fields
         create_deployment["id"] = NameCreator.create_cluster_id()
 
         return create_deployment
 
     @staticmethod
     def _create_resource_group(cluster_details: dict):
-        # Load details
+        # Get params
         subscription = cluster_details["cloud"]["subscription"]
         resource_group = cluster_details["cloud"]["resource_group"]
-        location = cluster_details["cloud"]["location"]
 
         # Check if Azure CLI is installed, and print version
         azure_version = AzureController.get_version()
@@ -112,7 +112,7 @@ class K8sAksExecutor(K8sExecutor):
         else:
             AzureController.create_resource_group(
                 resource_group=resource_group,
-                location=location
+                location=cluster_details["cloud"]["location"]
             )
             logger.info_green(f"Resource group '{resource_group}' is created")
 
@@ -137,22 +137,13 @@ class K8sAksExecutor(K8sExecutor):
         )
 
         # Attach ACR
-        K8sAksExecutor._attach_acr(cluster_details=cluster_details)
+        AzureController.attach_acr(
+            resource_group=cluster_details["cloud"]["resource_group"],
+            aks_name=f"{cluster_details['id']}-aks",
+            acr_name=f"{cluster_details['id']}acr"
+        )
 
         logger.info_green("K8s cluster is created")
-
-    @staticmethod
-    def _attach_acr(cluster_details: dict):
-        # Load details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
-
-        # Attach ACR
-        AzureController.attach_acr(
-            resource_group=resource_group,
-            aks_name=f"{cluster_id}-aks",
-            acr_name=f"{cluster_id}acr"
-        )
 
     @staticmethod
     def _init_nvidia_plugin():
@@ -166,14 +157,13 @@ class K8sAksExecutor(K8sExecutor):
 
     @staticmethod
     def _create_storage_account_secret(cluster_details: dict):
-        # Load details
-        cluster_id = cluster_details["id"]
-        resource_group = cluster_details["cloud"]["resource_group"]
+        # Build params
+        storage_account_name = f"{cluster_details['id']}st"
 
         # Get storage account key
         storage_account_keys = AzureController.get_storage_account_keys(
-            resource_group=resource_group,
-            storage_account_name=f"{cluster_id}st"
+            resource_group=cluster_details["cloud"]["resource_group"],
+            storage_account_name=storage_account_name
         )
         storage_key = storage_account_keys[0]["value"]
 
@@ -182,7 +172,7 @@ class K8sAksExecutor(K8sExecutor):
             body=client.V1Secret(
                 metadata=client.V1ObjectMeta(name="azure-storage-account-secret"),
                 data={
-                    "azurestorageaccountname": base64.b64encode(f"{cluster_id}st".encode()).decode(),
+                    "azurestorageaccountname": base64.b64encode(storage_account_name.encode()).decode(),
                     "azurestorageaccountkey": base64.b64encode(bytes(storage_key.encode())).decode()
                 }
             ),
@@ -409,10 +399,6 @@ class K8sAksExecutor(K8sExecutor):
     # maro k8s job
 
     def _create_k8s_job(self, job_details: dict) -> dict:
-        # Load details
-        job_name = job_details["name"]
-        job_id = job_details["id"]
-
         # Get config template
         with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/clouds/aks/create_job/job.yml") as fr:
             k8s_job_config = yaml.safe_load(fr)
@@ -420,8 +406,8 @@ class K8sAksExecutor(K8sExecutor):
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs
-        k8s_job_config["metadata"]["name"] = job_id
-        k8s_job_config["metadata"]["labels"]["jobName"] = job_name
+        k8s_job_config["metadata"]["name"] = job_details["id"]
+        k8s_job_config["metadata"]["labels"]["jobName"] = job_details["name"]
         azure_file_config = k8s_job_config["spec"]["template"]["spec"]["volumes"][0]["azureFile"]
         azure_file_config["secretName"] = f"azure-storage-account-secret"
         azure_file_config["shareName"] = f"{self.cluster_id}-fs"
@@ -476,7 +462,7 @@ class K8sAksExecutor(K8sExecutor):
             },
             {
                 "name": "JOB_ID",
-                "value": f"{job_id}"
+                "value": job_id
             },
             {
                 "name": "JOB_NAME",
@@ -484,7 +470,7 @@ class K8sAksExecutor(K8sExecutor):
             },
             {
                 "name": "COMPONENT_ID",
-                "value": f"{component_id}"
+                "value": component_id
             },
             {
                 "name": "COMPONENT_TYPE",
