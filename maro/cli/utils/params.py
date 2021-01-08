@@ -39,6 +39,7 @@ class LocalPaths:
     MARO_PROCESS_SETTING = "~/.maro/process/setting.yml"
     MARO_PROCESS_AGENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/agent/job_agent.py")
     MARO_PROCESS_DEPLOYMENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/deployment")
+    MARO_LOCAL_LOG = "~/.maro/logs"
 
 
 class ProcessRedisName:
@@ -48,3 +49,9 @@ class ProcessRedisName:
     JOB_DETAILS = "process:job_details"
     RUNNING_JOB = "process:running_job"
     SETTING = "process:setting"
+
+
+class GrassLocalRedisName:
+    """Record Redis elements name, and only for grass/local"""
+    RUNTIME_DETAILS = "local:runtime_details"
+    CLUSTER_DETAILS = "local:cluster_details"
