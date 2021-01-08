@@ -3,9 +3,9 @@ from enum import Enum
 
 class PayloadKey(Enum):
     MODEL = "model"
-    EPSILON = "epsilon"
+    EXPLORATION_PARAMS = "exploration_params"
     PERFORMANCE = "performance"
-    EXPERIENCE = "experience"
+    DETAILS = "details"
     SEED = "seed"
     DONE = "done"
     RETURN_DETAILS = "return_details"

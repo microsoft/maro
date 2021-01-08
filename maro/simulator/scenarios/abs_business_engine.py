@@ -164,6 +164,17 @@ class AbsBusinessEngine(ABC):
         """
         return {}
 
+    def get_event_payload_detail(self) -> dict:
+        """Get payload keys for all kinds of event.
+
+        For the performance of the simulator, some event payload has no corresponding Python object.
+        This mapping is provided for your convenience in such case.
+
+        Returns:
+            dict: Key is the event type in string format, value is a list of available keys.
+        """
+        return {}
+
     def get_metrics(self) -> dict:
         """Get statistics information, may different for scenarios.
 
@@ -171,3 +182,11 @@ class AbsBusinessEngine(ABC):
             dict: Dictionary about metrics, content and format determined by business engine.
         """
         return {}
+
+    def dump(self, folder: str):
+        """Dump something from business engine.
+
+        Args:
+            folder (str): Folder to place dumped files.
+        """
+        pass

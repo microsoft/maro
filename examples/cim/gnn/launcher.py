@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     # Learner function for training and testing.
     learner = GNNLearner(actor, agent_manager, logger=simulation_logger)
-    learner.train(config.training)
+    learner.learn(config.training)
 
     # Cancel all the child process used for rollout.
     actor.exit()

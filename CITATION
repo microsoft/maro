@@ -1,0 +1,8 @@
+@misc{MARO_MSRA
+title = {MARO: A Multi-Agent Resource Optimization Platform},
+author = {Arthur Jiang, Jia Zhang, Pingchao Yu, Lyuchun Huang, Yang Qiu, Jinyu Wang, Wenlei Shi, Kaiqi Li, Zhanyu Wang, Chengruidong Zhang, Tianyi Sun, Miaoran Chen, Kuanwei Yu, Xinran Wei, Michael Li, Ning Shang, Qiwei Meng, Shan Li, Jiang Bian, Biao Cheng, Tie-Yan Liu},
+year = {2020},
+publisher = {GitHub},
+journal = {GitHub repository},
+url = {https://github.com/microsoft/maro}
+}

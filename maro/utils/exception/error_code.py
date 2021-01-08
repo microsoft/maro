@@ -15,6 +15,10 @@ ERROR_CODE = {
     1007: "Message Session Type Error",
     1008: "Conditional Event Syntax Error",
     1009: "Driver Type Error",
+    1010: "Socket Type Error",
+    1011: "Peers Disconnection Error",
+    1012: "MARO Send Again Error",
+    1013: "Peers Rejoin Timeout",
 
     # data lib
     2000: "Meta does not contain timestamp field",
@@ -35,7 +39,12 @@ ERROR_CODE = {
     3003: "Deployment Error",
 
     # 4000-4999: Error codes for RL toolkit
-    4001: "Unsupported Agent Mode Error",
-    4002: "Missing Shaper Error",
-    4003: "Wrong Agent Mode Error"
+    4000: "Wrong Agent Manager Mode",
+    4001: "Missing Shaper",
+    4002: "Store Misalignment",
+    4003: "Invalid Episode",
+    4004: "Infinite Training Loop",
+    4005: "Missing Optimizer",
+    4006: "Unrecognized Task",
+    4007: "Wrong Learning Module Dimension",
 }

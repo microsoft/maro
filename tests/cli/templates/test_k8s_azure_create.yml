@@ -1,10 +1,9 @@
-name: test_maro_k8s_cluster
-mode: k8s
+name: ""
+mode: k8s/aks
 
 cloud:
-  infra: azure
   location: japaneast
-  resource_group: test_maro_k8s
+  resource_group: ""
   subscription: ""
 
 user:
