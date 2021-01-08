@@ -64,7 +64,7 @@ class Executor(object):
                 tag=MessageTag.ACTION,
                 source=self._proxy.component_name,
                 destination=self._action_source,
-                session_id=".".join([self._current_stage, self._time_step]),
+                session_id=".".join([self._current_stage, str(self._time_step)]),
                 payload=payload
             ),
             timeout=self._action_wait_timeout,
