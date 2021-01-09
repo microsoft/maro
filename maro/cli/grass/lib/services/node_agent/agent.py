@@ -96,20 +96,25 @@ class NodeAgent:
         self._init_resources()
 
     def _init_resources(self) -> None:
-        resource = {}
+        node_details = self._redis_controller.get_node_details(
+            cluster_name=self._cluster_name,
+            node_name=self._node_name
+        )
+        resources_details = node_details["resources"]
 
-        # Get cpu info
-        resource["cpu"] = psutil.cpu_count()
+        # Get resources info
+        if resources_details["cpu"] == "All":
+            resources_details["cpu"] = psutil.cpu_count()  # (int) logical number
 
-        # Get memory info
-        resource["memory"] = psutil.virtual_memory().total / 1024
+        if resources_details["memory"] == "All":
+            resources_details["memory"] = psutil.virtual_memory().total / 1024  # (int) in MByte
 
-        # Get GPU info
-        try:
-            return_str = SubProcess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
-            resource["gpu"] = int(return_str)
-        except CommandExecutionError:
-            resource["gpu"] = 0
+        if resources_details["gpu"] == "All":
+            try:
+                return_str = SubProcess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
+                resources_details["gpu"] = int(return_str)  # (int) logical number
+            except CommandExecutionError:
+                resources_details["gpu"] = 0
 
         # Set resource details
         with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
@@ -117,7 +122,7 @@ class NodeAgent:
                 cluster_name=self._cluster_name,
                 node_name=self._node_name
             )
-            node_details["resources"] = resource
+            node_details["resources"] = resources_details
             self._redis_controller.set_node_details(
                 cluster_name=self._cluster_name,
                 node_name=self._node_name,

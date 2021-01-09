@@ -10,24 +10,24 @@ from .subprocess import SubProcess
 class DockerController:
     @staticmethod
     def remove_container(container_name: str) -> None:
-        command = f"docker rm -f {container_name}"
+        command = f"sudo docker rm -f {container_name}"
         _ = SubProcess.run(command=command)
 
     @staticmethod
     def stop_container(container_name: str) -> None:
-        command = f"docker stop {container_name}"
+        command = f"sudo docker stop {container_name}"
         _ = SubProcess.run(command=command)
 
     @staticmethod
     def inspect_container(container_name: str) -> dict:
-        command = f"docker inspect {container_name}"
+        command = f"sudo docker inspect {container_name}"
         return_str = SubProcess.run(command=command)
         return json.loads(return_str)[0]
 
     @staticmethod
     def create_container_with_config(create_config: dict) -> dict:
         start_container_command = (
-            "docker run -it -d "
+            "sudo docker run -it -d "
             "--cpus {cpu} "
             "--memory {memory} "
             "--name {container_name} "
@@ -39,7 +39,7 @@ class DockerController:
             "{image_name} {command}"
         )
         start_container_with_gpu_command = (
-            "docker run -it -d "
+            "sudo docker run -it -d "
             "--cpus {cpu} "
             "--memory {memory} "
             "--gpus {gpu} "
@@ -83,7 +83,7 @@ class DockerController:
 
     @staticmethod
     def list_container_names() -> list:
-        command = "docker ps -a --format \"{{.Names}}\""
+        command = "sudo docker ps -a --format \"{{.Names}}\""
         return_str = SubProcess.run(command=command)
         if return_str == "":
             return []
@@ -91,7 +91,7 @@ class DockerController:
 
     @staticmethod
     def load_image(image_path: str) -> None:
-        command = f"docker load -q -i {image_path}"
+        command = f"sudo docker load -q -i {image_path}"
         _ = SubProcess.run(command=command)
 
     # Helper functions.

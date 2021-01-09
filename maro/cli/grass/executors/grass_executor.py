@@ -38,6 +38,7 @@ class GrassExecutor:
 
         # Master configs (may be dynamically create)
         self.master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        self.master_hostname = self.cluster_details["master"]["hostname"]
         self.master_api_client = MasterApiClientV1(
             master_ip_address=self.master_public_ip_address,
             api_server_port=self.cluster_details["connection"]["api_server"]["port"]
@@ -323,10 +324,11 @@ class GrassExecutor:
         )
         _ = SubProcess.run(command)
 
-    def remote_init_node(self, node_name: str, node_ip_address: str):
+    def remote_join_node(self, node_ip_address: str, deployment_path: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'python3 ~/init_node.py {self.cluster_name} {node_name}'"
+            f"'curl -s GET http://{self.master_hostname}:{self.api_server_port}/v1/joinNodeScript | "
+            f"python3 - {deployment_path}'"
         )
         SubProcess.interactive_run(command)
 

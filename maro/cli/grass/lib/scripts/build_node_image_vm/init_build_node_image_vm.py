@@ -38,7 +38,7 @@ sudo systemctl restart docker
 echo 'Step 4/{steps}: Install python3 and related packages'
 sudo apt update
 sudo apt install -y python3-pip
-pip3 install redis psutil flask gunicorn
+pip3 install redis psutil flask gunicorn pyyaml requests deepdiff
 
 echo 'Step 5/{steps}: Delete outdated files'
 rm ~/init_build_node_image_vm.py

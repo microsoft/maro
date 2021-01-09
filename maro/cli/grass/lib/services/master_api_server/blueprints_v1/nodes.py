@@ -5,6 +5,8 @@
 from flask import Blueprint, jsonify, request
 
 from ..objects import redis_controller, service_config
+from ...utils.name_creator import NameCreator
+from ...utils.params import NodeStatus
 
 # Flask related.
 
@@ -50,8 +52,19 @@ def create_node():
     """
 
     node_details = request.json
-    node_name = node_details["name"]
 
+    # Init runtime params.
+    if "name" not in node_details and "id" not in node_details:
+        node_name = NameCreator.create_node_name()
+        node_details["name"] = node_name
+        node_details["id"] = node_name
+    node_details["image_files"] = {}
+    node_details["containers"] = {}
+    node_details["state"] = {
+        "status": NodeStatus.PENDING
+    }
+
+    node_name = node_details["name"]
     with redis_controller.lock(f"lock:name_to_node_details:{node_name}"):
         redis_controller.set_node_details(
             cluster_name=service_config["cluster_name"],

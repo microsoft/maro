@@ -71,7 +71,8 @@ class GrassAzureExecutor(GrassExecutor):
             build_node_image_thread.join()
             create_and_init_master_thread.join()
 
-            DetailsWriter.save_cluster_details(cluster_name=cluster_name, cluster_details=create_deployment)
+            # local save cluster after initialization
+            DetailsWriter.save_cluster_details(cluster_name=cluster_name, cluster_details=cluster_details)
         except Exception as e:
             # If failed, remove details folder, then raise
             shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
@@ -239,8 +240,16 @@ class GrassAzureExecutor(GrassExecutor):
     @staticmethod
     def _create_and_init_master(cluster_details: dict) -> None:
         logger.info("Creating MARO Master")
+
         GrassAzureExecutor._create_master(cluster_details=cluster_details)
         GrassAzureExecutor._init_master(cluster_details=cluster_details)
+
+        # Remote create master after initialization
+        MasterApiClientV1(
+            master_ip_address=cluster_details["master"]["public_ip_address"],
+            api_server_port=cluster_details["connection"]["api_server"]["port"]
+        ).create_master(master_details=cluster_details["master"])
+
         logger.info_green("MARO Master is created")
 
     @staticmethod
@@ -274,14 +283,16 @@ class GrassAzureExecutor(GrassExecutor):
         )
         public_ip_address = ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"]
         private_ip_address = ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0]
+
+        # Get other params and fill them to master_details
         hostname = vm_name
+        username = cluster_details["user"]["admin_username"]
+        cluster_details["master"]["hostname"] = hostname
+        cluster_details["master"]["username"] = username
         cluster_details["master"]["public_ip_address"] = public_ip_address
         cluster_details["master"]["private_ip_address"] = private_ip_address
-        cluster_details["master"]["hostname"] = hostname
         cluster_details["master"]["resource_name"] = vm_name
-        logger.info_green(
-            f"You can login to your master node with: {cluster_details['user']['admin_username']}@{public_ip_address}"
-        )
+        logger.info_green(f"You can login to your master node with: {username}@{public_ip_address}")
 
         logger.info_green("Master VM is created")
 
@@ -332,13 +343,6 @@ class GrassAzureExecutor(GrassExecutor):
         )
         # Gracefully wait
         time.sleep(10)
-
-        # Init master_api_client and remote create master
-        master_api_client = MasterApiClientV1(
-            master_ip_address=cluster_details["master"]["public_ip_address"],
-            api_server_port=cluster_details["connection"]["api_server"]["port"]
-        )
-        master_api_client.create_master(master_details=cluster_details["master"])
 
         logger.info_green("Master VM is initialized")
 
@@ -411,13 +415,13 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(message=f"Creating node '{node_name}'")
 
         # Create node
-        self._create_vm(
+        join_node_deployment = self._create_vm(
             node_name=node_name,
             node_size=node_size
         )
 
         # Init node
-        self._init_node(node_name=node_name)
+        self._init_node(node_details=join_node_deployment["node"])
 
         logger.info_green(message=f"Node '{node_name}' is created")
 
@@ -446,7 +450,7 @@ class GrassAzureExecutor(GrassExecutor):
                 f"Only {len(deletable_nodes)} nodes are deletable, but need to delete {num} to meet the replica"
             )
 
-    def _create_vm(self, node_name: str, node_size: str):
+    def _create_vm(self, node_name: str, node_size: str) -> dict:
         logger.info(message=f"Creating VM '{node_name}'")
 
         # Build params
@@ -481,24 +485,38 @@ class GrassAzureExecutor(GrassExecutor):
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
 
-        # Save details
-        node_details = {
-            "name": node_name,
-            "id": node_name,
-            "public_ip_address": ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"],
-            "private_ip_address": ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0],
-            "node_size": node_size,
-            "resource_name": f"{self.cluster_id}-{node_name}-vm",
-            "hostname": f"{self.cluster_id}-{node_name}-vm",
-            "image_files": {},
-            "containers": {},
-            "state": {
-                "status": NodeStatus.PENDING
+        logger.info_green(f"VM '{node_name}' is created")
+
+        # Build join_node_deployment
+        join_node_deployment = {
+            "mode": "grass/azure",
+            "master": {
+                "hostname": self.master_hostname
+            },
+            "node": {
+                "name": node_name,
+                "id": node_name,
+                "public_ip_address": ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"],
+                "private_ip_address": ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0],
+                "node_size": node_size,
+                "resource_name": f"{self.cluster_id}-{node_name}-vm",
+                "hostname": f"{self.cluster_id}-{node_name}-vm",
+                "resources": {
+                    "cpu": "All",
+                    "memory": "All",
+                    "gpu": "All"
+                }
+            },
+            "connection": {
+                "api_server": {
+                    "port": self.api_server_port
+                }
             }
         }
-        self.master_api_client.create_node(node_details=node_details)
+        with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_{node_name}.yml", "w") as fw:
+            yaml.safe_dump(data=join_node_deployment, stream=fw)
 
-        logger.info_green(f"VM '{node_name}' is created")
+        return join_node_deployment
 
     def _delete_node(self, node_name: str):
         logger.info(f"Deleting node '{node_name}'")
@@ -524,11 +542,10 @@ class GrassAzureExecutor(GrassExecutor):
 
         logger.info_green(f"Node '{node_name}' is deleted")
 
-    def _init_node(self, node_name: str):
-        logger.info(f"Initiating node '{node_name}'")
+    def _init_node(self, node_details: dict):
+        node_name = node_details["name"]
 
-        # Load details
-        node_details = self.master_api_client.get_node(node_name=node_name)
+        logger.info(f"Initiating node '{node_name}'")
 
         # Make sure the node is able to connect
         self.retry_connection_and_set_ssh_port(
@@ -538,10 +555,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Copy required files
-        local_path_to_remote_dir = {
-            f"{GlobalPaths.MARO_GRASS_LIB}/scripts/node/init_node.py": "~/",
-            f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/details.yml": "~/"
-        }
+        local_path_to_remote_dir = {f"{GlobalPaths.MARO_LOCAL_TMP}/join_{node_name}.yml": "~/"}
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
@@ -551,17 +565,14 @@ class GrassAzureExecutor(GrassExecutor):
                 ssh_port=self.ssh_port
             )
 
-        # Remote init node
-        self.remote_init_node(
-            node_name=node_name,
-            node_ip_address=node_details["public_ip_address"]
+        # Remote join node
+        self.remote_join_node(
+            node_ip_address=node_details["public_ip_address"],
+            deployment_path=f"~/join_{node_name}.yml"
         )
 
-        # Load node agent service
-        self.remote_start_node_services(
-            node_name=node_name,
-            node_ip_address=node_details["public_ip_address"]
-        )
+        # Delete local join_deployment.
+        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_{node_name}.yml")
 
         logger.info_green(f"Node '{node_name}' is initialized")
 
