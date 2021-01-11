@@ -160,7 +160,7 @@ class ZmqDriver(AbsDriver):
             self._disconnected_peer_name_list.append(peer_name)
             self._logger.info(f"Disconnected with {peer_name}.")
 
-    def receive(self,  is_continuous: bool = True, timeout: int = None):
+    def receive(self, is_continuous: bool = True, timeout: int = None):
         """Receive message from ``zmq.POLLER``.
 
         Args:

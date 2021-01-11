@@ -86,6 +86,7 @@ class Message(object):
         self.payload = payload
         self.message_id = str(uuid.uuid1())
 
+
 class SessionMessage(Message):
     """The session message class.
 

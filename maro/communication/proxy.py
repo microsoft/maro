@@ -315,7 +315,7 @@ class Proxy:
         if not isinstance(targets, list) and not isinstance(targets, str):
             # The input may be None, if enable peer rejoin.
             self._logger.warn(f"Unrecognized target {targets}.")
-            return 
+            return
 
         # Pre-process targets.
         if isinstance(targets, str):
