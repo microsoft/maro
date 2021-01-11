@@ -195,13 +195,15 @@ class VmSchedulingPipeline(DataPipeline):
 
         vm_table = pd.read_csv(raw_vm_table_file, header=None, index_col=False, names=headers)
         vm_table = vm_table.loc[:, required_headers]
-
+        # Convert to tick by dividing by 300 (5 minutes).
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
         vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
+        # The lifetime of the VM is deleted time - created time + 1 (tick).
+        vm_table['lifetime'] = vm_table['vmcreated'] - vm_table['vmdeleted'] + 1
 
         vm_table['vmcategory'] = vm_table['vmcategory'].map(self._category_map)
 
-        # Transform vmcorecount '>24' bucket to 30 and vmmemory '>64' to 70.
+        # Transform vmcorecount '>24' bucket to 32 and vmmemory '>64' to 128.
         vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 32)
         vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 128)
         vm_table['vmcorecountbucket'] = pd.to_numeric(
