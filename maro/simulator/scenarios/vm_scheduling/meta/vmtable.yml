@@ -17,6 +17,9 @@ entity:
   timestamp:
     column: 'vmcreated'
     dtype: 'i'
+  vm_lifetime:
+    column: 'lifetime'
+    dtype: 'i'
   vm_deleted:
     column: 'vmdeleted'
     dtype: 'i'

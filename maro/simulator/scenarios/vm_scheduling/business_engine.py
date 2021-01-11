@@ -33,6 +33,7 @@ total_energy_consumption (float): Accumulative total PM energy consumption.
 successful_allocation (int): Accumulative successful VM allocation until now.
 successful_completion (int): Accumulative successful completion of tasks.
 failed_allocation (int): Accumulative failed VM allocation until now.
+failed_completion (int): Accumulative failed VM completion due to PM overloading.
 total_latency (Latency): Accumulative used buffer time until now.
 total_oversubscriptions (int): Accumulative over-subscriptions. The unit is PM amount * tick.
 total_overload_pms (int): Accumulative overload pms. The unit is PM amount * tick.
@@ -59,25 +60,15 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             additional_options=additional_options
         )
 
-        # Env metrics.
-        self._total_vm_requests: int = 0
-        self._total_energy_consumption: float = 0
-        self._successful_allocation: int = 0
-        self._successful_completion: int = 0
-        self._failed_allocation: int = 0
-        self._total_latency: Latency = Latency()
-        self._total_oversubscriptions: int = 0
-        self._total_overload_pms: int = 0
-        self._total_overload_vms: int = 0
-
+        # Initialize environment metrics.
+        self._init_metrics()
         # Load configurations.
         self._load_configs()
         self._register_events()
 
         self._init_frame()
-
+        # Initialize simulation data.
         self._init_data()
-
         # PMs list used for quick accessing.
         self._init_pms()
         # All living VMs.
@@ -126,6 +117,19 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._pm_amount: int = self._config.PM_AMOUNT
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
+    def _init_metrics(self):
+        # Env metrics.
+        self._total_vm_requests: int = 0
+        self._total_energy_consumption: float = 0.0
+        self._successful_allocation: int = 0
+        self._successful_completion: int = 0
+        self._failed_allocation: int = 0
+        self._failed_completion: int = 0
+        self._total_latency: Latency = Latency()
+        self._total_oversubscriptions: int = 0
+        self._total_overload_pms: int = 0
+        self._total_overload_vms: int = 0
+
     def _init_data(self):
         """If the file does not exist, then trigger the short data pipeline to download the processed data."""
         vm_table_data_path = self._config.VM_TABLE
@@ -157,12 +161,16 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def reset(self):
         """Reset internal states for episode."""
+        self._total_vm_requests: int = 0
         self._total_energy_consumption: float = 0.0
         self._successful_allocation: int = 0
         self._successful_completion: int = 0
         self._failed_allocation: int = 0
+        self._failed_completion: int = 0
         self._total_latency: Latency = Latency()
         self._total_oversubscriptions: int = 0
+        self._total_overload_pms: int = 0
+        self._total_overload_vms: int = 0
 
         self._frame.reset()
         self._snapshots.reset()
@@ -346,9 +354,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
             pm.deallocate_vms(vm_ids=vm_ids)
             pm.update_cpu_utilization(vm=None, cpu_utilization=0)
-            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
 
-        self._failed_allocation += len(vm_ids)
+        pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+
+        self._failed_completion += len(vm_ids)
         self._total_overload_vms += len(vm_ids)
 
     def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
@@ -361,6 +370,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         idle_power = self._config.PM.POWER_CURVE.IDLE_POWER
 
         cpu_utilization /= 100
+        cpu_utilization = min(1, cpu_utilization)
 
         return idle_power + (busy_power - idle_power) * (2 * cpu_utilization - pow(cpu_utilization, power))
 
