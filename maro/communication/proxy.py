@@ -597,7 +597,7 @@ class Proxy:
         """Forward a received message.
 
         Args:
-            received_message (Message): The message need to forward.
+            message (Message): The message need to forward.
             destination (str): The receiver of message.
             tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
             payload (object): Message payload, if None, keeps the original message's payload. Defaults to None.

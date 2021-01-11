@@ -102,7 +102,7 @@ class TestProxy(unittest.TestCase):
             session_id_list = TestProxy.master_proxy.isend(send_msg)
 
             for receive_message in worker_proxy.receive(is_continuous=False):
-                worker_proxy.reply(received_message=receive_message, tag="unit_test", payload="world!")
+                worker_proxy.reply(message=receive_message, tag="unit_test", payload="world!")
 
             replied_msg_list = TestProxy.master_proxy.receive_by_id(session_id_list)
             self.assertEqual(send_msg.payload + replied_msg_list[0].payload, "hello world!")

@@ -105,7 +105,7 @@ class ActorWorker(object):
         )
 
         self._proxy.reply(
-            received_message=message,
+            message=message,
             tag=MessageTag.UPDATE,
             payload={
                 PayloadKey.PERFORMANCE: performance,
