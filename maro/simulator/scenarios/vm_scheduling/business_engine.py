@@ -69,6 +69,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_frame()
         # Initialize simulation data.
         self._init_data()
+        # Initialize PM SKU map.
+        self._init_pm_sku()
         # PMs list used for quick accessing.
         self._init_pms()
         # All living VMs.
@@ -114,7 +116,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
         # Load PM related configs.
-        self._pm_amount: int = self._config.PM_AMOUNT
+        self._pm_amount: int = self._config.SKU.TYPE_1.AMOUNT
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_metrics(self):
@@ -156,8 +158,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=pm_id,
                 cpu_cores_capacity=self._pm_cpu_cores_capacity,
                 memory_capacity=self._pm_memory_capacity,
+                sku=self._config.PM.SKU.TYPE_1.TYPE_NAME
                 oversubscribable=PmState.EMPTY
             )
+
+    def _init_pm_sku(self):
+        self._sku_list = [
+            convert_dottable({
+                'CALIBRATION_PARAMETER': 1.4,
+                'BUSY_POWER': 10,
+                'IDLE_POWER': 1
+            })
+        ]
 
     def reset(self):
         """Reset internal states for episode."""
@@ -335,7 +347,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._overload(pm_id=pm.id)
                 self._total_overload_pms += 1
             else:
-                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
+                    sku=self._sku_list[pm.sku],
+                    cpu_utilization=pm.cpu_utilization
+                )
 
     def _overload(self, pm_id: int):
         """Overload logic.
@@ -355,19 +370,22 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             pm.deallocate_vms(vm_ids=vm_ids)
             pm.update_cpu_utilization(vm=None, cpu_utilization=0)
 
-        pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+        pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
+            sku=self._sku_list[pm.sku],
+            cpu_utilization=pm.cpu_utilization
+        )
 
         self._failed_completion += len(vm_ids)
         self._total_overload_vms += len(vm_ids)
 
-    def _cpu_utilization_to_energy_consumption(self, cpu_utilization: float) -> float:
+    def _cpu_utilization_to_energy_consumption(self, sku: dict, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = self._config.PM.POWER_CURVE.CALIBRATION_PARAMETER
-        busy_power = self._config.PM.POWER_CURVE.BUSY_POWER
-        idle_power = self._config.PM.POWER_CURVE.IDLE_POWER
+        power: float = sku.CALIBRATION_PARAMETER
+        busy_power = sku.BUSY_POWER
+        idle_power = sku.IDLE_POWER
 
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
@@ -566,7 +584,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     vm=vm,
                     cpu_utilization=None
                 )
-                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(cpu_utilization=pm.cpu_utilization)
+                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
+                    sku=self._sku_list[pm.sku],
+                    cpu_utilization=pm.cpu_utilization
+                )
                 self._successful_allocation += 1
             elif type(action) == PostponeAction:
                 postpone_step = action.postpone_step

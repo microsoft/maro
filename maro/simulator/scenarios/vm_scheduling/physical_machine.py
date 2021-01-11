@@ -15,6 +15,7 @@ class PhysicalMachine(NodeBase):
     id = NodeAttribute("i")
     cpu_cores_capacity = NodeAttribute("i2")
     memory_capacity = NodeAttribute("i2")
+    sku = NodeAttribute("i2")
     # Statistical features.
     cpu_cores_allocated = NodeAttribute("i2")
     memory_allocated = NodeAttribute("i2")
@@ -30,6 +31,7 @@ class PhysicalMachine(NodeBase):
         self._id = 0
         self._init_cpu_cores_capacity = 0
         self._init_memory_capacity = 0
+        self._init_sku = 0
         self._init_type = 0
         # PM resource.
         self._live_vms: Set[int] = set()
@@ -46,13 +48,14 @@ class PhysicalMachine(NodeBase):
 
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
-    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int, oversubscribable: int = 0):
+    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int, oversubscribable: int = 0, sku: int):
         """Set initialize state, that will be used after frame reset.
 
         Args:
             id (int): PM id, from 0 to N. N means the amount of PM, which can be set in config.
             cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
             memory_capacity (int): The capacity of memory of the PM, which can be set in config.
+            sku (int): The SKU of the PM.
             oversubscribable (int): The type of the PM:
                                     - non-oversubscribable: -1.
                                     - empty: 0.
@@ -61,6 +64,7 @@ class PhysicalMachine(NodeBase):
         self._id = id
         self._init_cpu_cores_capacity = cpu_cores_capacity
         self._init_memory_capacity = memory_capacity
+        self._init_sku = sku
         self._init_type = oversubscribable
 
         self.reset()
@@ -71,6 +75,7 @@ class PhysicalMachine(NodeBase):
         self.id = self._id
         self.cpu_cores_capacity = self._init_cpu_cores_capacity
         self.memory_capacity = self._init_memory_capacity
+        self.sku = self._init_sku
         self.oversubscribable = self._init_type
 
         self._live_vms.clear()
