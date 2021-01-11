@@ -294,61 +294,66 @@ class Proxy:
             peer_type: list(self._onboard_peer_dict[peer_type].keys()) for peer_type in self._peers_info_dict.keys()
         }
 
-    def receive(self, is_continuous: bool = True):
+    def receive(self, is_continuous: bool = True, timeout: int = None):
         """Receive messages from communication driver.
 
         Args:
             is_continuous (bool): Continuously receive message or not. Defaults to True.
         """
-        return self._driver.receive(is_continuous)
+        return self._driver.receive(is_continuous, timeout)
 
-    def receive_by_id(self, session_ids: list) -> List[Message]:
+    def receive_by_id(self, targets: List[str], timeout: int = None) -> List[Message]:
         """Receive target messages from communication driver.
 
         Args:
-            session_id_list List[str]: List of ``session_id``.
+            targets List[str]: List of ``session_id``.
                 E.g. ['0_learner0_actor0', '1_learner1_actor1', ...].
 
         Returns:
             List[Message]: List of received messages.
         """
-        # Pre-process session ids.
-        pending_session_id_list, received_messages = [], []
-        if isinstance(session_ids, list):
-            pending_session_id_list = session_ids[:]
-        else:
+        if not isinstance(targets, list) and not isinstance(targets, str):
             # The input may be None, if enable peer rejoin.
-            self._logger.warn(f"Unrecognized session id {session_ids}.")
-            return []
+            self._logger.warn(f"Unrecognized target {targets}.")
+            return 
+
+        # Pre-process targets.
+        if isinstance(targets, str):
+            targets = [targets]
+        pending_targets, received_messages = targets[:], []
 
         # Check message cache for saved messages.
-        for msg_key in session_ids:
-            if msg_key in list(self._message_cache.keys()):
-                for msg in self._message_cache[msg_key]:
-                    pending_session_id_list.remove(msg_key)
-                    received_messages.append(msg)
-                del self._message_cache[msg_key]
+        for session_id in targets:
+            if session_id in list(self._message_cache.keys()):
+                pending_targets.remove(session_id)
+                received_messages.append(self._message_cache[session_id].pop(0))
+                if not self._message_cache[session_id]:
+                    del self._message_cache[session_id]
 
-        if not pending_session_id_list:
+        if not pending_targets:
             return received_messages
 
         # Wait for incoming messages.
-        for msg in self._driver.receive():
-            msg_key = msg.session_id
+        for msg in self._driver.receive(is_continuous=True, timeout=timeout):
+            if not msg:
+                return received_messages
 
-            if msg_key in pending_session_id_list:
-                pending_session_id_list.remove(msg_key)
+            if msg.session_id in pending_targets:
+                pending_targets.remove(msg.session_id)
                 received_messages.append(msg)
             else:
-                self._message_cache[msg_key].append(msg)
+                self._message_cache[msg.session_id].append(msg)
 
-            if not pending_session_id_list:
+            if not pending_targets:
                 break
 
         return received_messages
 
     def _scatter(
-        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+        self,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        destination_payload_list: list
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of session id."""
         session_id_list = []
@@ -358,7 +363,6 @@ class Proxy:
                 tag=tag,
                 source=self._name,
                 destination=destination,
-                session_id=session_id,
                 payload=payload,
                 session_type=session_type
             )
@@ -369,7 +373,11 @@ class Proxy:
         return session_id_list
 
     def scatter(
-        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+        self,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        destination_payload_list: list,
+        timeout: int = -1
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
@@ -379,15 +387,20 @@ class Proxy:
             destination_payload_list ([Tuple(str, object)]): The destination-payload list.
                 The first item of the tuple in list is the message destination,
                 and the second item of the tuple in list is the message payload.
-            session_id (str): Message's session id. Defaults to None.
 
         Returns:
             List[Message]: List of replied message.
         """
-        return self.receive_by_id(self._scatter(tag, session_type, destination_payload_list, session_id))
+        return self.receive_by_id(
+            targets=self._scatter(tag, session_type, destination_payload_list),
+            timeout=timeout
+        )
 
     def iscatter(
-        self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
+        self,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        destination_payload_list: list
     ) -> List[str]:
         """Scatters a list of data to peers, and return list of message id.
 
@@ -397,16 +410,18 @@ class Proxy:
             destination_payload_list ([Tuple(str, object)]): The destination-payload list.
                 The first item of the tuple in list is the message's destination,
                 and the second item of the tuple in list is the message's payload.
-            session_id (str): Message's session id. Defaults to None.
 
         Returns:
             List[str]: List of message's session id.
         """
-        return self._scatter(tag, session_type, destination_payload_list, session_id)
+        return self._scatter(tag, session_type, destination_payload_list)
 
     def _broadcast(
-        self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
-        session_id: str = None, payload=None
+        self,
+        component_type: str,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        payload=None
     ) -> List[str]:
         """Broadcast message to all peers, and return list of session id."""
         if component_type not in list(self._onboard_peer_dict.keys()):
@@ -423,17 +438,20 @@ class Proxy:
             source=self._name,
             destination=component_type,
             payload=payload,
-            session_id=session_id,
             session_type=session_type
         )
 
         self._driver.broadcast(component_type, message)
 
-        return [message.session_id] * len(self._onboard_peer_dict[component_type])
+        return [message.session_id for _ in range(len(self._onboard_peer_dict[component_type]))]
 
     def broadcast(
-        self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
-        session_id: str = None, payload=None
+        self,
+        component_type: str,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        payload=None,
+        timeout: int = None
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
@@ -441,17 +459,22 @@ class Proxy:
             component_type (str): Broadcast to all peers in this type.
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            session_id (str): Message's session id. Defaults to None.
             payload (object): The true data. Defaults to None.
 
         Returns:
             List[Message]: List of replied messages.
         """
-        return self.receive_by_id(self._broadcast(component_type, tag, session_type, session_id, payload))
+        return self.receive_by_id(
+            targets=self._broadcast(component_type, tag, session_type, payload),
+            timeout=timeout
+        )
 
     def ibroadcast(
-        self, component_type: str, tag: Union[str, Enum], session_type: SessionType,
-        session_id: str = None, payload=None
+        self,
+        component_type: str,
+        tag: Union[str, Enum],
+        session_type: SessionType,
+        payload=None
     ) -> List[str]:
         """Broadcast message to all subscribers, and return list of message's session id.
 
@@ -459,13 +482,12 @@ class Proxy:
             component_type (str): Broadcast to all peers in this type.
             tag (str|Enum): Message's tag.
             session_type (Enum): Message's session type.
-            session_id (str): Message's session id. Defaults to None.
             payload (object): The true data. Defaults to None.
 
         Returns:
             List[str]: List of message's session id which related to the replied message.
         """
-        return self._broadcast(component_type, tag, session_type, session_id, payload)
+        return self._broadcast(component_type, tag, session_type, payload)
 
     def _send(self, message: Message) -> Union[List[str], None]:
         """Send a message to a remote peer.
@@ -479,7 +501,7 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of session id which from
                 the pending messages in message cache.
         """
-        session_id = []
+        session_id_list = []
         if self._enable_rejoin:
             peer_type = self.get_peer_type(message.destination)
             self._rejoin(peer_type)
@@ -493,12 +515,13 @@ class Proxy:
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
                     self._driver.send(pending_message)
-                    session_id.append(pending_message.session_id)
+                    session_id_list.append(pending_message.session_id)
                 del self._message_cache_for_exited_peers[message.destination]
 
         try:
-            session_id.append(self._driver.send(message))
-            return session_id
+            self._driver.send(message)
+            session_id_list.append(message.session_id)
+            return session_id_list
         except PendingToSend as e:
             self._logger.warn(f"{e} Peer {message.destination} exited, but still have enough peers.")
             if self._enable_message_cache:
@@ -518,7 +541,11 @@ class Proxy:
         """
         return self._send(message)
 
-    def send(self, message: Message) -> Union[List[Message], None]:
+    def send(
+        self,
+        message: Message,
+        timeout: int = None
+    ) -> Union[List[Message], None]:
         """Send a message to a remote peer.
 
         Args:
@@ -530,15 +557,19 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of messages which from
                 the pending messages.
         """
-        return self.receive_by_id(self._send(message))
+        return self.receive_by_id(self._send(message), timeout)
 
     def reply(
-        self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False
+        self,
+        message: Union[SessionMessage, Message],
+        tag: Union[str, Enum] = None,
+        payload=None,
+        ack_reply: bool = False
     ) -> List[str]:
         """Reply a received message.
 
         Args:
-            received_message (Message): The message need to reply.
+            message (Message): The message need to reply.
             tag (str|Enum): New message tag, if None, keeps the original message's tag. Defaults to None.
             payload (object): New message payload, if None, keeps the original message's payload. Defaults to None.
             ack_reply (bool): If True, it is acknowledge reply. Defaults to False.
@@ -546,23 +577,22 @@ class Proxy:
         Returns:
             List[str]: Message belonged session id.
         """
-        if received_message.session_type == SessionType.TASK:
-            session_stage = TaskSessionStage.RECEIVE if ack_reply else TaskSessionStage.COMPLETE
-        else:
-            session_stage = NotificationSessionStage.RECEIVE
+        message.reply(tag=tag, payload=payload)
+        if isinstance(message, SessionMessage):
+            if message.session_type == SessionType.TASK:
+                session_stage = TaskSessionStage.RECEIVE if ack_reply else TaskSessionStage.COMPLETE
+            else:
+                session_stage = NotificationSessionStage.RECEIVE
+            message.session_stage = session_stage
 
-        replied_message = SessionMessage(
-            tag=tag if tag else received_message.tag,
-            source=self._name,
-            destination=received_message.source,
-            session_id=received_message.session_id,
-            payload=payload,
-            session_stage=session_stage
-        )
-        return self.isend(replied_message)
+        return self.isend(message)
 
     def forward(
-        self, received_message: SessionMessage, destination: str, tag: Union[str, Enum] = None, payload=None
+        self,
+        message: Union[SessionMessage, Message],
+        destination: str,
+        tag: Union[str, Enum] = None,
+        payload=None
     ) -> List[str]:
         """Forward a received message.
 
@@ -575,15 +605,8 @@ class Proxy:
         Returns:
             List[str]: Message belonged session id.
         """
-        forward_message = SessionMessage(
-            tag=tag if tag else received_message.tag,
-            source=self._name,
-            destination=destination,
-            session_id=received_message.session_id,
-            payload=payload if payload else received_message.payload,
-            session_stage=received_message.session_stage
-        )
-        return self.isend(forward_message)
+        message.forward(destination=destination, tag=tag, payload=payload)
+        return self.isend(message)
 
     def _check_peers_update(self):
         """Compare the peers' information on local with the peers' information on Redis.
