@@ -32,6 +32,8 @@ class VmSchedulingPipeline(DataPipeline):
     _build_file_name = "vmtable.bin"
 
     _meta_file_name = "vmtable.yml"
+    # VM category includes three types, converting to 0, 1, 2.
+    _category_map = {'Delay-insensitive': 0, 'Interactive': 1, 'Unknown': 2}
 
     def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp: bool = False):
         super().__init__(scenario="vm_scheduling", topology=topology, source=source, is_temp=is_temp)
@@ -197,12 +199,11 @@ class VmSchedulingPipeline(DataPipeline):
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
         vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
 
-        category_map = {'Delay-insensitive': 0, 'Interactive': 1, 'Unknown': 2}
-        vm_table['vmcategory'] = vm_table['vmcategory'].map(category_map)
+        vm_table['vmcategory'] = vm_table['vmcategory'].map(self._category_map)
 
         # Transform vmcorecount '>24' bucket to 30 and vmmemory '>64' to 70.
-        vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 30)
-        vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 70)
+        vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 32)
+        vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 128)
         vm_table['vmcorecountbucket'] = pd.to_numeric(
             vm_table['vmcorecountbucket'], errors="coerce", downcast="integer"
         )
@@ -224,6 +225,7 @@ class VmSchedulingPipeline(DataPipeline):
         vm_table['deploymentid'] = vm_table['deploymentid'].map(deployment_id_map)
 
         # Sampling the VM table.
+        # 2695548 is the total number of vms in the original Azure public dataset.
         if self._sample < 2695548:
             vm_table = vm_table.sample(n=self._sample, random_state=self._seed)
             vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
