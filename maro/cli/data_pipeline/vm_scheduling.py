@@ -329,10 +329,11 @@ class VmSchedulingProcess:
         with open(self._meta_path) as fp:
             self._conf = safe_load(fp)
             for topology in self._conf["vm_data"].keys():
+                source = '.'.join(topology.split('.')[:-1])
                 self.topologies[topology] = VmSchedulingTopology(
                     topology=topology,
-                    source=self._conf["vm_data"][topology]["remote_url"],
-                    sample=self._conf["vm_data"][topology]["sample"],
-                    seed=self._conf["vm_data"][topology]["seed"],
+                    source=self._conf["vm_data"][source]["remote_url"],
+                    sample=self._conf["vm_data"][source][topology]["sample"],
+                    seed=self._conf["vm_data"][source][topology]["seed"],
                     is_temp=is_temp
                 )
