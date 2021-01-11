@@ -15,13 +15,13 @@ PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-
 # 0 means only count these VMs as failed allocation, but not kill them.
 KILL_ALL_VMS_IF_OVERLOAD: 1
 
-# Oversubscription configuration. The unit of both rates are percentages.
+# Oversubscription configuration.
 # Max CPU oversubscription rate.
-MAX_CPU_OVERSUBSCRIPTION_RATE: 115
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
 # Max memory oversubscription rate.
-MAX_MEM_OVERSUBSCRIPTION_RATE: 100
+MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
-MAX_UTILIZATION_RATE: 100
+MAX_UTILIZATION_RATE: 1
 # The amount of the PM.
 PM_AMOUNT: 880
 
