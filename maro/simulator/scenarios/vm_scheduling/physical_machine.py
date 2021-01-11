@@ -22,7 +22,7 @@ class PhysicalMachine(NodeBase):
     cpu_utilization = NodeAttribute("f")
     energy_consumption = NodeAttribute("f")
 
-    # PM type: empty: -1, non-oversubscribable is 0; oversubscribable is 1.
+    # PM type: non-oversubscribable is -1, empty: 0, oversubscribable is 1.
     oversubscribable = NodeAttribute("i2")
 
     def __init__(self):
@@ -46,7 +46,7 @@ class PhysicalMachine(NodeBase):
 
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
-    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int, oversubscribable: int):
+    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int, oversubscribable: int = 0):
         """Set initialize state, that will be used after frame reset.
 
         Args:

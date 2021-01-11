@@ -106,3 +106,10 @@ class Latency:
 
     def __str__(self):
         return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource})'
+
+
+class PmState(Enum):
+    """PM oversubscription state, includes empty, oversubscribable, non-oversubscribable."""
+    NON_OVERSUBSCRIBABLE = -1
+    EMPTY = 0
+    OVERSUBSCRIBABLE = 1
