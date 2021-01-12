@@ -16,24 +16,19 @@ class GlobalParams:
 
 
 class GlobalPaths:
-    MARO_LIB = "~/.maro/lib"
-    MARO_GRASS_LIB = "~/.maro/lib/grass"
-    MARO_K8S_LIB = "~/.maro/lib/k8s"
     MARO_CLUSTERS = "~/.maro/clusters"
     MARO_DATA = "~/.maro/data"
     MARO_TEST = "~/.maro/test"
-    MARO_LOCAL_CLUSTER = "~/.maro-local/cluster"
-    MARO_LOCAL_TMP = "~/.maro-local/tmp"
-    MARO_SHARED = "~/.maro-shared"
-
-    ABS_MARO_LIB = os.path.expanduser(MARO_LIB)
-    ABS_MARO_GRASS_LIB = os.path.expanduser(MARO_GRASS_LIB)
-    ABS_MARO_K8S_LIB = os.path.expanduser(MARO_K8S_LIB)
     ABS_MARO_CLUSTERS = os.path.expanduser(MARO_CLUSTERS)
     ABS_MARO_DATA = os.path.expanduser(MARO_DATA)
     ABS_MARO_TEST = os.path.expanduser(MARO_TEST)
+
+    MARO_LOCAL_CLUSTER = "~/.maro-local/cluster"
+    MARO_LOCAL_TMP = "~/.maro-local/tmp"
     ABS_MARO_LOCAL_CLUSTER = os.path.expanduser(MARO_LOCAL_CLUSTER)
     ABS_MARO_LOCAL_TMP = os.path.expanduser(MARO_LOCAL_TMP)
+
+    MARO_SHARED = "~/.maro-shared"
 
 
 class LocalPaths:

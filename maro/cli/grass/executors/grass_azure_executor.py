@@ -17,7 +17,7 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
-from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus
+from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus, GrassPaths
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
@@ -105,7 +105,7 @@ class GrassAzureExecutor(GrassExecutor):
             "root['connection']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
             "root['connection']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT
         }
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_create.yml") as fr:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -148,7 +148,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info("Creating vnet")
 
         # Create ARM parameters and start deployment
-        template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/template.json"
+        template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/modes/azure/create_vnet/parameters.json"
         )
@@ -176,7 +176,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Create ARM parameters and start deployment.
         # For simplicity, we use master_node_size as the size of build_node_image_vm here
-        template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/template.json"
+        template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}"
             f"/modes/azure/create_build_node_image_vm/parameters.json"
@@ -211,7 +211,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Run init image script
         FileSynchronizer.copy_files_to_node(
-            local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
+            local_path=f"{GrassPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
             remote_dir="~/",
             node_username=cluster_details["cloud"]["default_username"],
             node_hostname=public_ip_address,
@@ -264,7 +264,7 @@ class GrassAzureExecutor(GrassExecutor):
         vm_name = f"{cluster_details['id']}-master-vm"
 
         # Create ARM parameters and start deployment
-        template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/template.json"
+        template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/modes/azure/create_master/parameters.json"
         )
@@ -320,7 +320,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Copy required files
         local_path_to_remote_dir = {
-            GlobalPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
+            GrassPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
             f"{GlobalPaths.MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
         }
         for local_path, remote_dir in local_path_to_remote_dir.items():
@@ -467,7 +467,7 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Create ARM parameters and start deployment
-        template_file_path = f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/template.json"
+        template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/modes/azure/create_{node_name}/parameters.json"
         )
@@ -748,7 +748,7 @@ class ArmTemplateParameterBuilder:
         location = cluster_details["cloud"]["location"]
 
         # Load and update parameters
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/parameters.json", "r") as f:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/parameters.json", "r") as f:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
             parameters["location"]["value"] = location
@@ -774,7 +774,7 @@ class ArmTemplateParameterBuilder:
         api_server_port = cluster_details["connection"]["api_server"]["port"]
 
         # Load and update parameters
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/parameters.json", "r") as f:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/parameters.json", "r") as f:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
             parameters["location"]["value"] = location
@@ -812,7 +812,7 @@ class ArmTemplateParameterBuilder:
 
         # Load and update parameters
         with open(
-            f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/parameters.json", "r"
+            f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/parameters.json", "r"
         ) as f:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
@@ -853,7 +853,7 @@ class ArmTemplateParameterBuilder:
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Load and update parameters
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/parameters.json", "r") as f:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/parameters.json", "r") as f:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
             parameters["location"]["value"] = location

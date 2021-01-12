@@ -12,7 +12,7 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
-from maro.cli.grass.utils.params import GrassParams
+from maro.cli.grass.utils.params import GrassParams, GrassPaths
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
@@ -67,7 +67,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             "root['master']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
             "root['master']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT
         }
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_on_premises_create.yml") as fr:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_on_premises_create.yml") as fr:
             create_deployment_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=create_deployment_template,
@@ -99,7 +99,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         # Copy required files
         local_path_to_remote_dir = {
-            GlobalPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
+            GrassPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
             f"{GlobalPaths.MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
         }
         for local_path, remote_dir in local_path_to_remote_dir.items():

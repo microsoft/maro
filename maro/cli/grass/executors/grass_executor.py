@@ -13,6 +13,7 @@ import yaml
 from maro.cli.grass.utils.docker_controller import DockerController
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
+from maro.cli.grass.utils.params import GrassPaths
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
@@ -188,7 +189,7 @@ class GrassExecutor:
         optional_key_to_value = {
             "root['tags']": {}
         }
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_job.yml") as fr:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
@@ -197,7 +198,7 @@ class GrassExecutor:
         )
 
         # Validate component
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/component.yml", "r") as fr:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/component.yml", "r") as fr:
             start_job_component_template = yaml.safe_load(fr)
         components_details = start_job_deployment["components"]
         for _, component_details in components_details.items():
@@ -237,7 +238,7 @@ class GrassExecutor:
     @staticmethod
     def _standardize_schedule_details(start_schedule_deployment: dict):
         # Validate grass_azure_start_job
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_azure_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
@@ -246,7 +247,7 @@ class GrassExecutor:
         )
 
         # Validate component
-        with open(f"{GlobalPaths.ABS_MARO_GRASS_LIB}/deployments/internal/component.yml") as fr:
+        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/component.yml") as fr:
             start_job_component_template = yaml.safe_load(fr)
         components_details = start_schedule_deployment["components"]
         for _, component_details in components_details.items():
@@ -283,7 +284,7 @@ class GrassExecutor:
     @staticmethod
     def template(export_path: str):
         # Get templates
-        command = f"cp {GlobalPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}"
+        command = f"cp {GrassPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}"
         _ = SubProcess.run(command)
 
     # Remote Scripts

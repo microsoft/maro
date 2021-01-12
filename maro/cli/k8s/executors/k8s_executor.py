@@ -14,7 +14,6 @@ from maro.cli.k8s.utils.k8s_details_reader import K8sDetailsReader
 from maro.cli.k8s.utils.k8s_details_writer import K8sDetailsWriter
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.name_creator import NameCreator
-from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import SubProcess
 from maro.utils.logger import CliLogger
 
@@ -36,7 +35,7 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def _init_redis():
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/configs/redis/redis.yml", "r") as fr:
             redis_deployment = yaml.safe_load(fr)
         client.AppsV1Api().create_namespaced_deployment(body=redis_deployment, namespace="default")
 
@@ -81,7 +80,7 @@ class K8sExecutor(abc.ABC):
     @staticmethod
     def _standardize_job_details(start_job_deployment: dict):
         # Validate k8s_aks_start_job
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_job.yml") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_job.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
@@ -90,7 +89,7 @@ class K8sExecutor(abc.ABC):
         )
 
         # Validate component
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/component.yml", "r") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/component.yml", "r") as fr:
             component_template = yaml.safe_load(fr)
         components_details = start_job_deployment["components"]
         for _, component_details in components_details.items():
@@ -113,9 +112,9 @@ class K8sExecutor(abc.ABC):
         job_id = job_details["id"]
 
         # Get config template
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/job/job.yml") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/configs/job/job.yml") as fr:
             k8s_job_config = yaml.safe_load(fr)
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/configs/job/container.yml") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/configs/job/container.yml") as fr:
             k8s_container_config = yaml.safe_load(fr)
 
         # Fill configs
@@ -274,7 +273,7 @@ class K8sExecutor(abc.ABC):
     @staticmethod
     def _standardize_schedule_details(start_schedule_deployment: dict):
         # Validate k8s_aks_start_schedule
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_schedule.yml") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/k8s_aks_start_schedule.yml") as fr:
             start_job_template = yaml.safe_load(fr)
         DeploymentValidator.validate_and_fill_dict(
             template_dict=start_job_template,
@@ -283,7 +282,7 @@ class K8sExecutor(abc.ABC):
         )
 
         # Validate component
-        with open(f"{GlobalPaths.ABS_MARO_K8S_LIB}/deployments/internal/component.yml") as fr:
+        with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/deployments/internal/component.yml") as fr:
             start_job_component_template = yaml.safe_load(fr)
         components_details = start_schedule_deployment["components"]
         for _, component_details in components_details.items():
@@ -346,7 +345,7 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def template(export_path: str):
-        command = f"cp {GlobalPaths.ABS_MARO_K8S_LIB}/deployments/external/* {export_path}"
+        command = f"cp {K8sPaths.ABS_MARO_K8S_LIB}/deployments/external/* {export_path}"
         _ = SubProcess.run(command)
 
     # Utils related
