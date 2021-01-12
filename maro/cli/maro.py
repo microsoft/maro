@@ -377,7 +377,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
         parents=[global_parser]
     )
     parser_node_join.add_argument(
-        'node_join_path', help='The node join description file path.')
+        'deployment_path', help='The node join description file path.')
     parser_node_join.set_defaults(func=node_join)
 
     # maro grass node leave
@@ -389,9 +389,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
         parents=[global_parser]
     )
     parser_node_leave.add_argument(
-        "cluster_name", help="name of the cluster")
-    parser_node_leave.add_argument(
-        "node_name", help="The name of node going to be leave cluster.")
+        'deployment_path', nargs="?", default={}, help='The node join description file path.')
     parser_node_leave.set_defaults(func=node_leave)
 
     # maro grass image

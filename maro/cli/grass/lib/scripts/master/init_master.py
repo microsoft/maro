@@ -5,6 +5,7 @@
 import argparse
 import os
 import pwd
+import shutil
 
 from ..utils.details_reader import DetailsReader
 from ..utils.subprocess import SubProcess
@@ -55,25 +56,48 @@ pip3 install redis flask gunicorn
 echo "Finish master initialization"
 """
 
+
+class Paths:
+    MARO_SHARED = "~/.maro-shared"
+    MARO_LOCAL = "~/.maro-local"
+
+    ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
+    ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
+
+
+class MasterInitializer:
+    def __init__(self, cluster_details: dict):
+        self.cluster_details = cluster_details
+
+    def init_master(self):
+        # Parse and exec command
+        command = INIT_COMMAND.format(
+            master_username=pwd.getpwuid(os.getuid()).pw_name,
+            samba_password=self.cluster_details["master"]["samba"]["password"],
+            maro_shared_path=os.path.expanduser("~/.maro-shared"),
+            redis_port=self.cluster_details["master"]["redis"]["port"],
+            fluentd_port=self.cluster_details["master"]["fluentd"]["port"],
+            steps=5
+        )
+        SubProcess.interactive_run(command=command)
+
+    @staticmethod
+    def copy_scripts():
+        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
+        shutil.copy2(
+            src=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/master/release.py",
+            dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
+        )
+
+
 if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
     parser.add_argument("cluster_name")
     args = parser.parse_args()
 
-    # Load details
-    cluster_details = DetailsReader.load_cluster_details(cluster_name=args.cluster_name)
-    samba_password = cluster_details["master"]["samba"]["password"]
-    redis_port = cluster_details["master"]["redis"]["port"]
-    fluentd_port = cluster_details["master"]["fluentd"]["port"]
-
-    # Parse and exec command
-    command = INIT_COMMAND.format(
-        master_username=pwd.getpwuid(os.getuid()).pw_name,
-        samba_password=samba_password,
-        maro_shared_path=os.path.expanduser("~/.maro-shared"),
-        redis_port=redis_port,
-        fluentd_port=fluentd_port,
-        steps=5
+    master_initializer = MasterInitializer(
+        cluster_details=DetailsReader.load_cluster_details(cluster_name=args.cluster_name)
     )
-    SubProcess.interactive_run(command=command)
+    master_initializer.init_master()
+    master_initializer.copy_scripts()

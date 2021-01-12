@@ -6,7 +6,6 @@ import os
 import subprocess
 import sys
 
-import requests
 import yaml
 
 # Commands
@@ -27,16 +26,6 @@ class Paths:
 
 
 class NodeLeaver:
-    def __init__(self):
-        local_cluster_details = DetailsReader.load_local_cluster_details()
-        local_node_details = DetailsReader.load_local_node_details()
-
-        master_api_client = MasterApiClientV1(
-            master_hostname=local_cluster_details["master"]["hostname"],
-            api_server_port=local_cluster_details["connection"]["api_server"]["port"]
-        )
-        master_api_client.delete_node(node_name=local_node_details["name"])
-
     @staticmethod
     def umount_maro_share():
         command = UNMOUNT_FOLDER_COMMAND.format(maro_shared_path=Paths.ABS_MARO_SHARED)
@@ -52,18 +41,6 @@ class NodeLeaver:
     def stop_node_api_server_service():
         Subprocess.run(command=STOP_NODE_API_SERVER_SERVICE_COMMAND)
         os.remove(os.path.expanduser("~/.config/systemd/user/maro-node-api-server.service"))
-
-
-class MasterApiClientV1:
-    def __init__(self, master_hostname: str, api_server_port: int):
-        print(master_hostname, api_server_port)
-        self.master_api_server_url_prefix = f"http://{master_hostname}:{api_server_port}/v1"
-
-    # Node related.
-
-    def delete_node(self, node_name: str) -> dict:
-        response = requests.delete(url=f"{self.master_api_server_url_prefix}/nodes/{node_name}")
-        return response.json()
 
 
 class DetailsReader:

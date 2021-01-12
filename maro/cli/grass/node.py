@@ -9,7 +9,7 @@ from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesE
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_validity_wrapper import check_details_validity
 from maro.cli.utils.operation_lock_wrapper import operation_lock
-from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
+from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
 
 
 @check_details_validity
@@ -63,27 +63,32 @@ def list_node(cluster_name: str, **kwargs):
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
-def node_join(node_join_path: str, **kwargs):
+def node_join(deployment_path: str, **kwargs):
     try:
-        with open(node_join_path, "r") as fr:
-            node_join_info = yaml.safe_load(fr)
-
-        if node_join_info["mode"] != "grass/on-premises":
-            raise BadRequestError(f"Node join cluster interrupted: Invalid mode: {node_join_info['mode']}")
-
-        executor = GrassOnPremisesExecutor(node_join_info["cluster"])
-        executor.node_join_cluster(node_join_info)
+        with open(deployment_path, "r") as fr:
+            join_node_deployment = yaml.safe_load(fr)
+        if join_node_deployment["mode"] == "grass/on-premises":
+            GrassOnPremisesExecutor.join_node(join_node_deployment=join_node_deployment)
+        else:
+            raise BadRequestError(f"Unsupported operation in mode '{join_node_deployment['mode']}'.")
+    except KeyError as e:
+        raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
     except FileNotFoundError:
         raise FileOperationError("Invalid template file path.")
 
 
-@check_details_validity
-@operation_lock
-def node_leave(cluster_name: str, node_name: str, **kwargs):
-    cluster_details = DetailsReader.load_cluster_details(cluster_name)
-
-    if cluster_details["mode"] != "grass/on-premises":
-        raise BadRequestError("Node join cluster interrupted: Invalid mode.")
-
-    executor = GrassOnPremisesExecutor(cluster_name)
-    executor.node_leave_cluster(node_name)
+def node_leave(deployment_path: str, **kwargs):
+    try:
+        if not deployment_path:
+            GrassOnPremisesExecutor.leave(leave_node_deployment={})
+        else:
+            with open(deployment_path, "r") as fr:
+                leave_node_deployment = yaml.safe_load(fr)
+            if leave_node_deployment["mode"] == "grass/on-premises":
+                GrassOnPremisesExecutor.leave(leave_node_deployment=leave_node_deployment)
+            else:
+                raise BadRequestError(f"Unsupported operation in mode '{leave_node_deployment['mode']}'.")
+    except KeyError as e:
+        raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
+    except FileNotFoundError:
+        raise FileOperationError("Invalid template file path.")

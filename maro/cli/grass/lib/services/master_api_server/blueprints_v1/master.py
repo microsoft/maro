@@ -2,6 +2,12 @@
 # Licensed under the MIT license.
 
 
+import os
+import stat
+
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from flask import Blueprint, request
 
 from ..objects import redis_controller, service_config
@@ -35,13 +41,18 @@ def create_master():
     """
 
     master_details = request.json
+
+    # Create ssh-key for master-node communication
+    public_key = generate_master_key()
+
+    # Init runtime params.
+    master_details["image_files"] = {}
+    master_details["ssh"]["public_key"] = public_key
+
     redis_controller.set_master_details(
         cluster_name=service_config["cluster_name"],
         master_details=master_details
     )
-
-    # Init runtime params.
-    master_details["image_files"] = {}
 
     return master_details
 
@@ -56,3 +67,31 @@ def delete_master():
 
     redis_controller.delete_master_details(cluster_name=service_config["cluster_name"])
     return {}
+
+
+def generate_master_key() -> str:
+    key = rsa.generate_private_key(
+        backend=crypto_default_backend(),
+        public_exponent=65537,
+        key_size=2048
+    )
+    private_key = key.private_bytes(
+        encoding=crypto_serialization.Encoding.PEM,
+        format=crypto_serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=crypto_serialization.NoEncryption())
+    public_key = key.public_key().public_bytes(
+        encoding=crypto_serialization.Encoding.OpenSSH,
+        format=crypto_serialization.PublicFormat.OpenSSH
+    )
+
+    os.makedirs(name=os.path.expanduser(f"~/.maro-local/cluster/{service_config['cluster_name']}"), exist_ok=True)
+    with open(
+        file=os.path.expanduser(f"~/.maro-local/cluster/{service_config['cluster_name']}/id_rsa_master"),
+        mode="wb"
+    ) as fw:
+        fw.write(private_key)
+    os.chmod(
+        path=os.path.expanduser(f"~/.maro-local/cluster/{service_config['cluster_name']}/id_rsa_master"),
+        mode=stat.S_IRWXU
+    )
+    return public_key.decode("utf-8")

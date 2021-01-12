@@ -45,6 +45,10 @@ systemctl --user enable maro-node-api-server.service
 loginctl enable-linger {node_username}  # Make sure the user is not logged out
 """
 
+APPEND_AUTHORIZED_KEY = """\
+echo "{public_key}" >> ~/.ssh/authorized_keys
+"""
+
 
 class Params:
     DEFAULT_SSH_PORT = 22
@@ -138,11 +142,20 @@ class NodeJoiner:
 
     @staticmethod
     def copy_leave_script():
+        src_files = [
+            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/leave.py",
+            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/activate_leave.py"
+        ]
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
-        shutil.copy2(
-            src=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/leave.py",
-            dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
-        )
+        for src_file in src_files:
+            shutil.copy2(
+                src=src_file,
+                dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
+            )
+
+    def load_master_public_key(self):
+        command = APPEND_AUTHORIZED_KEY.format(public_key=self.master_details["ssh"]["public_key"])
+        Subprocess.run(command=command)
 
     # Utils
 
@@ -152,6 +165,9 @@ class NodeJoiner:
             "mode": "",
             "master": {
                 "hostname": "",
+                "api_server": {
+                    "port": ""
+                }
             },
             "node": {
                 "hostname": "",
@@ -161,6 +177,12 @@ class NodeJoiner:
                     "cpu": "",
                     "memory": "",
                     "gpu": ""
+                },
+                "ssh": {
+                    "port": ""
+                },
+                "api_server": {
+                    "port": ""
                 }
             }
         }
@@ -348,6 +370,7 @@ if __name__ == "__main__":
     node_joiner.start_node_agent_service()
     node_joiner.start_node_api_server_service()
     node_joiner.copy_leave_script()
+    node_joiner.load_master_public_key()
 
     DetailsWriter.save_local_cluster_details(cluster_details=node_joiner.cluster_details)
     DetailsWriter.save_local_node_details(node_details=node_joiner.node_details)

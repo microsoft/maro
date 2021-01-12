@@ -358,6 +358,14 @@ class GrassExecutor:
         command = f"python3 ~/.maro-local/scripts/activate_leave.py"
         SubProcess.interactive_run(command)
 
+    @staticmethod
+    def remote_release_master(master_username: str, master_hostname: str, master_ssh_port: int):
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
+            f"'python3 ~/.maro-local/scripts/release.py'"
+        )
+        SubProcess.interactive_run(command)
+
     def remote_start_node_services(
         self, node_username: str, node_hostname: str, node_ssh_port: int,
         node_name: str

@@ -7,6 +7,7 @@ from flask import Blueprint, jsonify, request
 from ..objects import redis_controller, service_config
 from ...utils.name_creator import NameCreator
 from ...utils.params import NodeStatus
+from ...utils.subprocess import SubProcess
 
 # Flask related.
 
@@ -82,8 +83,26 @@ def delete_node(node_name: str):
         None.
     """
 
+    # Get node_details.
+    node_details = redis_controller.get_node_details(
+        cluster_name=service_config["cluster_name"],
+        node_name=node_name
+    )
+
+    # leave the cluster
+    command = (
+        f"ssh -o StrictHostKeyChecking=no "
+        f"-i ~/.maro-local/cluster/{service_config['cluster_name']}/id_rsa_master "
+        f"-p {node_details['ssh']['port']} "
+        f"{node_details['username']}@{node_details['hostname']} "
+        f"'python3 ~/.maro-local/scripts/leave.py'"
+    )
+    SubProcess.run(command=command)
+
+    # Delete node_details at the end.
     redis_controller.delete_node_details(
         cluster_name=service_config["cluster_name"],
         node_name=node_name
     )
-    return {}
+
+    return node_details
