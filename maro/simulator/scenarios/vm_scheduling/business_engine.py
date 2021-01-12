@@ -17,7 +17,9 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
-from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, PmState, Sku, VmRequestPayload
+from .common import (
+    AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, PmState, Sku, VmRequestPayload
+)
 from .cpu_reader import CpuReader
 from .events import Events
 from .frame_builder import build_frame
@@ -116,7 +118,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
         # Load PM related configs.
-        self._pm_amount: int = self._config.PM.SKU.TYPE_0.AMOUNT
+        self._pm_amount: int = self._cal_pm_amount()
+        print(self._pm_amount)
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_metrics(self):
@@ -145,6 +148,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         if (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
             self._download_processed_data()
 
+    def _cal_pm_amount(self) -> int:
+        amount: int = 0
+        for sku in self._config.PM.SKU:
+            amount += sku["amount"]
+
+        return amount
+
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
         self._pm_cpu_cores_capacity: int = self._config.PM.CPU
@@ -152,19 +162,25 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
-        for pm_id in range(self._pm_amount):
-            pm = self._machines[pm_id]
-            pm.set_init_state(
-                id=pm_id,
-                cpu_cores_capacity=self._pm_cpu_cores_capacity,
-                memory_capacity=self._pm_memory_capacity,
-                sku=self._config.PM.SKU.TYPE_0.TYPE_NAME,
-                oversubscribable=PmState.EMPTY
-            )
+        pm_id = 0
+        for sku in self._config.PM.SKU:
+            amount = sku["amount"]
+            while amount > 0:
+                pm = self._machines[pm_id]
+                pm.set_init_state(
+                    id=pm_id,
+                    cpu_cores_capacity=self._pm_cpu_cores_capacity,
+                    memory_capacity=self._pm_memory_capacity,
+                    sku=sku["type"],
+                    oversubscribable=PmState.EMPTY
+                )
+                amount -= 1
+                pm_id += 1
 
     def _init_pm_sku(self):
         self._sku_dict = {
-            0: Sku(calibration_parameter=1.4, busy_power=10, idle_power=1)
+            0: Sku(calibration_parameter=1.4, busy_power=10, idle_power=1),
+            1: Sku(calibration_parameter=1.4, busy_power=10, idle_power=1)
         }
 
     def reset(self):
@@ -223,8 +239,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 memory_requirement=vm.vm_memory,
                 lifetime=vm.vm_lifetime,
                 sub_id=vm.sub_id,
-                deployment_id = vm.deploy_id,
-                category = vm.vm_category
+                deployment_id=vm.deploy_id,
+                category=vm.vm_category
             )
 
             if vm.vm_id not in cur_tick_cpu_utilization:

@@ -19,7 +19,8 @@ class VirtualMachine:
         memory_requirement (int): The memory requested by VM. The unit is (GBs).
         lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick.
     """
-    def __init__(self,
+    def __init__(
+        self,
         id: int,
         cpu_cores_requirement: int,
         memory_requirement: int,

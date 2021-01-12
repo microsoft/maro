@@ -25,9 +25,10 @@ MAX_UTILIZATION_RATE: 1
 
 PM:
   SKU:
-    TYPE_1:
-      TYPE_NAME: 1
-      AMOUNT: 100
+    - type: 0
+      amount: 50
+    - type: 1
+      amount: 50
   # CPU cores of each PM.
   CPU: 16
   # The unit of the memory is GB.
