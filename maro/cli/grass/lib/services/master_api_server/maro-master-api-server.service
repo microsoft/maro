@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 WorkingDirectory={home_path}/.maro-shared/lib/grass
-ExecStart={home_path}/.local/bin/gunicorn --workers=4 --bind 0.0.0.0:{api_server_port} services.master_api_server.root:app
+ExecStart={home_path}/.local/bin/gunicorn --workers=4 --bind 0.0.0.0:{master_api_server_port} services.master_api_server.root:app
 
 [Install]
 WantedBy=default.target

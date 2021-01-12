@@ -14,4 +14,4 @@ with open(os.path.expanduser("~/.maro-local/services/maro-master-api-server.conf
 
 # Controllers related
 
-redis_controller = RedisController(host="localhost", port=service_config["redis_port"])
+redis_controller = RedisController(host="localhost", port=service_config["master_redis_port"])

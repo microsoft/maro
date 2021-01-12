@@ -58,7 +58,6 @@ class MasterAgent:
 class JobTrackingAgent(multiprocessing.Process):
     def __init__(self, cluster_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_details = cluster_details
         self._cluster_name = cluster_details["name"]
 
         self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
@@ -132,7 +131,6 @@ class JobTrackingAgent(multiprocessing.Process):
 class ContainerTrackingAgent(multiprocessing.Process):
     def __init__(self, cluster_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_details = cluster_details
         self._cluster_name = cluster_details["name"]
 
         self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
@@ -178,10 +176,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         super().__init__()
         self._cluster_name = cluster_details["name"]
         self._cluster_id = cluster_details["id"]
-        self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
-        self._ssh_port = cluster_details["connection"]["ssh"]["port"]
-        self._api_server_port = cluster_details["connection"]["api_server"]["port"]
+        self._api_server_port = cluster_details["master"]["api_server"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
 
         self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
@@ -512,10 +508,8 @@ class PendingJobAgent(multiprocessing.Process):
         super().__init__()
         self._cluster_name = cluster_details["name"]
         self._cluster_id = cluster_details["id"]
-        self._admin_username = cluster_details["user"]["admin_username"]
         self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
-        self._ssh_port = cluster_details["connection"]["ssh"]["port"]
-        self._api_server_port = cluster_details["connection"]["api_server"]["port"]
+        self._api_server_port = cluster_details["master"]["api_server"]["port"]
         self._master_hostname = cluster_details["master"]["hostname"]
 
         self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
@@ -682,10 +676,7 @@ class KilledJobAgent(multiprocessing.Process):
     def __init__(self, cluster_details: dict, check_interval: int = 5):
         super().__init__()
         self._cluster_name = cluster_details["name"]
-        self._cluster_id = cluster_details["id"]
-        self._admin_username = cluster_details["user"]["admin_username"]
-        self._ssh_port = cluster_details["connection"]["ssh"]["port"]
-        self._api_server_port = cluster_details["connection"]["api_server"]["port"]
+        self._api_server_port = cluster_details["master"]["api_server"]["port"]
 
         self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
 

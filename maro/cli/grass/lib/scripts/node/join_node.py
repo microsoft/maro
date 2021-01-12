@@ -127,7 +127,7 @@ class NodeJoiner:
         # Rewrite data in .service and write it to systemd folder
         service_file = service_file.format(
             home_path=str(pathlib.Path.home()),
-            api_server_port=self.cluster_details["connection"]["api_server"]["port"]
+            node_api_server_port=self.node_details["api_server"]["port"]
         )
         os.makedirs(os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
         with open(file=os.path.expanduser("~/.config/systemd/user/maro-node-api-server.service"), mode="w") as fw:

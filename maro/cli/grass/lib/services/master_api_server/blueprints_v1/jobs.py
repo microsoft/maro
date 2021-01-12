@@ -114,7 +114,7 @@ def clean_jobs():
     """
 
     # Get params
-    api_server_port = service_config["api_server_port"]
+    master_api_server_port = service_config["master_api_server_port"]
 
     # Delete all job related resources.
     redis_controller.delete_pending_jobs_queue(cluster_name=service_config["cluster_name"])
@@ -123,7 +123,7 @@ def clean_jobs():
         cluster_name=service_config["cluster_name"]
     )
     for _, node_details in name_to_node_details.items():
-        node_private_ip_address = node_details["private_ip_address"]
+        node_hostname = node_details["hostname"]
         for container_name, container_details in node_details["containers"].items():
-            requests.delete(url=f"http://{node_private_ip_address}:{api_server_port}/containers/{container_name}")
+            requests.delete(url=f"http://{node_hostname}:{master_api_server_port}/containers/{container_name}")
     return {}

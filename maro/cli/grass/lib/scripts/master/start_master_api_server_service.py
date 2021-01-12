@@ -27,8 +27,8 @@ if __name__ == "__main__":
 
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=args.cluster_name)
-    redis_port = cluster_details["master"]["redis"]["port"]
-    api_server_port = cluster_details["connection"]["api_server"]["port"]
+    master_redis_port = cluster_details["master"]["redis"]["port"]
+    master_api_server_port = cluster_details["master"]["api_server"]["port"]
 
     # Dump master_agent.config
     os.makedirs(os.path.expanduser("~/.maro-local/services/"), exist_ok=True)
@@ -36,8 +36,8 @@ if __name__ == "__main__":
         json.dump(
             obj={
                 "cluster_name": args.cluster_name,
-                "redis_port": redis_port,
-                "api_server_port": api_server_port
+                "master_redis_port": master_redis_port,
+                "master_api_server_port": master_api_server_port
             },
             fp=fw
         )
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         service_file = fr.read()
 
     # Rewrite data in .service and write it to systemd folder
-    service_file = service_file.format(home_path=str(pathlib.Path.home()), api_server_port=api_server_port)
+    service_file = service_file.format(home_path=str(pathlib.Path.home()), master_api_server_port=master_api_server_port)
     os.makedirs(os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
     with open(os.path.expanduser("~/.config/systemd/user/maro-master-api-server.service"), "w") as fw:
         fw.write(service_file)

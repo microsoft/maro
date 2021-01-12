@@ -40,6 +40,13 @@ class GrassAzureExecutor(GrassExecutor):
         self.resource_group = self.cluster_details["cloud"]["resource_group"]
         self.location = self.cluster_details["cloud"]["location"]
 
+        # Connection configs
+        self.ssh_port = self.cluster_details["connection"]["ssh"]["port"]
+        self.api_server_port = self.cluster_details["connection"]["api_server"]["port"]
+
+        # User configs
+        self.admin_username = self.cluster_details["user"]["admin_username"]
+
     # maro grass create
 
     @staticmethod
@@ -200,8 +207,8 @@ class GrassAzureExecutor(GrassExecutor):
         # Make sure build_node_image_vm is able to connect
         GrassAzureExecutor.retry_connection(
             node_username=cluster_details["user"]["admin_username"],
-            node_ip_address=public_ip_address,
-            ssh_port=cluster_details["connection"]["ssh"]["port"]
+            node_hostname=public_ip_address,
+            node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
 
         # Run init image script
@@ -209,13 +216,13 @@ class GrassAzureExecutor(GrassExecutor):
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
             remote_dir="~/",
             node_username=cluster_details["user"]["admin_username"],
-            node_ip_address=public_ip_address,
-            ssh_port=cluster_details["connection"]["ssh"]["port"]
+            node_hostname=public_ip_address,
+            node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
         GrassAzureExecutor.remote_init_build_node_image_vm(
             node_username=cluster_details["user"]["admin_username"],
-            vm_ip_address=public_ip_address,
-            ssh_port=cluster_details["connection"]["ssh"]["port"]
+            node_hostname=public_ip_address,
+            node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
 
         # Extract image
@@ -245,8 +252,8 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Remote create master after initialization
         MasterApiClientV1(
-            master_ip_address=cluster_details["master"]["public_ip_address"],
-            api_server_port=cluster_details["connection"]["api_server"]["port"]
+            master_hostname=cluster_details["master"]["public_ip_address"],
+            master_api_server_port=cluster_details["connection"]["api_server"]["port"]
         ).create_master(master_details=cluster_details["master"])
 
         logger.info_green("MARO Master is created")
@@ -304,8 +311,8 @@ class GrassAzureExecutor(GrassExecutor):
         # Make sure master is able to connect
         GrassAzureExecutor.retry_connection(
             node_username=cluster_details["master"]["username"],
-            node_ip_address=cluster_details["master"]["public_ip_address"],
-            ssh_port=cluster_details["connection"]["ssh"]["port"]
+            node_hostname=cluster_details["master"]["public_ip_address"],
+            node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
 
         DetailsWriter.save_cluster_details(
@@ -323,23 +330,23 @@ class GrassAzureExecutor(GrassExecutor):
                 local_path=local_path,
                 remote_dir=remote_dir,
                 node_username=cluster_details["master"]["username"],
-                node_ip_address=cluster_details["master"]["public_ip_address"],
-                ssh_port=cluster_details["connection"]["ssh"]["port"]
+                node_hostname=cluster_details["master"]["public_ip_address"],
+                node_ssh_port=cluster_details["connection"]["ssh"]["port"]
             )
 
         # Remote init master
         GrassAzureExecutor.remote_init_master(
-            node_username=cluster_details["master"]["username"],
-            master_ip_address=cluster_details["master"]["public_ip_address"],
-            ssh_port=cluster_details["connection"]["ssh"]["port"],
+            master_username=cluster_details["master"]["username"],
+            master_hostname=cluster_details["master"]["public_ip_address"],
+            master_ssh_port=cluster_details["connection"]["ssh"]["port"],
             cluster_name=cluster_details["name"]
         )
 
         # Load master agent service
         GrassAzureExecutor.remote_start_master_services(
             master_username=cluster_details["master"]["username"],
-            master_ip_address=cluster_details["master"]["public_ip_address"],
-            ssh_port=cluster_details["connection"]["ssh"]["port"],
+            master_hostname=cluster_details["master"]["public_ip_address"],
+            master_ssh_port=cluster_details["connection"]["ssh"]["port"],
             cluster_name=cluster_details["name"]
         )
         # Gracefully wait
@@ -488,7 +495,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         logger.info_green(f"VM '{node_name}' is created")
 
-        # Build join_node_deployment
+        # Build join_node_deployment.
         join_node_deployment = {
             "mode": "grass/azure",
             "master": {
@@ -500,6 +507,7 @@ class GrassAzureExecutor(GrassExecutor):
             "node": {
                 "name": node_name,
                 "id": node_name,
+                "username": self.admin_username,
                 "public_ip_address": ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"],
                 "private_ip_address": ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0],
                 "node_size": node_size,
@@ -554,9 +562,9 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Make sure the node is able to connect
         self.retry_connection(
-            node_username=self.master_username,
-            node_ip_address=node_details["public_ip_address"],
-            ssh_port=self.ssh_port
+            node_username=node_details["username"],
+            node_hostname=node_details["public_ip_address"],
+            node_ssh_port=node_details["ssh"]["port"]
         )
 
         # Copy required files
@@ -565,18 +573,18 @@ class GrassAzureExecutor(GrassExecutor):
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
                 remote_dir=remote_dir,
-                node_username=self.master_username,
-                node_ip_address=node_details["public_ip_address"],
-                ssh_port=self.ssh_port
+                node_username=node_details["username"],
+                node_hostname=node_details["public_ip_address"],
+                node_ssh_port=node_details["ssh"]["port"]
             )
 
         # Remote join node
         self.remote_join_node(
-            ssh_port=self.ssh_port,
-            node_username=self.master_username,
+            node_ssh_port=node_details["ssh"]["port"],
+            node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
             master_hostname=self.master_public_ip_address,
-            api_server_port=self.api_server_port,
+            master_api_server_port=self.master_api_server_port,
             deployment_path=f"~/join_{node_name}.yml"
         )
 
@@ -623,15 +631,17 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Make sure the node is able to connect
         self.retry_connection(
-            node_username=self.master_username,
-            node_ip_address=node_details["public_ip_address"],
-            ssh_port=self.ssh_port
+            node_username=node_details["username"],
+            node_hostname=node_details["public_ip_address"],
+            node_ssh_port=self.master_ssh_port
         )
 
         # Start node agent service
         self.remote_start_node_services(
-            node_name=node_name,
-            node_ip_address=node_details["public_ip_address"]
+            node_ssh_port=node_details["ssh"]["port"],
+            node_username=node_details["username"],
+            node_hostname=node_details["public_ip_address"],
+            node_name=node_name
         )
 
         logger.info_green(f"Node '{node_name}' is started")
@@ -657,21 +667,24 @@ class GrassAzureExecutor(GrassExecutor):
             )
 
         # Parallel stop
-        params = [
-            [node_details["name"], node_details["public_ip_address"]]
-            for node_details in stoppable_nodes_details[:replicas]
-        ]
+        params = [[node_details] for node_details in stoppable_nodes_details[:replicas]]
         with ThreadPool(GlobalParams.PARALLELS) as pool:
             pool.starmap(
                 self._stop_node,
                 params
             )
 
-    def _stop_node(self, node_name: str, node_ip_address: str):
+    def _stop_node(self, node_details: dict):
+        node_name = node_details["name"]
+
         logger.info(f"Stopping node '{node_name}'")
 
         # Stop node agent service
-        self.remote_stop_node_services(node_ip_address=node_ip_address)
+        self.remote_stop_node_services(
+            node_ssh_port=node_details["ssh"]["port"],
+            node_username=node_details["username"],
+            node_hostname=node_details["public_ip_address"],
+        )
 
         # Stop node
         AzureController.stop_vm(

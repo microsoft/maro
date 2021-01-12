@@ -6,8 +6,8 @@ import requests
 
 
 class MasterApiClientV1:
-    def __init__(self, master_ip_address: str, api_server_port: int):
-        self.master_api_server_url_prefix = f"http://{master_ip_address}:{api_server_port}/v1"
+    def __init__(self, master_hostname: str, master_api_server_port: int):
+        self.master_api_server_url_prefix = f"http://{master_hostname}:{master_api_server_port}/v1"
 
     # Master related.
 

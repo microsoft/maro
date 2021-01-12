@@ -22,8 +22,8 @@ class FileSynchronizer:
         local_path: str,
         remote_dir: str,
         node_username: str,
-        node_ip_address: str,
-        ssh_port: int
+        node_hostname: str,
+        node_ssh_port: int
     ) -> None:
         """Copy local files to node, automatically create folder if not exist.
 
@@ -31,8 +31,8 @@ class FileSynchronizer:
             local_path (str): path of the local file
             remote_dir (str): dir for remote files
             node_username (str)
-            node_ip_address (str)
-            ssh_port (int): port of the ssh connection
+            node_hostname (str)
+            node_ssh_port (int): port of the ssh connection
         """
         source_path = PathConvertor.build_path_without_trailing_slash(local_path)
         basename = os.path.basename(source_path)
@@ -40,7 +40,7 @@ class FileSynchronizer:
         target_dir = PathConvertor.build_path_with_trailing_slash(remote_dir)
 
         mkdir_script = (
-            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             f"'mkdir -p {target_dir}'"
         )
         _ = SubProcess.run(mkdir_script)
@@ -49,7 +49,7 @@ class FileSynchronizer:
             # Copy with pipe
             copy_script = (
                 f"tar czf - -C {folder_name} {basename} | "
-                f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+                f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'tar xzf - -C {target_dir}'"
             )
             _ = SubProcess.run(copy_script)
@@ -62,18 +62,18 @@ class FileSynchronizer:
             _ = SubProcess.run(tar_script)
             copy_script = (
                 f"scp {maro_local_tmp_abs_path}/{tmp_file_name} "
-                f"{node_username}@{node_ip_address}:{GlobalPaths.MARO_LOCAL_TMP}"
+                f"{node_username}@{node_hostname}:{GlobalPaths.MARO_LOCAL_TMP}"
             )
             _ = SubProcess.run(copy_script)
             untar_script = (
-                f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+                f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'tar xzf {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} -C {target_dir}'"
             )
             _ = SubProcess.run(untar_script)
             remove_script = f"rm {maro_local_tmp_abs_path}/{tmp_file_name}"
             _ = SubProcess.run(remove_script)
             remote_remove_script = (
-                f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+                f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'rm {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name}'"
             )
             _ = SubProcess.run(remote_remove_script)
@@ -83,8 +83,8 @@ class FileSynchronizer:
         local_dir: str,
         remote_path: str,
         node_username: str,
-        node_ip_address: str,
-        ssh_port: int
+        node_hostname: str,
+        node_ssh_port: int
     ) -> None:
         """Copy node files to local, automatically create folder if not exist.
 
@@ -92,8 +92,8 @@ class FileSynchronizer:
             local_dir (str): dir for local files
             remote_path (str): path of the remote file
             node_username (str)
-            node_ip_address (str)
-            ssh_port (int): port of the ssh connection
+            node_hostname (str)
+            node_ssh_port (int): port of the ssh connection
         """
         source_path = PathConvertor.build_path_without_trailing_slash(remote_path)
         basename = os.path.basename(source_path)
@@ -106,7 +106,7 @@ class FileSynchronizer:
         if platform.system() in ["Linux", "Darwin"]:
             # Copy with pipe
             copy_script = (
-                f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+                f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'tar czf - -C {folder_name} {basename}' | tar xzf - -C {target_dir}"
             )
             _ = SubProcess.run(copy_script)
@@ -116,12 +116,12 @@ class FileSynchronizer:
             maro_local_tmp_abs_path = os.path.expanduser(GlobalPaths.MARO_LOCAL_TMP)
 
             tar_script = (
-                f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+                f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"tar czf {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} -C {folder_name} {basename}"
             )
             _ = SubProcess.run(tar_script)
             copy_script = (
-                f"scp {node_username}@{node_ip_address}:{GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} "
+                f"scp {node_username}@{node_hostname}:{GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} "
                 f"{maro_local_tmp_abs_path}"
             )
             _ = SubProcess.run(copy_script)
@@ -130,7 +130,7 @@ class FileSynchronizer:
             remove_script = f"rm {maro_local_tmp_abs_path}/{tmp_file_name}"
             _ = SubProcess.run(remove_script)
             remote_remove_script = (
-                f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
+                f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'rm {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name}'"
             )
             _ = SubProcess.run(remote_remove_script)
