@@ -5,10 +5,8 @@ cloud:
   location: japaneast
   resource_group: ""
   subscription: ""
-
-user:
-  admin_public_key: ""
-  admin_username: marotest
+  default_username: marotest
+  default_public_key: ""
 
 master:
   node_size: Standard_D2s_v3

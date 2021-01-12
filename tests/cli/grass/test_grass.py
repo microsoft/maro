@@ -58,12 +58,12 @@ class TestGrass(unittest.TestCase):
         with open(cls.create_deployment_template_path) as fr:
             create_deployment_details = yaml.safe_load(fr)
         with open(cls.test_config_path) as fr:
-            test_config_details = yaml.safe_load(fr)
-            if test_config_details["cloud/subscription"] and test_config_details["user/admin_public_key"]:
+            test_config = yaml.safe_load(fr)
+            if test_config["cloud/subscription"] and test_config["cloud/default_public_key"]:
                 create_deployment_details["name"] = f"test_maro_grass_{cls.test_id}"
-                create_deployment_details["cloud"]["subscription"] = test_config_details["cloud/subscription"]
+                create_deployment_details["cloud"]["subscription"] = test_config["cloud/subscription"]
                 create_deployment_details["cloud"]["resource_group"] = f"test_maro_grass_{cls.test_id}"
-                create_deployment_details["user"]["admin_public_key"] = test_config_details["user/admin_public_key"]
+                create_deployment_details["cloud"]["default_public_key"] = test_config["cloud/default_public_key"]
             else:
                 raise Exception("Invalid config")
         with open(cls.create_deployment_path, "w") as fw:

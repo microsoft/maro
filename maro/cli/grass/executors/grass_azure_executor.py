@@ -39,13 +39,11 @@ class GrassAzureExecutor(GrassExecutor):
         self.subscription = self.cluster_details["cloud"]["subscription"]
         self.resource_group = self.cluster_details["cloud"]["resource_group"]
         self.location = self.cluster_details["cloud"]["location"]
+        self.default_username = self.cluster_details["cloud"]["default_username"]
 
         # Connection configs
         self.ssh_port = self.cluster_details["connection"]["ssh"]["port"]
         self.api_server_port = self.cluster_details["connection"]["api_server"]["port"]
-
-        # User configs
-        self.admin_username = self.cluster_details["user"]["admin_username"]
 
     # maro grass create
 
@@ -206,7 +204,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Make sure build_node_image_vm is able to connect
         GrassAzureExecutor.retry_connection(
-            node_username=cluster_details["user"]["admin_username"],
+            node_username=cluster_details["cloud"]["default_username"],
             node_hostname=public_ip_address,
             node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
@@ -215,12 +213,12 @@ class GrassAzureExecutor(GrassExecutor):
         FileSynchronizer.copy_files_to_node(
             local_path=f"{GlobalPaths.MARO_GRASS_LIB}/scripts/build_node_image_vm/init_build_node_image_vm.py",
             remote_dir="~/",
-            node_username=cluster_details["user"]["admin_username"],
+            node_username=cluster_details["cloud"]["default_username"],
             node_hostname=public_ip_address,
             node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
         GrassAzureExecutor.remote_init_build_node_image_vm(
-            node_username=cluster_details["user"]["admin_username"],
+            node_username=cluster_details["cloud"]["default_username"],
             node_hostname=public_ip_address,
             node_ssh_port=cluster_details["connection"]["ssh"]["port"]
         )
@@ -292,7 +290,7 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Get other params and fill them to master_details
         hostname = vm_name
-        username = cluster_details["user"]["admin_username"]
+        username = cluster_details["cloud"]["default_username"]
         cluster_details["master"]["hostname"] = hostname
         cluster_details["master"]["username"] = username
         cluster_details["master"]["public_ip_address"] = public_ip_address
@@ -507,7 +505,7 @@ class GrassAzureExecutor(GrassExecutor):
             "node": {
                 "name": node_name,
                 "id": node_name,
-                "username": self.admin_username,
+                "username": self.default_username,
                 "public_ip_address": ip_addresses[0]["virtualMachine"]["network"]["publicIpAddresses"][0]["ipAddress"],
                 "private_ip_address": ip_addresses[0]["virtualMachine"]["network"]["privateIpAddresses"][0],
                 "node_size": node_size,
@@ -770,8 +768,8 @@ class ArmTemplateParameterBuilder:
         resource_name = "master"
         cluster_id = cluster_details["id"]
         location = cluster_details["cloud"]["location"]
-        admin_username = cluster_details["user"]["admin_username"]
-        admin_public_key = cluster_details["user"]["admin_public_key"]
+        default_username = cluster_details["cloud"]["default_username"]
+        default_public_key = cluster_details["cloud"]["default_public_key"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
         api_server_port = cluster_details["connection"]["api_server"]["port"]
 
@@ -786,8 +784,8 @@ class ArmTemplateParameterBuilder:
             parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
             parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
             parameters["virtualMachineSize"]["value"] = node_size
-            parameters["adminUsername"]["value"] = admin_username
-            parameters["adminPublicKey"]["value"] = admin_public_key
+            parameters["adminUsername"]["value"] = default_username
+            parameters["adminPublicKey"]["value"] = default_public_key
             parameters["sshDestinationPorts"]["value"] = (
                 [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
                 else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
@@ -808,8 +806,8 @@ class ArmTemplateParameterBuilder:
         resource_name = "build-node-image"
         cluster_id = cluster_details["id"]
         location = cluster_details["cloud"]["location"]
-        admin_username = cluster_details["user"]["admin_username"]
-        admin_public_key = cluster_details["user"]["admin_public_key"]
+        default_username = cluster_details["cloud"]["default_username"]
+        default_public_key = cluster_details["cloud"]["default_public_key"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Load and update parameters
@@ -825,8 +823,8 @@ class ArmTemplateParameterBuilder:
             parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
             parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
             parameters["virtualMachineSize"]["value"] = node_size
-            parameters["adminUsername"]["value"] = admin_username
-            parameters["adminPublicKey"]["value"] = admin_public_key
+            parameters["adminUsername"]["value"] = default_username
+            parameters["adminPublicKey"]["value"] = default_public_key
             parameters["sshDestinationPorts"]["value"] = (
                 [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
                 else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
@@ -850,8 +848,8 @@ class ArmTemplateParameterBuilder:
         resource_name = node_name
         cluster_id = cluster_details["id"]
         location = cluster_details["cloud"]["location"]
-        admin_username = cluster_details["user"]["admin_username"]
-        admin_public_key = cluster_details["user"]["admin_public_key"]
+        default_username = cluster_details["cloud"]["default_username"]
+        default_public_key = cluster_details["cloud"]["default_public_key"]
         ssh_port = cluster_details["connection"]["ssh"]["port"]
 
         # Load and update parameters
@@ -866,8 +864,8 @@ class ArmTemplateParameterBuilder:
             parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
             parameters["virtualMachineSize"]["value"] = node_size
             parameters["imageResourceId"]["value"] = image_resource_id
-            parameters["adminUsername"]["value"] = admin_username
-            parameters["adminPublicKey"]["value"] = admin_public_key
+            parameters["adminUsername"]["value"] = default_username
+            parameters["adminPublicKey"]["value"] = default_public_key
             parameters["sshDestinationPorts"]["value"] = (
                 [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
                 else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
