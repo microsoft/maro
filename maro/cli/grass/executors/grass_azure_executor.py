@@ -110,7 +110,6 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Init runtime fields.
         create_deployment["id"] = NameCreator.create_cluster_id()
-        create_deployment["master"]["image_files"] = {}
 
         return create_deployment
 

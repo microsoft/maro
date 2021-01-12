@@ -39,6 +39,10 @@ def create_master():
         cluster_name=service_config["cluster_name"],
         master_details=master_details
     )
+
+    # Init runtime params.
+    master_details["image_files"] = {}
+
     return master_details
 
 
