@@ -783,8 +783,8 @@ freely adjust the sampling rate. For example, if there are 100 snapshots
 and user selected 0.3 as sampling ratio, 30 snapshots data would be
 selected to render the chart.
 
-.. image:: ../images/visualization/dashboard/citi_bike_intra_epoch_by_station.gif
-   :alt: citi_bike_intra_epoch_by_station
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station
 
 To be specific, the line chart could be customized with operations in
 the following example.
@@ -796,16 +796,16 @@ will be provided with the option to quickly select a set of data.
 e.g. In this scenario, item "Requirement Info" refers to
 [trip\_requirement, shortage, fulfillment].
 
-.. image:: ../images/visualization/dashboard/citi_bike_intra_epoch_by_station_2.gif
-   :alt: citi_bike_intra_epoch_by_station_2
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_2.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station\_2
 
 Moreover, to improve the flexibility of visualizing data, user could use
 pre-defined formula and selected attributes to generate new attributes.
 Generated attributes would be treated in the same way as original
 attributes.
 
-.. image:: ../images/visualization/dashboard/citi_bike_intra_epoch_by_station_3.gif
-   :alt: citi_bike_intra_epoch_by_station_3
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_station_3.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_station\_3
 
 If user choose to view information by snapshot, it means attributes of
 all stations within a selected snapshot would be displayed. By changing
@@ -816,5 +816,5 @@ of sampled data.
 Particularly, if user want to check the name of a specific station,
 just hovering on the according bar.
 
-.. image:: ../images/visualization/dashboard/citi_bike_intra_epoch_by_snapshot.gif
-   :alt: citi_bike_intra_epoch_by_snapshot
+.. figure:: ..\images\visualization\dashboard\citi_bike_intra_epoch_by_snapshot.gif
+   :alt: citi\_bike\_intra\_epoch\_by\_snapshot
