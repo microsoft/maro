@@ -189,7 +189,7 @@ class ColumnBasedStore(AbsStore):
         Returns:
             Sampled indexes and the corresponding objects,
             e.g., [1, 2, 3], ['a', 'b', 'c'].
-        """git
+        """
         if weights is not None:
             weights = np.asarray(weights)
             weights /= np.sum(weights)
