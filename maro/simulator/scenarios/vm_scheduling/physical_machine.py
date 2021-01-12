@@ -48,7 +48,9 @@ class PhysicalMachine(NodeBase):
 
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
-    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int, sku: int, oversubscribable: int = 0):
+    def set_init_state(
+        self, id: int, cpu_cores_capacity: int, memory_capacity: int, sku: int, oversubscribable: int = 0
+    ):
         """Set initialize state, that will be used after frame reset.
 
         Args:
