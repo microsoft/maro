@@ -65,7 +65,7 @@ class NodeJoiner:
 
         master_api_client = MasterApiClientV1(
             master_hostname=join_node_deployment["master"]["hostname"],
-            api_server_port=join_node_deployment["connection"]["api_server"]["port"]
+            api_server_port=join_node_deployment["master"]["api_server"]["port"]
         )
         self.node_details = master_api_client.create_node(node_details=join_node_deployment["node"])
 
@@ -151,7 +151,7 @@ class NodeJoiner:
         join_node_deployment_template = {
             "mode": "",
             "master": {
-                "hostname": ""
+                "hostname": "",
             },
             "node": {
                 "hostname": "",
@@ -162,30 +162,21 @@ class NodeJoiner:
                     "memory": "",
                     "gpu": ""
                 }
-            },
-            "connection": {
-                "ssh": {
-                    "port": ""
-                },
-                "api_server": {
-                    "port": ""
-                }
             }
         }
         DeploymentValidator.validate_and_fill_dict(
             template_dict=join_node_deployment_template,
             actual_dict=join_node_deployment,
             optional_key_to_value={
-                "root['connection']": {
-                    "ssh": {"port": Params.DEFAULT_SSH_PORT},
-                    "api_server": {"port": Params.DEFAULT_API_SERVER_PORT},
-                },
-                "root['connection']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
-                "root['connection']['ssh']['port']": Params.DEFAULT_SSH_PORT,
-                "root['connection']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
-                "root['connection']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT
+                "root['master']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
+                "root['master']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
+                "root['node']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
+                "root['node']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
+                "root['node']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
+                "root['node']['ssh']['port']": Params.DEFAULT_SSH_PORT
             }
         )
+
         return join_node_deployment
 
 

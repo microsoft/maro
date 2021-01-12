@@ -292,6 +292,8 @@ class GrassAzureExecutor(GrassExecutor):
         cluster_details["master"]["public_ip_address"] = public_ip_address
         cluster_details["master"]["private_ip_address"] = private_ip_address
         cluster_details["master"]["resource_name"] = vm_name
+        cluster_details["master"]["ssh"] = {"port": cluster_details["connection"]["ssh"]["port"]}
+        cluster_details["master"]["api_server"] = {"port": cluster_details["connection"]["api_server"]["port"]}
         logger.info_green(f"You can login to your master node with: {username}@{public_ip_address}")
 
         logger.info_green("Master VM is created")
@@ -491,7 +493,10 @@ class GrassAzureExecutor(GrassExecutor):
         join_node_deployment = {
             "mode": "grass/azure",
             "master": {
-                "hostname": self.master_hostname
+                "hostname": self.master_hostname,
+                "api_server": {
+                    "port": self.api_server_port
+                }
             },
             "node": {
                 "name": node_name,
@@ -505,11 +510,12 @@ class GrassAzureExecutor(GrassExecutor):
                     "cpu": "All",
                     "memory": "All",
                     "gpu": "All"
-                }
-            },
-            "connection": {
+                },
                 "api_server": {
                     "port": self.api_server_port
+                },
+                "ssh": {
+                    "port": self.ssh_port
                 }
             }
         }
