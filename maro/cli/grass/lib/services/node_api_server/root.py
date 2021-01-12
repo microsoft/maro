@@ -4,8 +4,8 @@
 
 from flask import Flask
 
-from .blueprints_v1.containers import blueprint as container_blueprint
-from .blueprints_v1.status import blueprint as status_blueprint
+from .blueprints.containers import blueprint as container_blueprint
+from .blueprints.status import blueprint as status_blueprint
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
