@@ -56,3 +56,8 @@ class Scheduler(object):
 
     def record_performance(self, performance):
         self._performance_history.append(performance)
+
+    def reset(self):
+        self._current_ep = -1
+        self._performance_history = []
+        self._exploration_params = None

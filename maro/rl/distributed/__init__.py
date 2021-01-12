@@ -3,17 +3,15 @@
 
 from .abs_dist_learner import AbsDistLearner
 from .actor import Actor
-from .common import Component
+from .agent_manager_proxy import AgentManagerProxy
 from .dist_learner import InferenceLearner, SimpleDistLearner
-from .executor import Executor
 from .experience_collection import concat_experiences_by_agent, merge_experiences_with_trajectory_boundaries
 
 
 __all__ = [
     "AbsDistLearner",
     "Actor",
-    "Component",
+    "AgentManagerProxy",
     "InferenceLearner", "SimpleDistLearner",
-    "Executor",
     "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries"
 ]

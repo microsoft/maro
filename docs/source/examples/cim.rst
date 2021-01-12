@@ -139,7 +139,7 @@ the DQN algorithm and an experience pool for each agent.
 .. code-block:: python
 
     class DQNAgentManager(AbsAgentManager):
-        def _assemble(self, agent_dict):
+        def _assemble(self, agents):
             set_seeds(config.agents.seed)
             num_actions = config.agents.algorithm.num_actions
             for agent_id in self._agent_id_list:
@@ -156,7 +156,7 @@ the DQN algorithm and an experience pool for each agent.
                                                             num_actions=num_actions))
 
                 experience_pool = ColumnBasedStore(**config.agents.experience_pool)
-                agent_dict[agent_id] = CIMAgent(name=agent_id, algorithm=algorithm, experience_pool=experience_pool,
+                agents[agent_id] = CIMAgent(name=agent_id, algorithm=algorithm, experience_pool=experience_pool,
                                                 **config.agents.training_loop_parameters)
 
 Main Loop with Actor and Learner (Single Process)

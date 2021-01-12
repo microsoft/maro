@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent.simple_agent_manager import SimpleAgentManager
+from maro.rl.agent.simple_agent_manager import AgentManager
 from maro.rl.scheduling.scheduler import Scheduler
 from maro.simulator import Env
 from maro.utils import InternalLogger, Logger
@@ -21,7 +21,7 @@ class SimpleLearner(AbsLearner):
     def __init__(
         self,
         env: Env,
-        agent_manager: SimpleAgentManager,
+        agent_manager: AgentManager,
         scheduler: Scheduler,
         logger: Logger = InternalLogger("learner")
     ):

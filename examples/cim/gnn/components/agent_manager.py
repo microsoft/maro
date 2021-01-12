@@ -96,21 +96,21 @@ class SimpleAgentManger(AbsAgentManager):
 
         for agent_id, cnt in config.env.exp_per_ep.items():
             experience_pool = NumpyStore(value_dict, config.training.parallel_cnt * config.training.train_freq * cnt)
-            self._agent_dict[agent_id] = TrainableAgent(agent_id, self._algorithm, experience_pool, self._logger)
+            self._agents[agent_id] = TrainableAgent(agent_id, self._algorithm, experience_pool, self._logger)
 
     def choose_action(self, agent_id, state):
-        return self._agent_dict[agent_id].choose_action(state)
+        return self._agents[agent_id].choose_action(state)
 
     def load_models_from_files(self, model_pth):
         self._algorithm.load_model(model_pth)
 
     def train(self, training_config):
-        for agent in self._agent_dict.values():
+        for agent in self._agents.values():
             agent.train(training_config)
 
     def store_experiences(self, experiences):
         for code, exp_list in experiences.items():
-            self._agent_dict[code].store_experiences(exp_list)
+            self._agents[code].store_experiences(exp_list)
 
     def save_model(self, pth, id):
         self._algorithm.save_model(pth, id)

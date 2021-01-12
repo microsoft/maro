@@ -241,14 +241,22 @@ class RegisterTable:
         event = ConditionalEvent(event, self._peers_name)
         self._event_handler_dict[event] = handler_fn
 
-    def push(self, message: Message):
-        """Push message into all ``conditional events`` which register in the Registry Table.
+    def push(self, message: Message, auto_trigger: bool = True):
+        """
+        Push a newly received message into the corresponding unit event cache. If some conditional event is
+        satisfied and ``auto_trigger`` is true, the set of messages forming the satisfied conditional event  
+        will be processed by the corresponding handler functions.
 
         Args:
             message (Message): Received message.
+            auto_trigger (bool): If true, the set of messages forming the satisfied conditional event will be 
+                processed by the corresponding handler functions.
         """
         for event in self._event_handler_dict:
             event.push_message(message)
+
+        if auto_trigger:
+            return [handler_fn(cached_messages) for handler_fn, cached_messages in self.get()]
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
         """If any ``conditional event`` has been satisfied, return the requisite message list and
@@ -270,22 +278,6 @@ class RegisterTable:
                     satisfied_handler_fn.append((handler_fn, message_list))
 
         return satisfied_handler_fn
-
-    def push_process(self, message) -> bool:
-        """Push a newly received message into the corresponding unit event caches and process a set of messages if
-        some conditional event is satisfied.
-
-        Return True if some conditional event is satisfied as a result of the newly received message and appropriate
-        handlers are triggered.
-        """
-        self.push(message)
-        ready_for_processing = self.get()
-        if not ready_for_processing:
-            return False
-
-        for handler_fn, cached_messages in ready_for_processing:
-            handler_fn(cached_messages)
-        return True
 
     def clear(self):
         """Clear all messages from conditional event caches."""

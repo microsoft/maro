@@ -4,20 +4,19 @@
 from typing import Union
 
 from maro.communication import Message, Proxy, SessionMessage
+from maro.rl.agent import AbsAgentManager
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
 
-from .common import Component, MessageTag, PayloadKey
+from .common import MessageTag, PayloadKey, TerminateEpisode
 
 
-class Executor(object):
-    """``Executor`` class responsible for interacting with an environment.
-
-    An ``Executor`` is a mirror of ``AgentManager`` and consists of a state shaper for observing the environment and
-    an action shaper for executing actions on it. It also has an experience shaper that processes trajectories into
-    experiences for remote training.
+class AgentManagerProxy(AbsAgentManager):
+    """
+    A mirror of ``AgentManager`` that contains a proxy that obtains actions from a remote learner process and
+    executes it locally.
 
     Args:
         state_shaper (StateShaper, optional): It is responsible for converting the environment observation to model
@@ -29,58 +28,53 @@ class Executor(object):
     """
     def __init__(
         self,
-        state_shaper: StateShaper,
-        action_shaper: ActionShaper,
-        experience_shaper: ExperienceShaper,
+        agent_proxy: Proxy,
+        state_shaper: StateShaper = None,
+        action_shaper: ActionShaper = None,
+        experience_shaper: ExperienceShaper = None,
         action_wait_timeout: int = None
     ):
-        self._state_shaper = state_shaper
-        self._action_shaper = action_shaper
-        self._experience_shaper = experience_shaper
+        super().__init__(
+            agent_proxy, 
+            state_shaper=state_shaper, 
+            action_shaper=action_shaper,
+            experience_shaper=experience_shaper
+        )
         self._action_wait_timeout = action_wait_timeout
-        self._action_source = Component.LEARNER.value
+        self._action_source = self.agents.peers_name["learner"][0]
 
         # Data structures to temporarily store transitions and trajectory
         self._transition_cache = {}
         self._trajectory = ColumnBasedStore()
 
-        self._current_stage = None
+        self._current_ep = None
         self._time_step = 0
-        self._proxy = None
 
-    def load_proxy(self, proxy: Proxy):
-        self._proxy = proxy
-        self._action_source = self._proxy.peers_name[self._action_source][0]
-
-    def set_stage(self, stage: str):
-        self._current_stage = stage
+    def set_ep(self, ep):
+        self._current_ep = ep
+        self._time_step = 0
 
     def choose_action(self, decision_event, snapshot_list):
-        assert self._proxy is not None, "A proxy needs to be loaded first by calling load_proxy()"
+        # Check if a TerminateEpisode signal was received
+        for msg in self.agents.get_by_tag(MessageTag.TERMINATE_EPISODE):
+            if msg.payload[PayloadKey.EPISODE] == self._current_ep:
+                return TerminateEpisode()
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
-        payload = {PayloadKey.STATE: model_state, PayloadKey.AGENT_ID: agent_id}
-        reply = self._proxy.send(
+        payload = {
+            PayloadKey.STATE: model_state, 
+            PayloadKey.AGENT_ID: agent_id,
+            PayloadKey.EPISODE: self._current_ep,
+            PayloadKey.TIME_STEP: self._time_step    
+        }
+        reply = self.agents.send(
             SessionMessage(
-                tag=MessageTag.ACTION,
-                source=self._proxy.component_name,
+                tag=MessageTag.CHOOSE_ACTION,
+                source=self.agents.component_name,
                 destination=self._action_source,
-                session_id=".".join([self._current_stage, str(self._time_step)]),
                 payload=payload
             ),
-            timeout=self._action_wait_timeout,
-            stop_condition=lambda msg:
-                (msg.tag == MessageTag.EXIT or 
-                    msg.tag == MessageTag.ROLLOUT and
-                    (self._current_stage != "test" and
-                        (msg.session_id == "test" or int(msg.session_id) > int(self._current_stage))
-                    )
-                )
+            timeout=self._action_wait_timeout
         )
-        # Reset or exit
-        if isinstance(reply, Message):
-            self._time_step = 0
-            return reply
-
         self._time_step += 1
         # Timeout
         if not reply:

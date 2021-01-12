@@ -6,7 +6,7 @@ from torch.optim import RMSprop
 
 from maro.rl import (
     ColumnBasedStore, DQN, DQNConfig, FullyConnectedBlock, LearningModel, NNStack, OptimizerOptions,
-    SimpleAgentManager
+    AgentManager
 )
 from maro.utils import set_seeds
 
@@ -16,7 +16,7 @@ from .agent import DQNAgent
 def create_dqn_agents(agent_id_list, config):
     num_actions = config.algorithm.num_actions
     set_seeds(config.seed)
-    agent_dict = {}
+    agents = {}
     for agent_id in agent_id_list:
         q_net = NNStack(
             "q_value",
@@ -36,22 +36,22 @@ def create_dqn_agents(agent_id_list, config):
             learning_model,
             DQNConfig(**config.algorithm.hyper_params, loss_cls=nn.SmoothL1Loss)
         )
-        agent_dict[agent_id] = DQNAgent(
+        agents[agent_id] = DQNAgent(
             agent_id, algorithm, ColumnBasedStore(**config.experience_pool),
             **config.training_loop_parameters
         )
 
-    return agent_dict
+    return agents
 
 
-class DQNAgentManager(SimpleAgentManager):
+class DQNAgentManager(AgentManager):
     def train(self, experiences_by_agent, performance=None):
         self._assert_train_mode()
 
         # store experiences for each agent
         for agent_id, exp in experiences_by_agent.items():
             exp.update({"loss": [1e8] * len(list(exp.values())[0])})
-            self.agent_dict[agent_id].store_experiences(exp)
+            self.agents[agent_id].store_experiences(exp)
 
-        for agent in self.agent_dict.values():
+        for agent in self.agents.values():
             agent.train()

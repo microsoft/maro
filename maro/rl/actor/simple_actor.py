@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent.simple_agent_manager import SimpleAgentManager
+from maro.rl.agent.simple_agent_manager import AgentManager
 from maro.simulator import Env
 
 from .abs_actor import AbsActor
@@ -12,9 +12,9 @@ class SimpleActor(AbsActor):
 
     Args:
         env (Env): An Env instance.
-        agent_manager (SimpleAgentManager): An AgentManager instance that manages all agents.
+        agent_manager (AgentManager): An AgentManager instance that manages all agents.
     """
-    def __init__(self, env: Env, agent_manager: SimpleAgentManager):
+    def __init__(self, env: Env, agent_manager: AgentManager):
         super().__init__(env, agent_manager)
 
     def roll_out(

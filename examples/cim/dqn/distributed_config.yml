@@ -4,4 +4,6 @@ redis:
 group: test_group
 num_actors: 1
 mode: "simple"
-action_wait_timeout: 100  # milliseconds
+action_wait_timeout: 500  # milliseconds
+update_trigger: 1
+choose_action_trigger: 1

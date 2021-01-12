@@ -5,7 +5,8 @@ import os
 
 import numpy as np
 
-from maro.rl import Actor, AgentManagerMode, Executor, Component
+from maro.communication import Proxy
+from maro.rl import Actor, AgentManagerMode, AgentManagerProxy
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -24,17 +25,27 @@ def launch(config, distributed_config):
     experience_shaper = TruncatedExperienceShaper(**config.env.experience_shaping)
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
+    redis_address = distributed_config.redis.hostname, distributed_config.redis.port
     if distributed_mode == "seed":
-        executor = Executor(
-            state_shaper, action_shaper, experience_shaper,
+        agent_manager = AgentManagerProxy(
+            Proxy(
+                group_name=os.environ.get("GROUP", distributed_config.group),
+                component_type="agent_manager",
+                expected_peers={"learner": 1},
+                redis_address=redis_address,
+                max_retries=20
+            ),
+            state_shaper=state_shaper, 
+            action_shaper=action_shaper,
+            experience_shaper=experience_shaper,
             action_wait_timeout=distributed_config.action_wait_timeout
         )
     elif distributed_mode == "simple":
         config["agents"]["algorithm"]["input_dim"] = state_shaper.dim
-        executor = DQNAgentManager(
-            name="distributed_cim_actor",
+        agent_manager = DQNAgentManager(
+            name="cim_actor",
             mode=AgentManagerMode.INFERENCE,
-            agent_dict=create_dqn_agents(agent_id_list, config.agents),
+            agents=create_dqn_agents(agent_id_list, config.agents),
             state_shaper=state_shaper,
             action_shaper=action_shaper,
             experience_shaper=experience_shaper
@@ -42,13 +53,15 @@ def launch(config, distributed_config):
     else:
         raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
-    actor = Actor(
-        env, executor,
+    proxy = Proxy(
         group_name=os.environ.get("GROUP", distributed_config.group),
-        expected_peers={Component.LEARNER.value: 1},
-        redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
-        max_retries=15
+        component_type="actor",
+        expected_peers={"learner": 1},
+        redis_address=redis_address,
+        max_retries=20
     )
+    
+    actor = Actor(env, agent_manager, proxy)
     actor.run()
 
 

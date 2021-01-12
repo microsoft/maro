@@ -118,7 +118,7 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
                 self._experience_pool.update(indexes, {"loss": loss})
 
     def create_dqn_agents(agent_id_list):
-        agent_dict = {}
+        agents = {}
         for agent_id in agent_id_list:
             q_net = NNStack(
                 "q_value",
@@ -149,12 +149,12 @@ abstraction of a port. We choose DQN as our underlying learning algorithm with a
             )
 
             experience_pool = ColumnBasedStore(**config.experience_pool)
-            agent_dict[agent_id] = DQNAgent(
+            agents[agent_id] = DQNAgent(
                 agent_id, algorithm, ColumnBasedStore(), 
                 min_experiences_to_train=1024, num_batches=10, batch_size=128
             )
 
-        return agent_dict
+        return agents
 
 Agent Manager
 -------------
@@ -166,16 +166,16 @@ that implements the ``train`` method where the newly obtained experiences are st
 experience pools before training, in accordance with the DQN algorithm.
 
 .. code-block:: python
-    class DQNAgentManager(SimpleAgentManager):
+    class DQNAgentManager(AgentManager):
         def train(self, experiences_by_agent, performance=None):
             self._assert_train_mode()
 
             # store experiences for each agent
             for agent_id, exp in experiences_by_agent.items():
                 exp.update({"loss": [1e8] * len(list(exp.values())[0])})
-                self.agent_dict[agent_id].store_experiences(exp)
+                self.agents[agent_id].store_experiences(exp)
 
-            for agent in self.agent_dict.values():
+            for agent in self.agents.values():
                 agent.train()
 
 Main Loop with Actor and Learner (Single Process)
@@ -201,7 +201,7 @@ policies.
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN_INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list),
+        agents=create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
@@ -242,7 +242,7 @@ learner. The following code snippet shows the creation of an actor worker with a
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.INFERENCE,
-        agent_dict=create_dqn_agents(agent_id_list),
+        agents=create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper
@@ -271,7 +271,7 @@ inside that communicates with 3 actors.
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list),
+        agents=create_dqn_agents(agent_id_list),
         state_shaper=state_shaper,
         action_shaper=action_shaper,
         experience_shaper=experience_shaper

@@ -22,7 +22,7 @@ def launch(config, distributed_config):
     agent_manager = DQNAgentManager(
         name="cim_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents)
+        agents=create_dqn_agents(agent_id_list, config.agents)
     )
 
     proxy_params = {

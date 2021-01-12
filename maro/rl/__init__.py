@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManagerMode, SimpleAgentManager
+from maro.rl.agent import AbsAgent, AbsAgentManager, AgentManager, AgentManagerMode
 from maro.rl.algorithms import DQN, AbsAlgorithm, DQNConfig
 from maro.rl.distributed import (
-    AbsDistLearner, Actor, Component, Executor, InferenceLearner, SimpleDistLearner, concat_experiences_by_agent,
+    AbsDistLearner, Actor, AgentManagerProxy, InferenceLearner, SimpleDistLearner, concat_experiences_by_agent,
     merge_experiences_with_trajectory_boundaries
 )
 from maro.rl.exploration import (
@@ -17,9 +17,9 @@ from maro.rl.shaping import AbsShaper, ActionShaper, ExperienceShaper, KStepExpe
 from maro.rl.storage import AbsStore, ColumnBasedStore, OverwriteType
 
 __all__ = [
-    "AbsAgent", "AbsAgentManager", "AgentManagerMode", "SimpleAgentManager",
+    "AbsAgent", "AbsAgentManager", "AgentManager", "AgentManagerMode",
     "AbsAlgorithm", "DQN", "DQNConfig",
-    "AbsDistLearner", "Actor", "Component", "Executor", "InferenceLearner", "SimpleDistLearner",
+    "AbsDistLearner", "Actor", "AgentManagerProxy", "InferenceLearner", "SimpleDistLearner",
     "concat_experiences_by_agent", "merge_experiences_with_trajectory_boundaries",
     "AbsExplorer", "EpsilonGreedyExplorer", "GaussianNoiseExplorer", "NoiseExplorer", "UniformNoiseExplorer",
     "AbsLearner", "SimpleLearner",

@@ -4,7 +4,11 @@
 import os
 import time
 
-from maro.rl import AgentManagerMode, Component, TwoPhaseLinearParameterScheduler, concat_experiences_by_agent
+from maro.communication import Proxy
+from maro.rl import (
+    AgentManagerMode, InferenceLearner, SimpleDistLearner, TwoPhaseLinearParameterScheduler,
+    concat_experiences_by_agent
+)
 from maro.simulator import Env
 from maro.utils import convert_dottable
 
@@ -21,30 +25,37 @@ def launch(config, distributed_config):
     agent_manager = DQNAgentManager(
         name="distributed_cim_learner",
         mode=AgentManagerMode.TRAIN,
-        agent_dict=create_dqn_agents(agent_id_list, config.agents)
+        agents=create_dqn_agents(agent_id_list, config.agents)
     )
 
     scheduler = TwoPhaseLinearParameterScheduler(config.main_loop.max_episode, **config.main_loop.exploration)
 
     distributed_mode = os.environ.get("MODE", distributed_config.mode)
+    expected_peers={"actor": int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))}
     if distributed_mode == "seed":
-        from maro.rl import InferenceLearner as learner_cls
+        expected_peers["agent_manager"] = expected_peers["actor"]
+    proxy_params = {
+        "group_name": os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
+        "component_type": "learner",
+        "expected_peers": expected_peers,
+        "redis_address": (distributed_config.redis.hostname, distributed_config.redis.port),
+        "max_retries": 15
+    }
+    
+    if distributed_mode == "seed":
+        learner = InferenceLearner(
+            agent_manager, scheduler, Proxy(**proxy_params), concat_experiences_by_agent,
+            choose_action_trigger=distributed_config.choose_action_trigger,
+            update_trigger=distributed_config.update_trigger
+        )
     elif distributed_mode == "simple":
-        from maro.rl import SimpleDistLearner as learner_cls
+        learner = SimpleDistLearner(
+            agent_manager, scheduler, Proxy(**proxy_params), concat_experiences_by_agent,
+            update_trigger=distributed_config.update_trigger
+        )
     else:
         raise ValueError(f'Supported distributed training modes: "simple", "seed", got {distributed_mode}')
 
-    learner = learner_cls(
-        agent_manager,
-        scheduler,
-        concat_experiences_by_agent,
-        expected_peers={
-            Component.ACTOR.value: int(os.environ.get("NUM_ACTORS", distributed_config.num_actors))
-        },
-        group_name=os.environ["GROUP"] if "GROUP" in os.environ else distributed_config.group,
-        redis_address=(distributed_config.redis.hostname, distributed_config.redis.port),
-        max_retries=15
-    )
     time.sleep(5)
     learner.learn()
     learner.test()

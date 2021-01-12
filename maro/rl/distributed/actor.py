@@ -6,15 +6,12 @@ from abc import ABC
 from typing import Union
 
 from maro.communication import Message, Proxy
-from maro.rl.agent.abs_agent_manager import AbsAgentManager
+from maro.rl.agent import AgentManager
 from maro.simulator import Env
 from maro.utils import InternalLogger
 
-from .common import Component, MessageTag, PayloadKey
-from .executor import Executor
-
-ACTOR = Component.ACTOR.value
-LEARNER = Component.LEARNER.value
+from .agent_manager_proxy import AgentManagerProxy
+from .common import MessageTag, PayloadKey, TerminateEpisode
 
 
 class Actor(ABC):
@@ -22,20 +19,19 @@ class Actor(ABC):
 
     Args:
         env: An environment instance.
-        executor: An ``Executor`` of ``AbsAgentManager`` instance responsible for interacting with the environment.
+        agent_manager: An ``AgentManager`` or ``AgentManagerProxy`` instance responsible for interacting with the 
+            environment.
         proxy_params: Parameters required for instantiating an internal proxy for communication.
     """
     def __init__(
         self,
         env: Env,
-        executor: Union[AbsAgentManager, Executor],
-        **proxy_params
+        agent_manager: Union[AgentManager, AgentManagerProxy],
+        proxy: Proxy
     ):
         self._env = env
-        self._executor = executor
-        self._proxy = Proxy(component_type=ACTOR, **proxy_params)
-        if isinstance(self._executor, Executor):
-            self._executor.load_proxy(self._proxy)
+        self._agent_manager = agent_manager
+        self._proxy = proxy
         self._logger = InternalLogger(self._proxy.component_name)
         self._expected_ep = 0
 
@@ -45,32 +41,11 @@ class Actor(ABC):
         This enters the actor into an infinite loop of listening to requests and handling them according to the
         register table. In this case, the only type of requests the actor needs to handle is roll-out requests.
         """
-        while True:
-            message = self._proxy.receive_by_id(
-                (MessageTag.ROLLOUT, "*"), stop_condition=lambda msg: msg.tag == MessageTag.EXIT
-            )
-            if isinstance(message, Message):
+        for msg in self._proxy.receive():
+            if msg.tag == MessageTag.EXIT:
                 self.exit()
-
-            message = message[0]
-            if message.session_id == "test":
-                ret = self._roll_out(message)
-                if ret and ret.tag == MessageTag.EXIT:
-                    self.exit()
-            else:
-                ep = int(message.session_id.split("-")[-1])
-                if ep < self._expected_ep:
-                    self._logger.info(
-                        f"Expected roll-out requests for episode >= {self._expected_ep}. "
-                        f"Current request ({message.session_id}) ignored."
-                    )
-                    continue
-                self._expected_ep = ep
-                ret = self._roll_out(message)
-                if not ret:
-                    self._expected_ep += 1
-                elif ret.tag == MessageTag.EXIT:
-                    self.exit()
+            elif msg.tag == MessageTag.ROLLOUT:
+                self._roll_out(msg)
 
     def _roll_out(self, message):
         """Perform one episode of roll-out and send performance and experiences back to the learner.
@@ -79,42 +54,48 @@ class Actor(ABC):
             message: Message containing roll-out parameters and options.
         """
         self._env.reset()
-        if isinstance(self._executor, AbsAgentManager):
+        ep = message.payload[PayloadKey.EPISODE]
+        if isinstance(self._agent_manager, AgentManager):
             model_dict = message.payload.get(PayloadKey.MODEL, None)
             if model_dict is not None:
-                self._executor.load_models(model_dict)
+                self._agent_manager.load_models(model_dict)
             exploration_params = message.payload.get(PayloadKey.EXPLORATION_PARAMS, None)
             if exploration_params is not None:
-                self._executor.set_exploration_params(exploration_params)
+                self._agent_manager.set_exploration_params(exploration_params)
         else:
-            self._executor.set_stage(message.session_id)
+            self._agent_manager.set_ep(ep)
 
-        self._logger.info(f"Rolling out for {message.session_id}...")
+        self._logger.info(f"Rolling out for ep-{ep}...")
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
-            action = self._executor.choose_action(decision_event, self._env.snapshot_list)
-            # Reset or exit
-            if isinstance(action, Message):
-                self._logger.info(
-                    f"Received a message with tag {action.tag} and session {action.session_id}. Roll-out aborted.")
-                return action
+            action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
+            # Received action is an early termination command from learner
+            if isinstance(action, TerminateEpisode):
+                self._logger.info(f"Roll-out aborted.")
+                return
 
             metrics, decision_event, is_done = self._env.step(action)
             if action:
-                self._executor.on_env_feedback(metrics)
+                self._agent_manager.on_env_feedback(metrics)
             else:
-                self._logger.debug(f"Failed to receive an action before timeout, proceeds with NULL action.")
+                self._logger.info(f"Failed to receive an action before timeout, proceed with NULL action.")
 
-        self._proxy.reply(
-            received_message=message,
-            tag=MessageTag.FINISHED,
-            payload={
-                PayloadKey.PERFORMANCE: self._env.metrics,
-                PayloadKey.EXPERIENCES:
-                    None if message.session_id == "test" else self._executor.post_process(self._env.snapshot_list)
-            }
-        )
-        self._logger.info(f"Roll-out finished for {message.session_id}")
+        payload = {
+            PayloadKey.EPISODE: ep,
+            PayloadKey.PERFORMANCE: self._env.metrics,
+            PayloadKey.EXPERIENCES: 
+                self._agent_manager.post_process(self._env.snapshot_list)
+                if message.payload[PayloadKey.IS_TRAINING] else None
+        }
+        
+        # If the agent manager is an AgentManagerProxy instance (SEED architecture), the actor needs
+        # to tell the learner the ID of the agent manager so that the learner can send termination
+        # signals to the agent managers of unfinished actors.  
+        if isinstance(self._agent_manager, AgentManagerProxy):
+            payload[PayloadKey.AGENT_MANAGER_ID] = self._agent_manager.agents.component_name
+
+        self._proxy.reply(received_message=message, tag=MessageTag.FINISHED, payload=payload)
+        self._logger.info(f"Roll-out finished for ep-{ep}")
 
     def exit(self):
         self._logger.info(f"Exiting...")

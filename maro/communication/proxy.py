@@ -131,7 +131,8 @@ class Proxy:
         self._onboard_peer_dict = defaultdict(dict)
 
         # Temporary store the message.
-        self._message_cache = defaultdict(lambda: defaultdict(list))
+        self._message_cache_by_session = defaultdict(list)
+        self._message_cache_by_tag = defaultdict(list)
 
         # Parameters for dynamic peers.
         self._enable_rejoin = enable_rejoin
@@ -330,44 +331,34 @@ class Proxy:
         """
         return self._driver.receive(is_continuous=is_continuous)
 
-    def _retrieve_from_cache(self, targets: Union[List[tuple], tuple]):
-        if isinstance(targets, tuple):
+    def _retrieve_from_cache(self, targets: Union[str, List[str]]):
+        if isinstance(targets, str):
             targets = [targets]
 
-        pending_targets = set(targets)
+        targets, received_targets = set(targets), set()
         messages = []
-        for tag, session_id in targets:
-            if session_id == "*":
-                if tag in self._message_cache:
-                    cached_messages = list(chain(*self._message_cache.pop(tag).values()))
-                    if cached_messages:
-                        pending_targets.remove((tag, session_id))
-                        messages.extend(cached_messages)
-            else:
-                if tag in self._message_cache and session_id in self._message_cache[tag]:
-                    cached_messages = self._message_cache[tag].pop(session_id)
-                    if cached_messages:
-                        pending_targets.remove((tag, session_id))
-                        messages.extend(cached_messages)
+        for session_id in targets:
+            if session_id in self._message_cache_by_session:
+                cached_messages = self._message_cache_by_session.pop(session_id)
+                if cached_messages:
+                    received_targets.add(session_id)
+                    messages.extend(cached_messages)
 
-        return messages, pending_targets
+        return messages, targets - received_targets
 
     def receive_by_id(
         self,
         targets: Union[List[tuple], tuple],
-        timeout: int = None,
-        stop_condition: Callable[[Message], bool] = None
+        timeout: int = None
     ) -> Union[Message, List[Message]]:
         """Receive target messages from communication driver.
 
         Args:
-            targets (List[tuple]): List of (tag, session_id) tuples as receive targets. Messages that match these will
-                be received or retrieved from the cache unless a timeout occurs or a stop signal is received.
-                E.g. [("roll-out", '0_learner0_actor0'), ("roll-out", '1_learner1_actor1'), ...].
-            timeout (int): Timeout in milliseconds. If None and at least one of ``session_ids`` has not received
-                a response, the method will block until all ``session-ids`` receive responses.
-            stop_condition: A function that determines if an incoming message should trigger immediate return. If
-                triggered, -1 will be returned immediately.
+            targets (Union[List[str], str]): Receive targets. Messages that match these will be returned or retrieved 
+                from the cache unless a timeout occurs.
+                E.g. ['0_learner0_actor0', '1_learner1_actor1', ...].
+            timeout (int): Timeout in milliseconds. If None and at least one of the targets has not been received, 
+                the method will block until all targets are received.
         Returns:
             Union[Message, List[Message]]: List of received messages.
         """
@@ -377,33 +368,31 @@ class Proxy:
             return []
 
         # Retrieve messages that match the targets.
-        messages, pending_targets = self._retrieve_from_cache(targets)
-        if not pending_targets:
+        messages, targets = self._retrieve_from_cache(targets)
+        if not targets:
             return messages
-
-        def use_or_cache(message, pending, message_list, cache):
-            if (message.tag, message.session_id) in pending or (message.tag, "*") in pending:
-                pending.discard((message.tag, message.session_id))
-                pending.discard((message.tag, "*"))
-                message_list.append(message)
-            else:
-                cache[message.tag][message.session_id].append(msg)
 
         # Wait for incoming messages.
         if timeout is None:
             for msg in self._driver.receive():
-                use_or_cache(msg, pending_targets, messages, self._message_cache)
-                if stop_condition(msg):
-                    return msg
-                if not pending_targets:
+                if msg.session_id in targets:
+                    targets.discard(msg.session_id)
+                    messages.append(msg)
+                else:
+                    self._message_cache_by_session[msg.session_id].append(msg)
+                    self._message_cache_by_tag[msg.tag].append(msg)
+                if not targets:
                     break
         else:
             msg = self._driver.receive_with_timeout(timeout=timeout)
             if msg is None:
                 return messages
-            use_or_cache(msg, pending_targets, messages, self._message_cache)
-            if stop_condition(msg):
-                return msg
+            if msg.session_id in targets:
+                targets.discard(msg.session_id)
+                messages.append(msg)    
+            else:
+                self._message_cache_by_session[msg.session_id].append(msg)
+                self._message_cache_by_tag[msg.tag].append(msg)
 
         return messages
 
@@ -411,7 +400,7 @@ class Proxy:
         self, tag: Union[str, Enum], session_type: SessionType, destination_payload_list: list, session_id: str = None
     ) -> List[tuple]:
         """Scatters a list of data to peers, and return list of session id."""
-        tag_session_id_list = []
+        session_id_list = []
 
         for destination, payload in destination_payload_list:
             message = SessionMessage(
@@ -424,9 +413,9 @@ class Proxy:
             )
             send_result = self.isend(message)
             if isinstance(send_result, list):
-                tag_session_id_list += send_result
+                session_id_list += send_result
 
-        return tag_session_id_list
+        return session_id_list
 
     def scatter(
         self,
@@ -434,8 +423,7 @@ class Proxy:
         session_type: SessionType,
         destination_payload_list: list,
         session_id: str = None,
-        timeout: int = None,
-        stop_condition: Callable[[Message], bool] = None
+        timeout: int = None
     ) -> List[Message]:
         """Scatters a list of data to peers, and return replied messages.
 
@@ -447,16 +435,12 @@ class Proxy:
                 and the second item of the tuple in list is the message payload.
             session_id (str): Message's session id. Defaults to None.
             timeout (int): Timeout in milliseconds for receiving replies.
-            stop_condition: A function that determines if an incoming message should trigger immediate return. If
-                triggered, -1 will be returned immediately.
 
         Returns:
             List[Message]: List of replied message.
         """
         return self.receive_by_id(
-            self._scatter(tag, session_type, destination_payload_list, session_id),
-            timeout=timeout,
-            stop_condition=stop_condition
+            self._scatter(tag, session_type, destination_payload_list, session_id), timeout=timeout
         )
 
     def iscatter(
@@ -511,8 +495,7 @@ class Proxy:
         session_type: SessionType,
         session_id: str = None,
         payload=None,
-        timeout: int = None,
-        stop_condition: Callable[[Message], bool] = None
+        timeout: int = None
     ) -> List[Message]:
         """Broadcast message to all peers, and return all replied messages.
 
@@ -523,16 +506,12 @@ class Proxy:
             session_id (str): Message's session id. Defaults to None.
             payload (object): The true data. Defaults to None.
             timeout (int): Timeout in milliseconds for receiving replies.
-            stop_condition: A function that determines if an incoming message should trigger immediate return. If
-                triggered, -1 will be returned immediately.
 
         Returns:
             List[Message]: List of replied messages.
         """
         return self.receive_by_id(
-            self._broadcast(component_type, tag, session_type, session_id, payload),
-            timeout=timeout,
-            stop_condition=stop_condition
+            self._broadcast(component_type, tag, session_type, session_id, payload), timeout=timeout
         )
 
     def ibroadcast(
@@ -566,7 +545,7 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of session id which from
                 the pending messages in message cache.
         """
-        tag_session_id_list = []
+        session_id_list = []
         if self._enable_rejoin:
             peer_type = self.get_peer_type(message.destination)
             self._rejoin(peer_type)
@@ -580,12 +559,12 @@ class Proxy:
                 self._logger.info(f"Sending pending message to {message.destination}.")
                 for pending_message in self._message_cache_for_exited_peers[message.destination]:
                     self._driver.send(pending_message)
-                    tag_session_id_list.append((pending_message.tag, pending_message.session_id))
+                    session_id_list.append(pending_message.session_id)
                 del self._message_cache_for_exited_peers[message.destination]
 
         try:
-            tag_session_id_list.append(self._driver.send(message))
-            return tag_session_id_list
+            session_id_list.append(self._driver.send(message))
+            return session_id_list
         except PendingToSend as e:
             self._logger.warn(f"{e} Peer {message.destination} exited, but still have enough peers.")
             if self._enable_message_cache:
@@ -608,16 +587,13 @@ class Proxy:
     def send(
         self,
         message: Message,
-        timeout: int = None,
-        stop_condition: Callable[[Message], bool] = None
+        timeout: int = None
     ) -> Union[List[Message], None]:
         """Send a message to a remote peer.
 
         Args:
             message: Message to be sent.
             timeout (int): Timeout in milliseconds for receiving replies.
-            stop_condition: A function that determines if an incoming message should trigger immediate return. If
-                triggered, -1 will be returned immediately.
 
         Returns:
             Union[List[Message], None]: The list of received message;
@@ -625,7 +601,7 @@ class Proxy:
                 If enable rejoin and message cache, it may return list of messages which from
                 the pending messages.
         """
-        return self.receive_by_id(self._send(message), timeout=timeout, stop_condition=stop_condition)
+        return self.receive_by_id(self._send(message), timeout=timeout)
 
     def reply(
         self, received_message: SessionMessage, tag: Union[str, Enum] = None, payload=None, ack_reply: bool = False
@@ -680,10 +656,15 @@ class Proxy:
         )
         return self.isend(forward_message)
 
-    def clear_cache(self):
-        for cache in self._message_cache.values():
-            cache.clear()
+    def get_by_tag(self, tag):
+        return self._message_cache_by_tag[tag]
 
+    def clear_cache(self):
+        for cache in self._message_cache_by_session.values():
+            cache.clear()
+        for cache in self._message_cache_by_tag.values():
+            cache.clear()
+    
     def _check_peers_update(self):
         """Compare the peers' information on local with the peers' information on Redis.
 

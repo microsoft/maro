@@ -1,7 +1,7 @@
 env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
-  durations: 1120
+  durations: 280
   state_shaping:
     look_back: 7
     max_ports_downstream: 2
@@ -11,11 +11,11 @@ env:
     shortage_factor: 1.0
     time_decay_factor: 0.97
 main_loop:
-  max_episode: 500
+  max_episode: 6
   exploration:
     parameter_names:
       - "epsilon"
-    split_ep: 250
+    split_ep: 5
     start_values: 0.4
     mid_values: 0.32
     end_values: 0.0

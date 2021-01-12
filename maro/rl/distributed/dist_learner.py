@@ -6,13 +6,11 @@ from typing import List, Union
 
 import numpy as np
 
-from maro.communication import SessionMessage
+from maro.communication import SessionMessage, SessionType
 from maro.utils import DummyLogger, Logger
 
 from .abs_dist_learner import AbsDistLearner
-from .common import Component, MessageTag, PayloadKey
-
-ACTOR = Component.ACTOR.value
+from .common import MessageTag, PayloadKey, TerminateEpisode
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -20,7 +18,6 @@ class SimpleDistLearner(AbsDistLearner):
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
         for exploration_params in self._scheduler:
-            self._current_stage = str(self._scheduler.current_ep)
             # set exploration parameters
             if exploration_params:
                 self._agent_manager.set_exploration_params(exploration_params)
@@ -31,17 +28,17 @@ class SimpleDistLearner(AbsDistLearner):
 
     def test(self):
         """Test policy performance on remote actors."""
-        self._current_stage = "test"
-        self._request_rollout()
+        self._request_rollout(is_training=False)
         self._wait_for_actor_results()
         self._proxy.clear_cache()
-
+    
     def _wait_for_actor_results(self):
         """Wait for roll-out results from remote actors."""
         for msg in self._proxy.receive():
-            if (msg.tag == MessageTag.FINISHED and 
-                    msg.session_id == self._current_stage and
-                    self._registry_table.push_process(msg)
+            ep = msg.payload[PayloadKey.EPISODE]
+            if (msg.tag == MessageTag.FINISHED and
+                    ep == self._scheduler.current_ep and
+                    self._registry_table.push(msg) is not None
             ):
                 # If enough update messages have been received, call _update() and break out of the loop to start the
                 # next episode.
@@ -57,60 +54,59 @@ class InferenceLearner(AbsDistLearner):
         self,
         agent_manager,
         scheduler,
+        proxy,
         experience_collecting_func,
         choose_action_trigger: str = None,
-        update_trigger: str = None,
-        **proxy_params
+        update_trigger: str = None
     ):
         super().__init__(
-            agent_manager, scheduler, experience_collecting_func, update_trigger=update_trigger, **proxy_params
+            agent_manager, scheduler, proxy, experience_collecting_func, update_trigger=update_trigger
         )
+        self._peer_agent_managers = self._proxy.peers_name["agent_manager"]
         if choose_action_trigger is None:
             choose_action_trigger = len(self._actors)
         self._registry_table.register_event_handler(
-            f"{ACTOR}:{MessageTag.ACTION.value}:{choose_action_trigger}", self._get_action
+            f"agent_manager:{MessageTag.CHOOSE_ACTION.value}:{choose_action_trigger}", self._get_action
         )
-        self._latest_time_steps_by_actor = defaultdict(lambda: -1)
 
     def learn(self):
         """Main loop for collecting experiences from the actor and using them to update policies."""
-        self._is_training = True
         for exploration_params in self._scheduler:
-            self._current_stage = str(self._scheduler.current_ep)
             # set exploration parameters
             if exploration_params:
                 self._agent_manager.set_exploration_params(exploration_params)
-            self._request_rollout()
+            self._request_rollout(with_model_copies=False)
             self._serve_and_update()
 
         self._proxy.clear_cache()
 
     def test(self):
         """Test policy performance on remote actors."""
-        self._current_stage = "test"
-        self._request_rollout()
-        self._serve_and_update()
+        self._request_rollout(is_training=False, with_model_copies=False)
+        self._serve_and_update(is_training=False)
         self._proxy.clear_cache()
-
-    def _serve_and_update(self):
+    
+    def _serve_and_update(self, is_training: bool = True):
         """Serve actions to actors and wait for their roll-out results."""
-        self._latest_time_steps_by_actor = defaultdict(lambda: -1)
-
+        ep = self._scheduler.current_ep if is_training else "test"
+        unfinished = set(self._peer_agent_managers)
         for msg in self._proxy.receive():
-            if msg.tag == MessageTag.ACTION:
-                actor_id = msg.source
-                stage, time_step = msg.session_id.split(".")
-                time_step = int(time_step)
-                if stage == self._current_stage and time_step > self._latest_time_steps_by_actor[actor_id]:
-                    self._latest_time_steps_by_actor[actor_id] = time_step
-                    self._registry_table.push_process(msg)
-            elif (msg.tag == MessageTag.FINISHED and
-                    msg.session_id == self._current_stage and
-                    self._registry_table.push_process(msg)
-            ):
-                # If enough update messages have been received, call _update() and break out of the loop to start the
-                # next episode.
-                break
+            if msg.payload[PayloadKey.EPISODE] != ep:
+                continue
+            if msg.tag == MessageTag.FINISHED:
+                # If enough update messages have been received, call _update() and break out of the loop to start
+                # the next episode.
+                unfinished.discard(msg.payload[PayloadKey.AGENT_MANAGER_ID])
+                if self._registry_table.push(msg) is not None:
+                    if unfinished:
+                        self._proxy.iscatter(
+                            MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
+                            [(actor, {PayloadKey.EPISODE: ep}) for actor in unfinished]
+                        )
+                        self._logger.info(f"Sent terminating signals to unfinished actors: {unfinished}")
+                    break
+            elif msg.tag == MessageTag.CHOOSE_ACTION:
+                self._registry_table.push(msg)
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):
@@ -126,4 +122,4 @@ class InferenceLearner(AbsDistLearner):
             state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in message_batch])
             action_batch = self._agent_manager[agent_id].choose_action(state_batch)
             for msg, action in zip(message_batch, action_batch):
-                self._proxy.reply(received_message=msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
+                self._proxy.reply(msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
