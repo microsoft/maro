@@ -15,7 +15,7 @@ URL_PREFIX = "/v1/joinNodeScript"
 def get_init_node_script():
     try:
         return send_from_directory(
-            directory=os.path.expanduser("~/.maro/lib/grass/scripts/node"),
+            directory=os.path.expanduser("~/.maro-shared/lib/grass/scripts/node"),
             filename="join_node.py",
             as_attachment=True
         )

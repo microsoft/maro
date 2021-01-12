@@ -12,7 +12,3 @@ user:
 
 master:
   node_size: Standard_D2s_v3
-
-connection:
-  ssh:
-    port: 51811

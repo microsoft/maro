@@ -8,6 +8,8 @@ import json
 import operator
 import os
 import pathlib
+import pwd
+import shutil
 import subprocess
 import sys
 
@@ -19,13 +21,13 @@ import yaml
 
 CREATE_DOCKER_USER_COMMAND = """\
 sudo groupadd docker
-sudo gpasswd -a $USER docker
+sudo gpasswd -a {node_username} docker
 """
 
 SETUP_SAMBA_MOUNT_COMMAND = """\
-mkdir -p {maro_samba_path}
-sudo mount -t cifs -o username={master_username},password={samba_password} //{master_hostname}/sambashare {maro_samba_path}
-echo '//{master_hostname}/sambashare  {maro_samba_path} cifs  username={master_username},password={samba_password}  0  0' | \
+mkdir -p {maro_shared_path}
+sudo mount -t cifs -o username={master_username},password={samba_password} //{master_hostname}/sambashare {maro_shared_path}
+echo '//{master_hostname}/sambashare  {maro_shared_path} cifs  username={master_username},password={samba_password}  0  0' | \
     sudo tee -a /etc/fstab
 """
 
@@ -33,18 +35,31 @@ START_NODE_AGENT_SERVICE_COMMAND = """\
 systemctl --user daemon-reload
 systemctl --user start maro-node-agent.service
 systemctl --user enable maro-node-agent.service
-loginctl enable-linger $USER  # Make sure the user is not logged out
+loginctl enable-linger {node_username}  # Make sure the user is not logged out
 """
 
 START_NODE_API_SERVER_SERVICE_COMMAND = """\
 systemctl --user daemon-reload
 systemctl --user start maro-node-api-server.service
 systemctl --user enable maro-node-api-server.service
-loginctl enable-linger $USER  # Make sure the user is not logged out
+loginctl enable-linger {node_username}  # Make sure the user is not logged out
 """
 
 
-class NodeInitializer:
+class Params:
+    DEFAULT_SSH_PORT = 22
+    DEFAULT_API_SERVER_PORT = 51812
+
+
+class Paths:
+    MARO_SHARED = "~/.maro-shared"
+    MARO_LOCAL = "~/.maro-local"
+
+    ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
+    ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
+
+
+class NodeJoiner:
     def __init__(self, join_node_deployment: dict):
         self.join_node_deployment = join_node_deployment
 
@@ -52,32 +67,33 @@ class NodeInitializer:
             master_hostname=join_node_deployment["master"]["hostname"],
             api_server_port=join_node_deployment["connection"]["api_server"]["port"]
         )
-        master_api_client.create_node(node_details=join_node_deployment["node"])
+        self.node_details = master_api_client.create_node(node_details=join_node_deployment["node"])
 
         self.cluster_details = master_api_client.get_cluster()
         self.master_details = master_api_client.get_master()
 
     @staticmethod
     def create_docker_user():
-        Subprocess.run(command=CREATE_DOCKER_USER_COMMAND)
+        command = CREATE_DOCKER_USER_COMMAND.format(node_username=pwd.getpwuid(os.getuid()).pw_name)
+        Subprocess.run(command=command)
 
     def setup_samba_mount(self):
         command = SETUP_SAMBA_MOUNT_COMMAND.format(
             master_username=self.master_details["username"],
             master_hostname=self.master_details["hostname"],
             samba_password=self.master_details["samba"]["password"],
-            maro_samba_path=os.path.expanduser("~/.maro")
+            maro_shared_path=Paths.ABS_MARO_SHARED
         )
         Subprocess.run(command=command)
 
     def start_node_agent_service(self):
         # Dump node_agent.config
-        os.makedirs(name=os.path.expanduser("~/.maro-local/services/"), exist_ok=True)
-        with open(os.path.expanduser("~/.maro-local/services/maro-node-agent.config"), "w") as fw:
+        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/services", exist_ok=True)
+        with open(f"{Paths.ABS_MARO_LOCAL}/services/maro-node-agent.config", "w") as fw:
             json.dump(
                 obj={
                     "cluster_name": self.cluster_details["name"],
-                    "node_name": self.join_node_deployment["node"]["name"],
+                    "node_name": self.node_details["name"],
                     "master_hostname": self.master_details["hostname"],
                     "redis_port": self.master_details["redis"]["port"]
                 },
@@ -86,7 +102,7 @@ class NodeInitializer:
 
         # Load .service
         with open(
-            file=os.path.expanduser("~/.maro/lib/grass/services/node_agent/maro-node-agent.service"),
+            file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service",
             mode="r"
         ) as fr:
             service_file = fr.read()
@@ -97,12 +113,13 @@ class NodeInitializer:
         with open(file=os.path.expanduser("~/.config/systemd/user/maro-node-agent.service"), mode="w") as fw:
             fw.write(service_file)
 
-        Subprocess.run(command=START_NODE_AGENT_SERVICE_COMMAND)
+        command = START_NODE_AGENT_SERVICE_COMMAND.format(node_username=pwd.getpwuid(os.getuid()).pw_name)
+        Subprocess.run(command=command)
 
     def start_node_api_server_service(self):
         # Load .service
         with open(
-            file=os.path.expanduser("~/.maro/lib/grass/services/node_api_server/maro-node-api-server.service"),
+            file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_api_server/maro-node-api-server.service",
             mode="r"
         ) as fr:
             service_file = fr.read()
@@ -116,7 +133,16 @@ class NodeInitializer:
         with open(file=os.path.expanduser("~/.config/systemd/user/maro-node-api-server.service"), mode="w") as fw:
             fw.write(service_file)
 
-        Subprocess.run(command=START_NODE_API_SERVER_SERVICE_COMMAND)
+        command = START_NODE_API_SERVER_SERVICE_COMMAND.format(node_username=pwd.getpwuid(os.getuid()).pw_name)
+        Subprocess.run(command=command)
+
+    @staticmethod
+    def copy_leave_script():
+        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
+        shutil.copy2(
+            src=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/leave.py",
+            dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
+        )
 
     # Utils
 
@@ -138,6 +164,9 @@ class NodeInitializer:
                 }
             },
             "connection": {
+                "ssh": {
+                    "port": ""
+                },
                 "api_server": {
                     "port": ""
                 }
@@ -146,7 +175,16 @@ class NodeInitializer:
         DeploymentValidator.validate_and_fill_dict(
             template_dict=join_node_deployment_template,
             actual_dict=join_node_deployment,
-            optional_key_to_value={}
+            optional_key_to_value={
+                "root['connection']": {
+                    "ssh": {"port": Params.DEFAULT_SSH_PORT},
+                    "api_server": {"port": Params.DEFAULT_API_SERVER_PORT},
+                },
+                "root['connection']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
+                "root['connection']['ssh']['port']": Params.DEFAULT_SSH_PORT,
+                "root['connection']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
+                "root['connection']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT
+            }
         )
         return join_node_deployment
 
@@ -283,8 +321,23 @@ class Subprocess:
         )
         if completed_process.returncode != 0:
             raise Exception(completed_process.stderr)
-        sys.stdout.write(completed_process.stdout)
         sys.stderr.write(completed_process.stderr)
+
+
+class DetailsWriter:
+    @staticmethod
+    def save_local_cluster_details(cluster_details: dict) -> dict:
+        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/cluster", exist_ok=True)
+        with open(file=f"{Paths.ABS_MARO_LOCAL}/cluster/cluster_details.yml", mode="w") as fw:
+            cluster_details = yaml.safe_dump(data=cluster_details, stream=fw)
+        return cluster_details
+
+    @staticmethod
+    def save_local_node_details(node_details: dict) -> dict:
+        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/cluster", exist_ok=True)
+        with open(file=f"{Paths.ABS_MARO_LOCAL}/cluster/node_details.yml", mode="w") as fw:
+            node_details = yaml.safe_dump(data=node_details, stream=fw)
+        return node_details
 
 
 if __name__ == "__main__":
@@ -296,10 +349,14 @@ if __name__ == "__main__":
     # Load deployment and do validation
     with open(file=os.path.expanduser(args.deployment_path), mode="r") as fr:
         join_node_deployment = yaml.safe_load(fr)
-    join_node_deployment = NodeInitializer.standardize_join_node_deployment(join_node_deployment=join_node_deployment)
+    join_node_deployment = NodeJoiner.standardize_join_node_deployment(join_node_deployment=join_node_deployment)
 
-    node_initializer = NodeInitializer(join_node_deployment=join_node_deployment)
-    node_initializer.create_docker_user()
-    node_initializer.setup_samba_mount()
-    node_initializer.start_node_agent_service()
-    node_initializer.start_node_api_server_service()
+    node_joiner = NodeJoiner(join_node_deployment=join_node_deployment)
+    node_joiner.create_docker_user()
+    node_joiner.setup_samba_mount()
+    node_joiner.start_node_agent_service()
+    node_joiner.start_node_api_server_service()
+    node_joiner.copy_leave_script()
+
+    DetailsWriter.save_local_cluster_details(cluster_details=node_joiner.cluster_details)
+    DetailsWriter.save_local_node_details(node_details=node_joiner.node_details)

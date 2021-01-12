@@ -34,7 +34,7 @@ class GrassExecutor:
         self.cluster_id = self.cluster_details["id"]
 
         # User configs
-        self.admin_username = self.cluster_details["user"]["admin_username"]
+        self.master_username = self.cluster_details["master"]["username"]
 
         # Master configs (may be dynamically create)
         self.master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
@@ -95,8 +95,8 @@ class GrassExecutor:
                 return
             FileSynchronizer.copy_files_to_node(
                 local_path=abs_image_path,
-                remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/image_files",
-                admin_username=self.admin_username,
+                remote_dir=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/image_files",
+                node_username=self.master_username,
                 node_ip_address=self.master_public_ip_address,
                 ssh_port=self.ssh_port
             )
@@ -117,8 +117,8 @@ class GrassExecutor:
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'")
         FileSynchronizer.copy_files_to_node(
             local_path=local_path,
-            remote_dir=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
-            admin_username=self.admin_username,
+            remote_dir=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/data{remote_path}",
+            node_username=self.master_username,
             node_ip_address=self.master_public_ip_address,
             ssh_port=self.ssh_port
         )
@@ -128,8 +128,8 @@ class GrassExecutor:
             raise FileOperationError(f"Invalid remote path: {remote_path}\nShould be started with '/'")
         FileSynchronizer.copy_files_from_node(
             local_dir=local_path,
-            remote_path=f"{GlobalPaths.MARO_CLUSTERS}/{self.cluster_name}/data{remote_path}",
-            admin_username=self.admin_username,
+            remote_path=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/data{remote_path}",
+            node_username=self.master_username,
             node_ip_address=self.master_public_ip_address,
             ssh_port=self.ssh_port
         )
@@ -176,8 +176,8 @@ class GrassExecutor:
         try:
             FileSynchronizer.copy_files_from_node(
                 local_dir=export_dir,
-                remote_path=f"~/.maro/logs/{job_details['id']}",
-                admin_username=self.admin_username,
+                remote_path=f"{GlobalPaths.MARO_SHARED}/logs/{job_details['id']}",
+                node_username=self.master_username,
                 node_ip_address=self.master_public_ip_address,
                 ssh_port=self.ssh_port
             )
@@ -291,116 +291,116 @@ class GrassExecutor:
     # Remote Scripts
 
     @staticmethod
-    def remote_init_build_node_image_vm(admin_username: str, vm_ip_address: str, ssh_port: int):
+    def remote_init_build_node_image_vm(node_username: str, vm_ip_address: str, ssh_port: int):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{vm_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{vm_ip_address} "
             "'python3 ~/init_build_node_image_vm.py'"
         )
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def remote_init_master(admin_username: str, master_ip_address: str, ssh_port: int, cluster_name: str):
+    def remote_init_master(node_username: str, master_ip_address: str, ssh_port: int, cluster_name: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {ssh_port} "
-            f"{admin_username}@{master_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.init_master {cluster_name}'"
+            f"{node_username}@{master_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.init_master {cluster_name}'"
         )
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def remote_start_master_services(admin_username: str, master_ip_address: str, ssh_port: int, cluster_name: str):
+    def remote_start_master_services(master_username: str, master_ip_address: str, ssh_port: int, cluster_name: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {ssh_port} "
-            f"{admin_username}@{master_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_agent_service "
+            f"{master_username}@{master_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.start_master_agent_service "
             f"{cluster_name}'"
         )
         _ = SubProcess.run(command)
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {ssh_port} "
-            f"{admin_username}@{master_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.master.start_master_api_server_service "
+            f"{master_username}@{master_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.start_master_api_server_service "
             f"{cluster_name}'"
         )
         _ = SubProcess.run(command)
 
-    def remote_join_node(self, node_ip_address: str, deployment_path: str):
+    @staticmethod
+    def remote_join_node(
+        ssh_port: int,
+        node_username: str, node_hostname: str,
+        master_hostname: str, api_server_port: int,
+        deployment_path: str
+    ):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'curl -s GET http://{self.master_hostname}:{self.api_server_port}/v1/joinNodeScript | "
-            f"python3 - {deployment_path}'"
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_hostname} "
+            f"'curl -s GET http://{master_hostname}:{api_server_port}/v1/joinNodeScript | python3 - {deployment_path}'"
         )
+        SubProcess.interactive_run(command)
+
+    @staticmethod
+    def local_join_node(master_hostname: str, api_server_port: int, deployment_path: str):
+        command = (
+            f"'curl -s GET http://{master_hostname}:{api_server_port}/v1/joinNodeScript | python3 - {deployment_path}'"
+        )
+        SubProcess.interactive_run(command)
+
+    @staticmethod
+    def remote_leave_node(
+        ssh_port: int,
+        node_username: str, node_hostname: str
+    ):
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_hostname} "
+            f"'python3 ~/.maro-local/scripts/leave.py'"
+        )
+        SubProcess.interactive_run(command)
+
+    @staticmethod
+    def local_leave_node():
+        command = f"python3 ~/.maro-local/scripts/leave.py"
         SubProcess.interactive_run(command)
 
     def remote_start_node_services(self, node_name: str, node_ip_address: str):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.start_node_agent_service "
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.master_username}@{node_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_agent_service "
             f"{self.cluster_name} {node_name}'"
         )
         _ = SubProcess.run(command)
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.start_node_api_server_service "
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.master_username}@{node_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_api_server_service "
             f"{self.cluster_name}'"
         )
         _ = SubProcess.run(command)
 
     def remote_stop_node_services(self, node_ip_address: str):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.stop_node_api_server_service'"
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.master_username}@{node_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_api_server_service'"
         )
         _ = SubProcess.run(command)
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.admin_username}@{node_ip_address} "
-            f"'cd {GlobalPaths.MARO_GRASS_LIB}; python3 -m scripts.node.stop_node_agent_service'"
+            f"ssh -o StrictHostKeyChecking=no -p {self.ssh_port} {self.master_username}@{node_ip_address} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_agent_service'"
         )
         _ = SubProcess.run(command)
 
     @staticmethod
-    def test_ssh_22_connection(admin_username: str, node_ip_address: str):
+    def test_ssh_default_port_connection(node_username: str, node_ip_address: str, ssh_port: int):
         command = (
-            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
+            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {node_username}@{node_ip_address} "
             "echo 'Connection established'"
         )
         _ = SubProcess.run(command=command, timeout=5)
 
     @staticmethod
-    def test_ssh_default_port_connection(admin_username: str, node_ip_address: str, ssh_port: int):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {ssh_port} {admin_username}@{node_ip_address} "
-            "echo 'Connection established'"
-        )
-        _ = SubProcess.run(command=command, timeout=5)
-
-    @staticmethod
-    def remote_set_ssh_port(admin_username: str, node_ip_address: str, ssh_port: int):
-        # Don't have to do the setting if it is assigned 22
-        if ssh_port == 22:
-            return
-
-        # Set ssh port.
-        command = (
-            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
-            f"'echo -e \"Port {ssh_port}\nPort 22\" | sudo tee -a /etc/ssh/sshd_config'"
-        )
-        _ = SubProcess.run(command)
-
-        # Restart sshd service.
-        command = (
-            f"ssh -o StrictHostKeyChecking=no {admin_username}@{node_ip_address} "
-            "'sudo systemctl restart ssh'"
-        )
-        _ = SubProcess.run(command)
-
-    @staticmethod
-    def retry_connection_and_set_ssh_port(admin_username: str, node_ip_address: str, ssh_port: int) -> bool:
+    def retry_connection(node_username: str, node_ip_address: str, ssh_port: int) -> bool:
         remain_retries = 20
         while remain_retries > 0:
             try:
                 GrassExecutor.test_ssh_default_port_connection(
-                    admin_username=admin_username,
+                    node_username=node_username,
                     node_ip_address=node_ip_address,
                     ssh_port=ssh_port
                 )
@@ -411,24 +411,8 @@ class GrassExecutor:
                     f"Unable to connect to {node_ip_address} with port {ssh_port}, "
                     f"remains {remain_retries} retries"
                 )
-            try:
-                GrassExecutor.test_ssh_22_connection(
-                    admin_username=admin_username,
-                    node_ip_address=node_ip_address
-                )
-                GrassExecutor.remote_set_ssh_port(
-                    admin_username=admin_username,
-                    node_ip_address=node_ip_address,
-                    ssh_port=ssh_port
-                )
-                return True
-            except (CliError, TimeoutExpired):
-                remain_retries -= 1
-                logger.debug(
-                    f"Unable to connect to {node_ip_address} with port 22, remains {remain_retries} retries"
-                )
-            time.sleep(10)
-        raise ClusterInternalError(f"Unable to connect to {node_ip_address}")
+                time.sleep(5)
+        raise ClusterInternalError(f"Unable to connect to {node_ip_address} with port {ssh_port}")
 
     # Utils
 

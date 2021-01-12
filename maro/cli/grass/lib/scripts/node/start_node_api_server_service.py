@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from ..utils.details import load_cluster_details
+from ..utils.details_reader import DetailsReader
 from ..utils.subprocess import SubProcess
 
 START_NODE_API_SERVER_COMMAND = """\
@@ -24,12 +24,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load details
-    cluster_details = load_cluster_details(cluster_name=args.cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=args.cluster_name)
     admin_username = cluster_details["user"]["admin_username"]
     api_server_port = cluster_details["connection"]["api_server"]["port"]
 
     # Load .service
-    with open(os.path.expanduser("~/.maro/lib/grass/services/node_api_server/maro-node-api-server.service"), "r") as fr:
+    with open(os.path.expanduser("~/.maro-shared/lib/grass/services/node_api_server/maro-node-api-server.service"), "r") as fr:
         service_file = fr.read()
 
     # Rewrite data in .service and write it to systemd folder

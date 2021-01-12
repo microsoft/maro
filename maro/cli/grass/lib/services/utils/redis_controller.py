@@ -39,12 +39,14 @@ class RedisController:
         return name_to_node_details
 
     def get_node_details(self, cluster_name: str, node_name: str) -> dict:
-        return json.loads(
-            self._redis.hget(
-                f"{cluster_name}:name_to_node_details",
-                node_name
-            )
+        node_details = self._redis.hget(
+            f"{cluster_name}:name_to_node_details",
+            node_name
         )
+        if node_details is None:
+            return {}
+        else:
+            return json.loads(node_details)
 
     def set_node_details(self, cluster_name: str, node_name: str, node_details: dict) -> None:
         self._redis.hset(

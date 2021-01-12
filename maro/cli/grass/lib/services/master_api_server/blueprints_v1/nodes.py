@@ -71,7 +71,7 @@ def create_node():
             node_name=node_name,
             node_details=node_details
         )
-    return {}
+    return node_details
 
 
 @blueprint.route(f"{URL_PREFIX}/<node_name>", methods=["DELETE"])

@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-from ..utils.details import load_cluster_details
+from ..utils.details_reader import DetailsReader
 from ..utils.subprocess import SubProcess
 
 START_NODE_AGENT_COMMAND = """\
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load details
-    cluster_details = load_cluster_details(cluster_name=args.cluster_name)
+    cluster_details = DetailsReader.load_cluster_details(cluster_name=args.cluster_name)
     admin_username = cluster_details["user"]["admin_username"]
     master_hostname = cluster_details["master"]["hostname"]
     redis_port = cluster_details["master"]["redis"]["port"]
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         }, fw)
 
     # Load .service
-    with open(os.path.expanduser("~/.maro/lib/grass/services/node_agent/maro-node-agent.service"), "r") as fr:
+    with open(os.path.expanduser("~/.maro-shared/lib/grass/services/node_agent/maro-node-agent.service"), "r") as fr:
         service_file = fr.read()
 
     # Rewrite data in .service and write it to systemd folder

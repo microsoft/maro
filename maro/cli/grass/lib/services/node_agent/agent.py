@@ -84,12 +84,14 @@ class NodeAgent:
                 cluster_name=self._cluster_name,
                 node_name=self._node_name
             )
-            node_details["state"] = state_details
-            self._redis_controller.set_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name,
-                node_details=node_details
-            )
+            # May be node leaving here.
+            if node_details:
+                node_details["state"] = state_details
+                self._redis_controller.set_node_details(
+                    cluster_name=self._cluster_name,
+                    node_name=self._node_name,
+                    node_details=node_details
+                )
         sys.exit(0)
 
     def init_agent(self) -> None:
@@ -398,7 +400,7 @@ class LoadImageAgent(multiprocessing.Process):
         # Parallel load
         with ThreadPool(5) as pool:
             params = [
-                [os.path.expanduser(f"~/.maro/clusters/{self._cluster_name}/image_files/{unloaded_image_name}")]
+                [os.path.expanduser(f"~/.maro-shared/clusters/{self._cluster_name}/image_files/{unloaded_image_name}")]
                 for unloaded_image_name in unloaded_image_names
             ]
             pool.starmap(

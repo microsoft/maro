@@ -449,7 +449,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        maro_mount_source = f"~/.maro/clusters/{cluster_name}/data/"
+        maro_mount_source = f"~/.maro-shared/clusters/{cluster_name}/data/"
         mount_target = job_details["components"][component_type]["mount"]["target"]
 
         # Build create config.
@@ -622,7 +622,7 @@ class PendingJobAgent(multiprocessing.Process):
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        maro_mount_source = f"~/.maro/clusters/{cluster_name}/data/"
+        maro_mount_source = f"~/.maro-shared/clusters/{cluster_name}/data/"
         mount_target = job_details["components"][component_type]["mount"]["target"]
 
         # Build create config.
