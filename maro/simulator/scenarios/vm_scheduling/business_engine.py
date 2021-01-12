@@ -17,7 +17,7 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
-from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, PmState, VmRequestPayload
+from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, PostponeType, PmState, Sku, VmRequestPayload
 from .cpu_reader import CpuReader
 from .events import Events
 from .frame_builder import build_frame
@@ -116,7 +116,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
         # Load PM related configs.
-        self._pm_amount: int = self._config.SKU.TYPE_1.AMOUNT
+        self._pm_amount: int = self._config.PM.SKU.TYPE_0.AMOUNT
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_metrics(self):
@@ -158,18 +158,14 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=pm_id,
                 cpu_cores_capacity=self._pm_cpu_cores_capacity,
                 memory_capacity=self._pm_memory_capacity,
-                sku=self._config.PM.SKU.TYPE_1.TYPE_NAME
+                sku=self._config.PM.SKU.TYPE_0.TYPE_NAME,
                 oversubscribable=PmState.EMPTY
             )
 
     def _init_pm_sku(self):
-        self._sku_list = [
-            convert_dottable({
-                'CALIBRATION_PARAMETER': 1.4,
-                'BUSY_POWER': 10,
-                'IDLE_POWER': 1
-            })
-        ]
+        self._sku_dict = {
+            0: Sku(calibration_parameter=1.4, busy_power=10, idle_power=1)
+        }
 
     def reset(self):
         """Reset internal states for episode."""
@@ -225,7 +221,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 id=vm.vm_id,
                 cpu_cores_requirement=vm.vm_cpu_cores,
                 memory_requirement=vm.vm_memory,
-                lifetime=vm.lifetime
+                lifetime=vm.vm_lifetime,
                 sub_id=vm.sub_id,
                 deployment_id = vm.deploy_id,
                 category = vm.vm_category
@@ -301,6 +297,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             successful_allocation=self._successful_allocation,
             successful_completion=self._successful_completion,
             failed_allocation=self._failed_allocation,
+            failed_completion=self._failed_completion,
             total_latency=self._total_latency,
             total_oversubscriptions=self._total_oversubscriptions,
             total_overload_pms=self._total_overload_pms,
@@ -348,7 +345,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._total_overload_pms += 1
             else:
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    sku=self._sku_list[pm.sku],
+                    sku=self._sku_dict[pm.sku],
                     cpu_utilization=pm.cpu_utilization
                 )
 
@@ -371,21 +368,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             pm.update_cpu_utilization(vm=None, cpu_utilization=0)
 
         pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-            sku=self._sku_list[pm.sku],
+            sku=self._sku_dict[pm.sku],
             cpu_utilization=pm.cpu_utilization
         )
 
         self._failed_completion += len(vm_ids)
         self._total_overload_vms += len(vm_ids)
 
-    def _cpu_utilization_to_energy_consumption(self, sku: dict, cpu_utilization: float) -> float:
+    def _cpu_utilization_to_energy_consumption(self, sku: Sku, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = sku.CALIBRATION_PARAMETER
-        busy_power = sku.BUSY_POWER
-        idle_power = sku.IDLE_POWER
+        power: float = sku.calibration_parameter
+        busy_power = sku.busy_power
+        idle_power = sku.idle_power
 
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
@@ -585,7 +582,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cpu_utilization=None
                 )
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    sku=self._sku_list[pm.sku],
+                    sku=self._sku_dict[pm.sku],
                     cpu_utilization=pm.cpu_utilization
                 )
                 self._successful_allocation += 1

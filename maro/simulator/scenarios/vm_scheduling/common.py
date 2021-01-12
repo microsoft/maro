@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import List
 
 from .virtual_machine import VirtualMachine
@@ -108,8 +108,15 @@ class Latency:
         return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource})'
 
 
-class PmState(Enum):
+class PmState(IntEnum):
     """PM oversubscription state, includes empty, oversubscribable, non-oversubscribable."""
     NON_OVERSUBSCRIBABLE = -1
     EMPTY = 0
     OVERSUBSCRIBABLE = 1
+
+
+class Sku:
+    def __init__(self, calibration_parameter: float, busy_power: int, idle_power: int):
+        self.calibration_parameter = calibration_parameter
+        self.busy_power = busy_power
+        self.idle_power = idle_power

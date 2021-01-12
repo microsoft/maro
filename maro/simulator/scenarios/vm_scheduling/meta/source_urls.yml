@@ -1,9 +1,9 @@
 vm_data:
-  azure.2019:
+  azure.2019.336k:
     remote_url: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/AzurePublicDatasetLinksV2.txt"
-    azure.2019.336k:
-      sample: 336000
-      seed: 9
-    azure.2019.10k:
-      sample: 10000
-      seed: 9
+    sample: 336000
+    seed: 9
+  azure.2019.10k:
+    remote_url: "https://raw.githubusercontent.com/Azure/AzurePublicDataset/master/AzurePublicDatasetLinksV2.txt"
+    sample: 10000
+    seed: 9

@@ -92,7 +92,7 @@ class VmSchedulingPipeline(DataPipeline):
         """
         logger.info_green("Downloading vmtable and cpu readings.")
         # Download parts of cpu reading files.
-        num_files = 5
+        num_files = 195
         # Open the txt file which contains all the required urls.
         with open(self._download_file, mode="r", encoding="utf-8") as urls:
             for remote_url in urls.read().splitlines():
@@ -199,7 +199,7 @@ class VmSchedulingPipeline(DataPipeline):
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
         vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
         # The lifetime of the VM is deleted time - created time + 1 (tick).
-        vm_table['lifetime'] = vm_table['vmcreated'] - vm_table['vmdeleted'] + 1
+        vm_table['lifetime'] = vm_table['vmdeleted'] - vm_table['vmcreated'] + 1
 
         vm_table['vmcategory'] = vm_table['vmcategory'].map(self._category_map)
 
@@ -331,11 +331,10 @@ class VmSchedulingProcess:
         with open(self._meta_path) as fp:
             self._conf = safe_load(fp)
             for topology in self._conf["vm_data"].keys():
-                source = '.'.join(topology.split('.')[:-1])
                 self.topologies[topology] = VmSchedulingTopology(
                     topology=topology,
-                    source=self._conf["vm_data"][source]["remote_url"],
-                    sample=self._conf["vm_data"][source][topology]["sample"],
-                    seed=self._conf["vm_data"][source][topology]["seed"],
+                    source=self._conf["vm_data"][topology]["remote_url"],
+                    sample=self._conf["vm_data"][topology]["sample"],
+                    seed=self._conf["vm_data"][topology]["seed"],
                     is_temp=is_temp
                 )
