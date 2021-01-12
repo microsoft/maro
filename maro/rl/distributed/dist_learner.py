@@ -23,14 +23,13 @@ class SimpleDistLearner(AbsDistLearner):
                 self._agent_manager.set_exploration_params(exploration_params)
             self._request_rollout()
             self._wait_for_actor_results()
-
-        self._proxy.clear_cache()
+            self._proxy.purge()
 
     def test(self):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False)
         self._wait_for_actor_results()
-        self._proxy.clear_cache()
+        self._proxy.purge()
     
     def _wait_for_actor_results(self):
         """Wait for roll-out results from remote actors."""
@@ -77,14 +76,13 @@ class InferenceLearner(AbsDistLearner):
                 self._agent_manager.set_exploration_params(exploration_params)
             self._request_rollout(with_model_copies=False)
             self._serve_and_update()
-
-        self._proxy.clear_cache()
+            self._proxy.purge()
 
     def test(self):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False, with_model_copies=False)
         self._serve_and_update(is_training=False)
-        self._proxy.clear_cache()
+        self._proxy.purge()
     
     def _serve_and_update(self, is_training: bool = True):
         """Serve actions to actors and wait for their roll-out results."""
@@ -92,21 +90,25 @@ class InferenceLearner(AbsDistLearner):
         unfinished = set(self._peer_agent_managers)
         for msg in self._proxy.receive():
             if msg.payload[PayloadKey.EPISODE] != ep:
+                self._logger.info(
+                    f"Ignore a message of {msg.tag} with ep {msg.payload[PayloadKey.EPISODE]} (current ep: {ep})")
                 continue
             if msg.tag == MessageTag.FINISHED:
                 # If enough update messages have been received, call _update() and break out of the loop to start
                 # the next episode.
                 unfinished.discard(msg.payload[PayloadKey.AGENT_MANAGER_ID])
                 if self._registry_table.push(msg) is not None:
-                    if unfinished:
-                        self._proxy.iscatter(
-                            MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
-                            [(actor, {PayloadKey.EPISODE: ep}) for actor in unfinished]
-                        )
-                        self._logger.info(f"Sent terminating signals to unfinished actors: {unfinished}")
                     break
             elif msg.tag == MessageTag.CHOOSE_ACTION:
                 self._registry_table.push(msg)
+
+        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up. 
+        if unfinished:
+            self._proxy.iscatter(
+                MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
+                [(actor, {PayloadKey.EPISODE: ep}) for actor in unfinished]
+            )
+            self._logger.info(f"Sent terminating signals to unfinished actors: {unfinished}")
 
     def _get_action(self, messages: Union[List[SessionMessage], SessionMessage]):
         if isinstance(messages, SessionMessage):

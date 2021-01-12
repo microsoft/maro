@@ -48,11 +48,9 @@ class AgentManagerProxy(AbsAgentManager):
         self._trajectory = ColumnBasedStore()
 
         self._current_ep = None
-        self._time_step = 0
 
     def set_ep(self, ep):
         self._current_ep = ep
-        self._time_step = 0
 
     def choose_action(self, decision_event, snapshot_list):
         # Check if a TerminateEpisode signal was received
@@ -64,7 +62,6 @@ class AgentManagerProxy(AbsAgentManager):
             PayloadKey.STATE: model_state, 
             PayloadKey.AGENT_ID: agent_id,
             PayloadKey.EPISODE: self._current_ep,
-            PayloadKey.TIME_STEP: self._time_step    
         }
         reply = self.agents.send(
             SessionMessage(
@@ -75,7 +72,6 @@ class AgentManagerProxy(AbsAgentManager):
             ),
             timeout=self._action_wait_timeout
         )
-        self._time_step += 1
         # Timeout
         if not reply:
             return
@@ -102,5 +98,5 @@ class AgentManagerProxy(AbsAgentManager):
         self._state_shaper.reset()
         self._action_shaper.reset()
         self._experience_shaper.reset()
-        self._time_step = 0
+        self.agents.purge()
         return experiences

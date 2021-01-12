@@ -5,7 +5,7 @@ import sys
 from abc import ABC
 from typing import Union
 
-from maro.communication import Message, Proxy
+from maro.communication import Proxy
 from maro.rl.agent import AgentManager
 from maro.simulator import Env
 from maro.utils import InternalLogger
@@ -66,19 +66,22 @@ class Actor(ABC):
             self._agent_manager.set_ep(ep)
 
         self._logger.info(f"Rolling out for ep-{ep}...")
+        time_step = 0
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
-            # Received action is an early termination command from learner
+            # Received action is an TERMINATE_EPISODE command from learner
             if isinstance(action, TerminateEpisode):
-                self._logger.info(f"Roll-out aborted.")
+                self._logger.info(f"Roll-out aborted at time step {time_step}.")
                 return
 
             metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._agent_manager.on_env_feedback(metrics)
             else:
-                self._logger.info(f"Failed to receive an action before timeout, proceed with NULL action.")
+                self._logger.info(f"Failed to receive an action for time step {time_step}, proceed with NULL action.")
+            
+            time_step += 1
 
         payload = {
             PayloadKey.EPISODE: ep,
@@ -94,7 +97,7 @@ class Actor(ABC):
         if isinstance(self._agent_manager, AgentManagerProxy):
             payload[PayloadKey.AGENT_MANAGER_ID] = self._agent_manager.agents.component_name
 
-        self._proxy.reply(received_message=message, tag=MessageTag.FINISHED, payload=payload)
+        self._proxy.reply(message, tag=MessageTag.FINISHED, payload=payload)
         self._logger.info(f"Roll-out finished for ep-{ep}")
 
     def exit(self):

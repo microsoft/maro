@@ -76,7 +76,7 @@ class AbsDistLearner(ABC):
         payload={PayloadKey.EPISODE: ep, PayloadKey.IS_TRAINING: is_training}
         if with_model_copies:
             payload[PayloadKey.MODEL] = self._agent_manager.dump_models()
-        self._proxy.ibroadcast("actor", MessageTag.ROLLOUT, SessionType.TASK, payload=payload)
+        self._proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
         self._logger.info(f"Sent roll-out requests to {self._actors} for ep-{ep}")
     
     def _update(self, messages: list):
@@ -95,9 +95,10 @@ class AbsDistLearner(ABC):
 
         # If the learner is in training mode, perform model updates.
         if is_training:
-            self._agent_manager.train(
-                self._experience_collecting_func({msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages})
+            experiences = self._experience_collecting_func(
+                {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
             )
+            self._agent_manager.train(experiences)
             self._logger.info(f"Training finished")
 
         self._registry_table.clear()

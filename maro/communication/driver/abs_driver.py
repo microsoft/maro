@@ -30,11 +30,6 @@ class AbsDriver(ABC):
         pass
 
     @abstractmethod
-    def receive_with_timeout(self, timeout: int = None):
-        """Receive message with timeout."""
-        pass
-
-    @abstractmethod
     def send(self, message):
         """Unicast send message."""
         pass

@@ -27,7 +27,7 @@ def worker(group_name):
         if msg.tag == "INC":
             counter += 1
             print(f"{proxy.component_name} receive INC request, {proxy.component_name}'s count is {counter}.")
-            proxy.reply(received_message=msg, tag="done")
+            proxy.reply(message=msg, tag="done")
 
 
 def master(group_name: str, worker_num: int, is_immediate: bool = False):
@@ -55,12 +55,13 @@ def master(group_name: str, worker_num: int, is_immediate: bool = False):
             session_type=SessionType.NOTIFICATION
         )
         # Do some tasks with higher priority here.
-        replied_msgs = proxy.receive_by_id(session_ids)
+        replied_msgs = proxy.receive_by_id(session_ids, timeout=-1)
     else:
         replied_msgs = proxy.broadcast(
             component_type="worker",
             tag="INC",
-            session_type=SessionType.NOTIFICATION
+            session_type=SessionType.NOTIFICATION,
+            timeout=-1
         )
 
     for msg in replied_msgs:

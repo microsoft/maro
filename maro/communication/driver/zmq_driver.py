@@ -34,7 +34,7 @@ class ZmqDriver(AbsDriver):
         protocol (str): The underlying transport-layer protocol for transferring messages. Defaults to tcp.
         send_timeout (int): The timeout in milliseconds for sending message. If -1, no timeout (infinite).
             Defaults to -1.
-        default_receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
+        receive_timeout (int): The timeout in milliseconds for receiving message. If -1, no timeout (infinite).
             Defaults to -1.
         logger: The logger instance or DummyLogger. Defaults to DummyLogger().
     """
@@ -44,13 +44,13 @@ class ZmqDriver(AbsDriver):
         component_type: str,
         protocol: str = PROTOCOL,
         send_timeout: int = SEND_TIMEOUT,
-        default_receive_timeout: int = RECEIVE_TIMEOUT,
+        receive_timeout: int = RECEIVE_TIMEOUT,
         logger=DummyLogger()
     ):
         self._component_type = component_type
         self._protocol = protocol
         self._send_timeout = send_timeout
-        self._default_receive_timeout = default_receive_timeout
+        self._receive_timeout = receive_timeout
         self._ip_address = socket.gethostbyname(socket.gethostname())
         self._zmq_context = zmq.Context()
         self._disconnected_peer_name_list = []
@@ -160,7 +160,7 @@ class ZmqDriver(AbsDriver):
             self._disconnected_peer_name_list.append(peer_name)
             self._logger.info(f"Disconnected with {peer_name}.")
 
-    def receive(self, is_continuous: bool = True):
+    def receive(self, is_continuous: bool = True, timeout: int = None):
         """Receive message from ``zmq.POLLER``.
 
         Args:
@@ -170,51 +170,27 @@ class ZmqDriver(AbsDriver):
             recv_message (Message): The received message from the poller.
         """
         while True:
+            receive_timeout = timeout if timeout else self._receive_timeout
             try:
-                sockets = dict(self._poller.poll(self._default_receive_timeout))
+                sockets = dict(self._poller.poll(receive_timeout))
             except Exception as e:
                 raise DriverReceiveError(f"Driver cannot receive message as {e}")
 
             if self._unicast_receiver in sockets:
                 recv_message = self._unicast_receiver.recv_pyobj()
                 self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
-            else:
+            elif self._broadcast_receiver in sockets:
                 _, recv_message = self._broadcast_receiver.recv_multipart()
                 recv_message = pickle.loads(recv_message)
                 self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
+            else:
+                self._logger.debug(f"Cannot receive any message within {receive_timeout}.")
+                return
 
             yield recv_message
 
             if not is_continuous:
                 break
-
-    def receive_with_timeout(self, timeout: int = None):
-        """Receive message from ``zmq.POLLER`` until timeout.
-
-        Args:
-            timeout (int): Timeout in milliseconds. Defaults to None, in which case the function blocks until 
-            at least one message has been received.
-
-        Yields:
-            recv_message (Message): Received message or None if no message is received before timeout.
-        """
-        try:
-            sockets = dict(self._poller.poll(timeout=timeout))
-            if all(value == 0 for value in sockets.values()):
-                self._logger.debug("No message received before timeout.")
-                return
-        except Exception as e:
-            raise DriverReceiveError(f"Driver cannot receive message as {e}")
-
-        if self._unicast_receiver in sockets:
-            recv_message = self._unicast_receiver.recv_pyobj()
-            self._logger.debug(f"Receive a message from {recv_message.source} through unicast receiver.")
-        else:
-            _, recv_message = self._broadcast_receiver.recv_multipart()
-            recv_message = pickle.loads(recv_message)
-            self._logger.debug(f"Receive a message from {recv_message.source} through broadcast receiver.")
-
-        return recv_message
 
     def send(self, message: Message):
         """Send message.
@@ -225,7 +201,6 @@ class ZmqDriver(AbsDriver):
         try:
             self._unicast_sender_dict[message.destination].send_pyobj(message)
             self._logger.debug(f"Send a {message.tag} message to {message.destination}.")
-            return message.session_id
         except KeyError as key_error:
             if message.destination in self._disconnected_peer_name_list:
                 raise PendingToSend(f"Temporary failure to send message to {message.destination}, may rejoin later.")

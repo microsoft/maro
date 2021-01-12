@@ -256,7 +256,9 @@ class RegisterTable:
             event.push_message(message)
 
         if auto_trigger:
-            return [handler_fn(cached_messages) for handler_fn, cached_messages in self.get()]
+            satisfied = self.get()
+            if satisfied:
+                return [handler_fn(cached_messages) for handler_fn, cached_messages in satisfied]
 
     def get(self) -> List[Tuple[callable, List[Message]]]:
         """If any ``conditional event`` has been satisfied, return the requisite message list and

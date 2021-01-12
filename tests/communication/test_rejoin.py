@@ -34,13 +34,13 @@ def actor_init(queue, redis_port):
     for msg in proxy.receive(is_continuous=True):
         print(f"receive message from master. {msg.tag}")
         if msg.tag == "cont":
-            proxy.reply(received_message=msg, tag="recv", payload="successful receive!")
+            proxy.reply(message=msg, tag="recv", payload="successful receive!")
         elif msg.tag == "stop":
-            proxy.reply(received_message=msg, tag="recv", payload=f"{proxy.component_name} exited!")
+            proxy.reply(message=msg, tag="recv", payload=f"{proxy.component_name} exited!")
             queue.put(proxy.component_name)
             break
         elif msg.tag == "finish":
-            proxy.reply(received_message=msg, tag="recv", payload=f"{proxy.component_name} finish!")
+            proxy.reply(message=msg, tag="recv", payload=f"{proxy.component_name} finish!")
             sys.exit(0)
 
     proxy.__del__()
