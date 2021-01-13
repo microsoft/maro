@@ -4,7 +4,7 @@
 
 from flask import Blueprint, jsonify, request
 
-from ..objects import redis_controller, service_config
+from ..objects import redis_controller, local_cluster_details
 
 # Flask related.
 
@@ -23,7 +23,7 @@ def list_image_files():
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=service_config["cluster_name"])
+    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
     return jsonify(list(master_details["image_files"].values()))
 
 
@@ -35,7 +35,7 @@ def get_image_file(image_file_name: str):
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=service_config["cluster_name"])
+    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
     return master_details["image_files"].get(image_file_name, {})
 
 
@@ -49,10 +49,10 @@ def create_image_file():
 
     image_file_details = request.json
     with redis_controller.lock(name="lock:master_details"):
-        master_details = redis_controller.get_master_details(cluster_name=service_config["cluster_name"])
+        master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
         master_details["image_files"][image_file_details["name"]] = image_file_details
         redis_controller.set_master_details(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             master_details=master_details
         )
     return {}

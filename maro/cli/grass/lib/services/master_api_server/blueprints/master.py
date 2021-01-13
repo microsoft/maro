@@ -10,7 +10,8 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from flask import Blueprint, request
 
-from ..objects import redis_controller, service_config
+from ..objects import redis_controller, local_cluster_details
+from ...utils.params import Paths
 
 # Flask related.
 
@@ -28,7 +29,7 @@ def get_master():
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=service_config["cluster_name"])
+    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
     return master_details
 
 
@@ -50,7 +51,7 @@ def create_master():
     master_details["ssh"]["public_key"] = public_key
 
     redis_controller.set_master_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         master_details=master_details
     )
 
@@ -65,7 +66,7 @@ def delete_master():
         None.
     """
 
-    redis_controller.delete_master_details(cluster_name=service_config["cluster_name"])
+    redis_controller.delete_master_details(cluster_name=local_cluster_details["name"])
     return {}
 
 
@@ -84,14 +85,15 @@ def generate_master_key() -> str:
         format=crypto_serialization.PublicFormat.OpenSSH
     )
 
-    os.makedirs(name=os.path.expanduser(f"~/.maro-local/cluster/{service_config['cluster_name']}"), exist_ok=True)
+    cluster_name = local_cluster_details["name"]
+    os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/cluster/{cluster_name}", exist_ok=True)
     with open(
-        file=os.path.expanduser(f"~/.maro-local/cluster/{service_config['cluster_name']}/id_rsa_master"),
+        file=f"{Paths.ABS_MARO_LOCAL}/cluster/{cluster_name}/id_rsa_master",
         mode="wb"
     ) as fw:
         fw.write(private_key)
     os.chmod(
-        path=os.path.expanduser(f"~/.maro-local/cluster/{service_config['cluster_name']}/id_rsa_master"),
+        path=f"{Paths.ABS_MARO_LOCAL}/cluster/{cluster_name}/id_rsa_master",
         mode=stat.S_IRWXU
     )
     return public_key.decode("utf-8")

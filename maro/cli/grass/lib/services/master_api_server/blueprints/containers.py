@@ -4,7 +4,7 @@
 
 from flask import Blueprint, jsonify
 
-from ..objects import redis_controller, service_config
+from ..objects import redis_controller, local_cluster_details
 
 # Flask related.
 
@@ -23,6 +23,6 @@ def list_containers():
     """
 
     name_to_container_details = redis_controller.get_name_to_container_details(
-        cluster_name=service_config["cluster_name"]
+        cluster_name=local_cluster_details["name"]
     )
     return jsonify(list(name_to_container_details.values()))

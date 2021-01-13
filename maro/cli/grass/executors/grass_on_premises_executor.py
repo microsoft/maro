@@ -118,14 +118,6 @@ class GrassOnPremisesExecutor(GrassExecutor):
             master_ssh_port=cluster_details["master"]["ssh"]["port"],
             cluster_name=cluster_details["name"]
         )
-
-        # Load master agent service
-        GrassOnPremisesExecutor.remote_start_master_services(
-            master_username=cluster_details["master"]["username"],
-            master_hostname=cluster_details["master"]["public_ip_address"],
-            master_ssh_port=cluster_details["master"]["ssh"]["port"],
-            cluster_name=cluster_details["name"]
-        )
         # Gracefully wait
         time.sleep(10)
 

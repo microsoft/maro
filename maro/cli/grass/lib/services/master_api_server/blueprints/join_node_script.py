@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-import os
-
 from flask import Blueprint, send_from_directory, abort
+
+from ...utils.params import Paths
 
 # Flask related.
 
@@ -15,7 +15,7 @@ URL_PREFIX = "/v1/joinNodeScript"
 def get_init_node_script():
     try:
         return send_from_directory(
-            directory=os.path.expanduser("~/.maro-shared/lib/grass/scripts/node"),
+            directory=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node",
             filename="join_node.py",
             as_attachment=True
         )

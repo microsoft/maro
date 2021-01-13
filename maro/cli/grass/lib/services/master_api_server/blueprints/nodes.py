@@ -4,9 +4,9 @@
 
 from flask import Blueprint, jsonify, request
 
-from ..objects import redis_controller, service_config
+from ..objects import redis_controller, local_cluster_details
 from ...utils.name_creator import NameCreator
-from ...utils.params import NodeStatus
+from ...utils.params import NodeStatus, Paths
 from ...utils.subprocess import SubProcess
 
 # Flask related.
@@ -25,7 +25,7 @@ def list_nodes():
         None.
     """
 
-    name_to_node_details = redis_controller.get_name_to_node_details(cluster_name=service_config["cluster_name"])
+    name_to_node_details = redis_controller.get_name_to_node_details(cluster_name=local_cluster_details["name"])
     return jsonify(list(name_to_node_details.values()))
 
 
@@ -38,7 +38,7 @@ def get_node(node_name: str):
     """
 
     node_details = redis_controller.get_node_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         node_name=node_name
     )
     return node_details
@@ -68,7 +68,7 @@ def create_node():
     node_name = node_details["name"]
     with redis_controller.lock(f"lock:name_to_node_details:{node_name}"):
         redis_controller.set_node_details(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             node_name=node_name,
             node_details=node_details
         )
@@ -85,23 +85,23 @@ def delete_node(node_name: str):
 
     # Get node_details.
     node_details = redis_controller.get_node_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         node_name=node_name
     )
 
     # leave the cluster
     command = (
         f"ssh -o StrictHostKeyChecking=no "
-        f"-i ~/.maro-local/cluster/{service_config['cluster_name']}/id_rsa_master "
+        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
-        f"'python3 ~/.maro-local/scripts/leave.py'"
+        f"'python3 {Paths.MARO_LOCAL}/scripts/leave.py'"
     )
     SubProcess.run(command=command)
 
     # Delete node_details at the end.
     redis_controller.delete_node_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         node_name=node_name
     )
 

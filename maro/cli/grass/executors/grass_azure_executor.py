@@ -245,7 +245,7 @@ class GrassAzureExecutor(GrassExecutor):
     def _create_and_init_master(cluster_details: dict) -> None:
         logger.info("Creating MARO Master")
 
-        GrassAzureExecutor._create_master(cluster_details=cluster_details)
+        GrassAzureExecutor._create_master_vm(cluster_details=cluster_details)
         GrassAzureExecutor._init_master(cluster_details=cluster_details)
 
         # Remote create master after initialization
@@ -257,7 +257,7 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info_green("MARO Master is created")
 
     @staticmethod
-    def _create_master(cluster_details: dict) -> None:
+    def _create_master_vm(cluster_details: dict) -> None:
         logger.info("Creating Master VM")
 
         # Build params
@@ -334,14 +334,6 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Remote init master
         GrassAzureExecutor.remote_init_master(
-            master_username=cluster_details["master"]["username"],
-            master_hostname=cluster_details["master"]["public_ip_address"],
-            master_ssh_port=cluster_details["master"]["ssh"]["port"],
-            cluster_name=cluster_details["name"]
-        )
-
-        # Load master agent service
-        GrassAzureExecutor.remote_start_master_services(
             master_username=cluster_details["master"]["username"],
             master_hostname=cluster_details["master"]["public_ip_address"],
             master_ssh_port=cluster_details["master"]["ssh"]["port"],

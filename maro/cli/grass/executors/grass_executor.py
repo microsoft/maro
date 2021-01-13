@@ -300,31 +300,10 @@ class GrassExecutor:
     @staticmethod
     def remote_init_master(master_username: str, master_hostname: str, master_ssh_port: int, cluster_name: str):
         command = (
-            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} "
-            f"{master_username}@{master_hostname} "
+            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
             f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.init_master {cluster_name}'"
         )
         SubProcess.interactive_run(command)
-
-    @staticmethod
-    def remote_start_master_services(
-        master_username: str, master_hostname: str, master_ssh_port: int,
-        cluster_name: str
-    ):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} "
-            f"{master_username}@{master_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.start_master_agent_service "
-            f"{cluster_name}'"
-        )
-        _ = SubProcess.run(command)
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} "
-            f"{master_username}@{master_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.start_master_api_server_service "
-            f"{cluster_name}'"
-        )
-        _ = SubProcess.run(command)
 
     @staticmethod
     def remote_join_node(

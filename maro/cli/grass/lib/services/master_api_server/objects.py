@@ -2,16 +2,14 @@
 # Licensed under the MIT license.
 
 
-import json
-import os
-
+from ..utils.details_reader import DetailsReader
 from ..utils.redis_controller import RedisController
 
-# Config related
+# Details related
 
-with open(os.path.expanduser("~/.maro-local/services/maro-master-api-server.config"), "r") as fr:
-    service_config = json.load(fr)
+local_cluster_details = DetailsReader.load_local_cluster_details()
+local_master_details = DetailsReader.load_local_master_details()
 
 # Controllers related
 
-redis_controller = RedisController(host="localhost", port=service_config["master_redis_port"])
+redis_controller = RedisController(host="localhost", port=local_master_details["redis"]["port"])

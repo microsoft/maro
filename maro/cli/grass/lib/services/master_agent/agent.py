@@ -3,10 +3,8 @@
 
 
 import heapq
-import json
 import logging
 import multiprocessing
-import os
 import sys
 import time
 import uuid
@@ -14,6 +12,7 @@ import uuid
 from .node_api_client import NodeApiClientV1
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
+from ..utils.params import Paths
 from ..utils.redis_controller import RedisController
 from ..utils.resource import ContainerResource, NodeResource
 
@@ -33,9 +32,9 @@ ERROR_CODES_FOR_NOT_RESTART_CONTAINER = {
 
 
 class MasterAgent:
-    def __init__(self, cluster_name: str):
-        self._cluster_name = cluster_name
-        self._cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
+    def __init__(self, local_cluster_details: dict, local_master_details: dict):
+        self._local_cluster_details = local_cluster_details
+        self._local_master_details = local_master_details
 
     def start(self) -> None:
         """Start agents.
@@ -43,24 +42,42 @@ class MasterAgent:
         Returns:
             None.
         """
-        job_tracking_agent = JobTrackingAgent(cluster_details=self._cluster_details)
+        job_tracking_agent = JobTrackingAgent(
+            local_cluster_details=self._local_cluster_details,
+            local_master_details=self._local_master_details
+        )
         job_tracking_agent.start()
-        container_tracking_agent = ContainerTrackingAgent(cluster_details=self._cluster_details)
+        container_tracking_agent = ContainerTrackingAgent(
+            local_cluster_details=self._local_cluster_details,
+            local_master_details=self._local_master_details
+        )
         container_tracking_agent.start()
-        pending_job_agent = PendingJobAgent(cluster_details=self._cluster_details)
+        pending_job_agent = PendingJobAgent(
+            local_cluster_details=self._local_cluster_details,
+            local_master_details=self._local_master_details
+        )
         pending_job_agent.start()
-        container_runtime_agent = ContainerRuntimeAgent(cluster_details=self._cluster_details)
+        container_runtime_agent = ContainerRuntimeAgent(
+            local_cluster_details=self._local_cluster_details,
+            local_master_details=self._local_master_details
+        )
         container_runtime_agent.start()
-        killed_job_agent = KilledJobAgent(cluster_details=self._cluster_details)
+        killed_job_agent = KilledJobAgent(
+            local_cluster_details=self._local_cluster_details,
+            local_master_details=self._local_master_details
+        )
         killed_job_agent.start()
 
 
 class JobTrackingAgent(multiprocessing.Process):
-    def __init__(self, cluster_details: dict, check_interval: int = 5):
+    def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_name = cluster_details["name"]
+        self._cluster_name = local_cluster_details["name"]
 
-        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+        self._redis_controller = RedisController(
+            host="localhost",
+            port=local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
 
@@ -129,11 +146,14 @@ class JobTrackingAgent(multiprocessing.Process):
 
 
 class ContainerTrackingAgent(multiprocessing.Process):
-    def __init__(self, cluster_details: dict, check_interval: int = 5):
+    def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_name = cluster_details["name"]
+        self._cluster_name = local_cluster_details["name"]
 
-        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+        self._redis_controller = RedisController(
+            host="localhost",
+            port=local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
 
@@ -172,15 +192,17 @@ class ContainerTrackingAgent(multiprocessing.Process):
 
 
 class ContainerRuntimeAgent(multiprocessing.Process):
-    def __init__(self, cluster_details: dict, check_interval: int = 5):
+    def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_name = cluster_details["name"]
-        self._cluster_id = cluster_details["id"]
-        self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
-        self._api_server_port = cluster_details["master"]["api_server"]["port"]
-        self._master_hostname = cluster_details["master"]["hostname"]
+        self._cluster_name = local_cluster_details["name"]
+        self._cluster_id = local_cluster_details["id"]
+        self._master_fluentd_port = local_master_details["fluentd"]["port"]
+        self._master_hostname = local_master_details["hostname"]
 
-        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+        self._redis_controller = RedisController(
+            host="localhost",
+            port=local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
 
@@ -227,8 +249,8 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                     node_name=node_name
                 )
                 NodeApiClientV1.remove_container(
-                    hostname=node_details["hostname"],
-                    port=self._api_server_port,
+                    node_hostname=node_details["hostname"],
+                    node_api_server_port=node_details["api_server"]["port"],
                     container_name=container_name,
                 )
 
@@ -392,7 +414,6 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         for node_name, node_details in name_to_node_details.items():
             # Load details.
             container_details = node_details["containers"]
-            node_hostname = node_details["hostname"]
 
             # Filter containers.
             stoppable_containers = []
@@ -404,14 +425,14 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             for container_name in stoppable_containers:
                 if is_remove_container:
                     NodeApiClientV1.remove_container(
-                        hostname=node_hostname,
-                        port=self._api_server_port,
+                        node_hostname=node_details["hostname"],
+                        node_api_server_port=node_details["api_server"]["port"],
                         container_name=container_name
                     )
                 else:
                     NodeApiClientV1.stop_container(
-                        hostname=node_hostname,
-                        port=self._api_server_port,
+                        node_hostname=node_details["hostname"],
+                        node_api_server_port=node_details["api_server"]["port"],
                         container_name=container_name
                     )
 
@@ -445,7 +466,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        maro_mount_source = f"~/.maro-shared/clusters/{cluster_name}/data/"
+        maro_mount_source = f"{Paths.MARO_SHARED}/clusters/{cluster_name}/data/"
         mount_target = job_details["components"][component_type]["mount"]["target"]
 
         # Build create config.
@@ -459,7 +480,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
 
             # System related.
             "container_name": container_name,
-            "fluentd_address": f"{self._master_hostname}:{self._fluentd_port}",
+            "fluentd_address": f"{self._master_hostname}:{self._master_fluentd_port}",
             "fluentd_tag": f"maro.job_id.{job_id}.container_name.{container_name}",
             "environments": {
                 "CLUSTER_ID": cluster_id,
@@ -497,22 +518,24 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             create_config["labels"]["gpu"] = gpu
 
         NodeApiClientV1.create_container(
-            hostname=node_details["hostname"],
-            port=self._api_server_port,
+            node_hostname=node_details["hostname"],
+            node_api_server_port=node_details["api_server"]["port"],
             create_config=create_config
         )
 
 
 class PendingJobAgent(multiprocessing.Process):
-    def __init__(self, cluster_details: dict, check_interval: int = 5):
+    def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_name = cluster_details["name"]
-        self._cluster_id = cluster_details["id"]
-        self._fluentd_port = cluster_details["master"]["fluentd"]["port"]
-        self._api_server_port = cluster_details["master"]["api_server"]["port"]
-        self._master_hostname = cluster_details["master"]["hostname"]
+        self._cluster_name = local_cluster_details["name"]
+        self._cluster_id = local_cluster_details["id"]
+        self._master_fluentd_port = local_master_details["fluentd"]["port"]
+        self._master_hostname = local_master_details["hostname"]
 
-        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+        self._redis_controller = RedisController(
+            host="localhost",
+            port=local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
 
@@ -616,7 +639,7 @@ class PendingJobAgent(multiprocessing.Process):
         memory = job_details["components"][component_type]["resources"]["memory"]
         gpu = job_details["components"][component_type]["resources"]["gpu"]
 
-        maro_mount_source = f"~/.maro-shared/clusters/{cluster_name}/data/"
+        maro_mount_source = f"{Paths.MARO_SHARED}/clusters/{cluster_name}/data/"
         mount_target = job_details["components"][component_type]["mount"]["target"]
 
         # Build create config.
@@ -630,7 +653,7 @@ class PendingJobAgent(multiprocessing.Process):
 
             # System related.
             "container_name": container_name,
-            "fluentd_address": f"{self._master_hostname}:{self._fluentd_port}",
+            "fluentd_address": f"{self._master_hostname}:{self._master_fluentd_port}",
             "fluentd_tag": f"maro.job_id.{job_id}.container_name.{container_name}",
             "environments": {
                 "CLUSTER_ID": cluster_id,
@@ -666,19 +689,22 @@ class PendingJobAgent(multiprocessing.Process):
             create_config["labels"]["gpu"] = gpu
 
         NodeApiClientV1.create_container(
-            hostname=node_details["hostname"],
-            port=self._api_server_port,
+            node_hostname=node_details["hostname"],
+            node_api_server_port=node_details["api_server"]["port"],
             create_config=create_config
         )
 
 
 class KilledJobAgent(multiprocessing.Process):
-    def __init__(self, cluster_details: dict, check_interval: int = 5):
+    def __init__(self, local_cluster_details: dict, local_master_details: dict, check_interval: int = 5):
         super().__init__()
-        self._cluster_name = cluster_details["name"]
-        self._api_server_port = cluster_details["master"]["api_server"]["port"]
+        self._cluster_name = local_cluster_details["name"]
+        self._master_api_server_port = local_master_details["api_server"]["port"]
 
-        self._redis_controller = RedisController(host="localhost", port=cluster_details["master"]["redis"]["port"])
+        self._redis_controller = RedisController(
+            host="localhost",
+            port=local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
 
@@ -746,20 +772,19 @@ class KilledJobAgent(multiprocessing.Process):
         # Delete containers.
         for node_name, node_details in name_to_node_details.items():
             # Load details.
-            container_details = node_details["containers"]
-            node_hostname = node_details["hostname"]
+            name_to_container_details = node_details["containers"]
 
             # Filter containers.
             removable_containers = []
-            for container_name in container_details:
+            for container_name in name_to_container_details:
                 if container_name.startswith(job_id):
                     removable_containers.append(container_name)
 
             # Stop containers.
             for container_name in removable_containers:
                 NodeApiClientV1.remove_container(
-                    hostname=node_hostname,
-                    port=self._api_server_port,
+                    node_hostname=node_details["hostname"],
+                    node_api_server_port=node_details["api_server"]["port"],
                     container_name=container_name
                 )
 
@@ -1093,10 +1118,8 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    with open(os.path.expanduser("~/.maro-local/services/maro-master-agent.config"), "r") as fr:
-        master_agent_config = json.load(fr)
-
     master_agent = MasterAgent(
-        cluster_name=master_agent_config["cluster_name"]
+        local_cluster_details=DetailsReader.load_local_cluster_details(),
+        local_master_details=DetailsReader.load_local_master_details()
     )
     master_agent.start()

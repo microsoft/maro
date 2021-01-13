@@ -6,17 +6,25 @@ import requests
 
 
 class NodeApiClientV1:
+
     @staticmethod
-    def stop_container(hostname: str, port: int, container_name: str) -> dict:
-        response = requests.post(url=f"http://{hostname}:{port}/v1/containers/{container_name}:stop")
+    def create_container(node_hostname: str, node_api_server_port: int, create_config: dict) -> dict:
+        response = requests.post(
+            url=f"http://{node_hostname}:{node_api_server_port}/v1/containers",
+            json=create_config
+        )
         return response.json()
 
     @staticmethod
-    def remove_container(hostname: str, port: int, container_name: str) -> dict:
-        response = requests.delete(url=f"http://{hostname}:{port}/v1/containers/{container_name}")
+    def stop_container(node_hostname: str, node_api_server_port: int, container_name: str) -> dict:
+        response = requests.post(
+            url=f"http://{node_hostname}:{node_api_server_port}/v1/containers/{container_name}:stop"
+        )
         return response.json()
 
     @staticmethod
-    def create_container(hostname: str, port: int, create_config: dict) -> dict:
-        response = requests.post(url=f"http://{hostname}:{port}/v1/containers", json=create_config)
+    def remove_container(node_hostname: str, node_api_server_port: int, container_name: str) -> dict:
+        response = requests.delete(
+            url=f"http://{node_hostname}:{node_api_server_port}/v1/containers/{container_name}"
+        )
         return response.json()

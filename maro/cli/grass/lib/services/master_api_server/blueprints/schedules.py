@@ -6,7 +6,7 @@ import copy
 
 from flask import Blueprint, jsonify, request
 
-from ..objects import redis_controller, service_config
+from ..objects import redis_controller, local_cluster_details
 from ...utils.name_creator import NameCreator
 
 # Flask related.
@@ -26,7 +26,7 @@ def list_schedules():
     """
 
     name_to_schedule_details = redis_controller.get_name_to_schedule_details(
-        cluster_name=service_config["cluster_name"]
+        cluster_name=local_cluster_details["name"]
     )
     return jsonify(list(name_to_schedule_details.values()))
 
@@ -40,7 +40,7 @@ def get_schedule(schedule_name: str):
     """
 
     schedule_details = redis_controller.get_schedule_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         schedule_name=schedule_name
     )
     return schedule_details
@@ -56,7 +56,7 @@ def create_schedule():
 
     schedule_details = request.json
     redis_controller.set_schedule_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         schedule_name=schedule_details["name"],
         schedule_details=schedule_details
     )
@@ -64,12 +64,12 @@ def create_schedule():
     # Build individual jobs
     for job_name in schedule_details["job_names"]:
         redis_controller.set_job_details(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             job_name=job_name,
             job_details=_build_job_details(schedule_details=schedule_details, job_name=job_name)
         )
         redis_controller.push_pending_job_ticket(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             job_name=job_name
         )
     return {}
@@ -84,20 +84,20 @@ def delete_schedule(schedule_name: str):
     """
 
     schedule_details = redis_controller.get_schedule_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         schedule_name=schedule_name
     )
     for job_name in schedule_details["job_names"]:
         redis_controller.remove_pending_job_ticket(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             job_name=job_name
         )
         redis_controller.push_killed_job_ticket(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             job_name=job_name
         )
     redis_controller.delete_schedule_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         schedule_name=schedule_name
     )
     return {}
@@ -112,17 +112,17 @@ def stop_schedule(schedule_name: str):
     """
 
     schedule_details = redis_controller.get_schedule_details(
-        cluster_name=service_config["cluster_name"],
+        cluster_name=local_cluster_details["name"],
         schedule_name=schedule_name
     )
     for job_name in schedule_details["job_names"]:
         # FIXME: use schedule id to check
         redis_controller.remove_pending_job_ticket(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             job_name=job_name
         )
         redis_controller.push_killed_job_ticket(
-            cluster_name=service_config["cluster_name"],
+            cluster_name=local_cluster_details["name"],
             job_name=job_name
         )
     return {}
