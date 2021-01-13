@@ -9,7 +9,7 @@ from ...utils.connection_tester import ConnectionTester
 from ...utils.exception import ConnectionFailed
 from ...utils.name_creator import NameCreator
 from ...utils.params import NodeStatus, Paths
-from ...utils.subprocess import SubProcess
+from ...utils.subprocess import Subprocess
 
 # Flask related.
 
@@ -99,7 +99,7 @@ def delete_node(node_name: str):
         f"{node_details['username']}@{node_details['hostname']} "
         f"'python3 {Paths.MARO_LOCAL}/scripts/leave_cluster.py'"
     )
-    SubProcess.run(command=command)
+    Subprocess.run(command=command)
 
     # Delete node_details at the end.
     redis_controller.delete_node_details(
@@ -140,7 +140,7 @@ def start_node(node_name: str):
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_agent_service'"
     )
-    _ = SubProcess.run(command)
+    _ = Subprocess.run(command=command)
     command = (
         f"ssh -o StrictHostKeyChecking=no "
         f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
@@ -148,7 +148,7 @@ def start_node(node_name: str):
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_api_server_service'"
     )
-    _ = SubProcess.run(command)
+    _ = Subprocess.run(command=command)
 
     return {}
 
@@ -183,7 +183,7 @@ def stop_node(node_name: str):
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_api_server_service'"
     )
-    _ = SubProcess.run(command)
+    _ = Subprocess.run(command=command)
     command = (
         f"ssh -o StrictHostKeyChecking=no "
         f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
@@ -191,6 +191,6 @@ def stop_node(node_name: str):
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_agent_service'"
     )
-    _ = SubProcess.run(command)
+    _ = Subprocess.run(command=command)
 
     return {}

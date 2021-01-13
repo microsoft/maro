@@ -16,7 +16,7 @@ import yaml
 from maro.cli.grass.utils.params import NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
 from tests.cli.utils import record_running_time
 
@@ -75,9 +75,9 @@ class TestGrass(unittest.TestCase):
 
         # Pull "ubuntu" as testing image
         command = "docker pull alpine:latest"
-        SubProcess.run(command=command)
+        Subprocess.run(command=command)
         command = "docker pull ubuntu:latest"
-        SubProcess.run(command=command)
+        Subprocess.run(command=command)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -98,7 +98,7 @@ class TestGrass(unittest.TestCase):
         # Delete docker image
         try:
             command = "docker rmi maro_runtime_cpu:test"
-            SubProcess.run(command=command)
+            Subprocess.run(command=command)
         except CommandExecutionError:
             pass
 
@@ -106,17 +106,17 @@ class TestGrass(unittest.TestCase):
 
     def _list_nodes_details(self) -> list:
         command = f"maro grass node list {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _get_master_details(self) -> dict:
         command = f"maro grass status {self.cluster_name} master"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _list_jobs_details(self) -> list:
         command = f"maro grass job list {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _get_name_to_job_details(self) -> dict:
@@ -136,7 +136,7 @@ class TestGrass(unittest.TestCase):
     def test10_create(self) -> None:
         # Run cli command
         command = f"maro grass create --debug {self.create_deployment_path}"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @record_running_time(func_to_time=test_func_to_time)
     def test11_node1(self) -> None:
@@ -149,7 +149,7 @@ class TestGrass(unittest.TestCase):
         """
         # Run cli command
         command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 1"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
         self._gracefully_wait()
 
         # Check validity, failed if does not meet the desired state in 120s.
@@ -179,7 +179,7 @@ class TestGrass(unittest.TestCase):
         """
         # Run cli command
         command = f"maro grass image push {self.cluster_name} --debug --image-name alpine:latest"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
         self._gracefully_wait()
 
         # Check validity, failed if does not meet the desired state in 120s.
@@ -210,7 +210,7 @@ class TestGrass(unittest.TestCase):
         """
         # Run cli command
         command = f"maro grass node scale {self.cluster_name} --debug Standard_D2s_v3 2"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
         self._gracefully_wait()
 
         # Check validity, failed if does not meet the desired state in 120s.
@@ -241,7 +241,7 @@ class TestGrass(unittest.TestCase):
         """
         # Run cli command
         command = f"maro grass node stop {self.cluster_name} --debug Standard_D2s_v3 1"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
         self._gracefully_wait()
 
         # Check validity, failed if does not meet the desired state in 120s.
@@ -280,7 +280,7 @@ class TestGrass(unittest.TestCase):
         """
         # Run cli command
         command = f"maro grass image push {self.cluster_name} --debug --image-name ubuntu:latest"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
         self._gracefully_wait()
 
         # Check validity, failed if does not meet the desired state in 120s.
@@ -321,7 +321,7 @@ class TestGrass(unittest.TestCase):
             None.
         """
         command = f"maro grass node start {self.cluster_name} --debug Standard_D2s_v3 1"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
         self._gracefully_wait()
 
         # Check validity, failed if does not meet the desired state in 120s.
@@ -352,47 +352,47 @@ class TestGrass(unittest.TestCase):
             command = f"fsutil file createnew {test_dir}/push/test_data/a.file 1048576"
         else:
             command = f"fallocate -l 1M {test_dir}/push/test_data/a.file"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
         # Push file to an existed folder
         command = (f"maro grass data push {self.cluster_name} --debug "
                    f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/a.file' '/'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Push file to a new folder
         command = (f"maro grass data push {self.cluster_name} --debug "
                    f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/a.file' '/F1'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Push folder to an existed folder
         command = (f"maro grass data push {self.cluster_name} --debug "
                    f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/' '/'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Push folder to a new folder
         command = (f"maro grass data push {self.cluster_name} --debug "
                    f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/' '/F2'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull file to an existed folder
         command = (f"maro grass data pull {self.cluster_name} --debug "
                    f"'/a.file' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull file to a new folder
         command = (f"maro grass data pull {self.cluster_name} --debug "
                    f"'/F1/a.file' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F1'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull folder to an existed folder
         command = (f"maro grass data pull {self.cluster_name} --debug "
                    f"'/test_data' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull folder to a new folder
         command = (f"maro grass data pull {self.cluster_name} --debug "
                    f"'/F2/test_data/' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F2/'")
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/a.file")))
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F1/a.file")))
@@ -407,9 +407,9 @@ class TestGrass(unittest.TestCase):
             f"docker build -f {self.maro_pkg_path}/docker_files/cpu.runtime.source.df -t maro_runtime_cpu:test "
             f"{self.maro_pkg_path}"
         )
-        SubProcess.run(command)
+        Subprocess.run(command=command)
         command = f"maro grass image push {self.cluster_name} --debug --image-name maro_runtime_cpu:test"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Check image status, failed if does not meet the desired state in 1000s.
         is_loaded = False
@@ -433,7 +433,7 @@ class TestGrass(unittest.TestCase):
         dqn_target_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn")
         os.makedirs(os.path.dirname(dqn_target_dir), exist_ok=True)
         command = f"cp -r {dqn_source_dir} {dqn_target_dir}"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
         # Get cluster details and rebuild config
         master_details = self._get_master_details()
@@ -454,14 +454,14 @@ class TestGrass(unittest.TestCase):
             f"maro grass data push {self.cluster_name} --debug "
             f"'{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn' '/train'"
         )
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
         # Start job
         start_job_dqn_template_path = os.path.normpath(
             os.path.join(self.test_dir_path, "../templates/test_grass_azure_start_job_dqn.yml")
         )
         command = f"maro grass job start {self.cluster_name} {start_job_dqn_template_path}"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
         self._gracefully_wait(60)
 
         # Check job status, failed if containers are not in running state in 120s.
@@ -498,7 +498,7 @@ class TestGrass(unittest.TestCase):
     @record_running_time(func_to_time=test_func_to_time)
     def test30_delete(self) -> None:
         command = f"maro grass delete --debug {self.cluster_name}"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 import datetime
 import json
 
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError, DeploymentError
 from maro.utils.logger import CliLogger
 
@@ -19,7 +19,7 @@ class AzureController:
     @staticmethod
     def set_subscription(subscription: str):
         command = f"az account set --subscription {subscription}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # Resource Group related
 
@@ -27,7 +27,7 @@ class AzureController:
     def get_resource_group(resource_group: str):
         command = f"az group show --name {resource_group}"
         try:
-            return_str = SubProcess.run(command)
+            return_str = Subprocess.run(command=command)
             return json.loads(return_str)
         except CommandExecutionError:
             return None
@@ -35,7 +35,7 @@ class AzureController:
     @staticmethod
     def create_resource_group(resource_group: str, location: str):
         command = f"az group create --name {resource_group} --location {location}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def delete_resource_group(resource_group: str) -> None:
@@ -48,20 +48,20 @@ class AzureController:
             None.
         """
         command = f"az group delete --yes --name {resource_group}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # Resource related
 
     @staticmethod
     def list_resources(resource_group: str):
         command = f"az resource list -g {resource_group}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
     def delete_resources(resources: list):
         command = f"az resource delete --ids {' '.join(resources)}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # Deployment related
 
@@ -72,7 +72,7 @@ class AzureController:
             f"--template-file {template_file_path} --parameters {parameters_file_path}"
         )
         try:
-            _ = SubProcess.run(command)
+            _ = Subprocess.run(command=command)
         except CommandExecutionError as e:
             error = json.loads(AzureController._get_valid_json(e.get_message()))["error"]
             raise DeploymentError(error["message"])
@@ -80,36 +80,36 @@ class AzureController:
     @staticmethod
     def delete_deployment(resource_group: str, deployment_name: str):
         command = f"az deployment group delete -g {resource_group} --name {deployment_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # VM related
 
     @staticmethod
     def list_ip_addresses(resource_group: str, vm_name: str):
         command = f"az vm list-ip-addresses -g {resource_group} --name {vm_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
     def start_vm(resource_group: str, vm_name: str):
         command = f"az vm start -g {resource_group} --name {vm_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def stop_vm(resource_group: str, vm_name: str):
         command = f"az vm stop -g {resource_group} --name {vm_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def list_vm_sizes(location: str):
         command = f"az vm list-sizes -l {location}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
     def list_skus(vm_size: str, location: str):
         command = f"az vm list-skus -l {location} --all --size {vm_size}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
@@ -124,24 +124,24 @@ class AzureController:
     @staticmethod
     def deallocate_vm(resource_group: str, vm_name: str) -> None:
         command = f"az vm deallocate --resource-group {resource_group} --name {vm_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def generalize_vm(resource_group: str, vm_name: str) -> None:
         command = f"az vm generalize --resource-group {resource_group} --name {vm_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # Image related
 
     @staticmethod
     def create_image_from_vm(resource_group: str, image_name: str, vm_name: str) -> None:
         command = f"az image create --resource-group {resource_group} --name {image_name} --source {vm_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def get_image_resource_id(resource_group: str, image_name: str) -> str:
         command = f"az image show --resource-group {resource_group} --name {image_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)["id"]
 
     # AKS related
@@ -149,23 +149,23 @@ class AzureController:
     @staticmethod
     def load_aks_context(resource_group: str, aks_name: str):
         command = f"az aks get-credentials -g {resource_group} --name {aks_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def get_aks(resource_group: str, aks_name: str):
         command = f"az aks show -g {resource_group} -n {aks_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
     def attach_acr(resource_group: str, aks_name: str, acr_name: str):
         command = f"az aks update -g {resource_group} --name {aks_name} --attach-acr {acr_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def list_nodepool(resource_group: str, aks_name: str):
         command = f"az aks nodepool list -g {resource_group} --cluster-name {aks_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
@@ -178,7 +178,7 @@ class AzureController:
             f"--node-count {node_count} "
             f"--node-vm-size {node_size}"
         )
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def scale_nodepool(resource_group: str, aks_name: str, nodepool_name: str, node_count: int):
@@ -189,19 +189,19 @@ class AzureController:
             f"--name {nodepool_name} "
             f"--node-count {node_count}"
         )
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # ACR related
 
     @staticmethod
     def login_acr(acr_name: str):
         command = f"az acr login --name {acr_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def list_acr_repositories(acr_name: str):
         command = f"az acr repository list -n {acr_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     # Storage account related
@@ -209,7 +209,7 @@ class AzureController:
     @staticmethod
     def get_storage_account_keys(resource_group: str, storage_account_name: str):
         command = f"az storage account keys list -g {resource_group} --account-name {storage_account_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod
@@ -224,7 +224,7 @@ class AzureController:
             f"az storage account generate-sas --account-name {account_name} --services {services} "
             f"--resource-types {resource_types} --permissions {permissions} --expiry {expiry}"
         )
-        sas_str = SubProcess.run(command=command).strip("\n").replace('"', "")
+        sas_str = Subprocess.run(command=command).strip("\n").replace('"', "")
         logger.debug(sas_str)
         return sas_str
 
@@ -239,7 +239,7 @@ class AzureController:
             str: Connection string.
         """
         command = f"az storage account show-connection-string --name {storage_account_name}"
-        return_str = SubProcess.run(command=command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)["connectionString"]
 
     # Utils
@@ -247,7 +247,7 @@ class AzureController:
     @staticmethod
     def get_version():
         command = "az version"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     @staticmethod

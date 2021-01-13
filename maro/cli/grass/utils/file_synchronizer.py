@@ -9,7 +9,7 @@ import uuid
 
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.path_convertor import PathConvertor
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import FileOperationError
 from maro.utils.logger import CliLogger
 
@@ -43,7 +43,7 @@ class FileSynchronizer:
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             f"'mkdir -p {target_dir}'"
         )
-        _ = SubProcess.run(mkdir_script)
+        _ = Subprocess.run(command=mkdir_script)
 
         if platform.system() in ["Linux", "Darwin"]:
             # Copy with pipe
@@ -52,31 +52,31 @@ class FileSynchronizer:
                 f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'tar xzf - -C {target_dir}'"
             )
-            _ = SubProcess.run(copy_script)
+            _ = Subprocess.run(command=copy_script)
         else:
             # Copy with tmp file
             tmp_file_name = uuid.uuid4()
             maro_local_tmp_abs_path = os.path.expanduser(GlobalPaths.MARO_LOCAL_TMP)
 
             tar_script = f"tar czf {maro_local_tmp_abs_path}/{tmp_file_name} -C {folder_name} {basename}"
-            _ = SubProcess.run(tar_script)
+            _ = Subprocess.run(command=tar_script)
             copy_script = (
                 f"scp {maro_local_tmp_abs_path}/{tmp_file_name} "
                 f"{node_username}@{node_hostname}:{GlobalPaths.MARO_LOCAL_TMP}"
             )
-            _ = SubProcess.run(copy_script)
+            _ = Subprocess.run(command=copy_script)
             untar_script = (
                 f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'tar xzf {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} -C {target_dir}'"
             )
-            _ = SubProcess.run(untar_script)
+            _ = Subprocess.run(untar_script)
             remove_script = f"rm {maro_local_tmp_abs_path}/{tmp_file_name}"
-            _ = SubProcess.run(remove_script)
+            _ = Subprocess.run(remove_script)
             remote_remove_script = (
                 f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'rm {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name}'"
             )
-            _ = SubProcess.run(remote_remove_script)
+            _ = Subprocess.run(command=remote_remove_script)
 
     @staticmethod
     def copy_files_from_node(
@@ -109,7 +109,7 @@ class FileSynchronizer:
                 f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'tar czf - -C {folder_name} {basename}' | tar xzf - -C {target_dir}"
             )
-            _ = SubProcess.run(copy_script)
+            _ = Subprocess.run(command=copy_script)
         else:
             # Copy with tmp file
             tmp_file_name = uuid.uuid4()
@@ -119,21 +119,21 @@ class FileSynchronizer:
                 f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"tar czf {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} -C {folder_name} {basename}"
             )
-            _ = SubProcess.run(tar_script)
+            _ = Subprocess.run(command=tar_script)
             copy_script = (
                 f"scp {node_username}@{node_hostname}:{GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name} "
                 f"{maro_local_tmp_abs_path}"
             )
-            _ = SubProcess.run(copy_script)
+            _ = Subprocess.run(command=copy_script)
             untar_script = f"tar xzf {maro_local_tmp_abs_path}/{tmp_file_name} -C {os.path.expanduser(target_dir)}"
-            _ = SubProcess.run(untar_script)
+            _ = Subprocess.run(command=untar_script)
             remove_script = f"rm {maro_local_tmp_abs_path}/{tmp_file_name}"
-            _ = SubProcess.run(remove_script)
+            _ = Subprocess.run(command=remove_script)
             remote_remove_script = (
                 f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
                 f"'rm {GlobalPaths.MARO_LOCAL_TMP}/{tmp_file_name}'"
             )
-            _ = SubProcess.run(remote_remove_script)
+            _ = Subprocess.run(command=remote_remove_script)
 
     @staticmethod
     def copy_and_rename(source_path: str, target_dir: str, new_name: str = None):

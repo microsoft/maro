@@ -20,7 +20,7 @@ from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths, GlobalParams
 from maro.cli.utils.path_convertor import PathConvertor
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
 from maro.utils.logger import CliLogger
 
@@ -314,11 +314,11 @@ class K8sAksExecutor(K8sExecutor):
 
         # Tag image
         command = f"docker tag {image_name} {remote_image_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
         # Push image to ACR
         command = f"docker push {remote_image_name}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     def list_image(self):
         # List acr repository
@@ -343,7 +343,7 @@ class K8sAksExecutor(K8sExecutor):
             f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs{target_dir}?{sas}' "
             "--recursive=True"
         )
-        _ = SubProcess.run(copy_command)
+        _ = Subprocess.run(command=copy_command)
 
     def pull_data(self, local_dir: str, remote_path: str):
         # Get sas
@@ -362,7 +362,7 @@ class K8sAksExecutor(K8sExecutor):
             f"'{abs_target_dir}' "
             "--recursive=True"
         )
-        _ = SubProcess.run(copy_command)
+        _ = Subprocess.run(command=copy_command)
 
     def remove_data(self, remote_path: str):
         # FIXME: Remove failed, The specified resource may be in use by an SMB client
@@ -376,7 +376,7 @@ class K8sAksExecutor(K8sExecutor):
             f"'https://{self.cluster_id}st.file.core.windows.net/{self.cluster_id}-fs{remote_path}?{sas}' "
             "--recursive=True"
         )
-        _ = SubProcess.run(copy_command)
+        _ = Subprocess.run(command=copy_command)
 
     def _check_and_get_account_sas(self):
         """

@@ -17,7 +17,7 @@ from maro.cli.grass.utils.params import GrassPaths
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import (
     BadRequestError, CliError, ClusterInternalError, CommandExecutionError, FileOperationError
 )
@@ -285,7 +285,7 @@ class GrassExecutor:
     def template(export_path: str):
         # Get templates
         command = f"cp {GrassPaths.MARO_GRASS_LIB}/deployments/external/* {export_path}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # Remote Scripts
 
@@ -295,7 +295,7 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             "'python3 ~/init_build_node_image_vm.py'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def remote_init_master(master_username: str, master_hostname: str, master_ssh_port: int, cluster_name: str):
@@ -303,7 +303,7 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
             f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.init_master {cluster_name}'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def remote_delete_master(master_username: str, master_hostname: str, master_ssh_port: int):
@@ -311,7 +311,7 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
             f"'python3 {GlobalPaths.MARO_LOCAL}/scripts/delete_master.py'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def remote_join_cluster(
@@ -323,7 +323,7 @@ class GrassExecutor:
             f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def local_join_cluster(master_hostname: str, master_api_server_port: int, deployment_path: str):
@@ -331,7 +331,7 @@ class GrassExecutor:
             f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def remote_leave_cluster(node_username: str, node_hostname: str, node_ssh_port: int):
@@ -339,12 +339,12 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             f"'python3 ~/.maro-local/scripts/activate_leave_cluster.py'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def local_leave_cluster():
         command = f"python3 ~/.maro-local/scripts/activate_leave_cluster.py"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int):
@@ -352,7 +352,7 @@ class GrassExecutor:
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
             "echo 'Connection established'"
         )
-        _ = SubProcess.run(command=command, timeout=5)
+        _ = Subprocess.run(command=command, timeout=5)
 
     @staticmethod
     def retry_connection(node_username: str, node_hostname: str, node_ssh_port: int) -> bool:

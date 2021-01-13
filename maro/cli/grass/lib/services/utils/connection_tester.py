@@ -8,7 +8,7 @@ from subprocess import TimeoutExpired
 
 from .exception import ConnectionFailed, CommandExecutionError
 from .params import Paths
-from .subprocess import SubProcess
+from .subprocess import Subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class ConnectionTester:
             f"-p {node_ssh_port} {node_username}@{node_hostname} "
             "echo 'Connection established'"
         )
-        _ = SubProcess.run(command=command, timeout=5)
+        _ = Subprocess.run(command=command, timeout=5)
 
     @staticmethod
     def retry_connection(node_username: str, node_hostname: str, node_ssh_port: int, cluster_name: str) -> bool:

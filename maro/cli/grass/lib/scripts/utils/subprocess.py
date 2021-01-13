@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 
-class SubProcess:
+class Subprocess:
     @staticmethod
     def run(command: str, timeout: int = None) -> str:
         """Run one-time command with subprocess.run().

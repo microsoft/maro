@@ -16,7 +16,7 @@ import yaml
 
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.params import GlobalParams, GlobalPaths
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from tests.cli.utils import record_running_time
 
 
@@ -74,9 +74,9 @@ class TestK8s(unittest.TestCase):
 
         # Pull "ubuntu" as testing image
         command = "docker pull alpine:latest"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
         command = "docker pull ubuntu:latest"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -98,22 +98,22 @@ class TestK8s(unittest.TestCase):
 
     def _get_node_details(self) -> dict:
         command = f"maro k8s node list {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _get_image_details(self) -> dict:
         command = f"maro k8s image list {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _get_cluster_details(self) -> dict:
         command = f"maro k8s status {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _list_jobs(self) -> dict:
         command = f"maro k8s job list {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)
 
     def _get_name_to_job_details(self) -> dict:
@@ -133,7 +133,7 @@ class TestK8s(unittest.TestCase):
     def test10_create(self) -> None:
         # Run cli command
         command = f"maro k8s create --debug {self.create_deployment_path}"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -144,7 +144,7 @@ class TestK8s(unittest.TestCase):
     def test11_node(self) -> None:
         # Run cli command
         command = f"maro k8s node scale {self.cluster_name} --debug Standard_D4s_v3 1"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Check validity
         nodes_details = self._get_node_details()
@@ -157,11 +157,11 @@ class TestK8s(unittest.TestCase):
     def test12_image(self) -> None:
         # Run cli command
         command = f"maro k8s image push {self.cluster_name} --debug --image-name alpine:latest"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Check validity
         command = f"maro k8s image list {self.cluster_name}"
-        return_str = SubProcess.run(command)
+        return_str = Subprocess.run(command=command)
         images = ast.literal_eval(return_str)
         self.assertIn("alpine", images)
 
@@ -175,63 +175,63 @@ class TestK8s(unittest.TestCase):
             command = f"fsutil file createnew {test_dir}/push/test_data/a.file 1048576"
         else:
             command = f"fallocate -l 1M {test_dir}/push/test_data/a.file"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
         # Push file to an existed folder
         command = (
             f"maro k8s data push {self.cluster_name} --debug "
             f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/a.file' '/'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Push file to a new folder
         command = (
             f"maro k8s data push {self.cluster_name} --debug "
             f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/a.file' '/F1'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Push folder to an existed folder
         command = (
             f"maro k8s data push {self.cluster_name} --debug "
             f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/' '/'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Push folder to a new folder
         command = (
             f"maro k8s data push {self.cluster_name} --debug "
             f"'{GlobalPaths.MARO_TEST}/{self.test_id}/push/test_data/' '/F2'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull file to an existed folder
         command = (
             f"maro k8s data pull {self.cluster_name} --debug "
             f"'/a.file' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull file to a new folder
         command = (
             f"maro k8s data pull {self.cluster_name} --debug "
             f"'/F1/a.file' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F1'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull folder to an existed folder
         command = (
             f"maro k8s data pull {self.cluster_name} --debug "
             f"'/test_data' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         # Pull folder to a new folder
         command = (
             f"maro k8s data pull {self.cluster_name} --debug "
             f"'/F2/test_data/' '{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F2/'"
         )
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/a.file")))
         self.assertTrue(os.path.exists(os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/pull/F1/a.file")))
@@ -245,9 +245,9 @@ class TestK8s(unittest.TestCase):
             f"docker build -f {self.maro_pkg_path}/docker_files/cpu.runtime.source.df -t maro_runtime_cpu "
             f"{self.maro_pkg_path}"
         )
-        SubProcess.run(command)
+        Subprocess.run(command=command)
         command = f"maro k8s image push {self.cluster_name} --debug --image-name maro_runtime_cpu"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
     @record_running_time(func_to_time=test_func_to_time)
     def test21_train_dqn(self) -> None:
@@ -256,7 +256,7 @@ class TestK8s(unittest.TestCase):
         dqn_target_dir = os.path.expanduser(f"{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn")
         os.makedirs(os.path.dirname(dqn_target_dir), exist_ok=True)
         command = f"cp -r {dqn_source_dir} {dqn_target_dir}"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
         # Get cluster details and rebuild config
         cluster_details = self._get_cluster_details()
@@ -276,14 +276,14 @@ class TestK8s(unittest.TestCase):
             f"maro k8s data push {self.cluster_name} --debug "
             f"'{GlobalPaths.MARO_TEST}/{self.test_id}/train/dqn' '/train'"
         )
-        SubProcess.run(command)
+        Subprocess.run(command=command)
 
         # Start job
         start_job_dqn_template_path = os.path.normpath(
             os.path.join(self.test_dir_path, "../templates/test_k8s_azure_start_job_dqn.yml")
         )
         command = f"maro k8s job start {self.cluster_name} {start_job_dqn_template_path}"
-        SubProcess.run(command)
+        Subprocess.run(command=command)
         self._gracefully_wait(60)
 
         # Check job status
@@ -302,7 +302,7 @@ class TestK8s(unittest.TestCase):
     @record_running_time(func_to_time=test_func_to_time)
     def test30_delete(self) -> None:
         command = f"maro k8s delete --debug {self.cluster_name}"
-        SubProcess.interactive_run(command)
+        Subprocess.interactive_run(command=command)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 
 import os
 
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 
 
 class DockerController:
@@ -13,4 +13,4 @@ class DockerController:
         # Save image to specific folder
         os.makedirs(os.path.dirname(abs_export_path), exist_ok=True)
         command = f"docker save '{image_name}' --output '{abs_export_path}'"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)

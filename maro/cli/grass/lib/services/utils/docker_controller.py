@@ -4,24 +4,24 @@
 
 import json
 
-from .subprocess import SubProcess
+from .subprocess import Subprocess
 
 
 class DockerController:
     @staticmethod
     def remove_container(container_name: str) -> None:
         command = f"sudo docker rm -f {container_name}"
-        _ = SubProcess.run(command=command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def stop_container(container_name: str) -> None:
         command = f"sudo docker stop {container_name}"
-        _ = SubProcess.run(command=command)
+        _ = Subprocess.run(command=command)
 
     @staticmethod
     def inspect_container(container_name: str) -> dict:
         command = f"sudo docker inspect {container_name}"
-        return_str = SubProcess.run(command=command)
+        return_str = Subprocess.run(command=command)
         return json.loads(return_str)[0]
 
     @staticmethod
@@ -76,7 +76,7 @@ class DockerController:
         )
 
         # Start creating
-        _ = SubProcess.run(command=start_container_command)
+        _ = Subprocess.run(command=start_container_command)
 
         # Return inspect info.
         return DockerController.inspect_container(container_name=create_config["container_name"])
@@ -84,7 +84,7 @@ class DockerController:
     @staticmethod
     def list_container_names() -> list:
         command = "sudo docker ps -a --format \"{{.Names}}\""
-        return_str = SubProcess.run(command=command)
+        return_str = Subprocess.run(command=command)
         if return_str == "":
             return []
         return return_str.split("\n")
@@ -92,7 +92,7 @@ class DockerController:
     @staticmethod
     def load_image(image_path: str) -> None:
         command = f"sudo docker load -q -i {image_path}"
-        _ = SubProcess.run(command=command)
+        _ = Subprocess.run(command=command)
 
     # Helper functions.
 

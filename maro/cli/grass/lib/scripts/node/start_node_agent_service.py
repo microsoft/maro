@@ -7,7 +7,7 @@ import pwd
 import sys
 
 from ..utils.params import Paths
-from ..utils.subprocess import SubProcess
+from ..utils.subprocess import Subprocess
 
 START_NODE_AGENT_COMMAND = """\
 systemctl --user daemon-reload
@@ -30,5 +30,5 @@ if __name__ == "__main__":
 
     # Exec command
     command = START_NODE_AGENT_COMMAND.format(node_username=pwd.getpwuid(os.getuid()).pw_name)
-    return_str = SubProcess.run(command=command)
+    return_str = Subprocess.run(command=command)
     sys.stdout.write(return_str)

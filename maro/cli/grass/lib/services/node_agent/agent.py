@@ -18,7 +18,7 @@ from ..utils.exception import CommandExecutionError
 from ..utils.params import NodeStatus
 from ..utils.redis_controller import RedisController
 from ..utils.resource import BasicResource
-from ..utils.subprocess import SubProcess
+from ..utils.subprocess import Subprocess
 
 GET_TOTAL_GPU_COUNT_COMMAND = "nvidia-smi --query-gpu=name --format=csv,noheader | wc -l"
 GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
@@ -123,7 +123,7 @@ class NodeAgent:
             if resources_details["gpu"] != "all":
                 logger.warning("Invalid gpu assignment, will use all gpus in this node")
             try:
-                return_str = SubProcess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
+                return_str = Subprocess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
                 resources_details["gpu"] = int(return_str)  # (int) logical number
             except CommandExecutionError:
                 resources_details["gpu"] = 0
@@ -300,7 +300,7 @@ class NodeTrackingAgent(multiprocessing.Process):
         resources_details["actual_free_gpu"] = resources_details["target_free_gpu"]
         # Get nvidia-smi result.
         try:
-            return_str = SubProcess.run(command=GET_UTILIZATION_GPUS_COMMAND)
+            return_str = Subprocess.run(command=GET_UTILIZATION_GPUS_COMMAND)
             split_str = return_str.split("\n")
             total_usage = 0
             for single_usage in split_str:

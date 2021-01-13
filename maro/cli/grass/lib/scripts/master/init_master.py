@@ -11,7 +11,7 @@ import shutil
 from ..utils.details_reader import DetailsReader
 from ..utils.details_writer import DetailsWriter
 from ..utils.params import Paths
-from ..utils.subprocess import SubProcess
+from ..utils.subprocess import Subprocess
 
 INIT_COMMAND = """\
 # create group 'docker' and add admin user
@@ -90,7 +90,7 @@ class MasterInitializer:
             master_fluentd_port=self.master_details["fluentd"]["port"],
             steps=5
         )
-        SubProcess.interactive_run(command=command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def start_master_agent():
@@ -107,7 +107,7 @@ class MasterInitializer:
 
         # Parse and exec command
         command = START_MASTER_AGENT_COMMAND.format(master_username=pwd.getpwuid(os.getuid()).pw_name)
-        SubProcess.interactive_run(command=command)
+        Subprocess.interactive_run(command=command)
 
     def start_master_api_server(self):
         # Rewrite data in .service and write it to systemd folder
@@ -127,7 +127,7 @@ class MasterInitializer:
 
         # Parse and exec command
         command = START_MASTER_API_SERVER_COMMAND.format(master_username=pwd.getpwuid(os.getuid()).pw_name)
-        SubProcess.interactive_run(command=command)
+        Subprocess.interactive_run(command=command)
 
     @staticmethod
     def copy_scripts():

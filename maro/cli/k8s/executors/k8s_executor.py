@@ -15,7 +15,7 @@ from maro.cli.k8s.utils.k8s_details_writer import K8sDetailsWriter
 from maro.cli.k8s.utils.params import K8sPaths
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.name_creator import NameCreator
-from maro.cli.utils.subprocess import SubProcess
+from maro.cli.utils.subprocess import Subprocess
 from maro.utils.logger import CliLogger
 
 logger = CliLogger(name=__name__)
@@ -347,7 +347,7 @@ class K8sExecutor(abc.ABC):
     @staticmethod
     def template(export_path: str):
         command = f"cp {K8sPaths.ABS_MARO_K8S_LIB}/deployments/external/* {export_path}"
-        _ = SubProcess.run(command)
+        _ = Subprocess.run(command=command)
 
     # Utils related
 
