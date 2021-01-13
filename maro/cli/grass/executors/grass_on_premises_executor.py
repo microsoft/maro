@@ -143,7 +143,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
                 node_ssh_port=node_details["ssh"]["port"]
             )
 
-        self.remote_release_master(
+        self.remote_delete_master(
             master_username=self.master_username,
             master_hostname=self.master_public_ip_address,
             master_ssh_port=self.master_ssh_port

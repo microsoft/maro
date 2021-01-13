@@ -133,7 +133,7 @@ class MasterInitializer:
     def copy_scripts():
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
         shutil.copy2(
-            src=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/master/release.py",
+            src=f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/master/delete_master.py",
             dst=f"{Paths.ABS_MARO_LOCAL}/scripts"
         )
 

@@ -23,6 +23,7 @@ class GlobalPaths:
     ABS_MARO_DATA = os.path.expanduser(MARO_DATA)
     ABS_MARO_TEST = os.path.expanduser(MARO_TEST)
 
+    MARO_LOCAL = "~/.maro-local"
     MARO_LOCAL_CLUSTER = "~/.maro-local/cluster"
     MARO_LOCAL_TMP = "~/.maro-local/tmp"
     ABS_MARO_LOCAL_CLUSTER = os.path.expanduser(MARO_LOCAL_CLUSTER)

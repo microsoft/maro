@@ -2,6 +2,9 @@
 # Licensed under the MIT license.
 
 
+""" This script is a standalone script, which cannot use the ./utils tools.
+"""
+
 import os
 import subprocess
 import sys
@@ -16,10 +19,7 @@ REMOVE_CONTAINERS = """sudo docker rm -f maro-fluentd maro-redis"""
 
 
 class Paths:
-    MARO_SHARED = "~/.maro-shared"
     MARO_LOCAL = "~/.maro-local"
-
-    ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
     ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
 
 
