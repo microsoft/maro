@@ -18,7 +18,8 @@ from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
 from .common import (
-    AllocateAction, DecisionPayload, Latency, PmState, PostponeAction, PostponeType, Sku, VmRequestPayload
+    AllocateAction, DecisionPayload, Latency, PmState, PostponeAction, PostponeType, VmCategory
+    VmRequestPayload
 )
 from .cpu_reader import CpuReader
 from .events import Events
@@ -71,10 +72,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_frame()
         # Initialize simulation data.
         self._init_data()
-        # Initialize PM SKU map.
-        self._init_pm_sku()
         # PMs list used for quick accessing.
         self._init_pms()
+        # PM SKU dictionary.
+        self._sku_dict: dict = {}
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
         # All request payload of the pending decision VMs.
@@ -119,7 +120,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
         # Load PM related configs.
         self._pm_amount: int = self._cal_pm_amount()
-        print(self._pm_amount)
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_metrics(self):
@@ -150,38 +150,31 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _cal_pm_amount(self) -> int:
         amount: int = 0
-        for sku in self._config.PM.SKU:
+        for sku in self._config.PM:
             amount += sku["amount"]
 
         return amount
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-        self._pm_cpu_cores_capacity: int = self._config.PM.CPU
-        self._pm_memory_capacity: int = self._config.PM.MEMORY
 
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
         pm_id = 0
-        for sku in self._config.PM.SKU:
+        for sku in self._config.PM:
             amount = sku["amount"]
+            self._sku_dict[sku["SKU_type"]] = sku
             while amount > 0:
                 pm = self._machines[pm_id]
                 pm.set_init_state(
                     id=pm_id,
-                    cpu_cores_capacity=self._pm_cpu_cores_capacity,
-                    memory_capacity=self._pm_memory_capacity,
-                    sku=sku["type"],
+                    cpu_cores_capacity=sku["CPU"],
+                    memory_capacity=sku["memory"],
+                    sku_type=sku["SKU_type"],
                     oversubscribable=PmState.EMPTY
                 )
                 amount -= 1
                 pm_id += 1
-
-    def _init_pm_sku(self):
-        self._sku_dict = {
-            0: Sku(calibration_parameter=1.4, busy_power=10, idle_power=1),
-            1: Sku(calibration_parameter=1.4, busy_power=10, idle_power=1)
-        }
 
     def reset(self):
         """Reset internal states for episode."""
@@ -266,6 +259,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             if pm.oversubscribable and pm.cpu_cores_allocated > pm.cpu_cores_capacity:
                 self._total_oversubscriptions += 1
             total_energy += pm.energy_consumption
+            # Overload PMs.
+            if pm.cpu_utilization > 100:
+                self._overload(pm.id)
         self._total_energy_consumption += total_energy
 
         if (tick + 1) % self._snapshot_resolution == 0:
@@ -355,15 +351,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 vm = self._live_vms[vm_id]
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
             pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
-            if pm.cpu_utilization > 100:
-                # PM Overload.
-                self._overload(pm_id=pm.id)
-                self._total_overload_pms += 1
-            else:
-                pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    sku=self._sku_dict[pm.sku],
-                    cpu_utilization=pm.cpu_utilization
-                )
+            pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
+                sku=self._sku_dict[pm.sku_type],
+                cpu_utilization=pm.cpu_utilization
+            )
 
     def _overload(self, pm_id: int):
         """Overload logic.
@@ -384,21 +375,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             pm.update_cpu_utilization(vm=None, cpu_utilization=0)
 
         pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-            sku=self._sku_dict[pm.sku],
+            sku=self._sku_dict[pm.sku_type],
             cpu_utilization=pm.cpu_utilization
         )
 
         self._failed_completion += len(vm_ids)
         self._total_overload_vms += len(vm_ids)
 
-    def _cpu_utilization_to_energy_consumption(self, sku: Sku, cpu_utilization: float) -> float:
+    def _cpu_utilization_to_energy_consumption(self, sku: dict, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = sku.calibration_parameter
-        busy_power = sku.busy_power
-        idle_power = sku.idle_power
+        power: float = sku["power_curve"]["calibration_parameter"]
+        busy_power = sku["power_curve"]["busy_power"]
+        idle_power = sku["power_curve"]["idle_power"]
 
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
@@ -440,7 +431,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         valid_pm_list = []
 
         # Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
-        if vm_category:
+        if vm_category == VmCategory.INTERACTIVE or vm_category == VmCategory.UNKNOWN:
             valid_pm_list = self._get_valid_non_oversubscribable_pms(
                 vm_cpu_cores_requirement=vm_cpu_cores_requirement,
                 vm_memory_requirement=vm_memory_requirement
@@ -598,7 +589,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cpu_utilization=None
                 )
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    sku=self._sku_dict[pm.sku],
+                    sku=self._sku_dict[pm.sku_type],
                     cpu_utilization=pm.cpu_utilization
                 )
                 self._successful_allocation += 1

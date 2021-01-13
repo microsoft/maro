@@ -115,8 +115,7 @@ class PmState(IntEnum):
     OVERSUBSCRIBABLE = 1
 
 
-class Sku:
-    def __init__(self, calibration_parameter: float, busy_power: int, idle_power: int):
-        self.calibration_parameter = calibration_parameter
-        self.busy_power = busy_power
-        self.idle_power = idle_power
+class VmCategory(IntEnum):
+    DELAY_INSENSITIVE = 0
+    INTERACTIVE = 1
+    UNKNOWN = 2
