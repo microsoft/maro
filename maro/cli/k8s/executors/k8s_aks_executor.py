@@ -558,8 +558,8 @@ class ArmTemplateParameterBuilder:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
             parameters["location"]["value"] = cluster_details["cloud"]["location"]
-            parameters["adminUsername"]["value"] = cluster_details["user"]["admin_username"]
-            parameters["adminPublicKey"]["value"] = cluster_details["user"]["admin_public_key"]
+            parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
+            parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
             parameters["clusterName"]["value"] = f"{cluster_id}-aks"
             parameters["agentCount"]["value"] = 1
             parameters["agentVMSize"]["value"] = cluster_details["master"]["node_size"]

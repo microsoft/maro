@@ -58,11 +58,11 @@ class TestK8s(unittest.TestCase):
             create_deployment_details = yaml.safe_load(fr)
         with open(cls.test_config_path) as fr:
             config_details = yaml.safe_load(fr)
-            if config_details["cloud/subscription"] and config_details["user/admin_public_key"]:
+            if config_details["cloud/subscription"] and config_details["cloud/default_public_key"]:
                 create_deployment_details["name"] = f"test_maro_k8s_{cls.test_id}"
                 create_deployment_details["cloud"]["subscription"] = config_details["cloud/subscription"]
                 create_deployment_details["cloud"]["resource_group"] = f"test_maro_k8s_{cls.test_id}"
-                create_deployment_details["user"]["admin_public_key"] = config_details["user/admin_public_key"]
+                create_deployment_details["cloud"]["default_public_key"] = config_details["cloud/default_public_key"]
             else:
                 raise Exception("Invalid config")
         with open(cls.create_deployment_path, "w") as fw:
