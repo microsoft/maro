@@ -30,35 +30,6 @@ class BasicResource:
     def __ge__(self, other):
         return self.__cmp__(other=other) >= 0
 
-    def __add__(self, other):
-        self.cpu += other.cpu
-        self.memory += other.memory
-        self.gpu += other.gpu
-
-    def __radd__(self, other):
-        self.__add__(other)
-
-    def __iadd__(self, other):
-        self.__add__(other)
-
-    def __sub__(self, other):
-        self.cpu -= other.cpu
-        self.memory -= other.memory
-        self.gpu -= other.gpu
-
-    def __rsub__(self, other):
-        self.__sub__(other)
-
-    def __isub__(self, other):
-        self.__sub__(other)
-
-    def __call__(self):
-        return {
-            "cpu": self.cpu,
-            "memory": self.memory,
-            "gpu": self.gpu
-        }
-
 
 class ContainerResource(BasicResource):
     def __init__(self, container_name: str, cpu: float, memory: float, gpu: float):

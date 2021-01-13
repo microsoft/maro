@@ -40,6 +40,10 @@ class LocalPaths:
     MARO_PROCESS_AGENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/agent/job_agent.py")
     MARO_PROCESS_DEPLOYMENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../process/deployment")
     MARO_LOCAL_LOG = "~/.maro/logs"
+    MARO_GRASS_LOCAL_AGENT = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "../grass/lib/agents/local_agent.py"
+    )
 
 
 class ProcessRedisName:
@@ -55,3 +59,4 @@ class GrassLocalRedisName:
     """Record Redis elements name, and only for grass/local"""
     RUNTIME_DETAILS = "local:runtime_details"
     CLUSTER_DETAILS = "local:cluster_details"
+    CLUSTER_AGENTS = "local:cluster_agents"

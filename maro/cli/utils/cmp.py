@@ -1,29 +1,35 @@
-from maro.cli.grass.agents.resource import NodeResource, ContainerResource
+from maro.cli.grass.lib.agents.resource import BasicResource
 
 
 def resource_op(node_resource: dict, container_resource: dict, op: str):
-    node_resource = NodeResource(
-        node_name=node_resource["name"],
+    if op == "release":
+        updated_resource = {
+            "cpu": node_resource["cpu"] + container_resource["cpu"],
+            "memory": node_resource["memory"] + container_resource["memory"],
+            "gpu": node_resource["gpu"] + container_resource["gpu"]
+        }
+        return True, updated_resource
+
+    main_resource = BasicResource(
         cpu=node_resource["cpu"],
         memory=node_resource["memory"],
         gpu=node_resource["gpu"]
     )
 
-    container_resource = ContainerResource(
-        node_name=container_resource["name"],
+    target_resource = BasicResource(
         cpu=container_resource["cpu"],
         memory=container_resource["memory"],
         gpu=container_resource["gpu"]
     )
-    is_satisfied = True
 
-    if op == "allocate":
-        if node_resource < container_resource:
-            is_satisfied = False
-        node_resource -= container_resource
-    elif op == "release":
-        node_resource += container_resource
+    is_satisfied, updated_resource = True, {}
+    if main_resource < target_resource:
+        is_satisfied = False
     else:
-        pass
+        updated_resource = {
+            "cpu": node_resource["cpu"] - container_resource["cpu"],
+            "memory": node_resource["memory"] - container_resource["memory"],
+            "gpu": node_resource["gpu"] - container_resource["gpu"]
+        }
 
-    return is_satisfied, node_resource()
+    return is_satisfied, updated_resource
