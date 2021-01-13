@@ -18,8 +18,7 @@ from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
 from .common import (
-    AllocateAction, DecisionPayload, Latency, PmState, PostponeAction, PostponeType, VmCategory,
-    VmRequestPayload
+    AllocateAction, DecisionPayload, Latency, PmState, PostponeAction, PostponeType, VmCategory, VmRequestPayload
 )
 from .cpu_reader import CpuReader
 from .events import Events
