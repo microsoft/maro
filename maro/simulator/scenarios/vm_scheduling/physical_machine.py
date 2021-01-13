@@ -8,6 +8,7 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 from .common import PmState
 from .virtual_machine import VirtualMachine
 
+
 @node("pms")
 class PhysicalMachine(NodeBase):
     """Physical machine node definition in frame."""
