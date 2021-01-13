@@ -63,31 +63,31 @@ def list_node(cluster_name: str, **kwargs):
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 
 
-def node_join(deployment_path: str, **kwargs):
+def join_cluster(deployment_path: str, **kwargs):
     try:
         with open(deployment_path, "r") as fr:
-            join_node_deployment = yaml.safe_load(fr)
-        if join_node_deployment["mode"] == "grass/on-premises":
-            GrassOnPremisesExecutor.join_node(join_node_deployment=join_node_deployment)
+            join_cluster_deployment = yaml.safe_load(fr)
+        if join_cluster_deployment["mode"] == "grass/on-premises":
+            GrassOnPremisesExecutor.join_cluster(join_cluster_deployment=join_cluster_deployment)
         else:
-            raise BadRequestError(f"Unsupported operation in mode '{join_node_deployment['mode']}'.")
+            raise BadRequestError(f"Unsupported operation in mode '{join_cluster_deployment['mode']}'.")
     except KeyError as e:
         raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
     except FileNotFoundError:
         raise FileOperationError("Invalid template file path.")
 
 
-def node_leave(deployment_path: str, **kwargs):
+def leave_cluster(deployment_path: str, **kwargs):
     try:
         if not deployment_path:
-            GrassOnPremisesExecutor.leave(leave_node_deployment={})
+            GrassOnPremisesExecutor.leave(leave_cluster_deployment={})
         else:
             with open(deployment_path, "r") as fr:
-                leave_node_deployment = yaml.safe_load(fr)
-            if leave_node_deployment["mode"] == "grass/on-premises":
-                GrassOnPremisesExecutor.leave(leave_node_deployment=leave_node_deployment)
+                leave_cluster_deployment = yaml.safe_load(fr)
+            if leave_cluster_deployment["mode"] == "grass/on-premises":
+                GrassOnPremisesExecutor.leave(leave_cluster_deployment=leave_cluster_deployment)
             else:
-                raise BadRequestError(f"Unsupported operation in mode '{leave_node_deployment['mode']}'.")
+                raise BadRequestError(f"Unsupported operation in mode '{leave_cluster_deployment['mode']}'.")
     except KeyError as e:
         raise InvalidDeploymentTemplateError(f"Missing key '{e.args[0]}'.")
     except FileNotFoundError:

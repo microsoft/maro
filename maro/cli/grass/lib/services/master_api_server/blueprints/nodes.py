@@ -95,7 +95,7 @@ def delete_node(node_name: str):
         f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
-        f"'python3 {Paths.MARO_LOCAL}/scripts/leave.py'"
+        f"'python3 {Paths.MARO_LOCAL}/scripts/leave_cluster.py'"
     )
     SubProcess.run(command=command)
 

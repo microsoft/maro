@@ -6,7 +6,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-WorkingDirectory={home_path}/.maro-shared/lib/grass
+WorkingDirectory={maro_shared_path}/lib/grass
 ExecStart=/usr/bin/python3 -m services.node_agent.agent
 
 [Install]

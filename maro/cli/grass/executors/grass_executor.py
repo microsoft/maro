@@ -314,52 +314,48 @@ class GrassExecutor:
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def remote_join_node(
+    def remote_join_cluster(
         node_username: str, node_hostname: str, node_ssh_port: int,
         master_hostname: str, master_api_server_port: int, deployment_path: str
     ):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinNodeScript | "
+            f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def local_join_node(master_hostname: str, master_api_server_port: int, deployment_path: str):
+    def local_join_cluster(master_hostname: str, master_api_server_port: int, deployment_path: str):
         command = (
-            f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinNodeScript | "
+            f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def remote_leave_node(node_username: str, node_hostname: str, node_ssh_port: int):
+    def remote_leave_cluster(node_username: str, node_hostname: str, node_ssh_port: int):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'python3 ~/.maro-local/scripts/activate_leave.py'"
+            f"'python3 ~/.maro-local/scripts/activate_leave_cluster.py'"
         )
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def local_leave_node():
-        command = f"python3 ~/.maro-local/scripts/activate_leave.py"
+    def local_leave_cluster():
+        command = f"python3 ~/.maro-local/scripts/activate_leave_cluster.py"
         SubProcess.interactive_run(command)
 
-    def remote_start_node_services(
-        self, node_username: str, node_hostname: str, node_ssh_port: int,
-        node_name: str
-    ):
+    @staticmethod
+    def remote_start_node_services(node_username: str, node_hostname: str, node_ssh_port: int):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_agent_service "
-            f"{self.cluster_name} {node_name}'"
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_agent_service'"
         )
         _ = SubProcess.run(command)
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_api_server_service "
-            f"{self.cluster_name}'"
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_api_server_service'"
         )
         _ = SubProcess.run(command)
 

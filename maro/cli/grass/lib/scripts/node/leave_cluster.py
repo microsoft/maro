@@ -2,6 +2,10 @@
 # Licensed under the MIT license.
 
 
+""" This script is a standalone script, which cannot use the ./utils tools.
+"""
+
+import logging
 import os
 import subprocess
 import sys
@@ -34,13 +38,18 @@ class NodeLeaver:
     @staticmethod
     def stop_node_agent_service():
         Subprocess.run(command=STOP_NODE_AGENT_SERVICE_COMMAND)
-        os.remove(os.path.expanduser("~/.config/systemd/user/maro-node-agent.service"))
-        os.remove(f"{Paths.ABS_MARO_LOCAL}/services/maro-node-agent.config")
+        try:
+            os.remove(os.path.expanduser("~/.config/systemd/user/maro-node-agent.service"))
+        except FileNotFoundError:
+            logging.warning("maro-node-agent.service is not found")
 
     @staticmethod
     def stop_node_api_server_service():
         Subprocess.run(command=STOP_NODE_API_SERVER_SERVICE_COMMAND)
-        os.remove(os.path.expanduser("~/.config/systemd/user/maro-node-api-server.service"))
+        try:
+            os.remove(os.path.expanduser("~/.config/systemd/user/maro-node-api-server.service"))
+        except FileNotFoundError:
+            logging.warning("maro-node-api-server.service is not found")
 
 
 class DetailsReader:

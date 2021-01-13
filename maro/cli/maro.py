@@ -369,7 +369,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     parser_node_list.set_defaults(func=list_node)
 
     # maro grass node join
-    from maro.cli.grass.node import node_join
+    from maro.cli.grass.node import join_cluster
     parser_node_join = parser_node_subparsers.add_parser(
         'join',
         help="Let one node join in a cluster in on-premises mode.",
@@ -378,10 +378,10 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     )
     parser_node_join.add_argument(
         'deployment_path', help='The node join description file path.')
-    parser_node_join.set_defaults(func=node_join)
+    parser_node_join.set_defaults(func=join_cluster)
 
     # maro grass node leave
-    from maro.cli.grass.node import node_leave
+    from maro.cli.grass.node import leave_cluster
     parser_node_leave = parser_node_subparsers.add_parser(
         "leave",
         help="make node leave to cluster",
@@ -390,7 +390,7 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     )
     parser_node_leave.add_argument(
         'deployment_path', nargs="?", default={}, help='The node join description file path.')
-    parser_node_leave.set_defaults(func=node_leave)
+    parser_node_leave.set_defaults(func=leave_cluster)
 
     # maro grass image
     parser_image = subparsers.add_parser(

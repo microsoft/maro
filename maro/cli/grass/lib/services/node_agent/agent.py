@@ -2,7 +2,6 @@
 # Licensed under the MIT license.
 
 
-import json
 import logging
 import multiprocessing
 import os
@@ -13,6 +12,7 @@ from multiprocessing.pool import ThreadPool
 
 import psutil
 
+from ..utils.details_reader import DetailsReader
 from ..utils.docker_controller import DockerController
 from ..utils.exception import CommandExecutionError
 from ..utils.params import NodeStatus
@@ -27,22 +27,26 @@ logger = logging.getLogger(__name__)
 
 
 class NodeAgent:
-    def __init__(self, cluster_name: str, node_name: str, master_hostname: str, redis_port: int):
-        self._cluster_name = cluster_name
-        self._node_name = node_name
-        self._master_hostname = master_hostname
-        self._redis_port = redis_port
+    def __init__(self, local_cluster_details: dict, local_master_details: dict, local_node_details: dict):
+        self._local_cluster_details = local_cluster_details
+        self._local_master_details = local_master_details
+        self._local_node_details = local_node_details
 
-        self._redis_controller = RedisController(host=master_hostname, port=redis_port)
+        self._redis_controller = RedisController(
+            host=self._local_master_details["hostname"],
+            port=self._local_master_details["redis"]["port"]
+        )
 
         # Init agents.
         self.load_image_agent = LoadImageAgent(
-            cluster_name=self._cluster_name, node_name=self._node_name,
-            master_hostname=self._master_hostname, redis_port=self._redis_port
+            local_cluster_details=local_cluster_details,
+            local_master_details=local_master_details,
+            local_node_details=local_node_details
         )
         self.node_tracking_agent = NodeTrackingAgent(
-            cluster_name=self._cluster_name, node_name=self._node_name,
-            master_hostname=self._master_hostname, redis_port=self._redis_port
+            local_cluster_details=local_cluster_details,
+            local_master_details=local_master_details,
+            local_node_details=local_node_details
         )
 
         # When SIGTERM, gracefully exit.
@@ -79,17 +83,17 @@ class NodeAgent:
             "status": NodeStatus.STOPPED,
             "check_time": self._redis_controller.get_time()
         }
-        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
             node_details = self._redis_controller.get_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"]
             )
             # May be node leaving here.
             if node_details:
                 node_details["state"] = state_details
                 self._redis_controller.set_node_details(
-                    cluster_name=self._cluster_name,
-                    node_name=self._node_name,
+                    cluster_name=self._local_cluster_details["name"],
+                    node_name=self._local_node_details["name"],
                     node_details=node_details
                 )
         sys.exit(0)
@@ -99,19 +103,25 @@ class NodeAgent:
 
     def _init_resources(self) -> None:
         node_details = self._redis_controller.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name
+            cluster_name=self._local_cluster_details["name"],
+            node_name=self._local_node_details["name"]
         )
         resources_details = node_details["resources"]
 
         # Get resources info
-        if resources_details["cpu"] == "All":
+        if not isinstance(resources_details["cpu"], (float, int)):
+            if resources_details["cpu"] != "all":
+                logger.warning("Invalid cpu assignment, will use all cpus in this node")
             resources_details["cpu"] = psutil.cpu_count()  # (int) logical number
 
-        if resources_details["memory"] == "All":
-            resources_details["memory"] = psutil.virtual_memory().total / 1024  # (int) in MByte
+        if not isinstance(resources_details["memory"], (float, int)):
+            if resources_details["memory"] != "all":
+                logger.warning("Invalid memory assignment, will use all memories in this node")
+            resources_details["memory"] = psutil.virtual_memory().total / 1024  # (float) in MByte
 
-        if resources_details["gpu"] == "All":
+        if not isinstance(resources_details["gpu"], (float, int)):
+            if resources_details["gpu"] != "all":
+                logger.warning("Invalid gpu assignment, will use all gpus in this node")
             try:
                 return_str = SubProcess.run(command=GET_TOTAL_GPU_COUNT_COMMAND)
                 resources_details["gpu"] = int(return_str)  # (int) logical number
@@ -119,15 +129,15 @@ class NodeAgent:
                 resources_details["gpu"] = 0
 
         # Set resource details
-        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
             node_details = self._redis_controller.get_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"]
             )
             node_details["resources"] = resources_details
             self._redis_controller.set_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name,
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"],
                 node_details=node_details
             )
 
@@ -135,15 +145,18 @@ class NodeAgent:
 class NodeTrackingAgent(multiprocessing.Process):
     def __init__(
         self,
-        cluster_name: str, node_name: str,
-        master_hostname: str, redis_port: int,
+        local_cluster_details: dict, local_master_details: dict, local_node_details: dict,
         check_interval: int = 5
     ):
         super().__init__()
-        self._cluster_name = cluster_name
-        self._node_name = node_name
+        self._local_cluster_details = local_cluster_details
+        self._local_master_details = local_master_details
+        self._local_node_details = local_node_details
 
-        self._redis_controller = RedisController(host=master_hostname, port=redis_port)
+        self._redis_controller = RedisController(
+            host=self._local_master_details["hostname"],
+            port=self._local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
         self._is_terminated = False
@@ -175,8 +188,8 @@ class NodeTrackingAgent(multiprocessing.Process):
         # Get or init details.
 
         node_details = self._redis_controller.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name
+            cluster_name=self._local_cluster_details["name"],
+            node_name=self._local_node_details["name"]
         )
 
         # Containers related
@@ -202,17 +215,17 @@ class NodeTrackingAgent(multiprocessing.Process):
         }
 
         # Save details.
-        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
             node_details = self._redis_controller.get_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"]
             )
             node_details["containers"] = name_to_container_details
             node_details["resources"] = resources_details
             node_details["state"] = state_details
             self._redis_controller.set_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name,
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"],
                 node_details=node_details
             )
 
@@ -343,15 +356,18 @@ class NodeTrackingAgent(multiprocessing.Process):
 class LoadImageAgent(multiprocessing.Process):
     def __init__(
         self,
-        cluster_name: str, node_name: str,
-        master_hostname: str, redis_port: int,
+        local_cluster_details: dict, local_master_details: dict, local_node_details: dict,
         check_interval: int = 10
     ):
         super().__init__()
-        self._cluster_name = cluster_name
-        self._node_name = node_name
+        self._local_cluster_details = local_cluster_details
+        self._local_master_details = local_master_details
+        self._local_node_details = local_node_details
 
-        self._redis_controller = RedisController(host=master_hostname, port=redis_port)
+        self._redis_controller = RedisController(
+            host=self._local_master_details["hostname"],
+            port=self._local_master_details["redis"]["port"]
+        )
 
         self._check_interval = check_interval
         self._is_terminated = False
@@ -379,10 +395,10 @@ class LoadImageAgent(multiprocessing.Process):
             None.
         """
 
-        master_details = self._redis_controller.get_master_details(cluster_name=self._cluster_name)
+        master_details = self._redis_controller.get_master_details(cluster_name=self._local_cluster_details["name"])
         node_details = self._redis_controller.get_node_details(
-            cluster_name=self._cluster_name,
-            node_name=self._node_name
+            cluster_name=self._local_cluster_details["name"],
+            node_name=self._local_node_details["name"]
         )
         name_to_image_file_details_in_master = master_details["image_files"]
         name_to_image_file_details_in_node = node_details["image_files"]
@@ -400,7 +416,8 @@ class LoadImageAgent(multiprocessing.Process):
         # Parallel load
         with ThreadPool(5) as pool:
             params = [
-                [os.path.expanduser(f"~/.maro-shared/clusters/{self._cluster_name}/image_files/{unloaded_image_name}")]
+                [os.path.expanduser(
+                    f"~/.maro-shared/clusters/{self._local_cluster_details['name']}/image_files/{unloaded_image_name}")]
                 for unloaded_image_name in unloaded_image_names
             ]
             pool.starmap(
@@ -408,16 +425,16 @@ class LoadImageAgent(multiprocessing.Process):
                 params
             )
 
-        with self._redis_controller.lock(f"lock:name_to_node_details:{self._node_name}"):
+        with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
             node_details = self._redis_controller.get_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"]
             )
             # Update with mapping in master.
             node_details["image_files"] = name_to_image_file_details_in_master
             self._redis_controller.set_node_details(
-                cluster_name=self._cluster_name,
-                node_name=self._node_name,
+                cluster_name=self._local_cluster_details["name"],
+                node_name=self._local_node_details["name"],
                 node_details=node_details
             )
 
@@ -435,13 +452,9 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    with open(os.path.expanduser("~/.maro-local/services/maro-node-agent.config"), "r") as fr:
-        node_agent_config = json.load(fr)
-
     node_agent = NodeAgent(
-        cluster_name=node_agent_config["cluster_name"],
-        node_name=node_agent_config["node_name"],
-        master_hostname=node_agent_config["master_hostname"],
-        redis_port=node_agent_config["redis_port"]
+        local_cluster_details=DetailsReader.load_local_cluster_details(),
+        local_master_details=DetailsReader.load_local_master_details(),
+        local_node_details=DetailsReader.load_local_node_details()
     )
     node_agent.start()

@@ -2,9 +2,11 @@
 # Licensed under the MIT license.
 
 
+""" This script is a standalone script, which cannot use the ./utils tools.
+"""
+
 import argparse
 import functools
-import json
 import operator
 import os
 import pathlib
@@ -26,8 +28,8 @@ sudo gpasswd -a {node_username} docker
 
 SETUP_SAMBA_MOUNT_COMMAND = """\
 mkdir -p {maro_shared_path}
-sudo mount -t cifs -o username={master_username},password={samba_password} //{master_hostname}/sambashare {maro_shared_path}
-echo '//{master_hostname}/sambashare  {maro_shared_path} cifs  username={master_username},password={samba_password}  0  0' | \
+sudo mount -t cifs -o username={master_username},password={master_samba_password} //{master_hostname}/sambashare {maro_shared_path}
+echo '//{master_hostname}/sambashare  {maro_shared_path} cifs  username={master_username},password={master_samba_password}  0  0' | \
     sudo tee -a /etc/fstab
 """
 
@@ -57,21 +59,21 @@ class Params:
 
 class Paths:
     MARO_SHARED = "~/.maro-shared"
-    MARO_LOCAL = "~/.maro-local"
-
     ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
+
+    MARO_LOCAL = "~/.maro-local"
     ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
 
 
 class NodeJoiner:
-    def __init__(self, join_node_deployment: dict):
-        self.join_node_deployment = join_node_deployment
+    def __init__(self, join_cluster_deployment: dict):
+        self.join_cluster_deployment = join_cluster_deployment
 
         master_api_client = MasterApiClientV1(
-            master_hostname=join_node_deployment["master"]["hostname"],
-            api_server_port=join_node_deployment["master"]["api_server"]["port"]
+            master_hostname=join_cluster_deployment["master"]["hostname"],
+            api_server_port=join_cluster_deployment["master"]["api_server"]["port"]
         )
-        self.node_details = master_api_client.create_node(node_details=join_node_deployment["node"])
+        self.node_details = master_api_client.create_node(node_details=join_cluster_deployment["node"])
 
         self.cluster_details = master_api_client.get_cluster()
         self.master_details = master_api_client.get_master()
@@ -85,34 +87,19 @@ class NodeJoiner:
         command = SETUP_SAMBA_MOUNT_COMMAND.format(
             master_username=self.master_details["username"],
             master_hostname=self.master_details["hostname"],
-            samba_password=self.master_details["samba"]["password"],
+            master_samba_password=self.master_details["samba"]["password"],
             maro_shared_path=Paths.ABS_MARO_SHARED
         )
         Subprocess.run(command=command)
 
     def start_node_agent_service(self):
-        # Dump node_agent.config
-        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/services", exist_ok=True)
-        with open(f"{Paths.ABS_MARO_LOCAL}/services/maro-node-agent.config", "w") as fw:
-            json.dump(
-                obj={
-                    "cluster_name": self.cluster_details["name"],
-                    "node_name": self.node_details["name"],
-                    "master_hostname": self.master_details["hostname"],
-                    "redis_port": self.master_details["redis"]["port"]
-                },
-                fp=fw
-            )
-
-        # Load .service
+        # Rewrite data in .service and write it to systemd folder
         with open(
             file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service",
             mode="r"
         ) as fr:
             service_file = fr.read()
-
-        # Rewrite data in .service and write it to systemd folder
-        service_file = service_file.format(home_path=str(pathlib.Path.home()))
+        service_file = service_file.format(maro_shared_path=Paths.ABS_MARO_SHARED)
         os.makedirs(name=os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
         with open(file=os.path.expanduser("~/.config/systemd/user/maro-node-agent.service"), mode="w") as fw:
             fw.write(service_file)
@@ -121,16 +108,15 @@ class NodeJoiner:
         Subprocess.run(command=command)
 
     def start_node_api_server_service(self):
-        # Load .service
+        # Rewrite data in .service and write it to systemd folder
         with open(
             file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_api_server/maro-node-api-server.service",
             mode="r"
         ) as fr:
             service_file = fr.read()
-
-        # Rewrite data in .service and write it to systemd folder
         service_file = service_file.format(
             home_path=str(pathlib.Path.home()),
+            maro_shared_path=Paths.ABS_MARO_SHARED,
             node_api_server_port=self.node_details["api_server"]["port"]
         )
         os.makedirs(os.path.expanduser("~/.config/systemd/user/"), exist_ok=True)
@@ -143,8 +129,8 @@ class NodeJoiner:
     @staticmethod
     def copy_leave_script():
         src_files = [
-            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/leave.py",
-            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/activate_leave.py"
+            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/leave_cluster.py",
+            f"{Paths.ABS_MARO_SHARED}/lib/grass/scripts/node/activate_leave_cluster.py"
         ]
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/scripts", exist_ok=True)
         for src_file in src_files:
@@ -160,8 +146,8 @@ class NodeJoiner:
     # Utils
 
     @staticmethod
-    def standardize_join_node_deployment(join_node_deployment: dict) -> dict:
-        join_node_deployment_template = {
+    def standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
+        join_cluster_deployment_template = {
             "mode": "",
             "master": {
                 "hostname": "",
@@ -187,8 +173,8 @@ class NodeJoiner:
             }
         }
         DeploymentValidator.validate_and_fill_dict(
-            template_dict=join_node_deployment_template,
-            actual_dict=join_node_deployment,
+            template_dict=join_cluster_deployment_template,
+            actual_dict=join_cluster_deployment,
             optional_key_to_value={
                 "root['master']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
                 "root['master']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
@@ -199,7 +185,7 @@ class NodeJoiner:
             }
         )
 
-        return join_node_deployment
+        return join_cluster_deployment
 
 
 class MasterApiClientV1:
@@ -346,6 +332,12 @@ class DetailsWriter:
         return cluster_details
 
     @staticmethod
+    def save_local_master_details(master_details: dict) -> None:
+        os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/cluster", exist_ok=True)
+        with open(file=f"{Paths.ABS_MARO_LOCAL}/cluster/master_details.yml", mode="w") as fw:
+            yaml.safe_dump(data=master_details, stream=fw)
+
+    @staticmethod
     def save_local_node_details(node_details: dict) -> dict:
         os.makedirs(name=f"{Paths.ABS_MARO_LOCAL}/cluster", exist_ok=True)
         with open(file=f"{Paths.ABS_MARO_LOCAL}/cluster/node_details.yml", mode="w") as fw:
@@ -361,10 +353,10 @@ if __name__ == "__main__":
 
     # Load deployment and do validation
     with open(file=os.path.expanduser(args.deployment_path), mode="r") as fr:
-        join_node_deployment = yaml.safe_load(fr)
-    join_node_deployment = NodeJoiner.standardize_join_node_deployment(join_node_deployment=join_node_deployment)
+        join_cluster_deployment = yaml.safe_load(fr)
+    join_cluster_deployment = NodeJoiner.standardize_join_cluster_deployment(join_cluster_deployment=join_cluster_deployment)
 
-    node_joiner = NodeJoiner(join_node_deployment=join_node_deployment)
+    node_joiner = NodeJoiner(join_cluster_deployment=join_cluster_deployment)
     node_joiner.create_docker_user()
     node_joiner.setup_samba_mount()
     node_joiner.start_node_agent_service()
@@ -373,4 +365,5 @@ if __name__ == "__main__":
     node_joiner.load_master_public_key()
 
     DetailsWriter.save_local_cluster_details(cluster_details=node_joiner.cluster_details)
+    DetailsWriter.save_local_master_details(master_details=node_joiner.master_details)
     DetailsWriter.save_local_node_details(node_details=node_joiner.node_details)

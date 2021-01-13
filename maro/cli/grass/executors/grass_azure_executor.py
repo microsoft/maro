@@ -413,13 +413,13 @@ class GrassAzureExecutor(GrassExecutor):
         logger.info(message=f"Creating node '{node_name}'")
 
         # Create node
-        join_node_deployment = self._create_vm(
+        join_cluster_deployment = self._create_vm(
             node_name=node_name,
             node_size=node_size
         )
 
-        # Init node
-        self._join_node(node_details=join_node_deployment["node"])
+        # Start joining cluster
+        self._join_cluster(node_details=join_cluster_deployment["node"])
 
         logger.info_green(message=f"Node '{node_name}' is created")
 
@@ -485,8 +485,8 @@ class GrassAzureExecutor(GrassExecutor):
 
         logger.info_green(f"VM '{node_name}' is created")
 
-        # Build join_node_deployment.
-        join_node_deployment = {
+        # Build join_cluster_deployment.
+        join_cluster_deployment = {
             "mode": "grass/azure",
             "master": {
                 "hostname": self.master_hostname,
@@ -504,9 +504,9 @@ class GrassAzureExecutor(GrassExecutor):
                 "resource_name": f"{self.cluster_id}-{node_name}-vm",
                 "hostname": f"{self.cluster_id}-{node_name}-vm",
                 "resources": {
-                    "cpu": "All",
-                    "memory": "All",
-                    "gpu": "All"
+                    "cpu": "all",
+                    "memory": "all",
+                    "gpu": "all"
                 },
                 "api_server": {
                     "port": self.api_server_port
@@ -517,9 +517,9 @@ class GrassAzureExecutor(GrassExecutor):
             }
         }
         with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_{node_name}.yml", "w") as fw:
-            yaml.safe_dump(data=join_node_deployment, stream=fw)
+            yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
-        return join_node_deployment
+        return join_cluster_deployment
 
     def _delete_node(self, node_name: str):
         logger.info(f"Deleting node '{node_name}'")
@@ -545,10 +545,10 @@ class GrassAzureExecutor(GrassExecutor):
 
         logger.info_green(f"Node '{node_name}' is deleted")
 
-    def _join_node(self, node_details: dict):
+    def _join_cluster(self, node_details: dict):
         node_name = node_details["name"]
 
-        logger.info(f"Joining node '{node_name}'")
+        logger.info(f"Node '{node_name}' is joining the cluster '{self.cluster_name}'")
 
         # Make sure the node is able to connect
         self.retry_connection(
@@ -568,8 +568,8 @@ class GrassAzureExecutor(GrassExecutor):
                 node_ssh_port=node_details["ssh"]["port"]
             )
 
-        # Remote join node
-        self.remote_join_node(
+        #  Remote join cluster
+        self.remote_join_cluster(
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
             node_ssh_port=node_details["ssh"]["port"],
@@ -630,8 +630,7 @@ class GrassAzureExecutor(GrassExecutor):
         self.remote_start_node_services(
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
-            node_ssh_port=node_details["ssh"]["port"],
-            node_name=node_name
+            node_ssh_port=node_details["ssh"]["port"]
         )
 
         logger.info_green(f"Node '{node_name}' is started")

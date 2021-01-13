@@ -137,7 +137,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         nodes_details = self.master_api_client.list_nodes()
         for node_details in nodes_details:
-            self.remote_leave_node(
+            self.remote_leave_cluster(
                 node_username=node_details["username"],
                 node_hostname=node_details["public_ip_address"],
                 node_ssh_port=node_details["ssh"]["port"]
@@ -156,57 +156,57 @@ class GrassOnPremisesExecutor(GrassExecutor):
     # maro grass join
 
     @staticmethod
-    def join_node(join_node_deployment: dict):
-        GrassOnPremisesExecutor._join_node(join_node_deployment=join_node_deployment)
+    def join_cluster(join_cluster_deployment: dict):
+        GrassOnPremisesExecutor._join_cluster(join_cluster_deployment=join_cluster_deployment)
 
     @staticmethod
-    def _join_node(join_node_deployment: dict):
-        logger.info(f"Joining node")
+    def _join_cluster(join_cluster_deployment: dict):
+        logger.info(f"Joining the cluster")
 
-        # Save join_node_deployment TODO: do checking, already join another node
-        with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_node.yml", "w") as fw:
-            yaml.safe_dump(data=join_node_deployment, stream=fw)
+        # Save join_cluster_deployment TODO: do checking, already join another node
+        with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster.yml", "w") as fw:
+            yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
         # Copy required files
-        local_path_to_remote_dir = {f"{GlobalPaths.MARO_LOCAL_TMP}/join_node.yml": "~/"}
+        local_path_to_remote_dir = {f"{GlobalPaths.MARO_LOCAL_TMP}/join_cluster.yml": "~/"}
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
                 remote_dir=remote_dir,
-                node_username=join_node_deployment["node"]["username"],
-                node_hostname=join_node_deployment["node"]["public_ip_address"],
-                node_ssh_port=join_node_deployment["node"]["ssh"]["port"]
+                node_username=join_cluster_deployment["node"]["username"],
+                node_hostname=join_cluster_deployment["node"]["public_ip_address"],
+                node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"]
             )
 
         # Remote join node
-        GrassOnPremisesExecutor.remote_join_node(
-            node_username=join_node_deployment["node"]["username"],
-            node_hostname=join_node_deployment["node"]["public_ip_address"],
-            node_ssh_port=join_node_deployment["node"]["ssh"]["port"],
-            master_hostname=join_node_deployment["master"]["hostname"],
-            master_api_server_port=join_node_deployment["master"]["api_server"]["port"],
-            deployment_path=f"~/join_node.yml"
+        GrassOnPremisesExecutor.remote_join_cluster(
+            node_username=join_cluster_deployment["node"]["username"],
+            node_hostname=join_cluster_deployment["node"]["public_ip_address"],
+            node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"],
+            master_hostname=join_cluster_deployment["master"]["hostname"],
+            master_api_server_port=join_cluster_deployment["master"]["api_server"]["port"],
+            deployment_path=f"~/join_cluster.yml"
         )
 
-        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_node.yml")
+        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster.yml")
 
-        logger.info_green(f"Node is joined")
+        logger.info_green(f"Node is joined to the cluster")
 
     # maro grass leave
 
     @staticmethod
-    def leave(leave_node_deployment: dict) -> None:
+    def leave(leave_cluster_deployment: dict) -> None:
         logger.info(f"Node is leaving")
 
-        if not leave_node_deployment:
+        if not leave_cluster_deployment:
             # Local leave node
-            GrassOnPremisesExecutor.local_leave_node()
+            GrassOnPremisesExecutor.local_leave_cluster()
         else:
             # Remote leave node
-            GrassOnPremisesExecutor.remote_leave_node(
-                node_username=leave_node_deployment["node"]["username"],
-                node_hostname=leave_node_deployment["node"]["hostname"],
-                node_ssh_port=leave_node_deployment["node"]["ssh"]["port"]
+            GrassOnPremisesExecutor.remote_leave_cluster(
+                node_username=leave_cluster_deployment["node"]["username"],
+                node_hostname=leave_cluster_deployment["node"]["hostname"],
+                node_ssh_port=leave_cluster_deployment["node"]["ssh"]["port"]
             )
 
         logger.info_green(f"Node is left")

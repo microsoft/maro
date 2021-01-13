@@ -2,6 +2,9 @@
 # Licensed under the MIT license.
 
 
+""" This script is a standalone script, which cannot use the ./utils tools.
+"""
+
 import os
 
 import requests
@@ -10,7 +13,6 @@ import yaml
 
 class Paths:
     MARO_LOCAL = "~/.maro-local"
-
     ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
 
 

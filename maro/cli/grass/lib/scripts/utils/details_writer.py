@@ -6,7 +6,7 @@ import os
 
 import yaml
 
-from ..utils.params import Paths
+from .params import Paths
 
 
 class DetailsWriter:
