@@ -251,7 +251,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Remote create master after initialization
         MasterApiClientV1(
             master_hostname=cluster_details["master"]["public_ip_address"],
-            master_api_server_port=cluster_details["connection"]["api_server"]["port"]
+            master_api_server_port=cluster_details["master"]["api_server"]["port"]
         ).create_master(master_details=cluster_details["master"])
 
         logger.info_green("MARO Master is created")
@@ -310,7 +310,7 @@ class GrassAzureExecutor(GrassExecutor):
         GrassAzureExecutor.retry_connection(
             node_username=cluster_details["master"]["username"],
             node_hostname=cluster_details["master"]["public_ip_address"],
-            node_ssh_port=cluster_details["connection"]["ssh"]["port"]
+            node_ssh_port=cluster_details["master"]["ssh"]["port"]
         )
 
         DetailsWriter.save_cluster_details(
@@ -329,14 +329,14 @@ class GrassAzureExecutor(GrassExecutor):
                 remote_dir=remote_dir,
                 node_username=cluster_details["master"]["username"],
                 node_hostname=cluster_details["master"]["public_ip_address"],
-                node_ssh_port=cluster_details["connection"]["ssh"]["port"]
+                node_ssh_port=cluster_details["master"]["ssh"]["port"]
             )
 
         # Remote init master
         GrassAzureExecutor.remote_init_master(
             master_username=cluster_details["master"]["username"],
             master_hostname=cluster_details["master"]["public_ip_address"],
-            master_ssh_port=cluster_details["connection"]["ssh"]["port"],
+            master_ssh_port=cluster_details["master"]["ssh"]["port"],
             cluster_name=cluster_details["name"]
         )
 
@@ -344,7 +344,7 @@ class GrassAzureExecutor(GrassExecutor):
         GrassAzureExecutor.remote_start_master_services(
             master_username=cluster_details["master"]["username"],
             master_hostname=cluster_details["master"]["public_ip_address"],
-            master_ssh_port=cluster_details["connection"]["ssh"]["port"],
+            master_ssh_port=cluster_details["master"]["ssh"]["port"],
             cluster_name=cluster_details["name"]
         )
         # Gracefully wait
@@ -578,9 +578,9 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Remote join node
         self.remote_join_node(
-            node_ssh_port=node_details["ssh"]["port"],
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
+            node_ssh_port=node_details["ssh"]["port"],
             master_hostname=self.master_public_ip_address,
             master_api_server_port=self.master_api_server_port,
             deployment_path=f"~/join_{node_name}.yml"
@@ -631,14 +631,14 @@ class GrassAzureExecutor(GrassExecutor):
         self.retry_connection(
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
-            node_ssh_port=self.master_ssh_port
+            node_ssh_port=node_details["ssh"]["port"]
         )
 
         # Start node agent service
         self.remote_start_node_services(
-            node_ssh_port=node_details["ssh"]["port"],
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
+            node_ssh_port=node_details["ssh"]["port"],
             node_name=node_name
         )
 
@@ -679,9 +679,9 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Stop node agent service
         self.remote_stop_node_services(
-            node_ssh_port=node_details["ssh"]["port"],
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
+            node_ssh_port=node_details["ssh"]["port"]
         )
 
         # Stop node
