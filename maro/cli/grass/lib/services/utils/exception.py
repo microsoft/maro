@@ -37,3 +37,8 @@ class StartContainerError(ServiceError):
 class CommandExecutionError(ServiceError):
     """ Failed to execute shell commands."""
     pass
+
+
+class ConnectionFailed(ServiceError):
+    """ Failed to connect to other nodes."""
+    pass

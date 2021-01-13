@@ -347,32 +347,6 @@ class GrassExecutor:
         SubProcess.interactive_run(command)
 
     @staticmethod
-    def remote_start_node_services(node_username: str, node_hostname: str, node_ssh_port: int):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_agent_service'"
-        )
-        _ = SubProcess.run(command)
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_api_server_service'"
-        )
-        _ = SubProcess.run(command)
-
-    @staticmethod
-    def remote_stop_node_services(node_username: str, node_hostname: str, node_ssh_port: int):
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_api_server_service'"
-        )
-        _ = SubProcess.run(command)
-        command = (
-            f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_agent_service'"
-        )
-        _ = SubProcess.run(command)
-
-    @staticmethod
     def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int):
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "

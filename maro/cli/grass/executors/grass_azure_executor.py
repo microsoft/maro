@@ -610,28 +610,14 @@ class GrassAzureExecutor(GrassExecutor):
     def _start_node(self, node_name: str):
         logger.info(f"Starting node '{node_name}'")
 
-        # Load details
-        node_details = self.master_api_client.get_node(node_name=node_name)
-
-        # Start node
+        # Start node vm
         AzureController.start_vm(
             resource_group=self.resource_group,
             vm_name=f"{self.cluster_id}-{node_name}-vm"
         )
 
-        # Make sure the node is able to connect
-        self.retry_connection(
-            node_username=node_details["username"],
-            node_hostname=node_details["public_ip_address"],
-            node_ssh_port=node_details["ssh"]["port"]
-        )
-
-        # Start node agent service
-        self.remote_start_node_services(
-            node_username=node_details["username"],
-            node_hostname=node_details["public_ip_address"],
-            node_ssh_port=node_details["ssh"]["port"]
-        )
+        # Start node
+        self.master_api_client.start_node(node_name=node_name)
 
         logger.info_green(f"Node '{node_name}' is started")
 
@@ -668,14 +654,10 @@ class GrassAzureExecutor(GrassExecutor):
 
         logger.info(f"Stopping node '{node_name}'")
 
-        # Stop node agent service
-        self.remote_stop_node_services(
-            node_username=node_details["username"],
-            node_hostname=node_details["public_ip_address"],
-            node_ssh_port=node_details["ssh"]["port"]
-        )
-
         # Stop node
+        self.master_api_client.stop_node(node_name=node_name)
+
+        # Stop node vm
         AzureController.stop_vm(
             resource_group=self.resource_group,
             vm_name=f"{self.cluster_id}-{node_name}-vm"

@@ -41,6 +41,14 @@ class MasterApiClientV1:
         response = requests.delete(url=f"{self.master_api_server_url_prefix}/nodes/{node_name}")
         return response.json()
 
+    def start_node(self, node_name: str) -> dict:
+        response = requests.post(url=f"{self.master_api_server_url_prefix}/nodes/{node_name}:start")
+        return response.json()
+
+    def stop_node(self, node_name: str) -> dict:
+        response = requests.post(url=f"{self.master_api_server_url_prefix}/nodes/{node_name}:stop")
+        return response.json()
+
     # Containers related.
 
     def list_containers(self):

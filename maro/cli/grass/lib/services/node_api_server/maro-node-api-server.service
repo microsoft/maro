@@ -1,5 +1,5 @@
 [Unit]
-Description=Maro Node Agent
+Description=Maro Node API Server
 StartLimitIntervalSec=0
 
 [Service]
