@@ -12,6 +12,7 @@ from kubernetes import client
 
 from maro.cli.k8s.utils.k8s_details_reader import K8sDetailsReader
 from maro.cli.k8s.utils.k8s_details_writer import K8sDetailsWriter
+from maro.cli.k8s.utils.params import K8sPaths
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.subprocess import SubProcess
