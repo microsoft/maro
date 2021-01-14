@@ -12,6 +12,7 @@ import yaml
 
 import redis
 
+from maro.cli.grass.lib.agents.resource import ResourceInfo
 from maro.cli.process.utils.details import close_by_pid
 from maro.cli.utils.cmp import resource_op
 from maro.cli.utils.details import load_cluster_details, save_cluster_details
@@ -33,7 +34,7 @@ class GrassLocalExecutor:
         try:
             self._redis_connection = redis.Redis(host="localhost", port=redis_port)
             self._redis_connection.ping()
-        except Exception as _:
+        except Exception:
             redis_process = subprocess.Popen(
                 ["redis-server", "--port", str(redis_port), "--daemonize yes"]
             )
@@ -77,10 +78,9 @@ class GrassLocalExecutor:
             )
         else:
             # Get local machine resource information
-            cpu_count = psutil.cpu_count(logical=False)
-            memory_info = psutil.virtual_memory()
-            free_memory = round(float(memory_info.free) / (1024 ** 2), 2)
-            gpu_count = torch.cuda.device_count()
+            cpu_count = ResourceInfo.cpu_info().cpu_count
+            free_memory = ResourceInfo.memory_info().free_memory
+            gpu_count = len(ResourceInfo.gpu_info())
             available_resource = {"cpu": cpu_count,
                                   "memory": free_memory,
                                   "gpu": gpu_count}
@@ -111,7 +111,7 @@ class GrassLocalExecutor:
                 self._redis_connection.hget(GrassLocalRedisName.RUNTIME_DETAILS, "available_resource")
             )
             need_update = True
-        except Exception as _:
+        except Exception:
             logger.warning("Failure to get runtime details from Redis. Please check Redis Connection.")
             need_update = False
 
@@ -197,7 +197,7 @@ class GrassLocalExecutor:
 
         try:
             container_ids = job_detail["container_name_list"]
-        except Exception as e:
+        except Exception:
             logger.warning(f"{job_name} is not started.")
             return
 
@@ -257,7 +257,7 @@ class GrassLocalExecutor:
             schedule_details = json.loads(
                 self._redis_connection.hget(f"{self.cluster_name}:job_details", schedule_name)
             )
-        except Exception as _:
+        except Exception:
             logger.error(f"No such schedule '{schedule_name}' in Redis.")
             return
 
