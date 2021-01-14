@@ -608,9 +608,6 @@ class Proxy:
         message.forward(destination=destination, tag=tag, payload=payload)
         return self.isend(message)
 
-    def purge(self):
-        self._message_cache.clear()
-    
     def _check_peers_update(self):
         """Compare the peers' information on local with the peers' information on Redis.
 

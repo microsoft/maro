@@ -73,12 +73,12 @@ class AbsDistLearner(ABC):
     def _request_rollout(self, is_training: bool = True, with_model_copies: bool = True):
         """Send roll-out requests to remote actors."""
         ep = self._scheduler.current_ep if is_training else "test"
-        payload={PayloadKey.EPISODE: ep, PayloadKey.IS_TRAINING: is_training}
+        payload = {PayloadKey.EPISODE: ep, PayloadKey.IS_TRAINING: is_training}
         if with_model_copies:
             payload[PayloadKey.MODEL] = self._agent_manager.dump_models()
         self._proxy.iscatter(MessageTag.ROLLOUT, SessionType.TASK, [(actor, payload) for actor in self._actors])
         self._logger.info(f"Sent roll-out requests to {self._actors} for ep-{ep}")
-    
+
     def _update(self, messages: list):
         if isinstance(messages, SessionMessage):
             messages = [messages]
@@ -99,6 +99,6 @@ class AbsDistLearner(ABC):
                 {msg.source: msg.payload[PayloadKey.EXPERIENCES] for msg in messages}
             )
             self._agent_manager.train(experiences)
-            self._logger.info(f"Training finished")
+            self._logger.info("Training finished")
 
         self._registry_table.clear()

@@ -8,7 +8,6 @@ from maro.communication import Proxy
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
-from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError
 
 from .abs_agent import AbsAgent
 

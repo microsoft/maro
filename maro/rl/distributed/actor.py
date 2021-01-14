@@ -19,7 +19,7 @@ class Actor(ABC):
 
     Args:
         env: An environment instance.
-        agent_manager: An ``AgentManager`` or ``AgentManagerProxy`` instance responsible for interacting with the 
+        agent_manager: An ``AgentManager`` or ``AgentManagerProxy`` instance responsible for interacting with the
             environment.
         proxy_params: Parameters required for instantiating an internal proxy for communication.
     """
@@ -86,14 +86,14 @@ class Actor(ABC):
         payload = {
             PayloadKey.EPISODE: ep,
             PayloadKey.PERFORMANCE: self._env.metrics,
-            PayloadKey.EXPERIENCES: 
+            PayloadKey.EXPERIENCES:
                 self._agent_manager.post_process(self._env.snapshot_list)
                 if message.payload[PayloadKey.IS_TRAINING] else None
         }
-        
+
         # If the agent manager is an AgentManagerProxy instance (SEED architecture), the actor needs
         # to tell the learner the ID of the agent manager so that the learner can send termination
-        # signals to the agent managers of unfinished actors.  
+        # signals to the agent managers of unfinished actors.
         if isinstance(self._agent_manager, AgentManagerProxy):
             payload[PayloadKey.AGENT_MANAGER_ID] = self._agent_manager.agents.component_name
 

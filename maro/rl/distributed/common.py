@@ -24,6 +24,6 @@ class PayloadKey(Enum):
     AGENT_MANAGER_ID = "agent_manager_id"
 
 
-# type definition for the special action that should be used to terminate a roll-out episode 
+# type definition for the special action that should be used to terminate a roll-out episode
 class TerminateEpisode:
-    pass  
+    pass

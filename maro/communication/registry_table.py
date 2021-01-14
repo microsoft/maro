@@ -244,12 +244,12 @@ class RegisterTable:
     def push(self, message: Message, auto_trigger: bool = True):
         """
         Push a newly received message into the corresponding unit event cache. If some conditional event is
-        satisfied and ``auto_trigger`` is true, the set of messages forming the satisfied conditional event  
+        satisfied and ``auto_trigger`` is true, the set of messages forming the satisfied conditional event
         will be processed by the corresponding handler functions.
 
         Args:
             message (Message): Received message.
-            auto_trigger (bool): If true, the set of messages forming the satisfied conditional event will be 
+            auto_trigger (bool): If true, the set of messages forming the satisfied conditional event will be
                 processed by the corresponding handler functions.
         """
         for event in self._event_handler_dict:

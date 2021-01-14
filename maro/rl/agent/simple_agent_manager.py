@@ -4,13 +4,13 @@
 import os
 from abc import abstractmethod
 from enum import Enum
-from typing import Dict, Union
+from typing import Dict
 
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper
 from maro.rl.shaping.state_shaper import StateShaper
 from maro.rl.storage.column_based_store import ColumnBasedStore
-from maro.utils.exception.rl_toolkit_exception import MissingShaper
+from maro.utils.exception.rl_toolkit_exception import AgentManagerModeError, MissingShaper
 
 from .abs_agent import AbsAgent
 from .abs_agent_manager import AbsAgentManager
@@ -72,7 +72,7 @@ class AgentManager(AbsAgentManager):
 
     def __getitem__(self, agent_id):
         return self.agents[agent_id]
-    
+
     @property
     def name(self):
         """Agent manager's name."""
@@ -133,7 +133,7 @@ class AgentManager(AbsAgentManager):
         """Load models from memory for each agent."""
         for agent_id, models in agent_model_dict.items():
             self.agents[agent_id].load_model(models)
-    
+
     def dump_models(self) -> dict:
         """Get agents' underlying models.
 

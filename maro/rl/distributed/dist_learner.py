@@ -7,7 +7,7 @@ from typing import List, Union
 import numpy as np
 
 from maro.communication import SessionMessage, SessionType
-from maro.utils import DummyLogger, Logger
+from maro.utils import Logger
 
 from .abs_dist_learner import AbsDistLearner
 from .common import MessageTag, PayloadKey, TerminateEpisode
@@ -23,12 +23,12 @@ class SimpleDistLearner(AbsDistLearner):
                 self._agent_manager.set_exploration_params(exploration_params)
             self._request_rollout()
             self._wait_for_actor_results()
-            
+
     def test(self):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False)
         self._wait_for_actor_results()
-    
+
     def _wait_for_actor_results(self):
         """Wait for roll-out results from remote actors."""
         ep = self._scheduler.current_ep if is_training else "test"
@@ -46,7 +46,7 @@ class SimpleDistLearner(AbsDistLearner):
                 # next episode.
                     break
 
-        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up. 
+        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up.
         if unfinished:
             self._proxy.iscatter(
                 MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
@@ -92,7 +92,7 @@ class InferenceLearner(AbsDistLearner):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False, with_model_copies=False)
         self._serve_and_update(is_training=False)
-    
+
     def _serve_and_update(self, is_training: bool = True):
         """Serve actions to actors and wait for their roll-out results."""
         ep = self._scheduler.current_ep if is_training else "test"
@@ -111,7 +111,7 @@ class InferenceLearner(AbsDistLearner):
             elif msg.tag == MessageTag.CHOOSE_ACTION:
                 self._registry_table.push(msg)
 
-        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up. 
+        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up.
         if unfinished:
             self._proxy.iscatter(
                 MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
@@ -134,10 +134,10 @@ class InferenceLearner(AbsDistLearner):
             action_batch = self._agent_manager[agent_id].choose_action(state_batch)
             for msg, action in zip(message_batch, action_batch):
                 self._proxy.reply(
-                    msg, 
-                    tag=MessageTag.ACTION, 
+                    msg,
+                    tag=MessageTag.ACTION,
                     payload={
-                        PayloadKey.ACTION: action, 
+                        PayloadKey.ACTION: action,
                         PayloadKey.EPISODE: msg.payload[PayloadKey.EPISODE],
                         PayloadKey.TIME_STEP: msg.payload[PayloadKey.TIME_STEP]
                     }
