@@ -64,9 +64,13 @@ class AgentManagerProxy(AbsAgentManager):
     def choose_action(self, decision_event, snapshot_list):
         agent_id, model_state = self._state_shaper(decision_event, snapshot_list)
         action = self._query(*agent_id, model_state)
-        if action is None or isinstance(action, TerminateEpisode):
+        if isinstance(action, TerminateEpisode):
             return action
         
+        self._time_step += 1
+        if action is None:
+            return action
+
         self._transition_cache = {
             "state": model_state,
             "action": action,
