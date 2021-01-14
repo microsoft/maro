@@ -1,7 +1,7 @@
 env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
-  durations: 280
+  durations: 1120
   state_shaping:
     look_back: 7
     max_ports_downstream: 2

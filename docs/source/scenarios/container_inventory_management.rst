@@ -658,8 +658,8 @@ To change "Start Epoch" and "End Epoch", user could specify the selected
 data range. To change "Epoch Sampling Ratio", user could change the
 sampling rate of selected data.
 
-.. image:: ../images/visualization/dashboard/cim_inter_epoch.gif
-   :alt: cim_inter_epoch
+.. figure:: ..\images\visualization\dashboard\cim_inter_epoch.gif
+   :alt: cim\_inter\_epoch
 
 Intra-epoch view
 ^^^^^^^^^^^^^^^^
@@ -669,13 +669,13 @@ slider, users can select different epochs. Furthermore, this part of
 data is divided into two dimensions: by snapshot and by port according
 to time and space. In terms of data display, according to the different
 types of attributes, it is divided into two levels: accumulated data
-(accumulated attributes. e.g. acc\_fulfillment) and detail data.
+ (accumulated attributes. e.g. acc\_fulfillment) and detail data.
 
 If user choose to view information by ports, attributes of the selected
 port would be displayed.
 
-.. image:: ../images/visualization/dashboard/cim_intra_epoch_by_ports.gif
-   :alt: cim_intra_epoch_by_ports
+.. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_ports.gif
+   :alt: cim\_intra\_epoch\_by\_ports
 
 If user choose to view data by snapshots, attributes of selected
 snapshot would be displayed. The charts and data involved in this part
@@ -697,8 +697,8 @@ over time in the current epoch.
 The bar chart of Port Accumulated Attributes displays the global change of
 ports.
 
-.. image:: ../images/visualization/dashboard/cim_intra_epoch_by_snapshot_acc_data.gif
-   :alt: cim_intra_epoch_by_snapshot_acc_data
+.. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_acc_data.gif
+   :alt: cim\_intra\_epoch\_by\_snapshot\_acc\_data
 
 Detail Data
 ~~~~~~~~~~~
@@ -706,5 +706,5 @@ Detail Data
 Since the cargoes is transported through vessels, information of vessels
 could be viewed by snapshot. Same as ports, user could change the sampling rate of vessels.
 
-.. image:: ../images/visualization/dashboard/cim_intra_epoch_by_snapshot_detail_data.gif
-   :alt: cim_intra_epoch_by_snapshot_detail_data
+.. figure:: ..\images\visualization\dashboard\cim_intra_epoch_by_snapshot_detail_data.gif
+   :alt: cim\_intra\_epoch\_by\_snapshot\_detail\_data

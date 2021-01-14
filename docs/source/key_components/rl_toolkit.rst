@@ -63,19 +63,19 @@ Learner and Actor
 Scheduler
 ---------
 
-A ``Scheduler`` is the driver of an episodic learning process. The learner uses the scheduler to repeat the 
-rollout-training cycle a set number of episodes. For algorithms that require explicit exploration (e.g., 
+A ``Scheduler`` is the driver of an episodic learning process. The learner uses the scheduler to repeat the
+rollout-training cycle a set number of episodes. For algorithms that require explicit exploration (e.g.,
 DQN and DDPG), there are two types of schedules that a learner may follow:
 
-* Static schedule, where the exploration parameters are generated using a pre-defined function of episode 
-  number. See ``LinearParameterScheduler`` and ``TwoPhaseLinearParameterScheduler`` provided in the toolkit 
-  for example. 
+* Static schedule, where the exploration parameters are generated using a pre-defined function of episode
+  number. See ``LinearParameterScheduler`` and ``TwoPhaseLinearParameterScheduler`` provided in the toolkit
+  for example.
 * Dynamic schedule, where the exploration parameters for the next episode are determined based on the performance
   history. Such a mechanism is possible in our abstraction because the scheduler provides a ``record_performance``
-  interface that allows it to keep track of roll-out performances. 
+  interface that allows it to keep track of roll-out performances.
 
-Optionally, an early stopping checker may be registered if one wishes to terminate training when certain performance 
-requirements are satisfied, possibly before reaching the prescribed number of episodes.   
+Optionally, an early stopping checker may be registered if one wishes to terminate training when certain performance
+requirements are satisfied, possibly before reaching the prescribed number of episodes.
 
 Agent Manager
 -------------
@@ -125,11 +125,11 @@ scenario agnostic.
 Algorithm
 ---------
 
-The algorithm is the kernel abstraction of the RL formulation for a real-world problem. Our abstraction  
-decouples algorithm and model so that an algorithm can exist as an RL paradigm independent of the inner 
-workings of the models it uses to generate actions or estimate values. For example, the actor-critic 
+The algorithm is the kernel abstraction of the RL formulation for a real-world problem. Our abstraction
+decouples algorithm and model so that an algorithm can exist as an RL paradigm independent of the inner
+workings of the models it uses to generate actions or estimate values. For example, the actor-critic
 algorithm does not need to concern itself with the structures and optimizing schemes of the actor and
-critic models. This decoupling is achieved by the ``LearningModel`` abstraction described below.   
+critic models. This decoupling is achieved by the ``LearningModel`` abstraction described below.
 
 
 .. image:: ../images/rl/algorithm.svg
@@ -153,18 +153,18 @@ Block, NNStack and LearningModel
 --------------------------------
 
 MARO provides an abstraction for the underlying models used by agents to form policies and estimate values.
-The abstraction consists of a 3-level hierachy formed by ``AbsBlock``, ``NNStack`` and ``LearningModel`` from 
+The abstraction consists of a 3-level hierachy formed by ``AbsBlock``, ``NNStack`` and ``LearningModel`` from
 the bottom up, all of which subclass torch's nn.Module. An ``AbsBlock`` is the smallest structural
-unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit represents a stack 
-of fully connected layers with features like batch normalization, drop-out and skip connection. An ``NNStack`` is 
-a composite network that consists of one or more such blocks, each with its own set of network features. 
-The complete model as used directly by an ``Algorithm`` is represented by a ``LearningModel``, which consists of 
-one or more task stacks as "heads" and an optional shared stack at the bottom (which serves to produce representations 
-as input to all task stacks). It also contains one or more optimizers responsible for applying gradient steps to the 
-trainable parameters within each stack, which is the smallest trainable unit from the perspective of a ``LearningModel``. 
-The assignment of optimizers is flexible: it is possible to freeze certain stacks while optimizing others. Such an 
-abstraction presents a unified interface to the algorithm, regardless of how many individual models it requires and how 
-complex the model architecture might be.  
+unit of an NN-based model. For instance, the ``FullyConnectedBlock`` provided in the toolkit represents a stack
+of fully connected layers with features like batch normalization, drop-out and skip connection. An ``NNStack`` is
+a composite network that consists of one or more such blocks, each with its own set of network features.
+The complete model as used directly by an ``Algorithm`` is represented by a ``LearningModel``, which consists of
+one or more task stacks as "heads" and an optional shared stack at the bottom (which serves to produce representations
+as input to all task stacks). It also contains one or more optimizers responsible for applying gradient steps to the
+trainable parameters within each stack, which is the smallest trainable unit from the perspective of a ``LearningModel``.
+The assignment of optimizers is flexible: it is possible to freeze certain stacks while optimizing others. Such an
+abstraction presents a unified interface to the algorithm, regardless of how many individual models it requires and how
+complex the model architecture might be.
 
 .. image:: ../images/rl/learning_model.svg
    :target: ../images/rl/learning_model.svg
@@ -196,11 +196,11 @@ And performing one gradient step is simply:
 Explorer
 -------
 
-MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require 
-explicit exploration, the extent of which is usually determined by a set of parameters whose values 
+MARO provides an abstraction for exploration in RL. Some RL algorithms such as DQN and DDPG require
+explicit exploration, the extent of which is usually determined by a set of parameters whose values
 are generated by the scheduler. The ``AbsExplorer`` class is designed to cater to these needs. Simple
-exploration schemes, such as ``EpsilonGreedyExplorer`` for discrete action space and ``UniformNoiseExplorer`` 
-and ``GaussianNoiseExplorer`` for continuous action space, are provided in the toolkit. 
+exploration schemes, such as ``EpsilonGreedyExplorer`` for discrete action space and ``UniformNoiseExplorer``
+and ``GaussianNoiseExplorer`` for continuous action space, are provided in the toolkit.
 
 As an example, the exploration for DQN may be carried out with the aid of an ``EpsilonGreedyExplorer``:
 
