@@ -73,8 +73,6 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_data()
         # PMs list used for quick accessing.
         self._init_pms()
-        # PM SKU dictionary.
-        self._sku_dict: dict = {}
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
         # All request payload of the pending decision VMs.
@@ -156,9 +154,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
-
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
+        # PM SKU dictionary.
+        self._sku_dict: dict = {}
         pm_id = 0
         for sku in self._config.PM:
             amount = sku["amount"]

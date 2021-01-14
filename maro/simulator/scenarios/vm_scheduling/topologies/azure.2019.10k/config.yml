@@ -26,21 +26,21 @@ MAX_UTILIZATION_RATE: 1
 PM:
   - SKU_type: 0
     amount: 50
-    CPU: 16
+    CPU: 32
   # GPU: 0
     memory: 128
     price: 0
     power_curve:
-      - calibration_parameter: 1.4
-        busy_power: 10
-        idle_power: 1
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1
   - SKU_type: 1
     amount: 50
-    CPU: 16
+    CPU: 32
   # GPU: 0
     memory: 128
     price: 0
     power_curve:
-      - calibration_parameter: 1.4
-        busy_power: 10
-        idle_power: 1
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1

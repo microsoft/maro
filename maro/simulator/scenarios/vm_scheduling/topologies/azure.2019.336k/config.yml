@@ -31,9 +31,9 @@ PM:
     memory: 112
     price: 0
     power_curve:
-      - calibration_parameter: 1.4
-        busy_power: 10
-        idle_power: 1
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1
   - SKU_type: 1
     amount: 440
     CPU: 16
@@ -41,6 +41,6 @@ PM:
     memory: 112
     price: 0
     power_curve:
-      - calibration_parameter: 1.4
-        busy_power: 10
-        idle_power: 1
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1
