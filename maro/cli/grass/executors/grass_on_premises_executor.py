@@ -44,7 +44,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             GrassOnPremisesExecutor._init_master(cluster_details=cluster_details)
         except Exception as e:
             # If failed, remove details folder, then raise
-            shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
+            shutil.rmtree(path=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
             logger.error_red(f"Failed to create cluster '{cluster_name}'")
             raise e
 
@@ -99,8 +99,8 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         # Copy required files
         local_path_to_remote_dir = {
-            GrassPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
-            f"{GlobalPaths.MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
+            GrassPaths.ABS_MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
         }
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
@@ -149,7 +149,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             master_ssh_port=self.master_ssh_port
         )
 
-        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
+        shutil.rmtree(path=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
 
         logger.info_green(f"Cluster '{self.cluster_name}' is deleted")
 
@@ -164,11 +164,11 @@ class GrassOnPremisesExecutor(GrassExecutor):
         logger.info(f"Joining the cluster")
 
         # Save join_cluster_deployment TODO: do checking, already join another node
-        with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster.yml", "w") as fw:
+        with open(file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml", mode="w") as fw:
             yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
         # Copy required files
-        local_path_to_remote_dir = {f"{GlobalPaths.MARO_LOCAL_TMP}/join_cluster.yml": "~/"}
+        local_path_to_remote_dir = {f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml": "~/"}
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
@@ -185,10 +185,10 @@ class GrassOnPremisesExecutor(GrassExecutor):
             node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"],
             master_hostname=join_cluster_deployment["master"]["hostname"],
             master_api_server_port=join_cluster_deployment["master"]["api_server"]["port"],
-            deployment_path=f"~/join_cluster.yml"
+            deployment_path=f"~/on_premises_join_cluster_deployment.yml"
         )
 
-        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster.yml")
+        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml")
 
         logger.info_green(f"Node is joined to the cluster")
 
