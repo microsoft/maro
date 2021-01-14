@@ -3,7 +3,6 @@
 
 
 import subprocess
-import sys
 
 from .exception import CommandExecutionError
 
@@ -33,32 +32,3 @@ class Subprocess:
         if completed_process.returncode != 0:
             raise CommandExecutionError(completed_process.stderr)
         return completed_process.stdout.strip("\n")
-
-    @staticmethod
-    def interactive_run(command: str) -> None:
-        """Run one-time command with subprocess.popen() and write stdout output interactively.
-
-        Args:
-            command (str): command to be executed.
-
-        Returns:
-            None.
-        """
-        # TODO: Windows node
-        process = subprocess.Popen(
-            command,
-            executable="/bin/bash",
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
-        while True:
-            next_line = process.stdout.readline()
-            if next_line == "" and process.poll() is not None:
-                break
-            sys.stdout.write(next_line)
-            sys.stdout.flush()
-        _, stderr = process.communicate()
-        if stderr:
-            sys.stderr.write(stderr.strip("\n"))

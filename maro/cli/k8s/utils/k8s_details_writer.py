@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+
 import json
 
 from kubernetes import client
 
 
 class K8sDetailsWriter:
-
     @staticmethod
     def save_job_details(job_details: dict) -> None:
         job_name = job_details["name"]

@@ -66,4 +66,4 @@ if __name__ == "__main__":
         sys.stdout.flush()
     stdout, stderr = process.communicate()
     if stderr:
-        sys.stderr.write(stderr.strip("\n"))
+        sys.stderr.write(stderr)
