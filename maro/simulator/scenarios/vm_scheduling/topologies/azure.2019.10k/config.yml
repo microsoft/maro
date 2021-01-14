@@ -27,9 +27,9 @@ PM:
   - SKU_type: 0
     amount: 50
     CPU: 32
-  # GPU: 0
+    # GPU: 0
     memory: 128
-    price: 0
+    # price: 0
     power_curve:
       calibration_parameter: 1.4
       busy_power: 10
@@ -37,9 +37,9 @@ PM:
   - SKU_type: 1
     amount: 50
     CPU: 32
-  # GPU: 0
+    # GPU: 0
     memory: 128
-    price: 0
+    # price: 0
     power_curve:
       calibration_parameter: 1.4
       busy_power: 10
