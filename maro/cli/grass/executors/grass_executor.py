@@ -175,7 +175,7 @@ class GrassExecutor:
         try:
             FileSynchronizer.copy_files_from_node(
                 local_dir=export_dir,
-                remote_path=f"{GlobalPaths.MARO_SHARED}/logs/{job_details['id']}",
+                remote_path=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/logs/{job_details['id']}",
                 node_username=self.master_username,
                 node_hostname=self.master_public_ip_address,
                 node_ssh_port=self.master_ssh_port

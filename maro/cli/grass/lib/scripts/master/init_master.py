@@ -33,7 +33,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 echo 'Step 2/{steps}: Install and launch redis'
 sudo docker pull redis
 sudo docker run -p {master_redis_port}:6379\
-    -v ~/.maro-shared/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
+    -v {maro_shared_path}/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
     --name maro-redis -d redis redis-server /maro/lib/grass/redis/redis.conf
 
 # install and launch samba
@@ -48,8 +48,8 @@ sudo ufw allow samba
 # install and launch fluentd
 echo 'Step 4/{steps}: Install and launch fluentd'
 sudo docker pull fluent/fluentd
-sudo docker run -p {master_fluentd_port}:24224 -v ~/.maro-shared/logs:/fluentd/log\
-    -v ~/.maro-shared/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
+sudo docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters/{cluster_name}/logs:/fluentd/log\
+    -v {maro_shared_path}/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
     -e FLUENTD_CONF=fluentd.conf --name maro-fluentd -d fluent/fluentd
 
 # install pip3 and redis
@@ -87,6 +87,7 @@ class MasterInitializer:
             master_samba_password=self.master_details["samba"]["password"],
             maro_shared_path=Paths.ABS_MARO_SHARED,
             master_redis_port=self.master_details["redis"]["port"],
+            cluster_name=cluster_details["name"],
             master_fluentd_port=self.master_details["fluentd"]["port"],
             steps=5
         )
