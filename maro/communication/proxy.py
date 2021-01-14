@@ -130,8 +130,7 @@ class Proxy:
         self._onboard_peer_dict = defaultdict(dict)
 
         # Temporary store the message.
-        self._message_cache_by_session = defaultdict(list)
-        self._message_cache_by_tag = defaultdict(list)
+        self._message_cache = defaultdict(list)
 
         # Parameters for dynamic peers.
         self._enable_rejoin = enable_rejoin
@@ -325,11 +324,11 @@ class Proxy:
 
         # Check message cache for saved messages.
         for session_id in targets:
-            if session_id in self._message_cache_by_session:
+            if session_id in self._message_cache:
                 pending_targets.remove(session_id)
-                received_messages.append(self._message_cache_by_session[session_id].pop(0))
-                if not self._message_cache_by_session[session_id]:
-                    del self._message_cache_by_session[session_id]
+                received_messages.append(self._message_cache[session_id].pop(0))
+                if not self._message_cache[session_id]:
+                    del self._message_cache[session_id]
 
         if not pending_targets:
             return received_messages
@@ -343,8 +342,7 @@ class Proxy:
                 pending_targets.remove(msg.session_id)
                 received_messages.append(msg)
             else:
-                self._message_cache_by_session[msg.session_id].append(msg)
-                self._message_cache_by_tag[msg.tag].append(msg)
+                self._message_cache[msg.session_id].append(msg)
 
             if not pending_targets:
                 break
@@ -610,12 +608,8 @@ class Proxy:
         message.forward(destination=destination, tag=tag, payload=payload)
         return self.isend(message)
 
-    def get_by_tag(self, tag):
-        return self._message_cache_by_tag[tag]
-
     def purge(self):
-        self._message_cache_by_tag.clear()
-        self._message_cache_by_session.clear()
+        self._message_cache.clear()
     
     def _check_peers_update(self):
         """Compare the peers' information on local with the peers' information on Redis.

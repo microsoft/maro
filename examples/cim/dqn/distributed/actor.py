@@ -33,12 +33,13 @@ def launch(config, distributed_config):
                 component_type="agent_manager",
                 expected_peers={"learner": 1},
                 redis_address=redis_address,
-                max_retries=20
+                max_retries=20,
+                driver_parameters={"receive_timeout": distributed_config.receive_action_timeout}
             ),
             state_shaper=state_shaper, 
             action_shaper=action_shaper,
             experience_shaper=experience_shaper,
-            action_wait_timeout=distributed_config.action_wait_timeout
+            max_receive_action_attempts=distributed_config.max_receive_action_attempts
         )
     elif distributed_mode == "simple":
         config["agents"]["algorithm"]["input_dim"] = state_shaper.dim

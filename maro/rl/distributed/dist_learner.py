@@ -23,25 +23,36 @@ class SimpleDistLearner(AbsDistLearner):
                 self._agent_manager.set_exploration_params(exploration_params)
             self._request_rollout()
             self._wait_for_actor_results()
-            self._proxy.purge()
-
+            
     def test(self):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False)
         self._wait_for_actor_results()
-        self._proxy.purge()
     
     def _wait_for_actor_results(self):
         """Wait for roll-out results from remote actors."""
+        ep = self._scheduler.current_ep if is_training else "test"
+        unfinished = set(self._actors)
         for msg in self._proxy.receive():
-            ep = msg.payload[PayloadKey.EPISODE]
-            if (msg.tag == MessageTag.FINISHED and
-                    ep == self._scheduler.current_ep and
-                    self._registry_table.push(msg) is not None
-            ):
+            if msg.tag == MessageTag.FINISHED:
+                if msg.payload[PayloadKey.EPISODE] != ep:
+                    self._logger.info(
+                        f"Ignore a message of {msg.tag} with ep {msg.payload[PayloadKey.EPISODE]} (current ep: {ep})"
+                    )
+                    continue
+                unfinished.discard(msg.source)
+                if self._registry_table.push(msg) is not None:
                 # If enough update messages have been received, call _update() and break out of the loop to start the
                 # next episode.
-                break
+                    break
+
+        # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up. 
+        if unfinished:
+            self._proxy.iscatter(
+                MessageTag.TERMINATE_EPISODE, SessionType.NOTIFICATION,
+                [(actor, {PayloadKey.EPISODE: ep}) for actor in unfinished]
+            )
+            self._logger.info(f"Sent terminating signals to unfinished actors: {unfinished}")
 
 
 class InferenceLearner(AbsDistLearner):
@@ -76,13 +87,11 @@ class InferenceLearner(AbsDistLearner):
                 self._agent_manager.set_exploration_params(exploration_params)
             self._request_rollout(with_model_copies=False)
             self._serve_and_update()
-            self._proxy.purge()
 
     def test(self):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False, with_model_copies=False)
         self._serve_and_update(is_training=False)
-        self._proxy.purge()
     
     def _serve_and_update(self, is_training: bool = True):
         """Serve actions to actors and wait for their roll-out results."""
@@ -124,4 +133,12 @@ class InferenceLearner(AbsDistLearner):
             state_batch = np.vstack([msg.payload[PayloadKey.STATE] for msg in message_batch])
             action_batch = self._agent_manager[agent_id].choose_action(state_batch)
             for msg, action in zip(message_batch, action_batch):
-                self._proxy.reply(msg, tag=MessageTag.ACTION, payload={PayloadKey.ACTION: action})
+                self._proxy.reply(
+                    msg, 
+                    tag=MessageTag.ACTION, 
+                    payload={
+                        PayloadKey.ACTION: action, 
+                        PayloadKey.EPISODE: msg.payload[PayloadKey.EPISODE],
+                        PayloadKey.TIME_STEP: msg.payload[PayloadKey.TIME_STEP]
+                    }
+                )

@@ -63,25 +63,25 @@ class Actor(ABC):
             if exploration_params is not None:
                 self._agent_manager.set_exploration_params(exploration_params)
         else:
-            self._agent_manager.set_ep(ep)
+            self._agent_manager.reset(ep)
 
         self._logger.info(f"Rolling out for ep-{ep}...")
-        time_step = 0
         metrics, decision_event, is_done = self._env.step(None)
         while not is_done:
             action = self._agent_manager.choose_action(decision_event, self._env.snapshot_list)
             # Received action is an TERMINATE_EPISODE command from learner
             if isinstance(action, TerminateEpisode):
-                self._logger.info(f"Roll-out aborted at time step {time_step}.")
+                self._logger.info(f"Roll-out aborted at time step {self._agent_manager.time_step}.")
                 return
 
             metrics, decision_event, is_done = self._env.step(action)
             if action:
                 self._agent_manager.on_env_feedback(metrics)
             else:
-                self._logger.info(f"Failed to receive an action for time step {time_step}, proceed with NULL action.")
-            
-            time_step += 1
+                self._logger.info(
+                    f"Failed to receive an action for time step {self._agent_manager.time_step}, "
+                    f"proceed with NULL action."
+                )
 
         payload = {
             PayloadKey.EPISODE: ep,

@@ -14,6 +14,7 @@ class PayloadKey(Enum):
     ACTION = "action"
     AGENT_ID = "agent_id"
     EPISODE = "episode"
+    TIME_STEP = "time_step"
     MODEL = "model"
     EXPLORATION_PARAMS = "exploration_params"
     PERFORMANCE = "performance"
