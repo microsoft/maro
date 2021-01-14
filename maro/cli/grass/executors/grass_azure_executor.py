@@ -80,7 +80,7 @@ class GrassAzureExecutor(GrassExecutor):
             DetailsWriter.save_cluster_details(cluster_name=cluster_name, cluster_details=cluster_details)
         except Exception as e:
             # If failed, remove details folder, then raise
-            shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
+            shutil.rmtree(path=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
             logger.error_red(f"Failed to create cluster '{cluster_name}'")
             raise e
 
@@ -150,7 +150,7 @@ class GrassAzureExecutor(GrassExecutor):
         # Create ARM parameters and start deployment
         template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/template.json"
         parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/modes/azure/create_vnet/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/vnet/arm_create_vnet_parameters.json"
         )
         ArmTemplateParameterBuilder.create_vnet(
             cluster_details=cluster_details,
@@ -179,7 +179,7 @@ class GrassAzureExecutor(GrassExecutor):
         template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/template.json"
         parameters_file_path = (
             f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}"
-            f"/modes/azure/create_build_node_image_vm/parameters.json"
+            f"/build_node_image_vm/arm_create_build_node_image_vm_parameters.json"
         )
         ArmTemplateParameterBuilder.create_build_node_image_vm(
             cluster_details=cluster_details,
@@ -266,7 +266,8 @@ class GrassAzureExecutor(GrassExecutor):
         # Create ARM parameters and start deployment
         template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/template.json"
         parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/modes/azure/create_master/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}"
+            f"/master/arm_create_master_parameters.json"
         )
         ArmTemplateParameterBuilder.create_master(
             cluster_details=cluster_details,
@@ -320,8 +321,8 @@ class GrassAzureExecutor(GrassExecutor):
 
         # Copy required files
         local_path_to_remote_dir = {
-            GrassPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
-            f"{GlobalPaths.MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
+            GrassPaths.ABS_MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
         }
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
@@ -459,9 +460,10 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Create ARM parameters and start deployment
+        os.makedirs(name=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/nodes/{node_name}", exist_ok=True)
         template_file_path = f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/template.json"
         parameters_file_path = (
-            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/modes/azure/create_{node_name}/parameters.json"
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/nodes/{node_name}/arm_create_node_parameters.json"
         )
         ArmTemplateParameterBuilder.create_node(
             node_name=node_name,
@@ -516,7 +518,10 @@ class GrassAzureExecutor(GrassExecutor):
                 }
             }
         }
-        with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_{node_name}.yml", "w") as fw:
+        with open(
+            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/nodes/{node_name}/join_cluster_deployment.yml",
+            mode="w"
+        ) as fw:
             yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
         return join_cluster_deployment
@@ -540,8 +545,8 @@ class GrassAzureExecutor(GrassExecutor):
             deployment_name=node_name
         )
 
-        # Delete parameters_file
-        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/modes/azure/create_{node_name}")
+        # Delete node related files
+        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/nodes/{node_name}")
 
         logger.info_green(f"Node '{node_name}' is deleted")
 
@@ -558,7 +563,10 @@ class GrassAzureExecutor(GrassExecutor):
         )
 
         # Copy required files
-        local_path_to_remote_dir = {f"{GlobalPaths.MARO_LOCAL_TMP}/join_{node_name}.yml": "~/"}
+        local_path_to_remote_dir = {
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/nodes/{node_name}/join_cluster_deployment.yml":
+                f"{GlobalPaths.MARO_LOCAL}/clusters/{self.cluster_name}/nodes/{node_name}"
+        }
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
@@ -568,18 +576,18 @@ class GrassAzureExecutor(GrassExecutor):
                 node_ssh_port=node_details["ssh"]["port"]
             )
 
-        #  Remote join cluster
+        # Remote join cluster
         self.remote_join_cluster(
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
             node_ssh_port=node_details["ssh"]["port"],
             master_hostname=self.master_public_ip_address,
             master_api_server_port=self.master_api_server_port,
-            deployment_path=f"~/join_{node_name}.yml"
+            deployment_path=(
+                f"{GlobalPaths.MARO_LOCAL}/clusters/{self.cluster_name}/nodes/{node_name}"
+                f"/join_cluster_deployment.yml"
+            )
         )
-
-        # Delete local join_deployment.
-        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_{node_name}.yml")
 
         logger.info_green(f"Node '{node_name}' is joined")
 
