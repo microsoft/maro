@@ -7,10 +7,9 @@ from typing import List, Union
 import numpy as np
 
 from maro.communication import SessionMessage, SessionType
-from maro.utils import Logger
 
 from .abs_dist_learner import AbsDistLearner
-from .common import MessageTag, PayloadKey, TerminateEpisode
+from .common import MessageTag, PayloadKey
 
 
 class SimpleDistLearner(AbsDistLearner):
@@ -27,9 +26,9 @@ class SimpleDistLearner(AbsDistLearner):
     def test(self):
         """Test policy performance on remote actors."""
         self._request_rollout(is_training=False)
-        self._wait_for_actor_results()
+        self._wait_for_actor_results(is_training=False)
 
-    def _wait_for_actor_results(self):
+    def _wait_for_actor_results(self, is_training: bool = True):
         """Wait for roll-out results from remote actors."""
         ep = self._scheduler.current_ep if is_training else "test"
         unfinished = set(self._actors)
@@ -41,9 +40,9 @@ class SimpleDistLearner(AbsDistLearner):
                     )
                     continue
                 unfinished.discard(msg.source)
-                if self._registry_table.push(msg) is not None:
                 # If enough update messages have been received, call _update() and break out of the loop to start the
                 # next episode.
+                if self._registry_table.push(msg) is not None:
                     break
 
         # Send a TERMINATE_EPISODE cmd to unfinished actors to catch them up.

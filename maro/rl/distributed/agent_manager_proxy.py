@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from maro.communication import Message, Proxy, SessionMessage
+from maro.communication import Proxy, SessionMessage
 from maro.rl.agent import AbsAgentManager
 from maro.rl.shaping.action_shaper import ActionShaper
 from maro.rl.shaping.experience_shaper import ExperienceShaper

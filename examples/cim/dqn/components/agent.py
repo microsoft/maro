@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 
-from maro.rl import AbsAgent, EpsilonGreedyExplorer, ColumnBasedStore
+from maro.rl import AbsAgent, ColumnBasedStore
 
 
 class DQNAgent(AbsAgent):

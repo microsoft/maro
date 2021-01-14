@@ -101,5 +101,5 @@ class Actor(ABC):
         self._logger.info(f"Roll-out finished for ep-{ep}")
 
     def exit(self):
-        self._logger.info(f"Exiting...")
+        self._logger.info("Exiting...")
         sys.exit(0)
