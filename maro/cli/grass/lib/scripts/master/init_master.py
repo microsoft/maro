@@ -14,47 +14,49 @@ from ..utils.params import Paths
 from ..utils.subprocess import Subprocess
 
 INIT_COMMAND = """\
+# Set noninteractive to avoid irrelevant warning messages
+export DEBIAN_FRONTEND=noninteractive
+
 # create group 'docker' and add admin user
-sudo groupadd docker
-sudo gpasswd -a {master_username} docker
+sudo -E groupadd docker
+sudo -E gpasswd -a {master_username} docker
 
 # install docker
 echo 'Step 1/{steps}: Install docker'
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-# newgrp docker : cannot use this command at here
+sudo -E apt-get update
+sudo -E apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo -E apt-key add -
+sudo -E apt-key fingerprint 0EBFCD88
+sudo -E add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo -E apt-get update
+sudo -E apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # install and launch redis
 echo 'Step 2/{steps}: Install and launch redis'
-sudo docker pull redis
-sudo docker run -p {master_redis_port}:6379\
+sudo -E docker pull redis
+sudo -E docker run -p {master_redis_port}:6379\
     -v {maro_shared_path}/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
     --name maro-redis -d redis redis-server /maro/lib/grass/redis/redis.conf
 
 # install and launch samba
 echo 'Step 3/{steps}: Install and launch samba'
-sudo apt install -y samba
+sudo -E apt install -y samba
 echo -e "[sambashare]\n    comment = Samba for MARO\n    path = {maro_shared_path}\n    read only = no\n    browsable = yes"\
-    | sudo tee -a /etc/samba/smb.conf
-sudo service smbd restart
-sudo ufw allow samba
-(echo "{master_samba_password}"; echo "{master_samba_password}") | sudo smbpasswd -a {master_username}
+    | sudo -E tee -a /etc/samba/smb.conf
+sudo -E service smbd restart
+sudo -E ufw allow samba
+(echo "{master_samba_password}"; echo "{master_samba_password}") | sudo -E smbpasswd -a {master_username}
 
 # install and launch fluentd
 echo 'Step 4/{steps}: Install and launch fluentd'
-sudo docker pull fluent/fluentd
-sudo docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters/{cluster_name}/logs:/fluentd/log\
+sudo -E docker pull fluent/fluentd
+sudo -E docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters/{cluster_name}/logs:/fluentd/log\
     -v {maro_shared_path}/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
     -e FLUENTD_CONF=fluentd.conf --name maro-fluentd -d fluent/fluentd
 
 # install pip3 and redis
 echo 'Step 5/{steps}: Install pip3 and redis'
-sudo apt install -y python3-pip
+sudo -E apt install -y python3-pip
 pip3 install redis flask gunicorn
 
 echo "Finish master initialization"

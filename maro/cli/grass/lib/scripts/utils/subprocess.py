@@ -57,6 +57,6 @@ class Subprocess:
                 break
             sys.stdout.write(next_line)
             sys.stdout.flush()
-        stdout, stderr = process.communicate()
+        _, stderr = process.communicate()
         if stderr:
-            sys.stderr.write(stderr.strip("\n"))
+            sys.stderr.write(stderr)
