@@ -1,5 +1,4 @@
 from streamit.client import get_experiment_data_stream
-from streamit.client.common import DataType
 import time
 import os
 
@@ -9,23 +8,18 @@ os.environ["MARO_STREAMABLE_ENABLED"] = "True"
 
 if __name__ == "__main__":
 
-    start_time = time.time()
+    start_time = time.perf_counter()
 
     stream = get_experiment_data_stream(f"test_expmt_{time.time()}")
     stream.start()
 
-    total_eps = 10
-    durations = 102
+    total_eps = 1
+    durations = 10
+    port_num = 1
+    vessel_num = 1
 
-    stream.experiment_info("cim", "toy.1.1", total_eps, durations)
-    stream.category(
-        "port_detail",
-        {
-            "index": DataType.Int,
-            "empty": DataType.Int,
-            "full": DataType.Int,
-            "shortage": DataType.Int
-        })
+    stream.info("cim", "toy.1.1", durations,
+                total_eps, config="<config></config>")
 
     for ep in range(total_eps):
         print(ep)
@@ -33,13 +27,17 @@ if __name__ == "__main__":
         stream.episode(ep)
         for tick in range(durations):
             stream.tick(tick)
-                # ports
-            for i in range(10):
-                stream.row(
-                    "port_detail", i, i * 10, i * 100, i * 1000
+            # ports
+            for i in range(port_num):
+                stream.data(
+                    "port_detail", index=i, empty=i * 10, full=i * 100, capacity=i * 1000
                 )
-            # time.sleep(1)
+
+            for i in range(vessel_num):
+                stream.data(
+                    "vessel_detail", index=i, empty=i * 10, full=i * 100, capacity=i * 1000, remaining_space=i * 200
+                )
 
     stream.close()
 
-    print("total time cost:", time.time() - start_time)
+    print("total time cost:", time.perf_counter() - start_time)

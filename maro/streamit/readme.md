@@ -3,6 +3,8 @@ Steps:
 
 1. Start database service:
 
+    Currently the service contains questdb and nginx (work as static file server later).
+
 ```bash
 
     cd streamit/server
@@ -25,5 +27,10 @@ Steps:
 
     . Create a maro.experiments table to save experiment information
     . Create a table for each category, named it as "<experiment name>.<category name>"
-    . For each record in data table, we will append 3 additional fields: _tick, _episode, _ts.
-      _tick and _episode are used as normal, but they are not indexed, _ts is composed with _episode and _tick, and used as fake timestamp for quick indexing. if need to query by episode and tick, use _ts with bit operation: episode << 16 | tick
+    . For each record in data table, we will append 3 additional fields: tick, episode, timestamp.
+      _tick and _episode are used as normal, but they are not indexed, _ttimestamps is composed with episode and tick, and used as fake timestamp for quick indexing. if need to query by episode and tick, use timestamp with bit operation: episode << 32 | tick
+
+
+## Limitations
+
+1. Do not support field with too large data, split it or use file later.

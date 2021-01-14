@@ -10,10 +10,18 @@ services:
       - ./data:/root/.questdb/db
     # override configuration via environemnt variables
     # https://questdb.io/docs/reference/configuration#environment-variables
-    # environment: 
+    environment: 
+      QDB_TELEMETRY_ENABLED: "false" # disable telemetry collecting
+      QDB_HTTP_WORKER_COUNT: 4 # 4 private worker thread
+    #   QDB_HTTP_SECURITY_READONLY: "true" # disable writing interface for web console
     #   QDB_PG_USER : admin
     #   QDB_PG_PASSWORD : quest
-
+  fileserver:
+    image: "nginx:1.19.6-alpine"
+    ports:
+      - "9103:9103"
+    volumes: 
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
   # enable web server
   # web:
   #   build: .

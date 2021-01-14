@@ -5,24 +5,24 @@ def get_experiment_data_stream(experiment_name: str):
     is_streamable_enabled: bool = bool(
         os.environ.get("MARO_STREAMABLE_ENABLED", False))
 
-    stream = None
+    streamit = None
 
     if not is_streamable_enabled:
 
         def dummy(self, *args, **kwargs):
             pass
 
-        class ExperimentDataStreamDummy:
+        class DummyStreamit:
             def __getattr__(self, name):
                 return dummy
 
-        stream = ExperimentDataStreamDummy()
+        streamit = DummyStreamit()
     else:
-        from .stream import ExperimentDataStream
+        from .streamit import Streamit
 
-        stream = ExperimentDataStream(experiment_name)
+        streamit = Streamit(experiment_name)
 
-    return stream
+    return streamit
 
 
 __all__ = ["get_experiment_data_stream"]
