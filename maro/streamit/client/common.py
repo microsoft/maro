@@ -10,6 +10,6 @@ class MessageType(IntEnum):
     Episode = 1
     Tick = 2
     Data = 3
-    BigString = 4
+    File = 4
 
     Close = 10

@@ -146,35 +146,9 @@ class StreamitSender(Process):
                         await self._send(writer, metrics)
 
                         metrics = []
-                elif msg_type == MessageType.BigString:
+                elif msg_type == MessageType.File:
+                    
                     pass
-                    # NOTE: for big data, we only support same type
-                    # category, data_dict = data
-
-                    # table_name = f"{self._experiment_name}.{category}"
-
-                    # if category not in self._table_name_dict:
-                    #     field_name_list = [k for k in data_dict.keys()]
-
-                    #     field_name_list.extend(["Episode", "Tick"])
-
-                    #     field_def = ",".join(
-                    #         [f"{k} STRING" for k in field_name_list])
-                    #     cursor.execute(
-                    #         f"CREATE TABLE '{table_name}' ({field_def})")
-
-                    #     self._table_name_dict[category] = ",".join(
-                    #         k for k in data_dict.keys())
-
-                    # values = [v for v in data_dict.values()]
-                    # values.extend([self._cur_episode, self._cur_tick])
-
-                    # value_format = ",".join(["%s"] * len(values))
-                    # print("sending big string", values)
-                    # cursor.execute(f"INSERT INTO \"{table_name}\" ({self._table_name_dict[category]}) VALUES ({value_format})",
-                    #                tuple(values))
-                    # print("done")
-
                 elif msg_type == MessageType.Close:
                     is_stopping = True
                 else:

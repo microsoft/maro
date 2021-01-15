@@ -15,7 +15,8 @@ class Client:
         self._sender: Process = None
         self._data_queue = Queue()
 
-        self._categories = {}
+        self._cur_episode = 0
+        self._cur_tick = 0
 
     def start(self, host="127.0.0.1"):
         self._sender = StreamitSender(
@@ -29,10 +30,14 @@ class Client:
 
     def tick(self, tick: int):
         """Update current tick"""
+        self._cur_tick = tick
+
         self._put(MessageType.Tick, tick)
 
     def episode(self, episode: int):
         """Update current episode"""
+        self._cur_episode = episode
+
         self._put(MessageType.Episode, episode)
 
     def data(self, category: str, **kwargs):
@@ -42,6 +47,8 @@ class Client:
     def dict(self, category: str, value: dict):
         """This method will split value dictionary into small items, that fill in a table.
         Usually used to send a json or yaml content.
+
+        NOTE: This method is not suite for too big data, we will have a upload function later.
 
         Something like:
 
@@ -53,14 +60,32 @@ class Client:
         items = []
         flat_dict(value, items)
 
-        print("total items", len(items))
-
         for item in items:
             self._put(MessageType.Data, (category, item))
 
-    def upload(self, file: str):
-        """Upload a file to server and return a url path"""
-        pass
+    def upload(self, file: str, mode: str = None) -> str:
+        """Upload a file to server and return a url path.
+
+        Args:
+            file (str): File path to upload.
+            mode (str): Save mode:
+                None: save under current experiment folder.
+                "e": save to current episode folder
+                "t": save to current tick folder
+
+                Default is under experiment folder.
+        """
+
+        upload_path = self._experiment_name
+
+        if mode == "e":
+            upload_path = f"{self._experiment_name}/{self._cur_episode}"
+        elif mode == "t":
+            upload_path = f"{self._experiment_name}/{self._cur_episode}/{self._cur_tick}"
+
+        self._put(MessageType.File, (file, mode))
+
+        return upload_path
 
     def close(self):
         if self._sender is not None and self._sender.is_alive():
@@ -73,11 +98,12 @@ class Client:
     def _put(self, msg_type, data):
         self._data_queue.put((msg_type, data))
 
-    # def __getitem__(self, name: str):
-    #     """Shorthand for category name, like: streamit["port_detail"](index=0, name="test")"""
-    #     return partial(self.send, name)
+    def __getitem__(self, name: str):
+        """Shorthand for category name, like: streamit["port_detail"](index=0, name="test")"""
+        return partial(self.send, name)
 
 
+# TODO: reduce recurcive calling with stack
 def flat_dict(d: dict, result_list: list, path: str = None):
     for k, v in d.items():
         sub_path = path
