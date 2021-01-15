@@ -135,9 +135,9 @@ class StreamitSender(Process):
                     for k, v in data_dict.items():
                         metric.add_value(k, v)
 
-                    metric.add_tag("Epsode", self._cur_episode)
-                    metric.add_tag("Tick", self._cur_tick)
-                    metric.add_tag("Experiment", self._experiment_name)
+                    metric.add_tag("episode", self._cur_episode)
+                    metric.add_tag("tick", self._cur_tick)
+                    metric.add_tag("experiment", self._experiment_name)
                     metric.with_timestamp((self._cur_episode << 32) | self._cur_tick)
 
                     metrics.append(metric)
