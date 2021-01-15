@@ -16,7 +16,7 @@ class PhysicalMachine(NodeBase):
     id = NodeAttribute("i")
     cpu_cores_capacity = NodeAttribute("i2")
     memory_capacity = NodeAttribute("i2")
-    sku_type = NodeAttribute("i2")
+    pm_type = NodeAttribute("i2")
     # Statistical features.
     cpu_cores_allocated = NodeAttribute("i2")
     memory_allocated = NodeAttribute("i2")
@@ -32,8 +32,8 @@ class PhysicalMachine(NodeBase):
         self._id = 0
         self._init_cpu_cores_capacity = 0
         self._init_memory_capacity = 0
-        self._init_sku = 0
-        self._init_type = 0
+        self._init_pm_type = 0
+        self._init_pm_state = 0
         # PM resource.
         self._live_vms: Set[int] = set()
 
@@ -50,7 +50,7 @@ class PhysicalMachine(NodeBase):
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
     def set_init_state(
-        self, id: int, cpu_cores_capacity: int, memory_capacity: int, sku_type: int, oversubscribable: PmState = 0
+        self, id: int, cpu_cores_capacity: int, memory_capacity: int, pm_type: int, oversubscribable: PmState = 0
     ):
         """Set initialize state, that will be used after frame reset.
 
@@ -67,8 +67,8 @@ class PhysicalMachine(NodeBase):
         self._id = id
         self._init_cpu_cores_capacity = cpu_cores_capacity
         self._init_memory_capacity = memory_capacity
-        self._init_sku = sku_type
-        self._init_type = oversubscribable
+        self._init_pm_type = pm_type
+        self._init_pm_state = oversubscribable
 
         self.reset()
 
@@ -78,8 +78,8 @@ class PhysicalMachine(NodeBase):
         self.id = self._id
         self.cpu_cores_capacity = self._init_cpu_cores_capacity
         self.memory_capacity = self._init_memory_capacity
-        self.sku_type = self._init_sku
-        self.oversubscribable = self._init_type
+        self.pm_type = self._init_pm_type
+        self.oversubscribable = self._init_pm_state
 
         self._live_vms.clear()
 

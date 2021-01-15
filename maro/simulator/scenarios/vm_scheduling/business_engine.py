@@ -147,8 +147,8 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
 
     def _cal_pm_amount(self) -> int:
         amount: int = 0
-        for sku in self._config.PM:
-            amount += sku["amount"]
+        for pm_type in self._config.PM:
+            amount += pm_type["amount"]
 
         return amount
 
@@ -156,19 +156,19 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
         # TODO: Improve the scalability. Like the use of multiple PM sets.
         self._machines = self._frame.pms
-        # PM SKU dictionary.
-        self._sku_dict: dict = {}
+        # PM type dictionary.
+        self._pm_type_dict: dict = {}
         pm_id = 0
-        for sku in self._config.PM:
-            amount = sku["amount"]
-            self._sku_dict[sku["SKU_type"]] = sku
+        for pm_type in self._config.PM:
+            amount = pm_type["amount"]
+            self._pm_type_dict[pm_type["PM_type"]] = pm_type
             while amount > 0:
                 pm = self._machines[pm_id]
                 pm.set_init_state(
                     id=pm_id,
-                    cpu_cores_capacity=sku["CPU"],
-                    memory_capacity=sku["memory"],
-                    sku_type=sku["SKU_type"],
+                    cpu_cores_capacity=pm_type["CPU"],
+                    memory_capacity=pm_type["memory"],
+                    pm_type=pm_type["PM_type"],
                     oversubscribable=PmState.EMPTY
                 )
                 amount -= 1
@@ -350,7 +350,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 total_pm_cpu_cores_used += vm.cpu_utilization * vm.cpu_cores_requirement
             pm.update_cpu_utilization(vm=None, cpu_utilization=total_pm_cpu_cores_used / pm.cpu_cores_capacity)
             pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                sku=self._sku_dict[pm.sku_type],
+                pm_type=self._pm_type_dict[pm.pm_type],
                 cpu_utilization=pm.cpu_utilization
             )
 
@@ -370,24 +370,18 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 self._live_vms.pop(vm_id)
 
             pm.deallocate_vms(vm_ids=vm_ids)
-            pm.update_cpu_utilization(vm=None, cpu_utilization=0)
+            self._failed_completion += len(vm_ids)
 
-        pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-            sku=self._sku_dict[pm.sku_type],
-            cpu_utilization=pm.cpu_utilization
-        )
-
-        self._failed_completion += len(vm_ids)
         self._total_overload_vms += len(vm_ids)
 
-    def _cpu_utilization_to_energy_consumption(self, sku: dict, cpu_utilization: float) -> float:
+    def _cpu_utilization_to_energy_consumption(self, pm_type: dict, cpu_utilization: float) -> float:
         """Convert the CPU utilization to energy consumption.
 
         The formulation refers to https://dl.acm.org/doi/epdf/10.1145/1273440.1250665
         """
-        power: float = sku["power_curve"]["calibration_parameter"]
-        busy_power = sku["power_curve"]["busy_power"]
-        idle_power = sku["power_curve"]["idle_power"]
+        power: float = pm_type["power_curve"]["calibration_parameter"]
+        busy_power: int = pm_type["power_curve"]["busy_power"]
+        idle_power: int = pm_type["power_curve"]["idle_power"]
 
         cpu_utilization /= 100
         cpu_utilization = min(1, cpu_utilization)
@@ -587,7 +581,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     cpu_utilization=None
                 )
                 pm.energy_consumption = self._cpu_utilization_to_energy_consumption(
-                    sku=self._sku_dict[pm.sku_type],
+                    pm_type=self._pm_type_dict[pm.pm_type],
                     cpu_utilization=pm.cpu_utilization
                 )
                 self._successful_allocation += 1
