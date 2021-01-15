@@ -48,7 +48,7 @@ class DDPG(AbsAlgorithm):
     References:
     https://arxiv.org/pdf/1509.02971.pdf
     https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
-    
+
     Args:
         model (LearningModel): DDPG policy and q-value models.
         config: Configuration for DDPG algorithm.
