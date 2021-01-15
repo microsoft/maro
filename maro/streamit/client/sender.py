@@ -138,8 +138,7 @@ class StreamitSender(Process):
                     metric.add_tag("Epsode", self._cur_episode)
                     metric.add_tag("Tick", self._cur_tick)
                     metric.add_tag("Experiment", self._experiment_name)
-                    metric.with_timestamp(
-                        (self._cur_episode << 32) | self._cur_tick)
+                    metric.with_timestamp((self._cur_episode << 32) | self._cur_tick)
 
                     metrics.append(metric)
 

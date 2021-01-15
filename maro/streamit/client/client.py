@@ -9,7 +9,7 @@ from typing import Union, List, Dict
 from .common import MessageType
 
 
-class Streamit:
+class Client:
     def __init__(self, experiment_name: str):
         self._experiment_name = experiment_name
         self._sender: Process = None
@@ -53,6 +53,8 @@ class Streamit:
         items = []
         flat_dict(value, items)
 
+        print("total items", len(items))
+
         for item in items:
             self._put(MessageType.Data, (category, item))
 
@@ -76,7 +78,7 @@ class Streamit:
     #     return partial(self.send, name)
 
 
-def flat_dict(d: dict, result_list:list, path: str=None):
+def flat_dict(d: dict, result_list: list, path: str = None):
     for k, v in d.items():
         sub_path = path
         if sub_path is None:
@@ -91,23 +93,23 @@ def flat_dict(d: dict, result_list:list, path: str=None):
         elif v_type is list or v_type is tuple:
             flat_list(v, result_list, sub_path)
         else:
-            result_list.append({"item": sub_path, "value": v})
+            result_list.append({"path": sub_path, "value": str(v)})
         # NOTE: we assuming that dict only contains raw data type, list, tuple or dict, no customized time.
-        
 
-def flat_list(l: list, result_list: list, path: str=None):
+
+def flat_list(l: list, result_list: list, path: str = None):
     for i, item in enumerate(l):
         sub_path = path
+
         if sub_path is None:
-            sub_path = f"[{i}]"
-        else:
-            sub_path += f"[{i}]"
+            sub_path = ""
 
         item_type = type(item)
 
         if item_type is dict:
-            flat_dict(item, result_list, sub_path)
+            flat_dict(item, result_list, sub_path + f"[{i}]")
         elif item_type is list or item_type is tuple:
-            flat_list(item, result_list, sub_path)
+            flat_list(item, result_list, sub_path + f"[{i}]")
         else:
-            result_list.append({"item": sub_path, "value": item})
+            result_list.append(
+                {"path": sub_path + "[]", "index": i, "value": str(item)})

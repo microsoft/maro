@@ -1,5 +1,5 @@
 
-from streamit.client import get_experiment_data_stream
+from maro.streamit import streamit
 import yaml
 import numpy as np
 import json
@@ -10,7 +10,7 @@ import os
 os.environ["MARO_STREAMABLE_ENABLED"] = "True"
 
 
-def import_from_snapshot_dump(streamit, folder, npy_name, meta_name, category):
+def import_from_snapshot_dump(it, folder, npy_name, meta_name, category):
     npy_path = os.path.join(folder, npy_name)
     meta_path = os.path.join(folder, meta_name)
 
@@ -27,7 +27,7 @@ def import_from_snapshot_dump(streamit, folder, npy_name, meta_name, category):
     instance_number = len(instance_list[0])
 
     for tick in range(len(instance_list)):
-        streamit.tick(tick)
+        it.tick(tick)
 
         for instance_index in range(instance_number):
             field_dict = {}
@@ -51,32 +51,32 @@ def import_from_snapshot_dump(streamit, folder, npy_name, meta_name, category):
 
                 field_slot_index += field_length
 
-            streamit.data(category, **field_dict)
+            it.data(category, **field_dict)
 
     instance_list = None
 
     return instance_number
 
 
-def import_port_details(streamit, folder):
+def import_port_details(it, folder):
     port_npy_name = "ports.npy"
     port_meta_name = "ports.meta"
     category = "port_details"
 
-    return import_from_snapshot_dump(streamit, folder, port_npy_name, port_meta_name, category)
+    return import_from_snapshot_dump(it, folder, port_npy_name, port_meta_name, category)
 
 
-def import_vessel_details(streamit, folder):
+def import_vessel_details(it, folder):
     vessels_npy_name = "vessels.npy"
     vessels_meta_name = "vessels.meta"
     category = "vessel_details"
 
-    return import_from_snapshot_dump(streamit, folder, vessels_npy_name, vessels_meta_name, category)
+    return import_from_snapshot_dump(it, folder, vessels_npy_name, vessels_meta_name, category)
 
 
-def import_full_on_ports(data: np.ndarray, streamit, port_number):
+def import_full_on_ports(data: np.ndarray, it, port_number):
     for tick in range(len(data)):
-        streamit.tick(tick)
+        it.tick(tick)
 
         m = data[tick][0].reshape(port_number, -1)
 
@@ -84,39 +84,46 @@ def import_full_on_ports(data: np.ndarray, streamit, port_number):
         a, b = np.where(m > 0)
 
         for from_port_index, to_port_index in list(zip(a, b)):
-            streamit.data("full_on_ports", from_port_index=from_port_index, dest_port_index=to_port_index, quantity=m[from_port_index, to_port_index])
+            it.data("full_on_ports", from_port_index=from_port_index,
+                          dest_port_index=to_port_index, quantity=m[from_port_index, to_port_index])
 
-def import_full_on_vessels(data: np.ndarray, streamit, port_number, vessel_number):
+
+def import_full_on_vessels(data: np.ndarray, it, port_number, vessel_number):
     for tick in range(len(data)):
-        streamit.tick(tick)
+        it.tick(tick)
 
         m = data[tick][0].reshape(vessel_number, port_number)
 
         a, b = np.where(m > 0)
 
         for vessel_index, port_index in list(zip(a, b)):
-            streamit.data("full_on_vessels", vessel_index=vessel_index, port_index=port_index, quantity=m[vessel_index, port_index])
+            it.data("full_on_vessels", vessel_index=vessel_index,
+                          port_index=port_index, quantity=m[vessel_index, port_index])
 
-def import_vessel_plans(data, streamit, port_number, vessel_number):
+
+def import_vessel_plans(data, it, port_number, vessel_number):
     for tick in range(len(data)):
-        streamit.tick(tick)
+        it.tick(tick)
 
         m = data[tick][0].reshape(vessel_number, port_number)
 
         a, b = np.where(m > -1)
 
         for vessel_index, port_index in list(zip(a, b)):
-            streamit.data("vessel_plans", vessel_index=vessel_index, port_index=port_index, planed_arrival_tick=m[vessel_index, port_index])
+            it.data("vessel_plans", vessel_index=vessel_index,
+                          port_index=port_index, planed_arrival_tick=m[vessel_index, port_index])
 
 
-def import_metrics(streamit, epoch_full_path, port_number, vessel_number):
+def import_metrics(it, epoch_full_path, port_number, vessel_number):
     matrics_path = os.path.join(epoch_full_path, "matrices.npy")
 
     matrics = np.load(matrics_path)
 
-    import_full_on_ports(matrics["full_on_ports"],streamit, port_number)
-    import_full_on_vessels(matrics["full_on_vessels"], streamit, port_number, vessel_number)
-    import_vessel_plans(matrics["vessel_plans"], streamit, port_number, vessel_number)
+    import_full_on_ports(matrics["full_on_ports"], it, port_number)
+    import_full_on_vessels(
+        matrics["full_on_vessels"], it, port_number, vessel_number)
+    import_vessel_plans(matrics["vessel_plans"],
+                        it, port_number, vessel_number)
 
     matrics = None
 
@@ -153,8 +160,8 @@ if __name__ == "__main__":
     assert(os.path.exists(args.dir))
     assert(os.path.exists(args.ssdir))
 
-    streamit = get_experiment_data_stream(args.name)
-    streamit.start(args.host)
+    it = streamit(args.name)
+    it.start(args.host)
 
     try:
         config = ""
@@ -163,9 +170,8 @@ if __name__ == "__main__":
         with open(os.path.join(args.dir, "config.yml"), "r") as fp:
             config = yaml.safe_load(fp)
 
-        streamit.info(args.scenario, args.topology,
-                      args.durations, args.episodes)
-        streamit.dict("config", config)
+        it.info(args.scenario, args.topology, args.durations, args.episodes)
+        it.dict("config", config)
 
         for episode in range(args.episodes):
             epoch_folder = f"epoch_{episode}"
@@ -174,17 +180,15 @@ if __name__ == "__main__":
 
             # ensure epoch folder exist
             if os.path.exists(epoch_full_path):
-                streamit.episode(episode)
+                it.episode(episode)
 
                 # import for each category
-                port_number = import_port_details(streamit , epoch_full_path)
+                port_number = import_port_details(it, epoch_full_path)
 
-                vessel_number = import_vessel_details(
-                    streamit, epoch_full_path)
+                vessel_number = import_vessel_details(it, epoch_full_path)
 
-                import_metrics(streamit, epoch_full_path,
-                               port_number, vessel_number)
+                import_metrics(it, epoch_full_path, port_number, vessel_number)
 
-                # import_attention(streamit, episode, epoch_full_path)
+                # import_attention(it, episode, epoch_full_path)
     finally:
-        streamit.close()
+        it.close()

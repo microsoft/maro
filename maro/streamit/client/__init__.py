@@ -1,28 +1,28 @@
 import os
 
 
-def get_experiment_data_stream(experiment_name: str):
+def streamit(experiment_name: str):
     is_streamable_enabled: bool = bool(
         os.environ.get("MARO_STREAMABLE_ENABLED", False))
 
-    streamit = None
+    instance = None
 
     if not is_streamable_enabled:
 
         def dummy(self, *args, **kwargs):
             pass
 
-        class DummyStreamit:
+        class DummyClient:
             def __getattr__(self, name):
                 return dummy
 
-        streamit = DummyStreamit()
+        instance = DummyClient()
     else:
-        from .streamit import Streamit
+        from .client import Client
 
-        streamit = Streamit(experiment_name)
+        instance = Client(experiment_name)
 
-    return streamit
+    return instance
 
 
-__all__ = ["get_experiment_data_stream"]
+__all__ = ["streamit"]

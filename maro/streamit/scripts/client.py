@@ -1,4 +1,4 @@
-from streamit.client import get_experiment_data_stream
+from maro.streamit import streamit
 import time
 import os
 
@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     start_time = time.perf_counter()
 
-    stream = get_experiment_data_stream(f"test_expmt_{time.time()}")
+    stream = streamit(f"test_expmt_{time.time()}")
     stream.start()
 
     total_eps = 1
