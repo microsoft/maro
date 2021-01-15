@@ -84,7 +84,7 @@ class DDPG(AbsAlgorithm):
         next_states = torch.from_numpy(next_states).to(self._device)
         if len(actual_actions.shape) == 1:
             actual_actions = actual_actions.unsqueeze(dim=1)  # (N, 1)
-        
+
         current_q_values = self._model(torch.cat([states, actual_actions], dim=1), task_name="q_value")
         current_q_values = current_q_values.squeeze(dim=1)  # (N,)
         next_actions = self._target_model(states, task_name="policy", is_training=False)
