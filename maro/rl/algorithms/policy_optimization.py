@@ -61,6 +61,10 @@ class PolicyOptimization(AbsAlgorithm):
 
 
 class PolicyGradient(PolicyOptimization):
+    """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
+    
+    Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
+    """
     def train(
         self, states: np.ndarray, actions: np.ndarray, log_action_prob: np.ndarray, rewards: np.ndarray
     ):
@@ -114,9 +118,11 @@ class ActorCriticConfig(PolicyOptimizationConfig):
 
 
 class ActorCritic(PolicyOptimization):
-    """Actor Critic algorithm with separate policy and value models (no shared layers).
+    """Actor Critic algorithm with separate policy and value models.
 
-    The Actor-Critic algorithm base on the policy gradient theorem.
+    References: 
+    https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
+    https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
     Args:
         model (LearningModel): Multi-task model that computes action distributions and state values.
