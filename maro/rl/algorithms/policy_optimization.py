@@ -62,7 +62,7 @@ class PolicyOptimization(AbsAlgorithm):
 
 class PolicyGradient(PolicyOptimization):
     """The vanilla Policy Gradient (VPG) algorithm, a.k.a., REINFORCE.
-    
+
     Reference: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
     """
     def train(
@@ -120,7 +120,7 @@ class ActorCriticConfig(PolicyOptimizationConfig):
 class ActorCritic(PolicyOptimization):
     """Actor Critic algorithm with separate policy and value models.
 
-    References: 
+    References:
     https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch.
     https://towardsdatascience.com/understanding-actor-critic-methods-931b97b6df3f
 
