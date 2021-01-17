@@ -57,7 +57,7 @@ sudo -E docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters
 # install pip3 and redis
 echo 'Step 5/{steps}: Install pip3 and redis'
 sudo -E apt install -y python3-pip
-pip3 install redis flask gunicorn
+pip3 install --upgrade redis flask gunicorn cryptography pyjwt
 
 echo "Finish master initialization"
 """
@@ -150,13 +150,15 @@ if __name__ == "__main__":
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=args.cluster_name)
 
+    # Save local details
+    DetailsWriter.save_local_cluster_details(cluster_details=cluster_details)
+    DetailsWriter.save_local_master_details(master_details=cluster_details["master"])
+
     # Start initializing
     master_initializer = MasterInitializer(cluster_details=cluster_details)
     master_initializer.init_master()
     master_initializer.start_master_agent()
     master_initializer.start_master_api_server()
-    master_initializer.copy_scripts()
 
-    # Save local details
-    DetailsWriter.save_local_cluster_details(cluster_details=cluster_details)
-    DetailsWriter.save_local_master_details(master_details=cluster_details["master"])
+    # Copy scripts
+    master_initializer.copy_scripts()

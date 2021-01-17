@@ -3,8 +3,9 @@
 
 
 import requests
-from flask import Blueprint, jsonify, request
+from flask import Blueprint
 
+from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller, local_cluster_details, local_master_details
 
 # Flask related.
@@ -16,6 +17,7 @@ URL_PREFIX = "/v1/jobs"
 # Api functions.
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
+@check_jwt_validity
 def list_jobs():
     """List the jobs in the cluster.
 
@@ -24,10 +26,11 @@ def list_jobs():
     """
 
     name_to_job_details = redis_controller.get_name_to_job_details(cluster_name=local_cluster_details["name"])
-    return jsonify(list(name_to_job_details.values()))
+    return list(name_to_job_details.values())
 
 
 @blueprint.route(f"{URL_PREFIX}/<job_name>", methods=["GET"])
+@check_jwt_validity
 def get_job(job_name: str):
     """Get the job with job_name.
 
@@ -43,14 +46,15 @@ def get_job(job_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["POST"])
-def create_job():
+@check_jwt_validity
+def create_job(**kwargs):
     """Create a job.
 
     Returns:
         None.
     """
 
-    job_details = request.json
+    job_details = kwargs["json_dict"]
     redis_controller.set_job_details(
         cluster_name=local_cluster_details["name"],
         job_name=job_details["name"],
@@ -64,6 +68,7 @@ def create_job():
 
 
 @blueprint.route(f"{URL_PREFIX}/<job_name>", methods=["DELETE"])
+@check_jwt_validity
 def delete_job(job_name: str):
     """Delete a job.
 
@@ -87,6 +92,7 @@ def delete_job(job_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}/<job_name>:stop", methods=["POST"])
+@check_jwt_validity
 def stop_job(job_name: str):
     """Stop a job.
 
@@ -106,6 +112,7 @@ def stop_job(job_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}:clean", methods=["POST"])
+@check_jwt_validity
 def clean_jobs():
     """Clean all jobs in the cluster.
 
@@ -124,6 +131,6 @@ def clean_jobs():
     )
     for _, node_details in name_to_node_details.items():
         node_hostname = node_details["hostname"]
-        for container_name, container_details in node_details["containers"].items():
+        for container_name in node_details["containers"]:
             requests.delete(url=f"http://{node_hostname}:{master_api_server_port}/containers/{container_name}")
     return {}

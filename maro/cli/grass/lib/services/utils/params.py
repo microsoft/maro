@@ -16,6 +16,10 @@ class ContainerStatus:
     EXITED = "exited"
 
 
+class UserRole:
+    ADMIN = "admin"
+
+
 class Paths:
     MARO_SHARED = "~/.maro-shared"
     ABS_MARO_SHARED = os.path.expanduser(path=MARO_SHARED)

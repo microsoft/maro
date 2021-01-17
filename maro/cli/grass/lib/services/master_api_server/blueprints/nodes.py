@@ -2,8 +2,9 @@
 # Licensed under the MIT license.
 
 
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, abort
 
+from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller, local_cluster_details
 from ...utils.connection_tester import ConnectionTester
 from ...utils.exception import ConnectionFailed
@@ -20,6 +21,7 @@ URL_PREFIX = "/v1/nodes"
 # Api functions.
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
+@check_jwt_validity
 def list_nodes():
     """List the nodes in the cluster.
 
@@ -28,10 +30,11 @@ def list_nodes():
     """
 
     name_to_node_details = redis_controller.get_name_to_node_details(cluster_name=local_cluster_details["name"])
-    return jsonify(list(name_to_node_details.values()))
+    return list(name_to_node_details.values())
 
 
 @blueprint.route(f"{URL_PREFIX}/<node_name>", methods=["GET"])
+@check_jwt_validity
 def get_node(node_name: str):
     """Get the node with node_name.
 
@@ -47,14 +50,15 @@ def get_node(node_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["POST"])
-def create_node():
+@check_jwt_validity
+def create_node(**kwargs):
     """Create a node.
 
     Returns:
         None.
     """
 
-    node_details = request.json
+    node_details = kwargs["json_dict"]
 
     # Init runtime params.
     if "name" not in node_details and "id" not in node_details:
@@ -78,6 +82,7 @@ def create_node():
 
 
 @blueprint.route(f"{URL_PREFIX}/<node_name>", methods=["DELETE"])
+@check_jwt_validity
 def delete_node(node_name: str):
     """Delete a node.
 
@@ -94,7 +99,7 @@ def delete_node(node_name: str):
     # leave the cluster
     command = (
         f"ssh -o StrictHostKeyChecking=no "
-        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
+        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/master_to_node_openssh_private_key "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
         f"'python3 {Paths.MARO_LOCAL}/scripts/leave_cluster.py'"
@@ -111,6 +116,7 @@ def delete_node(node_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}/<node_name>:start", methods=["POST"])
+@check_jwt_validity
 def start_node(node_name: str):
     """Start a node.
 
@@ -135,7 +141,7 @@ def start_node(node_name: str):
 
     command = (
         f"ssh -o StrictHostKeyChecking=no "
-        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
+        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/master_to_node_openssh_private_key "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_agent_service'"
@@ -143,7 +149,7 @@ def start_node(node_name: str):
     _ = Subprocess.run(command=command)
     command = (
         f"ssh -o StrictHostKeyChecking=no "
-        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
+        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/master_to_node_openssh_private_key "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.start_node_api_server_service'"
@@ -154,6 +160,7 @@ def start_node(node_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}/<node_name>:stop", methods=["POST"])
+@check_jwt_validity
 def stop_node(node_name: str):
     """Stop a node.
 
@@ -178,7 +185,7 @@ def stop_node(node_name: str):
 
     command = (
         f"ssh -o StrictHostKeyChecking=no "
-        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
+        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/master_to_node_openssh_private_key "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_api_server_service'"
@@ -186,7 +193,7 @@ def stop_node(node_name: str):
     _ = Subprocess.run(command=command)
     command = (
         f"ssh -o StrictHostKeyChecking=no "
-        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/id_rsa_master "
+        f"-i {Paths.MARO_LOCAL}/cluster/{local_cluster_details['name']}/master_to_node_openssh_private_key "
         f"-p {node_details['ssh']['port']} "
         f"{node_details['username']}@{node_details['hostname']} "
         f"'cd {Paths.MARO_SHARED}/lib/grass; python3 -m scripts.node.stop_node_agent_service'"

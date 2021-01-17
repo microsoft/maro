@@ -76,7 +76,7 @@ class RedisController:
             f"{cluster_name}:name_to_job_details",
             job_name
         )
-        return json.loads(return_str) if return_str is not None else None
+        return json.loads(return_str) if return_str is not None else {}
 
     def set_job_details(self, cluster_name: str, job_name: str, job_details: dict) -> None:
         self._redis.hset(
@@ -106,7 +106,7 @@ class RedisController:
             f"{cluster_name}:name_to_schedule_details",
             schedule_name
         )
-        return json.loads(return_str) if return_str is not None else None
+        return json.loads(return_str) if return_str is not None else {}
 
     def set_schedule_details(self, cluster_name: str, schedule_name: str, schedule_details: dict) -> None:
         self._redis.hset(
@@ -235,7 +235,16 @@ class RedisController:
             1
         )
 
-    # Utils
+    """User Related."""
+
+    def get_user_details(self, cluster_name: str, user_id: str) -> dict:
+        return_str = self._redis.hget(
+            f"{cluster_name}:id_to_user_details",
+            user_id
+        )
+        return json.loads(return_str) if return_str is not None else {}
+
+    """Utils."""
 
     def get_time(self) -> int:
         """ Get current unix timestamp (seconds) from Redis server.

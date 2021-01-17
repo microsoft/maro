@@ -8,6 +8,9 @@ cloud:
   default_username: ""
   default_public_key: ""
 
+user:
+  admin_id: ""
+
 master:
   node_size: ""
   redis:

@@ -4,6 +4,7 @@
 
 from flask import Blueprint
 
+from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller, local_cluster_details
 from ...utils.details_reader import DetailsReader
 
@@ -16,6 +17,7 @@ URL_PREFIX = "/v1/cluster"
 # Api functions.
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
+@check_jwt_validity
 def get_cluster():
     """Get cluster.
 

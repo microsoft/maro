@@ -4,8 +4,9 @@
 
 import copy
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint
 
+from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller, local_cluster_details
 from ...utils.name_creator import NameCreator
 
@@ -18,6 +19,7 @@ URL_PREFIX = "/v1/schedules"
 # Api functions.
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
+@check_jwt_validity
 def list_schedules():
     """List the schedules in the cluster.
 
@@ -28,10 +30,11 @@ def list_schedules():
     name_to_schedule_details = redis_controller.get_name_to_schedule_details(
         cluster_name=local_cluster_details["name"]
     )
-    return jsonify(list(name_to_schedule_details.values()))
+    return list(name_to_schedule_details.values())
 
 
 @blueprint.route(f"{URL_PREFIX}/<schedule_name>", methods=["GET"])
+@check_jwt_validity
 def get_schedule(schedule_name: str):
     """Get the schedule with schedule_name.
 
@@ -47,14 +50,16 @@ def get_schedule(schedule_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["POST"])
-def create_schedule():
+@check_jwt_validity
+def create_schedule(**kwargs):
     """Create a schedule.
 
     Returns:
         None.
     """
 
-    schedule_details = request.json
+    schedule_details = kwargs["json_dict"]
+
     redis_controller.set_schedule_details(
         cluster_name=local_cluster_details["name"],
         schedule_name=schedule_details["name"],
@@ -76,6 +81,7 @@ def create_schedule():
 
 
 @blueprint.route(f"{URL_PREFIX}/<schedule_name>", methods=["DELETE"])
+@check_jwt_validity
 def delete_schedule(schedule_name: str):
     """Delete a schedule.
 
@@ -104,6 +110,7 @@ def delete_schedule(schedule_name: str):
 
 
 @blueprint.route(f"{URL_PREFIX}/<schedule_name>:stop", methods=["POST"])
+@check_jwt_validity
 def stop_schedule(schedule_name: str):
     """Stop a schedule.
 

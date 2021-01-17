@@ -35,14 +35,19 @@ class GrassExecutor:
         self.cluster_id = self.cluster_details["id"]
 
         # User configs
-        self.master_username = self.cluster_details["master"]["username"]
+        self.user_details = self._get_default_user_details()
 
         # Master configs
+        self.master_username = self.cluster_details["master"]["username"]
         self.master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
         self.master_hostname = self.cluster_details["master"]["hostname"]
         self.master_api_client = MasterApiClientV1(
             master_hostname=self.master_public_ip_address,
-            master_api_server_port=self.cluster_details["master"]["api_server"]["port"]
+            master_api_server_port=self.cluster_details["master"]["api_server"]["port"],
+            user_id=self.user_details["id"],
+            master_to_dev_encryption_private_key=self.user_details["master_to_dev_encryption_private_key"],
+            dev_to_master_encryption_public_key=self.user_details["dev_to_master_encryption_public_key"],
+            dev_to_master_signing_private_key=self.user_details["dev_to_master_signing_private_key"]
         )
         self.master_ssh_port = self.cluster_details["master"]["ssh"]["port"]
         self.master_api_server_port = self.cluster_details["master"]["api_server"]["port"]
@@ -314,6 +319,19 @@ class GrassExecutor:
         Subprocess.interactive_run(command=command)
 
     @staticmethod
+    def remote_create_user(
+        master_username: str, master_hostname: str, master_ssh_port: int,
+        user_id: str, user_role: str
+    ) -> dict:
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.create_user "
+            f"{user_id} {user_role}'"
+        )
+        return_str = Subprocess.run(command=command)
+        return json.loads(return_str)
+
+    @staticmethod
     def remote_join_cluster(
         node_username: str, node_hostname: str, node_ssh_port: int,
         master_hostname: str, master_api_server_port: int, deployment_path: str
@@ -392,3 +410,14 @@ class GrassExecutor:
             for chunk in iter(lambda: f.read(block_size * md5.block_size), b""):
                 md5.update(chunk)
         return md5.hexdigest()
+
+    def _get_default_user_details(self) -> dict:
+        with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/users/default_user", mode="r") as fr:
+            user_id = fr.read()
+
+        with open(
+            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/users/{user_id}/user_details",
+            mode="r"
+        ) as fr:
+            user_details = yaml.safe_load(stream=fr)
+            return user_details

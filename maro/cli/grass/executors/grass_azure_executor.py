@@ -17,7 +17,7 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
-from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus, GrassPaths
+from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus, GrassPaths, UserRole
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
@@ -247,11 +247,16 @@ class GrassAzureExecutor(GrassExecutor):
 
         GrassAzureExecutor._create_master_vm(cluster_details=cluster_details)
         GrassAzureExecutor._init_master(cluster_details=cluster_details)
+        GrassAzureExecutor._create_user(cluster_details=cluster_details)
 
         # Remote create master after initialization
         MasterApiClientV1(
             master_hostname=cluster_details["master"]["public_ip_address"],
-            master_api_server_port=cluster_details["master"]["api_server"]["port"]
+            master_api_server_port=cluster_details["master"]["api_server"]["port"],
+            user_id=cluster_details["user"]["id"],
+            master_to_dev_encryption_private_key=cluster_details["user"]["master_to_dev_encryption_private_key"],
+            dev_to_master_encryption_public_key=cluster_details["user"]["dev_to_master_encryption_public_key"],
+            dev_to_master_signing_private_key=cluster_details["user"]["dev_to_master_signing_private_key"]
         ).create_master(master_details=cluster_details["master"])
 
         logger.info_green("MARO Master is created")
@@ -344,6 +349,38 @@ class GrassAzureExecutor(GrassExecutor):
         time.sleep(10)
 
         logger.info_green("Master VM is initialized")
+
+    @staticmethod
+    def _create_user(cluster_details: dict):
+        # Remote create user
+        user_details = GrassAzureExecutor.remote_create_user(
+            master_username=cluster_details["master"]["username"],
+            master_hostname=cluster_details["master"]["public_ip_address"],
+            master_ssh_port=cluster_details["master"]["ssh"]["port"],
+            user_id=cluster_details["user"]["admin_id"],
+            user_role=UserRole.ADMIN
+        )
+
+        # Update user_details, "admin_id" change to "id"
+        cluster_details["user"] = user_details
+
+        # Save dev_to_master private key
+        os.makedirs(
+            name=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}",
+            exist_ok=True
+        )
+        with open(
+            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}/user_details",
+            mode="w"
+        ) as fw:
+            yaml.safe_dump(
+                data=user_details,
+                stream=fw
+            )
+
+        # Save default user
+        with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/default_user", mode="w") as fw:
+            fw.write(user_details["id"])
 
     # maro grass delete
 
