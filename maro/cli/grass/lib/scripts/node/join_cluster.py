@@ -354,7 +354,9 @@ if __name__ == "__main__":
     # Load deployment and do validation
     with open(file=os.path.expanduser(args.deployment_path), mode="r") as fr:
         join_cluster_deployment = yaml.safe_load(fr)
-    join_cluster_deployment = NodeJoiner.standardize_join_cluster_deployment(join_cluster_deployment=join_cluster_deployment)
+    join_cluster_deployment = NodeJoiner.standardize_join_cluster_deployment(
+        join_cluster_deployment=join_cluster_deployment
+    )
 
     node_joiner = NodeJoiner(join_cluster_deployment=join_cluster_deployment)
     node_joiner.create_docker_user()
