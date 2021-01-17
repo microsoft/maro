@@ -29,7 +29,7 @@ def list_nodes():
         None.
     """
 
-    name_to_node_details = redis_controller.get_name_to_node_details(cluster_name=local_cluster_details["name"])
+    name_to_node_details = redis_controller.get_name_to_node_details()
     return list(name_to_node_details.values())
 
 
@@ -42,10 +42,7 @@ def get_node(node_name: str):
         None.
     """
 
-    node_details = redis_controller.get_node_details(
-        cluster_name=local_cluster_details["name"],
-        node_name=node_name
-    )
+    node_details = redis_controller.get_node_details(node_name=node_name)
     return node_details
 
 
@@ -74,7 +71,6 @@ def create_node(**kwargs):
     node_name = node_details["name"]
     with redis_controller.lock(f"lock:name_to_node_details:{node_name}"):
         redis_controller.set_node_details(
-            cluster_name=local_cluster_details["name"],
             node_name=node_name,
             node_details=node_details
         )
@@ -91,10 +87,7 @@ def delete_node(node_name: str):
     """
 
     # Get node_details.
-    node_details = redis_controller.get_node_details(
-        cluster_name=local_cluster_details["name"],
-        node_name=node_name
-    )
+    node_details = redis_controller.get_node_details(node_name=node_name)
 
     # leave the cluster
     command = (
@@ -107,10 +100,7 @@ def delete_node(node_name: str):
     Subprocess.run(command=command)
 
     # Delete node_details at the end.
-    redis_controller.delete_node_details(
-        cluster_name=local_cluster_details["name"],
-        node_name=node_name
-    )
+    redis_controller.delete_node_details(node_name=node_name)
 
     return node_details
 
@@ -124,10 +114,7 @@ def start_node(node_name: str):
         None.
     """
 
-    node_details = redis_controller.get_node_details(
-        cluster_name=local_cluster_details["name"],
-        node_name=node_name
-    )
+    node_details = redis_controller.get_node_details(node_name=node_name)
     # Make sure the node is able to connect
     try:
         ConnectionTester.retry_connection(
@@ -168,10 +155,7 @@ def stop_node(node_name: str):
         None.
     """
 
-    node_details = redis_controller.get_node_details(
-        cluster_name=local_cluster_details["name"],
-        node_name=node_name
-    )
+    node_details = redis_controller.get_node_details(node_name=node_name)
     # Make sure the node is able to connect
     try:
         ConnectionTester.retry_connection(

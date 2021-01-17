@@ -38,9 +38,9 @@ class RedisController:
 
     """Node Details Related."""
 
-    def delete_node_details(self, cluster_name: str, node_name: str) -> None:
+    def delete_node_details(self, node_name: str) -> None:
         self._redis.hdel(
-            f"{cluster_name}:name_to_node_details",
+            "name_to_node_details",
             node_name
         )
 
@@ -83,7 +83,4 @@ if __name__ == '__main__':
         host=local_cluster_details["master"]["private_ip_address"],
         port=local_cluster_details["master"]["redis"]["port"]
     )
-    redis_controller.delete_node_details(
-        cluster_name=local_cluster_details["name"],
-        node_name=local_node_details["name"]
-    )
+    redis_controller.delete_node_details(node_name=local_node_details["name"])

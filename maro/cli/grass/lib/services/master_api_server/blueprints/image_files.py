@@ -5,7 +5,7 @@
 from flask import Blueprint
 
 from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details
+from ..objects import redis_controller
 
 # Flask related.
 
@@ -25,7 +25,7 @@ def list_image_files():
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+    master_details = redis_controller.get_master_details()
     return list(master_details["image_files"].values())
 
 
@@ -38,7 +38,7 @@ def get_image_file(image_file_name: str):
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+    master_details = redis_controller.get_master_details()
     return master_details["image_files"].get(image_file_name, {})
 
 
@@ -53,10 +53,7 @@ def create_image_file(**kwargs):
 
     image_file_details = kwargs["json_dict"]
     with redis_controller.lock(name="lock:master_details"):
-        master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+        master_details = redis_controller.get_master_details()
         master_details["image_files"][image_file_details["name"]] = image_file_details
-        redis_controller.set_master_details(
-            cluster_name=local_cluster_details["name"],
-            master_details=master_details
-        )
+        redis_controller.set_master_details(master_details=master_details)
     return {}

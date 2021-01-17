@@ -99,12 +99,9 @@ class NodeJoiner:
 
         self.node_details = self._init_node_details(node_details=self.node_details)
         with redis_controller.lock(f"lock:name_to_node_details:{self.node_details['name']}"):
-            redis_controller.set_node_details(
-                cluster_name=self.cluster_details["name"],
-                node_details=self.node_details
-            )
+            redis_controller.set_node_details(node_details=self.node_details)
 
-        self.master_details = redis_controller.get_master_details(cluster_name=self.cluster_details["name"])
+        self.master_details = redis_controller.get_master_details()
 
     @staticmethod
     def _init_node_details(node_details: dict):
@@ -242,16 +239,14 @@ class RedisController:
 
     """Master Details Related."""
 
-    def get_master_details(self, cluster_name: str) -> dict:
-        return json.loads(
-            self._redis.get(f"{cluster_name}:master_details")
-        )
+    def get_master_details(self) -> dict:
+        return json.loads(self._redis.get("master_details"))
 
     """Node Details Related."""
 
-    def set_node_details(self, cluster_name: str, node_details: dict) -> None:
+    def set_node_details(self, node_details: dict) -> None:
         self._redis.hset(
-            f"{cluster_name}:name_to_node_details",
+            "name_to_node_details",
             node_details["name"],
             json.dumps(node_details)
         )

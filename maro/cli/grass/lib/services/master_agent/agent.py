@@ -101,10 +101,8 @@ class JobTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get details and mapping.
-        name_to_container_details = self._redis_controller.get_name_to_container_details(
-            cluster_name=self._cluster_name
-        )
-        name_to_job_details = self._redis_controller.get_name_to_job_details(cluster_name=self._cluster_name)
+        name_to_container_details = self._redis_controller.get_name_to_container_details()
+        name_to_job_details = self._redis_controller.get_name_to_job_details()
 
         # Get job_id to job_name mapping, we sue job_id as unique identifier.
         job_id_to_job_name = self._get_job_id_to_job_name(name_to_job_details=name_to_job_details)
@@ -122,7 +120,6 @@ class JobTrackingAgent(multiprocessing.Process):
         for job_name, job_details in name_to_job_details.items():
             job_details["check_time"] = self._redis_controller.get_time()
             self._redis_controller.set_job_details(
-                cluster_name=self._cluster_name,
                 job_name=job_name,
                 job_details=job_details
             )
@@ -177,7 +174,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
             None.
         """
         # Get details and init params.
-        name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
+        name_to_node_details = self._redis_controller.get_name_to_node_details()
         name_to_container_details = {}
 
         # Iterate node_details.
@@ -185,10 +182,7 @@ class ContainerTrackingAgent(multiprocessing.Process):
             name_to_container_details.update(node_details["containers"])
 
         # Save name_to_container_details.
-        self._redis_controller.set_multiple_container_details(
-            cluster_name=self._cluster_name,
-            name_to_container_details=name_to_container_details
-        )
+        self._redis_controller.set_multiple_container_details(name_to_container_details=name_to_container_details)
 
 
 class ContainerRuntimeAgent(multiprocessing.Process):
@@ -228,9 +222,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         # Get details.
-        name_to_container_details = self._redis_controller.get_name_to_container_details(
-            cluster_name=self._cluster_name
-        )
+        name_to_container_details = self._redis_controller.get_name_to_container_details()
 
         # Iterate container status.
         for container_name, container_details in name_to_container_details.items():
@@ -244,10 +236,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             )
             if is_remove_container:
                 node_name = container_details["node_name"]
-                node_details = self._redis_controller.get_node_details(
-                    cluster_name=self._cluster_name,
-                    node_name=node_name
-                )
+                node_details = self._redis_controller.get_node_details(node_name=node_name)
                 NodeApiClientV1.remove_container(
                     node_hostname=node_details["hostname"],
                     node_api_server_port=node_details["api_server"]["port"],
@@ -370,15 +359,9 @@ class ContainerRuntimeAgent(multiprocessing.Process):
                 )
 
                 # Start a new container.
-                job_details = self._redis_controller.get_job_details(
-                    cluster_name=self._cluster_name,
-                    job_name=container_details["job_name"]
-                )
+                job_details = self._redis_controller.get_job_details(job_name=container_details["job_name"])
                 for container_name, node_name in allocation_plan.items():
-                    node_details = self._redis_controller.get_node_details(
-                        cluster_name=self._cluster_name,
-                        node_name=node_name
-                    )
+                    node_details = self._redis_controller.get_node_details(node_name=node_name)
                     self._start_container(
                         container_name=container_name,
                         node_details=node_details,
@@ -408,7 +391,7 @@ class ContainerRuntimeAgent(multiprocessing.Process):
         self._redis_controller.delete_rejoin_container_name_to_component_name(job_id=job_id)
 
         # Load details and vars.
-        name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
+        name_to_node_details = self._redis_controller.get_name_to_node_details()
 
         # Delete containers.
         for node_name, node_details in name_to_node_details.items():
@@ -561,7 +544,7 @@ class PendingJobAgent(multiprocessing.Process):
             None.
         """
         # Get tickets.
-        self._pending_jobs = self._redis_controller.get_pending_job_ticket(cluster_name=self._cluster_name)
+        self._pending_jobs = self._redis_controller.get_pending_job_ticket()
 
         # Get free resources at the very beginning.
         free_resources = ResourceController.get_free_resources(
@@ -572,10 +555,7 @@ class PendingJobAgent(multiprocessing.Process):
         # Iterate tickets.
         for pending_job_name in self._pending_jobs:
             # Get details.
-            job_details = self._redis_controller.get_job_details(
-                cluster_name=self._cluster_name,
-                job_name=pending_job_name
-            )
+            job_details = self._redis_controller.get_job_details(job_name=pending_job_name)
 
             # Get required resource
             required_resources = ResourceController.get_required_resources(job_details=job_details)
@@ -588,26 +568,17 @@ class PendingJobAgent(multiprocessing.Process):
                     free_resources=free_resources
                 )
                 for container_name, node_name in allocation_plan.items():
-                    node_details = self._redis_controller.get_node_details(
-                        cluster_name=self._cluster_name,
-                        node_name=node_name
-                    )
+                    node_details = self._redis_controller.get_node_details(node_name=node_name)
                     self._start_container(
                         container_name=container_name,
                         node_details=node_details,
                         job_details=job_details
                     )
-                self._redis_controller.remove_pending_job_ticket(
-                    cluster_name=self._cluster_name,
-                    job_name=pending_job_name
-                )
+                self._redis_controller.remove_pending_job_ticket(job_name=pending_job_name)
             except ResourceAllocationFailed as e:
                 logger.warning(f"Allocation failed with {e}")
             except StartContainerError as e:
-                self._redis_controller.remove_pending_job_ticket(
-                    cluster_name=self._cluster_name,
-                    job_name=pending_job_name
-                )
+                self._redis_controller.remove_pending_job_ticket(job_name=pending_job_name)
                 logger.warning(f"Start container failed with {e}")
 
     def _start_container(self, container_name: str, node_details: dict, job_details: dict):
@@ -730,15 +701,12 @@ class KilledJobAgent(multiprocessing.Process):
             None.
         """
         # Get tickets.
-        self._killed_job_tickets = self._redis_controller.get_killed_job_ticket(cluster_name=self._cluster_name)
+        self._killed_job_tickets = self._redis_controller.get_killed_job_ticket()
 
         # Iterate tickets.
         for job_name in self._killed_job_tickets:
             # Get details.
-            job_details = self._redis_controller.get_job_details(
-                cluster_name=self._cluster_name,
-                job_name=job_name
-            )
+            job_details = self._redis_controller.get_job_details(job_name=job_name)
             if job_details is not None:
                 # Kill job.
                 self._kill_job(job_details=job_details)
@@ -746,10 +714,7 @@ class KilledJobAgent(multiprocessing.Process):
                 logger.warning(f"{job_name} not exists, cannot be stopped")
 
             # Remove killed job ticket.
-            self._redis_controller.remove_killed_job_ticket(
-                cluster_name=self._cluster_name,
-                job_name=job_name
-            )
+            self._redis_controller.remove_killed_job_ticket(job_name=job_name)
 
     def _kill_job(self, job_details: dict) -> None:
         """Kill job and stop containers.
@@ -767,7 +732,7 @@ class KilledJobAgent(multiprocessing.Process):
         self._redis_controller.delete_rejoin_container_name_to_component_name(job_id=job_id)
 
         # Load details and vars.
-        name_to_node_details = self._redis_controller.get_name_to_node_details(cluster_name=self._cluster_name)
+        name_to_node_details = self._redis_controller.get_name_to_node_details()
 
         # Delete containers.
         for node_name, node_details in name_to_node_details.items():
@@ -1013,7 +978,7 @@ class ResourceController:
             list: List of NodeResource.
         """
         # Load details.
-        name_to_node_details = redis_controller.get_name_to_node_details(cluster_name=cluster_name)
+        name_to_node_details = redis_controller.get_name_to_node_details()
 
         # Get free resources.
         free_resources_list = []

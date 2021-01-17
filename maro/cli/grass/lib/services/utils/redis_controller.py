@@ -25,33 +25,33 @@ class RedisController:
 
     """Master Details Related."""
 
-    def get_master_details(self, cluster_name: str) -> dict:
+    def get_master_details(self) -> dict:
         return json.loads(
-            self._redis.get(f"{cluster_name}:master_details")
+            self._redis.get("master_details")
         )
 
-    def set_master_details(self, cluster_name: str, master_details: dict) -> None:
+    def set_master_details(self, master_details: dict) -> None:
         self._redis.set(
-            f"{cluster_name}:master_details",
+            f"master_details",
             json.dumps(master_details)
         )
 
-    def delete_master_details(self, cluster_name: str) -> None:
-        self._redis.delete(f"{cluster_name}:master_details")
+    def delete_master_details(self) -> None:
+        self._redis.delete("master_details")
 
     """Node Details Related."""
 
-    def get_name_to_node_details(self, cluster_name: str) -> dict:
+    def get_name_to_node_details(self) -> dict:
         name_to_node_details = self._redis.hgetall(
-            f"{cluster_name}:name_to_node_details"
+            "name_to_node_details"
         )
         for node_name, node_details_str in name_to_node_details.items():
             name_to_node_details[node_name] = json.loads(node_details_str)
         return name_to_node_details
 
-    def get_node_details(self, cluster_name: str, node_name: str) -> dict:
+    def get_node_details(self, node_name: str) -> dict:
         node_details = self._redis.hget(
-            f"{cluster_name}:name_to_node_details",
+            "name_to_node_details",
             node_name
         )
         if node_details is None:
@@ -59,157 +59,157 @@ class RedisController:
         else:
             return json.loads(node_details)
 
-    def set_node_details(self, cluster_name: str, node_name: str, node_details: dict) -> None:
+    def set_node_details(self, node_name: str, node_details: dict) -> None:
         self._redis.hset(
-            f"{cluster_name}:name_to_node_details",
+            "name_to_node_details",
             node_name,
             json.dumps(node_details)
         )
 
-    def delete_node_details(self, cluster_name: str, node_name: str) -> None:
+    def delete_node_details(self, node_name: str) -> None:
         self._redis.hdel(
-            f"{cluster_name}:name_to_node_details",
+            "name_to_node_details",
             node_name
         )
 
     """Job Details Related."""
 
-    def get_name_to_job_details(self, cluster_name: str) -> dict:
+    def get_name_to_job_details(self) -> dict:
         name_to_job_details = self._redis.hgetall(
-            f"{cluster_name}:name_to_job_details",
+            "name_to_job_details",
         )
         for job_name, job_details_str in name_to_job_details.items():
             name_to_job_details[job_name] = json.loads(job_details_str)
         return name_to_job_details
 
-    def get_job_details(self, cluster_name: str, job_name: str) -> dict:
+    def get_job_details(self, job_name: str) -> dict:
         return_str = self._redis.hget(
-            f"{cluster_name}:name_to_job_details",
+            "name_to_job_details",
             job_name
         )
         return json.loads(return_str) if return_str is not None else {}
 
-    def set_job_details(self, cluster_name: str, job_name: str, job_details: dict) -> None:
+    def set_job_details(self, job_name: str, job_details: dict) -> None:
         self._redis.hset(
-            f"{cluster_name}:name_to_job_details",
+            "name_to_job_details",
             job_name,
             json.dumps(job_details)
         )
 
-    def delete_job_details(self, cluster_name: str, job_name: str) -> None:
+    def delete_job_details(self, job_name: str) -> None:
         self._redis.hdel(
-            f"{cluster_name}:name_to_job_details",
+            "name_to_job_details",
             job_name
         )
 
     """Schedule Details Related."""
 
-    def get_name_to_schedule_details(self, cluster_name: str) -> dict:
+    def get_name_to_schedule_details(self) -> dict:
         name_to_schedule_details = self._redis.hgetall(
-            f"{cluster_name}:name_to_schedule_details",
+            "name_to_schedule_details",
         )
         for schedule_name, schedule_details_str in name_to_schedule_details.items():
             name_to_schedule_details[schedule_name] = json.loads(schedule_details_str)
         return name_to_schedule_details
 
-    def get_schedule_details(self, cluster_name: str, schedule_name: str) -> dict:
+    def get_schedule_details(self, schedule_name: str) -> dict:
         return_str = self._redis.hget(
-            f"{cluster_name}:name_to_schedule_details",
+            "name_to_schedule_details",
             schedule_name
         )
         return json.loads(return_str) if return_str is not None else {}
 
-    def set_schedule_details(self, cluster_name: str, schedule_name: str, schedule_details: dict) -> None:
+    def set_schedule_details(self, schedule_name: str, schedule_details: dict) -> None:
         self._redis.hset(
-            f"{cluster_name}:name_to_schedule_details",
+            "name_to_schedule_details",
             schedule_name,
             json.dumps(schedule_details)
         )
 
-    def delete_schedule_details(self, cluster_name: str, schedule_name: str) -> None:
+    def delete_schedule_details(self, schedule_name: str) -> None:
         self._redis.hdel(
-            f"{cluster_name}:name_to_schedule_details",
+            "name_to_schedule_details",
             schedule_name
         )
 
     """Container Details Related."""
 
-    def get_name_to_container_details(self, cluster_name: str) -> dict:
+    def get_name_to_container_details(self) -> dict:
         name_to_container_details = self._redis.hgetall(
-            f"{cluster_name}:name_to_container_details",
+            "name_to_container_details",
         )
         for container_name, container_details in name_to_container_details.items():
             name_to_container_details[container_name] = json.loads(container_details)
         return name_to_container_details
 
-    def set_multiple_container_details(self, cluster_name: str, name_to_container_details: dict) -> None:
-        self._redis.delete(f"{cluster_name}:container_details")
+    def set_multiple_container_details(self, name_to_container_details: dict) -> None:
+        self._redis.delete("container_details")
         if len(name_to_container_details) == 0:
             return
         else:
             for container_name, container_details in name_to_container_details.items():
                 name_to_container_details[container_name] = json.dumps(container_details)
             self._redis.hmset(
-                f"{cluster_name}:name_to_container_details",
+                "name_to_container_details",
                 name_to_container_details
             )
 
-    def set_container_details(self, cluster_name: str, container_name: str, container_details: dict) -> None:
+    def set_container_details(self, container_name: str, container_details: dict) -> None:
         self._redis.hset(
-            f"{cluster_name}:name_to_container_details",
+            "name_to_container_details",
             container_name,
             container_details
         )
 
     """Pending Job Tickets Related."""
 
-    def get_pending_job_ticket(self, cluster_name: str):
+    def get_pending_job_ticket(self):
         return self._redis.lrange(
-            f"{cluster_name}:pending_job_tickets",
+            "pending_job_tickets",
             0,
             -1
         )
 
-    def push_pending_job_ticket(self, cluster_name: str, job_name: str):
+    def push_pending_job_ticket(self, job_name: str):
         self._redis.rpush(
-            f"{cluster_name}:pending_job_tickets",
+            "pending_job_tickets",
             job_name
         )
 
-    def remove_pending_job_ticket(self, cluster_name: str, job_name: str):
+    def remove_pending_job_ticket(self, job_name: str):
         self._redis.lrem(
-            f"{cluster_name}:pending_job_tickets",
+            "pending_job_tickets",
             0,
             job_name
         )
 
-    def delete_pending_jobs_queue(self, cluster_name: str):
-        self._redis.delete(f"{cluster_name}:pending_job_tickets")
+    def delete_pending_jobs_queue(self):
+        self._redis.delete("pending_job_tickets")
 
     """Killed Job Tickets Related."""
 
-    def get_killed_job_ticket(self, cluster_name: str):
+    def get_killed_job_ticket(self):
         return self._redis.lrange(
-            f"{cluster_name}:killed_job_tickets",
+            "killed_job_tickets",
             0,
             -1
         )
 
-    def push_killed_job_ticket(self, cluster_name: str, job_name: str):
+    def push_killed_job_ticket(self, job_name: str):
         self._redis.rpush(
-            f"{cluster_name}:killed_job_tickets",
+            "killed_job_tickets",
             job_name
         )
 
-    def remove_killed_job_ticket(self, cluster_name: str, job_name: str):
+    def remove_killed_job_ticket(self, job_name: str):
         self._redis.lrem(
-            f"{cluster_name}:killed_job_tickets",
+            "killed_job_tickets",
             0,
             job_name
         )
 
-    def delete_killed_jobs_queue(self, cluster_name: str):
-        self._redis.delete(f"{cluster_name}:killed_job_tickets")
+    def delete_killed_jobs_queue(self):
+        self._redis.delete("killed_job_tickets")
 
     """Fault Tolerance Related"""
 
@@ -248,9 +248,9 @@ class RedisController:
 
     """User Related."""
 
-    def get_user_details(self, cluster_name: str, user_id: str) -> dict:
+    def get_user_details(self, user_id: str) -> dict:
         return_str = self._redis.hget(
-            f"{cluster_name}:id_to_user_details",
+            "id_to_user_details",
             user_id
         )
         return json.loads(return_str) if return_str is not None else {}

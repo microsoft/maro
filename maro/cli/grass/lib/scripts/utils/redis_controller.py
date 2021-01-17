@@ -12,9 +12,9 @@ class RedisController:
 
     """User Related."""
 
-    def set_user_details(self, cluster_name: str, user_id: str, user_details: dict) -> None:
+    def set_user_details(self, user_id: str, user_details: dict) -> None:
         return self._redis.hset(
-            f"{cluster_name}:id_to_user_details",
+            "id_to_user_details",
             user_id,
             json.dumps(obj=user_details)
         )

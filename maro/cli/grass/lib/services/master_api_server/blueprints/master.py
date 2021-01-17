@@ -31,7 +31,7 @@ def get_master():
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+    master_details = redis_controller.get_master_details()
     return master_details
 
 
@@ -54,10 +54,7 @@ def create_master(**kwargs):
     master_details["image_files"] = {}
     master_details["ssh"]["public_key"] = master_node_key_pair["public_key"]
 
-    redis_controller.set_master_details(
-        cluster_name=local_cluster_details["name"],
-        master_details=master_details
-    )
+    redis_controller.set_master_details(master_details=master_details)
 
     return master_details
 
@@ -71,7 +68,7 @@ def delete_master():
         None.
     """
 
-    redis_controller.delete_master_details(cluster_name=local_cluster_details["name"])
+    redis_controller.delete_master_details()
     return {}
 
 

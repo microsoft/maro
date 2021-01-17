@@ -6,7 +6,7 @@ import requests
 from flask import Blueprint
 
 from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details, local_master_details
+from ..objects import redis_controller
 
 # Flask related.
 
@@ -25,7 +25,7 @@ def list_jobs():
         None.
     """
 
-    name_to_job_details = redis_controller.get_name_to_job_details(cluster_name=local_cluster_details["name"])
+    name_to_job_details = redis_controller.get_name_to_job_details()
     return list(name_to_job_details.values())
 
 
@@ -38,10 +38,7 @@ def get_job(job_name: str):
         None.
     """
 
-    job_details = redis_controller.get_job_details(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
+    job_details = redis_controller.get_job_details(job_name=job_name)
     return job_details
 
 
@@ -56,12 +53,10 @@ def create_job(**kwargs):
 
     job_details = kwargs["json_dict"]
     redis_controller.set_job_details(
-        cluster_name=local_cluster_details["name"],
         job_name=job_details["name"],
         job_details=job_details
     )
     redis_controller.push_pending_job_ticket(
-        cluster_name=local_cluster_details["name"],
         job_name=job_details["name"]
     )
     return {}
@@ -76,18 +71,9 @@ def delete_job(job_name: str):
         None.
     """
 
-    redis_controller.remove_pending_job_ticket(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
-    redis_controller.push_killed_job_ticket(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
-    redis_controller.delete_job_details(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
+    redis_controller.remove_pending_job_ticket(job_name=job_name)
+    redis_controller.push_killed_job_ticket(job_name=job_name)
+    redis_controller.delete_job_details(job_name=job_name)
     return {}
 
 
@@ -100,14 +86,8 @@ def stop_job(job_name: str):
         None.
     """
 
-    redis_controller.remove_pending_job_ticket(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
-    redis_controller.push_killed_job_ticket(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
+    redis_controller.remove_pending_job_ticket(job_name=job_name)
+    redis_controller.push_killed_job_ticket(job_name=job_name)
     return {}
 
 
@@ -120,17 +100,14 @@ def clean_jobs():
         None.
     """
 
-    # Get params
-    master_api_server_port = local_master_details["api_server"]["port"]
-
     # Delete all job related resources.
-    redis_controller.delete_pending_jobs_queue(cluster_name=local_cluster_details["name"])
-    redis_controller.delete_killed_jobs_queue(cluster_name=local_cluster_details["name"])
-    name_to_node_details = redis_controller.get_name_to_node_details(
-        cluster_name=local_cluster_details["name"]
-    )
+    redis_controller.delete_pending_jobs_queue()
+    redis_controller.delete_killed_jobs_queue()
+    name_to_node_details = redis_controller.get_name_to_node_details()
     for _, node_details in name_to_node_details.items():
         node_hostname = node_details["hostname"]
         for container_name in node_details["containers"]:
-            requests.delete(url=f"http://{node_hostname}:{master_api_server_port}/containers/{container_name}")
+            requests.delete(
+                url=f"http://{node_hostname}:{node_details['api_server']['port']}/containers/{container_name}"
+            )
     return {}

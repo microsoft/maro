@@ -36,7 +36,7 @@ echo 'Step 2/{steps}: Install and launch redis'
 sudo -E docker pull redis
 sudo -E docker run -p {master_redis_port}:6379\
     -v {maro_shared_path}/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
-    --name maro-redis -d redis redis-server /maro/lib/grass/redis/redis.conf
+    --name maro-redis-{cluster_id} -d redis redis-server /maro/lib/grass/redis/redis.conf
 
 # install and launch samba
 echo 'Step 3/{steps}: Install and launch samba'
@@ -52,7 +52,7 @@ echo 'Step 4/{steps}: Install and launch fluentd'
 sudo -E docker pull fluent/fluentd
 sudo -E docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters/{cluster_name}/logs:/fluentd/log\
     -v {maro_shared_path}/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
-    -e FLUENTD_CONF=fluentd.conf --name maro-fluentd -d fluent/fluentd
+    -e FLUENTD_CONF=fluentd.conf --name maro-fluentd-{cluster_id} -d fluent/fluentd
 
 # install pip3 and redis
 echo 'Step 5/{steps}: Install pip3 and redis'
@@ -85,6 +85,7 @@ class MasterInitializer:
     def init_master(self):
         # Parse and exec command
         command = INIT_COMMAND.format(
+            cluster_id=self.cluster_details["id"],
             master_username=pwd.getpwuid(os.getuid()).pw_name,
             master_samba_password=self.master_details["samba"]["password"],
             maro_shared_path=Paths.ABS_MARO_SHARED,

@@ -53,7 +53,6 @@ class UserCreator:
 
         # Set user details.
         self._redis_controller.set_user_details(
-            cluster_name=self._local_cluster_details["name"],
             user_id=user_id,
             user_details={
                 "id": user_id,

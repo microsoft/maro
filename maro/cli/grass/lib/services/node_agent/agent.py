@@ -84,15 +84,11 @@ class NodeAgent:
             "check_time": self._redis_controller.get_time()
         }
         with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
-            node_details = self._redis_controller.get_node_details(
-                cluster_name=self._local_cluster_details["name"],
-                node_name=self._local_node_details["name"]
-            )
+            node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
             # May be node leaving here.
             if node_details:
                 node_details["state"] = state_details
                 self._redis_controller.set_node_details(
-                    cluster_name=self._local_cluster_details["name"],
                     node_name=self._local_node_details["name"],
                     node_details=node_details
                 )
@@ -102,10 +98,7 @@ class NodeAgent:
         self._init_resources()
 
     def _init_resources(self) -> None:
-        node_details = self._redis_controller.get_node_details(
-            cluster_name=self._local_cluster_details["name"],
-            node_name=self._local_node_details["name"]
-        )
+        node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
         resources_details = node_details["resources"]
 
         # Get resources info
@@ -130,13 +123,9 @@ class NodeAgent:
 
         # Set resource details
         with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
-            node_details = self._redis_controller.get_node_details(
-                cluster_name=self._local_cluster_details["name"],
-                node_name=self._local_node_details["name"]
-            )
+            node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
             node_details["resources"] = resources_details
             self._redis_controller.set_node_details(
-                cluster_name=self._local_cluster_details["name"],
                 node_name=self._local_node_details["name"],
                 node_details=node_details
             )
@@ -187,10 +176,7 @@ class NodeTrackingAgent(multiprocessing.Process):
         """
         # Get or init details.
 
-        node_details = self._redis_controller.get_node_details(
-            cluster_name=self._local_cluster_details["name"],
-            node_name=self._local_node_details["name"]
-        )
+        node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
 
         # Containers related
         name_to_container_details = {}
@@ -216,15 +202,11 @@ class NodeTrackingAgent(multiprocessing.Process):
 
         # Save details.
         with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
-            node_details = self._redis_controller.get_node_details(
-                cluster_name=self._local_cluster_details["name"],
-                node_name=self._local_node_details["name"]
-            )
+            node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
             node_details["containers"] = name_to_container_details
             node_details["resources"] = resources_details
             node_details["state"] = state_details
             self._redis_controller.set_node_details(
-                cluster_name=self._local_cluster_details["name"],
                 node_name=self._local_node_details["name"],
                 node_details=node_details
             )
@@ -395,11 +377,8 @@ class LoadImageAgent(multiprocessing.Process):
             None.
         """
 
-        master_details = self._redis_controller.get_master_details(cluster_name=self._local_cluster_details["name"])
-        node_details = self._redis_controller.get_node_details(
-            cluster_name=self._local_cluster_details["name"],
-            node_name=self._local_node_details["name"]
-        )
+        master_details = self._redis_controller.get_master_details()
+        node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
         name_to_image_file_details_in_master = master_details["image_files"]
         name_to_image_file_details_in_node = node_details["image_files"]
 
@@ -426,14 +405,10 @@ class LoadImageAgent(multiprocessing.Process):
             )
 
         with self._redis_controller.lock(f"lock:name_to_node_details:{self._local_node_details['name']}"):
-            node_details = self._redis_controller.get_node_details(
-                cluster_name=self._local_cluster_details["name"],
-                node_name=self._local_node_details["name"]
-            )
+            node_details = self._redis_controller.get_node_details(node_name=self._local_node_details["name"])
             # Update with mapping in master.
             node_details["image_files"] = name_to_image_file_details_in_master
             self._redis_controller.set_node_details(
-                cluster_name=self._local_cluster_details["name"],
                 node_name=self._local_node_details["name"],
                 node_details=node_details
             )

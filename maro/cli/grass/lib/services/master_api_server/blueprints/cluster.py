@@ -25,7 +25,7 @@ def get_cluster():
     """
 
     cluster_details = redis_controller.get_cluster_details()
-    cluster_details["master"] = redis_controller.get_master_details(cluster_name=cluster_details["name"])
+    cluster_details["master"] = redis_controller.get_master_details()
     return cluster_details
 
 

@@ -5,7 +5,7 @@
 from flask import Blueprint
 
 from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details
+from ..objects import redis_controller
 
 # Flask related.
 
@@ -24,7 +24,5 @@ def list_containers():
         None.
     """
 
-    name_to_container_details = redis_controller.get_name_to_container_details(
-        cluster_name=local_cluster_details["name"]
-    )
+    name_to_container_details = redis_controller.get_name_to_container_details()
     return list(name_to_container_details.values())

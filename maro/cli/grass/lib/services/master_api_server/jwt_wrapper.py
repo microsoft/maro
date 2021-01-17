@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from flask import request, abort, Response
 
-from .objects import redis_controller, local_cluster_details
+from .objects import redis_controller
 
 logger = logging.getLogger(name=__name__)
 
@@ -31,10 +31,7 @@ def check_jwt_validity(func):
         payload = jwt.decode(jwt=jwt_token, options={"verify_signature": False})
 
         # Get user_details
-        user_details = redis_controller.get_user_details(
-            cluster_name=local_cluster_details["name"],
-            user_id=payload["user_id"]
-        )
+        user_details = redis_controller.get_user_details(user_id=payload["user_id"])
 
         # Get decrypted_bytes
         if request.data != b'':
