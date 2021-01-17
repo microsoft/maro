@@ -40,6 +40,8 @@ class GrassExecutor:
         # Master configs
         self.master_username = self.cluster_details["master"]["username"]
         self.master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        self.master_private_ip_address = self.cluster_details["master"]["private_ip_address"]
+        self.master_redis_port = self.cluster_details["master"]["redis"]["port"]
         self.master_hostname = self.cluster_details["master"]["hostname"]
         self.master_api_client = MasterApiClientV1(
             master_hostname=self.master_public_ip_address,

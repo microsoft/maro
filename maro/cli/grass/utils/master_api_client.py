@@ -22,6 +22,14 @@ class MasterApiClientV1:
             dev_to_master_signing_private_key=dev_to_master_signing_private_key
         )
 
+    # Cluster related.
+
+    def create_cluster(self, cluster_details: dict) -> dict:
+        return self._encrypted_requests.post(
+            url=f"{self._master_api_server_url_prefix}/cluster",
+            json_dict=cluster_details
+        )
+
     # Master related.
 
     def get_master(self) -> dict:

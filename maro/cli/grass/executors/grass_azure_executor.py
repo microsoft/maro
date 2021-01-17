@@ -249,15 +249,17 @@ class GrassAzureExecutor(GrassExecutor):
         GrassAzureExecutor._init_master(cluster_details=cluster_details)
         GrassAzureExecutor._create_user(cluster_details=cluster_details)
 
-        # Remote create master after initialization
-        MasterApiClientV1(
+        # Remote create master, create cluster after initialization
+        master_api_client = MasterApiClientV1(
             master_hostname=cluster_details["master"]["public_ip_address"],
             master_api_server_port=cluster_details["master"]["api_server"]["port"],
             user_id=cluster_details["user"]["id"],
             master_to_dev_encryption_private_key=cluster_details["user"]["master_to_dev_encryption_private_key"],
             dev_to_master_encryption_public_key=cluster_details["user"]["dev_to_master_encryption_public_key"],
             dev_to_master_signing_private_key=cluster_details["user"]["dev_to_master_signing_private_key"]
-        ).create_master(master_details=cluster_details["master"])
+        )
+        master_api_client.create_master(master_details=cluster_details["master"])
+        master_api_client.create_cluster(cluster_details=cluster_details)
 
         logger.info_green("MARO Master is created")
 
@@ -528,9 +530,9 @@ class GrassAzureExecutor(GrassExecutor):
         join_cluster_deployment = {
             "mode": "grass/azure",
             "master": {
-                "hostname": self.master_hostname,
-                "api_server": {
-                    "port": self.api_server_port
+                "private_ip_address": self.master_private_ip_address,
+                "redis": {
+                    "port": self.master_redis_port
                 }
             },
             "node": {

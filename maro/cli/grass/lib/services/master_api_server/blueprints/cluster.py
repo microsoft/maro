@@ -5,8 +5,7 @@
 from flask import Blueprint
 
 from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details
-from ...utils.details_reader import DetailsReader
+from ..objects import redis_controller
 
 # Flask related.
 
@@ -25,6 +24,21 @@ def get_cluster():
         None.
     """
 
-    cluster_details = DetailsReader.load_cluster_details(cluster_name=local_cluster_details["name"])
-    cluster_details["master"] = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+    cluster_details = redis_controller.get_cluster_details()
+    cluster_details["master"] = redis_controller.get_master_details(cluster_name=cluster_details["name"])
+    return cluster_details
+
+
+@blueprint.route(f"{URL_PREFIX}", methods=["POST"])
+@check_jwt_validity
+def create_cluster(**kwargs):
+    """Create cluster.
+
+    Returns:
+        None.
+    """
+
+    cluster_details = kwargs["json_dict"]
+
+    redis_controller.set_cluster_details(cluster_details=cluster_details)
     return cluster_details

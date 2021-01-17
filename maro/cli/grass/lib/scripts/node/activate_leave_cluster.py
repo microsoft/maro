@@ -6,8 +6,10 @@
 """
 
 import os
+import subprocess
+import sys
 
-import requests
+import redis
 import yaml
 
 
@@ -30,23 +32,58 @@ class DetailsReader:
         return node_details
 
 
-class MasterApiClientV1:
-    def __init__(self, master_hostname: str, master_api_server_port: int):
-        self.master_api_server_url_prefix = f"http://{master_hostname}:{master_api_server_port}/v1"
+class RedisController:
+    def __init__(self, host: str, port: int):
+        self._redis = redis.Redis(host=host, port=port, encoding="utf-8", decode_responses=True)
 
-    # Node related.
+    """Node Details Related."""
 
-    def delete_node(self, node_name: str) -> int:
-        response = requests.delete(url=f"{self.master_api_server_url_prefix}/nodes/{node_name}")
-        return response.json()
+    def delete_node_details(self, cluster_name: str, node_name: str) -> None:
+        self._redis.hdel(
+            f"{cluster_name}:name_to_node_details",
+            node_name
+        )
+
+
+class Subprocess:
+    @staticmethod
+    def run(command: str, timeout: int = None) -> None:
+        """Run one-time command with subprocess.run().
+
+        Args:
+            command (str): command to be executed.
+            timeout (int): timeout in seconds.
+
+        Returns:
+            str: return stdout of the command.
+        """
+        # TODO: Windows node
+        completed_process = subprocess.run(
+            command,
+            shell=True,
+            executable="/bin/bash",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            timeout=timeout
+        )
+        if completed_process.returncode != 0:
+            raise Exception(completed_process.stderr)
+        sys.stderr.write(completed_process.stderr)
 
 
 if __name__ == '__main__':
     local_cluster_details = DetailsReader.load_local_cluster_details()
     local_node_details = DetailsReader.load_local_node_details()
 
-    master_api_client = MasterApiClientV1(
-        master_hostname=local_cluster_details["master"]["hostname"],
-        master_api_server_port=local_cluster_details["master"]["api_server"]["port"]
+    command = f"python3 {Paths.MARO_LOCAL}/scripts/leave_cluster.py"
+    Subprocess.run(command=command)
+
+    redis_controller = RedisController(
+        host=local_cluster_details["master"]["private_ip_address"],
+        port=local_cluster_details["master"]["redis"]["port"]
     )
-    master_api_client.delete_node(local_node_details["name"])
+    redis_controller.delete_node_details(
+        cluster_name=local_cluster_details["name"],
+        node_name=local_node_details["name"]
+    )

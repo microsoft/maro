@@ -12,6 +12,17 @@ class RedisController:
     def __init__(self, host: str, port: int):
         self._redis = redis.Redis(host=host, port=port, encoding="utf-8", decode_responses=True)
 
+    """Cluster Details Related."""
+
+    def get_cluster_details(self):
+        return json.loads(self._redis.get("cluster_details"))
+
+    def set_cluster_details(self, cluster_details: dict):
+        self._redis.set(
+            "cluster_details",
+            json.dumps(cluster_details)
+        )
+
     """Master Details Related."""
 
     def get_master_details(self, cluster_name: str) -> dict:

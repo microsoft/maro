@@ -7,6 +7,7 @@
 
 import argparse
 import functools
+import json
 import operator
 import os
 import pathlib
@@ -14,10 +15,12 @@ import pwd
 import shutil
 import subprocess
 import sys
+import uuid
 
 import deepdiff
-import requests
+import redis
 import yaml
+from redis.lock import Lock
 
 # Commands
 
@@ -54,7 +57,14 @@ echo "{public_key}" >> ~/.ssh/authorized_keys
 
 class Params:
     DEFAULT_SSH_PORT = 22
+    DEFAULT_REDIS_PORT = 6379
     DEFAULT_API_SERVER_PORT = 51812
+
+
+class NodeStatus:
+    PENDING = "Pending"
+    RUNNING = "Running"
+    STOPPED = "Stopped"
 
 
 class Paths:
@@ -65,18 +75,51 @@ class Paths:
     ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
 
 
+class NameCreator:
+    @staticmethod
+    def create_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
+        postfix = uuid.uuid4().hex[:uuid_len]
+        return f"{prefix}{postfix}"
+
+    @staticmethod
+    def create_node_name():
+        return NameCreator.create_name_with_uuid(prefix="node", uuid_len=8)
+
+
 class NodeJoiner:
     def __init__(self, join_cluster_deployment: dict):
         self.join_cluster_deployment = join_cluster_deployment
+        self.node_details = self.join_cluster_deployment["node"]
 
-        master_api_client = MasterApiClientV1(
-            master_hostname=join_cluster_deployment["master"]["hostname"],
-            api_server_port=join_cluster_deployment["master"]["api_server"]["port"]
+        redis_controller = RedisController(
+            host=join_cluster_deployment["master"]["private_ip_address"],
+            port=join_cluster_deployment["master"]["redis"]["port"]
         )
-        self.node_details = master_api_client.create_node(node_details=join_cluster_deployment["node"])
+        self.cluster_details = redis_controller.get_cluster_details()
 
-        self.cluster_details = master_api_client.get_cluster()
-        self.master_details = master_api_client.get_master()
+        self.node_details = self._init_node_details(node_details=self.node_details)
+        with redis_controller.lock(f"lock:name_to_node_details:{self.node_details['name']}"):
+            redis_controller.set_node_details(
+                cluster_name=self.cluster_details["name"],
+                node_details=self.node_details
+            )
+
+        self.master_details = redis_controller.get_master_details(cluster_name=self.cluster_details["name"])
+
+    @staticmethod
+    def _init_node_details(node_details: dict):
+        # Init runtime params.
+        if "name" not in node_details and "id" not in node_details:
+            node_name = NameCreator.create_node_name()
+            node_details["name"] = node_name
+            node_details["id"] = node_name
+        node_details["image_files"] = {}
+        node_details["containers"] = {}
+        node_details["state"] = {
+            "status": NodeStatus.PENDING
+        }
+
+        return node_details
 
     @staticmethod
     def create_docker_user():
@@ -86,7 +129,7 @@ class NodeJoiner:
     def setup_samba_mount(self):
         command = SETUP_SAMBA_MOUNT_COMMAND.format(
             master_username=self.master_details["username"],
-            master_hostname=self.master_details["hostname"],
+            master_hostname=self.master_details["private_ip_address"],
             master_samba_password=self.master_details["samba"]["password"],
             maro_shared_path=Paths.ABS_MARO_SHARED
         )
@@ -150,8 +193,8 @@ class NodeJoiner:
         join_cluster_deployment_template = {
             "mode": "",
             "master": {
-                "hostname": "",
-                "api_server": {
+                "private_ip_address": "",
+                "redis": {
                     "port": ""
                 }
             },
@@ -176,8 +219,8 @@ class NodeJoiner:
             template_dict=join_cluster_deployment_template,
             actual_dict=join_cluster_deployment,
             optional_key_to_value={
-                "root['master']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
-                "root['master']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
+                "root['master']['redis']": {"port": Params.DEFAULT_REDIS_PORT},
+                "root['master']['redis']['port']": Params.DEFAULT_REDIS_PORT,
                 "root['node']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
                 "root['node']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
                 "root['node']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
@@ -188,38 +231,46 @@ class NodeJoiner:
         return join_cluster_deployment
 
 
-class MasterApiClientV1:
-    def __init__(self, master_hostname: str, api_server_port: int):
-        self.master_api_server_url_prefix = f"http://{master_hostname}:{api_server_port}/v1"
+class RedisController:
+    def __init__(self, host: str, port: int):
+        self._redis = redis.Redis(host=host, port=port, encoding="utf-8", decode_responses=True)
 
-    # Cluster related.
+    """Cluster Details Related."""
 
-    def get_cluster(self) -> dict:
-        response = requests.get(url=f"{self.master_api_server_url_prefix}/cluster")
-        return response.json()
+    def get_cluster_details(self) -> dict:
+        return json.loads(self._redis.get("cluster_details"))
 
-    # Master related.
+    """Master Details Related."""
 
-    def get_master(self):
-        response = requests.get(url=f"{self.master_api_server_url_prefix}/master")
-        return response.json()
+    def get_master_details(self, cluster_name: str) -> dict:
+        return json.loads(
+            self._redis.get(f"{cluster_name}:master_details")
+        )
 
-    # Node related.
+    """Node Details Related."""
 
-    def list_nodes(self) -> list:
-        response = requests.get(url=f"{self.master_api_server_url_prefix}/nodes")
-        return response.json()
+    def set_node_details(self, cluster_name: str, node_details: dict) -> None:
+        self._redis.hset(
+            f"{cluster_name}:name_to_node_details",
+            node_details["name"],
+            json.dumps(node_details)
+        )
 
-    def get_name_to_node_details(self) -> dict:
-        nodes_details = self.list_nodes()
-        name_to_node_details = {}
-        for node_details in nodes_details:
-            name_to_node_details[node_details["name"]] = node_details
-        return name_to_node_details
+    """Utils."""
 
-    def create_node(self, node_details: dict) -> dict:
-        response = requests.post(url=f"{self.master_api_server_url_prefix}/nodes", json=node_details)
-        return response.json()
+    def lock(self, name: str) -> Lock:
+        """ Get a new lock with redis.
+
+        Use 'with lock(name):' paradigm to do the locking.
+
+        Args:
+            name (str): name of the lock.
+
+        Returns:
+            redis.lock.Lock: lock from the redis.
+        """
+
+        return self._redis.lock(name=name)
 
 
 class DeploymentValidator:
