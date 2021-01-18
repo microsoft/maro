@@ -3,6 +3,8 @@
 
 from typing import List
 
+from .enums import VmCategory
+
 
 class VirtualMachine:
     """VM object.
@@ -27,7 +29,7 @@ class VirtualMachine:
         lifetime: int,
         sub_id: int,
         deployment_id: int,
-        category: int
+        category: VmCategory
     ):
         # VM Requirement parameters.
         self.id: int = id
@@ -39,7 +41,7 @@ class VirtualMachine:
         # The region of PM that VM allocated (under a subscription) called a deployment group.
         self.deployment_id: int = deployment_id
         # The category of the VM. Now includes Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
-        self.category: int = category
+        self.category: VmCategory = category
 
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []

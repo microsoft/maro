@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum, IntEnum
 from typing import List
 
 from .virtual_machine import VirtualMachine
@@ -82,14 +81,6 @@ class DecisionPayload:
         self.remaining_buffer_time = remaining_buffer_time
 
 
-class PostponeType(Enum):
-    """Postpone type."""
-    # Postpone the VM requirement due to the resource exhaustion.
-    Resource = 'resource'
-    # Postpone the VM requirement due to the agent's decision.
-    Agent = 'agent'
-
-
 class Latency:
     """Accumulative latency.
 
@@ -106,16 +97,3 @@ class Latency:
 
     def __str__(self):
         return f'Latency(Agent={self.due_to_agent}, Resource={self.due_to_resource})'
-
-
-class PmState(IntEnum):
-    """PM oversubscription state, includes empty, oversubscribable, non-oversubscribable."""
-    NON_OVERSUBSCRIBABLE = -1
-    EMPTY = 0
-    OVERSUBSCRIBABLE = 1
-
-
-class VmCategory(IntEnum):
-    DELAY_INSENSITIVE = 0
-    INTERACTIVE = 1
-    UNKNOWN = 2

@@ -5,7 +5,7 @@ from typing import List, Set
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
-from .common import PmState
+from .enums import PmState
 from .virtual_machine import VirtualMachine
 
 
@@ -58,8 +58,8 @@ class PhysicalMachine(NodeBase):
             id (int): PM id, from 0 to N. N means the amount of PM, which can be set in config.
             cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
             memory_capacity (int): The capacity of memory of the PM, which can be set in config.
-            sku_type (int): The SKU type of the PM.
-            oversubscribable (int): The type of the PM:
+            pm_type (int): The type of the PM.
+            oversubscribable (int): The state of the PM:
                                     - non-oversubscribable: -1.
                                     - empty: 0.
                                     - oversubscribable: 1.

@@ -17,11 +17,9 @@ from maro.simulator.scenarios.helpers import DocableDict
 from maro.utils.logger import CliLogger
 from maro.utils.utils import convert_dottable
 
-from .common import (
-    AllocateAction, DecisionPayload, Latency, PmState, PostponeAction, PostponeType, VmCategory, VmRequestPayload
-)
+from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
 from .cpu_reader import CpuReader
-from .events import Events
+from .enums import Events, PostponeType, PmState, VmCategory
 from .frame_builder import build_frame
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
@@ -231,7 +229,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 lifetime=vm.vm_lifetime,
                 sub_id=vm.sub_id,
                 deployment_id=vm.deploy_id,
-                category=vm.vm_category
+                category=VmCategory(vm.vm_category)
             )
 
             if vm.vm_id not in cur_tick_cpu_utilization:
@@ -411,13 +409,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Add failed allocation.
             self._failed_allocation += 1
 
-    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int, vm_category: int) -> List[int]:
+    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int, vm_category: VmCategory) -> List[int]:
         """Check all valid PMs.
 
         Args:
             vm_cpu_cores_requirement (int): The CPU cores requested by the VM.
             vm_memory_requirement (int): The memory requested by the VM.
-            vm_category (int): The VM category. Delay-insensitive: 0, Interactive: 1, Unknown: 2.
+            vm_category (VmCategory): The VM category. Delay-insensitive: 0, Interactive: 1, Unknown: 2.
         """
         # NOTE: Should we implement this logic inside the action scope?
         valid_pm_list = []
