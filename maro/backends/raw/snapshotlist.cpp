@@ -329,7 +329,7 @@ namespace maro
         {
           return _nan_attr;
         }
-        
+
         auto& cur_node = _cur_frame->get_node(node_type);
         const auto& attr_def = cur_node.get_attr_definition(attr_type);
 
@@ -461,7 +461,7 @@ namespace maro
                 else
                 {
                   file << ",\"[";
-                  
+
                   auto slot_number = history_node.get_slot_number(node_index, attr_def.attr_type);
 
                   for(SLOT_INDEX slot_index = 0; slot_index < slot_number; slot_index++)
@@ -473,7 +473,6 @@ namespace maro
 
                   file << "]\"";
                 }
-                
               }
 
               file << "\n";

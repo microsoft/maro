@@ -48,7 +48,7 @@ namespace maro
 
         // Copy dynamic block.
         if (node._dynamic_block.size() > 0)
-        {        
+        {
           // Copy according to max_node number, as memory block may larger than it (after reset).
           auto valid_dynamic_size = node._dynamic_size_per_node * node._max_node_number;
 
@@ -187,7 +187,7 @@ namespace maro
         ensure_attr_index(attr_index);
 
         return _attribute_definitions[attr_index];
-      } 
+      }
 
       bool Node::is_node_alive(NODE_INDEX node_index) const noexcept
       {
@@ -264,7 +264,7 @@ namespace maro
 
         // Clear all attribute to 0.
         memset(&_dynamic_block[0], 0, _dynamic_block.size() * sizeof(Attribute));
-        
+
         // Clear all list attribute.
         for (auto& list : _list_store)
         {
@@ -340,7 +340,7 @@ namespace maro
 
         _node_instance_masks.set(node_index, false);
       }
-  
+
       void Node::resume_node(NODE_INDEX node_index)
       {
         ensure_setup();

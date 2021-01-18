@@ -208,8 +208,8 @@ namespace maro
       };
 
       /// <summary>
-     /// Tick not supported, like negative tick
-     /// </summary>
+      /// Tick not supported, like negative tick
+      /// </summary>
       struct SnapshotTickError : public exception
       {
         const char* what() const noexcept override;

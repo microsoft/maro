@@ -118,14 +118,12 @@ namespace maro
       void Frame::remove_node(NODE_TYPE node_type, NODE_INDEX node_index)
       {
         auto& node = get_node(node_type);
-        
         node.remove_node(node_index);
       }
 
       void Frame::resume_node(NODE_TYPE node_type, NODE_INDEX node_index)
       {
         auto& node = get_node(node_type);
-        
         node.resume_node(node_index);
       }
 

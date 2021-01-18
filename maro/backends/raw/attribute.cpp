@@ -108,7 +108,7 @@ namespace maro
     memcpy(_data, &value, sizeof(data_type));                 \
     _type = value_type;                                       \
     return *this;                                             \
-   }
+  }
 
       SETTER(ATTR_CHAR, AttrDataType::ACHAR)
       SETTER(ATTR_UCHAR, AttrDataType::AUCHAR)
