@@ -125,12 +125,24 @@ class GrassOnPremisesExecutor(GrassExecutor):
     def _join_cluster(join_cluster_deployment: dict):
         logger.info(f"Joining the cluster")
 
+        # Get standardized join_cluster_deployment
+        join_cluster_deployment = GrassOnPremisesExecutor._standardize_join_cluster_deployment(
+            join_cluster_deployment=join_cluster_deployment
+        )
+
         # Save join_cluster_deployment TODO: do checking, already join another node
-        with open(file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml", mode="w") as fw:
-            yaml.safe_dump(data=join_cluster_deployment, stream=fw)
+        yaml.safe_dump(
+            data=join_cluster_deployment,
+            stream=open(
+                file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml",
+                mode="w"
+            )
+        )
 
         # Copy required files
-        local_path_to_remote_dir = {f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml": "~/"}
+        local_path_to_remote_dir = {
+            f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml": GlobalPaths.MARO_LOCAL_TMP
+        }
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
@@ -147,12 +159,44 @@ class GrassOnPremisesExecutor(GrassExecutor):
             node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"],
             master_hostname=join_cluster_deployment["master"]["hostname"],
             master_api_server_port=join_cluster_deployment["master"]["api_server"]["port"],
-            deployment_path=f"~/on_premises_join_cluster_deployment.yml"
+            deployment_path=f"{GlobalPaths.MARO_LOCAL_TMP}/join_cluster_deployment.yml"
         )
 
-        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml")
+        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml")
 
         logger.info_green(f"Node is joined to the cluster")
+
+    @staticmethod
+    def _standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
+        optional_key_to_value = {
+            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
+            "root['node']['resources']": {
+                "cpu": "all",
+                "memory": "all",
+                "gpu": "all"
+            },
+            "root['node']['resources']['cpu']": "all",
+            "root['node']['resources']['memory']": "all",
+            "root['node']['resources']['gpu']": "all",
+            "root['node']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
+            "root['node']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT,
+            "root['node']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
+            "root['node']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT
+        }
+        create_deployment_template = yaml.safe_load(
+            stream=open(
+                file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_on_premises_join_cluster.yml",
+                mode="r"
+            )
+        )
+        DeploymentValidator.validate_and_fill_dict(
+            template_dict=create_deployment_template,
+            actual_dict=join_cluster_deployment,
+            optional_key_to_value=optional_key_to_value
+        )
+
+        return join_cluster_deployment
 
     # maro grass leave
 
