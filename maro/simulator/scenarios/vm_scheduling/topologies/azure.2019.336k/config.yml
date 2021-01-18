@@ -25,7 +25,7 @@ MAX_UTILIZATION_RATE: 1
 
 PM:
   - PM_type: 0
-    amount: 440
+    amount: 880
     CPU: 16
   # GPU: 0
     memory: 112
@@ -33,12 +33,12 @@ PM:
       calibration_parameter: 1.4
       busy_power: 10
       idle_power: 1
-  - PM_type: 1
-    amount: 440
-    CPU: 16
-  # GPU: 0
-    memory: 112
-    power_curve:
-      calibration_parameter: 1.4
-      busy_power: 10
-      idle_power: 1
+# - PM_type: 1
+#   amount: 440
+#   CPU: 16
+#   GPU: 0
+#   memory: 112
+#   power_curve:
+#     calibration_parameter: 1.4
+#     busy_power: 10
+#     idle_power: 1
