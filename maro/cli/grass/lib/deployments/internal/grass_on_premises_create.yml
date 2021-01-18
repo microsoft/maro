@@ -1,6 +1,9 @@
 name: ""
 mode: ""
 
+user:
+  admin_id: ""
+
 master:
   username: ""
   hostname: ""
