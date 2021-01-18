@@ -24,7 +24,7 @@ MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 MAX_UTILIZATION_RATE: 1
 
 PM:
-  - PM_type: 0
+  - PM_type: 0 # PM type is currently "int" only.
     amount: 880
     CPU: 16
   # GPU: 0

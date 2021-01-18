@@ -565,9 +565,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 pm = self._machines[pm_id]
 
                 # Empty pm (init state).
-                if pm.oversubscribable == 0:
+                if pm.oversubscribable == PmState.EMPTY:
                     # Delay-Insensitive: oversubscribable.
-                    if not vm.category:
+                    if vm.category == VmCategory.DELAY_INSENSITIVE:
                         pm.oversubscribable = PmState.OVERSUBSCRIBABLE
                     # Interactive or Unknown: non-oversubscribable
                     else:
