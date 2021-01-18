@@ -13,8 +13,9 @@ import yaml
 from maro.cli.grass.utils.docker_controller import DockerController
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
-from maro.cli.grass.utils.params import GrassPaths
+from maro.cli.grass.utils.params import GrassPaths, UserRole
 from maro.cli.utils.deployment_validator import DeploymentValidator
+from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalPaths
 from maro.cli.utils.subprocess import Subprocess
@@ -35,17 +36,100 @@ class GrassExecutor:
         self.cluster_id = self.cluster_details["id"]
 
         # User configs
-        self.master_username = self.cluster_details["master"]["username"]
+        self.user_details = self._get_default_user_details()
 
         # Master configs
+        self.master_username = self.cluster_details["master"]["username"]
         self.master_public_ip_address = self.cluster_details["master"]["public_ip_address"]
+        self.master_private_ip_address = self.cluster_details["master"]["private_ip_address"]
+        self.master_redis_port = self.cluster_details["master"]["redis"]["port"]
         self.master_hostname = self.cluster_details["master"]["hostname"]
         self.master_api_client = MasterApiClientV1(
             master_hostname=self.master_public_ip_address,
-            master_api_server_port=self.cluster_details["master"]["api_server"]["port"]
+            master_api_server_port=self.cluster_details["master"]["api_server"]["port"],
+            user_id=self.user_details["id"],
+            master_to_dev_encryption_private_key=self.user_details["master_to_dev_encryption_private_key"],
+            dev_to_master_encryption_public_key=self.user_details["dev_to_master_encryption_public_key"],
+            dev_to_master_signing_private_key=self.user_details["dev_to_master_signing_private_key"]
         )
         self.master_ssh_port = self.cluster_details["master"]["ssh"]["port"]
         self.master_api_server_port = self.cluster_details["master"]["api_server"]["port"]
+
+    # maro grass create
+
+    @staticmethod
+    def _init_master(cluster_details: dict):
+        logger.info("Initializing Master VM")
+
+        # Make sure master is able to connect
+        GrassExecutor.retry_connection(
+            node_username=cluster_details["master"]["username"],
+            node_hostname=cluster_details["master"]["public_ip_address"],
+            node_ssh_port=cluster_details["master"]["ssh"]["port"]
+        )
+
+        DetailsWriter.save_cluster_details(
+            cluster_name=cluster_details["name"],
+            cluster_details=cluster_details
+        )
+
+        # Copy required files
+        local_path_to_remote_dir = {
+            GrassPaths.ABS_MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
+            f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
+        }
+        for local_path, remote_dir in local_path_to_remote_dir.items():
+            FileSynchronizer.copy_files_to_node(
+                local_path=local_path,
+                remote_dir=remote_dir,
+                node_username=cluster_details["master"]["username"],
+                node_hostname=cluster_details["master"]["public_ip_address"],
+                node_ssh_port=cluster_details["master"]["ssh"]["port"]
+            )
+
+        # Remote init master
+        GrassExecutor.remote_init_master(
+            master_username=cluster_details["master"]["username"],
+            master_hostname=cluster_details["master"]["public_ip_address"],
+            master_ssh_port=cluster_details["master"]["ssh"]["port"],
+            cluster_name=cluster_details["name"]
+        )
+        # Gracefully wait
+        time.sleep(10)
+
+        logger.info_green("Master VM is initialized")
+
+    @staticmethod
+    def _create_user(cluster_details: dict):
+        # Remote create user
+        user_details = GrassExecutor.remote_create_user(
+            master_username=cluster_details["master"]["username"],
+            master_hostname=cluster_details["master"]["public_ip_address"],
+            master_ssh_port=cluster_details["master"]["ssh"]["port"],
+            user_id=cluster_details["user"]["admin_id"],
+            user_role=UserRole.ADMIN
+        )
+
+        # Update user_details, "admin_id" change to "id"
+        cluster_details["user"] = user_details
+
+        # Save dev_to_master private key
+        os.makedirs(
+            name=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}",
+            exist_ok=True
+        )
+        with open(
+            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/{user_details['id']}/user_details",
+            mode="w"
+        ) as fw:
+            yaml.safe_dump(
+                data=user_details,
+                stream=fw
+            )
+
+        # Save default user
+        with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_details['name']}/users/default_user", mode="w") as fw:
+            fw.write(user_details["id"])
 
     # maro grass node
 
@@ -175,7 +259,7 @@ class GrassExecutor:
         try:
             FileSynchronizer.copy_files_from_node(
                 local_dir=export_dir,
-                remote_path=f"{GlobalPaths.MARO_SHARED}/logs/{job_details['id']}",
+                remote_path=f"{GlobalPaths.MARO_SHARED}/clusters/{self.cluster_name}/logs/{job_details['id']}",
                 node_username=self.master_username,
                 node_hostname=self.master_public_ip_address,
                 node_ssh_port=self.master_ssh_port
@@ -314,6 +398,19 @@ class GrassExecutor:
         Subprocess.interactive_run(command=command)
 
     @staticmethod
+    def remote_create_user(
+        master_username: str, master_hostname: str, master_ssh_port: int,
+        user_id: str, user_role: str
+    ) -> dict:
+        command = (
+            f"ssh -o StrictHostKeyChecking=no -p {master_ssh_port} {master_username}@{master_hostname} "
+            f"'cd {GlobalPaths.MARO_SHARED}/lib/grass; python3 -m scripts.master.create_user "
+            f"{user_id} {user_role}'"
+        )
+        return_str = Subprocess.run(command=command)
+        return json.loads(return_str)
+
+    @staticmethod
     def remote_join_cluster(
         node_username: str, node_hostname: str, node_ssh_port: int,
         master_hostname: str, master_api_server_port: int, deployment_path: str
@@ -392,3 +489,14 @@ class GrassExecutor:
             for chunk in iter(lambda: f.read(block_size * md5.block_size), b""):
                 md5.update(chunk)
         return md5.hexdigest()
+
+    def _get_default_user_details(self) -> dict:
+        with open(file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/users/default_user", mode="r") as fr:
+            user_id = fr.read()
+
+        with open(
+            file=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}/users/{user_id}/user_details",
+            mode="r"
+        ) as fr:
+            user_details = yaml.safe_load(stream=fr)
+            return user_details

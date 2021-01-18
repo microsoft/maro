@@ -16,6 +16,10 @@ class ContainerStatus:
     EXITED = "exited"
 
 
+class UserRole:
+    ADMIN = "admin"
+
+
 class GrassParams:
     DEFAULT_API_SERVER_PORT = 51812
 

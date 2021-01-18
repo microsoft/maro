@@ -6,38 +6,41 @@ import subprocess
 import sys
 
 INIT_COMMAND = """\
+# Set noninteractive to avoid irrelevant warning messages
+export DEBIAN_FRONTEND=noninteractive
+
 echo 'Step 1/{steps}: Install nvidia driver'
-sudo apt-get install linux-headers-$(uname -r)
+sudo -E apt-get install linux-headers-$(uname -r)
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID | tr -d '.')
-wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-$distribution.pin
-sudo mv cuda-$distribution.pin /etc/apt/preferences.d/cuda-repository-pin-600
-sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
+wget --quiet https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-$distribution.pin
+sudo -E mv cuda-$distribution.pin /etc/apt/preferences.d/cuda-repository-pin-600
+sudo -E apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
 echo "deb http://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64 /" | \
-    sudo tee /etc/apt/sources.list.d/cuda.list
-sudo apt-get update
-sudo apt-get -y install cuda-drivers
+    sudo -E tee /etc/apt/sources.list.d/cuda.list
+sudo -E apt-get update
+sudo -E apt-get -y install cuda-drivers
 
 echo 'Step 2/{steps}: Install docker'
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+sudo -E apt-get update
+sudo -E apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo -E apt-key add -
+sudo -E apt-key fingerprint 0EBFCD88
+sudo -E add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo -E apt-get update
+sudo -E apt-get install -y docker-ce docker-ce-cli containerd.io
 
 echo 'Step 3/{steps}: Install nvidia container toolkit'
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
-    && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+    && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo -E apt-key add - \
     && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
-    sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-sudo apt-get update
-sudo apt-get install -y nvidia-docker2
-sudo systemctl restart docker
+    sudo -E tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo -E apt-get update
+sudo -E apt-get install -y nvidia-docker2
+sudo -E systemctl restart docker
 
 echo 'Step 4/{steps}: Install python3 and related packages'
-sudo apt update
-sudo apt install -y python3-pip
+sudo -E apt update
+sudo -E apt install -y python3-pip
 pip3 install redis psutil flask gunicorn pyyaml requests deepdiff
 
 echo 'Step 5/{steps}: Delete outdated files'
@@ -63,4 +66,4 @@ if __name__ == "__main__":
         sys.stdout.flush()
     stdout, stderr = process.communicate()
     if stderr:
-        sys.stderr.write(stderr.strip("\n"))
+        sys.stderr.write(stderr)

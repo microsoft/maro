@@ -8,6 +8,9 @@ cloud: # Azure config
   default_username: MyUsername # str: default username for all VMs created by Azure
   default_public_key: ssh-rsa AAAAB...snip...UcyupgH # str: default public key that will be loaded into all VMs created by Azure, you can use the paired private key to access those VMs
 
+user: # MARO User config
+  admin_id: # str: id of the admin user in the orchestration, admin users have full permissions in orchestration control
+
 master: # MARO Master config
   node_size: Standard_D2s_v3 # str: size of the master node, see https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-general for reference
   redis: # [Optional]

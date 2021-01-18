@@ -5,7 +5,6 @@ import os
 import secrets
 import shutil
 import string
-import time
 
 import yaml
 
@@ -15,7 +14,6 @@ from maro.cli.grass.utils.master_api_client import MasterApiClientV1
 from maro.cli.grass.utils.params import GrassParams, GrassPaths
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
-from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
 from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.utils.exception.cli_exception import BadRequestError
@@ -42,9 +40,22 @@ class GrassOnPremisesExecutor(GrassExecutor):
         # Start creating
         try:
             GrassOnPremisesExecutor._init_master(cluster_details=cluster_details)
+            GrassOnPremisesExecutor._create_user(cluster_details=cluster_details)
+
+            # Remote create master, cluster after initialization
+            master_api_client = MasterApiClientV1(
+                master_hostname=cluster_details["master"]["public_ip_address"],
+                master_api_server_port=cluster_details["master"]["api_server"]["port"],
+                user_id=cluster_details["user"]["id"],
+                master_to_dev_encryption_private_key=cluster_details["user"]["master_to_dev_encryption_private_key"],
+                dev_to_master_encryption_public_key=cluster_details["user"]["dev_to_master_encryption_public_key"],
+                dev_to_master_signing_private_key=cluster_details["user"]["dev_to_master_signing_private_key"]
+            )
+            master_api_client.create_master(master_details=cluster_details["master"])
+            master_api_client.create_cluster(cluster_details=cluster_details)
         except Exception as e:
             # If failed, remove details folder, then raise
-            shutil.rmtree(os.path.expanduser(f"{GlobalPaths.MARO_CLUSTERS}/{cluster_name}"))
+            shutil.rmtree(path=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{cluster_name}")
             logger.error_red(f"Failed to create cluster '{cluster_name}'")
             raise e
 
@@ -81,55 +92,6 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         return create_deployment
 
-    @staticmethod
-    def _init_master(cluster_details: dict):
-        logger.info("Initializing Master VM")
-
-        # Make sure master is able to connect
-        GrassOnPremisesExecutor.retry_connection(
-            node_username=cluster_details["master"]["username"],
-            node_hostname=cluster_details["master"]["public_ip_address"],
-            node_ssh_port=cluster_details["master"]["ssh"]["port"]
-        )
-
-        DetailsWriter.save_cluster_details(
-            cluster_name=cluster_details["name"],
-            cluster_details=cluster_details
-        )
-
-        # Copy required files
-        local_path_to_remote_dir = {
-            GrassPaths.MARO_GRASS_LIB: f"{GlobalPaths.MARO_SHARED}/lib",
-            f"{GlobalPaths.MARO_CLUSTERS}/{cluster_details['name']}": f"{GlobalPaths.MARO_SHARED}/clusters"
-        }
-        for local_path, remote_dir in local_path_to_remote_dir.items():
-            FileSynchronizer.copy_files_to_node(
-                local_path=local_path,
-                remote_dir=remote_dir,
-                node_username=cluster_details["master"]["username"],
-                node_hostname=cluster_details["master"]["public_ip_address"],
-                node_ssh_port=cluster_details["master"]["ssh"]["port"]
-            )
-
-        # Remote init master
-        GrassOnPremisesExecutor.remote_init_master(
-            master_username=cluster_details["master"]["username"],
-            master_hostname=cluster_details["master"]["public_ip_address"],
-            master_ssh_port=cluster_details["master"]["ssh"]["port"],
-            cluster_name=cluster_details["name"]
-        )
-        # Gracefully wait
-        time.sleep(10)
-
-        # Init master_api_client and remote create master
-        master_api_client = MasterApiClientV1(
-            master_hostname=cluster_details["master"]["public_ip_address"],
-            master_api_server_port=cluster_details["master"]["api_server"]["port"]
-        )
-        master_api_client.create_master(master_details=cluster_details["master"])
-
-        logger.info_green("Master VM is initialized")
-
     # maro grass delete
 
     def delete(self):
@@ -149,7 +111,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             master_ssh_port=self.master_ssh_port
         )
 
-        shutil.rmtree(f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
+        shutil.rmtree(path=f"{GlobalPaths.ABS_MARO_CLUSTERS}/{self.cluster_name}")
 
         logger.info_green(f"Cluster '{self.cluster_name}' is deleted")
 
@@ -164,11 +126,11 @@ class GrassOnPremisesExecutor(GrassExecutor):
         logger.info(f"Joining the cluster")
 
         # Save join_cluster_deployment TODO: do checking, already join another node
-        with open(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster.yml", "w") as fw:
+        with open(file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml", mode="w") as fw:
             yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
         # Copy required files
-        local_path_to_remote_dir = {f"{GlobalPaths.MARO_LOCAL_TMP}/join_cluster.yml": "~/"}
+        local_path_to_remote_dir = {f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml": "~/"}
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
@@ -185,10 +147,10 @@ class GrassOnPremisesExecutor(GrassExecutor):
             node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"],
             master_hostname=join_cluster_deployment["master"]["hostname"],
             master_api_server_port=join_cluster_deployment["master"]["api_server"]["port"],
-            deployment_path=f"~/join_cluster.yml"
+            deployment_path=f"~/on_premises_join_cluster_deployment.yml"
         )
 
-        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster.yml")
+        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml")
 
         logger.info_green(f"Node is joined to the cluster")
 

@@ -18,7 +18,7 @@ class ConnectionTester:
     def test_ssh_default_port_connection(node_username: str, node_hostname: str, node_ssh_port: int, cluster_name: str):
         command = (
             f"ssh -o StrictHostKeyChecking=no "
-            f"-i {Paths.MARO_LOCAL}/cluster/{cluster_name}/id_rsa_master "
+            f"-i {Paths.MARO_LOCAL}/cluster/{cluster_name}/master_to_node_openssh_private_key "
             f"-p {node_ssh_port} {node_username}@{node_hostname} "
             "echo 'Connection established'"
         )

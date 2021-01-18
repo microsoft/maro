@@ -2,9 +2,10 @@
 # Licensed under the MIT license.
 
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint
 
-from ..objects import redis_controller, local_cluster_details
+from ..jwt_wrapper import check_jwt_validity
+from ..objects import redis_controller
 
 # Flask related.
 
@@ -16,6 +17,7 @@ URL_PREFIX = "/v1/imageFiles"
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["GET"])
+@check_jwt_validity
 def list_image_files():
     """List the image files in the cluster.
 
@@ -23,11 +25,12 @@ def list_image_files():
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
-    return jsonify(list(master_details["image_files"].values()))
+    master_details = redis_controller.get_master_details()
+    return list(master_details["image_files"].values())
 
 
 @blueprint.route(f"{URL_PREFIX}/<image_file_name>", methods=["GET"])
+@check_jwt_validity
 def get_image_file(image_file_name: str):
     """Get the image file.
 
@@ -35,24 +38,22 @@ def get_image_file(image_file_name: str):
         None.
     """
 
-    master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+    master_details = redis_controller.get_master_details()
     return master_details["image_files"].get(image_file_name, {})
 
 
 @blueprint.route(f"{URL_PREFIX}", methods=["POST"])
-def create_image_file():
+@check_jwt_validity
+def create_image_file(**kwargs):
     """Create a image file.
 
     Returns:
         None.
     """
 
-    image_file_details = request.json
+    image_file_details = kwargs["json_dict"]
     with redis_controller.lock(name="lock:master_details"):
-        master_details = redis_controller.get_master_details(cluster_name=local_cluster_details["name"])
+        master_details = redis_controller.get_master_details()
         master_details["image_files"][image_file_details["name"]] = image_file_details
-        redis_controller.set_master_details(
-            cluster_name=local_cluster_details["name"],
-            master_details=master_details
-        )
+        redis_controller.set_master_details(master_details=master_details)
     return {}
