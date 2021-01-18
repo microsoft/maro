@@ -22,7 +22,7 @@ import redis
 import yaml
 from redis.lock import Lock
 
-# Commands
+# Commands.
 
 INSTALL_NODE_RUNTIME_COMMAND = """\
 # Set noninteractive to avoid irrelevant warning messages
@@ -96,36 +96,7 @@ echo "{public_key}" >> ~/.ssh/authorized_keys
 """
 
 
-class Params:
-    DEFAULT_SSH_PORT = 22
-    DEFAULT_REDIS_PORT = 6379
-    DEFAULT_API_SERVER_PORT = 51812
-
-
-class NodeStatus:
-    PENDING = "Pending"
-    RUNNING = "Running"
-    STOPPED = "Stopped"
-
-
-class Paths:
-    MARO_SHARED = "~/.maro-shared"
-    ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
-
-    MARO_LOCAL = "~/.maro-local"
-    ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
-
-
-class NameCreator:
-    @staticmethod
-    def create_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
-        postfix = uuid.uuid4().hex[:uuid_len]
-        return f"{prefix}{postfix}"
-
-    @staticmethod
-    def create_node_name():
-        return NameCreator.create_name_with_uuid(prefix="node", uuid_len=8)
-
+# Node Joiner.
 
 class NodeJoiner:
     def __init__(self, join_cluster_deployment: dict):
@@ -185,7 +156,7 @@ class NodeJoiner:
         Subprocess.run(command=command)
 
     def start_node_agent_service(self):
-        # Rewrite data in .service and write it to systemd folder
+        # Rewrite data in .service and write it to systemd folder.
         with open(
             file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_agent/maro-node-agent.service",
             mode="r"
@@ -200,7 +171,7 @@ class NodeJoiner:
         Subprocess.run(command=command)
 
     def start_node_api_server_service(self):
-        # Rewrite data in .service and write it to systemd folder
+        # Rewrite data in .service and write it to systemd folder.
         with open(
             file=f"{Paths.ABS_MARO_SHARED}/lib/grass/services/node_api_server/maro-node-api-server.service",
             mode="r"
@@ -235,7 +206,7 @@ class NodeJoiner:
         command = APPEND_AUTHORIZED_KEY.format(public_key=self.master_details["ssh"]["public_key"])
         Subprocess.run(command=command)
 
-    # Utils
+    # Utils methods.
 
     @staticmethod
     def standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
@@ -287,6 +258,39 @@ class NodeJoiner:
         )
 
         return join_cluster_deployment
+
+
+# Utils Classes.
+
+class Params:
+    DEFAULT_SSH_PORT = 22
+    DEFAULT_REDIS_PORT = 6379
+    DEFAULT_API_SERVER_PORT = 51812
+
+
+class NodeStatus:
+    PENDING = "Pending"
+    RUNNING = "Running"
+    STOPPED = "Stopped"
+
+
+class Paths:
+    MARO_SHARED = "~/.maro-shared"
+    ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
+
+    MARO_LOCAL = "~/.maro-local"
+    ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
+
+
+class NameCreator:
+    @staticmethod
+    def create_name_with_uuid(prefix: str, uuid_len: int = 16) -> str:
+        postfix = uuid.uuid4().hex[:uuid_len]
+        return f"{prefix}{postfix}"
+
+    @staticmethod
+    def create_node_name():
+        return NameCreator.create_name_with_uuid(prefix="node", uuid_len=8)
 
 
 class RedisController:
@@ -482,14 +486,14 @@ class DetailsWriter:
 
 
 if __name__ == "__main__":
-    # Load args
+    # Load args.
     parser = argparse.ArgumentParser()
     parser.add_argument("deployment_path")
     parser.add_argument("--install-node-runtime", type=bool, default=False)
     parser.add_argument("--install-node-gpu-support", type=bool, default=False)
     args = parser.parse_args()
 
-    # Load deployment and do validation
+    # Load deployment and do validation.
     with open(file=os.path.expanduser(args.deployment_path), mode="r") as fr:
         join_cluster_deployment = yaml.safe_load(fr)
     join_cluster_deployment = NodeJoiner.standardize_join_cluster_deployment(
