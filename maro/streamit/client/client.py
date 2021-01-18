@@ -1,4 +1,8 @@
 
+
+import json
+import numpy
+import torch
 from .sender import StreamitSender
 
 from multiprocessing import Queue, Process
@@ -10,23 +14,22 @@ from .common import MessageType
 
 
 class Client:
-    def __init__(self, experiment_name: str):
-        self._experiment_name = experiment_name
+    def __init__(self):
         self._sender: Process = None
         self._data_queue = Queue()
 
         self._cur_episode = 0
         self._cur_tick = 0
 
-    def start(self, host="127.0.0.1"):
-        self._sender = StreamitSender(
-            self._data_queue, self._experiment_name, host)
+    def start(self, experiment_name: str, host="127.0.0.1"):
+        self._experiment_name = experiment_name
+
+        self._sender = StreamitSender(self._data_queue, self._experiment_name, host)
 
         self._sender.start()
 
     def info(self, scenario: str, topology: str, durations: int, total_episodes: int, **kwargs):
-        self._put(MessageType.Experiment, (scenario, topology,
-                                           durations, total_episodes, kwargs))
+        self._put(MessageType.Experiment, (scenario, topology, durations, total_episodes, kwargs))
 
     def tick(self, tick: int):
         """Update current tick"""
@@ -44,7 +47,7 @@ class Client:
         """Send data for sepcified category"""
         self._put(MessageType.Data, (category, kwargs))
 
-    def dict(self, category: str, value: dict):
+    def complex(self, category: str, value: dict):
         """This method will split value dictionary into small items, that fill in a table.
         Usually used to send a json or yaml content.
 
@@ -58,7 +61,36 @@ class Client:
         """
 
         items = []
-        flat_dict(value, items)
+
+        stack = [("$", value)]  # (path, item) tuple
+
+        while len(stack) > 0:
+            cur_path, cur_item = stack.pop()
+
+            cur_item_type = type(cur_item)
+
+            if cur_item_type is dict:
+                for k, v in cur_item.items():
+                    stack.append((cur_path + f".{k}", v))
+            elif cur_item_type is list  \
+                    or cur_item_type is tuple   \
+                    or (cur_item_type is torch.Tensor and cur_item.dim() > 1)   \
+                    or (cur_item_type is numpy.ndarray and len(cur_item.shape) > 1):
+                for sub_index, sub_item in enumerate(cur_item):
+                    stack.append(
+                        (cur_path + f"[{sub_index}]", sub_item)
+                    )
+            elif cur_item_type is torch.Tensor:
+                # We only accept 1 dim to json string
+                items.append({
+                    "path": cur_path,
+                    "value": json.dumps(cur_item.tolist())
+                })
+            else:
+                items.append({
+                    "path": cur_path,
+                    "value": str(cur_item)
+                })
 
         for item in items:
             self._put(MessageType.Data, (category, item))
@@ -101,41 +133,3 @@ class Client:
     def __getitem__(self, name: str):
         """Shorthand for category name, like: streamit["port_detail"](index=0, name="test")"""
         return partial(self.send, name)
-
-
-# TODO: reduce recurcive calling with stack
-def flat_dict(d: dict, result_list: list, path: str = None):
-    for k, v in d.items():
-        sub_path = path
-        if sub_path is None:
-            sub_path = k
-        else:
-            sub_path += f".{k}"
-
-        v_type = type(v)
-
-        if v_type is dict:
-            flat_dict(v, result_list, sub_path)
-        elif v_type is list or v_type is tuple:
-            flat_list(v, result_list, sub_path)
-        else:
-            result_list.append({"path": sub_path, "value": str(v)})
-        # NOTE: we assuming that dict only contains raw data type, list, tuple or dict, no customized time.
-
-
-def flat_list(l: list, result_list: list, path: str = None):
-    for i, item in enumerate(l):
-        sub_path = path
-
-        if sub_path is None:
-            sub_path = ""
-
-        item_type = type(item)
-
-        if item_type is dict:
-            flat_dict(item, result_list, sub_path + f"[{i}]")
-        elif item_type is list or item_type is tuple:
-            flat_list(item, result_list, sub_path + f"[{i}]")
-        else:
-            result_list.append(
-                {"path": sub_path + "[]", "index": i, "value": str(item)})

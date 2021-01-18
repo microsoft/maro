@@ -1,11 +1,17 @@
 import os
 
+client_instance = None
 
-def streamit(experiment_name: str):
+
+def streamit():
     is_streamable_enabled: bool = bool(
-        os.environ.get("MARO_STREAMABLE_ENABLED", False))
+        os.environ.get("MARO_STREAMABLE_ENABLED", False)
+    )
 
-    instance = None
+    global client_instance
+
+    if client_instance is not None:
+        return client_instance
 
     if not is_streamable_enabled:
 
@@ -16,13 +22,13 @@ def streamit(experiment_name: str):
             def __getattr__(self, name):
                 return dummy
 
-        instance = DummyClient()
+        client_instance = DummyClient()
     else:
         from .client import Client
 
-        instance = Client(experiment_name)
+        client_instance = Client()
 
-    return instance
+    return client_instance
 
 
 __all__ = ["streamit"]

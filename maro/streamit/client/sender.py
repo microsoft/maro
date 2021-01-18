@@ -142,7 +142,7 @@ class StreamitSender(Process):
 
                     metrics.append(metric)
 
-                    if len(metrics) > 6000:
+                    if len(metrics) > 5000:
                         await self._send(writer, metrics)
 
                         metrics = []

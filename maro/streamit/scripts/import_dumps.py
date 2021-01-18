@@ -3,6 +3,7 @@ from maro.streamit import streamit
 import yaml
 import numpy as np
 import json
+import pickle
 from argparse import ArgumentParser
 import os
 
@@ -128,8 +129,22 @@ def import_metrics(it, epoch_full_path, port_number, vessel_number):
     matrics = None
 
 
-def import_attention():
-    pass
+def import_attention(it, atts_path: str):
+    attentions = None
+
+    with open(atts_path, "rb") as fp:
+        attentions = pickle.load(fp)
+
+    attention_index = -1
+
+    for tick, attention in attentions: # list of tuple (tick, attention dict contains:"p2p", "p2v", "v2p")
+        attention_index += 1
+
+        tick = int(tick)
+
+        it.tick(tick)
+
+        it.complex("attentions", attention)
 
 
 if __name__ == "__main__":
@@ -160,8 +175,8 @@ if __name__ == "__main__":
     assert(os.path.exists(args.dir))
     assert(os.path.exists(args.ssdir))
 
-    it = streamit(args.name)
-    it.start(args.host)
+    it = streamit()
+    it.start(args.name, args.host)
 
     try:
         config = ""
@@ -171,7 +186,7 @@ if __name__ == "__main__":
             config = yaml.safe_load(fp)
 
         it.info(args.scenario, args.topology, args.durations, args.episodes)
-        it.dict("config", config)
+        it.complex("config", config)
 
         for episode in range(args.episodes):
             epoch_folder = f"epoch_{episode}"
@@ -189,6 +204,8 @@ if __name__ == "__main__":
 
                 import_metrics(it, epoch_full_path, port_number, vessel_number)
 
-                # import_attention(it, episode, epoch_full_path)
+        # NOTE: we only have one attention file for now, so hard coded here
+        it.episode(0)
+        import_attention(it, os.path.join(args.dir, "atts_1"))
     finally:
         it.close()
