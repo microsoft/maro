@@ -168,7 +168,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._cpu_reader.reset()
 
     def _init_frame(self):
-        self._frame = build_frame(self._pm_amount, self.calc_max_snapshots())
+        self._frame = build_frame(
+            snapshots_num=self.calc_max_snapshots(),
+            region_amount=self._region_amount,
+            zone_amount=self._zone_amount,
+            cluster_amount=self._cluster_amount,
+            pm_amount=self._pm_amount
+        )
         self._snapshots = self._frame.snapshots
 
     def step(self, tick: int):
