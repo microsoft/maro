@@ -49,7 +49,8 @@ sudo -E apt-get install linux-headers-$(uname -r)
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID | tr -d '.')
 wget --quiet https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-$distribution.pin
 sudo -E mv cuda-$distribution.pin /etc/apt/preferences.d/cuda-repository-pin-600
-sudo -E apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
+sudo -E apt-key adv \
+    --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
 echo "deb http://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64 /" | \
     sudo -E tee /etc/apt/sources.list.d/cuda.list
 sudo -E apt-get update
@@ -72,7 +73,8 @@ sudo gpasswd -a {node_username} docker
 
 SETUP_SAMBA_MOUNT_COMMAND = """\
 mkdir -p {maro_shared_path}
-sudo mount -t cifs -o username={master_username},password={master_samba_password} //{master_hostname}/sambashare {maro_shared_path}
+sudo mount -t cifs \
+    -o username={master_username},password={master_samba_password} //{master_hostname}/sambashare {maro_shared_path}
 echo '//{master_hostname}/sambashare  {maro_shared_path} cifs  username={master_username},password={master_samba_password}  0  0' | \
     sudo tee -a /etc/fstab
 """
@@ -130,14 +132,13 @@ class NodeJoiner:
 
         return node_details
 
-    @staticmethod
-    def init_node_runtime_env(install_node_runtime: bool, install_node_gpu_support: bool):
-        if install_node_gpu_support:
+    def init_node_runtime_env(self):
+        if self.join_cluster_deployment["configs"]["install_node_gpu_support"]:
             command = INSTALL_NODE_RUNTIME_COMMAND.format()
             Subprocess.interactive_run(command=command)
             command = INSTALL_NODE_GPU_SUPPORT_COMMAND.format()
             Subprocess.interactive_run(command=command)
-        elif install_node_runtime:
+        elif self.join_cluster_deployment["configs"]["install_node_runtime"]:
             command = INSTALL_NODE_RUNTIME_COMMAND.format()
             Subprocess.interactive_run(command=command)
 
@@ -214,6 +215,9 @@ class NodeJoiner:
             "mode": "",
             "master": {
                 "private_ip_address": "",
+                "api_server": {
+                    "port": ""
+                },
                 "redis": {
                     "port": ""
                 }
@@ -234,6 +238,10 @@ class NodeJoiner:
                 "api_server": {
                     "port": ""
                 }
+            },
+            "configs": {
+                "install_node_runtime": "",
+                "install_node_gpu_support": ""
             }
         }
         DeploymentValidator.validate_and_fill_dict(
@@ -242,6 +250,8 @@ class NodeJoiner:
             optional_key_to_value={
                 "root['master']['redis']": {"port": Params.DEFAULT_REDIS_PORT},
                 "root['master']['redis']['port']": Params.DEFAULT_REDIS_PORT,
+                "root['master']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
+                "root['master']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
                 "root['node']['resources']": {
                     "cpu": "all",
                     "memory": "all",
@@ -253,7 +263,13 @@ class NodeJoiner:
                 "root['node']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
                 "root['node']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
                 "root['node']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
-                "root['node']['ssh']['port']": Params.DEFAULT_SSH_PORT
+                "root['node']['ssh']['port']": Params.DEFAULT_SSH_PORT,
+                "root['configs']": {
+                    "install_node_runtime": False,
+                    "install_node_gpu_support": False
+                },
+                "root['configs']['install_node_runtime']": False,
+                "root['configs']['install_node_gpu_support']": False
             }
         )
 
@@ -489,22 +505,17 @@ if __name__ == "__main__":
     # Load args.
     parser = argparse.ArgumentParser()
     parser.add_argument("deployment_path")
-    parser.add_argument("--install-node-runtime", type=bool, default=False)
-    parser.add_argument("--install-node-gpu-support", type=bool, default=False)
     args = parser.parse_args()
 
     # Load deployment and do validation.
     with open(file=os.path.expanduser(args.deployment_path), mode="r") as fr:
-        join_cluster_deployment = yaml.safe_load(fr)
+        join_cluster_deployment = yaml.safe_load(stream=fr)
+
     join_cluster_deployment = NodeJoiner.standardize_join_cluster_deployment(
         join_cluster_deployment=join_cluster_deployment
     )
-
     node_joiner = NodeJoiner(join_cluster_deployment=join_cluster_deployment)
-    node_joiner.init_node_runtime_env(
-        install_node_runtime=args.install_node_runtime,
-        install_node_gpu_support=args.install_node_gpu_support
-    )
+    node_joiner.init_node_runtime_env()
     node_joiner.create_docker_user()
     node_joiner.setup_samba_mount()
     node_joiner.start_node_agent_service()

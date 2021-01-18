@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.3.0",
+  "parameters": {
+    "location": {
+      "value": null
+    },
+    "adminUsername": {
+      "value": null
+    },
+    "adminPublicKey": {
+      "value": null
+    },
+    "sshDestinationPorts": {
+      "value": null
+    },
+    "apiServerDestinationPorts": {
+      "value": null
+    }
+  }
+}

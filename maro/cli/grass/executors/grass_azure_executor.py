@@ -457,6 +457,9 @@ class GrassAzureExecutor(GrassExecutor):
             "mode": "grass/azure",
             "master": {
                 "private_ip_address": self.master_private_ip_address,
+                "api_server": {
+                    "port": self.master_api_server_port
+                },
                 "redis": {
                     "port": self.master_redis_port
                 }
@@ -481,6 +484,10 @@ class GrassAzureExecutor(GrassExecutor):
                 "ssh": {
                     "port": self.ssh_port
                 }
+            },
+            "configs": {
+                "install_node_runtime": False,
+                "install_node_gpu_support": False
             }
         }
         with open(
@@ -546,7 +553,7 @@ class GrassAzureExecutor(GrassExecutor):
             node_username=node_details["username"],
             node_hostname=node_details["public_ip_address"],
             node_ssh_port=node_details["ssh"]["port"],
-            master_hostname=self.master_public_ip_address,
+            master_private_ip_address=self.master_private_ip_address,
             master_api_server_port=self.master_api_server_port,
             deployment_path=(
                 f"{GlobalPaths.MARO_LOCAL}/clusters/{self.cluster_name}/nodes/{node_name}"

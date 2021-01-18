@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+
 import os
 import secrets
 import shutil
@@ -131,13 +132,8 @@ class GrassOnPremisesExecutor(GrassExecutor):
         )
 
         # Save join_cluster_deployment TODO: do checking, already join another node
-        yaml.safe_dump(
-            data=join_cluster_deployment,
-            stream=open(
-                file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml",
-                mode="w"
-            )
-        )
+        with open(file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml", mode="w") as fw:
+            yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
         # Copy required files
         local_path_to_remote_dir = {
@@ -157,7 +153,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
             node_username=join_cluster_deployment["node"]["username"],
             node_hostname=join_cluster_deployment["node"]["public_ip_address"],
             node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"],
-            master_hostname=join_cluster_deployment["master"]["hostname"],
+            master_private_ip_address=join_cluster_deployment["master"]["private_ip_address"],
             master_api_server_port=join_cluster_deployment["master"]["api_server"]["port"],
             deployment_path=f"{GlobalPaths.MARO_LOCAL_TMP}/join_cluster_deployment.yml"
         )
@@ -171,6 +167,8 @@ class GrassOnPremisesExecutor(GrassExecutor):
         optional_key_to_value = {
             "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
             "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
+            "root['master']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
+            "root['master']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT,
             "root['node']['resources']": {
                 "cpu": "all",
                 "memory": "all",
@@ -182,14 +180,20 @@ class GrassOnPremisesExecutor(GrassExecutor):
             "root['node']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
             "root['node']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT,
             "root['node']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
-            "root['node']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT
+            "root['node']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT,
+            "root['configs']": {
+                "install_node_runtime": False,
+                "install_node_gpu_support": False
+            },
+            "root['configs']['install_node_runtime']": False,
+            "root['configs']['install_node_gpu_support']": False
         }
-        create_deployment_template = yaml.safe_load(
-            stream=open(
-                file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_on_premises_join_cluster.yml",
-                mode="r"
-            )
-        )
+        with open(
+            file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_on_premises_join_cluster.yml",
+            mode="r"
+        ) as fr:
+            create_deployment_template = yaml.safe_load(stream=fr)
+
         DeploymentValidator.validate_and_fill_dict(
             template_dict=create_deployment_template,
             actual_dict=join_cluster_deployment,
