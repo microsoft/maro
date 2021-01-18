@@ -689,16 +689,12 @@ class GrassAzureExecutor(GrassExecutor):
 class ArmTemplateParameterBuilder:
     @staticmethod
     def create_vnet(cluster_details: dict, export_path: str) -> dict:
-        # Get params
-        cluster_id = cluster_details["id"]
-        location = cluster_details["cloud"]["location"]
-
         # Load and update parameters
-        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/parameters.json", "r") as f:
-            base_parameters = json.load(f)
+        with open(file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_vnet/parameters.json", mode="r") as fr:
+            base_parameters = json.load(fr)
             parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = location
-            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
+            parameters["location"]["value"] = cluster_details["cloud"]["location"]
+            parameters["virtualNetworkName"]["value"] = f"{cluster_details['id']}-vnet"
 
         # Export parameters if the path is set
         if export_path:
@@ -710,33 +706,23 @@ class ArmTemplateParameterBuilder:
 
     @staticmethod
     def create_master(cluster_details: dict, node_size: str, export_path: str) -> dict:
-        # Get params
-        resource_name = "master"
-        cluster_id = cluster_details["id"]
-        location = cluster_details["cloud"]["location"]
-        default_username = cluster_details["cloud"]["default_username"]
-        default_public_key = cluster_details["cloud"]["default_public_key"]
-        ssh_port = cluster_details["connection"]["ssh"]["port"]
-        api_server_port = cluster_details["connection"]["api_server"]["port"]
-
         # Load and update parameters
-        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/parameters.json", "r") as f:
-            base_parameters = json.load(f)
+        with open(file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_master/parameters.json", mode="r") as fr:
+            base_parameters = json.load(fr)
             parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = location
-            parameters["networkInterfaceName"]["value"] = f"{cluster_id}-{resource_name}-nic"
-            parameters["networkSecurityGroupName"]["value"] = f"{cluster_id}-{resource_name}-nsg"
-            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
-            parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
-            parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
+            parameters["location"]["value"] = cluster_details["cloud"]["location"]
+            parameters["networkInterfaceName"]["value"] = f"{cluster_details['id']}-master-nic"
+            parameters["networkSecurityGroupName"]["value"] = f"{cluster_details['id']}-master-nsg"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_details['id']}-vnet"
+            parameters["publicIpAddressName"]["value"] = f"{cluster_details['id']}-master-pip"
+            parameters["virtualMachineName"]["value"] = f"{cluster_details['id']}-master-vm"
             parameters["virtualMachineSize"]["value"] = node_size
-            parameters["adminUsername"]["value"] = default_username
-            parameters["adminPublicKey"]["value"] = default_public_key
-            parameters["sshDestinationPorts"]["value"] = (
-                [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
-                else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
-            )
-            parameters["masterApiServerDestinationPorts"]["value"] = [f"{api_server_port}"]
+            parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
+            parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
+            parameters["sshDestinationPorts"]["value"] = [cluster_details["connection"]["ssh"]["port"]]
+            parameters["masterApiServerDestinationPorts"]["value"] = [
+                cluster_details["connection"]["api_server"]["port"]
+            ]
 
         # Export parameters if the path is set
         if export_path:
@@ -748,33 +734,23 @@ class ArmTemplateParameterBuilder:
 
     @staticmethod
     def create_build_node_image_vm(cluster_details: dict, node_size: str, export_path: str) -> dict:
-        # Get params
-        resource_name = "build-node-image"
-        cluster_id = cluster_details["id"]
-        location = cluster_details["cloud"]["location"]
-        default_username = cluster_details["cloud"]["default_username"]
-        default_public_key = cluster_details["cloud"]["default_public_key"]
-        ssh_port = cluster_details["connection"]["ssh"]["port"]
-
         # Load and update parameters
         with open(
-            f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/parameters.json", "r"
-        ) as f:
-            base_parameters = json.load(f)
+            file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_build_node_image_vm/parameters.json",
+            mode="r"
+        ) as fr:
+            base_parameters = json.load(fr)
             parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = location
-            parameters["networkInterfaceName"]["value"] = f"{cluster_id}-{resource_name}-nic"
-            parameters["networkSecurityGroupName"]["value"] = f"{cluster_id}-{resource_name}-nsg"
-            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
-            parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
-            parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
+            parameters["location"]["value"] = cluster_details["cloud"]["location"]
+            parameters["networkInterfaceName"]["value"] = f"{cluster_details['id']}-build-node-image-nic"
+            parameters["networkSecurityGroupName"]["value"] = f"{cluster_details['id']}-build-node-image-nsg"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_details['id']}-vnet"
+            parameters["publicIpAddressName"]["value"] = f"{cluster_details['id']}-build-node-image-pip"
+            parameters["virtualMachineName"]["value"] = f"{cluster_details['id']}-build-node-image-vm"
             parameters["virtualMachineSize"]["value"] = node_size
-            parameters["adminUsername"]["value"] = default_username
-            parameters["adminPublicKey"]["value"] = default_public_key
-            parameters["sshDestinationPorts"]["value"] = (
-                [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
-                else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
-            )
+            parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
+            parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
+            parameters["sshDestinationPorts"]["value"] = [cluster_details["connection"]["ssh"]["port"]]
 
         # Export parameters if the path is set
         if export_path:
@@ -790,32 +766,21 @@ class ArmTemplateParameterBuilder:
         node_size: str, image_resource_id: str,
         export_path: str
     ) -> dict:
-        # Extract variables
-        resource_name = node_name
-        cluster_id = cluster_details["id"]
-        location = cluster_details["cloud"]["location"]
-        default_username = cluster_details["cloud"]["default_username"]
-        default_public_key = cluster_details["cloud"]["default_public_key"]
-        ssh_port = cluster_details["connection"]["ssh"]["port"]
-
         # Load and update parameters
-        with open(f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/parameters.json", "r") as f:
-            base_parameters = json.load(f)
+        with open(file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/modes/azure/create_node/parameters.json", mode="r") as fr:
+            base_parameters = json.load(fr)
             parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = location
-            parameters["networkInterfaceName"]["value"] = f"{cluster_id}-{resource_name}-nic"
-            parameters["networkSecurityGroupName"]["value"] = f"{cluster_id}-{resource_name}-nsg"
-            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
-            parameters["publicIpAddressName"]["value"] = f"{cluster_id}-{resource_name}-pip"
-            parameters["virtualMachineName"]["value"] = f"{cluster_id}-{resource_name}-vm"
+            parameters["location"]["value"] = cluster_details["cloud"]["location"]
+            parameters["networkInterfaceName"]["value"] = f"{cluster_details['id']}-{node_name}-nic"
+            parameters["networkSecurityGroupName"]["value"] = f"{cluster_details['id']}-{node_name}-nsg"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_details['id']}-vnet"
+            parameters["publicIpAddressName"]["value"] = f"{cluster_details['id']}-{node_name}-pip"
+            parameters["virtualMachineName"]["value"] = f"{cluster_details['id']}-{node_name}-vm"
             parameters["virtualMachineSize"]["value"] = node_size
             parameters["imageResourceId"]["value"] = image_resource_id
-            parameters["adminUsername"]["value"] = default_username
-            parameters["adminPublicKey"]["value"] = default_public_key
-            parameters["sshDestinationPorts"]["value"] = (
-                [f"{ssh_port}"] if ssh_port == GlobalParams.DEFAULT_SSH_PORT
-                else [GlobalParams.DEFAULT_SSH_PORT, f"{ssh_port}"]
-            )
+            parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
+            parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
+            parameters["sshDestinationPorts"]["value"] = [cluster_details["connection"]["ssh"]["port"]]
 
         # Export parameters if the path is set
         if export_path:
