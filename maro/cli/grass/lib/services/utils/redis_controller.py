@@ -61,6 +61,74 @@ class RedisController:
             node_name
         )
 
+    def push_resource_usage(self,
+        cluster_name: str,
+        node_name: str,
+        cpu_usage: list,
+        memory_usage: float,
+        gpu_memory_usage: list
+    ):
+        # Push cpu usage to redis
+        self._redis.rpush(
+            f"{cluster_name}:{node_name}:cpu_usage_per_core",
+            json.dumps(cpu_usage)
+        )
+
+        # Push memory usage to redis
+        self._redis.rpush(
+            f"{cluster_name}:{node_name}:memory_usage",
+            json.dumps(memory_usage)
+        )
+
+        # Push gpu memory usage to redis
+        self._redis.rpush(
+            f"{cluster_name}:{node_name}:gpu_memory_usage",
+            json.dumps(gpu_memory_usage)
+        )
+
+    def get_resource_usage(self, cluster_name: str, node_name: str, condition: str):
+        if condition == "cpu":
+            resource_usage = self._redis.lrange(
+                f"{cluster_name}:{node_name}:cpu_usage_per_core",
+                0, -1
+            )
+        elif condition == "memory":
+            resource_usage = self._redis.lrange(
+                f"{cluster_name}:{node_name}:memory_usage",
+                0, -1
+            )
+        elif condition == "gpu":
+            resource_usage = self._redis.lrange(
+                f"{cluster_name}:{node_name}:gpu_memory_usage",
+                0, -1
+            )
+        else:
+            raise KeyError(f"Unsupport type of resource. {condition}.")
+
+        return resource_usage
+
+    def get_resource_usage_latest(self, cluster_name: str, node_name: str, condition: str, timeout: int):
+        if condition == "cpu":
+            resource_usage_latest = self._redis.brpoplpush(
+                f"{cluster_name}:{node_name}:cpu_usage_per_core",
+                f"{cluster_name}:{node_name}:cpu_usage_per_core",
+                timeout
+            )
+        elif condition == "memory":
+            resource_usage_latest = self._redis.brpop(
+                f"{cluster_name}:{node_name}:memory_usage",
+                f"{cluster_name}:{node_name}:memory_usage",
+                timeout
+            )
+        elif condition == "gpu":
+            resource_usage_latest = self._redis.brpop(
+                f"{cluster_name}:{node_name}:gpu_memory_usage",
+                f"{cluster_name}:{node_name}:gpu_memory_usage",
+                timeout
+            )
+        else:
+            raise KeyError(f"Unsupport type of resource. {condition}.")
+
     """Job Details Related."""
 
     def get_name_to_job_details(self, cluster_name: str) -> dict:

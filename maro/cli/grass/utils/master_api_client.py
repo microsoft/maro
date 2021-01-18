@@ -108,3 +108,12 @@ class MasterApiClientV1:
     def create_image_file(self, image_file_details: dict) -> dict:
         response = requests.post(url=f"{self.master_api_server_url_prefix}/imageFiles", json=image_file_details)
         return response.json()
+
+    # Visible related.
+    def get_static_resource_info(self):
+        response = requests.get(url=f"{self.master_api_server_url_prefix}/visible/static")
+        return response.json()
+
+    def get_dynamic_resource_info(self):
+        response = requests.get(url=f"{self.master_api_server_url_prefix}/visible/dynamic")
+        return response.json()
