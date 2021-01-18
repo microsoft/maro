@@ -19,7 +19,7 @@ from maro.utils.utils import convert_dottable
 
 from .common import AllocateAction, DecisionPayload, Latency, PostponeAction, VmRequestPayload
 from .cpu_reader import CpuReader
-from .enums import Events, PostponeType, PmState, VmCategory
+from .enums import Events, PmState, PostponeType, VmCategory
 from .frame_builder import build_frame
 from .physical_machine import PhysicalMachine
 from .virtual_machine import VirtualMachine
