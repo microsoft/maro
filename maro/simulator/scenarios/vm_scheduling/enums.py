@@ -13,9 +13,9 @@ class Events(Enum):
 class PostponeType(Enum):
     """Postpone type."""
     # Postpone the VM requirement due to the resource exhaustion.
-    Resource = 'resource'
+    Resource = "resource"
     # Postpone the VM requirement due to the agent's decision.
-    Agent = 'agent'
+    Agent = "agent"
 
 
 class PmState(IntEnum):
