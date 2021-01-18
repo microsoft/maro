@@ -409,7 +409,9 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             # Add failed allocation.
             self._failed_allocation += 1
 
-    def _get_valid_pms(self, vm_cpu_cores_requirement: int, vm_memory_requirement: int, vm_category: VmCategory) -> List[int]:
+    def _get_valid_pms(
+        self, vm_cpu_cores_requirement: int, vm_memory_requirement: int, vm_category: VmCategory
+    ) -> List[int]:
         """Check all valid PMs.
 
         Args:
