@@ -24,6 +24,47 @@ from redis.lock import Lock
 
 # Commands
 
+INSTALL_NODE_RUNTIME_COMMAND = """\
+# Set noninteractive to avoid irrelevant warning messages
+export DEBIAN_FRONTEND=noninteractive
+
+echo 'Step 1/2: Install docker'
+sudo -E apt-get update
+sudo -E apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo -E apt-key add -
+sudo -E apt-key fingerprint 0EBFCD88
+sudo -E add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo -E apt-get update
+sudo -E apt-get install -y docker-ce docker-ce-cli containerd.io
+
+echo 'Step 2/2: Install python3 and related packages'
+sudo -E apt update
+sudo -E apt install -y python3-pip
+pip3 install redis psutil flask gunicorn pyyaml requests deepdiff
+"""
+
+INSTALL_NODE_GPU_SUPPORT_COMMAND = """\
+echo 'Step 1/2: Install nvidia driver'
+sudo -E apt-get install linux-headers-$(uname -r)
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID | tr -d '.')
+wget --quiet https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-$distribution.pin
+sudo -E mv cuda-$distribution.pin /etc/apt/preferences.d/cuda-repository-pin-600
+sudo -E apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
+echo "deb http://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64 /" | \
+    sudo -E tee /etc/apt/sources.list.d/cuda.list
+sudo -E apt-get update
+sudo -E apt-get -y install cuda-drivers
+
+echo 'Step 2/2: Install nvidia container toolkit'
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+    && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo -E apt-key add - \
+    && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+    sudo -E tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo -E apt-get update
+sudo -E apt-get install -y nvidia-docker2
+sudo -E systemctl restart docker
+"""
+
 CREATE_DOCKER_USER_COMMAND = """\
 sudo groupadd docker
 sudo gpasswd -a {node_username} docker
@@ -119,6 +160,17 @@ class NodeJoiner:
         return node_details
 
     @staticmethod
+    def init_node_runtime_env(install_node_runtime: bool, install_node_gpu_support: bool):
+        if install_node_gpu_support:
+            command = INSTALL_NODE_RUNTIME_COMMAND.format()
+            Subprocess.interactive_run(command=command)
+            command = INSTALL_NODE_GPU_SUPPORT_COMMAND.format()
+            Subprocess.interactive_run(command=command)
+        elif install_node_runtime:
+            command = INSTALL_NODE_RUNTIME_COMMAND.format()
+            Subprocess.interactive_run(command=command)
+
+    @staticmethod
     def create_docker_user():
         command = CREATE_DOCKER_USER_COMMAND.format(node_username=pwd.getpwuid(os.getuid()).pw_name)
         Subprocess.run(command=command)
@@ -197,6 +249,7 @@ class NodeJoiner:
             },
             "node": {
                 "hostname": "",
+                "username": "",
                 "public_ip_address": "",
                 "private_ip_address": "",
                 "resources": {
@@ -218,6 +271,14 @@ class NodeJoiner:
             optional_key_to_value={
                 "root['master']['redis']": {"port": Params.DEFAULT_REDIS_PORT},
                 "root['master']['redis']['port']": Params.DEFAULT_REDIS_PORT,
+                "root['node']['resources']": {
+                    "cpu": "all",
+                    "memory": "all",
+                    "gpu": "all"
+                },
+                "root['node']['resources']['cpu']": "all",
+                "root['node']['resources']['memory']": "all",
+                "root['node']['resources']['gpu']": "all",
                 "root['node']['api_server']": {"port": Params.DEFAULT_API_SERVER_PORT},
                 "root['node']['api_server']['port']": Params.DEFAULT_API_SERVER_PORT,
                 "root['node']['ssh']": {"port": Params.DEFAULT_SSH_PORT},
@@ -368,6 +429,35 @@ class Subprocess:
             raise Exception(completed_process.stderr)
         sys.stderr.write(completed_process.stderr)
 
+    @staticmethod
+    def interactive_run(command: str) -> None:
+        """Run one-time command with subprocess.popen() and write stdout output interactively.
+
+        Args:
+            command (str): command to be executed.
+
+        Returns:
+            None.
+        """
+        # TODO: Windows master
+        process = subprocess.Popen(
+            command,
+            executable="/bin/bash",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        while True:
+            next_line = process.stdout.readline()
+            if next_line == "" and process.poll() is not None:
+                break
+            sys.stdout.write(next_line)
+            sys.stdout.flush()
+        _, stderr = process.communicate()
+        if stderr:
+            sys.stderr.write(stderr)
+
 
 class DetailsWriter:
     @staticmethod
@@ -395,6 +485,8 @@ if __name__ == "__main__":
     # Load args
     parser = argparse.ArgumentParser()
     parser.add_argument("deployment_path")
+    parser.add_argument("--install-node-runtime", type=bool, default=False)
+    parser.add_argument("--install-node-gpu-support", type=bool, default=False)
     args = parser.parse_args()
 
     # Load deployment and do validation
@@ -405,6 +497,10 @@ if __name__ == "__main__":
     )
 
     node_joiner = NodeJoiner(join_cluster_deployment=join_cluster_deployment)
+    node_joiner.init_node_runtime_env(
+        install_node_runtime=args.install_node_runtime,
+        install_node_gpu_support=args.install_node_gpu_support
+    )
     node_joiner.create_docker_user()
     node_joiner.setup_samba_mount()
     node_joiner.start_node_agent_service()
