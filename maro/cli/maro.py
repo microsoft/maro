@@ -83,7 +83,7 @@ def main():
 
     # maro k8s
     parser_k8s = subparsers.add_parser(
-        'k8s',
+        "k8s",
         help="Manage distributed cluster with Kubernetes.",
         parents=[global_parser]
     )
@@ -664,31 +664,29 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro k8s create
     from maro.cli.k8s.create import create
     parser_create = subparsers.add_parser(
-        'create',
-        help='Create cluster',
+        "create",
+        help="Create cluster",
         examples=CliExamples.MARO_K8S_CREATE,
         parents=[global_parser]
     )
-    parser_create.add_argument(
-        'deployment_path', help='Path of the create deployment')
+    parser_create.add_argument("deployment_path", help="Path of the create deployment")
     parser_create.set_defaults(func=create)
 
     # maro k8s delete
     from maro.cli.k8s.delete import delete
     parser_create = subparsers.add_parser(
-        'delete',
-        help='Delete cluster',
+        "delete",
+        help="Delete cluster",
         examples=CliExamples.MARO_K8S_DELETE,
         parents=[global_parser]
     )
-    parser_create.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_create.add_argument("cluster_name", help="Name of the cluster")
     parser_create.set_defaults(func=delete)
 
     # maro k8s node
     parser_node = subparsers.add_parser(
-        'node',
-        help='Manage nodes of the cluster',
+        "node",
+        help="Manage nodes of the cluster",
         parents=[global_parser]
     )
     parser_node.set_defaults(func=_help_func(parser=parser_node))
@@ -697,35 +695,31 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro k8s node scale
     from maro.cli.k8s.node import scale_node
     parser_node_scale = parser_node_subparsers.add_parser(
-        'scale',
+        "scale",
         help="Scale up or scale down nodes to target number",
         examples=CliExamples.MARO_K8S_NODE_SCALE,
         parents=[global_parser]
     )
-    parser_node_scale.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_node_scale.add_argument(
-        'node_size', help='Azure VM size')
-    parser_node_scale.add_argument(
-        'replicas', type=int, help='Target number of the nodes in the specific node_size')
+    parser_node_scale.add_argument("cluster_name", help="Name of the cluster")
+    parser_node_scale.add_argument("node_size", help="Azure VM size")
+    parser_node_scale.add_argument("replicas", type=int, help="Target number of the nodes in the specific node_size")
     parser_node_scale.set_defaults(func=scale_node)
 
     # maro k8s node list
     from maro.cli.k8s.node import list_node
     parser_node_scale = parser_node_subparsers.add_parser(
-        'list',
+        "list",
         help="List details of nodes",
         examples=CliExamples.MARO_K8S_NODE_LIST,
         parents=[global_parser]
     )
-    parser_node_scale.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_node_scale.add_argument("cluster_name", help="Name of the cluster")
     parser_node_scale.set_defaults(func=list_node)
 
     # maro k8s image
     parser_image = subparsers.add_parser(
-        'image',
-        help='Manage images of the cluster',
+        "image",
+        help="Manage images of the cluster",
         parents=[global_parser]
     )
     parser_image.set_defaults(func=_help_func(parser=parser_image))
@@ -734,33 +728,30 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro k8s image push
     from maro.cli.k8s.image import push_image
     parser_image_push = parser_image_subparsers.add_parser(
-        'push',
-        help='Push a local image to the cluster',
+        "push",
+        help="Push a local image to the cluster",
         examples=CliExamples.MARO_K8S_IMAGE_PUSH,
         parents=[global_parser]
     )
-    parser_image_push.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_image_push.add_argument(
-        '--image-name', help='Name of the local image')
+    parser_image_push.add_argument("cluster_name", help="Name of the cluster")
+    parser_image_push.add_argument("--image-name", help="Name of the local image")
     parser_image_push.set_defaults(func=push_image)
 
     # maro k8s image list
     from maro.cli.k8s.image import list_image
     parser_image_push = parser_image_subparsers.add_parser(
-        'list',
-        help='List the images in the cluster',
+        "list",
+        help="List the images in the cluster",
         examples=CliExamples.MARO_K8S_IMAGE_LIST,
         parents=[global_parser]
     )
-    parser_image_push.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_image_push.add_argument("cluster_name", help="Name of the cluster")
     parser_image_push.set_defaults(func=list_image)
 
     # maro k8s data
     parser_data = subparsers.add_parser(
-        'data',
-        help='Manage user data storage in the cluster',
+        "data",
+        help="Manage user data storage in the cluster",
         parents=[global_parser]
     )
     parser_data.set_defaults(func=_help_func(parser=parser_data))
@@ -769,52 +760,44 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro k8s data push
     from maro.cli.k8s.data import push_data
     parser_data_push = parser_data_subparsers.add_parser(
-        'push',
-        help='Push the local data to the remote directory',
+        "push",
+        help="Push the local data to the remote directory",
         examples=CliExamples.MARO_K8S_DATA_PUSH,
         parents=[global_parser]
     )
-    parser_data_push.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_data_push.add_argument(
-        'local_path', help='Path of the local file')
-    parser_data_push.add_argument(
-        'remote_dir', help='Path of the directory in the cluster data storage')
+    parser_data_push.add_argument("cluster_name", help="Name of the cluster")
+    parser_data_push.add_argument("local_path", help="Path of the local file")
+    parser_data_push.add_argument("remote_dir", help="Path of the directory in the cluster data storage")
     parser_data_push.set_defaults(func=push_data)
 
     # maro k8s data pull
     from maro.cli.k8s.data import pull_data
     parser_data_pull = parser_data_subparsers.add_parser(
-        'pull',
-        help='Pull the remote data to the local directory',
+        "pull",
+        help="Pull the remote data to the local directory",
         examples=CliExamples.MARO_K8S_DATA_PULL,
         parents=[global_parser]
     )
-    parser_data_pull.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_data_pull.add_argument(
-        'remote_path', help='Path of the file in the cluster data storage')
-    parser_data_pull.add_argument(
-        'local_dir', help='Path of the directory in the local')
+    parser_data_pull.add_argument("cluster_name", help="Name of the cluster")
+    parser_data_pull.add_argument("remote_path", help="Path of the file in the cluster data storage")
+    parser_data_pull.add_argument("local_dir", help="Path of the directory in the local")
     parser_data_pull.set_defaults(func=pull_data)
 
     # maro k8s data remove
     from maro.cli.k8s.data import remove_data
     parser_data_pull = parser_data_subparsers.add_parser(
-        'remove',
-        help='Remove data in the cluster data storage',
+        "remove",
+        help="Remove data in the cluster data storage",
         parents=[global_parser]
     )
-    parser_data_pull.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_data_pull.add_argument(
-        'remote_path', help='Path of the file in the cluster data storage')
+    parser_data_pull.add_argument("cluster_name", help="Name of the cluster")
+    parser_data_pull.add_argument("remote_path", help="Path of the file in the cluster data storage")
     parser_data_pull.set_defaults(func=remove_data)
 
     # maro k8s job
     parser_job = subparsers.add_parser(
-        'job',
-        help='Manage jobs',
+        "job",
+        help="Manage jobs",
         parents=[global_parser]
     )
     parser_job.set_defaults(func=_help_func(parser=parser_job))
@@ -823,59 +806,52 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro k8s job start
     from maro.cli.k8s.job import start_job
     parser_job_start = parser_job_subparsers.add_parser(
-        'start',
-        help='Start a training job',
+        "start",
+        help="Start a training job",
         examples=CliExamples.MARO_K8S_JOB_START,
         parents=[global_parser]
     )
-    parser_job_start.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_job_start.add_argument(
-        'deployment_path', help='Path of the job deployment')
+    parser_job_start.add_argument("cluster_name", help="Name of the cluster")
+    parser_job_start.add_argument("deployment_path", help="Path of the job deployment")
     parser_job_start.set_defaults(func=start_job)
 
     # maro k8s job stop
     from maro.cli.k8s.job import stop_job
     parser_job_stop = parser_job_subparsers.add_parser(
-        'stop',
-        help='Stop a training job',
+        "stop",
+        help="Stop a training job",
         examples=CliExamples.MARO_K8S_JOB_STOP,
         parents=[global_parser]
     )
-    parser_job_stop.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_job_stop.add_argument(
-        'job_name', help='Name of the job')
+    parser_job_stop.add_argument("cluster_name", help="Name of the cluster")
+    parser_job_stop.add_argument("job_name", help="Name of the job")
     parser_job_stop.set_defaults(func=stop_job)
 
     # maro k8s job logs
     from maro.cli.k8s.job import get_job_logs
     parser_job_logs = parser_job_subparsers.add_parser(
-        'logs',
-        help='Get logs of the job',
+        "logs",
+        help="Get logs of the job",
         parents=[global_parser]
     )
-    parser_job_logs.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_job_logs.add_argument(
-        'job_name', help='Name of the job')
+    parser_job_logs.add_argument("cluster_name", help="Name of the cluster")
+    parser_job_logs.add_argument("job_name", help="Name of the job")
     parser_job_logs.set_defaults(func=get_job_logs)
 
     # maro k8s job list
     from maro.cli.k8s.job import list_job
     parser_job_list = parser_job_subparsers.add_parser(
-        'list',
-        help='List details of jobs',
+        "list",
+        help="List details of jobs",
         parents=[global_parser]
     )
-    parser_job_list.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_job_list.add_argument("cluster_name", help="Name of the cluster")
     parser_job_list.set_defaults(func=list_job)
 
     # maro k8s schedule
     parser_schedule = subparsers.add_parser(
-        'schedule',
-        help='Manage schedules',
+        "schedule",
+        help="Manage schedules",
         parents=[global_parser]
     )
     parser_schedule.set_defaults(func=_help_func(parser=parser_schedule))
@@ -884,53 +860,47 @@ def load_parser_k8s(prev_parser: ArgumentParser, global_parser: ArgumentParser) 
     # maro k8s schedule start
     from maro.cli.k8s.schedule import start_schedule
     parser_schedule_start = parser_schedule_subparsers.add_parser(
-        'start',
-        help='Start a schedule',
+        "start",
+        help="Start a schedule",
         examples=CliExamples.MARO_K8S_SCHEDULE_START,
         parents=[global_parser]
     )
-    parser_schedule_start.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_schedule_start.add_argument(
-        'deployment_path', help='Path of the schedule deployment')
+    parser_schedule_start.add_argument("cluster_name", help="Name of the cluster")
+    parser_schedule_start.add_argument("deployment_path", help="Path of the schedule deployment")
     parser_schedule_start.set_defaults(func=start_schedule)
 
     # maro k8s schedule stop
     from maro.cli.k8s.schedule import stop_schedule
     parser_schedule_stop = parser_schedule_subparsers.add_parser(
-        'stop',
-        help='Stop a schedule',
+        "stop",
+        help="Stop a schedule",
         examples=CliExamples.MARO_K8S_SCHEDULE_STOP,
         parents=[global_parser]
     )
-    parser_schedule_stop.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_schedule_stop.add_argument(
-        'schedule_name', help='Name of the schedule')
+    parser_schedule_stop.add_argument("cluster_name", help="Name of the cluster")
+    parser_schedule_stop.add_argument("schedule_name", help="Name of the schedule")
     parser_schedule_stop.set_defaults(func=stop_schedule)
 
     # maro k8s status
     from maro.cli.k8s.status import status
     parser_status = subparsers.add_parser(
-        'status',
-        help='Get status of the cluster',
+        "status",
+        help="Get status of the cluster",
         examples=CliExamples.MARO_K8S_STATUS,
         parents=[global_parser]
     )
-    parser_status.add_argument('cluster_name', help='Name of the cluster')
+    parser_status.add_argument("cluster_name", help="Name of the cluster")
     parser_status.set_defaults(func=status)
 
     # maro k8s template
     from maro.cli.k8s.template import template
     parser_template = subparsers.add_parser(
-        'template',
-        help='Get deployment templates',
+        "template",
+        help="Get deployment templates",
         examples=CliExamples.MARO_K8S_TEMPLATE,
         parents=[global_parser]
     )
-    parser_template.add_argument(
-        'export_path', default='./',
-        help='Path of the export directory')
+    parser_template.add_argument("export_path", default="./", help="Path of the export directory")
     parser_template.set_defaults(func=template)
 
 
