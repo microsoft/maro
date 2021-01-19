@@ -37,10 +37,10 @@
     }
   },
   "variables": {
-    "nicId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
-    "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
-    "pipId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]",
-    "snetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]"
+    "nicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+    "nsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
+    "pipId": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]",
+    "snetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]"
   },
   "resources": [
     {

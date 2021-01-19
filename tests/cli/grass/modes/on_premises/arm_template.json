@@ -59,14 +59,14 @@
     }
   },
   "variables": {
-    "masterNicId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', parameters('masterNetworkInterfaceName'))]",
-    "masterNsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('masterNetworkSecurityGroupName'))]",
-    "masterPipId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('masterPublicIpAddressName'))]",
-    "nodeNicId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', parameters('nodeNetworkInterfaceName'))]",
-    "nodeNsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('nodeNetworkSecurityGroupName'))]",
-    "nodePipId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('nodePublicIpAddressName'))]",
-    "snetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]",
-    "vnetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+    "masterNicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('masterNetworkInterfaceName'))]",
+    "masterNsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('masterNetworkSecurityGroupName'))]",
+    "masterPipId": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('masterPublicIpAddressName'))]",
+    "nodeNicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nodeNetworkInterfaceName'))]",
+    "nodeNsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nodeNetworkSecurityGroupName'))]",
+    "nodePipId": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('nodePublicIpAddressName'))]",
+    "snetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]",
+    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
   },
   "resources": [
     {
