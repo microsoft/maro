@@ -9,7 +9,7 @@ import sys
 import time
 import uuid
 
-from .node_api_client import NodeApiClientV1
+from ..master_agent.node_api_client import NodeApiClientV1
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
 from ..utils.params import Paths
@@ -88,11 +88,11 @@ class JobTrackingAgent(multiprocessing.Process):
             None.
         """
         while True:
-            logger.debug(f"Start in JobTrackingAgent.")
+            logger.debug("Start in JobTrackingAgent.")
             start_time = time.time()
             self.update_name_to_job_details()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in JobTrackingAgent.")
+            logger.debug("End in JobTrackingAgent.")
 
     def update_name_to_job_details(self) -> None:
         """Update name_to_job_details with name_to_container_details.
@@ -161,11 +161,11 @@ class ContainerTrackingAgent(multiprocessing.Process):
             None.
         """
         while True:
-            logger.debug(f"Start in ContainerTrackingAgent.")
+            logger.debug("Start in ContainerTrackingAgent.")
             start_time = time.time()
             self.update_name_to_container_details()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in ContainerTrackingAgent.")
+            logger.debug("End in ContainerTrackingAgent.")
 
     def update_name_to_container_details(self) -> None:
         """Update name_to_container_details with name_to_node_details.
@@ -207,11 +207,11 @@ class ContainerRuntimeAgent(multiprocessing.Process):
             None.
         """
         while True:
-            logger.debug(f"Start in ContainerRuntimeAgent.")
+            logger.debug("Start in ContainerRuntimeAgent.")
             start_time = time.time()
             self.iterate_container_status()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in ContainerRuntimeAgent.")
+            logger.debug("End in ContainerRuntimeAgent.")
 
     def iterate_container_status(self) -> None:
         """Iterate container status.
@@ -531,11 +531,11 @@ class PendingJobAgent(multiprocessing.Process):
             None.
         """
         while True:
-            logger.debug(f"Start in PendingJobAgent.")
+            logger.debug("Start in PendingJobAgent.")
             start_time = time.time()
             self.schedule_pending_job_tickets()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in PendingJobAgent.")
+            logger.debug("End in PendingJobAgent.")
 
     def schedule_pending_job_tickets(self) -> None:
         """Schedule pending job tickets.
@@ -688,11 +688,11 @@ class KilledJobAgent(multiprocessing.Process):
             None.
         """
         while True:
-            logger.debug(f"Start in KilledJobAgent.")
+            logger.debug("Start in KilledJobAgent.")
             start_time = time.time()
             self.schedule_killed_job_tickets()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in KilledJobAgent.")
+            logger.debug("End in KilledJobAgent.")
 
     def schedule_killed_job_tickets(self):
         """Schedule killed job tickets.

@@ -29,17 +29,17 @@ distribution=$(. /etc/os-release;echo $ID$VERSION_ID | tr -d '.')
 wget --quiet https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-$distribution.pin
 sudo -E mv cuda-$distribution.pin /etc/apt/preferences.d/cuda-repository-pin-600
 sudo -E apt-key adv \
-    --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
-echo "deb http://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64 /" | \
-    sudo -E tee /etc/apt/sources.list.d/cuda.list
+--fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/7fa2af80.pub
+echo "deb http://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64 /" \
+| sudo -E tee /etc/apt/sources.list.d/cuda.list
 sudo -E apt-get update
 sudo -E apt-get -y install cuda-drivers
 
 echo 'Step 4/{steps}: Install nvidia container toolkit'
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
-    && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo -E apt-key add - \
-    && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
-    sudo -E tee /etc/apt/sources.list.d/nvidia-docker.list
+&& curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo -E apt-key add - \
+&& curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list \
+| sudo -E tee /etc/apt/sources.list.d/nvidia-docker.list
 sudo -E apt-get update
 sudo -E apt-get install -y nvidia-docker2
 sudo -E systemctl restart docker

@@ -159,11 +159,11 @@ class NodeTrackingAgent(multiprocessing.Process):
             None.
         """
         while not self._is_terminated:
-            logger.debug(f"Start in NodeTrackingAgent.")
+            logger.debug("Start in NodeTrackingAgent.")
             start_time = time.time()
             self._update_details()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in NodeTrackingAgent.")
+            logger.debug("End in NodeTrackingAgent.")
 
     def stop(self):
         self._is_terminated = True
@@ -212,8 +212,10 @@ class NodeTrackingAgent(multiprocessing.Process):
             )
 
     @staticmethod
-    def _update_name_to_container_details(container_name_to_inspect_details: dict,
-                                          name_to_container_details: dict) -> None:
+    def _update_name_to_container_details(
+        container_name_to_inspect_details: dict,
+        name_to_container_details: dict
+    ) -> None:
         """Update name_to_container_details from container_name_to_inspect_details.
 
         Args:
@@ -361,11 +363,11 @@ class LoadImageAgent(multiprocessing.Process):
             None.
         """
         while not self._is_terminated:
-            logger.debug(f"Start in LoadImageAgent.")
+            logger.debug("Start in LoadImageAgent.")
             start_time = time.time()
             self.load_images()
             time.sleep(max(self._check_interval - (time.time() - start_time), 0))
-            logger.debug(f"End in LoadImageAgent.")
+            logger.debug("End in LoadImageAgent.")
 
     def stop(self):
         self._is_terminated = True

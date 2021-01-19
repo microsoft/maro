@@ -124,7 +124,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def _join_cluster(join_cluster_deployment: dict):
-        logger.info(f"Joining the cluster")
+        logger.info("Joining the cluster")
 
         # Get standardized join_cluster_deployment
         join_cluster_deployment = GrassOnPremisesExecutor._standardize_join_cluster_deployment(
@@ -160,7 +160,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
         os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml")
 
-        logger.info_green(f"Node is joined to the cluster")
+        logger.info_green("Node is joined to the cluster")
 
     @staticmethod
     def _standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
@@ -206,7 +206,7 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def leave(leave_cluster_deployment: dict) -> None:
-        logger.info(f"Node is leaving")
+        logger.info("Node is leaving")
 
         if not leave_cluster_deployment:
             # Local leave node
@@ -219,4 +219,4 @@ class GrassOnPremisesExecutor(GrassExecutor):
                 node_ssh_port=leave_cluster_deployment["node"]["ssh"]["port"]
             )
 
-        logger.info_green(f"Node is left")
+        logger.info_green("Node is left")

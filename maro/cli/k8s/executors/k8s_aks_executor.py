@@ -18,7 +18,7 @@ from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_writer import DetailsWriter
 from maro.cli.utils.name_creator import NameCreator
-from maro.cli.utils.params import GlobalPaths, GlobalParams
+from maro.cli.utils.params import GlobalParams, GlobalPaths
 from maro.cli.utils.path_convertor import PathConvertor
 from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import BadRequestError, FileOperationError
@@ -410,7 +410,7 @@ class K8sAksExecutor(K8sExecutor):
         k8s_job_config["metadata"]["name"] = job_details["id"]
         k8s_job_config["metadata"]["labels"]["jobName"] = job_details["name"]
         azure_file_config = k8s_job_config["spec"]["template"]["spec"]["volumes"][0]["azureFile"]
-        azure_file_config["secretName"] = f"azure-storage-account-secret"
+        azure_file_config["secretName"] = "azure-storage-account-secret"
         azure_file_config["shareName"] = f"{self.cluster_id}-fs"
 
         # Create and fill container config

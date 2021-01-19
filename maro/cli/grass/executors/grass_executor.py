@@ -313,7 +313,7 @@ class GrassExecutor:
         # Create schedule
         self.master_api_client.create_schedule(schedule_details=schedule_details)
 
-        logger.info_green(f"Multiple job tickets are sent")
+        logger.info_green("Multiple job tickets are sent")
 
     def stop_schedule(self, schedule_name: str):
         # Stop schedule, TODO: add delete job
@@ -433,10 +433,10 @@ class GrassExecutor:
         """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'export DEBIAN_FRONTEND=noninteractive; "
-            f"sudo -E apt update; "
-            f"sudo -E apt install -y python3-pip; "
-            f"pip3 install deepdiff redis pyyaml; "
+            "'export DEBIAN_FRONTEND=noninteractive; "
+            "sudo -E apt update; "
+            "sudo -E apt install -y python3-pip; "
+            "pip3 install deepdiff redis pyyaml; "
             f"curl -s GET http://{master_private_ip_address}:{master_api_server_port}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
@@ -460,7 +460,7 @@ class GrassExecutor:
 
     @staticmethod
     def local_leave_cluster():
-        command = f"python3 ~/.maro-local/scripts/activate_leave_cluster.py"
+        command = "python3 ~/.maro-local/scripts/activate_leave_cluster.py"
         Subprocess.interactive_run(command=command)
 
     @staticmethod

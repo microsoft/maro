@@ -10,8 +10,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from flask import Blueprint
 
-from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details
+from ...master_api_server.jwt_wrapper import check_jwt_validity
+from ...master_api_server.objects import local_cluster_details, redis_controller
 from ...utils.params import Paths
 
 # Flask related.

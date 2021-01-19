@@ -17,7 +17,7 @@ import yaml
 from maro.cli.grass.executors.grass_executor import GrassExecutor
 from maro.cli.grass.utils.file_synchronizer import FileSynchronizer
 from maro.cli.grass.utils.master_api_client import MasterApiClientV1
-from maro.cli.grass.utils.params import ContainerStatus, GrassParams, NodeStatus, GrassPaths
+from maro.cli.grass.utils.params import ContainerStatus, GrassParams, GrassPaths, NodeStatus
 from maro.cli.utils.azure_controller import AzureController
 from maro.cli.utils.deployment_validator import DeploymentValidator
 from maro.cli.utils.details_reader import DetailsReader

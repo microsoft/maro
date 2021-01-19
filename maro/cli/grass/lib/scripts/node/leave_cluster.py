@@ -24,7 +24,7 @@ STOP_NODE_API_SERVER_SERVICE_COMMAND = """systemctl --user stop maro-node-api-se
 class Paths:
     MARO_SHARED = "~/.maro-shared"
     ABS_MARO_SHARED = os.path.expanduser(MARO_SHARED)
-    
+
     MARO_LOCAL = "~/.maro-local"
     ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
 
