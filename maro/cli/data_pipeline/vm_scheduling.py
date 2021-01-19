@@ -32,6 +32,8 @@ class VmSchedulingPipeline(DataPipeline):
     _build_file_name = "vmtable.bin"
 
     _meta_file_name = "vmtable.yml"
+    # VM category includes three types, converting to 0, 1, 2.
+    _category_map = {'Delay-insensitive': 0, 'Interactive': 1, 'Unknown': 2}
 
     def __init__(self, topology: str, source: str, sample: int, seed: int, is_temp: bool = False):
         super().__init__(scenario="vm_scheduling", topology=topology, source=source, is_temp=is_temp)
@@ -90,7 +92,7 @@ class VmSchedulingPipeline(DataPipeline):
         """
         logger.info_green("Downloading vmtable and cpu readings.")
         # Download parts of cpu reading files.
-        num_files = 10
+        num_files = 195
         # Open the txt file which contains all the required urls.
         with open(self._download_file, mode="r", encoding="utf-8") as urls:
             for remote_url in urls.read().splitlines():
@@ -171,23 +173,39 @@ class VmSchedulingPipeline(DataPipeline):
         # Preprocess.
         self._preprocess()
 
-    def _process_vm_table(self, raw_vm_table_file: str) -> pd.DataFrame:
+    def _generate_id_map(self, old_id):
+        num = len(old_id)
+        new_id_list = [i for i in range(1, num + 1)]
+        id_map = dict(zip(old_id, new_id_list))
+
+        return id_map
+
+    def _process_vm_table(self, raw_vm_table_file: str):
         """Process vmtable file."""
 
         headers = [
             'vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'maxcpu', 'avgcpu', 'p95maxcpu',
             'vmcategory', 'vmcorecountbucket', 'vmmemorybucket'
         ]
-        required_headers = ['vmid', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']
+
+        required_headers = [
+            'vmid', 'subscriptionid', 'deploymentid', 'vmcreated', 'vmdeleted', 'vmcategory',
+            'vmcorecountbucket', 'vmmemorybucket'
+        ]
 
         vm_table = pd.read_csv(raw_vm_table_file, header=None, index_col=False, names=headers)
         vm_table = vm_table.loc[:, required_headers]
-
+        # Convert to tick by dividing by 300 (5 minutes).
         vm_table['vmcreated'] = pd.to_numeric(vm_table['vmcreated'], errors="coerce", downcast="integer") // 300
         vm_table['vmdeleted'] = pd.to_numeric(vm_table['vmdeleted'], errors="coerce", downcast="integer") // 300
-        # Transform vmcorecount '>24' bucket to 30 and vmmemory '>64' to 70.
-        vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 30)
-        vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 70)
+        # The lifetime of the VM is deleted time - created time + 1 (tick).
+        vm_table['lifetime'] = vm_table['vmdeleted'] - vm_table['vmcreated'] + 1
+
+        vm_table['vmcategory'] = vm_table['vmcategory'].map(self._category_map)
+
+        # Transform vmcorecount '>24' bucket to 32 and vmmemory '>64' to 128.
+        vm_table = vm_table.replace({'vmcorecountbucket': '>24'}, 32)
+        vm_table = vm_table.replace({'vmmemorybucket': '>64'}, 128)
         vm_table['vmcorecountbucket'] = pd.to_numeric(
             vm_table['vmcorecountbucket'], errors="coerce", downcast="integer"
         )
@@ -195,25 +213,28 @@ class VmSchedulingPipeline(DataPipeline):
         vm_table.dropna(inplace=True)
 
         vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
-        # Generate new id column.
-        vm_table = vm_table.reset_index(drop=True)
-        vm_table['new_id'] = vm_table.index + 1
-        vm_id_map = vm_table.set_index('vmid')['new_id']
-        # Drop the original id column.
-        vm_table = vm_table.drop(['vmid'], axis=1)
-        # Reorder columns.
-        vm_table = vm_table[['new_id', 'vmcreated', 'vmdeleted', 'vmcorecountbucket', 'vmmemorybucket']]
-        # Rename column name.
-        vm_table.rename(columns={'new_id': 'vmid'}, inplace=True)
+
+        # Generate ID map.
+        vm_id_map = self._generate_id_map(vm_table['vmid'].unique())
+        sub_id_map = self._generate_id_map(vm_table['subscriptionid'].unique())
+        deployment_id_map = self._generate_id_map(vm_table['deploymentid'].unique())
+
+        id_maps = (vm_id_map, sub_id_map, deployment_id_map)
+
+        # Mapping IDs.
+        vm_table['vmid'] = vm_table['vmid'].map(vm_id_map)
+        vm_table['subscriptionid'] = vm_table['subscriptionid'].map(sub_id_map)
+        vm_table['deploymentid'] = vm_table['deploymentid'].map(deployment_id_map)
+
         # Sampling the VM table.
+        # 2695548 is the total number of vms in the original Azure public dataset.
         if self._sample < 2695548:
             vm_table = vm_table.sample(n=self._sample, random_state=self._seed)
             vm_table = vm_table.sort_values(by='vmcreated', ascending=True)
-            vm_id_map = vm_id_map[vm_id_map.isin(vm_table['vmid'])]
 
-        return vm_id_map, vm_table
+        return id_maps, vm_table
 
-    def _convert_cpu_readings_id(self, old_data_path: str, new_data_path: str, vm_id_map: pd.DataFrame):
+    def _convert_cpu_readings_id(self, old_data_path: str, new_data_path: str, vm_id_map: dict):
         """Convert vmid in each cpu readings file."""
         with open(old_data_path, 'r') as f_in:
             csv_reader = reader(f_in)
@@ -223,15 +244,38 @@ class VmSchedulingPipeline(DataPipeline):
                 for row in csv_reader:
                     # [timestamp, vmid, mincpu, maxcpu, avgcpu]
                     if row[1] in vm_id_map:
-                        new_row = [int(row[0]) // 300, vm_id_map.loc[row[1]], round(float(row[3]), 2)]
+                        new_row = [int(row[0]) // 300, vm_id_map[row[1]], row[3]]
                         csv_writer.writerow(new_row)
+
+    def _write_id_map_to_csv(self, id_maps):
+        file_name = ['vm_id_map', 'sub_id_map', 'deployment_id_map']
+        for index in range(len(id_maps)):
+            id_map = id_maps[index]
+            with open(os.path.join(self._raw_folder, file_name[index]) + '.csv', 'w') as f:
+                csv_writer = writer(f)
+                csv_writer.writerow(['original_id', 'new_id'])
+                for key, value in id_map.items():
+                    csv_writer.writerow([key, value])
+
+    def _filter_out_vmid(self, vm_table: pd.DataFrame, vm_id_map: dict) -> dict:
+        new_id_map = {}
+        for key, value in vm_id_map.items():
+            if value in vm_table.vmid.values:
+                new_id_map[key] = value
+
+        return new_id_map
 
     def _preprocess(self):
         logger.info_green("Process vmtable data.")
         # Process vmtable file.
-        vm_id_map, vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
+        id_maps, vm_table = self._process_vm_table(raw_vm_table_file=self._raw_vm_table_file)
+        filtered_vm_id_map = self._filter_out_vmid(vm_table=vm_table, vm_id_map=id_maps[0])
+
         with open(self._clean_file, mode="w", encoding="utf-8", newline="") as f:
             vm_table.to_csv(f, index=False, header=True)
+
+        logger.info_green("Writing id maps file.")
+        self._write_id_map_to_csv(id_maps=id_maps)
 
         logger.info_green("Reading cpu data.")
         # Process every cpu readings file.
@@ -244,7 +288,7 @@ class VmSchedulingPipeline(DataPipeline):
             self._convert_cpu_readings_id(
                 old_data_path=raw_cpu_readings_file,
                 new_data_path=clean_cpu_readings_file,
-                vm_id_map=vm_id_map
+                vm_id_map=filtered_vm_id_map
             )
 
     def build(self):

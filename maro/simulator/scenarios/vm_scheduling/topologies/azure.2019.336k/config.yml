@@ -11,16 +11,34 @@ CPU_READINGS: "~/.maro/data/vm_scheduling/.build/azure.2019.336k/vm_cpu_readings
 
 PROCESSED_DATA_URL: "https://marodatasource.blob.core.windows.net/vm-scheduling-azure/azure.2019.336k/azure.2019.336k.tar.gz"
 
+# True means kill all VMs on the overload PM.
+# False means only count these VMs as failed allocation, but not kill them.
+KILL_ALL_VMS_IF_OVERLOAD: True
+
+# Oversubscription configuration.
+# Max CPU oversubscription rate.
+MAX_CPU_OVERSUBSCRIPTION_RATE: 1.15
+# Max memory oversubscription rate.
+MAX_MEM_OVERSUBSCRIPTION_RATE: 1
+# Max CPU utilization rate.
+MAX_UTILIZATION_RATE: 1
+
 PM:
-  AMOUNT: 880
-  CPU: 16
-  MEMORY: 112
-  # GPU: 4
-  # NOTE: Energy consumption parameters should refer to more research.
-  POWER_CURVE:
-    # The calibration parameter used for the CPU utilization vs energy consumption model.
-    CALIBRATION_PARAMETER: 1.4
-    # The idle power usage of a machine.
-    BUSY_POWER: 10
-    # The busy power usage of a machine.
-    IDLE_POWER: 1
+  - PM_type: 0 # PM type is currently "int" only.
+    amount: 880
+    CPU: 16
+  # GPU: 0
+    memory: 112
+    power_curve:
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1
+# - PM_type: 1
+#   amount: 440
+#   CPU: 16
+#   GPU: 0
+#   memory: 112
+#   power_curve:
+#     calibration_parameter: 1.4
+#     busy_power: 10
+#     idle_power: 1
