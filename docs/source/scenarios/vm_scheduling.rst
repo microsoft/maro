@@ -113,7 +113,7 @@ simulate the energy based on the CPU utilization.
 Overload
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Since the VM's CPU utilization varies along the time, when enabling the oversubscription, it might
-happen that the VM's CPU usage execeeds the capacity of the physical resource. This situation called
+happen that the sum of VM's CPU usage execeeds the capacity of the physical resource. This situation called
 overload. The threshold of overloading, or we can say the maximum utilization rate can be set in config.yml.
 
 * ``MAX_UTILIZATION_RATE``: The default setting is 1, which means that when the PM's CPU utilization
@@ -121,12 +121,13 @@ overload. The threshold of overloading, or we can say the maximum utilization ra
 
 Overloading may lead to VM's performance degradation or service level agreements (SLAs) violations
 in real production (We will support these features in the future).
-Currently, we only support quiescing (killing) all VMs, which can also be set in config.yml.
+Currently, for the situation of overloading, we only support quiescing (killing) all VMs or just recording
+the times of overloading, which can also be set in config.yml.
 
 * ``KILL_ALL_VMS_IF_OVERLOAD``: If this action is enable,
   once overloading happens, all VMs located at the overloading PMs will be deallocated. To consider the
-  effect of overloading, we will calculate the updated utilization (=0)
-  and energy consumption in the next tick.
+  effect of overloading, we will still count the energy consumed by the high utilization.
+  The impact of the quiescing action on the PM's utilization will be reflected in the next tick.
 
 No matter enable killing all VMs or not, we will calculate the number of overload PMs and the number
 of overload VMs. These two metrics are cumulative values and will be recorded as the environment metrics.
