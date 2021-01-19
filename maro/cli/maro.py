@@ -74,7 +74,7 @@ def main():
 
     # maro grass
     parser_grass = subparsers.add_parser(
-        'grass',
+        "grass",
         help="Manage distributed cluster with native virtual machines (for development only).",
         parents=[global_parser]
     )
@@ -287,31 +287,29 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass create
     from maro.cli.grass.create import create
     parser_create = subparsers.add_parser(
-        'create',
-        help='Create cluster',
+        "create",
+        help="Create cluster",
         examples=CliExamples.MARO_GRASS_CREATE,
         parents=[global_parser]
     )
-    parser_create.add_argument(
-        'deployment_path', help='Path of the create deployment')
+    parser_create.add_argument("deployment_path", help="Path of the create deployment")
     parser_create.set_defaults(func=create)
 
     # maro grass delete
     from maro.cli.grass.delete import delete
     parser_delete = subparsers.add_parser(
-        'delete',
-        help='Delete cluster',
+        "delete",
+        help="Delete cluster",
         examples=CliExamples.MARO_GRASS_DELETE,
         parents=[global_parser]
     )
-    parser_delete.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_delete.add_argument("cluster_name", help="Name of the cluster")
     parser_delete.set_defaults(func=delete)
 
     # maro grass node
     parser_node = subparsers.add_parser(
-        'node',
-        help='Manage nodes of the cluster',
+        "node",
+        help="Manage nodes of the cluster",
         parents=[global_parser]
     )
     parser_node.set_defaults(func=_help_func(parser=parser_node))
@@ -320,73 +318,70 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass node scale
     from maro.cli.grass.node import scale_node
     parser_node_scale = parser_node_subparsers.add_parser(
-        'scale',
+        "scale",
         help="Scale up or scale down nodes to target number",
         examples=CliExamples.MARO_GRASS_NODE_SCALE,
         parents=[global_parser]
     )
-    parser_node_scale.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_node_scale.add_argument(
-        'node_size', help='Azure VM size')
-    parser_node_scale.add_argument(
-        'replicas', type=int, help='Target number of the nodes in the specific node_size')
+    parser_node_scale.add_argument("cluster_name", help="Name of the cluster")
+    parser_node_scale.add_argument("node_size", help="Azure VM size")
+    parser_node_scale.add_argument("replicas", type=int, help="Target number of the nodes in the specific node_size")
     parser_node_scale.set_defaults(func=scale_node)
 
     # maro grass node start
     from maro.cli.grass.node import start_node
     parser_node_start = parser_node_subparsers.add_parser(
-        'start',
+        "start",
         help="Start nodes",
         examples=CliExamples.MARO_GRASS_NODE_START,
         parents=[global_parser]
     )
+    parser_node_start.add_argument("cluster_name", help="Name of the cluster")
+    parser_node_start.add_argument("node_size", help="Azure VM size")
     parser_node_start.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_node_start.add_argument(
-        'node_size', help='Azure VM size')
-    parser_node_start.add_argument(
-        'replicas', type=int, help='Target number of the nodes need to be started in the specific node_size')
+        "replicas",
+        type=int,
+        help="Target number of the nodes need to be started in the specific node_size"
+    )
     parser_node_start.set_defaults(func=start_node)
 
     # maro grass node stop
     from maro.cli.grass.node import stop_node
     parser_node_stop = parser_node_subparsers.add_parser(
-        'stop',
+        "stop",
         help="Stop nodes",
         examples=CliExamples.MARO_GRASS_NODE_STOP,
         parents=[global_parser]
     )
+    parser_node_stop.add_argument("cluster_name", help="Name of the cluster")
+    parser_node_stop.add_argument("node_size", help="Azure VM size")
     parser_node_stop.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_node_stop.add_argument(
-        'node_size', help='Azure VM size')
-    parser_node_stop.add_argument(
-        'replicas', type=int, help='Target number of the nodes need to be stopped in the specific node_size')
+        "replicas",
+        type=int,
+        help="Target number of the nodes need to be stopped in the specific node_size"
+    )
     parser_node_stop.set_defaults(func=stop_node)
 
     # maro grass node list
     from maro.cli.grass.node import list_node
     parser_node_list = parser_node_subparsers.add_parser(
-        'list',
+        "list",
         help="List details of nodes",
         examples=CliExamples.MARO_GRASS_NODE_LIST,
         parents=[global_parser]
     )
-    parser_node_list.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_node_list.add_argument("cluster_name", help="Name of the cluster")
     parser_node_list.set_defaults(func=list_node)
 
     # maro grass node join
     from maro.cli.grass.node import join_cluster
     parser_node_join = parser_node_subparsers.add_parser(
-        'join',
+        "join",
         help="Let one node join in a cluster in on-premises mode.",
         examples=CliExamples.MARO_GRASS_NODE_JOIN,
         parents=[global_parser]
     )
-    parser_node_join.add_argument(
-        'deployment_path', help='The node join description file path.')
+    parser_node_join.add_argument("deployment_path", help="The node join description file path.")
     parser_node_join.set_defaults(func=join_cluster)
 
     # maro grass node leave
@@ -398,13 +393,17 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
         parents=[global_parser]
     )
     parser_node_leave.add_argument(
-        'deployment_path', nargs="?", default={}, help='The node join description file path.')
+        "deployment_path",
+        nargs="?",
+        default={},
+        help="The node join description file path."
+    )
     parser_node_leave.set_defaults(func=leave_cluster)
 
     # maro grass image
     parser_image = subparsers.add_parser(
-        'image',
-        help='Manage images of the cluster',
+        "image",
+        help="Manage images of the cluster",
         parents=[global_parser]
     )
     parser_image.set_defaults(func=_help_func(parser=parser_image))
@@ -413,27 +412,25 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass image push
     from maro.cli.grass.image import push_image
     parser_image_push = parser_image_subparsers.add_parser(
-        'push',
-        help='Push a local image to the cluster',
+        "push",
+        help="Push a local image to the cluster",
         examples=CliExamples.MARO_GRASS_IMAGE_PUSH,
         parents=[global_parser]
     )
+    parser_image_push.add_argument("cluster_name", help="Name of the cluster")
+    parser_image_push.add_argument("--image-name", help="Name of the local image")
+    parser_image_push.add_argument("--image-path", help="Path of the local tar file")
     parser_image_push.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_image_push.add_argument(
-        '--image-name', help='Name of the local image')
-    parser_image_push.add_argument(
-        '--image-path', help='Path of the local tar file')
-    parser_image_push.add_argument(
-        '--remote-context-path', help='Absolute path of the image context in the user data storage of the cluster ')
-    parser_image_push.add_argument(
-        '--remote-image-name', help='Name of the image')
+        "--remote-context-path",
+        help="Absolute path of the image context in the user data storage of the cluster"
+    )
+    parser_image_push.add_argument("--remote-image-name", help="Name of the image")
     parser_image_push.set_defaults(func=push_image)
 
     # maro grass data
     parser_data = subparsers.add_parser(
-        'data',
-        help='Manage user data storage in the cluster',
+        "data",
+        help="Manage user data storage in the cluster",
         parents=[global_parser]
     )
     parser_data.set_defaults(func=_help_func(parser=parser_data))
@@ -442,39 +439,33 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass data push
     from maro.cli.grass.data import push_data
     parser_data_push = parser_data_subparsers.add_parser(
-        'push',
-        help='Push the local data to the remote directory',
+        "push",
+        help="Push the local data to the remote directory",
         examples=CliExamples.MARO_GRASS_DATA_PUSH,
         parents=[global_parser]
     )
-    parser_data_push.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_data_push.add_argument(
-        'local_path', help='Path of the local file')
-    parser_data_push.add_argument(
-        'remote_path', help='Path of the directory in the cluster data storage')
+    parser_data_push.add_argument("cluster_name", help="Name of the cluster")
+    parser_data_push.add_argument("local_path", help="Path of the local file")
+    parser_data_push.add_argument("remote_path", help="Path of the directory in the cluster data storage")
     parser_data_push.set_defaults(func=push_data)
 
     # maro grass data pull
     from maro.cli.grass.data import pull_data
     parser_data_pull = parser_data_subparsers.add_parser(
-        'pull',
-        help='Pull the remote data to the local directory',
+        "pull",
+        help="Pull the remote data to the local directory",
         examples=CliExamples.MARO_GRASS_DATA_PULL,
         parents=[global_parser]
     )
-    parser_data_pull.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_data_pull.add_argument(
-        'remote_path', help='Path of the file in the cluster data storage')
-    parser_data_pull.add_argument(
-        'local_path', help='Path of the directory in the local')
+    parser_data_pull.add_argument("cluster_name", help="Name of the cluster")
+    parser_data_pull.add_argument("remote_path", help="Path of the file in the cluster data storage")
+    parser_data_pull.add_argument("local_path", help="Path of the directory in the local")
     parser_data_pull.set_defaults(func=pull_data)
 
     # maro grass job
     parser_job = subparsers.add_parser(
-        'job',
-        help='Manage jobs',
+        "job",
+        help="Manage jobs",
         parents=[global_parser]
     )
     parser_job.set_defaults(func=_help_func(parser=parser_job))
@@ -483,61 +474,54 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass job start
     from maro.cli.grass.job import start_job
     parser_job_start = parser_job_subparsers.add_parser(
-        'start',
-        help='Start a training job',
+        "start",
+        help="Start a training job",
         examples=CliExamples.MARO_GRASS_JOB_START,
         parents=[global_parser]
     )
-    parser_job_start.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_job_start.add_argument(
-        'deployment_path', help='Path of the job deployment')
+    parser_job_start.add_argument("cluster_name", help="Name of the cluster")
+    parser_job_start.add_argument("deployment_path", help="Path of the job deployment")
     parser_job_start.set_defaults(func=start_job)
 
     # maro grass job stop
     from maro.cli.grass.job import stop_job
     parser_job_stop = parser_job_subparsers.add_parser(
-        'stop',
-        help='Stop a training job',
+        "stop",
+        help="Stop a training job",
         examples=CliExamples.MARO_GRASS_JOB_STOP,
         parents=[global_parser]
     )
-    parser_job_stop.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_job_stop.add_argument(
-        'job_name', help='Name of the job')
+    parser_job_stop.add_argument("cluster_name", help="Name of the cluster")
+    parser_job_stop.add_argument("job_name", help="Name of the job")
     parser_job_stop.set_defaults(func=stop_job)
 
     # maro grass job list
     from maro.cli.grass.job import list_job
     parser_job_list = parser_job_subparsers.add_parser(
-        'list',
-        help='List details of jobs',
+        "list",
+        help="List details of jobs",
         examples=CliExamples.MARO_GRASS_JOB_LIST,
         parents=[global_parser]
     )
-    parser_job_list.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_job_list.add_argument("cluster_name", help="Name of the cluster")
     parser_job_list.set_defaults(func=list_job)
 
     # maro grass job logs
     from maro.cli.grass.job import get_job_logs
     parser_job_logs = parser_job_subparsers.add_parser(
-        'logs',
-        help='Get logs of the job',
+        "logs",
+        help="Get logs of the job",
         examples=CliExamples.MARO_GRASS_JOB_LOGS,
         parents=[global_parser]
     )
-    parser_job_logs.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_job_logs.add_argument(
-        'job_name', help='Name of the job')
+    parser_job_logs.add_argument("cluster_name", help="Name of the cluster")
+    parser_job_logs.add_argument("job_name", help="Name of the job")
     parser_job_logs.set_defaults(func=get_job_logs)
 
     # maro grass schedule
     parser_schedule = subparsers.add_parser(
-        'schedule',
-        help='Manage schedules',
+        "schedule",
+        help="Manage schedules",
         parents=[global_parser]
     )
     parser_schedule.set_defaults(func=_help_func(parser=parser_schedule))
@@ -546,66 +530,59 @@ def load_parser_grass(prev_parser: ArgumentParser, global_parser: ArgumentParser
     # maro grass schedule start
     from maro.cli.grass.schedule import start_schedule
     parser_schedule_start = parser_schedule_subparsers.add_parser(
-        'start',
-        help='Start a schedule',
+        "start",
+        help="Start a schedule",
         examples=CliExamples.MARO_GRASS_SCHEDULE_START,
         parents=[global_parser]
     )
-    parser_schedule_start.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_schedule_start.add_argument(
-        'deployment_path', help='Path of the schedule deployment')
+    parser_schedule_start.add_argument("cluster_name", help="Name of the cluster")
+    parser_schedule_start.add_argument("deployment_path", help="Path of the schedule deployment")
     parser_schedule_start.set_defaults(func=start_schedule)
 
     # maro grass schedule stop
     from maro.cli.grass.schedule import stop_schedule
     parser_schedule_stop = parser_schedule_subparsers.add_parser(
-        'stop',
-        help='Stop a schedule',
+        "stop",
+        help="Stop a schedule",
         examples=CliExamples.MARO_GRASS_SCHEDULE_STOP,
         parents=[global_parser]
     )
-    parser_schedule_stop.add_argument(
-        'cluster_name', help='Name of the cluster')
-    parser_schedule_stop.add_argument(
-        'schedule_name', help='Name of the schedule')
+    parser_schedule_stop.add_argument("cluster_name", help="Name of the cluster")
+    parser_schedule_stop.add_argument("schedule_name", help="Name of the schedule")
     parser_schedule_stop.set_defaults(func=stop_schedule)
 
     # maro grass clean
     from maro.cli.grass.clean import clean
     parser_clean = subparsers.add_parser(
-        'clean',
-        help='Clean cluster',
+        "clean",
+        help="Clean cluster",
         examples=CliExamples.MARO_GRASS_CLEAN,
         parents=[global_parser]
     )
-    parser_clean.add_argument(
-        'cluster_name', help='Name of the cluster')
+    parser_clean.add_argument("cluster_name", help="Name of the cluster")
     parser_clean.set_defaults(func=clean)
 
     # maro grass status
     from maro.cli.grass.status import status
     parser_status = subparsers.add_parser(
-        'status',
-        help='Get status of the cluster',
+        "status",
+        help="Get status of the cluster",
         examples=CliExamples.MARO_GRASS_STATUS,
         parents=[global_parser]
     )
-    parser_status.add_argument('cluster_name', help='Name of the cluster')
-    parser_status.add_argument('resource_name', help='Name of the resource')
+    parser_status.add_argument("cluster_name", help="Name of the cluster")
+    parser_status.add_argument("resource_name", help="Name of the resource")
     parser_status.set_defaults(func=status)
 
     # maro grass template
     from maro.cli.grass.template import template
     parser_clean = subparsers.add_parser(
-        'template',
-        help='Get deployment templates',
+        "template",
+        help="Get deployment templates",
         examples=CliExamples.MARO_GRASS_TEMPLATES,
         parents=[global_parser]
     )
-    parser_clean.add_argument(
-        'export_path', default='./',
-        help='Path of the export directory')
+    parser_clean.add_argument("export_path", default="./", help="Path of the export directory")
     parser_clean.set_defaults(func=template)
 
 
