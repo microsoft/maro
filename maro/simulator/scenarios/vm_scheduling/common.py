@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from enum import Enum
 from typing import List
 
 from .virtual_machine import VirtualMachine
@@ -80,14 +79,6 @@ class DecisionPayload:
         self.vm_cpu_cores_requirement = vm_cpu_cores_requirement
         self.vm_memory_requirement = vm_memory_requirement
         self.remaining_buffer_time = remaining_buffer_time
-
-
-class PostponeType(Enum):
-    """Postpone type."""
-    # Postpone the VM requirement due to the resource exhaustion.
-    Resource = 'resource'
-    # Postpone the VM requirement due to the agent's decision.
-    Agent = 'agent'
 
 
 class Latency:
