@@ -1,7 +1,13 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
+  "contentVersion": "1.1.0.0",
   "parameters": {
+    "adminPublicKey": {
+      "value": null
+    },
+    "adminUsername": {
+      "value": null
+    },
     "location": {
       "value": null
     },
@@ -11,10 +17,10 @@
     "networkSecurityGroupName": {
       "value": null
     },
-    "virtualNetworkName": {
+    "publicIpAddressName": {
       "value": null
     },
-    "publicIpAddressName": {
+    "sshDestinationPorts": {
       "value": null
     },
     "virtualMachineName": {
@@ -23,13 +29,7 @@
     "virtualMachineSize": {
       "value": null
     },
-    "adminUsername": {
-      "value": null
-    },
-    "adminPublicKey": {
-      "value": null
-    },
-    "sshDestinationPorts": {
+    "virtualNetworkName": {
       "value": null
     }
   }

@@ -557,17 +557,17 @@ class ArmTemplateParameterBuilder:
         with open(f"{K8sPaths.ABS_MARO_K8S_LIB}/modes/aks/create_aks_cluster/parameters.json", "r") as f:
             base_parameters = json.load(f)
             parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = cluster_details["cloud"]["location"]
-            parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
-            parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
-            parameters["clusterName"]["value"] = f"{cluster_id}-aks"
-            parameters["agentCount"]["value"] = 1
-            parameters["agentVMSize"]["value"] = cluster_details["master"]["node_size"]
-            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
             parameters["acrName"]["value"] = f"{cluster_id}acr"
             parameters["acrSku"]["value"] = "Basic"
-            parameters["storageAccountName"]["value"] = f"{cluster_id}st"
+            parameters["adminPublicKey"]["value"] = cluster_details["cloud"]["default_public_key"]
+            parameters["adminUsername"]["value"] = cluster_details["cloud"]["default_username"]
+            parameters["agentCount"]["value"] = 1
+            parameters["agentVMSize"]["value"] = cluster_details["master"]["node_size"]
+            parameters["clusterName"]["value"] = f"{cluster_id}-aks"
             parameters["fileShareName"]["value"] = f"{cluster_id}-fs"
+            parameters["location"]["value"] = cluster_details["cloud"]["location"]
+            parameters["storageAccountName"]["value"] = f"{cluster_id}st"
+            parameters["virtualNetworkName"]["value"] = f"{cluster_id}-vnet"
 
         # Export parameters if the path is set
         if export_path:

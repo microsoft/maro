@@ -228,11 +228,11 @@ class TestGrassOnPremises(unittest.TestCase):
         with open(file=cls.arm_parameters_file_path, mode="r") as fr:
             base_parameters = json.load(fr)
             parameters = base_parameters["parameters"]
-            parameters["location"]["value"] = build_config["location"]
-            parameters["adminUsername"]["value"] = build_config["default_username"]
             parameters["adminPublicKey"]["value"] = build_config["default_public_key"]
-            parameters["sshDestinationPorts"]["value"] = [build_config["ssh"]["port"]]
+            parameters["adminUsername"]["value"] = build_config["default_username"]
             parameters["apiServerDestinationPorts"]["value"] = [build_config["api_server"]["port"]]
+            parameters["location"]["value"] = build_config["location"]
+            parameters["sshDestinationPorts"]["value"] = [build_config["ssh"]["port"]]
 
         # Export parameters if the path is set.
         if export_path:

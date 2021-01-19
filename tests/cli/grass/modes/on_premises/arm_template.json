@@ -1,12 +1,17 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.3.0",
+  "contentVersion": "1.1.0.0",
   "parameters": {
-    "location": {
+    "adminPublicKey": {
+      "type": "securestring"
+    },
+    "adminUsername": {
       "type": "string"
     },
-    "virtualNetworkName": {
-      "defaultValue": "vnet",
+    "apiServerDestinationPorts": {
+      "type": "array"
+    },
+    "location": {
       "type": "string"
     },
     "masterNetworkInterfaceName": {
@@ -41,58 +46,38 @@
       "defaultValue": "node-vm",
       "type": "string"
     },
+    "sshDestinationPorts": {
+      "type": "array"
+    },
     "virtualMachineSize": {
       "defaultValue": "Standard_D2s_v3",
       "type": "string"
     },
-    "adminUsername": {
+    "virtualNetworkName": {
+      "defaultValue": "vnet",
       "type": "string"
-    },
-    "adminPublicKey": {
-      "type": "securestring"
-    },
-    "sshDestinationPorts": {
-      "type": "array"
-    },
-    "apiServerDestinationPorts": {
-      "type": "array"
     }
   },
   "variables": {
-    "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/', 'default')]"
+    "masterNicId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', parameters('masterNetworkInterfaceName'))]",
+    "masterNsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('masterNetworkSecurityGroupName'))]",
+    "masterPipId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('masterPublicIpAddressName'))]",
+    "nodeNicId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkInterfaces', parameters('nodeNetworkInterfaceName'))]",
+    "nodeNsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('nodeNetworkSecurityGroupName'))]",
+    "nodePipId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('nodePublicIpAddressName'))]",
+    "snetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]",
+    "vnetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
   },
   "resources": [
     {
-      "name": "[parameters('virtualNetworkName')]",
-      "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2020-04-01",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.0.0.0/24"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "default",
-            "properties": {
-              "addressPrefix": "10.0.0.0/24"
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "[parameters('masterNetworkInterfaceName')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', parameters('masterNetworkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/publicIpAddresses/', parameters('masterPublicIpAddressName'))]"
+        "[variables('masterNsgId')]",
+        "[variables('masterPipId')]",
+        "[variables('vnetId')]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -100,17 +85,17 @@
             "name": "ipconfig1",
             "properties": {
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[variables('snetId')]"
               },
               "privateIPAllocationMethod": "Dynamic",
               "publicIpAddress": {
-                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('masterPublicIpAddressName'))]"
+                "id": "[variables('masterPipId')]"
               }
             }
           }
         ],
         "networkSecurityGroup": {
-          "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('masterNetworkSecurityGroupName'))]"
+          "id": "[variables('masterNsgId')]"
         }
       }
     },
@@ -119,9 +104,6 @@
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-      ],
       "properties": {
         "securityRules": [
           {
@@ -138,7 +120,7 @@
             }
           },
           {
-            "name": "master_api_server",
+            "name": "api_server",
             "properties": {
               "protocol": "*",
               "sourcePortRange": "*",
@@ -158,9 +140,6 @@
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-      ],
       "properties": {
         "publicIPAllocationMethod": "Static"
       },
@@ -171,11 +150,10 @@
     {
       "name": "[parameters('masterVirtualMachineName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2019-07-01",
+      "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', parameters('masterNetworkInterfaceName'))]"
+        "[variables('masterNicId')]"
       ],
       "properties": {
         "hardwareProfile": {
@@ -195,7 +173,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('masterNetworkInterfaceName'))]"
+              "id": "[variables('masterNicId')]"
             }
           ]
         },
@@ -219,12 +197,12 @@
     {
       "name": "[parameters('nodeNetworkInterfaceName')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', parameters('nodeNetworkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/publicIpAddresses/', parameters('nodePublicIpAddressName'))]"
+        "[variables('nodeNsgId')]",
+        "[variables('nodePipId')]",
+        "[variables('vnetId')]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -232,17 +210,17 @@
             "name": "ipconfig1",
             "properties": {
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[variables('snetId')]"
               },
               "privateIPAllocationMethod": "Dynamic",
               "publicIpAddress": {
-                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('nodePublicIpAddressName'))]"
+                "id": "[variables('nodePipId')]"
               }
             }
           }
         ],
         "networkSecurityGroup": {
-          "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('nodeNetworkSecurityGroupName'))]"
+          "id": "[variables('nodeNsgId')]"
         }
       }
     },
@@ -251,9 +229,6 @@
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-      ],
       "properties": {
         "securityRules": [
           {
@@ -268,19 +243,6 @@
               "direction": "Inbound",
               "destinationPortRanges": "[parameters('sshDestinationPorts')]"
             }
-          },
-          {
-            "name": "node_api_server",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 101,
-              "direction": "Inbound",
-              "destinationPortRanges": "[parameters('apiServerDestinationPorts')]"
-            }
           }
         ]
       }
@@ -290,9 +252,6 @@
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-      ],
       "properties": {
         "publicIPAllocationMethod": "Static"
       },
@@ -303,11 +262,10 @@
     {
       "name": "[parameters('nodeVirtualMachineName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2019-07-01",
+      "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', parameters('nodeNetworkInterfaceName'))]"
+        "[variables('nodeNicId')]"
       ],
       "properties": {
         "hardwareProfile": {
@@ -327,7 +285,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nodeNetworkInterfaceName'))]"
+              "id": "[variables('nodeNicId')]"
             }
           ]
         },
@@ -346,6 +304,27 @@
             }
           }
         }
+      }
+    },
+    {
+      "name": "[parameters('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2020-04-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/24"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "default",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
+            }
+          }
+        ]
       }
     }
   ]
