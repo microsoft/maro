@@ -3,6 +3,8 @@
 
 from typing import List
 
+from .enums import VmCategory
+
 
 class VirtualMachine:
     """VM object.
@@ -19,12 +21,28 @@ class VirtualMachine:
         memory_requirement (int): The memory requested by VM. The unit is (GBs).
         lifetime (int): The lifetime of the VM, that is, deletion tick - creation tick.
     """
-    def __init__(self, id: int, cpu_cores_requirement: int, memory_requirement: int, lifetime: int):
+    def __init__(
+        self,
+        id: int,
+        cpu_cores_requirement: int,
+        memory_requirement: int,
+        lifetime: int,
+        sub_id: int,
+        deployment_id: int,
+        category: VmCategory
+    ):
         # VM Requirement parameters.
         self.id: int = id
         self.cpu_cores_requirement: int = cpu_cores_requirement
         self.memory_requirement: int = memory_requirement
         self.lifetime: int = lifetime
+        # The VM belong to a subscription.
+        self.sub_id: int = sub_id
+        # The region of PM that VM allocated (under a subscription) called a deployment group.
+        self.deployment_id: int = deployment_id
+        # The category of the VM. Now includes Delay-insensitive: 0, Interactive: 1, and Unknown: 2.
+        self.category: VmCategory = category
+
         # VM utilization list with VM cpu utilization(%) in corresponding tick.
         self._utilization_series: List[float] = []
         # The physical machine Id that the VM is assigned.
