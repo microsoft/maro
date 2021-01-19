@@ -2,16 +2,18 @@
 # Licensed under the MIT license.
 
 
-from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
-from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_validity_wrapper import check_details_validity
 from maro.cli.utils.operation_lock_wrapper import operation_lock
-from maro.utils.exception.cli_exception import BadRequestError
 
 
 @check_details_validity
 @operation_lock
 def start_job(cluster_name: str, deployment_path: str, **kwargs):
+    # Late import.
+    from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -27,6 +29,11 @@ def start_job(cluster_name: str, deployment_path: str, **kwargs):
 @check_details_validity
 @operation_lock
 def stop_job(cluster_name: str, job_name: str, **kwargs):
+    # Late import.
+    from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
@@ -42,9 +49,15 @@ def stop_job(cluster_name: str, job_name: str, **kwargs):
 @check_details_validity
 @operation_lock
 def get_job_logs(cluster_name: str, job_name: str, **kwargs):
+    # Late import.
+    from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
+    # FIXME: get job logs.
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
         executor.get_job_logs(
@@ -57,6 +70,11 @@ def get_job_logs(cluster_name: str, job_name: str, **kwargs):
 @check_details_validity
 @operation_lock
 def list_job(cluster_name: str, **kwargs):
+    # Late import.
+    from maro.cli.k8s.executors.k8s_aks_executor import K8sAksExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
