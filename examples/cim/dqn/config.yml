@@ -2,45 +2,23 @@ env:
   scenario: "cim"
   topology: "toy.4p_ssdd_l0.0"
   durations: 1120
-general:
-  max_episode: 500
-  early_stopping:
-    warmup_ep: 50
-    last_k: 10
-    perf_threshold: 0.9   # minimum performance (fulfillment ratio) required to trigger early stopping
-    perf_stability_threshold: 0.1  # stability is measured by the maximum of abs(perf_(i+1) - perf_i) / perf_i
-                                   # over the last k eisodes (where perf is short for performance). This value must
-                                   # be below this threshold to trigger early stopping
-state_shaping:
-  look_back: 7
-  max_ports_downstream: 2
-  port_attributes:
-    - "empty"
-    - "full"
-    - "on_shipper"
-    - "on_consignee"
-    - "booking"
-    - "shortage"
-    - "fulfillment"
-  vessel_attributes:
-    - "empty"
-    - "full"
-    - "remaining_space"
-experience_shaping:
-  type: "truncated"
-  k_step:
-    reward_decay: 0.9
-    steps: 5
-  truncated:
+  state_shaping:
+    look_back: 7
+    max_ports_downstream: 2
+  experience_shaping:
     time_window: 100
     fulfillment_factor: 1.0
     shortage_factor: 1.0
     time_decay_factor: 0.97
-exploration:
-  start_eps: 0.4
-  mid_eps: 0.32
-  end_eps: 0.0
-  split_point: 0.5
+main_loop:
+  max_episode: 500
+  exploration:
+    parameter_names:
+      - "epsilon"
+    split_ep: 250
+    start_values: 0.4
+    mid_values: 0.32
+    end_values: 0.0
 agents:
   algorithm:
     num_actions: 21
@@ -55,15 +33,16 @@ agents:
       dropout_p: 0.0
     optimizer:
       lr: 0.05
-    hyper_parameters:
-      reward_decay: .0
+    hyper_params:
+      reward_discount: .0
       target_update_frequency: 5
       tau: 0.1
       is_double: true
+      per_sample_td_error_enabled: true
   experience_pool:
     capacity: -1
   training_loop_parameters:
     min_experiences_to_train: 1024
     num_batches: 10
     batch_size: 128
-  seed: 1024   # for reproducibility
+  seed: 32   # for reproducibility

@@ -20,7 +20,6 @@ from maro.cli.utils.subprocess import Subprocess
 from maro.utils.exception.cli_exception import CommandExecutionError
 from tests.cli.utils import record_running_time
 
-
 @unittest.skipUnless(os.environ.get("test_with_cli", False), "Require cli prerequisites.")
 class TestK8s(unittest.TestCase):
     """Tests for K8s/Aks Mode.
@@ -282,7 +281,8 @@ class TestK8s(unittest.TestCase):
         with open(f"{dqn_target_dir}/distributed_config.yml", "r") as fr:
             distributed_config = yaml.safe_load(fr)
         with open(f"{dqn_target_dir}/config.yml", "w") as fw:
-            config["general"]["max_episode"] = 30
+            config["main_loop"]["max_episode"] = 25
+            config["main_loop"]["exploration"]["split_ep"] = 20
             yaml.safe_dump(config, fw)
         with open(f"{dqn_target_dir}/distributed_config.yml", 'w') as fw:
             distributed_config["redis"]["hostname"] = cluster_details["redis"]["private_ip_address"]

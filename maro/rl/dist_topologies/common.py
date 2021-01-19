@@ -3,7 +3,7 @@ from enum import Enum
 
 class PayloadKey(Enum):
     MODEL = "model"
-    EPSILON = "epsilon"
+    EXPLORATION_PARAMS = "exploration_params"
     PERFORMANCE = "performance"
     DETAILS = "details"
     SEED = "seed"

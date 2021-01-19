@@ -456,7 +456,8 @@ class TestGrassOnPremises(unittest.TestCase):
         with open(file=f"{dqn_target_dir}/distributed_config.yml", mode="r") as fr:
             distributed_config = yaml.safe_load(fr)
         with open(file=f"{dqn_target_dir}/config.yml", mode="w") as fw:
-            config["general"]["max_episode"] = 30
+            config["main_loop"]["max_episode"] = 25
+            config["main_loop"]["exploration"]["split_ep"] = 20
             yaml.safe_dump(config, fw)
         with open(file=f"{dqn_target_dir}/distributed_config.yml", mode="w") as fw:
             distributed_config["redis"]["hostname"] = master_details["private_ip_address"]

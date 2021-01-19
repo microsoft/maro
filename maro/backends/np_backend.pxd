@@ -21,7 +21,7 @@ cdef class NumpyBackend(BackendAbc):
 
         # used to cache attribute by node name
         # node name -> list of (name, type, slot), used to construct numpy structure array
-        dict _node_attr_dict        
+        dict _node_attr_dict
 
         # quick look up table to query with (node_name, attr_name) -> AttrInfo
         dict _node_attr_lut
@@ -32,7 +32,8 @@ cdef class NumpyBackend(BackendAbc):
             char* _data
 
             # memory size
-            size_t _data_size 
+            size_t _data_size
+
 
 
 cdef class NPBufferedMmap:
@@ -66,7 +67,7 @@ cdef class NPSnapshotList(SnapshotListAbc):
 
         # tick -> index mapping
         dict _tick2index_dict
-        
+
         # index -> tick mapping
         dict _index2tick_dict
 
