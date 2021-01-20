@@ -12,7 +12,7 @@ import uuid
 from .node_api_client import NodeApiClientV1
 from ..utils.details_reader import DetailsReader
 from ..utils.exception import ResourceAllocationFailed, StartContainerError
-from ..utils.params import Paths
+from ..utils.params import JobStatus, Paths
 from ..utils.redis_controller import RedisController
 from ..utils.resource import ContainerResource, NodeResource
 
@@ -123,6 +123,21 @@ class JobTrackingAgent(multiprocessing.Process):
                 job_name=job_name,
                 job_details=job_details
             )
+            for container_name, container_details in job_details["containers"]:
+                if container_details["state"]["Status"] == "running":
+                    job_state = JobStatus.RUNNING
+                    break
+                elif container_details["state"]["ExitCode"] == 0:
+                    job_state = JobStatus.FINISH
+                elif container_details["state"]["ExitCode"] in ERROR_CODES_FOR_NOT_RESTART_CONTAINER:
+                    job_state = JobStatus.FAILED
+                    break
+            
+            self._redis_controller.set_job_status(
+                job_name=job_name,
+                job_state=job_state
+            )
+
 
     # Utils.
 
@@ -575,6 +590,7 @@ class PendingJobAgent(multiprocessing.Process):
                         job_details=job_details
                     )
                 self._redis_controller.remove_pending_job_ticket(job_name=pending_job_name)
+                self._redis_controller.set_job_status(job_name=pending_job_name, job_state=JobStatus.RUNNING)
             except ResourceAllocationFailed as e:
                 logger.warning(f"Allocation failed with {e}")
             except StartContainerError as e:
@@ -715,6 +731,7 @@ class KilledJobAgent(multiprocessing.Process):
 
             # Remove killed job ticket.
             self._redis_controller.remove_killed_job_ticket(job_name=job_name)
+            self._redis_controller.set_job_status(job_name=job_name, job_state=JobStatus.KILLED)
 
     def _kill_job(self, job_details: dict) -> None:
         """Kill job and stop containers.

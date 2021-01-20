@@ -1,6 +1,7 @@
 import requests
 from flask import Blueprint, jsonify, request
 
+from ..jwt_wrapper import check_jwt_validity
 from ..objects import redis_controller, local_cluster_details, local_master_details
 
 
@@ -13,31 +14,28 @@ URL_PREFIX = "/v1/visible"
 # Api functions.
 
 @blueprint.route(f"{URL_PREFIX}/static", methods=["GET"])
-def get_job(job_name: str):
+@check_jwt_validity
+def get_static_resource():
     """Get the job with job_name.
 
     Returns:
         None.
     """
 
-    node_details = redis_controller.get_node_details(
-        cluster_name=local_cluster_details["name"],
-        job_name=job_name
-    )
-    return node_details
+    name_to_node_resources = redis_controller.get_name_to_node_resources()
+    return name_to_node_resources
 
 
-@blueprint.route(f"{URL_PREFIX}/dynamic", methods=["GET"])
-def get_job(job_name: str):
+@blueprint.route(f"{URL_PREFIX}/dynamic/<previous_length>", methods=["GET"])
+@check_jwt_validity
+def get_dynamic_resource(previous_length: str):
     """Get the job with job_name.
 
     Returns:
         None.
     """
 
-    node_details = redis_controller.get_resource_usage(
-        cluster_name=local_cluster_details["name"],
-        node_name=node_name,
-        job_name=job_name
+    name_to_node_usage = redis_controller.get_resource_usage(
+        previous_length=int(previous_length)
     )
-    return node_details
+    return name_to_node_usage

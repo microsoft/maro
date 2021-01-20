@@ -452,7 +452,6 @@ class ResourceTrackingAgent(multiprocessing.Process):
             pass
 
         self._redis_controller.push_resource_usage(
-            cluster_name=self._local_cluster_details["name"],
             node_name=self._local_node_details["name"],
             cpu_usage=cpu_usage_per_core,
             memory_usage=memory_usage,

@@ -49,6 +49,15 @@ class RedisController:
             name_to_node_details[node_name] = json.loads(node_details_str)
         return name_to_node_details
 
+    def get_name_to_node_resources(self) -> dict:
+        name_to_node_details = self._redis.hgetall(
+            "name_to_node_details"
+        )
+        for node_name, node_details_str in name_to_node_details.items():
+            node_details = json.loads(node_details_str)
+            name_to_node_details[node_name] = node_details["resources"]
+        return name_to_node_details
+
     def get_node_details(self, node_name: str) -> dict:
         node_details = self._redis.hget(
             "name_to_node_details",
@@ -73,7 +82,6 @@ class RedisController:
         )
 
     def push_resource_usage(self,
-        cluster_name: str,
         node_name: str,
         cpu_usage: list,
         memory_usage: float,
@@ -81,64 +89,46 @@ class RedisController:
     ):
         # Push cpu usage to redis
         self._redis.rpush(
-            f"{cluster_name}:{node_name}:cpu_usage_per_core",
+            f"{node_name}:cpu_usage_per_core",
             json.dumps(cpu_usage)
         )
 
         # Push memory usage to redis
         self._redis.rpush(
-            f"{cluster_name}:{node_name}:memory_usage",
+            f"{node_name}:memory_usage",
             json.dumps(memory_usage)
         )
 
         # Push gpu memory usage to redis
         self._redis.rpush(
-            f"{cluster_name}:{node_name}:gpu_memory_usage",
+            f"{node_name}:gpu_memory_usage",
             json.dumps(gpu_memory_usage)
         )
 
-    def get_resource_usage(self, cluster_name: str, node_name: str, condition: str):
-        if condition == "cpu":
-            resource_usage = self._redis.lrange(
-                f"{cluster_name}:{node_name}:cpu_usage_per_core",
-                0, -1
-            )
-        elif condition == "memory":
-            resource_usage = self._redis.lrange(
-                f"{cluster_name}:{node_name}:memory_usage",
-                0, -1
-            )
-        elif condition == "gpu":
-            resource_usage = self._redis.lrange(
-                f"{cluster_name}:{node_name}:gpu_memory_usage",
-                0, -1
-            )
-        else:
-            raise KeyError(f"Unsupport type of resource. {condition}.")
+    def get_resource_usage(self, previous_length: int):
+        name_to_node_details = self._redis.hgetall(
+            "name_to_node_details"
+        )
+        node_name_list = name_to_node_details.keys()
+        name_to_node_usage = {}
 
-        return resource_usage
+        for node_name in node_name_list:
+            usage_dict = {}
+            usage_dict["cpu"] = self._redis.lrange(
+                f"{node_name}:cpu_usage_per_core",
+                previous_length, -1
+            )
+            usage_dict["memory"] = self._redis.lrange(
+                f"{node_name}:memory_usage",
+                previous_length, -1
+            )
+            usage_dict["gpu"] = self._redis.lrange(
+                f"{node_name}:gpu_memory_usage",
+                previous_length, -1
+            )
+            name_to_node_usage[node_name] = usage_dict
 
-    def get_resource_usage_latest(self, cluster_name: str, node_name: str, condition: str, timeout: int):
-        if condition == "cpu":
-            resource_usage_latest = self._redis.brpoplpush(
-                f"{cluster_name}:{node_name}:cpu_usage_per_core",
-                f"{cluster_name}:{node_name}:cpu_usage_per_core",
-                timeout
-            )
-        elif condition == "memory":
-            resource_usage_latest = self._redis.brpop(
-                f"{cluster_name}:{node_name}:memory_usage",
-                f"{cluster_name}:{node_name}:memory_usage",
-                timeout
-            )
-        elif condition == "gpu":
-            resource_usage_latest = self._redis.brpop(
-                f"{cluster_name}:{node_name}:gpu_memory_usage",
-                f"{cluster_name}:{node_name}:gpu_memory_usage",
-                timeout
-            )
-        else:
-            raise KeyError(f"Unsupport type of resource. {condition}.")
+        return name_to_node_usage
 
     """Job Details Related."""
 
@@ -167,6 +157,25 @@ class RedisController:
     def delete_job_details(self, job_name: str) -> None:
         self._redis.hdel(
             "name_to_job_details",
+            job_name
+        )
+    
+    def get_job_status(self) -> dict:
+        return_str = self._redis.hgetall(
+            "name_to_job_status"
+        )
+        return json.loads(return_str)
+
+    def set_job_status(self, job_name: str, job_state: str) -> None:
+        self._redis.hset(
+            "name_to_job_status",
+            job_name,
+            json.dumps(job_state)
+        )
+
+    def delete_job_status(self, job_name: str) -> None:
+        self._redis.hdel(
+            "name_to_job_status",
             job_name
         )
 

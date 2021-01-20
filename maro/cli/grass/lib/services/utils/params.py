@@ -16,6 +16,14 @@ class ContainerStatus:
     EXITED = "exited"
 
 
+class JobStatus:
+    PENDING = "pending"
+    RUNNING = "running"
+    KILLED = "killed"
+    FINISH = "finish"
+    FAILED = "failed"
+    
+
 class UserRole:
     ADMIN = "admin"
 
