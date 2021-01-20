@@ -10,6 +10,7 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 class Zone(NodeBase):
     """Zone node definition in frame."""
     id = NodeAttribute("i2")
+    region_id = NodeAttribute("i2")
 
     def __init__(self):
         self._id: int = 0
@@ -30,6 +31,7 @@ class Zone(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+        self._cluster_list.clear()
 
     @property
     def cluster_list(self) -> List[int]:

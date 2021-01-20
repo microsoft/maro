@@ -30,6 +30,7 @@ class Region(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+        self._zone_list.clear()
 
     @property
     def zone_list(self) -> List[int]:

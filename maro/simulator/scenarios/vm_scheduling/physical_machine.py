@@ -27,6 +27,10 @@ class PhysicalMachine(NodeBase):
     # PM type: non-oversubscribable is -1, empty: 0, oversubscribable is 1.
     oversubscribable = NodeAttribute("i2")
 
+    region_id = NodeAttribute("i2")
+    zone_id = NodeAttribute("i2")
+    cluster_id = NodeAttribute("i2")
+
     def __init__(self):
         """Internal use for reset."""
         self._id = 0

@@ -71,11 +71,12 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # Initialize simulation data.
         self._init_data()
 
+        # Data center structure for quick accessing.
         self._init_regions()
         self._init_zones()
         self._init_clusters()
-        # PMs list used for quick accessing.
         self._init_pms()
+        self._dfs_update_id()
 
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
@@ -232,6 +233,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                     )
                     pm_amount -= 1
                     pm_id += 1
+
+    def _dfs_update_id(self):
+        for region in self._regions:
+            for zone_id in region.zone_list:
+                zone = self._zones[zone_id]
+                zone.region_id = region.id
+                for cluster_id in zone.cluster_list:
+                    cluster = self._clusters[cluster_id]
+                    cluster.region_id = region.id
+                    cluster.zone_id = zone_id
+                    for pm_id in cluster.pm_list:
+                        pm = self._machines[pm_id]
+                        pm.region_id = region.id
+                        pm.zone_id = zone_id
+                        pm.cluster_id = cluster_id
 
     def reset(self):
         """Reset internal states for episode."""

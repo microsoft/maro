@@ -32,6 +32,7 @@ class Cluster(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+        self._pm_list.clear()
 
     @property
     def pm_list(self) -> List[int]:
