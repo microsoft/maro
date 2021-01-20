@@ -4,9 +4,9 @@
 import os
 import shutil
 import tarfile
-
-from itertools import count
+from itertools import countddf
 from typing import Dict, List
+
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
