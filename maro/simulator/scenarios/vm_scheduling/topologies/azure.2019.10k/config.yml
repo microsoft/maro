@@ -23,22 +23,67 @@ MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
 MAX_UTILIZATION_RATE: 1
 
-PM:
-  - PM_type: 0 # PM type is currently "int" only.
-    amount: 100
-    CPU: 32
-  # GPU: 0
-    memory: 128
-    power_curve:
-      calibration_parameter: 1.4
-      busy_power: 10
-      idle_power: 1
-# - PM_type: 1
-#   amount: 50
-#   CPU: 32
-#   GPU: 0
-#   memory: 128
-#   power_curve:
-#     calibration_parameter: 1.4
-#     busy_power: 10
-#     idle_power: 1
+Region:
+  - type: 'Asia'
+    Zone:
+      - type: 'East-Asia-1'
+        Cluster:
+          - type: 'EA1-a'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 10
+                CPU: 32
+                # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+              - PM_type: 1 # PM type is currently "int" only.
+                amount: 10
+                CPU: 32
+                # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+          - type: 'EA1-b'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 100
+                CPU: 32
+              # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+      - type: 'East-Asia-2'
+        Cluster:
+          - type: 'EA2-a'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 100
+                CPU: 32
+              # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+  - type: 'Europe'
+    Zone:
+      - type: 'East-Europe-1'
+        Cluster:
+          - type: 'EE-a'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 100
+                CPU: 32
+              # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
