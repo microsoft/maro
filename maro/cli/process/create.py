@@ -1,7 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+import json
 import os
+import psutil
 
 import redis
 
@@ -9,8 +11,31 @@ from maro.cli.process.utils.default_param import process_setting
 from maro.cli.process.utils.details import load_details, save_setting_info, start_agent, start_redis
 from maro.cli.utils.params import LocalPaths, ProcessRedisName
 from maro.utils.logger import CliLogger
+from maro.cli.grass.lib.services.utils.subprocess import Subprocess
 
 logger = CliLogger(name=f"ProcessExecutor.{__name__}")
+
+
+GET_GPU_INFO_COMMAND = "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits"
+
+def record_local_resource():
+    resources_details = {}
+    resources_details["cpu"] = psutil.cpu_count()
+    resources_details["memory"] = psutil.virtual_memory().total / (1024 ** 2)  # (float) in MByte
+    try:
+        return_str = Subprocess.run(command=GET_GPU_INFO_COMMAND)
+        gpus_info = return_str.split(os.linesep)
+        resources_details["gpu"] = len(gpus_info) - 1  # (int) logical number
+        resources_details["gpu_name"] = []
+        resources_details["gpu_memory"] = []
+        for info in gpus_info:
+            name, total_memory = info.split(", ")
+            resources_details["gpu_name"].append(name)
+            resources_details["gpu_memory"].append(total_memory)
+    except Exception:
+        resources_details["gpu"] = 0
+    
+    return resources_details
 
 
 def create(deployment_path: str, **kwargs):
@@ -41,6 +66,14 @@ def create(deployment_path: str, **kwargs):
     start_agent()
     redis_connection.hset(ProcessRedisName.SETTING, "agent_status", 1)
     logger.info("Agents start.")
+
+    # Initial Resource
+    local_static_resource = record_local_resource()
+    redis_connection.hset(
+        "name_to_local_details",
+        "process",
+        json.dumps(local_static_resource)
+    )
 
     # Push default setting into Redis
     del setting_info["redis_info"]

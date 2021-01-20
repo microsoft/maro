@@ -116,3 +116,49 @@ class ProcessExecutor:
 
         for job_name in job_list:
             self.stop_job(job_name)
+
+    def get_job_details(self):
+        jobs = self.redis_connection.hgetall(ProcessRedisName.JOB_DETAILS)
+        for job_name, job_details_str in jobs.items():
+            jobs[job_name] = json.loads(job_details_str)
+
+        return list(jobs.values())
+
+    def get_job_queue(self):
+        pending_job_queue = self.redis_connection.lrange(
+            ProcessRedisName.PENDING_JOB_TICKETS,
+            0, -1
+        )
+        killed_job_queue = self.redis_connection.lrange(
+            ProcessRedisName.KILLED_JOB_TICKETS,
+            0, -1
+        )
+        return {
+            "pending_jobs": pending_job_queue, 
+            "killed_jobs": killed_job_queue
+        }
+
+    def get_static_resource(self):
+        name_to_local_resource = self.redis_connection.hgetall("name_to_local_details")
+        for node_name, node_details_str in name_to_local_resource.items():
+            node_details = json.loads(node_details_str)
+            name_to_local_resource[node_name] = node_details
+
+        return name_to_local_resource
+
+    def get_resource_usage(self, previous_length: int):
+        usage_dict = {}
+        usage_dict["cpu"] = self.redis_connection.lrange(
+            f"process:cpu_usage_per_core",
+            previous_length, -1
+        )
+        usage_dict["memory"] = self.redis_connection.lrange(
+            f"process:memory_usage",
+            previous_length, -1
+        )
+        usage_dict["gpu"] = self.redis_connection.lrange(
+            f"process:gpu_memory_usage",
+            previous_length, -1
+        )
+
+        return {"process": usage_dict}

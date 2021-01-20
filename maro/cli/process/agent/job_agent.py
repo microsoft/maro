@@ -4,6 +4,7 @@
 import json
 import multiprocessing as mp
 import os
+import psutil
 import subprocess
 import time
 
@@ -12,7 +13,10 @@ import redis
 
 from maro.cli.process.utils.details import close_by_pid, get_child_pid, load_setting_info
 from maro.cli.utils.params import LocalPaths, ProcessRedisName
+from maro.cli.grass.lib.services.utils.subprocess import Subprocess
 
+
+GET_UTILIZATION_GPUS_COMMAND = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits"
 
 class PendingJobAgent(mp.Process):
     def __init__(self, redis_connection, check_interval: int = 60):
@@ -134,6 +138,60 @@ class KilledJobAgent(mp.Process):
             self.redis_connection.lrem(ProcessRedisName.KILLED_JOB_TICKETS, 0, job_name)
 
 
+class ResourceTrackingAgent(mp.Process):
+    def __init__(
+        self,
+        redis_connection,
+        check_interval: int = 60
+    ):
+        super().__init__()
+        self.redis_connection = redis_connection
+        self.check_interval = check_interval
+
+    def run(self) -> None:
+        """Start tracking node status and updating details.
+
+        Returns:
+            None.
+        """
+        while True:
+            start_time = time.time()
+            self.get_node_resource_usage()
+            time.sleep(max(self.check_interval - (time.time() - start_time), 0))
+
+    def get_node_resource_usage(self):
+        # Get cpu usage per core.
+        cpu_usage_per_core = psutil.cpu_percent(interval=self.check_interval, percpu=True)
+
+        # Get memory usage, unit MB
+        memory_usage = psutil.virtual_memory().percent / 100
+
+        # Get nvidia-smi result.
+        gpu_memory_usage = []
+        try:
+            return_str = Subprocess.run(command=GET_UTILIZATION_GPUS_COMMAND)
+            memory_usage_per_gpu = return_str.split("\n")
+            for single_usage in memory_usage_per_gpu:
+                gpu_memory_usage.append(float(single_usage))
+        except Exception:
+            pass
+
+        self.redis_connection.rpush(
+            "process:cpu_usage_per_core",
+            json.dumps(cpu_usage_per_core)
+        )
+
+        self.redis_connection.rpush(
+            "process:memory_usage",
+            json.dumps(memory_usage)
+        )
+
+        self.redis_connection.rpush(
+            "process:gpu_memory_usage",
+            json.dumps(gpu_memory_usage)
+        )
+
+
 class MasterAgent:
     def __init__(self):
         setting_info = load_setting_info()
@@ -163,6 +221,12 @@ class MasterAgent:
             check_interval=self.check_interval
         )
         job_tracking_agent.start()
+
+        resource_tracking_agent = ResourceTrackingAgent(
+            redis_connection=self.redis_connection,
+            check_interval=self.check_interval
+        )
+        resource_tracking_agent.start()
 
 
 if __name__ == "__main__":
