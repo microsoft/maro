@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import List
+
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
@@ -12,6 +14,7 @@ class Region(NodeBase):
     def __init__(self):
         self._id: int = 0
 
+        self._name: str = ""
         self._zone_list: List[int] = []
 
     def set_init_state(self, id: int):
@@ -31,3 +34,15 @@ class Region(NodeBase):
     @property
     def zone_list(self) -> List[int]:
         return self._zone_list
+
+    @zone_list.setter
+    def zone_list(self, zone_list: List[int]):
+        self._zone_list = zone_list
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @name.setter
+    def name(self, name: str):
+        self._name = name

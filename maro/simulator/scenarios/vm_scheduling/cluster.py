@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+from typing import List
+
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
@@ -8,10 +10,13 @@ from maro.backends.frame import NodeAttribute, NodeBase, node
 class Cluster(NodeBase):
     """Cluster node definition in frame."""
     id = NodeAttribute("i2")
+    region_id = NodeAttribute("i2")
+    zone_id = NodeAttribute("i2")
 
     def __init__(self):
         self._id: int = 0
 
+        self._name: str = ""
         self._pm_list: List[int] = []
 
     def set_init_state(self, id: int):
@@ -29,5 +34,17 @@ class Cluster(NodeBase):
         self.id = self._id
 
     @property
-    def om_list(self) -> List[int]:
+    def pm_list(self) -> List[int]:
         return self._pm_list
+
+    @pm_list.setter
+    def pm_list(self, pm_list: List[int]):
+        self._pm_list = pm_list
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @name.setter
+    def name(self, name: str):
+        self._name = name

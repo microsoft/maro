@@ -23,9 +23,9 @@ def build_frame(snapshots_num: int, **kwargs):
         VmSchedulingFrame: Frame instance for vm_scheduling scenario.
     """
     class VmSchedulingFrame(FrameBase):
-        regions = FrameBase(Region, kwargs["region_amount"])
+        regions = FrameNode(Region, kwargs["region_amount"])
         zones = FrameNode(Zone, kwargs["zone_amount"])
-        clusters = FrameBase(Cluster, kwargs["cluster_amount"])
+        clusters = FrameNode(Cluster, kwargs["cluster_amount"])
         pms = FrameNode(PhysicalMachine, kwargs["pm_amount"])
 
         def __init__(self):

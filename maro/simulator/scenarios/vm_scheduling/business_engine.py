@@ -4,8 +4,9 @@
 import os
 import shutil
 import tarfile
-from typing import Dict, List
 
+from itertools import count
+from typing import Dict, List
 from yaml import safe_load
 
 from maro.backends.frame import FrameBase, SnapshotList
@@ -69,8 +70,13 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._init_frame()
         # Initialize simulation data.
         self._init_data()
+
+        self._init_regions()
+        self._init_zones()
+        self._init_clusters()
         # PMs list used for quick accessing.
         self._init_pms()
+
         # All living VMs.
         self._live_vms: Dict[int, VirtualMachine] = {}
         # All request payload of the pending decision VMs.
@@ -114,7 +120,11 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
         # Load PM related configs.
-        self._pm_amount: int = self._cal_pm_amount()
+        self._region_amount = sum(len(item) for item in self._find_amount(key="Region", dictionary=self._config))
+        self._zone_amount = sum(len(item) for item in self._find_amount(key="Zone", dictionary=self._config))
+        self._cluster_amount = sum(len(item) for item in self._find_amount(key="Cluster", dictionary=self._config))
+        self._pm_amount: int = sum(amount for amount in self._find_amount(key="amount", dictionary=self._config))
+
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
     def _init_metrics(self):
@@ -143,12 +153,62 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         if (not os.path.exists(vm_table_data_path)) or (not os.path.exists(cpu_readings_data_path)):
             self._download_processed_data()
 
-    def _cal_pm_amount(self) -> int:
-        amount: int = 0
-        for pm_type in self._config.PM:
-            amount += pm_type["amount"]
+    def _find_amount(self, key: str, dictionary: dict) -> int:
+        for k, v in dictionary.items():
+            if k == key:
+                yield v
+            elif isinstance(v, list):
+                for item in v:
+                    for result in self._find_amount(key, item):
+                        yield result
+            elif isinstance(v, dict):
+                for result in self._find_amount(key, v):
+                    yield result
 
-        return amount
+    def _init_regions(self):
+        """Initialize the regions based on the config setting. The regions id starts from 0."""
+        self._regions = self._frame.regions
+        region_id = 0
+        zone_id = count(start=0)
+        for item in self._find_amount("Region", self._config):
+            for lower_level in item:
+                region = self._regions[region_id]
+                region.set_init_state(
+                    id=region_id
+                )
+                region.name = lower_level["type"]
+                region.zone_list = [next(zone_id) for _ in range(len(lower_level["Zone"]))]
+                region_id += 1
+
+    def _init_zones(self):
+        """Initialize the zones based on the config setting. The zone id starts from 0."""
+        self._zones = self._frame.zones
+        zone_id = 0
+        cluster_id = count(start=0)
+        for item in self._find_amount("Zone", self._config):
+            for lower_level in item:
+                zone = self._zones[zone_id]
+                zone.set_init_state(
+                    id=zone_id
+                )
+                zone.name = lower_level["type"]
+                zone.cluster_list = [next(cluster_id) for _ in range(len(lower_level["Cluster"]))]
+                zone_id += 1
+
+    def _init_clusters(self):
+        """Initialize the clusters based on the config setting. The cluster id starts from 0."""
+        self._clusters = self._frame.clusters
+        cluster_id = 0
+        pm_id = count(start=0)
+        for item in self._find_amount("Cluster", self._config):
+            for lower_level in item:
+                cluster = self._clusters[cluster_id]
+                cluster.set_init_state(
+                    id=cluster_id
+                )
+                cluster.name = lower_level["type"]
+                cluster.pm_list = [next(pm_id) for _ in range(sum(pm["amount"] for pm in lower_level["PM"]))]
+                cluster_id += 1
 
     def _init_pms(self):
         """Initialize the physical machines based on the config setting. The PM id starts from 0."""
@@ -157,20 +217,21 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # PM type dictionary.
         self._pm_type_dict: dict = {}
         pm_id = 0
-        for pm_type in self._config.PM:
-            amount = pm_type["amount"]
-            self._pm_type_dict[pm_type["PM_type"]] = pm_type
-            while amount > 0:
-                pm = self._machines[pm_id]
-                pm.set_init_state(
-                    id=pm_id,
-                    cpu_cores_capacity=pm_type["CPU"],
-                    memory_capacity=pm_type["memory"],
-                    pm_type=pm_type["PM_type"],
-                    oversubscribable=PmState.EMPTY
-                )
-                amount -= 1
-                pm_id += 1
+        for item in self._find_amount("PM", self._config):
+            for lower_level in item:
+                self._pm_type_dict[lower_level["PM_type"]] = lower_level
+                pm_amount = lower_level["amount"]
+                while pm_amount > 0:
+                    pm = self._machines[pm_id]
+                    pm.set_init_state(
+                        id=pm_id,
+                        cpu_cores_capacity=lower_level["CPU"],
+                        memory_capacity=lower_level["memory"],
+                        pm_type=lower_level["PM_type"],
+                        oversubscribable=PmState.EMPTY
+                    )
+                    pm_amount -= 1
+                    pm_id += 1
 
     def reset(self):
         """Reset internal states for episode."""
