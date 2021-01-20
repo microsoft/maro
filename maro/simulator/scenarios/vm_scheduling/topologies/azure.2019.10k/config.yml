@@ -31,7 +31,7 @@ Region:
           - type: 'EA1-a'
             PM:
               - PM_type: 0 # PM type is currently "int" only.
-                amount: 10
+                amount: 100
                 CPU: 32
                 # GPU: 0
                 memory: 128
@@ -40,7 +40,7 @@ Region:
                   busy_power: 10
                   idle_power: 1
               - PM_type: 1 # PM type is currently "int" only.
-                amount: 10
+                amount: 0
                 CPU: 32
                 # GPU: 0
                 memory: 128
@@ -51,7 +51,7 @@ Region:
           - type: 'EA1-b'
             PM:
               - PM_type: 0 # PM type is currently "int" only.
-                amount: 100
+                amount: 0
                 CPU: 32
               # GPU: 0
                 memory: 128
@@ -64,7 +64,7 @@ Region:
           - type: 'EA2-a'
             PM:
               - PM_type: 0 # PM type is currently "int" only.
-                amount: 100
+                amount: 0
                 CPU: 32
               # GPU: 0
                 memory: 128
@@ -79,7 +79,7 @@ Region:
           - type: 'EE-a'
             PM:
               - PM_type: 0 # PM type is currently "int" only.
-                amount: 100
+                amount: 0
                 CPU: 32
               # GPU: 0
                 memory: 128
