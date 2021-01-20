@@ -34,15 +34,19 @@ sudo -E apt-get install -y docker-ce docker-ce-cli containerd.io
 # install and launch redis
 echo 'Step 2/{steps}: Install and launch redis'
 sudo -E docker pull redis
-sudo -E docker run -p {master_redis_port}:6379\
-    -v {maro_shared_path}/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf\
-    --name maro-redis-{cluster_id} -d redis redis-server /maro/lib/grass/redis/redis.conf
+sudo -E docker run -p {master_redis_port}:6379 \
+-v {maro_shared_path}/lib/grass/configs/redis/redis.conf:/maro/lib/grass/redis/redis.conf \
+--name maro-redis-{cluster_id} -d redis redis-server /maro/lib/grass/redis/redis.conf
 
 # install and launch samba
 echo 'Step 3/{steps}: Install and launch samba'
 sudo -E apt install -y samba
-echo -e "[sambashare]\n    comment = Samba for MARO\n    path = {maro_shared_path}\n    read only = no\n    browsable = yes"\
-    | sudo -E tee -a /etc/samba/smb.conf
+echo -e "[sambashare]\n    \
+comment = Samba for MARO\n    \
+path = {maro_shared_path}\n    \
+read only = no\n    \
+browsable = yes" \
+| sudo -E tee -a /etc/samba/smb.conf
 sudo -E service smbd restart
 sudo -E ufw allow samba
 (echo "{master_samba_password}"; echo "{master_samba_password}") | sudo -E smbpasswd -a {master_username}
@@ -50,9 +54,9 @@ sudo -E ufw allow samba
 # install and launch fluentd
 echo 'Step 4/{steps}: Install and launch fluentd'
 sudo -E docker pull fluent/fluentd
-sudo -E docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters/{cluster_name}/logs:/fluentd/log\
-    -v {maro_shared_path}/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf\
-    -e FLUENTD_CONF=fluentd.conf --name maro-fluentd-{cluster_id} -d fluent/fluentd
+sudo -E docker run -p {master_fluentd_port}:24224 -v {maro_shared_path}/clusters/{cluster_name}/logs:/fluentd/log \
+-v {maro_shared_path}/lib/grass/configs/fluentd/fluentd.conf:/fluentd/etc/fluentd.conf \
+-e FLUENTD_CONF=fluentd.conf --name maro-fluentd-{cluster_id} -d fluent/fluentd
 
 # install pip3 and redis
 echo 'Step 5/{steps}: Install pip3 and redis'

@@ -1,45 +1,7 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.2",
+  "contentVersion": "1.1.0.0",
   "parameters": {
-    "clusterName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the Managed Cluster resource."
-      }
-    },
-    "location": {
-      "type": "string",
-      "metadata": {
-        "description": "The location of the Managed Cluster resource."
-      }
-    },
-    "agentCount": {
-      "type": "int",
-      "metadata": {
-        "description": "The number of nodes for the cluster."
-      },
-      "minValue": 1,
-      "maxValue": 50
-    },
-    "agentVMSize": {
-      "type": "string",
-      "metadata": {
-        "description": "The size of the Virtual Machine."
-      }
-    },
-    "adminUsername": {
-      "type": "string",
-      "metadata": {
-        "description": "User name for the Linux Virtual Machines."
-      }
-    },
-    "adminPublicKey": {
-      "type": "string",
-      "metadata": {
-        "description": "Configure all linux machines with the SSH RSA public key string. Your key should include three parts, for example 'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm'"
-      }
-    },
     "acrName": {
       "type": "string",
       "minLength": 5,
@@ -60,10 +22,48 @@
         "Premium"
       ]
     },
-    "virtualNetworkName": {
+    "adminPublicKey": {
       "type": "string",
       "metadata": {
-        "description": "The name of the virtual network."
+        "description": "Configure all linux machines with the SSH RSA public key string. Your key should include three parts, for example 'ssh-rsa AAAAB...snip...UcyupgH azureuser@linuxvm'"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "User name for the Linux Virtual Machines."
+      }
+    },
+    "agentCount": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of nodes for the cluster."
+      },
+      "minValue": 1,
+      "maxValue": 50
+    },
+    "agentVMSize": {
+      "type": "string",
+      "metadata": {
+        "description": "The size of the Virtual Machine."
+      }
+    },
+    "clusterName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Managed Cluster resource."
+      }
+    },
+    "fileShareName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the file share."
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of the Managed Cluster resource."
       }
     },
     "storageAccountName": {
@@ -72,25 +72,45 @@
         "description": "The name of the storgae account."
       }
     },
-    "fileShareName": {
+    "virtualNetworkName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the file share."
+        "description": "The name of the virtual network."
       }
     }
   },
   "variables": {
-    "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "subnetId": "[concat(variables('vnetId'), '/subnets/', 'default')]"
+    "snetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('virtualNetworkName'), 'default')]",
+    "stvmId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
   },
   "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2020-08-01-preview",
+      "name": "[concat(parameters('storageAccountName'), '/default/', parameters('fileShareName'))]",
+      "dependsOn": [
+        "[variables('stvmId')]"
+      ]
+    },
+    {
+      "name": "[parameters('acrName')]",
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2020-11-01-preview",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('acrSku')]"
+      },
+      "properties": {
+      }
+    },
     {
       "name": "[parameters('clusterName')]",
       "type": "Microsoft.ContainerService/managedClusters",
       "apiVersion": "2020-03-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+        "[variables('vnetId')]"
       ],
       "properties": {
         "dnsPrefix": "maro",
@@ -102,7 +122,7 @@
             "vmSize": "[parameters('agentVMSize')]",
             "osType": "Linux",
             "storageProfile": "ManagedDisks",
-            "vnetSubnetID": "[variables('subnetId')]",
+            "vnetsnetId": "[variables('snetId')]",
             "mode": "System",
             "type": "VirtualMachineScaleSets"
           }
@@ -127,14 +147,17 @@
       }
     },
     {
-      "name": "[parameters('acrName')]",
-      "type": "Microsoft.ContainerRegistry/registries",
-      "apiVersion": "2019-05-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2020-08-01-preview",
+      "name": "[parameters('storageAccountName')]",
       "location": "[parameters('location')]",
+      "kind": "StorageV2",
       "sku": {
-        "name": "[parameters('acrSku')]"
+        "name": "Standard_LRS",
+        "tier": "Standard"
       },
       "properties": {
+        "accessTier": "Hot"
       }
     },
     {
@@ -157,38 +180,6 @@
           }
         ]
       }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2018-07-01",
-      "name": "[parameters('storageAccountName')]",
-      "location": "[parameters('location')]",
-      "kind": "StorageV2",
-      "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-      },
-      "properties": {
-        "accessTier": "Hot"
-      }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
-      "apiVersion": "2019-04-01",
-      "name": "[concat(parameters('storageAccountName'), '/default/', parameters('fileShareName'))]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
-      ]
     }
-  ],
-  "outputs": {
-    "controlPlaneFQDN": {
-      "type": "string",
-      "value": "[reference(parameters('clusterName')).fqdn]"
-    },
-    "acrLoginServer": {
-      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries',parameters('acrName')),'2019-05-01').loginServer]",
-      "type": "string"
-    }
-  }
+  ]
 }

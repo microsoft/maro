@@ -6,7 +6,7 @@ import logging
 import time
 from subprocess import TimeoutExpired
 
-from .exception import ConnectionFailed, CommandExecutionError
+from .exception import CommandExecutionError, ConnectionFailed
 from .params import Paths
 from .subprocess import Subprocess
 

@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 
-from flask import Blueprint, request, abort
+from flask import Blueprint, abort, request
 
 from ...utils.docker_controller import DockerController
 from ...utils.exception import CommandExecutionError

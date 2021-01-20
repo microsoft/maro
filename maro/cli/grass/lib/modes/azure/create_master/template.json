@@ -1,7 +1,16 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.2.0",
+  "contentVersion": "1.1.0.0",
   "parameters": {
+    "adminPublicKey": {
+      "type": "securestring"
+    },
+    "adminUsername": {
+      "type": "string"
+    },
+    "apiServerDestinationPorts": {
+      "type": "array"
+    },
     "location": {
       "type": "string"
     },
@@ -11,11 +20,11 @@
     "networkSecurityGroupName": {
       "type": "string"
     },
-    "virtualNetworkName": {
-      "type": "string"
-    },
     "publicIpAddressName": {
       "type": "string"
+    },
+    "sshDestinationPorts": {
+      "type": "array"
     },
     "virtualMachineName": {
       "type": "string"
@@ -23,33 +32,25 @@
     "virtualMachineSize": {
       "type": "string"
     },
-    "adminUsername": {
+    "virtualNetworkName": {
       "type": "string"
-    },
-    "adminPublicKey": {
-      "type": "securestring"
-    },
-    "sshDestinationPorts": {
-      "type": "array"
-    },
-    "masterApiServerDestinationPorts": {
-      "type": "array"
     }
   },
   "variables": {
-    "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
-    "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/', 'default')]"
+    "nicId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+    "nsgId": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
+    "pipId": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]",
+    "snetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), 'default')]"
   },
   "resources": [
     {
       "name": "[parameters('networkInterfaceName')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2020-04-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
+        "[variables('nsgId')]",
+        "[variables('pipId')]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -57,11 +58,11 @@
             "name": "ipconfig1",
             "properties": {
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[variables('snetId')]"
               },
               "privateIPAllocationMethod": "Dynamic",
               "publicIpAddress": {
-                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                "id": "[variables('pipId')]"
               }
             }
           }
@@ -92,7 +93,7 @@
             }
           },
           {
-            "name": "master_api_server",
+            "name": "api_server",
             "properties": {
               "protocol": "*",
               "sourcePortRange": "*",
@@ -101,7 +102,7 @@
               "access": "Allow",
               "priority": 101,
               "direction": "Inbound",
-              "destinationPortRanges": "[parameters('masterApiServerDestinationPorts')]"
+              "destinationPortRanges": "[parameters('apiServerDestinationPorts')]"
             }
           }
         ]
@@ -122,10 +123,10 @@
     {
       "name": "[parameters('virtualMachineName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2019-07-01",
+      "apiVersion": "2020-06-01",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
+        "[variables('nicId')]"
       ],
       "properties": {
         "hardwareProfile": {
@@ -145,7 +146,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+              "id": "[variables('nicId')]"
             }
           ]
         },

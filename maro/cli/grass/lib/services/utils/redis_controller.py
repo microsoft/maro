@@ -32,7 +32,7 @@ class RedisController:
 
     def set_master_details(self, master_details: dict) -> None:
         self._redis.set(
-            f"master_details",
+            "master_details",
             json.dumps(master_details)
         )
 

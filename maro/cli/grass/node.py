@@ -2,19 +2,18 @@
 # Licensed under the MIT license.
 
 
-import yaml
-
-from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
-from maro.cli.utils.details_reader import DetailsReader
 from maro.cli.utils.details_validity_wrapper import check_details_validity
 from maro.cli.utils.operation_lock_wrapper import operation_lock
-from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
 
 
 @check_details_validity
 @operation_lock
 def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
@@ -27,6 +26,11 @@ def scale_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 @check_details_validity
 @operation_lock
 def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
@@ -39,6 +43,11 @@ def start_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 @check_details_validity
 @operation_lock
 def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
@@ -51,6 +60,12 @@ def stop_node(cluster_name: str, replicas: int, node_size: str, **kwargs):
 @check_details_validity
 @operation_lock
 def list_node(cluster_name: str, **kwargs):
+    # Late import.
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.cli.utils.details_reader import DetailsReader
+    from maro.utils.exception.cli_exception import BadRequestError
+
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
     if cluster_details["mode"] == "grass/azure":
@@ -64,9 +79,15 @@ def list_node(cluster_name: str, **kwargs):
 
 
 def join_cluster(deployment_path: str, **kwargs):
+    # Late import.
+    import yaml
+
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
+
     try:
         with open(deployment_path, "r") as fr:
-            join_cluster_deployment = yaml.safe_load(fr)
+            join_cluster_deployment = yaml.safe_load(stream=fr)
         if join_cluster_deployment["mode"] == "grass/on-premises":
             GrassOnPremisesExecutor.join_cluster(join_cluster_deployment=join_cluster_deployment)
         else:
@@ -78,12 +99,18 @@ def join_cluster(deployment_path: str, **kwargs):
 
 
 def leave_cluster(deployment_path: str, **kwargs):
+    # Late import.
+    import yaml
+
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
+
     try:
         if not deployment_path:
             GrassOnPremisesExecutor.leave(leave_cluster_deployment={})
         else:
             with open(deployment_path, "r") as fr:
-                leave_cluster_deployment = yaml.safe_load(fr)
+                leave_cluster_deployment = yaml.safe_load(stream=fr)
             if leave_cluster_deployment["mode"] == "grass/on-premises":
                 GrassOnPremisesExecutor.leave(leave_cluster_deployment=leave_cluster_deployment)
             else:

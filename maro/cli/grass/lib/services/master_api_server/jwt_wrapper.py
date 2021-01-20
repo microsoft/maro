@@ -9,11 +9,10 @@ import logging
 import os
 
 import jwt
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from flask import request, abort, Response
+from flask import Response, abort, request
 
 from .objects import redis_controller
 

@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+
 import os
 import secrets
 import shutil
@@ -123,14 +124,21 @@ class GrassOnPremisesExecutor(GrassExecutor):
 
     @staticmethod
     def _join_cluster(join_cluster_deployment: dict):
-        logger.info(f"Joining the cluster")
+        logger.info("Joining the cluster")
+
+        # Get standardized join_cluster_deployment
+        join_cluster_deployment = GrassOnPremisesExecutor._standardize_join_cluster_deployment(
+            join_cluster_deployment=join_cluster_deployment
+        )
 
         # Save join_cluster_deployment TODO: do checking, already join another node
-        with open(file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml", mode="w") as fw:
+        with open(file=f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml", mode="w") as fw:
             yaml.safe_dump(data=join_cluster_deployment, stream=fw)
 
         # Copy required files
-        local_path_to_remote_dir = {f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml": "~/"}
+        local_path_to_remote_dir = {
+            f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml": GlobalPaths.MARO_LOCAL_TMP
+        }
         for local_path, remote_dir in local_path_to_remote_dir.items():
             FileSynchronizer.copy_files_to_node(
                 local_path=local_path,
@@ -145,20 +153,60 @@ class GrassOnPremisesExecutor(GrassExecutor):
             node_username=join_cluster_deployment["node"]["username"],
             node_hostname=join_cluster_deployment["node"]["public_ip_address"],
             node_ssh_port=join_cluster_deployment["node"]["ssh"]["port"],
-            master_hostname=join_cluster_deployment["master"]["hostname"],
+            master_private_ip_address=join_cluster_deployment["master"]["private_ip_address"],
             master_api_server_port=join_cluster_deployment["master"]["api_server"]["port"],
-            deployment_path=f"~/on_premises_join_cluster_deployment.yml"
+            deployment_path=f"{GlobalPaths.MARO_LOCAL_TMP}/join_cluster_deployment.yml"
         )
 
-        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/on_premises_join_cluster_deployment.yml")
+        os.remove(f"{GlobalPaths.ABS_MARO_LOCAL_TMP}/join_cluster_deployment.yml")
 
-        logger.info_green(f"Node is joined to the cluster")
+        logger.info_green("Node is joined to the cluster")
+
+    @staticmethod
+    def _standardize_join_cluster_deployment(join_cluster_deployment: dict) -> dict:
+        optional_key_to_value = {
+            "root['master']['redis']": {"port": GlobalParams.DEFAULT_REDIS_PORT},
+            "root['master']['redis']['port']": GlobalParams.DEFAULT_REDIS_PORT,
+            "root['master']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
+            "root['master']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT,
+            "root['node']['resources']": {
+                "cpu": "all",
+                "memory": "all",
+                "gpu": "all"
+            },
+            "root['node']['resources']['cpu']": "all",
+            "root['node']['resources']['memory']": "all",
+            "root['node']['resources']['gpu']": "all",
+            "root['node']['api_server']": {"port": GrassParams.DEFAULT_API_SERVER_PORT},
+            "root['node']['api_server']['port']": GrassParams.DEFAULT_API_SERVER_PORT,
+            "root['node']['ssh']": {"port": GlobalParams.DEFAULT_SSH_PORT},
+            "root['node']['ssh']['port']": GlobalParams.DEFAULT_SSH_PORT,
+            "root['configs']": {
+                "install_node_runtime": False,
+                "install_node_gpu_support": False
+            },
+            "root['configs']['install_node_runtime']": False,
+            "root['configs']['install_node_gpu_support']": False
+        }
+        with open(
+            file=f"{GrassPaths.ABS_MARO_GRASS_LIB}/deployments/internal/grass_on_premises_join_cluster.yml",
+            mode="r"
+        ) as fr:
+            create_deployment_template = yaml.safe_load(stream=fr)
+
+        DeploymentValidator.validate_and_fill_dict(
+            template_dict=create_deployment_template,
+            actual_dict=join_cluster_deployment,
+            optional_key_to_value=optional_key_to_value
+        )
+
+        return join_cluster_deployment
 
     # maro grass leave
 
     @staticmethod
     def leave(leave_cluster_deployment: dict) -> None:
-        logger.info(f"Node is leaving")
+        logger.info("Node is leaving")
 
         if not leave_cluster_deployment:
             # Local leave node
@@ -171,4 +219,4 @@ class GrassOnPremisesExecutor(GrassExecutor):
                 node_ssh_port=leave_cluster_deployment["node"]["ssh"]["port"]
             )
 
-        logger.info_green(f"Node is left")
+        logger.info_green("Node is left")

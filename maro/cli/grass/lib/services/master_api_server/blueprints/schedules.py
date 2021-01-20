@@ -6,8 +6,8 @@ import copy
 
 from flask import Blueprint
 
-from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller
+from ...master_api_server.jwt_wrapper import check_jwt_validity
+from ...master_api_server.objects import redis_controller
 from ...utils.name_creator import NameCreator
 
 # Flask related.

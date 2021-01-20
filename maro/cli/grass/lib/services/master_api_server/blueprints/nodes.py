@@ -4,8 +4,8 @@
 
 from flask import Blueprint, abort
 
-from ..jwt_wrapper import check_jwt_validity
-from ..objects import redis_controller, local_cluster_details
+from ...master_api_server.jwt_wrapper import check_jwt_validity
+from ...master_api_server.objects import local_cluster_details, redis_controller
 from ...utils.connection_tester import ConnectionTester
 from ...utils.exception import ConnectionFailed
 from ...utils.name_creator import NameCreator

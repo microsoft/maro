@@ -313,7 +313,7 @@ class GrassExecutor:
         # Create schedule
         self.master_api_client.create_schedule(schedule_details=schedule_details)
 
-        logger.info_green(f"Multiple job tickets are sent")
+        logger.info_green("Multiple job tickets are sent")
 
     def stop_schedule(self, schedule_name: str):
         # Stop schedule, TODO: add delete job
@@ -413,11 +413,31 @@ class GrassExecutor:
     @staticmethod
     def remote_join_cluster(
         node_username: str, node_hostname: str, node_ssh_port: int,
-        master_hostname: str, master_api_server_port: int, deployment_path: str
+        master_private_ip_address: str, master_api_server_port: int, deployment_path: str
     ):
+        """ Remote join cluster.
+
+        Install required runtime env first, then execute join_cluster.py.
+
+        Args:
+            node_username (str): username of the node.
+            node_hostname (str): hostname of the node.
+            node_ssh_port (str): ssh port of the node.
+            master_private_ip_address (str): private ip address of the master,
+                (master and nodes must in the same virtual network).
+            master_api_server_port (int): port of the master_api_server.
+            deployment_path (str): path of the join_cluster_deployment.
+
+        Returns:
+            None.
+        """
         command = (
             f"ssh -o StrictHostKeyChecking=no -p {node_ssh_port} {node_username}@{node_hostname} "
-            f"'curl -s GET http://{master_hostname}:{master_api_server_port}/v1/joinClusterScript | "
+            "'export DEBIAN_FRONTEND=noninteractive; "
+            "sudo -E apt update; "
+            "sudo -E apt install -y python3-pip; "
+            "pip3 install deepdiff redis pyyaml; "
+            f"curl -s GET http://{master_private_ip_address}:{master_api_server_port}/v1/joinClusterScript | "
             f"python3 - {deployment_path}'"
         )
         Subprocess.interactive_run(command=command)
@@ -440,7 +460,7 @@ class GrassExecutor:
 
     @staticmethod
     def local_leave_cluster():
-        command = f"python3 ~/.maro-local/scripts/activate_leave_cluster.py"
+        command = "python3 ~/.maro-local/scripts/activate_leave_cluster.py"
         Subprocess.interactive_run(command=command)
 
     @staticmethod

@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-from flask import Blueprint, send_from_directory, abort
+
+from flask import Blueprint, abort, send_from_directory
 
 from ...utils.params import Paths
 

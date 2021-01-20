@@ -5,6 +5,7 @@ from typing import List, Set
 
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
+from .enums import PmState
 from .virtual_machine import VirtualMachine
 
 
@@ -15,6 +16,7 @@ class PhysicalMachine(NodeBase):
     id = NodeAttribute("i")
     cpu_cores_capacity = NodeAttribute("i2")
     memory_capacity = NodeAttribute("i2")
+    pm_type = NodeAttribute("i2")
     # Statistical features.
     cpu_cores_allocated = NodeAttribute("i2")
     memory_allocated = NodeAttribute("i2")
@@ -22,11 +24,16 @@ class PhysicalMachine(NodeBase):
     cpu_utilization = NodeAttribute("f")
     energy_consumption = NodeAttribute("f")
 
+    # PM type: non-oversubscribable is -1, empty: 0, oversubscribable is 1.
+    oversubscribable = NodeAttribute("i2")
+
     def __init__(self):
         """Internal use for reset."""
         self._id = 0
         self._init_cpu_cores_capacity = 0
         self._init_memory_capacity = 0
+        self._init_pm_type = 0
+        self._init_pm_state = 0
         # PM resource.
         self._live_vms: Set[int] = set()
 
@@ -42,17 +49,26 @@ class PhysicalMachine(NodeBase):
 
         self.cpu_utilization = round(max(0, cpu_utilization), 2)
 
-    def set_init_state(self, id: int, cpu_cores_capacity: int, memory_capacity: int):
+    def set_init_state(
+        self, id: int, cpu_cores_capacity: int, memory_capacity: int, pm_type: int, oversubscribable: PmState = 0
+    ):
         """Set initialize state, that will be used after frame reset.
 
         Args:
             id (int): PM id, from 0 to N. N means the amount of PM, which can be set in config.
             cpu_cores_capacity (int): The capacity of cores of the PM, which can be set in config.
             memory_capacity (int): The capacity of memory of the PM, which can be set in config.
+            pm_type (int): The type of the PM.
+            oversubscribable (int): The state of the PM:
+                                    - non-oversubscribable: -1.
+                                    - empty: 0.
+                                    - oversubscribable: 1.
         """
         self._id = id
         self._init_cpu_cores_capacity = cpu_cores_capacity
         self._init_memory_capacity = memory_capacity
+        self._init_pm_type = pm_type
+        self._init_pm_state = oversubscribable
 
         self.reset()
 
@@ -62,6 +78,8 @@ class PhysicalMachine(NodeBase):
         self.id = self._id
         self.cpu_cores_capacity = self._init_cpu_cores_capacity
         self.memory_capacity = self._init_memory_capacity
+        self.pm_type = self._init_pm_type
+        self.oversubscribable = self._init_pm_state
 
         self._live_vms.clear()
 

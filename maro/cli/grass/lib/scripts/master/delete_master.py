@@ -9,13 +9,39 @@ import os
 import subprocess
 import sys
 
+import yaml
+
 # Commands
 
 STOP_MASTER_AGENT_SERVICE_COMMAND = """systemctl --user stop maro-master-agent.service"""
 
 STOP_MASTER_API_SERVER_SERVICE_COMMAND = """systemctl --user stop maro-master-api-server.service"""
 
-REMOVE_CONTAINERS = """sudo docker rm -f maro-fluentd maro-redis"""
+REMOVE_CONTAINERS = """sudo docker rm -f maro-fluentd-{cluster_id} maro-redis-{cluster_id}"""
+
+
+# Master Deleter.
+
+class MasterDeleter:
+    def __init__(self, local_cluster_details: dict):
+        self._local_cluster_details = local_cluster_details
+
+    @staticmethod
+    def stop_master_agent_service():
+        Subprocess.run(command=STOP_MASTER_AGENT_SERVICE_COMMAND)
+        os.remove(os.path.expanduser("~/.config/systemd/user/maro-master-agent.service"))
+
+    @staticmethod
+    def stop_master_api_server_service():
+        Subprocess.run(command=STOP_MASTER_API_SERVER_SERVICE_COMMAND)
+        os.remove(os.path.expanduser("~/.config/systemd/user/maro-master-api-server.service"))
+
+    def remove_containers(self):
+        command = REMOVE_CONTAINERS.format(cluster_id=self._local_cluster_details["id"])
+        Subprocess.run(command=command)
+
+
+# Utils Classes.
 
 
 class Paths:
@@ -23,21 +49,12 @@ class Paths:
     ABS_MARO_LOCAL = os.path.expanduser(MARO_LOCAL)
 
 
-class MasterReleaser:
+class DetailsReader:
     @staticmethod
-    def stop_master_agent_service():
-        Subprocess.run(command=STOP_MASTER_AGENT_SERVICE_COMMAND)
-        os.remove(os.path.expanduser("~/.config/systemd/user/maro-master-agent.service"))
-        os.remove(f"{Paths.ABS_MARO_LOCAL}/services/maro-master-agent.config")
-
-    @staticmethod
-    def stop_master_api_server_service():
-        Subprocess.run(command=STOP_MASTER_API_SERVER_SERVICE_COMMAND)
-        os.remove(os.path.expanduser("~/.config/systemd/user/maro-master-api-server.service"))
-
-    @staticmethod
-    def remove_containers():
-        Subprocess.run(command=REMOVE_CONTAINERS)
+    def load_local_cluster_details() -> dict:
+        with open(file=f"{Paths.ABS_MARO_LOCAL}/cluster/cluster_details.yml", mode="r") as fr:
+            cluster_details = yaml.safe_load(stream=fr)
+        return cluster_details
 
 
 class Subprocess:
@@ -68,7 +85,7 @@ class Subprocess:
 
 
 if __name__ == "__main__":
-    master_releaser = MasterReleaser()
+    master_releaser = MasterDeleter(local_cluster_details=DetailsReader.load_local_cluster_details())
     master_releaser.stop_master_agent_service()
     master_releaser.stop_master_api_server_service()
     master_releaser.remove_containers()

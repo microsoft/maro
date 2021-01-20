@@ -2,14 +2,14 @@
 # Licensed under the MIT license.
 
 
-import yaml
-
-from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
-from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
-from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
-
-
 def create(deployment_path: str, **kwargs):
+    # Late import.
+    import yaml
+
+    from maro.cli.grass.executors.grass_azure_executor import GrassAzureExecutor
+    from maro.cli.grass.executors.grass_on_premises_executor import GrassOnPremisesExecutor
+    from maro.utils.exception.cli_exception import BadRequestError, FileOperationError, InvalidDeploymentTemplateError
+
     try:
         with open(deployment_path, "r") as fr:
             create_deployment = yaml.safe_load(fr)

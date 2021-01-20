@@ -1,0 +1,27 @@
+mode: grass/on-premises
+allocation:
+  mode: single-metric-balanced
+  metric: cpu
+name: test_job
+
+components:
+  actor:
+    image: maro_runtime_cpu:test
+    mount:
+      target: /mnt/maro
+    num: 1
+    resources:
+      cpu: 1
+      gpu: 0
+      memory: 2048m
+    command: "python /mnt/maro/train/dqn/dist_actor.py"
+  learner:
+    image: maro_runtime_cpu:test
+    mount:
+      target: /mnt/maro
+    num: 1
+    resources:
+      cpu: 1
+      gpu: 0
+      memory: 2048m
+    command: "python /mnt/maro/train/dqn/dist_learner.py"
