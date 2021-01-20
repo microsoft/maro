@@ -6,7 +6,7 @@ from typing import List
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
-@node("zone")
+@node("zones")
 class Zone(NodeBase):
     """Zone node definition in frame."""
     id = NodeAttribute("i2")

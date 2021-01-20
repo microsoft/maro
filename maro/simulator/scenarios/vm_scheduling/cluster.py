@@ -6,7 +6,7 @@ from typing import List
 from maro.backends.frame import NodeAttribute, NodeBase, node
 
 
-@node("cluster")
+@node("clusters")
 class Cluster(NodeBase):
     """Cluster node definition in frame."""
     id = NodeAttribute("i2")
