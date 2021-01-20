@@ -34,28 +34,20 @@ if __name__ == "__main__":
         snapshot_resolution=config.env.resolution
     )
 
-    if config.env.seed is not None:
-        env.set_seed(config.env.seed)
-        random.seed(config.env.seed)
-
-    metrics: object = None
-    decision_event: DecisionPayload = None
-    is_done: bool = False
-    action: AllocateAction = None
-    metrics, decision_event, is_done = env.step(None)
-
     agent_class = import_class(config.alg.type)
     if config.alg.args is None:
         agent = agent_class()
     else:
         agent = agent_class(**config.alg.args)
 
-    prev_action: int = None
+    if config.env.seed is not None:
+        env.set_seed(config.env.seed)
+        random.seed(config.env.seed)
+
+    metrics, decision_event, is_done = env.step(None)
+
     while not is_done:
-        if "round_robin" in config.alg.type:
-            action, prev_action = agent.get_action(decision_event, env, prev_action)
-        else:
-            action = agent.get_action(decision_event, env)
+        action = agent.choose_action(decision_event, env)
         metrics, decision_event, is_done = env.step(action)
 
     end_time = timeit.default_timer()

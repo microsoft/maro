@@ -4,46 +4,46 @@ import random
 from maro.simulator.scenarios.vm_scheduling.common import Action
 from maro.simulator.scenarios.vm_scheduling import AllocateAction, DecisionPayload, PostponeAction
 
-from algorithm import Algorithm
+from algorithm import VMSchedulingAgent
 
 
-class RoundRobin(Algorithm):
+class RoundRobin(VMSchedulingAgent):
     def __init__(
         self,
         pm_num: int = 0
     ):
         super().__init__()
-        self.pm_num: int = pm_num
+        self._pm_num: int = pm_num
+        self._prev_idx = 0
 
-    def get_action(self, decision_event, env, prev_idx=None) -> Action:
-        self.env = env
-        self.decision_event = decision_event
+    def choose_action(self, decision_event, env) -> Action:
+        env = env
+        decision_event = decision_event
 
-        valid_pm_num: int = len(self.decision_event.valid_pms)
+        valid_pm_num: int = len(decision_event.valid_pms)
 
         # Check whether there exists a valid PM.
         if valid_pm_num <= 0:
             # No valid PM now, postpone.
             action: PostponeAction = PostponeAction(
-                vm_id=self.decision_event.vm_id,
+                vm_id=decision_event.vm_id,
                 postpone_step=1
             )
         else:
             # Choose the valid PM which index is next to the previous chose PM's index
-            chosen_idx: int = 0
-            if prev_idx is not None:
-                chosen_idx = (prev_idx + 1) % self.pm_num
-                while True:
-                    if chosen_idx in self.decision_event.valid_pms:
-                        break
-                    else:
-                        chosen_idx += 1
-                        chosen_idx %= self.pm_num
-
+            chosen_idx: int = (self._prev_idx + 1) % self._pm_num
+            while True:
+                if chosen_idx in decision_event.valid_pms:
+                    break
+                else:
+                    chosen_idx += 1
+                    chosen_idx %= self._pm_num
+            # Update the prev index
+            self._prev_idx = chosen_idx
             # Take action to allocate on the chosen PM.
             action: AllocateAction = AllocateAction(
-                vm_id=self.decision_event.vm_id,
+                vm_id=decision_event.vm_id,
                 pm_id=chosen_idx
             )
 
-        return action, chosen_idx
+        return action
