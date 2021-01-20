@@ -41,7 +41,6 @@ class BinPacking(VMSchedulingAgent):
             cpu_cores_remaining = total_pm_info[:, 0] - total_pm_info[:, 1]
 
             for i, cpu_core in enumerate(cpu_cores_remaining):
-                print(cpu_core)
                 self._bins[int(cpu_core)].append(i)
                 self._bin_size[int(cpu_core)] += 1
 

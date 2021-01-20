@@ -53,25 +53,13 @@ class BestFit(VMSchedulingAgent):
         # Calculate to get the energy consumption.
         energy_consumption = valid_pm_info[:, 4]
         # Choose the PM with the preference rule.
-        chosen_idx = 0
+        chosen_idx: int = 0
         if self._metric_type == 'remaining_cpu_cores':
-            minimum_remaining_cpu_cores = cpu_cores_remaining[0]
-            for i, remaining in enumerate(cpu_cores_remaining):
-                if remaining < minimum_remaining_cpu_cores:
-                    chosen_idx = i
-                    minimum_remaining_cpu_cores = remaining
+            chosen_idx = np.argmin(cpu_cores_remaining)
         elif self._metric_type == 'remaining_memory':
-            minimum_remaining_memory = memory_remaining[0]
-            for i, remaining in enumerate(memory_remaining):
-                if remaining < minimum_remaining_memory:
-                    chosen_idx = i
-                    minimum_remaining_memory = remaining
+            chosen_idx = np.argmin(memory_remaining)
         elif self._metric_type == 'energy_consumption':
-            maximum_energy_consumption = energy_consumption[0]
-            for i, energy in enumerate(energy_consumption):
-                if energy > maximum_energy_consumption:
-                    chosen_idx = i
-                    maximum_energy_consumption = energy
+            chosen_idx = np.argmax(energy_consumption)
         elif self._metric_type == 'remaining_cpu_cores_and_energy_consumption':
             maximum_energy_consumption = energy_consumption[0]
             minimum_remaining_cpu_cores = cpu_cores_remaining[0]
