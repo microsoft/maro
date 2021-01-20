@@ -52,7 +52,7 @@ class BestFit(VMSchedulingAgent):
         memory_remaining = valid_pm_info[:, 2] - valid_pm_info[:, 3]
         # Calculate to get the energy consumption.
         energy_consumption = valid_pm_info[:, 4]
-        # Choose the PM with the minimum remaining memory.
+        # Choose the PM with the preference rule.
         chosen_idx = 0
         if self._metric_type == 'remaining_cpu_cores':
             minimum_remaining_cpu_cores = cpu_cores_remaining[0]

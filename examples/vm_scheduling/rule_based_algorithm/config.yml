@@ -8,17 +8,17 @@ env:
 
 alg:
   # Random
-  type: random_pick.RandomPick
-  args:
+  # type: random_pick.RandomPick
+  # args:
 
   # FirstFit
   # type: first_fit.FirstFit
   # args:
 
   # BestFit
-  # type: best_fit.BestFit
-  # args:
-    # metric_type: "remaining_cpu_cores_and_energy_consumption"
+  type: best_fit.BestFit
+  args:
+    metric_type: "remaining_cpu_cores"
 
   # Round Robin
   # type: round_robin.RoundRobin

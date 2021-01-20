@@ -14,13 +14,13 @@ class BinPacking(VMSchedulingAgent):
         self._pm_cpu_core_num = pm_cpu_core_num
 
         self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
-        self._bin_size = [0] * self._pm_cpu_core_num
+        self._bin_size = [0] * (self._pm_cpu_core_num + 1)
 
     def _init_bin(self):
         self._bins = [[] for _ in range(self._pm_cpu_core_num + 1)]
         self._bin_size = [0] * (self._pm_cpu_core_num + 1)
 
-    def get_action(self, decision_event, env):
+    def choose_action(self, decision_event, env):
         decision_event = decision_event
         env = env
 
@@ -41,11 +41,12 @@ class BinPacking(VMSchedulingAgent):
             cpu_cores_remaining = total_pm_info[:, 0] - total_pm_info[:, 1]
 
             for i, cpu_core in enumerate(cpu_cores_remaining):
+                print(cpu_core)
                 self._bins[int(cpu_core)].append(i)
                 self._bin_size[int(cpu_core)] += 1
 
             minimal_var = np.inf
-            cores_need, mem_need  = decision_event.vm_cpu_cores_requirement, decision_event.vm_memory_requirement
+            cores_need = decision_event.vm_cpu_cores_requirement
 
             chosen_idx = 0
             for remaining_cores in range(len(self._bins)):
@@ -55,13 +56,13 @@ class BinPacking(VMSchedulingAgent):
                     var = np.var(np.array(self._bin_size))
                     if minimal_var > var:
                         minimal_var = var
-                        chosen_idx = random.choice(self.bin[remaining_cores])
+                        chosen_idx = random.choice(self._bins[remaining_cores])
                     self._bin_size[remaining_cores] += 1
                     self._bin_size[remaining_cores - cores_need] -= 1
 
             # Take action to allocate on the closet pm.
             action: AllocateAction = AllocateAction(
-                vm_id=self.decision_event.vm_id,
+                vm_id=decision_event.vm_id,
                 pm_id=chosen_idx
             )
 
