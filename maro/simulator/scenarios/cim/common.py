@@ -114,6 +114,13 @@ class DecisionEvent:
             "early_discharge": self.early_discharge
         }
 
+    def __setstate__(self, state):
+        self.tick = state["tick"]
+        self.port_idx = state["port_idx"]
+        self.vessel_idx = state["vessel_idx"]
+        self._action_scope = state["action_scope"]
+        self._early_discharge = state["early_discharge"]
+
     def __repr__(self):
         return self.__str__()
 
