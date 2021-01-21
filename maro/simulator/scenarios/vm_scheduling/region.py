@@ -31,7 +31,7 @@ class Region(NodeBase):
         """Reset to default value."""
         self.id = self._id
 
-        self._name: = ""
+        self._name = ""
         self._zone_list.clear()
 
     @property

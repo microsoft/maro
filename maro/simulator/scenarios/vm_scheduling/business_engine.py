@@ -425,7 +425,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
     def _update_cluster_metrics(self):
         for cluster in self._clusters:
             count_empty_machine: int = 0
-            for pm_id in cluster.pm_list
+            for pm_id in cluster.pm_list:
                 pm = self._machines[pm_id]
                 if pm.cpu_cores_allocated == 0:
                     count_empty_machine += 1
