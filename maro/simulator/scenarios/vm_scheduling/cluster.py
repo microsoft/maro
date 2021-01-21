@@ -12,6 +12,7 @@ class Cluster(NodeBase):
     id = NodeAttribute("i2")
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")
+    data_center_id = NodeAttribute("i2")
     # The number of empty machines in this cluster. A empty machine means that its allocated CPU cores are 0.
     empty_machine_num = NodeAttribute("i")
 
@@ -38,6 +39,7 @@ class Cluster(NodeBase):
 
         self.region_id = -1
         self.zone_id = -1
+        self.data_center_id = -1
         self.empty_machine_num = 0
 
     @property

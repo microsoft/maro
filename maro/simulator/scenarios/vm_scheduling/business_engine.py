@@ -121,10 +121,10 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._max_memory_oversubscription_rate: float = self._config.MAX_MEM_OVERSUBSCRIPTION_RATE
         self._max_utilization_rate: float = self._config.MAX_UTILIZATION_RATE
         # Load PM related configs.
-        self._region_amount = sum(len(item) for item in self._find_amount(key="Region", dictionary=self._config))
-        self._zone_amount = sum(len(item) for item in self._find_amount(key="Zone", dictionary=self._config))
-        self._cluster_amount = sum(len(item) for item in self._find_amount(key="Cluster", dictionary=self._config))
-        self._pm_amount: int = sum(amount for amount in self._find_amount(key="amount", dictionary=self._config))
+        self._region_amount = sum(len(item) for item in self._find_item(key="Region", dictionary=self._config))
+        self._zone_amount = sum(len(item) for item in self._find_item(key="Zone", dictionary=self._config))
+        self._cluster_amount = sum(len(item) for item in self._find_item(key="Cluster", dictionary=self._config))
+        self._pm_amount: int = sum(amount for amount in self._find_item(key="amount", dictionary=self._config))
 
         self._kill_all_vms_if_overload = self._config.KILL_ALL_VMS_IF_OVERLOAD
 
@@ -156,16 +156,16 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             self._download_processed_data()
             logger.info_green("Data preparation is finished.")
 
-    def _find_amount(self, key: str, dictionary: dict) -> int:
+    def _find_item(self, key: str, dictionary: dict) -> int:
         for k, v in dictionary.items():
             if k == key:
                 yield v
             elif isinstance(v, list):
                 for item in v:
-                    for result in self._find_amount(key, item):
+                    for result in self._find_item(key, item):
                         yield result
             elif isinstance(v, dict):
-                for result in self._find_amount(key, v):
+                for result in self._find_item(key, v):
                     yield result
 
     def _init_regions(self):
@@ -173,44 +173,59 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         self._regions = self._frame.regions
         region_id = 0
         zone_id = count(start=0)
-        for item in self._find_amount("Region", self._config):
-            for lower_level in item:
+        for region_list in self._find_item("region", self._config):
+            for region_dict in region_list:
                 region = self._regions[region_id]
                 region.set_init_state(
                     id=region_id
                 )
-                region.name = lower_level["name"]
-                region.zone_list = [next(zone_id) for _ in range(len(lower_level["Zone"]))]
+                region.name = region_dict["name"]
+                region.zone_list = [next(zone_id) for _ in range(len(region_dict["zone"]))]
                 region_id += 1
 
     def _init_zones(self):
         """Initialize the zones based on the config setting. The zone id starts from 0."""
         self._zones = self._frame.zones
         zone_id = 0
-        cluster_id = count(start=0)
-        for item in self._find_amount("Zone", self._config):
-            for lower_level in item:
+        data_center_id = count(start=0)
+        for zone_list in self._find_item("zone", self._config):
+            for zone_dict in zone_list:
                 zone = self._zones[zone_id]
                 zone.set_init_state(
                     id=zone_id
                 )
-                zone.name = lower_level["name"]
-                zone.cluster_list = [next(cluster_id) for _ in range(len(lower_level["Cluster"]))]
+                zone.name = zone_dict["name"]
+                zone.data_center_list = [next(data_center_id) for _ in range(len(zone_dict["data_center"]))]
                 zone_id += 1
+
+    def _init_data_centers(self):
+        """Initialize the zones based on the config setting. The zone id starts from 0."""
+        self._data_centers = self._frame.data_centers
+        data_center_id = 0
+        cluster_id = count(start=0)
+        for data_center_list in self._find_item("data_center", self._config):
+            for data_center_dict in data_center_list:
+                data_center = self._data_centers[data_center_id]
+                data_center.set_init_state(
+                    id=zone_id
+                )
+                data_center.name = data_center_dict["name"]
+                data_center.cluster_list = [next(cluster_id) for _ in range(len(data_center_dict["cluster"]))]
+                data_center_id += 1
 
     def _init_clusters(self):
         """Initialize the clusters based on the config setting. The cluster id starts from 0."""
         self._clusters = self._frame.clusters
         cluster_id = 0
         pm_id = count(start=0)
-        for item in self._find_amount("Cluster", self._config):
-            for lower_level in item:
+        for cluster_list in self._find_item("Cluster", self._config):
+            for cluster_dict in cluster_list:
                 cluster = self._clusters[cluster_id]
                 cluster.set_init_state(
                     id=cluster_id
                 )
-                cluster.name = lower_level["name"]
-                cluster.pm_list = [next(pm_id) for _ in range(sum(pm["amount"] for pm in lower_level["PM"]))]
+                cluster.name = cluster_dict["name"]
+                cluster.pm_list = [next(pm_id) for _ in range(sum(pm["amount"] for pm in cluster_dict["PM"]))]
                 cluster_id += 1
 
     def _init_pms(self):
@@ -220,7 +235,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
         # PM type dictionary.
         self._pm_type_dict: dict = {}
         pm_id = 0
-        for item in self._find_amount("PM", self._config):
+        for item in self._find_item("PM", self._config):
             for lower_level in item:
                 self._pm_type_dict[lower_level["PM_type"]] = lower_level
                 pm_amount = lower_level["amount"]
