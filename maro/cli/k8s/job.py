@@ -57,12 +57,9 @@ def get_job_logs(cluster_name: str, job_name: str, **kwargs):
     # Load details
     cluster_details = DetailsReader.load_cluster_details(cluster_name=cluster_name)
 
-    # FIXME: get job logs.
     if cluster_details["mode"] == "k8s/aks":
         executor = K8sAksExecutor(cluster_name=cluster_name)
-        executor.get_job_logs(
-            job_name=job_name
-        )
+        executor.get_job_logs(job_name=job_name)
     else:
         raise BadRequestError(f"Unsupported operation in mode '{cluster_details['mode']}'.")
 

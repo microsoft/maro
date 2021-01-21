@@ -215,7 +215,7 @@ class K8sExecutor(abc.ABC):
 
     @staticmethod
     def _export_log(pod_id: str, container_name: str, export_dir: str):
-        os.makedirs(os.path.expanduser(export_dir + f"/{pod_id}"), exist_ok=True)
+        os.makedirs(name=os.path.expanduser(export_dir + f"/{pod_id}"), exist_ok=True)
         with open(os.path.expanduser(export_dir + f"/{pod_id}/{container_name}.log"), "w") as fw:
             return_str = client.CoreV1Api().read_namespaced_pod_log(name=pod_id, namespace="default")
             fw.write(return_str)
@@ -234,6 +234,26 @@ class K8sExecutor(abc.ABC):
                 default=str
             )
         )
+
+    def get_job_logs(self, job_name: str, export_dir: str = "./"):
+        # Load details
+        job_details = K8sDetailsReader.load_job_details(job_name=job_name)
+
+        # Get pods details
+        pods_details = client.CoreV1Api().list_pod_for_all_namespaces().to_dict()["items"]
+
+        # Reformat export_dir
+        export_dir = os.path.expanduser(path=f"{export_dir}/{job_name}")
+
+        # Export logs
+        for pod_details in pods_details:
+            if pod_details["metadata"]["name"].startswith(job_details["id"]):
+                for container_details in pod_details["spec"]["containers"]:
+                    self._export_log(
+                        pod_id=pod_details["metadata"]["name"],
+                        container_name=container_details["name"],
+                        export_dir=export_dir
+                    )
 
     # maro k8s schedule
 
