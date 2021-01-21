@@ -23,58 +23,36 @@ MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
 MAX_UTILIZATION_RATE: 1
 
-Region:
-  - name: APAC'
-    Zone:
-      - name: 'asia-east1'
-        Cluster:
-          - name: 'asia-east1-a'
-            PM:
-              - PM_type: 0 # PM type is currently "int" only.
-                amount: 100
-                CPU: 32
-                # GPU: 0
-                memory: 128
-                power_curve:
-                  calibration_parameter: 1.4
-                  busy_power: 10
-                  idle_power: 1
-          - name: 'asia-east1-b'
-            PM:
-              - PM_type: 1 # PM type is currently "int" only.
-                amount: 0
-                CPU: 32
-              # GPU: 0
-                memory: 128
-                power_curve:
-                  calibration_parameter: 1.4
-                  busy_power: 10
-                  idle_power: 1
-      - name: 'asia-east2'
-        Cluster:
-          - name: 'asia-east2-a'
-            PM:
-              - PM_type: 0 # PM type is currently "int" only.
-                amount: 0
-                CPU: 32
-              # GPU: 0
-                memory: 128
-                power_curve:
-                  calibration_parameter: 1.4
-                  busy_power: 10
-                  idle_power: 1
-  - name: 'Europe'
-    Zone:
-      - name: 'europe-north1'
-        Cluster:
-          - name: 'europe-north1-a'
-            PM:
-              - PM_type: 0 # PM type is currently "int" only.
-                amount: 0
-                CPU: 32
-              # GPU: 0
-                memory: 128
-                power_curve:
-                  calibration_parameter: 1.4
-                  busy_power: 10
-                  idle_power: 1
+pm:
+  - pm_type: 0
+    cpu: 32
+    memory: 128
+    power_curve:
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1
+  - pm_type: 1
+    cpu: 32
+    memory: 128
+    power_curve:
+      calibration_parameter: 1.4
+      busy_power: 10
+      idle_power: 1
+
+cluster:
+  - name: 'JP-a'
+    pm:
+      - pm_type: 0
+        amount: 50
+      - pm_type: 1
+        amount: 50
+      - pm_type: 2
+        amount: 0
+  - name: 'JP-b'
+    pm:
+      - pm_type: 0
+        amount: 50
+  - name: 'SK-a'
+    pm:
+      - pm_types: 0
+        amount: 0
