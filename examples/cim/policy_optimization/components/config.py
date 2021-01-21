@@ -7,7 +7,6 @@ This file is used to load the configuration and convert it into a dotted diction
 
 import io
 import os
-
 import yaml
 
 
