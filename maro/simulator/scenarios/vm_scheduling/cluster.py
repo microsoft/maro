@@ -12,6 +12,8 @@ class Cluster(NodeBase):
     id = NodeAttribute("i2")
     region_id = NodeAttribute("i2")
     zone_id = NodeAttribute("i2")
+    # The number of empty machines in this cluster. A empty machine means that its allocated CPU cores are 0.
+    empty_machine_num = NodeAttribute("i")
 
     def __init__(self):
         self._id: int = 0
@@ -33,6 +35,10 @@ class Cluster(NodeBase):
         """Reset to default value."""
         self.id = self._id
         self._pm_list.clear()
+
+        self.region_id = -1
+        self.zone_id = -1
+        self.empty_machine_num = 0
 
     @property
     def pm_list(self) -> List[int]:

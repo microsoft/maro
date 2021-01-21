@@ -422,6 +422,15 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
             else:
                 pending_vm.add_utilization(cpu_utilization=cur_tick_cpu_utilization[pending_vm.id])
 
+    def _update_cluster_metrics(self):
+        for cluster in self._clusters:
+            count_empty_machine: int = 0
+            for pm_id in cluster.pm_list
+                pm = self._machines[pm_id]
+                if pm.cpu_cores_allocated == 0:
+                    count_empty_machine += 1
+            cluster.empty_machine_num = count_empty_machine
+
     def _update_pm_workload(self):
         """Update CPU utilization occupied by total VMs on each PM."""
         for pm in self._machines:

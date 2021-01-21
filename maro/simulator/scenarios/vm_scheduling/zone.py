@@ -31,6 +31,9 @@ class Zone(NodeBase):
     def reset(self):
         """Reset to default value."""
         self.id = self._id
+
+        self.region_id = -1
+        self._name = ""
         self._cluster_list.clear()
 
     @property
