@@ -23,22 +23,58 @@ MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 # Max CPU utilization rate.
 MAX_UTILIZATION_RATE: 1
 
-PM:
-  - PM_type: 0 # PM type is currently "int" only.
-    amount: 880
-    CPU: 16
-  # GPU: 0
-    memory: 112
-    power_curve:
-      calibration_parameter: 1.4
-      busy_power: 10
-      idle_power: 1
-# - PM_type: 1
-#   amount: 440
-#   CPU: 16
-#   GPU: 0
-#   memory: 112
-#   power_curve:
-#     calibration_parameter: 1.4
-#     busy_power: 10
-#     idle_power: 1
+Region:
+  - name: APAC'
+    Zone:
+      - name: 'asia-east1'
+        Cluster:
+          - name: 'asia-east1-a'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 880
+                CPU: 16
+                # GPU: 0
+                memory: 112
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+          - name: 'asia-east1-b'
+            PM:
+              - PM_type: 1 # PM type is currently "int" only.
+                amount: 0
+                CPU: 32
+              # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+      - name: 'asia-east2'
+        Cluster:
+          - name: 'asia-east2-a'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 0
+                CPU: 32
+              # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
+  - name: 'Europe'
+    Zone:
+      - name: 'europe-north1'
+        Cluster:
+          - name: 'europe-north1-a'
+            PM:
+              - PM_type: 0 # PM type is currently "int" only.
+                amount: 0
+                CPU: 32
+              # GPU: 0
+                memory: 128
+                power_curve:
+                  calibration_parameter: 1.4
+                  busy_power: 10
+                  idle_power: 1
