@@ -24,23 +24,14 @@ MAX_MEM_OVERSUBSCRIPTION_RATE: 1
 MAX_UTILIZATION_RATE: 1
 
 Region:
-  - type: 'Asia'
+  - name: 'Asia'
     Zone:
-      - type: 'East-Asia-1'
+      - name: 'East-Asia-1'
         Cluster:
-          - type: 'EA1-a'
+          - name: 'EA1-a'
             PM:
               - PM_type: 0 # PM type is currently "int" only.
                 amount: 100
-                CPU: 32
-                # GPU: 0
-                memory: 128
-                power_curve:
-                  calibration_parameter: 1.4
-                  busy_power: 10
-                  idle_power: 1
-              - PM_type: 1 # PM type is currently "int" only.
-                amount: 0
                 CPU: 32
                 # GPU: 0
                 memory: 128
@@ -59,7 +50,7 @@ Region:
                   calibration_parameter: 1.4
                   busy_power: 10
                   idle_power: 1
-      - type: 'East-Asia-2'
+      - name: 'East-Asia-2'
         Cluster:
           - type: 'EA2-a'
             PM:
@@ -72,11 +63,11 @@ Region:
                   calibration_parameter: 1.4
                   busy_power: 10
                   idle_power: 1
-  - type: 'Europe'
+  - name: 'Europe'
     Zone:
-      - type: 'East-Europe-1'
+      - name: 'East-Europe-1'
         Cluster:
-          - type: 'EE-a'
+          - name: 'EE-a'
             PM:
               - PM_type: 0 # PM type is currently "int" only.
                 amount: 0

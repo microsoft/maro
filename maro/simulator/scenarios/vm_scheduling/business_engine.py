@@ -177,7 +177,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 region.set_init_state(
                     id=region_id
                 )
-                region.name = lower_level["type"]
+                region.name = lower_level["name"]
                 region.zone_list = [next(zone_id) for _ in range(len(lower_level["Zone"]))]
                 region_id += 1
 
@@ -192,7 +192,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 zone.set_init_state(
                     id=zone_id
                 )
-                zone.name = lower_level["type"]
+                zone.name = lower_level["name"]
                 zone.cluster_list = [next(cluster_id) for _ in range(len(lower_level["Cluster"]))]
                 zone_id += 1
 
@@ -207,7 +207,7 @@ class VmSchedulingBusinessEngine(AbsBusinessEngine):
                 cluster.set_init_state(
                     id=cluster_id
                 )
-                cluster.name = lower_level["type"]
+                cluster.name = lower_level["name"]
                 cluster.pm_list = [next(pm_id) for _ in range(sum(pm["amount"] for pm in lower_level["PM"]))]
                 cluster_id += 1
 
